@@ -1,0 +1,42 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Development Guidelines
+
+## Development Workflow
+1. Use TypeScript strict mode - all files should be `.tsx` or `.ts`
+2. Follow ESLint rules defined in [eslint.config.mjs](mdc:eslint.config.mjs)
+3. Use path aliases (`@/`) for importing from the src directory
+
+## Code Quality Standards
+- **Type Safety**: All components and functions must be properly typed
+- **Error Handling**: Implement proper error boundaries and error handling
+- **Performance**: Leverage Next.js built-in optimizations (Image, Font, etc.)
+- **Accessibility**: Follow WCAG guidelines and use semantic HTML
+
+## File Naming Conventions
+- **Component Files**: kebab-case (e.g., `user-profile.tsx`, `meeting-form.tsx`)
+- **Component Names**: PascalCase for the actual component function (e.g., `UserProfile`, `MeetingForm`)
+- **Pages**: kebab-case for route segments, PascalCase for files (e.g., `user-profile/page.tsx`)
+- **Utilities**: camelCase (e.g., `formatDate.ts`)
+- **Types**: PascalCase with `.types.ts` suffix (e.g., `User.types.ts`)
+
+## Import Organization
+```typescript
+// 1. React and Next.js imports
+import React from 'react'
+import { Metadata } from 'next'
+
+// 2. Third-party libraries
+import clsx from 'clsx'
+
+// 3. Internal imports (using @ alias)
+import { Button } from '@/components/ui/button'
+import { UserService } from '@/services/user-service'
+
+// 4. Relative imports
+import './Component.css'
+```
+

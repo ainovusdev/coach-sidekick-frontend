@@ -1,0 +1,160 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# TypeScript Conventions
+
+## Type Definitions
+The project uses strict TypeScript mode as configured in [tsconfig.json](mdc:tsconfig.json). Follow these patterns:
+
+### Interface vs Type
+- Use `interface` for object shapes that might be extended
+- Use `type` for unions, intersections, and computed types
+
+```typescript
+// Good: Interface for extensible objects
+interface User {
+  id: string
+  name: string
+  email: string
+}
+
+interface Coach extends User {
+  specialties: string[]
+  rating: number
+}
+
+// Good: Type for unions and computed types
+type Status = 'pending' | 'approved' | 'rejected'
+type UserKeys = keyof User
+```
+
+### Naming Conventions
+- **Interfaces**: PascalCase (e.g., `UserProfile`)
+- **Types**: PascalCase (e.g., `ApiResponse`)
+- **Generics**: Single uppercase letter (e.g., `T`, `K`, `V`)
+- **Type files**: PascalCase with `.types.ts` (e.g., `User.types.ts`)
+
+### File Organization
+```
+src/
+├── types/                  # Global type definitions
+│   ├── api.types.ts       # API response types
+│   ├── user.types.ts      # User-related types
+│   └── index.ts           # Re-export all types
+├── components/
+│   └── Button/
+│       ├── index.tsx
+```
+
+## Common Type Patterns
+
+### API Responses
+```typescript
+interface ApiResponse<T> {
+  data: T
+  message: string
+  success: boolean
+}
+
+interface PaginatedResponse<T> extends ApiResponse<T[]> {
+  pagination: {
+    page: number
+    limit: number
+    total: number
+  }
+}
+```
+
+### Form Types
+```typescript
+interface FormState<T> {
+  data: T
+  errors: Partial<Record<keyof T, string>>
+  isSubmitting: boolean
+  isValid: boolean
+}
+
+// Usage
+type LoginForm = FormState<{
+  email: string
+  password: string
+}>
+```
+
+### Event Handler Types
+```typescript
+type SubmitHandler<T> = (data: T) => void | Promise<void>
+type ChangeHandler<T> = (field: keyof T, value: T[keyof T]) => void
+```
+
+## Utility Types
+Use TypeScript's built-in utility types:
+
+```typescript
+// Pick specific properties
+type UserSummary = Pick<User, 'id' | 'name' | 'email'>
+
+// Make all properties optional
+type PartialUser = Partial<User>
+
+// Make specific properties optional
+type CreateUser = Omit<User, 'id'> & {
+  id?: string
+}
+
+// Create types from object values
+const Roles = {
+  ADMIN: 'admin',
+  COACH: 'coach',
+  CLIENT: 'client'
+} as const
+
+type Role = typeof Roles[keyof typeof Roles]
+```
+
+## Generic Components
+```typescript
+interface SelectProps<T> {
+  options: T[]
+  value: T
+  onChange: (value: T) => void
+  getLabel: (option: T) => string
+  getValue: (option: T) => string
+}
+
+function Select<T>({ options, value, onChange, getLabel, getValue }: SelectProps<T>) {
+  // Component implementation
+}
+```
+
+## Type Guards
+```typescript
+function isUser(obj: unknown): obj is User {
+  return (
+    typeof obj === 'object' &&
+    obj !== null &&
+    'id' in obj &&
+    'name' in obj &&
+    'email' in obj
+  )
+}
+
+// Usage
+if (isUser(data)) {
+  // data is now typed as User
+  console.log(data.name)
+}
+```
+
+## Path Aliases
+Use the configured path alias from [tsconfig.json](mdc:tsconfig.json):
+```typescript
+// Good: Use @ alias
+import { User } from '@/types/user.types'
+import { Button } from '@/components/ui/Button'
+
+// Avoid: Relative imports across directories
+import { User } from '../../../types/user.types'
+```

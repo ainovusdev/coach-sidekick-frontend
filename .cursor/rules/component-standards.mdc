@@ -1,0 +1,131 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# React Component Standards
+
+## Component Structure
+All React components should follow this structure:
+
+```typescript
+import React from 'react'
+import { ComponentProps } from '@/types/Component.types'
+
+interface Props {
+  title: string
+  children: React.ReactNode
+  className?: string
+  onClick?: () => void
+}
+
+export default function Component({ 
+  title, 
+  children, 
+  className,
+  onClick 
+}: Props) {
+  return (
+    <div className={`base-styles ${className}`}>
+      <h2>{title}</h2>
+      {children}
+    </div>
+  )
+}
+```
+
+## Component Organization
+```
+components/
+├── ui/                     # Reusable UI components
+│   ├── button/
+│   │   └── index.ts
+├── features/               # Feature-specific components
+│   ├── coaching/
+│   ├── dashboard/
+└── layout/                 # Layout components
+    ├── header/
+    ├── footer/
+    └── navigation/
+```
+
+## Props Interface Guidelines
+- Always define explicit props interfaces
+- Use `React.ReactNode` for children
+- Make optional props clear with `?`
+- Use union types for specific values: `variant: 'primary' | 'secondary'`
+- Group related props into objects when there are many
+
+## Component Types
+### UI Components (Reusable)
+```typescript
+interface ButtonProps {
+  children: React.ReactNode
+  variant?: 'primary' | 'secondary' | 'outline'
+  size?: 'sm' | 'md' | 'lg'
+  disabled?: boolean
+  onClick?: () => void
+}
+```
+
+### Feature Components (Business Logic)
+```typescript
+interface CoachProfileProps {
+  coachId: string
+  showActions?: boolean
+  onEdit?: (coach: Coach) => void
+}
+```
+
+### Layout Components
+```typescript
+interface LayoutProps {
+  children: React.ReactNode
+  title?: string
+  showSidebar?: boolean
+}
+```
+
+## State Management
+- Use `useState` for local component state
+- Use `useReducer` for complex state logic
+- Lift state up to nearest common ancestor
+- Consider React Context for shared state across many components
+- Use Server Components to avoid client-side state when possible
+
+## Event Handling
+```typescript
+// Good: Specific event handlers
+const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault()
+  // Handle form submission
+}
+
+const handleButtonClick = () => {
+  // Handle button click
+}
+
+// Good: Callback props
+interface Props {
+  onSave: (data: FormData) => void
+  onCancel: () => void
+}
+```
+
+## Error Boundaries
+Wrap feature sections in error boundaries:
+```typescript
+import { ErrorBoundary } from 'react-error-boundary'
+
+function ErrorFallback({error}: {error: Error}) {
+  return <div>Something went wrong: {error.message}</div>
+}
+
+export default function FeatureSection() {
+  return (
+    <ErrorBoundary FallbackComponent={ErrorFallback}>
+      <FeatureComponent />
+    </ErrorBoundary>
+  )
+}
+```

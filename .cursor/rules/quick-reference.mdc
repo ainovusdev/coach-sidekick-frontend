@@ -1,0 +1,130 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Quick Reference Guide
+
+## Essential Commands
+```bash
+npm run dev          # Start development server (with Turbopack)
+npm run build        # Build for production
+npm run lint         # Run ESLint checks
+```
+
+## Key File Locations
+- **Main Layout**: [src/app/layout.tsx](mdc:src/app/layout.tsx)
+- **Home Page**: [src/app/page.tsx](mdc:src/app/page.tsx)
+- **Global Styles**: [src/app/globals.css](mdc:src/app/globals.css)
+- **TypeScript Config**: [tsconfig.json](mdc:tsconfig.json)
+- **Package Config**: [package.json](mdc:package.json)
+
+## Quick Patterns
+
+### New Page Component
+```typescript
+// app/new-page/page.tsx
+import { Metadata } from 'next'
+
+export const metadata: Metadata = {
+  title: 'Page Title | Coach Sidekick'
+}
+
+export default function NewPage() {
+  return <div>Page content</div>
+}
+```
+
+### New React Component
+```typescript
+// components/ui/component-name.tsx
+interface Props {
+  children: React.ReactNode
+  className?: string
+}
+
+export default function ComponentName({ children, className }: Props) {
+  return (
+    <div className={`base-styles ${className}`}>
+      {children}
+    </div>
+  )
+}
+```
+
+### Import Order Template
+```typescript
+// 1. React/Next.js
+import React from 'react'
+import { Metadata } from 'next'
+
+// 2. Third-party
+import clsx from 'clsx'
+
+// 3. Internal (@ alias)
+import { Button } from '@/components/ui/Button'
+
+// 4. Relative
+import './styles.css'
+```
+
+## Common Tailwind Patterns
+```typescript
+// Layout
+<div className="container mx-auto px-4 py-8">
+
+// Card
+<div className="bg-white rounded-lg border border-gray-200 p-6 shadow-sm">
+
+// Button
+<button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+
+// Responsive Grid
+<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+```
+
+## TypeScript Quick Types
+```typescript
+// Props interface
+interface ComponentProps {
+  title: string
+  optional?: boolean
+  children: React.ReactNode
+}
+
+// API Response
+interface ApiResponse<T> {
+  data: T
+  success: boolean
+  message: string
+}
+
+// Event handlers
+type ClickHandler = () => void
+type SubmitHandler<T> = (data: T) => void
+```
+
+## Folder Structure for New Features
+```
+src/
+├── app/
+│   └── feature-name/
+│       ├── page.tsx           # Main page
+│       ├── loading.tsx        # Loading state
+│       ├── error.tsx          # Error state
+│       └── layout.tsx         # Nested layout (optional)
+├── components/
+│   ├── ui/                    # Reusable components
+│   └── features/
+│       └── feature-name/      # Feature-specific components
+└── types/
+    └── feature-name.types.ts  # Type definitions
+```
+
+## Related Rules
+- [Project Overview](mdc:.cursor/rules/project-overview.mdc) - Tech stack and structure
+- [Development Guidelines](mdc:.cursor/rules/development-guidelines.mdc) - Workflow and standards
+- [Next.js Patterns](mdc:.cursor/rules/nextjs-patterns.mdc) - App Router conventions  
+- [Component Standards](mdc:.cursor/rules/component-standards.mdc) - React patterns
+- [TypeScript Conventions](mdc:.cursor/rules/typescript-conventions.mdc) - Type definitions
+- [Styling Guidelines](mdc:.cursor/rules/styling-guidelines.mdc) - Tailwind CSS patterns
