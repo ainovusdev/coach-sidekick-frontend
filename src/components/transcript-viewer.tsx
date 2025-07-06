@@ -7,6 +7,9 @@ interface TranscriptEntry {
   text: string
   timestamp: string
   confidence?: number
+  is_final?: boolean
+  start_time?: number
+  end_time?: number
 }
 
 interface TranscriptViewerProps {
@@ -70,7 +73,7 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
                 strokeLinecap="round"
                 strokeLinejoin="round"
                 strokeWidth={2}
-                d="M7 4V2a1 1 0 011-1h8a1 1 0 011 1v2m0 0V1a1 1 0 011-1h2a1 1 0 011 1v3M7 4H5a1 1 0 00-1 1v14a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1h-2m-5 3v6m0 0v6m0-6h6m-6 0H6"
+                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
               />
             </svg>
           </div>
@@ -83,14 +86,17 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
           </p>
 
           <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Troubleshooting Tips:</strong>
+            <strong>Real-time Transcription Tips:</strong>
             <ul className="mt-2 text-left space-y-1">
-              <li>• Make sure participants are unmuted and speaking</li>
+              <li>• Make sure participants are unmuted and speaking clearly</li>
               <li>
-                • Check that meeting captions are enabled in your meeting
-                platform
+                • Real-time transcription starts automatically when audio is
+                detected
               </li>
-              <li>• It may take 1-2 minutes for transcription to begin</li>
+              <li>
+                • Partial results appear immediately, final results replace them
+              </li>
+              <li>• It may take 30-60 seconds for transcription to begin</li>
             </ul>
           </div>
 
@@ -128,7 +134,10 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
 
       <div ref={scrollRef} className="max-h-96 overflow-y-auto p-6 space-y-4">
         {transcript.map((entry, index) => (
-          <div key={index} className="flex space-x-3">
+          <div
+            key={index}
+            className={`flex space-x-3 ${!entry.is_final ? 'opacity-75' : ''}`}
+          >
             <div className="flex-shrink-0">
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSpeakerColor(
@@ -148,8 +157,19 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
                     {Math.round(entry.confidence * 100)}% confidence
                   </span>
                 )}
+                {entry.is_final === false && (
+                  <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">
+                    live
+                  </span>
+                )}
               </div>
-              <p className="text-gray-900 leading-relaxed">{entry.text}</p>
+              <p
+                className={`leading-relaxed ${
+                  !entry.is_final ? 'text-gray-700 italic' : 'text-gray-900'
+                }`}
+              >
+                {entry.text}
+              </p>
             </div>
           </div>
         ))}

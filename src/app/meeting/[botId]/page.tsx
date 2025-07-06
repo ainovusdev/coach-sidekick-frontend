@@ -36,6 +36,39 @@ export default function MeetingPage() {
   const fetchBotData = useCallback(async () => {
     try {
       setLoading(true)
+      // Try real-time transcript endpoint first
+      const realtimeResponse = await fetch(
+        `/api/recall/realtime-transcript/${botId}`,
+      )
+
+      if (realtimeResponse.ok) {
+        const data = await realtimeResponse.json()
+        console.log('[Meeting Page] Real-time data:', data)
+
+        if (data.bot) {
+          // Normalize meeting_url if it's an object
+          const normalizedBot = {
+            ...data.bot,
+            meeting_url:
+              typeof data.bot.meeting_url === 'string'
+                ? data.bot.meeting_url
+                : data.bot.meeting_url?.meeting_id
+                ? `https://meet.google.com/${data.bot.meeting_url.meeting_id}`
+                : '#',
+          }
+          setBot(normalizedBot)
+        }
+
+        if (data.transcript && data.transcript.length > 0) {
+          setTranscript(data.transcript)
+        }
+        setError(null)
+        setLoading(false)
+        return
+      }
+
+      // Fallback to regular transcript API if real-time not available
+      console.log('[Meeting Page] Real-time not available, using fallback API')
       const response = await fetch(`/api/recall/transcript/${botId}`)
 
       if (!response.ok) {
@@ -43,7 +76,7 @@ export default function MeetingPage() {
       }
 
       const data = await response.json()
-      console.log('[Meeting Page] Initial bot data:', data)
+      console.log('[Meeting Page] Fallback bot data:', data)
 
       if (data.bot) {
         // Normalize meeting_url if it's an object
@@ -76,10 +109,43 @@ export default function MeetingPage() {
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {
       try {
+        // Try real-time endpoint first for live updates
+        const realtimeResponse = await fetch(
+          `/api/recall/realtime-transcript/${botId}`,
+        )
+
+        if (realtimeResponse.ok) {
+          const data = await realtimeResponse.json()
+          console.log('[Meeting Page] Real-time polling update:', data)
+
+          // Update bot status
+          if (data.bot) {
+            setBot(prevBot => {
+              if (!prevBot) return null
+              return {
+                ...prevBot,
+                status: data.bot.status || prevBot.status,
+              }
+            })
+          }
+
+          // Update transcript with real-time data
+          if (data.transcript) {
+            setTranscript(data.transcript)
+            console.log(
+              '[Meeting Page] Updated LIVE transcript with',
+              data.transcript.length,
+              'entries',
+            )
+          }
+          return
+        }
+
+        // Fallback to regular API
         const response = await fetch(`/api/recall/transcript/${botId}`)
         if (response.ok) {
           const data = await response.json()
-          console.log('[Meeting Page] Polling update:', data)
+          console.log('[Meeting Page] Fallback polling update:', data)
 
           // Update bot status
           if (data.bot) {
@@ -105,7 +171,7 @@ export default function MeetingPage() {
       } catch (error) {
         console.error('[Meeting Page] Polling error:', error)
       }
-    }, 3000) // Poll every 3 seconds
+    }, 1000) // Poll every 1 second for more responsive live updates
 
     return () => clearInterval(interval)
   }, [botId])
