@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 
-const RECALL_API_KEY = 'e69f1ec2e80b30e64e5e66f923b273bf62c93c0d'
+const RECALL_API_KEY = '1c0de77d7db7ad0313d15ac7fec9dc89d57e1f47'
 const RECALL_API_URL = 'https://us-west-2.recall.ai/api/v1'
 
 export async function GET(

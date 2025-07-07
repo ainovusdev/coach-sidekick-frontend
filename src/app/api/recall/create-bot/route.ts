@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import axios from 'axios'
 import { transcriptStore } from '@/lib/transcript-store'
 
-const RECALL_API_KEY = 'e69f1ec2e80b30e64e5e66f923b273bf62c93c0d'
+const RECALL_API_KEY = '1c0de77d7db7ad0313d15ac7fec9dc89d57e1f47'
 const RECALL_API_URL = 'https://us-west-2.recall.ai/api/v1'
 
 export async function POST(request: NextRequest) {
@@ -23,6 +23,16 @@ export async function POST(request: NextRequest) {
         ? `https://${process.env.VERCEL_URL}`
         : 'http://localhost:3000')
 
+    console.log('recall webhook is ', {
+      realtime_endpoints: [
+        {
+          type: 'webhook',
+          // url: `${baseUrl}/api/recall/webhook`,
+          url: 'https://4b99-103-218-26-197.ngrok-free.app/api/recall/webhook',
+          events: ['transcript.data', 'transcript.partial_data'],
+        },
+      ],
+    })
     // Create bot with Recall.ai API with real-time transcription
     const response = await axios.post(
       `${RECALL_API_URL}/bot`,
@@ -37,7 +47,8 @@ export async function POST(request: NextRequest) {
           realtime_endpoints: [
             {
               type: 'webhook',
-              url: `${baseUrl}/api/recall/webhook`,
+              // url: `${baseUrl}/api/recall/webhook`,
+              url: 'https://4b99-103-218-26-197.ngrok-free.app/api/recall/webhook',
               events: ['transcript.data', 'transcript.partial_data'],
             },
           ],
@@ -71,7 +82,7 @@ export async function POST(request: NextRequest) {
     const axiosError = error as any
     console.error(
       'Error creating bot:',
-      axiosError.response?.data || axiosError.message,
+      JSON.stringify(axiosError.response?.data) || axiosError.message,
     )
 
     return NextResponse.json(
