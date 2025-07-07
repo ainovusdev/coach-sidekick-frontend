@@ -1,12 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
 import { transcriptStore } from '@/lib/transcript-store'
-
-const RECALL_API_KEY = '1c0de77d7db7ad0313d15ac7fec9dc89d57e1f47'
-const RECALL_API_URL = 'https://us-west-2.recall.ai/api/v1'
+import {
+  getRecallHeaders,
+  config,
+  getWebhookUrl,
+  isConfigured,
+} from '@/lib/config'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if the app is properly configured
+    if (!isConfigured()) {
+      return NextResponse.json(
+        {
+          error: 'Application not configured',
+          message:
+            'RECALL_API_KEY is missing. Please check your environment variables.',
+        },
+        { status: 500 },
+      )
+    }
+
     const { meeting_url } = await request.json()
 
     if (!meeting_url) {
@@ -16,27 +30,14 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Get the base URL for the webhook
-    const baseUrl =
-      process.env.NEXT_PUBLIC_WEBHOOK_BASE_URL ||
-      (process.env.VERCEL_URL
-        ? `https://${process.env.VERCEL_URL}`
-        : 'http://localhost:3000')
+    const webhookUrl = getWebhookUrl()
+    console.log('Creating bot with webhook URL:', webhookUrl)
 
-    console.log('recall webhook is ', {
-      realtime_endpoints: [
-        {
-          type: 'webhook',
-          // url: `${baseUrl}/api/recall/webhook`,
-          url: 'https://4b99-103-218-26-197.ngrok-free.app/api/recall/webhook',
-          events: ['transcript.data', 'transcript.partial_data'],
-        },
-      ],
-    })
     // Create bot with Recall.ai API with real-time transcription
-    const response = await axios.post(
-      `${RECALL_API_URL}/bot`,
-      {
+    const response = await fetch(`${config.recall.apiUrl}/bot`, {
+      method: 'POST',
+      headers: getRecallHeaders(),
+      body: JSON.stringify({
         meeting_url,
         recording_config: {
           transcript: {
@@ -47,23 +48,24 @@ export async function POST(request: NextRequest) {
           realtime_endpoints: [
             {
               type: 'webhook',
-              // url: `${baseUrl}/api/recall/webhook`,
-              url: 'https://4b99-103-218-26-197.ngrok-free.app/api/recall/webhook',
+              url: webhookUrl,
               events: ['transcript.data', 'transcript.partial_data'],
             },
           ],
         },
-      },
-      {
-        headers: {
-          Authorization: `Token ${RECALL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      },
-    )
+      }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(
+        `Failed to create bot: ${errorData.message || response.statusText}`,
+      )
+    }
+
+    const botData = await response.json()
 
     // Initialize session in transcript store
-    const botData = response.data
     transcriptStore.initSession(botData.id, {
       id: botData.id,
       status: botData.status_changes?.[0]?.code || 'created',
@@ -74,21 +76,27 @@ export async function POST(request: NextRequest) {
 
     console.log(`[Create Bot] Initialized session for bot: ${botData.id}`)
     console.log(
-      `[Create Bot] Configured real-time transcription with webhook: ${baseUrl}/api/recall/webhook`,
+      `[Create Bot] Configured real-time transcription with webhook: ${webhookUrl}`,
     )
 
-    return NextResponse.json(response.data)
-  } catch (error: unknown) {
-    const axiosError = error as any
-    console.error(
-      'Error creating bot:',
-      JSON.stringify(axiosError.response?.data) || axiosError.message,
-    )
+    return NextResponse.json(botData)
+  } catch (error) {
+    console.error('Error creating bot:', error)
+
+    if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
+      return NextResponse.json(
+        {
+          error: 'Configuration error',
+          message: error.message,
+        },
+        { status: 500 },
+      )
+    }
 
     return NextResponse.json(
       {
         error: 'Failed to create bot',
-        details: axiosError.response?.data?.message || axiosError.message,
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )

@@ -1,6 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Separator } from '@/components/ui/separator'
+import { Mic, Circle, Clock, MessageSquare, Volume2 } from 'lucide-react'
 
 interface TranscriptEntry {
   speaker: string
@@ -42,12 +46,12 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
 
   const getSpeakerColor = (speaker: string) => {
     const colors = [
-      'bg-blue-100 text-blue-800',
-      'bg-green-100 text-green-800',
-      'bg-purple-100 text-purple-800',
-      'bg-pink-100 text-pink-800',
-      'bg-indigo-100 text-indigo-800',
-      'bg-yellow-100 text-yellow-800',
+      'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+      'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+      'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
+      'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400',
+      'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400',
+      'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
     ]
 
     const hash = speaker.split('').reduce((a, b) => {
@@ -60,129 +64,122 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
 
   if (!transcript || transcript.length === 0) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"
-              />
-            </svg>
-          </div>
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
-            Waiting for Transcript
-          </h3>
-          <p className="text-gray-600 mb-4">
-            The bot is connecting to the meeting. Transcript will appear here
-            once participants start speaking.
-          </p>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MessageSquare className="w-5 h-5" />
+            <span>Live Transcript</span>
+            <Badge variant="outline" className="ml-auto text-xs">
+              <Circle className="w-2 h-2 mr-1 text-muted-foreground" />
+              Waiting
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <Mic className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-medium mb-2">Waiting for Audio</h3>
+            <p className="text-muted-foreground text-sm mb-6 max-w-md mx-auto">
+              The bot is connecting to the meeting. Transcript will appear here
+              once participants start speaking.
+            </p>
 
-          <div className="mb-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-700">
-            <strong>Real-time Transcription Tips:</strong>
-            <ul className="mt-2 text-left space-y-1">
-              <li>• Make sure participants are unmuted and speaking clearly</li>
-              <li>
-                • Real-time transcription starts automatically when audio is
-                detected
-              </li>
-              <li>
-                • Partial results appear immediately, final results replace them
-              </li>
-              <li>• It may take 30-60 seconds for transcription to begin</li>
-            </ul>
-          </div>
+            <div className="bg-muted/50 rounded-lg p-4 text-sm text-left max-w-md mx-auto mb-6">
+              <p className="font-medium mb-2 flex items-center">
+                <Volume2 className="w-4 h-4 mr-2" />
+                Transcription Tips
+              </p>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• Ensure participants are unmuted</li>
+                <li>• Speak clearly for better accuracy</li>
+                <li>• May take 30-60 seconds to start</li>
+              </ul>
+            </div>
 
-          <div className="mt-4 flex justify-center">
-            <div className="flex space-x-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"></div>
+            <div className="flex justify-center space-x-1">
+              <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
               <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                className="w-2 h-2 bg-primary rounded-full animate-bounce"
                 style={{ animationDelay: '0.1s' }}
               ></div>
               <div
-                className="w-2 h-2 bg-blue-500 rounded-full animate-bounce"
+                className="w-2 h-2 bg-primary rounded-full animate-bounce"
                 style={{ animationDelay: '0.2s' }}
               ></div>
             </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-      <div className="p-6 border-b border-gray-200">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold text-gray-900">
-            Live Transcript
-          </h3>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600">Recording</span>
-          </div>
-        </div>
-      </div>
-
-      <div ref={scrollRef} className="max-h-96 overflow-y-auto p-6 space-y-4">
-        {transcript.map((entry, index) => (
-          <div
-            key={index}
-            className={`flex space-x-3 ${!entry.is_final ? 'opacity-75' : ''}`}
-          >
-            <div className="flex-shrink-0">
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getSpeakerColor(
-                  entry.speaker,
-                )}`}
-              >
-                {entry.speaker}
-              </span>
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center space-x-2 mb-1">
-                <span className="text-xs text-gray-500">
-                  {formatTimestamp(entry.timestamp)}
-                </span>
-                {entry.confidence && (
-                  <span className="text-xs text-gray-400">
-                    {Math.round(entry.confidence * 100)}% confidence
-                  </span>
-                )}
-                {entry.is_final === false && (
-                  <span className="text-xs text-blue-500 bg-blue-50 px-1.5 py-0.5 rounded">
-                    live
-                  </span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <MessageSquare className="w-5 h-5" />
+          <span>Live Transcript</span>
+          <Badge variant="default" className="ml-auto text-xs">
+            <Circle className="w-2 h-2 mr-1 fill-current animate-pulse" />
+            Recording
+          </Badge>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div ref={scrollRef} className="max-h-[600px] overflow-y-auto">
+          <div className="p-6 space-y-4">
+            {transcript.map((entry, index) => (
+              <div key={index} className="space-y-2">
+                <div className="flex items-center space-x-3">
+                  <Badge
+                    variant="secondary"
+                    className={`text-xs ${getSpeakerColor(entry.speaker)}`}
+                  >
+                    {entry.speaker}
+                  </Badge>
+                  <div className="flex items-center space-x-2 text-xs text-muted-foreground">
+                    <Clock className="w-3 h-3" />
+                    <span>{formatTimestamp(entry.timestamp)}</span>
+                    {entry.confidence && (
+                      <span>• {Math.round(entry.confidence * 100)}%</span>
+                    )}
+                    {entry.is_final === false && (
+                      <Badge variant="outline" className="text-xs">
+                        live
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <p
+                  className={`text-sm leading-relaxed pl-1 ${
+                    !entry.is_final ? 'text-muted-foreground italic' : ''
+                  }`}
+                >
+                  {entry.text}
+                </p>
+                {index < transcript.length - 1 && (
+                  <Separator className="mt-4" />
                 )}
               </div>
-              <p
-                className={`leading-relaxed ${
-                  !entry.is_final ? 'text-gray-700 italic' : 'text-gray-900'
-                }`}
-              >
-                {entry.text}
-              </p>
+            ))}
+          </div>
+        </div>
+
+        <div className="border-t bg-muted/30 px-6 py-3">
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <span>
+              {transcript.length}{' '}
+              {transcript.length === 1 ? 'entry' : 'entries'}
+            </span>
+            <div className="flex items-center space-x-1">
+              <Circle className="w-2 h-2 fill-green-500 text-green-500" />
+              <span>Live transcription active</span>
             </div>
           </div>
-        ))}
-      </div>
-
-      {transcript.length > 0 && (
-        <div className="p-4 bg-gray-50 border-t border-gray-200 text-center">
-          <span className="text-sm text-gray-600">
-            {transcript.length} transcript{' '}
-            {transcript.length === 1 ? 'entry' : 'entries'}
-          </span>
         </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   )
 }

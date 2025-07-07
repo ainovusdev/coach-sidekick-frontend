@@ -1,44 +1,62 @@
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
-
-const RECALL_API_KEY = '1c0de77d7db7ad0313d15ac7fec9dc89d57e1f47'
-const RECALL_API_URL = 'https://us-west-2.recall.ai/api/v1'
+import { getRecallHeaders, config, isConfigured } from '@/lib/config'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ botId: string }> },
 ) {
   try {
+    // Check if the app is properly configured
+    if (!isConfigured()) {
+      return NextResponse.json(
+        {
+          error: 'Application not configured',
+          message:
+            'RECALL_API_KEY is missing. Please check your environment variables.',
+        },
+        { status: 500 },
+      )
+    }
+
     const { botId } = await params
 
     // Stop the bot
-    const response = await axios.post(
-      `${RECALL_API_URL}/bot/${botId}/leave_call`,
-      {},
+    const response = await fetch(
+      `${config.recall.apiUrl}/bot/${botId}/leave_call`,
       {
-        headers: {
-          Authorization: `Token ${RECALL_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
+        method: 'POST',
+        headers: getRecallHeaders(),
       },
     )
+
+    if (!response.ok) {
+      throw new Error(`Failed to stop bot: ${response.statusText}`)
+    }
+
+    const data = await response.json()
 
     return NextResponse.json({
       success: true,
       message: 'Bot stopped successfully',
-      bot: response.data,
+      bot: data,
     })
-  } catch (error: unknown) {
-    const axiosError = error as any
-    console.error(
-      'Error stopping bot:',
-      axiosError.response?.data || axiosError.message,
-    )
+  } catch (error) {
+    console.error('Error stopping bot:', error)
+
+    if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
+      return NextResponse.json(
+        {
+          error: 'Configuration error',
+          message: error.message,
+        },
+        { status: 500 },
+      )
+    }
 
     return NextResponse.json(
       {
         error: 'Failed to stop bot',
-        details: axiosError.response?.data?.message || axiosError.message,
+        details: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 },
     )

@@ -4,10 +4,25 @@ import { useState, useEffect, useCallback } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { BotStatus } from '@/components/bot-status'
 import { TranscriptViewer } from '@/components/transcript-viewer'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  ArrowLeft,
+  Bot,
+  ExternalLink,
+  Square,
+  Activity,
+  Clock,
+  Users,
+  MessageSquare,
+} from 'lucide-react'
 
 interface Bot {
   id: string
-  status: string
+  status: string | undefined
   meeting_url: string
   platform?: string
   meeting_id?: string
@@ -36,7 +51,11 @@ export default function MeetingPage() {
   const fetchBotData = useCallback(async () => {
     try {
       setLoading(true)
-      // Try real-time transcript endpoint first
+      setError(null)
+
+      console.log(`[Meeting Page] Fetching initial data for bot ID: ${botId}`)
+
+      // Try real-time transcript endpoint
       const realtimeResponse = await fetch(
         `/api/recall/realtime-transcript/${botId}`,
       )
@@ -44,6 +63,7 @@ export default function MeetingPage() {
       if (realtimeResponse.ok) {
         const data = await realtimeResponse.json()
         console.log('[Meeting Page] Real-time data:', data)
+        console.log('[Meeting Page] Initial transcript data:', data.transcript)
 
         if (data.bot) {
           // Normalize meeting_url if it's an object
@@ -59,44 +79,38 @@ export default function MeetingPage() {
           setBot(normalizedBot)
         }
 
-        if (data.transcript && data.transcript.length > 0) {
-          setTranscript(data.transcript)
-        }
-        setError(null)
+        // Always set transcript, even if empty
+        setTranscript(data.transcript || [])
+        console.log(
+          '[Meeting Page] Set initial transcript with',
+          (data.transcript || []).length,
+          'entries',
+        )
+        console.log(
+          '[Meeting Page] Initial transcript entries:',
+          data.transcript || [],
+        )
+
         setLoading(false)
         return
-      }
-
-      // Fallback to regular transcript API if real-time not available
-      console.log('[Meeting Page] Real-time not available, using fallback API')
-      const response = await fetch(`/api/recall/transcript/${botId}`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch bot data')
-      }
-
-      const data = await response.json()
-      console.log('[Meeting Page] Fallback bot data:', data)
-
-      if (data.bot) {
-        // Normalize meeting_url if it's an object
-        const normalizedBot = {
-          ...data.bot,
-          meeting_url:
-            typeof data.bot.meeting_url === 'string'
-              ? data.bot.meeting_url
-              : data.bot.meeting_url?.meeting_id
-              ? `https://meet.google.com/${data.bot.meeting_url.meeting_id}`
-              : '#',
+      } else {
+        // Check if it's a configuration error
+        const errorData = await realtimeResponse.json().catch(() => ({}))
+        if (
+          errorData.error === 'Application not configured' ||
+          errorData.error === 'Configuration error'
+        ) {
+          setError(
+            errorData.message ||
+              'Application is not properly configured. Please check your environment variables.',
+          )
+          setLoading(false)
+          return
         }
-        setBot(normalizedBot)
-      }
 
-      if (data.transcript && data.transcript.length > 0) {
-        setTranscript(data.transcript)
+        // If API returns error, throw to be caught below
+        throw new Error(`API Error: ${errorData.error || 'Unknown error'}`)
       }
-
-      setError(null)
     } catch (err) {
       console.error('[Meeting Page] Error fetching bot data:', err)
       setError(err instanceof Error ? err.message : 'Unknown error')
@@ -109,7 +123,9 @@ export default function MeetingPage() {
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {
       try {
-        // Try real-time endpoint first for live updates
+        console.log(`[Meeting Page] Polling for bot ID: ${botId}`)
+
+        // Try real-time endpoint for live updates
         const realtimeResponse = await fetch(
           `/api/recall/realtime-transcript/${botId}`,
         )
@@ -117,6 +133,10 @@ export default function MeetingPage() {
         if (realtimeResponse.ok) {
           const data = await realtimeResponse.json()
           console.log('[Meeting Page] Real-time polling update:', data)
+          console.log(
+            '[Meeting Page] Received transcript data:',
+            data.transcript,
+          )
 
           // Update bot status
           if (data.bot) {
@@ -129,52 +149,34 @@ export default function MeetingPage() {
             })
           }
 
-          // Update transcript with real-time data
-          if (data.transcript) {
+          // Always update transcript with real-time data
+          if (data.transcript !== undefined) {
             setTranscript(data.transcript)
-            console.log(
-              '[Meeting Page] Updated LIVE transcript with',
-              data.transcript.length,
-              'entries',
-            )
           }
-          return
-        }
-
-        // Fallback to regular API
-        const response = await fetch(`/api/recall/transcript/${botId}`)
-        if (response.ok) {
-          const data = await response.json()
-          console.log('[Meeting Page] Fallback polling update:', data)
-
-          // Update bot status
-          if (data.bot) {
-            setBot(prevBot => {
-              if (!prevBot) return null
-              return {
-                ...prevBot,
-                status: data.bot.status || prevBot.status,
-              }
-            })
-          }
-
-          // Update transcript
-          if (data.transcript && data.transcript.length > 0) {
-            setTranscript(data.transcript)
-            console.log(
-              '[Meeting Page] Updated transcript with',
-              data.transcript.length,
-              'entries',
+        } else {
+          // Try debug endpoint if polling fails
+          try {
+            const debugResponse = await fetch(
+              `/api/recall/debug?botId=${botId}`,
             )
+            if (debugResponse.ok) {
+              const debugData = await debugResponse.json()
+              console.log(
+                '[Meeting Page] Debug data after polling failure:',
+                debugData,
+              )
+            }
+          } catch (debugError) {
+            console.error('[Meeting Page] Debug fetch failed:', debugError)
           }
         }
       } catch (error) {
         console.error('[Meeting Page] Polling error:', error)
       }
-    }, 1000) // Poll every 1 second for more responsive live updates
+    }, 8000) // Poll every 1 second for more responsive live updates
 
     return () => clearInterval(interval)
-  }, [botId])
+  }, [botId, transcript.length])
 
   // Stop bot
   const stopBot = async () => {
@@ -212,159 +214,213 @@ export default function MeetingPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading meeting data...</p>
-        </div>
+      <div className="min-h-screen bg-background">
+        <header className="border-b">
+          <div className="container mx-auto px-6 py-4">
+            <div className="flex items-center space-x-3">
+              <Skeleton className="h-6 w-6" />
+              <Skeleton className="h-6 w-32" />
+            </div>
+          </div>
+        </header>
+        <main className="container mx-auto px-6 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1 space-y-6">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-24" />
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            </div>
+            <div className="lg:col-span-2">
+              <Card>
+                <CardHeader>
+                  <Skeleton className="h-6 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-96 w-full" />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </main>
       </div>
     )
   }
 
   if (error || !bot) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-            <p>
-              <strong>Error:</strong> {error || 'Bot not found'}
-            </p>
-          </div>
-          <button
-            onClick={() => router.push('/')}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition-colors"
-          >
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="max-w-md mx-auto p-6">
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{error || 'Bot not found'}</AlertDescription>
+          </Alert>
+          <Button onClick={() => router.push('/')} className="w-full">
+            <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
-          </button>
+          </Button>
         </div>
       </div>
     )
   }
 
+  const getStatusVariant = (status: string | undefined) => {
+    if (!status) return 'outline'
+
+    switch (status) {
+      case 'in_call_recording':
+      case 'recording':
+        return 'default'
+      case 'done':
+        return 'secondary'
+      case 'error':
+        return 'destructive'
+      default:
+        return 'outline'
+    }
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <header className="border-b">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => router.push('/')}
-                className="text-gray-600 hover:text-gray-900 transition-colors"
               >
-                <svg
-                  className="w-6 h-6"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                  />
-                </svg>
-              </button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Meeting Session
-              </h1>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back
+              </Button>
+              <div className="flex items-center space-x-2">
+                <Bot className="w-5 h-5 text-muted-foreground" />
+                <h1 className="text-lg font-semibold">Meeting Session</h1>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Bot ID: {bot.id}</span>
-              <button
+              <Badge variant="outline" className="text-xs font-mono">
+                {bot.id}
+              </Badge>
+              <Button
+                variant="destructive"
+                size="sm"
                 onClick={stopBot}
                 disabled={bot.status === 'stopping' || bot.status === 'done'}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
               >
+                <Square className="w-4 h-4 mr-2" />
                 {bot.status === 'stopping' ? 'Stopping...' : 'Stop Bot'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-      </div>
+      </header>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <main className="container mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column - Bot Status & Meeting Info */}
           <div className="lg:col-span-1 space-y-6">
             {/* Bot Status */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Bot Status
-              </h2>
-              <BotStatus bot={bot} onStop={stopBot} />
-            </div>
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2">
+                  <Activity className="w-5 h-5" />
+                  <span>Status</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <BotStatus bot={bot} onStop={stopBot} />
+              </CardContent>
+            </Card>
 
             {/* Meeting Info */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Meeting Info
-              </h2>
-              <div className="space-y-3">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2">
+                  <Users className="w-5 h-5" />
+                  <span>Meeting Info</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Platform
                   </label>
-                  <p className="text-gray-900 capitalize">
+                  <p className="text-sm font-medium capitalize">
                     {bot.platform || 'Google Meet'}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Meeting ID
                   </label>
-                  <p className="text-gray-900 font-mono text-sm">
-                    {bot.meeting_id || 'N/A'}
-                  </p>
+                  <p className="text-sm font-mono">{bot.meeting_id || 'N/A'}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">
+                  <label className="text-sm font-medium text-muted-foreground">
                     Meeting URL
                   </label>
-                  <a
-                    href={bot.meeting_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 text-sm break-all"
-                  >
-                    {bot.meeting_url}
-                  </a>
+                  <Button variant="link" asChild className="h-auto p-0 text-sm">
+                    <a
+                      href={bot.meeting_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center space-x-1"
+                    >
+                      <span className="truncate">Open Meeting</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </Button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Stats */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Session Stats
-              </h2>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Transcript Entries</span>
-                  <span className="font-medium">{transcript.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status</span>
-                  <span
-                    className={`font-medium ${
-                      bot.status === 'done'
-                        ? 'text-green-600'
-                        : bot.status === 'in_call_recording'
-                        ? 'text-blue-600'
-                        : bot.status === 'error'
-                        ? 'text-red-600'
-                        : 'text-yellow-600'
-                    }`}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center space-x-2">
+                  <MessageSquare className="w-5 h-5" />
+                  <span>Session Stats</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Status</span>
+                  <Badge
+                    variant={getStatusVariant(bot.status)}
+                    className="text-xs"
                   >
-                    {bot.status
+                    {(bot.status || 'Connecting')
                       .replace(/_/g, ' ')
                       .replace(/\b\w/g, l => l.toUpperCase())}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Transcript Entries
+                  </span>
+                  <span className="text-sm font-medium">
+                    {transcript.length}
                   </span>
                 </div>
-              </div>
-            </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Session Time
+                  </span>
+                  <div className="flex items-center space-x-1 text-sm">
+                    <Clock className="w-3 h-3" />
+                    <span>Live</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Right Column - Live Transcript */}
@@ -372,7 +428,7 @@ export default function MeetingPage() {
             <TranscriptViewer transcript={transcript} />
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

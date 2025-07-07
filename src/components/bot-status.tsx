@@ -1,5 +1,9 @@
 'use client'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Circle, Square, ExternalLink } from 'lucide-react'
+
 interface Bot {
   id: string
   status: string | undefined
@@ -20,7 +24,7 @@ export function BotStatus({ bot, onStop }: BotStatusProps) {
       case 'joining':
         return 'yellow'
       case 'in_meeting':
-        return 'green'
+      case 'in_call_recording':
       case 'recording':
         return 'green'
       case 'done':
@@ -40,114 +44,105 @@ export function BotStatus({ bot, onStop }: BotStatusProps) {
         return 'Joining Meeting'
       case 'in_meeting':
         return 'In Meeting'
+      case 'in_call_recording':
+        return 'Recording'
       case 'recording':
         return 'Recording Active'
       case 'done':
-        return 'Recording Complete'
+        return 'Complete'
       case 'error':
-        return 'Error Occurred'
+        return 'Error'
       default:
-        return status
+        return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+    }
+  }
+
+  const getStatusVariant = (status: string | undefined) => {
+    const color = getStatusColor(status)
+    switch (color) {
+      case 'green':
+        return 'default'
+      case 'gray':
+        return 'secondary'
+      case 'red':
+        return 'destructive'
+      case 'yellow':
+        return 'outline'
+      default:
+        return 'outline'
     }
   }
 
   const statusColor = getStatusColor(bot.status)
   const statusText = getStatusText(bot.status)
-
-  // Debug logging
-  console.log('BotStatus render - bot:', bot)
+  const isActive = statusColor === 'green'
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div className="space-y-4">
+      {/* Status Indicator */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <div
-            className={`w-4 h-4 rounded-full ${
-              statusColor === 'green'
-                ? 'bg-green-500 animate-pulse'
-                : statusColor === 'yellow'
-                ? 'bg-yellow-500 animate-pulse'
-                : statusColor === 'red'
-                ? 'bg-red-500'
-                : statusColor === 'gray'
-                ? 'bg-gray-400'
-                : 'bg-blue-500 animate-pulse'
-            }`}
-          ></div>
-
+        <div className="flex items-center space-x-3">
+          <div className="relative">
+            <Circle
+              className={`w-3 h-3 ${
+                statusColor === 'green'
+                  ? 'text-green-500 fill-green-500'
+                  : statusColor === 'yellow'
+                  ? 'text-yellow-500 fill-yellow-500'
+                  : statusColor === 'red'
+                  ? 'text-red-500 fill-red-500'
+                  : statusColor === 'gray'
+                  ? 'text-gray-400 fill-gray-400'
+                  : 'text-blue-500 fill-blue-500'
+              } ${isActive ? 'animate-pulse' : ''}`}
+            />
+          </div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Meeting Bot Active
-            </h3>
-            <p className="text-sm text-gray-600">
-              Status:{' '}
-              <span
-                className={`font-medium ${
-                  statusColor === 'green'
-                    ? 'text-green-600'
-                    : statusColor === 'yellow'
-                    ? 'text-yellow-600'
-                    : statusColor === 'red'
-                    ? 'text-red-600'
-                    : statusColor === 'gray'
-                    ? 'text-gray-600'
-                    : 'text-blue-600'
-                }`}
-              >
-                {statusText}
-              </span>
-            </p>
+            <p className="text-sm font-medium">Recording Bot</p>
+            <Badge variant={getStatusVariant(bot.status)} className="text-xs">
+              {statusText}
+            </Badge>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <button
+        {bot.status !== 'done' && bot.status !== 'stopping' && (
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onStop}
-            className="bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition-colors flex items-center space-x-2"
+            className="text-destructive hover:text-destructive"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"
-              />
-            </svg>
-            <span>Stop Recording</span>
-          </button>
-        </div>
+            <Square className="w-3 h-3 mr-1" />
+            Stop
+          </Button>
+        )}
       </div>
 
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="text-gray-600">Bot ID:</span>
-            <span className="ml-2 font-mono text-gray-900">
-              {bot.id || 'N/A'}
-            </span>
-          </div>
-          <div>
-            <span className="text-gray-600">Meeting URL:</span>
+      {/* Bot Details */}
+      <div className="space-y-3 pt-3 border-t">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Bot ID</span>
+          <span className="font-mono">{bot.id.slice(0, 8)}...</span>
+        </div>
+
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-muted-foreground">Meeting</span>
+          <Button
+            variant="link"
+            size="sm"
+            asChild
+            className="h-auto p-0 text-xs"
+          >
             <a
               href={bot.meeting_url || '#'}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-2 text-blue-600 hover:text-blue-800 truncate block"
+              className="flex items-center space-x-1"
             >
-              {bot.meeting_url || 'N/A'}
+              <span>View</span>
+              <ExternalLink className="w-3 h-3" />
             </a>
-          </div>
+          </Button>
         </div>
       </div>
     </div>
