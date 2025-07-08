@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import { TranscriptViewer } from '@/components/transcript-viewer'
+import { CoachingPanel } from '@/components/coaching-panel'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { MeetingLoading } from '@/components/meeting-loading'
@@ -55,14 +56,22 @@ export default function MeetingPage() {
           </>
         )}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Live Transcript</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TranscriptViewer transcript={transcript} />
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Live Transcript</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TranscriptViewer transcript={transcript} />
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="lg:col-span-1">
+            <CoachingPanel botId={botId} />
+          </div>
+        </div>
       </div>
     </div>
   )

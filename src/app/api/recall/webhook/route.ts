@@ -1,5 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
+import { coachingAnalysisService } from '@/lib/coaching-analysis'
+
+// Async function to trigger coaching analysis without blocking webhook response
+async function triggerCoachingAnalysis(botId: string) {
+  try {
+    // Only analyze if OpenAI is configured
+    if (!process.env.OPENAI_API_KEY) {
+      return
+    }
+
+    const session = transcriptStore.getSession(botId)
+    if (!session || session.transcript.length < 3) {
+      return // Need at least some conversation to analyze
+    }
+
+    const lastAnalysis = coachingAnalysisService.getLatestAnalysis(botId)
+    const lastAnalyzedIndex = lastAnalysis?.lastAnalyzedTranscriptIndex || 0
+
+    // Only analyze if there are at least 3 new entries since last analysis
+    if (session.transcript.length < lastAnalyzedIndex + 3) {
+      return
+    }
+
+    // Trigger analysis asynchronously
+    await coachingAnalysisService.analyzeConversation(
+      botId,
+      session.transcript,
+      lastAnalyzedIndex,
+    )
+
+    console.log(
+      `[Coaching] Analysis triggered for bot ${botId}, ${
+        session.transcript.length - lastAnalyzedIndex
+      } new entries`,
+    )
+  } catch (error) {
+    console.error(`[Coaching] Analysis failed for bot ${botId}:`, error)
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -59,6 +98,9 @@ export async function POST(request: NextRequest) {
             start_time: words[0]?.start_timestamp?.relative || 0,
             end_time: words[words.length - 1]?.end_timestamp?.relative || 0,
           })
+
+          // Trigger coaching analysis for final transcript data
+          setImmediate(() => triggerCoachingAnalysis(botId))
         }
         break
 
@@ -124,6 +166,9 @@ export async function POST(request: NextRequest) {
               body.data.transcript.words[body.data.transcript.words.length - 1]
                 ?.end_timestamp?.relative || 0,
           })
+
+          // Trigger coaching analysis for final transcript data
+          setImmediate(() => triggerCoachingAnalysis(botId))
         }
         break
 
