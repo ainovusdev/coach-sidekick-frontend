@@ -14,9 +14,10 @@ interface Bot {
 interface BotStatusProps {
   bot: Bot
   onStop: () => void
+  compact?: boolean
 }
 
-export function BotStatus({ bot, onStop }: BotStatusProps) {
+export function BotStatus({ bot, onStop, compact = false }: BotStatusProps) {
   const getStatusColor = (status: string | undefined) => {
     if (!status) return 'blue'
 
@@ -77,6 +78,31 @@ export function BotStatus({ bot, onStop }: BotStatusProps) {
   const statusText = getStatusText(bot.status)
   const isActive = statusColor === 'green'
 
+  // Compact version for header
+  if (compact) {
+    return (
+      <div className="flex items-center space-x-2">
+        <Circle
+          className={`w-2 h-2 ${
+            statusColor === 'green'
+              ? 'text-green-500 fill-green-500'
+              : statusColor === 'yellow'
+              ? 'text-yellow-500 fill-yellow-500'
+              : statusColor === 'red'
+              ? 'text-red-500 fill-red-500'
+              : statusColor === 'gray'
+              ? 'text-gray-400 fill-gray-400'
+              : 'text-blue-500 fill-blue-500'
+          } ${isActive ? 'animate-pulse' : ''}`}
+        />
+        <Badge variant={getStatusVariant(bot.status)} className="text-xs">
+          {statusText}
+        </Badge>
+      </div>
+    )
+  }
+
+  // Full version
   return (
     <div className="space-y-4">
       {/* Status Indicator */}

@@ -38,7 +38,7 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
   }
 
   return (
-    <div className="space-y-4 max-h-96 overflow-y-auto">
+    <div className="space-y-4 h-full overflow-y-auto">
       {transcript.map((entry, index) => (
         <Card
           key={index}

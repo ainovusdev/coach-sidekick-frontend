@@ -175,9 +175,9 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   }
 
   return (
-    <div className={className}>
-      <Card>
-        <CardHeader className="pb-3">
+    <div className={`${className} flex flex-col h-full`}>
+      <Card className="h-full flex flex-col">
+        <CardHeader className="pb-3 flex-shrink-0">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
@@ -210,9 +210,12 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
           )}
         </CardHeader>
 
-        <CardContent className="space-y-4">
-          <Tabs defaultValue="suggestions" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+        <CardContent className="flex-1 flex flex-col overflow-hidden">
+          <Tabs
+            defaultValue="suggestions"
+            className="w-full h-full flex flex-col"
+          >
+            <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
               <TabsTrigger value="suggestions">
                 Suggestions ({suggestions.length})
               </TabsTrigger>
@@ -220,188 +223,230 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
               <TabsTrigger value="scores">Scores</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="suggestions" className="space-y-3 mt-4">
-              {loading && (
-                <div className="text-center py-4 text-gray-500">
-                  <div className="animate-spin h-5 w-5 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                  Analyzing conversation...
-                </div>
-              )}
+            <TabsContent
+              value="suggestions"
+              className="flex-1 mt-4 overflow-y-auto"
+            >
+              <div className="space-y-3 pr-2">
+                {loading && (
+                  <div className="text-center py-4 text-gray-500">
+                    <div className="animate-spin h-5 w-5 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                    Analyzing conversation...
+                  </div>
+                )}
 
-              {error && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                  {error}
-                </div>
-              )}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                    {error}
+                  </div>
+                )}
 
-              {suggestions.length === 0 && !loading && !error && (
-                <div className="text-center py-8 text-gray-500">
-                  <Lightbulb className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No active suggestions available.</p>
-                  <p className="text-xs mt-1">
-                    {metadata?.transcriptLength
-                      ? 'Keep the conversation going for more insights.'
-                      : 'Waiting for conversation to begin...'}
-                  </p>
-                </div>
-              )}
-
-              {suggestions.map(suggestion => (
-                <Card
-                  key={suggestion.id}
-                  className="border-l-4 border-l-purple-500"
-                >
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        {getPriorityIcon(suggestion.priority)}
-                        <Badge variant="outline" className="text-xs">
-                          {suggestion.category}
-                        </Badge>
-                        <Badge
-                          variant={getTimingBadgeColor(suggestion.timing)}
-                          className="text-xs"
-                        >
-                          {suggestion.timing.replace('_', ' ')}
-                        </Badge>
-                      </div>
-                      <span className="text-xs text-gray-500">
-                        {new Date(suggestion.timestamp).toLocaleTimeString()}
-                      </span>
-                    </div>
-
-                    <p className="font-medium text-gray-900 mb-2">
-                      {suggestion.suggestion}
+                {suggestions.length === 0 && !loading && !error && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Lightbulb className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p>No active suggestions available.</p>
+                    <p className="text-xs mt-1">
+                      {metadata?.transcriptLength
+                        ? 'Keep the conversation going for more insights.'
+                        : 'Waiting for conversation to begin...'}
                     </p>
-
-                    {suggestion.rationale && (
-                      <p className="text-sm text-gray-600">
-                        <strong>Why:</strong> {suggestion.rationale}
-                      </p>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </TabsContent>
-
-            <TabsContent value="insights" className="mt-4">
-              {analysis ? (
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl mb-1">
-                          {getPhaseIcon(analysis.conversationPhase)}
-                        </div>
-                        <p className="text-sm font-medium capitalize">
-                          {analysis.conversationPhase.replace('_', ' ')}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Conversation Phase
-                        </p>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4 text-center">
-                        <div className="text-2xl mb-1 font-bold text-purple-600">
-                          {analysis.overallScore}/10
-                        </div>
-                        <p className="text-sm font-medium">Overall Score</p>
-                        <p className="text-xs text-gray-500">
-                          Coaching Quality
-                        </p>
-                      </CardContent>
-                    </Card>
                   </div>
+                )}
 
-                  <div className="space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm flex items-center gap-1">
-                          <Zap className="h-4 w-4" />
-                          Coach Energy
-                        </span>
-                        <span className="text-sm font-medium">
-                          {analysis.coachEnergyLevel}/10
-                        </span>
-                      </div>
-                      <Progress
-                        value={analysis.coachEnergyLevel * 10}
-                        className="h-2"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm flex items-center gap-1">
-                          <Heart className="h-4 w-4" />
-                          Client Engagement
-                        </span>
-                        <span className="text-sm font-medium">
-                          {analysis.clientEngagementLevel}/10
-                        </span>
-                      </div>
-                      <Progress
-                        value={analysis.clientEngagementLevel * 10}
-                        className="h-2"
-                      />
-                    </div>
-                  </div>
-
-                  {metadata && (
-                    <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>Session: {metadata.sessionAge} minutes</div>
-                        <div>
-                          Transcript: {metadata.transcriptLength} entries
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No analysis data available yet.</p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={triggerAnalysis}
-                    className="mt-3"
-                    disabled={loading}
+                {suggestions.map(suggestion => (
+                  <Card
+                    key={suggestion.id}
+                    className={`border-l-4 transition-all duration-200 hover:shadow-lg ${
+                      suggestion.priority === 'high'
+                        ? 'border-l-red-500 bg-gradient-to-r from-red-50 to-white'
+                        : suggestion.priority === 'medium'
+                        ? 'border-l-yellow-500 bg-gradient-to-r from-yellow-50 to-white'
+                        : 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white'
+                    }`}
                   >
-                    Start Analysis
-                  </Button>
-                </div>
-              )}
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {getPriorityIcon(suggestion.priority)}
+                          <Badge
+                            variant="outline"
+                            className={`text-xs font-medium ${
+                              suggestion.priority === 'high'
+                                ? 'border-red-300 text-red-700 bg-red-50'
+                                : suggestion.priority === 'medium'
+                                ? 'border-yellow-300 text-yellow-700 bg-yellow-50'
+                                : 'border-blue-300 text-blue-700 bg-blue-50'
+                            }`}
+                          >
+                            {suggestion.category
+                              .replace('_', ' ')
+                              .toUpperCase()}
+                          </Badge>
+                          <Badge
+                            variant={getTimingBadgeColor(suggestion.timing)}
+                            className="text-xs font-medium"
+                          >
+                            {suggestion.timing === 'now'
+                              ? '🔥 ACT NOW'
+                              : suggestion.timing === 'next_pause'
+                              ? '⏸️ NEXT PAUSE'
+                              : '📝 END OF CALL'}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-gray-500 whitespace-nowrap">
+                          {new Date(suggestion.timestamp).toLocaleTimeString()}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3">
+                        <p className="font-semibold text-gray-900 text-base leading-relaxed">
+                          {suggestion.suggestion}
+                        </p>
+
+                        {suggestion.rationale && (
+                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50 shadow-sm">
+                            <p className="text-sm text-gray-700">
+                              <span className="inline-flex items-center gap-1 font-medium text-purple-700 mb-1">
+                                <Lightbulb className="h-3 w-3" />
+                                Why this matters:
+                              </span>
+                              <br />
+                              {suggestion.rationale}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             </TabsContent>
 
-            <TabsContent value="scores" className="mt-4">
-              {analysis ? (
-                <div className="space-y-3">
-                  <div className="text-center mb-4">
-                    <div className="text-3xl font-bold text-purple-600 mb-1">
-                      {analysis.overallScore}/10
+            <TabsContent
+              value="insights"
+              className="flex-1 mt-4 overflow-y-auto"
+            >
+              <div className="pr-2">
+                {analysis ? (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl mb-1">
+                            {getPhaseIcon(analysis.conversationPhase)}
+                          </div>
+                          <p className="text-sm font-medium capitalize">
+                            {analysis.conversationPhase.replace('_', ' ')}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Conversation Phase
+                          </p>
+                        </CardContent>
+                      </Card>
+
+                      <Card>
+                        <CardContent className="p-4 text-center">
+                          <div className="text-2xl mb-1 font-bold text-purple-600">
+                            {analysis.overallScore}/10
+                          </div>
+                          <p className="text-sm font-medium">Overall Score</p>
+                          <p className="text-xs text-gray-500">
+                            Coaching Quality
+                          </p>
+                        </CardContent>
+                      </Card>
                     </div>
-                    <p className="text-sm text-gray-600">
-                      Overall Coaching Score
-                    </p>
-                  </div>
 
-                  <Separator />
+                    <div className="space-y-3">
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm flex items-center gap-1">
+                            <Zap className="h-4 w-4" />
+                            Coach Energy
+                          </span>
+                          <span className="text-sm font-medium">
+                            {analysis.coachEnergyLevel}/10
+                          </span>
+                        </div>
+                        <Progress
+                          value={analysis.coachEnergyLevel * 10}
+                          className="h-2"
+                        />
+                      </div>
 
-                  <div className="text-center text-sm text-gray-500">
-                    <p>Detailed criteria scoring will be available</p>
-                    <p>as the conversation progresses.</p>
+                      <div>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm flex items-center gap-1">
+                            <Heart className="h-4 w-4" />
+                            Client Engagement
+                          </span>
+                          <span className="text-sm font-medium">
+                            {analysis.clientEngagementLevel}/10
+                          </span>
+                        </div>
+                        <Progress
+                          value={analysis.clientEngagementLevel * 10}
+                          className="h-2"
+                        />
+                      </div>
+                    </div>
+
+                    {metadata && (
+                      <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>Session: {metadata.sessionAge} minutes</div>
+                          <div>
+                            Transcript: {metadata.transcriptLength} entries
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No scoring data available yet.</p>
-                </div>
-              )}
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p>No analysis data available yet.</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={triggerAnalysis}
+                      className="mt-3"
+                      disabled={loading}
+                    >
+                      Start Analysis
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="scores" className="flex-1 mt-4 overflow-y-auto">
+              <div className="pr-2">
+                {analysis ? (
+                  <div className="space-y-3">
+                    <div className="text-center mb-4">
+                      <div className="text-3xl font-bold text-purple-600 mb-1">
+                        {analysis.overallScore}/10
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        Overall Coaching Score
+                      </p>
+                    </div>
+
+                    <Separator />
+
+                    <div className="text-center text-sm text-gray-500">
+                      <p>Detailed criteria scoring will be available</p>
+                      <p>as the conversation progresses.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p>No scoring data available yet.</p>
+                  </div>
+                )}
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

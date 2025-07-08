@@ -1,19 +1,28 @@
 'use client'
 
 import { useParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { TranscriptViewer } from '@/components/transcript-viewer'
 import { CoachingPanel } from '@/components/coaching-panel'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
+import { BotStatus } from '@/components/bot-status'
+import { Card, CardContent } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { MeetingLoading } from '@/components/meeting-loading'
 import { MeetingError } from '@/components/meeting-error'
-import { MeetingHeader } from '@/components/meeting-header'
-import { MeetingInfo } from '@/components/meeting-info'
 import { useBotData } from '@/hooks/use-bot-data'
 import { useBotActions } from '@/hooks/use-bot-actions'
+import {
+  ArrowLeft,
+  ExternalLink,
+  Users,
+  MessageSquare,
+  Brain,
+} from 'lucide-react'
 
 export default function MeetingPage() {
   const params = useParams()
+  const router = useRouter()
   const botId = params.botId as string
 
   const { bot, transcript, loading, error } = useBotData(botId)
@@ -37,39 +46,117 @@ export default function MeetingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto py-6 px-4">
-        <MeetingHeader
-          bot={bot}
-          onStopBot={handleStopBot}
-          isStoppingBot={isStoppingBot}
-        />
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Top Navigation Bar */}
+      <div className="bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/')}
+                className="text-gray-600 hover:text-gray-900"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Dashboard
+              </Button>
 
-        {bot && (
-          <>
-            <MeetingInfo
-              bot={bot}
-              transcript={transcript}
-              onStopBot={handleStopBot}
-            />
-            <Separator className="my-6" />
-          </>
-        )}
+              {bot && (
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-px bg-gray-300" />
+                  <Badge variant="outline" className="font-mono text-xs">
+                    {bot.id}
+                  </Badge>
+                  <BotStatus bot={bot} onStop={handleStopBot} compact />
+                </div>
+              )}
+            </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Live Transcript</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TranscriptViewer transcript={transcript} />
-              </CardContent>
-            </Card>
+            {bot && (
+              <div className="flex items-center gap-3">
+                <div className="hidden sm:flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <Users className="h-4 w-4" />
+                    <span className="capitalize">
+                      {bot.platform || 'Unknown'}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MessageSquare className="h-4 w-4" />
+                    <span>{transcript.length} entries</span>
+                  </div>
+                </div>
+
+                <div className="h-6 w-px bg-gray-300" />
+
+                {bot.meeting_url !== '#' && (
+                  <Button variant="outline" size="sm" asChild>
+                    <a
+                      href={bot.meeting_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Join Meeting
+                    </a>
+                  </Button>
+                )}
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleStopBot}
+                  disabled={bot.status === 'call_ended' || isStoppingBot}
+                >
+                  {isStoppingBot ? 'Stopping...' : 'Stop Bot'}
+                </Button>
+              </div>
+            )}
           </div>
+        </div>
+      </div>
 
-          <div className="lg:col-span-1">
-            <CoachingPanel botId={botId} />
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        {/* Section Headers */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Brain className="h-6 w-6 text-purple-600" />
+              <h1 className="text-xl font-bold text-gray-900">
+                AI Coaching Assistant
+              </h1>
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 text-purple-700"
+              >
+                Real-time
+              </Badge>
+            </div>
+
+            <div className="h-6 w-px bg-gray-300" />
+
+            <div className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-bold text-gray-900">
+                Live Transcript
+              </h2>
+              <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                {transcript.length} entries
+              </Badge>
+            </div>
+          </div>
+        </div>
+
+        {/* Side by Side Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[800px]">
+          <Card className="shadow-md h-full overflow-scroll flex flex-col">
+            <CardContent className="p-6 flex-1 flex flex-col min-h-0">
+              <TranscriptViewer transcript={transcript} />
+            </CardContent>
+          </Card>
+          <div className="flex flex-col h-full">
+            <CoachingPanel botId={botId} className="shadow-lg h-full" />
           </div>
         </div>
       </div>
