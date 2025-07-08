@@ -3,8 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { MeetingForm } from '@/components/meeting-form'
-import { Badge } from '@/components/ui/badge'
-import { Bot } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Brain, Plus, Clock, Users } from 'lucide-react'
 
 export default function CoachDashboard() {
   const router = useRouter()
@@ -50,58 +50,74 @@ export default function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="text-center mb-8">
-            <div className="flex items-center justify-center mb-4">
-              <Bot className="h-12 w-12 text-blue-600 mr-3" />
-              <h1 className="text-3xl font-bold text-gray-900">
+      {/* Simple Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 py-6">
+          <div className="flex items-center gap-3">
+            <Brain className="h-8 w-8 text-purple-600" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">
                 Coach Sidekick
               </h1>
-            </div>
-            <p className="text-gray-600 text-lg">
-              AI-powered meeting transcription and coaching insights
-            </p>
-            <div className="flex justify-center mt-4">
-              <Badge variant="secondary" className="text-sm">
-                Powered by Recall.ai
-              </Badge>
+              <p className="text-sm text-gray-600">
+                Start your AI-assisted coaching session
+              </p>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div className="max-w-md mx-auto">
-            <MeetingForm onSubmit={handleCreateBot} loading={loading} />
-          </div>
+      {/* Main Content - Centered and Simple */}
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <div className="max-w-2xl mx-auto space-y-8">
+          {/* Primary Action - Start Session */}
+          <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-white shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <CardTitle className="flex items-center justify-center gap-2 text-purple-700 text-xl">
+                <Plus className="h-6 w-6" />
+                Start New Coaching Session
+              </CardTitle>
+              <p className="text-gray-600 mt-2">
+                Enter your meeting URL to begin real-time coaching analysis
+              </p>
+            </CardHeader>
+            <CardContent className="pb-8">
+              <MeetingForm onSubmit={handleCreateBot} loading={loading} />
+            </CardContent>
+          </Card>
 
-          <div className="mt-12 text-center">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              How it works
-            </h2>
-            <div className="grid md:grid-cols-3 gap-6 text-left">
-              <div className="p-4 bg-blue-50 rounded-lg">
-                <div className="text-blue-600 font-semibold mb-2">
-                  1. Join Meeting
-                </div>
-                <p className="text-gray-700 text-sm">
-                  Enter your meeting URL and our AI bot will join automatically
+          {/* Recent Sessions - Simplified */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <Clock className="h-5 w-5 text-gray-600" />
+                Recent Sessions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                <p className="text-sm">No recent sessions</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Your coaching sessions will appear here
                 </p>
               </div>
-              <div className="p-4 bg-green-50 rounded-lg">
-                <div className="text-green-600 font-semibold mb-2">
-                  2. Live Transcription
-                </div>
-                <p className="text-gray-700 text-sm">
-                  Watch real-time transcription as your meeting progresses
-                </p>
-              </div>
-              <div className="p-4 bg-purple-50 rounded-lg">
-                <div className="text-purple-600 font-semibold mb-2">
-                  3. Get Insights
-                </div>
-                <p className="text-gray-700 text-sm">
-                  Receive AI-powered coaching insights and action items
-                </p>
-              </div>
+            </CardContent>
+          </Card>
+
+          {/* Status Bar */}
+          <div className="flex items-center justify-center gap-6 text-sm text-gray-600">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <span>AI Analysis Ready</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <span>Real-time Transcription</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <span>Coaching Insights</span>
             </div>
           </div>
         </div>
