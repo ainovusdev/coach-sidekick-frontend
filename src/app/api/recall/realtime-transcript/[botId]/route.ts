@@ -7,7 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ botId: string }> },
 ) {
   try {
-    // Check if the app is properly configured
     if (!isConfigured()) {
       return NextResponse.json(
         {
@@ -23,16 +22,9 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const debug = searchParams.get('debug') === 'true'
 
-    console.log(`[Realtime Transcript] Getting transcript for bot: ${botId}`)
-
-    // Debug: Show all existing sessions
     const allSessions = transcriptStore.getAllSessionIds()
-    console.log(`[Realtime Transcript] All sessions:`, allSessions)
 
-    // If debug mode, return detailed session information
     if (debug) {
-      console.log(`[Realtime Transcript] Debug mode enabled for bot: ${botId}`)
-
       return NextResponse.json({
         debug: true,
         botId,
@@ -43,32 +35,10 @@ export async function GET(
       })
     }
 
-    // Get session from in-memory store
     const session = transcriptStore.getSession(botId)
 
-    console.log(`[Realtime Transcript] Session found:`, !!session)
-    if (session) {
-      console.log(
-        `[Realtime Transcript] Session transcript length:`,
-        session.transcript.length,
-      )
-      console.log(
-        `[Realtime Transcript] Session created at:`,
-        session.createdAt,
-      )
-      console.log(
-        `[Realtime Transcript] Session webhook events:`,
-        session.webhookEvents,
-      )
-    }
-
     if (!session) {
-      // If no session exists, try to get bot info from API and create empty session
       try {
-        console.log(
-          `[Realtime Transcript] No session found, fetching bot info from API for ${botId}`,
-        )
-
         const botResponse = await fetch(
           `${config.recall.apiUrl}/bot/${botId}`,
           {
@@ -79,7 +49,6 @@ export async function GET(
         if (botResponse.ok) {
           const bot = await botResponse.json()
 
-          // Create a session with empty transcript
           const normalizedBot = {
             id: bot.id,
             status:
@@ -95,17 +64,8 @@ export async function GET(
             meeting_id: bot.meeting_url?.meeting_id,
           }
 
-          console.log(
-            `[Realtime Transcript] Initializing session for bot ${botId}`,
-          )
-
-          // Check if session was created by webhook while we were fetching bot data
           const existingSession = transcriptStore.getSession(botId)
           if (existingSession) {
-            console.log(
-              `[Realtime Transcript] Session already exists with ${existingSession.transcript.length} entries, using it`,
-            )
-
             return NextResponse.json({
               bot: {
                 id: existingSession.bot.id,
@@ -127,16 +87,9 @@ export async function GET(
             })
           }
 
-          // Only initialize if still no session exists
           transcriptStore.initSession(botId, normalizedBot)
 
-          // Get the newly created session
           const newSession = transcriptStore.getSession(botId)
-          console.log(
-            `[Realtime Transcript] Created new session with ${
-              newSession?.transcript.length || 0
-            } entries`,
-          )
 
           return NextResponse.json({
             bot: normalizedBot,
@@ -151,14 +104,9 @@ export async function GET(
               createdAt: newSession?.createdAt || new Date().toISOString(),
             },
           })
-        } else {
-          throw new Error(`Bot not found: ${botResponse.statusText}`)
         }
+        throw new Error(`Bot not found: ${botResponse.statusText}`)
       } catch (fetchError) {
-        console.error(
-          `[Realtime Transcript] Error fetching bot info:`,
-          fetchError,
-        )
         return NextResponse.json(
           {
             error: 'Bot session not found',
@@ -177,7 +125,6 @@ export async function GET(
       }
     }
 
-    // Return real-time data from the store
     const result = {
       bot: {
         id: session.bot.id,
@@ -195,35 +142,12 @@ export async function GET(
         source: 'existing_session',
         webhookEvents: session.webhookEvents,
         createdAt: session.createdAt,
-        allSessions, // Include all session IDs for debugging
+        allSessions,
       },
     }
 
-    console.log(
-      `[Realtime Transcript] Returning ${session.transcript.length} entries for bot ${botId} from existing session`,
-    )
-
-    console.log(
-      '[Realtime Transcript] Full response:',
-      JSON.stringify(
-        {
-          ...result,
-          transcript: result.transcript.map(t => ({
-            speaker: t.speaker,
-            text: t.text.substring(0, 50) + (t.text.length > 50 ? '...' : ''),
-            is_final: t.is_final,
-            timestamp: t.timestamp,
-          })),
-        },
-        null,
-        2,
-      ),
-    )
-
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching real-time transcript:', error)
-
     if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
       return NextResponse.json(
         {

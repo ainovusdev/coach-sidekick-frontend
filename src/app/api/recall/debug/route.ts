@@ -6,8 +6,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const botId = searchParams.get('botId')
 
-    console.log(`[Debug] Debug endpoint called with botId: ${botId}`)
-
     if (botId) {
       // Get specific bot session info
       const session = transcriptStore.getSession(botId)

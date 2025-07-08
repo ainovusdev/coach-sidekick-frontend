@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
     }
 
     const webhookUrl = getWebhookUrl()
-    console.log('Creating bot with webhook URL:', webhookUrl)
 
     // Create bot with Recall.ai API with real-time transcription
     const response = await fetch(`${config.recall.apiUrl}/bot`, {
@@ -74,15 +73,8 @@ export async function POST(request: NextRequest) {
       meeting_id: botData.meeting_url?.meeting_id,
     })
 
-    console.log(`[Create Bot] Initialized session for bot: ${botData.id}`)
-    console.log(
-      `[Create Bot] Configured real-time transcription with webhook: ${webhookUrl}`,
-    )
-
     return NextResponse.json(botData)
   } catch (error) {
-    console.error('Error creating bot:', error)
-
     if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
       return NextResponse.json(
         {

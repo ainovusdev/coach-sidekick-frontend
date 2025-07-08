@@ -41,8 +41,6 @@ export async function POST(
       bot: data,
     })
   } catch (error) {
-    console.error('Error stopping bot:', error)
-
     if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
       return NextResponse.json(
         {
