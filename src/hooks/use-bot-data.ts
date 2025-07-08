@@ -9,6 +9,8 @@ interface UseBotDataReturn {
   refetch: () => Promise<void>
 }
 
+const REFRESH_INTERVAL = 10000
+
 export function useBotData(botId: string): UseBotDataReturn {
   const [bot, setBot] = useState<Bot | null>(null)
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
@@ -99,7 +101,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       } catch {
         // Polling error, continue silently
       }
-    }, 8000)
+    }, REFRESH_INTERVAL)
 
     return () => clearInterval(interval)
   }, [botId])
