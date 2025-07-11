@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const webhookUrl = getWebhookUrl()
+    console.log('WEBHOOK URL is', webhookUrl)
 
     // Create bot with Recall.ai API with real-time transcription
     const response = await fetch(`${config.recall.apiUrl}/bot`, {
