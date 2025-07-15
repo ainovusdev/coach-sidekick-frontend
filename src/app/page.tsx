@@ -2,23 +2,40 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useAuth } from '@/contexts/auth-context'
+import { ApiClient } from '@/lib/api-client'
 import { MeetingForm } from '@/components/meeting-form'
+import { UserNav } from '@/components/auth/user-nav'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Brain, Plus, Clock, Users } from 'lucide-react'
 
 export default function CoachDashboard() {
   const router = useRouter()
+  const { user, loading: authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
+
+  // Redirect to auth if not authenticated
+  if (!authLoading && !user) {
+    router.push('/auth')
+    return null
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
 
   const handleCreateBot = async (meetingUrl: string) => {
     setLoading(true)
     try {
-      const response = await fetch('/api/recall/create-bot', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ meeting_url: meetingUrl }),
+      const response = await ApiClient.post('/api/recall/create-bot', {
+        meeting_url: meetingUrl,
       })
 
       if (!response.ok) {
@@ -50,19 +67,22 @@ export default function CoachDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Simple Header */}
+      {/* Header with User Navigation */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-4xl mx-auto px-4 py-6">
-          <div className="flex items-center gap-3">
-            <Brain className="h-8 w-8 text-purple-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">
-                Coach Sidekick
-              </h1>
-              <p className="text-sm text-gray-600">
-                Start your AI-assisted coaching session
-              </p>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Brain className="h-8 w-8 text-purple-600" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">
+                  Coach Sidekick
+                </h1>
+                <p className="text-sm text-gray-600">
+                  Welcome back, {user?.email?.split('@')[0]}!
+                </p>
+              </div>
             </div>
+            <UserNav />
           </div>
         </div>
       </div>

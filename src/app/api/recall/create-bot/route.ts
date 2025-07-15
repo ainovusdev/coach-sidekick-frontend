@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
+import { supabase } from '@/lib/supabase'
 import {
   getRecallHeaders,
   config,
@@ -18,6 +19,28 @@ export async function POST(request: NextRequest) {
             'RECALL_API_KEY is missing. Please check your environment variables.',
         },
         { status: 500 },
+      )
+    }
+
+    // Get user from Supabase auth
+    const authHeader = request.headers.get('authorization')
+    let user = null
+
+    if (authHeader?.startsWith('Bearer ')) {
+      const token = authHeader.substring(7)
+      const {
+        data: { user: authUser },
+        error: authError,
+      } = await supabase.auth.getUser(token)
+      if (!authError && authUser) {
+        user = authUser
+      }
+    }
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 },
       )
     }
 
@@ -64,6 +87,24 @@ export async function POST(request: NextRequest) {
     }
 
     const botData = await response.json()
+
+    // Save coaching session to database
+    const { error: dbError } = await supabase.from('coaching_sessions').insert({
+      user_id: user.id,
+      bot_id: botData.id,
+      meeting_url: meeting_url,
+      status: botData.status_changes?.[0]?.code || 'created',
+      metadata: {
+        platform: botData.meeting_url?.platform,
+        meeting_id: botData.meeting_url?.meeting_id,
+        recall_bot_data: botData,
+      },
+    })
+
+    if (dbError) {
+      console.error('Error saving session to database:', dbError)
+      // Continue anyway - the bot was created successfully
+    }
 
     // Initialize session in transcript store
     transcriptStore.initSession(botData.id, {
