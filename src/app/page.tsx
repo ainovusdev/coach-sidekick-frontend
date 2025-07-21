@@ -3,15 +3,24 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
+import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { ApiClient } from '@/lib/api-client'
 import { MeetingForm } from '@/components/meeting-form'
 import { UserNav } from '@/components/auth/user-nav'
+import { SessionCard } from '@/components/session-card'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Brain, Plus, Clock, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Brain, Plus, Clock, Users, RefreshCw } from 'lucide-react'
 
 export default function CoachDashboard() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
+  const {
+    data: meetingHistory,
+    loading: historyLoading,
+    error: historyError,
+    refetch,
+  } = useMeetingHistory(5)
   const [loading, setLoading] = useState(false)
 
   // Redirect to auth if not authenticated
@@ -106,22 +115,92 @@ export default function CoachDashboard() {
             </CardContent>
           </Card>
 
-          {/* Recent Sessions - Simplified */}
+          {/* Recent Sessions */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
-                Recent Sessions
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <Clock className="h-5 w-5 text-gray-600" />
+                  Recent Sessions
+                </CardTitle>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={refetch}
+                  disabled={historyLoading}
+                  className="flex items-center gap-1"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${
+                      historyLoading ? 'animate-spin' : ''
+                    }`}
+                  />
+                  Refresh
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Users className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-                <p className="text-sm">No recent sessions</p>
-                <p className="text-xs text-gray-400 mt-1">
-                  Your coaching sessions will appear here
-                </p>
-              </div>
+              {historyError && (
+                <div className="text-center py-4 text-red-600">
+                  <p className="text-sm">Failed to load sessions</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refetch}
+                    className="mt-2"
+                  >
+                    Try Again
+                  </Button>
+                </div>
+              )}
+
+              {historyLoading && !meetingHistory && (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div
+                      key={i}
+                      className="h-32 bg-gray-100 rounded-lg animate-pulse"
+                    />
+                  ))}
+                </div>
+              )}
+
+              {!historyLoading &&
+                !historyError &&
+                meetingHistory?.meetings.length === 0 && (
+                  <div className="text-center py-8 text-gray-500">
+                    <Users className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                    <p className="text-sm">No recent sessions</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Your coaching sessions will appear here
+                    </p>
+                  </div>
+                )}
+
+              {meetingHistory && meetingHistory.meetings.length > 0 && (
+                <div className="space-y-4">
+                  {meetingHistory.meetings.map(session => (
+                    <SessionCard
+                      key={session.id}
+                      session={session}
+                      onViewDetails={sessionId => {
+                        router.push(`/sessions/${sessionId}`)
+                      }}
+                    />
+                  ))}
+
+                  {meetingHistory.meetings.length >= 5 && (
+                    <div className="text-center pt-4">
+                      <Button
+                        variant="outline"
+                        onClick={() => router.push('/sessions')}
+                      >
+                        View All Sessions
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 

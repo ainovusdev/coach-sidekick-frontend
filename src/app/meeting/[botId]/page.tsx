@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { TranscriptViewer } from '@/components/transcript-viewer'
 import { CoachingPanel } from '@/components/coaching-panel'
 import { BotStatus } from '@/components/bot-status'
+import { BatchSaveStatus } from '@/components/batch-save-status'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Toast, useToast } from '@/components/ui/toast'
 import { MeetingLoading } from '@/components/meeting-loading'
 import { MeetingError } from '@/components/meeting-error'
 import { useBotData } from '@/hooks/use-bot-data'
@@ -27,13 +29,24 @@ export default function MeetingPage() {
 
   const { bot, transcript, loading, error } = useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
+  const { toast, showToast, closeToast } = useToast()
 
   const handleStopBot = async () => {
     if (!bot) return
 
-    const success = await stopBot(bot.id)
-    if (!success) {
-      alert('Failed to stop bot')
+    try {
+      const success = await stopBot(bot.id)
+      if (success) {
+        showToast('Bot stopped successfully! Redirecting...', 'success')
+        setTimeout(() => {
+          router.push('/')
+        }, 2000)
+      } else {
+        showToast('Failed to stop bot. Please try again.', 'error')
+      }
+    } catch (error) {
+      console.error('Error stopping bot:', error)
+      showToast('Failed to stop bot. Please try again.', 'error')
     }
   }
 
@@ -47,6 +60,10 @@ export default function MeetingPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+      {/* Toast Notification */}
+      {toast && (
+        <Toast message={toast.message} type={toast.type} onClose={closeToast} />
+      )}
       {/* Top Navigation Bar */}
       <div className="bg-white border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 py-3">
@@ -146,6 +163,11 @@ export default function MeetingPage() {
               </Badge>
             </div>
           </div>
+        </div>
+
+        {/* Batch Save Status */}
+        <div className="mb-4">
+          <BatchSaveStatus botId={botId} />
         </div>
 
         {/* Side by Side Layout */}

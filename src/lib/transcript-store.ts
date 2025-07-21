@@ -20,6 +20,9 @@ export interface BotSession {
   lastUpdated: Date
   createdAt: Date
   webhookEvents: number
+  lastSavedIndex: number // Track how many entries have been saved to DB
+  lastBatchSave: Date | null // When was the last batch save
+  batchSaveInProgress: boolean // Prevent concurrent saves
 }
 
 interface SessionInfo {
@@ -65,6 +68,9 @@ class TranscriptStore {
       lastUpdated: new Date(),
       createdAt: new Date(),
       webhookEvents: 0,
+      lastSavedIndex: 0,
+      lastBatchSave: null,
+      batchSaveInProgress: false,
     }
 
     this.sessions.set(botId, session)
@@ -162,6 +168,73 @@ class TranscriptStore {
       if (session.lastUpdated < cutoff) {
         this.sessions.delete(botId)
       }
+    }
+  }
+
+  cleanupSession(botId: string): void {
+    this.sessions.delete(botId)
+  }
+
+  // Batch saving methods
+  getUnsavedEntries(botId: string): TranscriptEntry[] {
+    const session = this.sessions.get(botId)
+    if (!session) return []
+
+    return session.transcript.slice(session.lastSavedIndex)
+  }
+
+  markEntriesAsSaved(botId: string, count: number): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.lastSavedIndex += count
+      session.lastBatchSave = new Date()
+      session.batchSaveInProgress = false
+    }
+  }
+
+  setBatchSaveInProgress(botId: string, inProgress: boolean): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.batchSaveInProgress = inProgress
+    }
+  }
+
+  shouldTriggerBatchSave(
+    botId: string,
+    batchSize: number = 10,
+    intervalMs: number = 30000,
+  ): boolean {
+    const session = this.sessions.get(botId)
+    if (!session || session.batchSaveInProgress) return false
+
+    const unsavedCount = session.transcript.length - session.lastSavedIndex
+    const timeSinceLastSave = session.lastBatchSave
+      ? Date.now() - session.lastBatchSave.getTime()
+      : Date.now() - session.createdAt.getTime()
+
+    // Trigger if we have enough unsaved entries OR enough time has passed
+    return (
+      unsavedCount >= batchSize ||
+      (unsavedCount > 0 && timeSinceLastSave >= intervalMs)
+    )
+  }
+
+  getBatchSaveInfo(botId: string): {
+    totalEntries: number
+    savedEntries: number
+    unsavedEntries: number
+    lastBatchSave: Date | null
+    batchSaveInProgress: boolean
+  } | null {
+    const session = this.sessions.get(botId)
+    if (!session) return null
+
+    return {
+      totalEntries: session.transcript.length,
+      savedEntries: session.lastSavedIndex,
+      unsavedEntries: session.transcript.length - session.lastSavedIndex,
+      lastBatchSave: session.lastBatchSave,
+      batchSaveInProgress: session.batchSaveInProgress,
     }
   }
 }

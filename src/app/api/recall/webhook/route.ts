@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
 import { coachingAnalysisService } from '@/lib/coaching-analysis'
+import { batchSaveService } from '@/lib/batch-save-service'
 
 // Async function to trigger coaching analysis without blocking webhook response
 async function triggerCoachingAnalysis(botId: string) {
@@ -101,6 +102,18 @@ export async function POST(request: NextRequest) {
 
           // Trigger coaching analysis for final transcript data
           setImmediate(() => triggerCoachingAnalysis(botId))
+
+          // Check if we should trigger a batch save
+          if (transcriptStore.shouldTriggerBatchSave(botId)) {
+            setImmediate(() => {
+              batchSaveService.saveTranscriptBatch(botId).catch(error => {
+                console.error(
+                  `Batch save failed in webhook for ${botId}:`,
+                  error,
+                )
+              })
+            })
+          }
         }
         break
 
@@ -169,6 +182,18 @@ export async function POST(request: NextRequest) {
 
           // Trigger coaching analysis for final transcript data
           setImmediate(() => triggerCoachingAnalysis(botId))
+
+          // Check if we should trigger a batch save
+          if (transcriptStore.shouldTriggerBatchSave(botId)) {
+            setImmediate(() => {
+              batchSaveService.saveTranscriptBatch(botId).catch(error => {
+                console.error(
+                  `Batch save failed in webhook for ${botId}:`,
+                  error,
+                )
+              })
+            })
+          }
         }
         break
 
