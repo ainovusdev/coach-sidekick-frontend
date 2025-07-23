@@ -12,14 +12,17 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { AlertCircle, Plus, Link, Loader2 } from 'lucide-react'
+import ClientSelector from '@/components/clients/client-selector'
+import { Client } from '@/types/meeting'
 
 interface MeetingFormProps {
-  onSubmit: (meetingUrl: string) => void
+  onSubmit: (meetingUrl: string, clientId?: string) => void
   loading: boolean
 }
 
 export function MeetingForm({ onSubmit, loading }: MeetingFormProps) {
   const [meetingUrl, setMeetingUrl] = useState('')
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [error, setError] = useState('')
 
   const validateUrl = (url: string) => {
@@ -44,7 +47,7 @@ export function MeetingForm({ onSubmit, loading }: MeetingFormProps) {
       return
     }
 
-    onSubmit(meetingUrl.trim())
+    onSubmit(meetingUrl.trim(), selectedClient?.id)
   }
 
   return (
@@ -57,6 +60,21 @@ export function MeetingForm({ onSubmit, loading }: MeetingFormProps) {
       </CardHeader>
       <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="client" className="text-sm font-medium">
+              Client (Optional)
+            </label>
+            <ClientSelector
+              selectedClientId={selectedClient?.id}
+              onClientSelect={setSelectedClient}
+              placeholder="Select a client for this session..."
+              allowNone={true}
+            />
+            <p className="text-xs text-muted-foreground">
+              Associate this coaching session with a specific client
+            </p>
+          </div>
+
           <div className="space-y-2">
             <label htmlFor="meeting-url" className="text-sm font-medium">
               Meeting URL

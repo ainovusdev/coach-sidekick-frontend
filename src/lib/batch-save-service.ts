@@ -1,4 +1,5 @@
 import { transcriptStore } from './transcript-store'
+import { databaseSaveService } from './database-save-service'
 
 class BatchSaveService {
   private saveQueue: Set<string> = new Set()
@@ -25,26 +26,24 @@ class BatchSaveService {
         return { success: true, savedCount: 0 }
       }
 
-      // Call the batch save API
-      const response = await fetch('/api/meetings/save-batch', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          botId,
-          entries: transcriptStore.getSession(botId)?.transcript || [],
-        }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response
-          .json()
-          .catch(() => ({ error: 'Unknown error' }))
-        throw new Error(errorData.error || 'Failed to save batch')
+      // Get all transcript entries for this session
+      const sessionData = transcriptStore.getSession(botId)
+      if (!sessionData) {
+        throw new Error('Session not found in transcript store')
       }
 
-      const result = await response.json()
+      // Use the database save service directly (without authenticated client for webhooks)
+      // The database service will use a default client for webhook/server contexts
+      const result = await databaseSaveService.saveTranscriptBatch(
+        botId,
+        sessionData.transcript,
+        undefined, // No userId for webhook context
+        undefined, // No authenticated client for webhook context
+      )
+
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to save batch')
+      }
 
       // Mark entries as saved in the transcript store
       transcriptStore.markEntriesAsSaved(botId, result.savedCount)
@@ -66,6 +65,7 @@ class BatchSaveService {
       }
     } finally {
       this.saveQueue.delete(botId)
+      transcriptStore.setBatchSaveInProgress(botId, false)
     }
   }
 

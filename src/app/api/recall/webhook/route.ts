@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
 import { coachingAnalysisService } from '@/lib/coaching-analysis'
-import { batchSaveService } from '@/lib/batch-save-service'
+import { databaseSaveService } from '@/lib/database-save-service'
 
 // Async function to trigger coaching analysis without blocking webhook response
 async function triggerCoachingAnalysis(botId: string) {
@@ -38,6 +38,36 @@ async function triggerCoachingAnalysis(botId: string) {
     )
   } catch (error) {
     console.error(`[Coaching] Analysis failed for bot ${botId}:`, error)
+  }
+}
+
+// Async function to trigger batch save without blocking webhook response
+async function triggerBatchSave(botId: string) {
+  try {
+    const sessionData = transcriptStore.getSession(botId)
+    if (!sessionData || sessionData.transcript.length === 0) {
+      return
+    }
+
+    // Use the database save service directly (webhook context - no authentication)
+    const result = await databaseSaveService.saveTranscriptBatch(
+      botId,
+      sessionData.transcript,
+      undefined, // No userId for webhook context
+      undefined, // No authenticated client for webhook context
+    )
+
+    if (result.success) {
+      // Mark entries as saved in the transcript store
+      transcriptStore.markEntriesAsSaved(botId, result.savedCount)
+      console.log(
+        `[Webhook] Batch saved for ${botId}: ${result.savedCount} entries`,
+      )
+    } else {
+      console.error(`[Webhook] Batch save failed for ${botId}:`, result.error)
+    }
+  } catch (error) {
+    console.error(`[Webhook] Batch save failed for ${botId}:`, error)
   }
 }
 
@@ -105,14 +135,7 @@ export async function POST(request: NextRequest) {
 
           // Check if we should trigger a batch save
           if (transcriptStore.shouldTriggerBatchSave(botId)) {
-            setImmediate(() => {
-              batchSaveService.saveTranscriptBatch(botId).catch(error => {
-                console.error(
-                  `Batch save failed in webhook for ${botId}:`,
-                  error,
-                )
-              })
-            })
+            setImmediate(() => triggerBatchSave(botId))
           }
         }
         break
@@ -185,14 +208,7 @@ export async function POST(request: NextRequest) {
 
           // Check if we should trigger a batch save
           if (transcriptStore.shouldTriggerBatchSave(botId)) {
-            setImmediate(() => {
-              batchSaveService.saveTranscriptBatch(botId).catch(error => {
-                console.error(
-                  `Batch save failed in webhook for ${botId}:`,
-                  error,
-                )
-              })
-            })
+            setImmediate(() => triggerBatchSave(botId))
           }
         }
         break

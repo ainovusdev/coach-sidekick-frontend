@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import {
   getRecallHeaders,
   config,
@@ -24,33 +24,83 @@ export async function POST(request: NextRequest) {
 
     // Get user from Supabase auth
     const authHeader = request.headers.get('authorization')
-    let user = null
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const {
-        data: { user: authUser },
-        error: authError,
-      } = await supabase.auth.getUser(token)
-      if (!authError && authUser) {
-        user = authUser
-      }
-    }
-
-    if (!user) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 },
       )
     }
 
-    const { meeting_url } = await request.json()
+    const authToken = authHeader.substring(7)
+
+    // Create authenticated Supabase client for RLS
+    const authenticatedSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      },
+    )
+
+    // Verify the user
+    const {
+      data: { user },
+      error: authError,
+    } = await authenticatedSupabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 },
+      )
+    }
+
+    const { meeting_url, client_id } = await request.json()
 
     if (!meeting_url) {
       return NextResponse.json(
         { error: 'Meeting URL is required' },
         { status: 400 },
       )
+    }
+
+    // Validate client_id if provided (using authenticated client for RLS)
+    if (client_id) {
+      console.log(
+        `[DEBUG] Validating client_id: ${client_id} for user: ${user.id}`,
+      )
+
+      const { data: client, error: clientError } = await authenticatedSupabase
+        .from('clients')
+        .select('id, coach_id, name')
+        .eq('id', client_id)
+        .single()
+
+      console.log(`[DEBUG] Client query result:`, { client, clientError })
+
+      if (clientError || !client) {
+        console.log(
+          `[DEBUG] Client validation failed - client not found or not owned by user`,
+        )
+
+        return NextResponse.json(
+          {
+            error: 'Invalid client ID or client not found',
+            debug: {
+              clientId: client_id,
+              userId: user.id,
+              authError: clientError?.message,
+            },
+          },
+          { status: 400 },
+        )
+      }
+
+      console.log(`[DEBUG] Client validation successful for: ${client.name}`)
     }
 
     const webhookUrl = getWebhookUrl()
@@ -88,18 +138,21 @@ export async function POST(request: NextRequest) {
 
     const botData = await response.json()
 
-    // Save coaching session to database
-    const { error: dbError } = await supabase.from('coaching_sessions').insert({
-      user_id: user.id,
-      bot_id: botData.id,
-      meeting_url: meeting_url,
-      status: botData.status_changes?.[0]?.code || 'created',
-      metadata: {
-        platform: botData.meeting_url?.platform,
-        meeting_id: botData.meeting_url?.meeting_id,
-        recall_bot_data: botData,
-      },
-    })
+    // Save coaching session to database (using authenticated client)
+    const { error: dbError } = await authenticatedSupabase
+      .from('coaching_sessions')
+      .insert({
+        user_id: user.id,
+        bot_id: botData.id,
+        meeting_url: meeting_url,
+        client_id: client_id || null,
+        status: botData.status_changes?.[0]?.code || 'created',
+        metadata: {
+          platform: botData.meeting_url?.platform,
+          meeting_id: botData.meeting_url?.meeting_id,
+          recall_bot_data: botData,
+        },
+      })
 
     if (dbError) {
       console.error('Error saving session to database:', dbError)

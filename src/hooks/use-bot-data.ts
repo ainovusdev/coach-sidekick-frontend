@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Bot, TranscriptEntry } from '@/types/meeting'
+import { ApiClient } from '@/lib/api-client'
 
 interface UseBotDataReturn {
   bot: Bot | null
@@ -16,6 +17,26 @@ export function useBotData(botId: string): UseBotDataReturn {
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const ensureSession = useCallback(async (botData: Bot) => {
+    try {
+      // Ensure a coaching session exists in the database
+      await ApiClient.post('/api/meetings/ensure-session', {
+        botId: botData.id,
+        sessionData: {
+          meeting_url: botData.meeting_url,
+          status: botData.status,
+          metadata: {
+            platform: botData.platform,
+            meeting_id: botData.meeting_id,
+          },
+        },
+      })
+    } catch (error) {
+      console.warn('Failed to ensure session exists:', error)
+      // Don't fail the whole process if session creation fails
+    }
+  }, [])
 
   const fetchBotData = useCallback(async () => {
     try {
@@ -40,6 +61,9 @@ export function useBotData(botId: string): UseBotDataReturn {
                 : '#',
           }
           setBot(normalizedBot)
+
+          // Ensure session exists in database
+          await ensureSession(normalizedBot)
         }
 
         setTranscript(data.transcript || [])
@@ -66,7 +90,7 @@ export function useBotData(botId: string): UseBotDataReturn {
     } finally {
       setLoading(false)
     }
-  }, [botId])
+  }, [botId, ensureSession])
 
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {

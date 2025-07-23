@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
+import { databaseSaveService } from '@/lib/database-save-service'
 
 interface TranscriptBatch {
   botId: string
@@ -12,7 +13,6 @@ interface TranscriptBatch {
     start_time?: number
     end_time?: number
   }>
-  lastSavedIndex: number
 }
 
 export async function POST(request: NextRequest) {
@@ -20,20 +20,35 @@ export async function POST(request: NextRequest) {
     // Get user from Supabase auth (optional for webhook calls)
     const authHeader = request.headers.get('authorization')
     let user = null
+    let authenticatedSupabase = null
 
     if (authHeader?.startsWith('Bearer ')) {
       const token = authHeader.substring(7)
+
+      // Create authenticated Supabase client for RLS
+      authenticatedSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+        {
+          global: {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        },
+      )
+
       const {
         data: { user: authUser },
         error: authError,
-      } = await supabase.auth.getUser(token)
+      } = await authenticatedSupabase.auth.getUser()
+
       if (!authError && authUser) {
         user = authUser
       }
     }
 
-    const { botId, entries }: Omit<TranscriptBatch, 'lastSavedIndex'> =
-      await request.json()
+    const { botId, entries }: TranscriptBatch = await request.json()
 
     if (!botId || !entries || entries.length === 0) {
       return NextResponse.json(
@@ -42,102 +57,31 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Find the coaching session
-    let sessionQuery = supabase
-      .from('coaching_sessions')
-      .select('id, user_id, metadata')
-      .eq('bot_id', botId)
+    // Use the database save service with authenticated client if available
+    const result = await databaseSaveService.saveTranscriptBatch(
+      botId,
+      entries,
+      user?.id,
+      authenticatedSupabase || undefined, // Pass authenticated client if available
+    )
 
-    if (user) {
-      sessionQuery = sessionQuery.eq('user_id', user.id)
-    }
-
-    const { data: coachingSession, error: sessionError } =
-      await sessionQuery.single()
-
-    if (sessionError || !coachingSession) {
+    if (!result.success) {
       return NextResponse.json(
-        { error: 'Coaching session not found' },
-        { status: 404 },
-      )
-    }
-
-    const sessionId = coachingSession.id
-
-    // Check what's already been saved to avoid duplicates
-    const { data: existingEntries } = await supabase
-      .from('transcript_entries')
-      .select('id')
-      .eq('coaching_session_id', sessionId)
-      .order('created_at', { ascending: true })
-
-    const startingIndex = existingEntries?.length || 0
-
-    // Only save entries that haven't been saved yet
-    const newEntries = entries.slice(startingIndex).map((entry, index) => ({
-      coaching_session_id: sessionId,
-      speaker: entry.speaker,
-      text: entry.text,
-      timestamp: entry.timestamp,
-      confidence: entry.confidence,
-      is_final: entry.is_final,
-      start_time: entry.start_time,
-      end_time: entry.end_time,
-      entry_index: startingIndex + index, // Track order
-    }))
-
-    if (newEntries.length === 0) {
-      return NextResponse.json({
-        success: true,
-        message: 'No new entries to save',
-        savedCount: 0,
-        totalSaved: startingIndex,
-      })
-    }
-
-    // Save new transcript entries
-    const { error: insertError } = await supabase
-      .from('transcript_entries')
-      .insert(newEntries)
-
-    if (insertError) {
-      console.error('Error saving transcript batch:', insertError)
-      return NextResponse.json(
-        { error: 'Failed to save transcript batch' },
+        { error: result.error || 'Failed to save transcript batch' },
         { status: 500 },
       )
     }
 
-    // Update session's last activity
-    const { error: updateError } = await supabase
-      .from('coaching_sessions')
-      .update({
-        updated_at: new Date().toISOString(),
-        metadata: {
-          ...coachingSession.metadata,
-          last_batch_save: new Date().toISOString(),
-          total_transcript_entries: startingIndex + newEntries.length,
-        },
-      })
-      .eq('id', sessionId)
-
-    if (updateError) {
-      console.error('Error updating session metadata:', updateError)
-      // Don't fail the request if metadata update fails
-    }
-
     console.log(
-      `Saved transcript batch for session ${sessionId}: ${
-        newEntries.length
-      } new entries (total: ${startingIndex + newEntries.length})`,
+      `Saved transcript batch for session ${result.sessionId}: ${result.savedCount} new entries (total: ${result.totalSaved})`,
     )
 
     return NextResponse.json({
       success: true,
       message: 'Transcript batch saved successfully',
-      savedCount: newEntries.length,
-      totalSaved: startingIndex + newEntries.length,
-      sessionId,
+      savedCount: result.savedCount,
+      totalSaved: result.totalSaved,
+      sessionId: result.sessionId,
     })
   } catch (error) {
     console.error('Error in save-batch endpoint:', error)
