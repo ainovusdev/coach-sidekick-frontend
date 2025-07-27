@@ -28,6 +28,15 @@ interface CoachingSuggestion {
   rationale: string
   timing: 'now' | 'next_pause' | 'end_of_call'
   timestamp: string
+  source: 'openai' | 'personal-ai'
+}
+
+interface PersonalAISuggestion {
+  id: string
+  suggestion: string
+  confidence: number
+  source: 'personal-ai'
+  timestamp: string
 }
 
 interface CoachingAnalysis {
@@ -40,6 +49,8 @@ interface CoachingAnalysis {
     | 'closing'
   coachEnergyLevel: number
   clientEngagementLevel: number
+  suggestions: CoachingSuggestion[]
+  personalAISuggestions: PersonalAISuggestion[]
   timestamp: string
 }
 
@@ -50,6 +61,7 @@ interface CoachingPanelProps {
 
 export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   const [suggestions, setSuggestions] = useState<CoachingSuggestion[]>([])
+  const [personalAISuggestions, setPersonalAISuggestions] = useState<PersonalAISuggestion[]>([])
   const [analysis, setAnalysis] = useState<CoachingAnalysis | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,6 +88,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
       }
 
       setSuggestions(data.suggestions || [])
+      setPersonalAISuggestions(data.analysis?.personalAISuggestions || [])
       setAnalysis(data.analysis || null)
       setMetadata(data.metadata || null)
       setLastUpdate(new Date())
@@ -217,7 +230,10 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
           >
             <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
               <TabsTrigger value="suggestions">
-                Suggestions ({suggestions.length})
+                <div className="flex items-center gap-1">
+                  <Brain className="h-3 w-3" />
+                  AI Suggestions ({suggestions.length + personalAISuggestions.length})
+                </div>
               </TabsTrigger>
               <TabsTrigger value="insights">Insights</TabsTrigger>
               <TabsTrigger value="scores">Scores</TabsTrigger>
@@ -227,98 +243,178 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
               value="suggestions"
               className="flex-1 mt-4 overflow-y-auto"
             >
-              <div className="space-y-3 pr-2">
-                {loading && (
-                  <div className="text-center py-4 text-gray-500">
-                    <div className="animate-spin h-5 w-5 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                    Analyzing conversation...
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pr-2">
+                {/* OpenAI Suggestions Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Brain className="h-4 w-4 text-blue-600" />
+                    <h3 className="font-semibold text-blue-900">OpenAI Suggestions ({suggestions.length})</h3>
                   </div>
-                )}
 
-                {error && (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                    {error}
-                  </div>
-                )}
+                  {loading && (
+                    <div className="text-center py-4 text-gray-500">
+                      <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      Analyzing with OpenAI...
+                    </div>
+                  )}
 
-                {suggestions.length === 0 && !loading && !error && (
-                  <div className="text-center py-8 text-gray-500">
-                    <Lightbulb className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p>No active suggestions available.</p>
-                    <p className="text-xs mt-1">
-                      {metadata?.transcriptLength
-                        ? 'Keep the conversation going for more insights.'
-                        : 'Waiting for conversation to begin...'}
-                    </p>
-                  </div>
-                )}
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
 
-                {suggestions.map(suggestion => (
-                  <Card
-                    key={suggestion.id}
-                    className={`border-l-4 transition-all duration-200 hover:shadow-lg ${
-                      suggestion.priority === 'high'
-                        ? 'border-l-red-500 bg-gradient-to-r from-red-50 to-white'
-                        : suggestion.priority === 'medium'
-                        ? 'border-l-yellow-500 bg-gradient-to-r from-yellow-50 to-white'
-                        : 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white'
-                    }`}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          {getPriorityIcon(suggestion.priority)}
-                          <Badge
-                            variant="outline"
-                            className={`text-xs font-medium ${
-                              suggestion.priority === 'high'
-                                ? 'border-red-300 text-red-700 bg-red-50'
-                                : suggestion.priority === 'medium'
-                                ? 'border-yellow-300 text-yellow-700 bg-yellow-50'
-                                : 'border-blue-300 text-blue-700 bg-blue-50'
-                            }`}
-                          >
-                            {suggestion.category
-                              .replace('_', ' ')
-                              .toUpperCase()}
-                          </Badge>
-                          <Badge
-                            variant={getTimingBadgeColor(suggestion.timing)}
-                            className="text-xs font-medium"
-                          >
-                            {suggestion.timing === 'now'
-                              ? '🔥 ACT NOW'
-                              : suggestion.timing === 'next_pause'
-                              ? '⏸️ NEXT PAUSE'
-                              : '📝 END OF CALL'}
-                          </Badge>
+                  {suggestions.length === 0 && !loading && !error && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p>No OpenAI suggestions available.</p>
+                      <p className="text-xs mt-1">
+                        {metadata?.transcriptLength
+                          ? 'Keep the conversation going for more insights.'
+                          : 'Waiting for conversation to begin...'}
+                      </p>
+                    </div>
+                  )}
+
+                  {suggestions.map(suggestion => (
+                    <Card
+                      key={suggestion.id}
+                      className={`border-l-4 transition-all duration-200 hover:shadow-lg ${
+                        suggestion.priority === 'high'
+                          ? 'border-l-red-500 bg-gradient-to-r from-red-50 to-white'
+                          : suggestion.priority === 'medium'
+                          ? 'border-l-yellow-500 bg-gradient-to-r from-yellow-50 to-white'
+                          : 'border-l-blue-500 bg-gradient-to-r from-blue-50 to-white'
+                      }`}
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            {getPriorityIcon(suggestion.priority)}
+                            <Badge
+                              variant="outline"
+                              className="text-xs font-medium border-blue-300 text-blue-700 bg-blue-50"
+                            >
+                              <Brain className="h-3 w-3 mr-1" />
+                              OPENAI
+                            </Badge>
+                            <Badge
+                              variant={getTimingBadgeColor(suggestion.timing)}
+                              className="text-xs font-medium"
+                            >
+                              {suggestion.timing === 'now'
+                                ? '🔥 NOW'
+                                : suggestion.timing === 'next_pause'
+                                ? '⏸️ PAUSE'
+                                : '📝 END'}
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                            {new Date(suggestion.timestamp).toLocaleTimeString()}
+                          </span>
                         </div>
-                        <span className="text-xs text-gray-500 whitespace-nowrap">
-                          {new Date(suggestion.timestamp).toLocaleTimeString()}
-                        </span>
-                      </div>
 
-                      <div className="space-y-3">
-                        <p className="font-semibold text-gray-900 text-base leading-relaxed">
-                          {suggestion.suggestion}
-                        </p>
+                        <div className="space-y-2">
+                          <p className="font-semibold text-gray-900 text-sm leading-relaxed">
+                            {suggestion.suggestion}
+                          </p>
 
-                        {suggestion.rationale && (
-                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 border border-gray-200/50 shadow-sm">
-                            <p className="text-sm text-gray-700">
+                          {suggestion.rationale && (
+                            <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 border border-gray-200/50 shadow-sm">
+                              <p className="text-xs text-gray-700">
+                                <span className="inline-flex items-center gap-1 font-medium text-blue-700 mb-1">
+                                  <Lightbulb className="h-3 w-3" />
+                                  Why this matters:
+                                </span>
+                                <br />
+                                {suggestion.rationale}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Personal AI Suggestions Column */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap className="h-4 w-4 text-purple-600" />
+                    <h3 className="font-semibold text-purple-900">Personal AI Suggestions ({personalAISuggestions.length})</h3>
+                  </div>
+
+                  {loading && (
+                    <div className="text-center py-4 text-gray-500">
+                      <div className="animate-spin h-5 w-5 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
+                      Getting Personal AI insights...
+                    </div>
+                  )}
+
+                  {error && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
+
+                  {personalAISuggestions.length === 0 && !loading && !error && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                      <p>No Personal AI suggestions available.</p>
+                      <p className="text-xs mt-1">
+                        Personal AI needs conversation history to provide personalized insights.
+                      </p>
+                    </div>
+                  )}
+
+                  {personalAISuggestions.map(suggestion => (
+                    <Card
+                      key={suggestion.id}
+                      className="border-l-4 border-l-purple-500 bg-gradient-to-r from-purple-50 to-white transition-all duration-200 hover:shadow-lg"
+                    >
+                      <CardContent className="p-3">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-1 flex-wrap">
+                            <Zap className="h-4 w-4 text-purple-600" />
+                            <Badge
+                              variant="outline"
+                              className="text-xs font-medium border-purple-300 text-purple-700 bg-purple-50"
+                            >
+                              <Zap className="h-3 w-3 mr-1" />
+                              PERSONAL AI
+                            </Badge>
+                            <Badge
+                              variant="secondary"
+                              className="text-xs font-medium"
+                            >
+                              {Math.round(suggestion.confidence * 100)}%
+                            </Badge>
+                          </div>
+                          <span className="text-xs text-gray-500 whitespace-nowrap">
+                            {new Date(suggestion.timestamp).toLocaleTimeString()}
+                          </span>
+                        </div>
+
+                        <div className="space-y-2">
+                          <p className="font-semibold text-gray-900 text-sm leading-relaxed">
+                            {suggestion.suggestion}
+                          </p>
+
+                          <div className="bg-white/80 backdrop-blur-sm rounded-lg p-2 border border-gray-200/50 shadow-sm">
+                            <p className="text-xs text-gray-700">
                               <span className="inline-flex items-center gap-1 font-medium text-purple-700 mb-1">
-                                <Lightbulb className="h-3 w-3" />
-                                Why this matters:
+                                <Brain className="h-3 w-3" />
+                                Powered by your Personal AI memory
                               </span>
                               <br />
-                              {suggestion.rationale}
+                              Based on your previous coaching sessions and accumulated knowledge.
                             </p>
                           </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
               </div>
             </TabsContent>
 

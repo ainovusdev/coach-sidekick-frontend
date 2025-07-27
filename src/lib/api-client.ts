@@ -1,6 +1,8 @@
 import { supabase } from './supabase'
 
 export class ApiClient {
+  private static DEFAULT_TIMEOUT = 30000 // 30 seconds
+
   private static async getAuthHeaders(): Promise<Record<string, string>> {
     const {
       data: { session },
@@ -17,48 +19,84 @@ export class ApiClient {
     return headers
   }
 
-  static async post(url: string, data: any) {
+  private static async fetchWithTimeout(url: string, options: RequestInit, timeout: number = this.DEFAULT_TIMEOUT): Promise<Response> {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeout)
+
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      return response
+    } catch (error) {
+      clearTimeout(timeoutId)
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout - please try again')
+      }
+      throw error
+    }
+  }
+
+  static async post(url: string, data: any, timeout?: number) {
     const headers = await this.getAuthHeaders()
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(data),
-    })
+    const response = await this.fetchWithTimeout(
+      url,
+      {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(data),
+      },
+      timeout
+    )
 
     return response
   }
 
-  static async get(url: string) {
+  static async get(url: string, timeout?: number) {
     const headers = await this.getAuthHeaders()
 
-    const response = await fetch(url, {
-      method: 'GET',
-      headers,
-    })
+    const response = await this.fetchWithTimeout(
+      url,
+      {
+        method: 'GET',
+        headers,
+      },
+      timeout
+    )
 
     return response
   }
 
-  static async put(url: string, data: any) {
+  static async put(url: string, data: any, timeout?: number) {
     const headers = await this.getAuthHeaders()
 
-    const response = await fetch(url, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(data),
-    })
+    const response = await this.fetchWithTimeout(
+      url,
+      {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(data),
+      },
+      timeout
+    )
 
     return response
   }
 
-  static async delete(url: string) {
+  static async delete(url: string, timeout?: number) {
     const headers = await this.getAuthHeaders()
 
-    const response = await fetch(url, {
-      method: 'DELETE',
-      headers,
-    })
+    const response = await this.fetchWithTimeout(
+      url,
+      {
+        method: 'DELETE',
+        headers,
+      },
+      timeout
+    )
 
     return response
   }

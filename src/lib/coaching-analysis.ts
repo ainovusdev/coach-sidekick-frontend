@@ -1,4 +1,7 @@
 import OpenAI from 'openai'
+import { personalAIHistoryService } from '@/services/personal-ai-history'
+import { personalAIClient } from '@/services/personal-ai-client'
+import { transcriptStore } from './transcript-store'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -15,6 +18,15 @@ export interface CoachingSuggestion {
   triggeredBy?: string
   goLiveConnection?: string
   timestamp: string
+  source: 'openai' | 'personal-ai' // Add source to track where suggestion came from
+}
+
+export interface PersonalAISuggestion {
+  id: string
+  suggestion: string
+  confidence: number
+  source: 'personal-ai'
+  timestamp: string
 }
 
 export interface CoachingAnalysis {
@@ -25,6 +37,7 @@ export interface CoachingAnalysis {
   criteriaScores: Record<string, number>
   goLiveAlignment: Record<string, number>
   suggestions: CoachingSuggestion[]
+  personalAISuggestions: PersonalAISuggestion[] // Add Personal AI suggestions
   conversationPhase:
     | 'opening'
     | 'exploration'
@@ -133,10 +146,25 @@ class CoachingAnalysisService {
       // Get previous analysis if exists
       const previousAnalysis = this.analyses.get(botId)
 
+      // Get historical context from Personal AI if client is linked
+      const clientId = transcriptStore.getClientId(botId)
+      let historicalContext: string | null = null
+      
+      if (clientId) {
+        try {
+          historicalContext = await personalAIHistoryService.getRelevantContext(
+            clientId
+          )
+        } catch (error) {
+          console.warn(`Failed to get historical context for client ${clientId}:`, error)
+        }
+      }
+
       const prompt = this.buildAnalysisPrompt(
         fullConversation,
         recentConversation,
         previousAnalysis,
+        historicalContext,
       )
 
       const response = await openai.chat.completions.create({
@@ -167,6 +195,15 @@ class CoachingAnalysisService {
         transcript.length,
       )
 
+      // Get Personal AI suggestions in parallel using the same data as OpenAI
+      try {
+        const personalAISuggestions = await this.getPersonalAISuggestions(botId, transcript, newEntries)
+        analysis.personalAISuggestions = personalAISuggestions
+      } catch (error) {
+        console.warn(`Failed to get Personal AI suggestions for ${botId}:`, error)
+        analysis.personalAISuggestions = []
+      }
+
       // Store the analysis
       this.analyses.set(botId, analysis)
 
@@ -181,6 +218,7 @@ class CoachingAnalysisService {
     fullConversation: string,
     recentConversation: string,
     previousAnalysis?: CoachingAnalysis,
+    historicalContext?: string | null,
   ): string {
     const criteriaList = Object.entries(COACHING_CRITERIA)
       .map(([key, description]) => `- ${key}: ${description}`)
@@ -236,6 +274,25 @@ PREVIOUS ANALYSIS CONTEXT:
 - Previous Suggestions Count: ${previousAnalysis.suggestions.length}
 `
     : ''
+}
+
+${
+  historicalContext
+    ? `
+📚 CLIENT HISTORICAL CONTEXT:
+This client has previous coaching sessions. Use this information to provide more personalized and contextual suggestions:
+
+${historicalContext}
+
+HISTORICAL CONTEXT INTEGRATION:
+- Reference previous patterns when they appear in current conversation
+- Build on previous insights and breakthroughs
+- Address recurring challenges with deeper or evolved approaches
+- Recognize progress made since previous sessions
+- Suggest continuity-based coaching strategies
+- Use past strengths to unlock current stuck moments
+`
+    : '🆕 NEW CLIENT: This appears to be a new client without previous session history. Focus on building rapport, understanding their context, and establishing coaching foundations.'
 }
 
 🎯 REAL-TIME SENSING LOGIC:
@@ -359,7 +416,7 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
       // Generate suggestions with IDs and timestamps
       const suggestions: CoachingSuggestion[] = (parsed.suggestions || []).map(
         (s: any, index: number) => ({
-          id: `${botId}-${Date.now()}-${index}`,
+          id: `openai-${botId}-${Date.now()}-${index}`,
           type: s.type || 'immediate',
           priority: s.priority || 'medium',
           category: s.category || 'general',
@@ -369,6 +426,7 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
           triggeredBy: s.triggeredBy,
           goLiveConnection: s.goLiveConnection,
           timestamp: new Date().toISOString(),
+          source: 'openai' as const,
         }),
       )
 
@@ -380,6 +438,7 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
         criteriaScores: parsed.criteriaScores || {},
         goLiveAlignment: parsed.goLiveAlignment || {},
         suggestions,
+        personalAISuggestions: [], // Will be populated later
         conversationPhase: parsed.conversationPhase || 'exploration',
         phaseReasoning: parsed.phaseReasoning,
         coachEnergyLevel: parsed.coachEnergyLevel || 5,
@@ -422,6 +481,147 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
         this.analyses.delete(botId)
       }
     }
+  }
+
+  // Get client progress summary for analysis enhancement
+  async getClientProgressSummary(botId: string): Promise<string | null> {
+    const clientId = transcriptStore.getClientId(botId)
+    if (!clientId) return null
+
+    try {
+      return await personalAIHistoryService.getClientProgressSummary(clientId)
+    } catch (error) {
+      console.warn(`Failed to get client progress summary for ${clientId}:`, error)
+      return null
+    }
+  }
+
+  // Get Personal AI suggestions using the same transcript data as OpenAI
+  async getPersonalAISuggestions(
+    botId: string,
+    transcript: TranscriptEntry[],
+    newEntries: TranscriptEntry[]
+  ): Promise<PersonalAISuggestion[]> {
+    try {
+      // Check if Personal AI is configured
+      if (!process.env.PERSONAL_AI_API_KEY || !process.env.PERSONAL_AI_DOMAIN_NAME) {
+        return []
+      }
+
+      const clientId = transcriptStore.getClientId(botId)
+      const personalAISessionId = transcriptStore.getPersonalAISessionId(botId)
+
+      // Use the same conversation data that OpenAI analyzes
+      const fullConversation = transcript
+        .filter(entry => entry.is_final)
+        .map(entry => `${entry.speaker}: ${entry.text}`)
+        .join('\n')
+
+      const recentConversation = newEntries
+        .filter(entry => entry.is_final)
+        .map(entry => `${entry.speaker}: ${entry.text}`)
+        .join('\n')
+
+      // Prefer recent conversation, but use full if recent is empty
+      const conversationToAnalyze = recentConversation.trim() || fullConversation
+
+      if (!conversationToAnalyze.trim()) {
+        return []
+      }
+
+      // Enhanced prompt that matches OpenAI's coaching analysis depth
+      const promptText = `You are an expert coaching assistant analyzing a live coaching conversation. Based on this conversation, provide 2-3 specific, actionable suggestions for the coach.
+
+CONVERSATION CONTEXT:
+${conversationToAnalyze}
+
+Please provide coaching suggestions that:
+1. Are immediately actionable for the coach
+2. Help deepen the client's insights or commitment
+3. Move the conversation toward transformation
+4. Are based on what you observe in the client's language and energy
+
+Format each suggestion clearly and make them practical for real-time use.`
+
+      const response = await personalAIClient.sendMessage({
+        Text: promptText,
+        DomainName: process.env.PERSONAL_AI_DOMAIN_NAME!,
+        SessionId: personalAISessionId || undefined,
+        SourceName: 'Coach Sidekick',
+        UserName: clientId ? `Client-${clientId}` : 'Unknown Client',
+        Context: 'Real-time coaching analysis',
+      })
+
+      // Parse Personal AI response into suggestions
+      const suggestions: PersonalAISuggestion[] = []
+      const aiMessage = response.ai_message
+
+      if (aiMessage && aiMessage.trim().length > 10) {
+        // More sophisticated parsing to extract actual suggestions
+        const lines = aiMessage.split(/\n+/).filter(line => line.trim().length > 0)
+        let suggestionCount = 0
+        
+        for (const line of lines) {
+          const trimmedLine = line.trim()
+          
+          // Look for suggestion patterns (numbered, bulleted, or clear suggestion language)
+          if ((trimmedLine.match(/^\d+\./) || 
+               trimmedLine.match(/^[-•*]/) || 
+               trimmedLine.toLowerCase().includes('suggest') ||
+               trimmedLine.toLowerCase().includes('try') ||
+               trimmedLine.toLowerCase().includes('ask') ||
+               trimmedLine.toLowerCase().includes('explore')) &&
+              trimmedLine.length > 20 && 
+              suggestionCount < 3) {
+            
+            // Clean up the suggestion text
+            let suggestion = trimmedLine
+              .replace(/^\d+\.\s*/, '')
+              .replace(/^[-•*]\s*/, '')
+              .trim()
+
+            if (suggestion.length > 15) {
+              suggestions.push({
+                id: `personal-ai-${botId}-${Date.now()}-${suggestionCount}`,
+                suggestion,
+                confidence: Math.min(response.ai_score / 100 || 0.8, 1.0),
+                source: 'personal-ai',
+                timestamp: new Date().toISOString(),
+              })
+              suggestionCount++
+            }
+          }
+        }
+
+        // If no structured suggestions found, create one from the main response
+        if (suggestions.length === 0 && aiMessage.length > 50) {
+          suggestions.push({
+            id: `personal-ai-${botId}-${Date.now()}-0`,
+            suggestion: aiMessage.trim(),
+            confidence: Math.min(response.ai_score / 100 || 0.8, 1.0),
+            source: 'personal-ai',
+            timestamp: new Date().toISOString(),
+          })
+        }
+      }
+
+      console.log(`[Personal AI] Generated ${suggestions.length} suggestions for bot ${botId}`)
+      return suggestions
+
+    } catch (error) {
+      console.error(`[Personal AI] Failed to get suggestions for bot ${botId}:`, error)
+      return []
+    }
+  }
+
+  // Enhanced analysis method with client context
+  async analyzeConversationWithClientContext(
+    botId: string,
+    transcript: TranscriptEntry[],
+    lastAnalyzedIndex: number = 0,
+  ): Promise<CoachingAnalysis> {
+    // This is an alias for the main analysis method which now includes historical context
+    return this.analyzeConversation(botId, transcript, lastAnalyzedIndex)
   }
 }
 

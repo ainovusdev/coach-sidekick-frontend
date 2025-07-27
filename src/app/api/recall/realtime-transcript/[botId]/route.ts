@@ -19,21 +19,6 @@ export async function GET(
     }
 
     const { botId } = await params
-    const { searchParams } = new URL(request.url)
-    const debug = searchParams.get('debug') === 'true'
-
-    const allSessions = transcriptStore.getAllSessionIds()
-
-    if (debug) {
-      return NextResponse.json({
-        debug: true,
-        botId,
-        allSessions: transcriptStore.getAllSessionsInfo(),
-        targetSession: transcriptStore.getSessionInfo(botId),
-        sessionExists: !!transcriptStore.getSession(botId),
-        timestamp: new Date().toISOString(),
-      })
-    }
 
     const session = transcriptStore.getSession(botId)
 
@@ -76,14 +61,6 @@ export async function GET(
               },
               transcript: existingSession.transcript,
               lastUpdated: existingSession.lastUpdated,
-              debug: {
-                transcriptCount: existingSession.transcript.length,
-                sessionExists: true,
-                isLive: true,
-                source: 'found_after_bot_fetch',
-                webhookEvents: existingSession.webhookEvents,
-                createdAt: existingSession.createdAt,
-              },
             })
           }
 
@@ -95,30 +72,16 @@ export async function GET(
             bot: normalizedBot,
             transcript: newSession?.transcript || [],
             lastUpdated: new Date().toISOString(),
-            debug: {
-              transcriptCount: newSession?.transcript.length || 0,
-              sessionExists: true,
-              isLive: true,
-              justCreated: true,
-              webhookEvents: newSession?.webhookEvents || 0,
-              createdAt: newSession?.createdAt || new Date().toISOString(),
-            },
           })
         }
         throw new Error(`Bot not found: ${botResponse.statusText}`)
-      } catch (fetchError) {
+      } catch (fetchError: any) {
         return NextResponse.json(
           {
             error: 'Bot session not found',
             bot: null,
             transcript: [],
-            debug: {
-              allSessions,
-              fetchError:
-                fetchError instanceof Error
-                  ? fetchError.message
-                  : 'Unknown error',
-            },
+            fetchError,
           },
           { status: 404 },
         )
@@ -135,15 +98,6 @@ export async function GET(
       },
       transcript: session.transcript,
       lastUpdated: session.lastUpdated,
-      debug: {
-        transcriptCount: session.transcript.length,
-        sessionExists: true,
-        isLive: true,
-        source: 'existing_session',
-        webhookEvents: session.webhookEvents,
-        createdAt: session.createdAt,
-        allSessions,
-      },
     }
 
     return NextResponse.json(result)

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
+import { useDebounceCallback } from '@/hooks/use-debounce'
 import { ApiClient } from '@/lib/api-client'
 import { MeetingForm } from '@/components/meeting-form'
 import PageLayout from '@/components/page-layout'
@@ -24,6 +25,7 @@ import {
   Activity,
   CheckCircle2,
   PlayCircle,
+  AlertCircle,
 } from 'lucide-react'
 
 export default function CoachDashboard() {
@@ -36,6 +38,58 @@ export default function CoachDashboard() {
     refetch,
   } = useMeetingHistory(5)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleCreateBotImpl = async (meetingUrl: string, clientId?: string) => {
+    // Prevent multiple submissions
+    if (loading) {
+      console.log('Already loading, ignoring duplicate submission')
+      return
+    }
+
+    console.log('Creating bot for URL:', meetingUrl, 'ClientID:', clientId)
+    setLoading(true)
+    setError(null) // Clear any previous errors
+    
+    try {
+      const response = await ApiClient.post('/api/recall/create-bot', {
+        meeting_url: meetingUrl,
+        client_id: clientId,
+      })
+
+      if (!response.ok) {
+        let errorMessage = 'Failed to create bot'
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.details || response.statusText
+        } catch {
+          errorMessage = `${response.status} ${response.statusText}`
+        }
+        throw new Error(errorMessage)
+      }
+
+      const bot = await response.json()
+      console.log('Bot created successfully:', bot)
+
+      if (!bot.id) {
+        throw new Error('Bot was created but no ID was returned')
+      }
+
+      // Small delay to ensure state is consistent before navigation
+      await new Promise(resolve => setTimeout(resolve, 100))
+      router.push(`/meeting/${bot.id}`)
+    } catch (error) {
+      console.error('Error creating bot:', error)
+      setLoading(false) // Reset loading state immediately on error
+      
+      // Set error state for display in UI
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      setError(errorMessage)
+    }
+  }
+
+  // Create debounced callback at component level
+  const debouncedCreateBot = useDebounceCallback(handleCreateBotImpl, 1000)
 
   // Redirect to auth if not authenticated
   if (!authLoading && !user) {
@@ -56,41 +110,6 @@ export default function CoachDashboard() {
         </div>
       </PageLayout>
     )
-  }
-
-  const handleCreateBot = async (meetingUrl: string, clientId?: string) => {
-    setLoading(true)
-    try {
-      const response = await ApiClient.post('/api/recall/create-bot', {
-        meeting_url: meetingUrl,
-        client_id: clientId,
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(
-          `Failed to create bot: ${
-            errorData.error || errorData.details || response.statusText
-          }`,
-        )
-      }
-
-      const bot = await response.json()
-
-      if (!bot.id) {
-        throw new Error('Bot was created but no ID was returned')
-      }
-
-      router.push(`/meeting/${bot.id}`)
-    } catch (error) {
-      alert(
-        `Failed to create bot: ${
-          error instanceof Error ? error.message : 'Unknown error'
-        }`,
-      )
-    } finally {
-      setLoading(false)
-    }
   }
 
   // Calculate stats from meeting history
@@ -231,7 +250,15 @@ export default function CoachDashboard() {
                 </p>
               </CardHeader>
               <CardContent>
-                <MeetingForm onSubmit={handleCreateBot} loading={loading} />
+                <MeetingForm onSubmit={debouncedCreateBot} loading={loading} />
+                {error && (
+                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-700 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4" />
+                      {error}
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
 

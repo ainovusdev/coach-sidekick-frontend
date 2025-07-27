@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
 import { coachingAnalysisService } from '@/lib/coaching-analysis'
 import { databaseSaveService } from '@/lib/database-save-service'
+import { personalAIMemoryService } from '@/services/personal-ai-memory'
 
 // Async function to trigger coaching analysis without blocking webhook response
 async function triggerCoachingAnalysis(botId: string) {
@@ -71,6 +72,58 @@ async function triggerBatchSave(botId: string) {
   }
 }
 
+// Async function to trigger Personal AI memory upload when session is complete
+async function triggerPersonalAIUpload(botId: string) {
+  try {
+    // Check if session should be uploaded to Personal AI
+    if (!transcriptStore.shouldUploadToPersonalAI(botId)) {
+      return
+    }
+
+    // Check if already uploaded
+    if (transcriptStore.isPersonalAIUploaded(botId)) {
+      return
+    }
+
+    const session = transcriptStore.getSession(botId)
+    if (!session || session.transcript.length === 0) {
+      return
+    }
+
+    // Get the latest coaching analysis
+    const coachingAnalysis = coachingAnalysisService.getLatestAnalysis(botId)
+
+    // Create a simplified session object for upload
+    const sessionForUpload = {
+      id: botId,
+      user_id: 'webhook-user', // Placeholder for webhook context
+      bot_id: botId,
+      meeting_url: session.bot.meeting_url,
+      status: session.bot.status,
+      client_id: session.clientId,
+      created_at: session.createdAt.toISOString(),
+      updated_at: session.lastUpdated.toISOString(),
+    }
+
+    // Upload to Personal AI
+    const uploaded = await personalAIMemoryService.uploadCoachingSession(
+      sessionForUpload,
+      session.transcript,
+      coachingAnalysis || undefined,
+      undefined // Client info not available in webhook context
+    )
+
+    if (uploaded) {
+      transcriptStore.markPersonalAIUploaded(botId)
+      console.log(`[Personal AI] Session ${botId} uploaded successfully`)
+    } else {
+      console.error(`[Personal AI] Failed to upload session ${botId}`)
+    }
+  } catch (error) {
+    console.error(`[Personal AI] Upload failed for bot ${botId}:`, error)
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -83,16 +136,23 @@ export async function POST(request: NextRequest) {
     switch (body.event) {
       case 'bot.status_change':
         const existingSession = transcriptStore.getSession(botId)
+        const newStatus = body.data.status_change.code
+        
         if (!existingSession) {
           transcriptStore.initSession(botId, {
             id: botId,
-            status: body.data.status_change.code,
+            status: newStatus,
             meeting_url: body.data.bot.meeting_url || '#',
             platform: body.data.bot.meeting_url?.platform,
             meeting_id: body.data.bot.meeting_url?.meeting_id,
           })
         } else {
-          transcriptStore.updateBotStatus(botId, body.data.status_change.code)
+          transcriptStore.updateBotStatus(botId, newStatus)
+        }
+
+        // Trigger Personal AI upload when session is complete
+        if (newStatus === 'ended' || newStatus === 'stopped' || newStatus === 'done') {
+          setImmediate(() => triggerPersonalAIUpload(botId))
         }
         break
 

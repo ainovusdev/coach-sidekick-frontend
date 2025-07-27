@@ -4,10 +4,10 @@ import { transcriptStore } from '@/lib/transcript-store'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ botId: string }> },
+  { params }: { params: { botId: string } },
 ) {
   try {
-    const { botId } = await params
+    const { botId } = params
     const { searchParams } = new URL(request.url)
     const autoAnalyze = searchParams.get('auto_analyze') === 'true'
     const onlyActive = searchParams.get('only_active') === 'true'
@@ -28,7 +28,9 @@ export async function GET(
     const session = transcriptStore.getSession(botId)
     if (!session) {
       return NextResponse.json(
-        { error: 'Bot session not found' },
+        {
+          error: 'Bot session not found',
+        },
         { status: 404 },
       )
     }
@@ -82,10 +84,12 @@ export async function GET(
         coachEnergyLevel: analysis.coachEnergyLevel,
         clientEngagementLevel: analysis.clientEngagementLevel,
         timestamp: analysis.timestamp,
+        personalAISuggestions: analysis.personalAISuggestions || [], // Include Personal AI suggestions
       },
       metadata: {
         totalSuggestions: analysis.suggestions.length,
         activeSuggestions: suggestions.length,
+        personalAISuggestionsCount: analysis.personalAISuggestions?.length || 0,
         transcriptLength: session.transcript.length,
         lastAnalyzedIndex: analysis.lastAnalyzedTranscriptIndex,
         sessionAge: Math.round(

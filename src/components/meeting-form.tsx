@@ -16,7 +16,7 @@ import ClientSelector from '@/components/clients/client-selector'
 import { Client } from '@/types/meeting'
 
 interface MeetingFormProps {
-  onSubmit: (meetingUrl: string, clientId?: string) => void
+  onSubmit: (meetingUrl: string, clientId?: string) => void | Promise<void>
   loading: boolean
 }
 
@@ -33,21 +33,34 @@ export function MeetingForm({ onSubmit, loading }: MeetingFormProps) {
     return zoomRegex.test(url) || meetRegex.test(url) || teamsRegex.test(url)
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (!meetingUrl.trim()) {
+    // Prevent double submission
+    if (loading) {
+      console.log('Form already submitting, ignoring duplicate')
+      return
+    }
+
+    const trimmedUrl = meetingUrl.trim()
+
+    if (!trimmedUrl) {
       setError('Please enter a meeting URL')
       return
     }
 
-    if (!validateUrl(meetingUrl.trim())) {
+    if (!validateUrl(trimmedUrl)) {
       setError('Please enter a valid Zoom, Google Meet, or Teams meeting URL')
       return
     }
 
-    onSubmit(meetingUrl.trim(), selectedClient?.id)
+    try {
+      await onSubmit(trimmedUrl, selectedClient?.id)
+    } catch (error) {
+      console.error('Form submission error:', error)
+      // Error is handled by the parent component
+    }
   }
 
   return (
@@ -103,6 +116,12 @@ export function MeetingForm({ onSubmit, loading }: MeetingFormProps) {
             type="submit"
             disabled={loading || !meetingUrl.trim()}
             className="w-full"
+            onClick={(e) => {
+              // Ensure form submission even if enter key isn't working
+              if (!loading && meetingUrl.trim()) {
+                handleSubmit(e as any)
+              }
+            }}
           >
             {loading ? (
               <>

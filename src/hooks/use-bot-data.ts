@@ -10,7 +10,7 @@ interface UseBotDataReturn {
   refetch: () => Promise<void>
 }
 
-const REFRESH_INTERVAL = 10000
+const REFRESH_INTERVAL = 100000
 
 export function useBotData(botId: string): UseBotDataReturn {
   const [bot, setBot] = useState<Bot | null>(null)

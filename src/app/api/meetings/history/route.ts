@@ -1,24 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
     // Get user from Supabase auth
     const authHeader = request.headers.get('authorization')
-    let user = null
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      const {
-        data: { user: authUser },
-        error: authError,
-      } = await supabase.auth.getUser(token)
-      if (!authError && authUser) {
-        user = authUser
-      }
+    if (!authHeader?.startsWith('Bearer ')) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 },
+      )
     }
 
-    if (!user) {
+    const authToken = authHeader.substring(7)
+
+    // Create authenticated Supabase client for RLS
+    const authenticatedSupabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        global: {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        },
+      },
+    )
+
+    // Verify the user
+    const {
+      data: { user },
+      error: authError,
+    } = await authenticatedSupabase.auth.getUser()
+
+    if (authError || !user) {
       return NextResponse.json(
         { error: 'Authentication required' },
         { status: 401 },
@@ -29,8 +44,12 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '10')
     const offset = parseInt(searchParams.get('offset') || '0')
 
-    // Get coaching sessions with meeting summaries
-    const { data: meetings, error } = await supabase
+    console.log(
+      `[DEBUG] Fetching meetings for user: ${user.id}, limit: ${limit}, offset: ${offset}`,
+    )
+
+    // Get coaching sessions with meeting summaries (using authenticated client)
+    const { data: meetings, error } = await authenticatedSupabase
       .from('coaching_sessions')
       .select(
         `
@@ -64,6 +83,10 @@ export async function GET(request: NextRequest) {
         { status: 500 },
       )
     }
+
+    console.log(
+      `[DEBUG] Found ${meetings?.length || 0} meetings for user ${user.id}`,
+    )
 
     return NextResponse.json({
       meetings: meetings || [],

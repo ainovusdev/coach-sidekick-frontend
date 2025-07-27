@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { transcriptStore } from '@/lib/transcript-store'
 import { createClient } from '@supabase/supabase-js'
+import { personalAIClient } from '@/services/personal-ai-client'
 import {
   getRecallHeaders,
   config,
@@ -9,6 +10,8 @@ import {
 } from '@/lib/config'
 
 export async function POST(request: NextRequest) {
+  console.log('[CREATE-BOT] Request received at', new Date().toISOString())
+
   try {
     // Check if the app is properly configured
     if (!isConfigured()) {
@@ -60,6 +63,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { meeting_url, client_id } = await request.json()
+    console.log('[CREATE-BOT] Request data:', { meeting_url, client_id })
 
     if (!meeting_url) {
       return NextResponse.json(
@@ -70,43 +74,27 @@ export async function POST(request: NextRequest) {
 
     // Validate client_id if provided (using authenticated client for RLS)
     if (client_id) {
-      console.log(
-        `[DEBUG] Validating client_id: ${client_id} for user: ${user.id}`,
-      )
-
       const { data: client, error: clientError } = await authenticatedSupabase
         .from('clients')
         .select('id, coach_id, name')
         .eq('id', client_id)
         .single()
 
-      console.log(`[DEBUG] Client query result:`, { client, clientError })
-
       if (clientError || !client) {
-        console.log(
-          `[DEBUG] Client validation failed - client not found or not owned by user`,
-        )
-
         return NextResponse.json(
           {
             error: 'Invalid client ID or client not found',
-            debug: {
-              clientId: client_id,
-              userId: user.id,
-              authError: clientError?.message,
-            },
           },
           { status: 400 },
         )
       }
-
-      console.log(`[DEBUG] Client validation successful for: ${client.name}`)
     }
 
     const webhookUrl = getWebhookUrl()
     console.log('WEBHOOK URL is', webhookUrl)
 
     // Create bot with Recall.ai API with real-time transcription
+    console.log('[CREATE-BOT] Calling Recall API...')
     const response = await fetch(`${config.recall.apiUrl}/bot`, {
       method: 'POST',
       headers: getRecallHeaders(),
@@ -137,6 +125,7 @@ export async function POST(request: NextRequest) {
     }
 
     const botData = await response.json()
+    console.log('[CREATE-BOT] Bot created successfully:', botData.id)
 
     // Save coaching session to database (using authenticated client)
     const { error: dbError } = await authenticatedSupabase
@@ -159,17 +148,38 @@ export async function POST(request: NextRequest) {
       // Continue anyway - the bot was created successfully
     }
 
-    // Initialize session in transcript store
-    transcriptStore.initSession(botData.id, {
-      id: botData.id,
-      status: botData.status_changes?.[0]?.code || 'created',
-      meeting_url: meeting_url,
-      platform: botData.meeting_url?.platform,
-      meeting_id: botData.meeting_url?.meeting_id,
-    })
+    // Initialize session in transcript store with Personal AI configuration
+    transcriptStore.initSession(
+      botData.id,
+      {
+        id: botData.id,
+        status: botData.status_changes?.[0]?.code || 'created',
+        meeting_url: meeting_url,
+        platform: botData.meeting_url?.platform,
+        meeting_id: botData.meeting_url?.meeting_id,
+      },
+      {
+        clientId: client_id,
+        uploadToPersonalAI: true, // Default to true for new sessions
+      },
+    )
 
+    // Set Personal AI session ID for client continuity
+    if (client_id) {
+      const personalAISessionId = personalAIClient.generateClientSessionId(
+        client_id,
+        botData.id,
+      )
+      transcriptStore.setPersonalAISessionId(botData.id, personalAISessionId)
+      console.log(
+        `[CREATE-BOT] Personal AI session ID set: ${personalAISessionId}`,
+      )
+    }
+
+    console.log('[CREATE-BOT] Success - returning bot data')
     return NextResponse.json(botData)
   } catch (error) {
+    console.error('[CREATE-BOT] Error:', error)
     if (error instanceof Error && error.message.includes('RECALL_API_KEY')) {
       return NextResponse.json(
         {

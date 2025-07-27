@@ -23,6 +23,12 @@ export interface BotSession {
   lastSavedIndex: number // Track how many entries have been saved to DB
   lastBatchSave: Date | null // When was the last batch save
   batchSaveInProgress: boolean // Prevent concurrent saves
+  // Personal AI integration fields
+  clientId?: string // Link to client for historical context
+  uploadToPersonalAI: boolean // Whether to upload this session to Personal AI
+  personalAISessionId?: string // Personal AI session identifier
+  personalAIUploaded: boolean // Track upload status
+  lastPersonalAIUpload: Date | null // When was the last upload
 }
 
 interface SessionInfo {
@@ -39,8 +45,15 @@ interface SessionInfo {
 
 class TranscriptStore {
   private sessions: Map<string, BotSession> = new Map()
+  private instanceId: string = Math.random().toString(36).substring(2, 9)
+
+  constructor() {
+    console.log(`[TRANSCRIPT_STORE] New instance created with ID: ${this.instanceId}`)
+  }
 
   getSession(botId: string): BotSession | null {
+    console.log(`[TRANSCRIPT_STORE] Instance ${this.instanceId}: getSession called for ${botId}`)
+    console.log(`[TRANSCRIPT_STORE] Instance ${this.instanceId}: Available sessions:`, Array.from(this.sessions.keys()))
     const session = this.sessions.get(botId)
     return session || null
   }
@@ -54,11 +67,23 @@ class TranscriptStore {
       platform?: string
       meeting_id?: string
     },
+    options?: {
+      clientId?: string
+      uploadToPersonalAI?: boolean
+    }
   ): void {
     if (this.sessions.has(botId)) {
       const existingSession = this.sessions.get(botId)!
       existingSession.bot = botData
       existingSession.lastUpdated = new Date()
+      
+      // Update Personal AI options if provided
+      if (options?.clientId) {
+        existingSession.clientId = options.clientId
+      }
+      if (options?.uploadToPersonalAI !== undefined) {
+        existingSession.uploadToPersonalAI = options.uploadToPersonalAI
+      }
       return
     }
 
@@ -71,6 +96,12 @@ class TranscriptStore {
       lastSavedIndex: 0,
       lastBatchSave: null,
       batchSaveInProgress: false,
+      // Personal AI fields
+      clientId: options?.clientId,
+      uploadToPersonalAI: options?.uploadToPersonalAI || true, // Default to true
+      personalAISessionId: undefined,
+      personalAIUploaded: false,
+      lastPersonalAIUpload: null,
     }
 
     this.sessions.set(botId, session)
@@ -237,6 +268,101 @@ class TranscriptStore {
       batchSaveInProgress: session.batchSaveInProgress,
     }
   }
+
+  // Personal AI integration methods
+  setClientId(botId: string, clientId: string): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.clientId = clientId
+      session.lastUpdated = new Date()
+    }
+  }
+
+  getClientId(botId: string): string | undefined {
+    const session = this.sessions.get(botId)
+    return session?.clientId
+  }
+
+  setPersonalAISessionId(botId: string, personalAISessionId: string): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.personalAISessionId = personalAISessionId
+      session.lastUpdated = new Date()
+    }
+  }
+
+  getPersonalAISessionId(botId: string): string | undefined {
+    const session = this.sessions.get(botId)
+    return session?.personalAISessionId
+  }
+
+  setUploadToPersonalAI(botId: string, upload: boolean): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.uploadToPersonalAI = upload
+      session.lastUpdated = new Date()
+    }
+  }
+
+  shouldUploadToPersonalAI(botId: string): boolean {
+    const session = this.sessions.get(botId)
+    return session?.uploadToPersonalAI || false
+  }
+
+  markPersonalAIUploaded(botId: string): void {
+    const session = this.sessions.get(botId)
+    if (session) {
+      session.personalAIUploaded = true
+      session.lastPersonalAIUpload = new Date()
+      session.lastUpdated = new Date()
+    }
+  }
+
+  isPersonalAIUploaded(botId: string): boolean {
+    const session = this.sessions.get(botId)
+    return session?.personalAIUploaded || false
+  }
+
+  shouldTriggerPersonalAIUpload(botId: string): boolean {
+    const session = this.sessions.get(botId)
+    if (!session || !session.uploadToPersonalAI || session.personalAIUploaded) {
+      return false
+    }
+
+    // Only upload if we have final transcript entries and the session is complete
+    const finalEntries = session.transcript.filter(entry => entry.is_final)
+    const sessionComplete = session.bot.status === 'ended' || session.bot.status === 'stopped'
+    
+    return finalEntries.length > 0 && sessionComplete
+  }
+
+  getPersonalAIInfo(botId: string): {
+    clientId?: string
+    uploadToPersonalAI: boolean
+    personalAISessionId?: string
+    personalAIUploaded: boolean
+    lastPersonalAIUpload: Date | null
+  } | null {
+    const session = this.sessions.get(botId)
+    if (!session) return null
+
+    return {
+      clientId: session.clientId,
+      uploadToPersonalAI: session.uploadToPersonalAI,
+      personalAISessionId: session.personalAISessionId,
+      personalAIUploaded: session.personalAIUploaded,
+      lastPersonalAIUpload: session.lastPersonalAIUpload,
+    }
+  }
 }
 
-export const transcriptStore = new TranscriptStore()
+// Ensure singleton pattern works in development with hot reloading
+declare global {
+  var __transcriptStore__: TranscriptStore | undefined
+}
+
+export const transcriptStore = global.__transcriptStore__ ?? new TranscriptStore()
+
+if (process.env.NODE_ENV !== 'production') {
+  global.__transcriptStore__ = transcriptStore
+}
