@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { ApiClient } from '@/lib/api-client'
 
 interface MeetingSummary {
@@ -37,7 +37,7 @@ export function useMeetingHistory(limit: number = 10) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchHistory = async (offset: number = 0) => {
+  const fetchHistory = useCallback(async (offset: number = 0) => {
     try {
       setLoading(true)
       setError(null)
@@ -57,11 +57,11 @@ export function useMeetingHistory(limit: number = 10) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [limit])
 
   useEffect(() => {
     fetchHistory()
-  }, [limit])
+  }, [limit, fetchHistory])
 
   return {
     data,

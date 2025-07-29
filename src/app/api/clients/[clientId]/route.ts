@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> },
 ) {
   try {
     // Get user from Supabase auth
@@ -25,12 +25,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientId } = params
+    const { clientId } = await params
 
     // Fetch client (without stats for now to avoid join issues)
     const { data: client, error } = await supabase
       .from('clients')
-      .select(`
+      .select(
+        `
         id,
         coach_id,
         name,
@@ -43,7 +44,8 @@ export async function GET(
         status,
         created_at,
         updated_at
-      `)
+      `,
+      )
       .eq('id', clientId)
       .eq('coach_id', user.id)
       .single()
@@ -53,37 +55,44 @@ export async function GET(
         return NextResponse.json({ error: 'Client not found' }, { status: 404 })
       }
       console.error('Error fetching client:', error)
-      return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Failed to fetch client' },
+        { status: 500 },
+      )
     }
 
     // Fetch stats separately to avoid join issues
-    let clientWithStats = { ...client };
+    const clientWithStats: any = { ...client }
     try {
       const { data: stats } = await supabase
         .from('client_session_stats')
-        .select('total_sessions, total_duration_minutes, last_session_date, average_engagement_score, average_overall_score, improvement_trends, coaching_focus_areas')
+        .select(
+          'total_sessions, total_duration_minutes, last_session_date, average_engagement_score, average_overall_score, improvement_trends, coaching_focus_areas',
+        )
         .eq('client_id', clientId)
-        .single();
-      
+        .single()
+
       if (stats) {
-        clientWithStats.client_session_stats = [stats];
+        clientWithStats.client_session_stats = [stats]
       }
-    } catch (err) {
+    } catch {
       // Stats don't exist yet, that's fine
-      clientWithStats.client_session_stats = [];
+      clientWithStats.client_session_stats = []
     }
 
     return NextResponse.json({ client: clientWithStats })
-
   } catch (error) {
     console.error('Error in client GET API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> },
 ) {
   try {
     // Get user from Supabase auth
@@ -105,13 +114,16 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientId } = params
+    const { clientId } = await params
     const body = await request.json()
     const { name, email, phone, company, position, notes, tags, status } = body
 
     // Validate required fields
     if (!name || name.trim().length === 0) {
-      return NextResponse.json({ error: 'Client name is required' }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Client name is required' },
+        { status: 400 },
+      )
     }
 
     // Check if client exists and belongs to user
@@ -126,7 +138,10 @@ export async function PUT(
       if (fetchError.code === 'PGRST116') {
         return NextResponse.json({ error: 'Client not found' }, { status: 404 })
       }
-      return NextResponse.json({ error: 'Failed to fetch client' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Failed to fetch client' },
+        { status: 500 },
+      )
     }
 
     // Check for duplicate email if email is being changed
@@ -140,7 +155,10 @@ export async function PUT(
         .single()
 
       if (duplicateClient) {
-        return NextResponse.json({ error: 'Client with this email already exists' }, { status: 409 })
+        return NextResponse.json(
+          { error: 'Client with this email already exists' },
+          { status: 409 },
+        )
       }
     }
 
@@ -153,7 +171,7 @@ export async function PUT(
       position: position?.trim() || null,
       notes: notes?.trim() || null,
       tags: tags || [],
-      status: status || 'active'
+      status: status || 'active',
     }
 
     const { data: client, error } = await supabase
@@ -166,20 +184,25 @@ export async function PUT(
 
     if (error) {
       console.error('Error updating client:', error)
-      return NextResponse.json({ error: 'Failed to update client' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Failed to update client' },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ client })
-
   } catch (error) {
     console.error('Error in client PUT API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { clientId: string } }
+  { params }: { params: Promise<{ clientId: string }> },
 ) {
   try {
     // Get user from Supabase auth
@@ -201,7 +224,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { clientId } = params
+    const { clientId } = await params
 
     // Check if client has associated sessions
     const { data: sessions, error: sessionsError } = await supabase
@@ -212,13 +235,20 @@ export async function DELETE(
 
     if (sessionsError) {
       console.error('Error checking client sessions:', sessionsError)
-      return NextResponse.json({ error: 'Failed to check client sessions' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Failed to check client sessions' },
+        { status: 500 },
+      )
     }
 
     if (sessions && sessions.length > 0) {
-      return NextResponse.json({ 
-        error: 'Cannot delete client with associated coaching sessions. Archive the client instead.' 
-      }, { status: 400 })
+      return NextResponse.json(
+        {
+          error:
+            'Cannot delete client with associated coaching sessions. Archive the client instead.',
+        },
+        { status: 400 },
+      )
     }
 
     // Delete client
@@ -230,13 +260,18 @@ export async function DELETE(
 
     if (error) {
       console.error('Error deleting client:', error)
-      return NextResponse.json({ error: 'Failed to delete client' }, { status: 500 })
+      return NextResponse.json(
+        { error: 'Failed to delete client' },
+        { status: 500 },
+      )
     }
 
     return NextResponse.json({ success: true })
-
   } catch (error) {
     console.error('Error in client DELETE API:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 },
+    )
   }
 }

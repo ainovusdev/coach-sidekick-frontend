@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import Link from 'next/link'
@@ -14,7 +14,7 @@ import { ArrowLeft, User } from 'lucide-react'
 export default function EditClientPage({
   params,
 }: {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }) {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -22,25 +22,22 @@ export default function EditClientPage({
   const [loading, setLoading] = useState(false)
   const [fetchLoading, setFetchLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [clientId, setClientId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Redirect to auth if not authenticated
-    if (!authLoading && !user) {
-      router.push('/auth')
-      return
-    }
+    params.then(({ clientId }) => {
+      setClientId(clientId)
+    })
+  }, [params])
 
-    if (!user || authLoading) return
-
-    fetchClient()
-  }, [params.clientId, user, authLoading, router])
-
-  const fetchClient = async () => {
+  const fetchClient = useCallback(async () => {
+    if (!clientId) return
+    
     setFetchLoading(true)
     setError(null)
 
     try {
-      const response = await ApiClient.get(`/api/clients/${params.clientId}`)
+      const response = await ApiClient.get(`/api/clients/${clientId}`)
 
       if (!response.ok) {
         throw new Error('Failed to fetch client details')
@@ -55,15 +52,29 @@ export default function EditClientPage({
     } finally {
       setFetchLoading(false)
     }
-  }
+  }, [clientId])
+
+  useEffect(() => {
+    // Redirect to auth if not authenticated
+    if (!authLoading && !user) {
+      router.push('/auth')
+      return
+    }
+
+    if (!user || authLoading || !clientId) return
+
+    fetchClient()
+  }, [clientId, user, authLoading, router, fetchClient])
 
   const handleSubmit = async (clientData: Partial<Client>) => {
+    if (!clientId) return
+    
     setLoading(true)
     setError(null)
 
     try {
       const response = await ApiClient.put(
-        `/api/clients/${params.clientId}`,
+        `/api/clients/${clientId}`,
         clientData,
       )
 
@@ -73,7 +84,7 @@ export default function EditClientPage({
       }
 
       // Success - redirect to client detail page
-      router.push(`/clients/${params.clientId}`)
+      router.push(`/clients/${clientId}`)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'An unexpected error occurred',
@@ -84,7 +95,8 @@ export default function EditClientPage({
   }
 
   const handleCancel = () => {
-    router.push(`/clients/${params.clientId}`)
+    if (!clientId) return
+    router.push(`/clients/${clientId}`)
   }
 
   if (authLoading || fetchLoading) {
@@ -133,7 +145,7 @@ export default function EditClientPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <div className="flex items-center gap-4 mb-4">
-            <Link href={`/clients/${params.clientId}`}>
+            <Link href={clientId ? `/clients/${clientId}` : '/clients'}>
               <Button
                 variant="outline"
                 size="sm"

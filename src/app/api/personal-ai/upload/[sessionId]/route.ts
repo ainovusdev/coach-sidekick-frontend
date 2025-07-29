@@ -6,10 +6,12 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { sessionId: string } }
+  { params }: { params: Promise<{ sessionId: string }> }
 ) {
+  let sessionId: string = 'unknown'
   try {
-    const sessionId = params.sessionId
+    const paramsData = await params
+    sessionId = paramsData.sessionId
 
     // Get user from Supabase auth
     const authHeader = request.headers.get('authorization')
@@ -110,7 +112,7 @@ export async function POST(
       )
     }
   } catch (error) {
-    console.error(`[Personal AI API] Upload failed for session ${params.sessionId}:`, error)
+    console.error(`[Personal AI API] Upload failed for session ${sessionId}:`, error)
     
     return NextResponse.json(
       {

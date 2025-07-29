@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import Link from 'next/link'
@@ -52,7 +52,7 @@ interface ClientSession {
 export default function ClientDetailPage({
   params,
 }: {
-  params: { clientId: string }
+  params: Promise<{ clientId: string }>
 }) {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -60,27 +60,24 @@ export default function ClientDetailPage({
   const [sessions, setSessions] = useState<ClientSession[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [clientId, setClientId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Redirect to auth if not authenticated
-    if (!authLoading && !user) {
-      router.push('/auth')
-      return
-    }
+    params.then(({ clientId }) => {
+      setClientId(clientId)
+    })
+  }, [params])
 
-    if (!user || authLoading) return
-
-    fetchClientData()
-  }, [params.clientId, user, authLoading, router])
-
-  const fetchClientData = async () => {
+  const fetchClientData = useCallback(async () => {
+    if (!clientId) return
+    
     setLoading(true)
     setError(null)
 
     try {
       // Fetch client details
       const clientResponse = await ApiClient.get(
-        `/api/clients/${params.clientId}`,
+        `/api/clients/${clientId}`,
       )
       if (!clientResponse.ok) {
         throw new Error('Failed to fetch client details')
@@ -90,7 +87,7 @@ export default function ClientDetailPage({
 
       // Fetch client sessions
       const sessionsResponse = await ApiClient.get(
-        `/api/clients/${params.clientId}/sessions?limit=10`,
+        `/api/clients/${clientId}/sessions?limit=10`,
       )
       if (!sessionsResponse.ok) {
         throw new Error('Failed to fetch client sessions')
@@ -104,7 +101,19 @@ export default function ClientDetailPage({
     } finally {
       setLoading(false)
     }
-  }
+  }, [clientId])
+
+  useEffect(() => {
+    // Redirect to auth if not authenticated
+    if (!authLoading && !user) {
+      router.push('/auth')
+      return
+    }
+
+    if (!user || authLoading || !clientId) return
+
+    fetchClientData()
+  }, [clientId, user, authLoading, router, fetchClientData])
 
   if (authLoading || loading) {
     return (

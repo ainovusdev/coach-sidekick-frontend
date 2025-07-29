@@ -7,7 +7,6 @@ import { ApiClient } from '@/lib/api-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -29,7 +28,7 @@ import {
   Trophy,
   Brain,
 } from 'lucide-react'
-import { formatDistanceToNow, format } from 'date-fns'
+import { format } from 'date-fns'
 
 interface TranscriptEntry {
   id: string
@@ -92,10 +91,6 @@ export default function SessionDetailsPage({
   const resolvedParams = React.use(params)
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
-    router.push('/auth')
-    return null
-  }
 
   useEffect(() => {
     if (!user || authLoading) return
@@ -128,6 +123,11 @@ export default function SessionDetailsPage({
     fetchSessionDetails()
   }, [resolvedParams.sessionId, user, authLoading])
 
+  // Redirect to auth if not authenticated
+  if (!authLoading && !user) {
+    router.push('/auth')
+    return null
+  }
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
@@ -137,7 +137,9 @@ export default function SessionDetailsPage({
             <div className="absolute inset-2 animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 animation-delay-150"></div>
             <div className="absolute inset-4 animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600 animation-delay-300"></div>
           </div>
-          <p className="text-gray-600 font-medium animate-pulse">Loading session details...</p>
+          <p className="text-gray-600 font-medium animate-pulse">
+            Loading session details...
+          </p>
         </div>
       </div>
     )
@@ -155,15 +157,15 @@ export default function SessionDetailsPage({
           </h1>
           <p className="text-gray-600 mb-6">{error}</p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button 
+            <Button
               onClick={() => router.back()}
               className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Go Back
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => window.location.reload()}
               className="border-2 hover:bg-gray-50 transition-all duration-200"
             >
@@ -225,9 +227,9 @@ export default function SessionDetailsPage({
       <div className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 sticky top-0 z-10 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => router.back()}
               className="hover:bg-gray-100/80 transition-all duration-200 -ml-2 sm:ml-0"
             >
@@ -239,7 +241,11 @@ export default function SessionDetailsPage({
                 <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                   Session Details
                 </h1>
-                <Badge className={`${getStatusColor(session.status)} px-3 py-1 text-xs font-semibold shadow-sm`}>
+                <Badge
+                  className={`${getStatusColor(
+                    session.status,
+                  )} px-3 py-1 text-xs font-semibold shadow-sm`}
+                >
                   <Activity className="w-3 h-3 mr-1" />
                   {session.status.replace('_', ' ').toUpperCase()}
                 </Badge>
@@ -247,7 +253,9 @@ export default function SessionDetailsPage({
               <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
                 <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
                   <Calendar className="h-4 w-4 text-purple-500" />
-                  <span className="font-medium">{format(new Date(session.created_at), 'PPP')}</span>
+                  <span className="font-medium">
+                    {format(new Date(session.created_at), 'PPP')}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
                   <ExternalLink className="h-4 w-4 text-blue-500" />
@@ -286,13 +294,21 @@ export default function SessionDetailsPage({
                       <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-3 border border-purple-200/50">
                         <div className="flex items-center gap-2 mb-1">
                           <Clock className="h-4 w-4 text-purple-600" />
-                          <span className="text-xs font-medium text-purple-600">Duration</span>
+                          <span className="text-xs font-medium text-purple-600">
+                            Duration
+                          </span>
                         </div>
-                        <span className="text-lg font-bold text-gray-900">{meeting_summary.duration_minutes} min</span>
+                        <span className="text-lg font-bold text-gray-900">
+                          {meeting_summary.duration_minutes} min
+                        </span>
                       </div>
                     )}
                     {meeting_summary.final_overall_score && (
-                      <div className={`bg-gradient-to-br ${getScoreGradient(meeting_summary.final_overall_score)} p-3 rounded-xl text-white`}>
+                      <div
+                        className={`bg-gradient-to-br ${getScoreGradient(
+                          meeting_summary.final_overall_score,
+                        )} p-3 rounded-xl text-white`}
+                      >
                         <div className="flex items-center gap-2 mb-1">
                           <TrendingUp className="h-4 w-4" />
                           <span className="text-xs font-medium">Score</span>
@@ -306,7 +322,9 @@ export default function SessionDetailsPage({
                       <div className="bg-gradient-to-br from-blue-50 to-blue-100/50 rounded-xl p-3 border border-blue-200/50">
                         <div className="flex items-center gap-2 mb-1">
                           <MessageSquare className="h-4 w-4 text-blue-600" />
-                          <span className="text-xs font-medium text-blue-600">Messages</span>
+                          <span className="text-xs font-medium text-blue-600">
+                            Messages
+                          </span>
                         </div>
                         <span className="text-lg font-bold text-gray-900">
                           {meeting_summary.total_transcript_entries}
@@ -317,7 +335,9 @@ export default function SessionDetailsPage({
                       <div className="bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-xl p-3 border border-amber-200/50">
                         <div className="flex items-center gap-2 mb-1">
                           <Sparkles className="h-4 w-4 text-amber-600" />
-                          <span className="text-xs font-medium text-amber-600">Suggestions</span>
+                          <span className="text-xs font-medium text-amber-600">
+                            Suggestions
+                          </span>
                         </div>
                         <span className="text-lg font-bold text-gray-900">
                           {meeting_summary.total_coaching_suggestions}
@@ -353,7 +373,9 @@ export default function SessionDetailsPage({
                                 className="text-sm text-gray-700 flex items-start gap-3 bg-amber-50/50 rounded-lg p-2.5 border border-amber-100"
                               >
                                 <ChevronRight className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                                <span className="leading-relaxed">{insight}</span>
+                                <span className="leading-relaxed">
+                                  {insight}
+                                </span>
                               </li>
                             ),
                           )}
@@ -405,19 +427,33 @@ export default function SessionDetailsPage({
                   {latestAnalysis.overall_score && (
                     <div className="text-center py-4">
                       <div className="relative inline-flex items-center justify-center">
-                        <div className={`absolute inset-0 bg-gradient-to-br ${getScoreGradient(latestAnalysis.overall_score)} rounded-full blur-xl opacity-30 animate-pulse`} />
-                        <div className={`relative w-24 h-24 rounded-full bg-gradient-to-br ${getScoreGradient(latestAnalysis.overall_score)} p-1`}>
+                        <div
+                          className={`absolute inset-0 bg-gradient-to-br ${getScoreGradient(
+                            latestAnalysis.overall_score,
+                          )} rounded-full blur-xl opacity-30 animate-pulse`}
+                        />
+                        <div
+                          className={`relative w-24 h-24 rounded-full bg-gradient-to-br ${getScoreGradient(
+                            latestAnalysis.overall_score,
+                          )} p-1`}
+                        >
                           <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-                            <div className={`text-3xl font-bold ${getScoreColor(latestAnalysis.overall_score)}`}>
+                            <div
+                              className={`text-3xl font-bold ${getScoreColor(
+                                latestAnalysis.overall_score,
+                              )}`}
+                            >
                               {latestAnalysis.overall_score}
                             </div>
                           </div>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-600 mt-3 font-medium">Overall Score</p>
-                      <Progress 
-                        value={latestAnalysis.overall_score * 10} 
-                        className="h-2 mt-2" 
+                      <p className="text-sm text-gray-600 mt-3 font-medium">
+                        Overall Score
+                      </p>
+                      <Progress
+                        value={latestAnalysis.overall_score * 10}
+                        className="h-2 mt-2"
                       />
                     </div>
                   )}
@@ -450,8 +486,12 @@ export default function SessionDetailsPage({
                                 key={index}
                                 className="text-sm text-gray-700 flex items-start gap-3 bg-green-50/50 rounded-lg p-2.5 border border-green-100 hover:border-green-200 transition-all duration-200 hover:shadow-sm"
                               >
-                                <span className="text-green-600 font-bold text-lg leading-4">+</span>
-                                <span className="leading-relaxed">{feedback}</span>
+                                <span className="text-green-600 font-bold text-lg leading-4">
+                                  +
+                                </span>
+                                <span className="leading-relaxed">
+                                  {feedback}
+                                </span>
                               </li>
                             ),
                           )}
@@ -475,7 +515,9 @@ export default function SessionDetailsPage({
                                 key={index}
                                 className="text-sm text-gray-700 flex items-start gap-3 bg-amber-50/50 rounded-lg p-2.5 border border-amber-100 hover:border-amber-200 transition-all duration-200 hover:shadow-sm"
                               >
-                                <span className="text-amber-600 text-lg leading-4">!</span>
+                                <span className="text-amber-600 text-lg leading-4">
+                                  !
+                                </span>
                                 <span className="leading-relaxed">{area}</span>
                               </li>
                             ),
@@ -501,7 +543,9 @@ export default function SessionDetailsPage({
                                 className="text-sm text-gray-700 flex items-start gap-3 bg-blue-50/50 rounded-lg p-2.5 border border-blue-100 hover:border-blue-200 transition-all duration-200 hover:shadow-sm"
                               >
                                 <Sparkles className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                                <span className="leading-relaxed">{suggestion}</span>
+                                <span className="leading-relaxed">
+                                  {suggestion}
+                                </span>
                               </li>
                             ),
                           )}
@@ -526,7 +570,10 @@ export default function SessionDetailsPage({
                       Meeting Transcript
                     </span>
                   </div>
-                  <Badge variant="secondary" className="bg-blue-100 text-blue-700 border-blue-200">
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-700 border-blue-200"
+                  >
                     {transcript.length} messages
                   </Badge>
                 </CardTitle>
@@ -537,28 +584,37 @@ export default function SessionDetailsPage({
                     <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
                       <MessageSquare className="h-10 w-10 text-gray-300" />
                     </div>
-                    <p className="text-lg font-medium text-gray-400">No transcript available</p>
-                    <p className="text-sm text-gray-400 mt-1">Messages will appear here once the meeting starts</p>
+                    <p className="text-lg font-medium text-gray-400">
+                      No transcript available
+                    </p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Messages will appear here once the meeting starts
+                    </p>
                   </div>
                 ) : (
                   <ScrollArea className="h-[600px]">
                     <div className="p-6 space-y-4">
-                      {transcript.map((entry, index) => {
-                        const isBot = entry.speaker.toLowerCase().includes('bot') || 
-                                     entry.speaker.toLowerCase().includes('system')
+                      {transcript.map(entry => {
+                        const isBot =
+                          entry.speaker.toLowerCase().includes('bot') ||
+                          entry.speaker.toLowerCase().includes('system')
                         return (
-                          <div 
-                            key={entry.id} 
+                          <div
+                            key={entry.id}
                             className={`flex gap-3 p-4 rounded-xl transition-all duration-200 hover:shadow-md ${
-                              isBot ? 'bg-purple-50/50 hover:bg-purple-50' : 'bg-blue-50/50 hover:bg-blue-50'
+                              isBot
+                                ? 'bg-purple-50/50 hover:bg-purple-50'
+                                : 'bg-blue-50/50 hover:bg-blue-50'
                             }`}
                           >
                             <div className="flex-shrink-0">
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
-                                isBot 
-                                  ? 'bg-gradient-to-br from-purple-500 to-purple-600' 
-                                  : 'bg-gradient-to-br from-blue-500 to-blue-600'
-                              }`}>
+                              <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center shadow-md ${
+                                  isBot
+                                    ? 'bg-gradient-to-br from-purple-500 to-purple-600'
+                                    : 'bg-gradient-to-br from-blue-500 to-blue-600'
+                                }`}
+                              >
                                 {isBot ? (
                                   <Bot className="h-5 w-5 text-white" />
                                 ) : (
@@ -572,11 +628,15 @@ export default function SessionDetailsPage({
                                   {entry.speaker}
                                 </span>
                                 <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                                  {format(new Date(entry.timestamp), 'HH:mm:ss')}
+                                  {format(
+                                    new Date(entry.timestamp),
+                                    'HH:mm:ss',
+                                  )}
                                 </span>
                                 {entry.confidence && (
                                   <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
-                                    {Math.round(entry.confidence * 100)}% confidence
+                                    {Math.round(entry.confidence * 100)}%
+                                    confidence
                                   </span>
                                 )}
                               </div>

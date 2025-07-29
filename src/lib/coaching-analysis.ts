@@ -149,14 +149,17 @@ class CoachingAnalysisService {
       // Get historical context from Personal AI if client is linked
       const clientId = transcriptStore.getClientId(botId)
       let historicalContext: string | null = null
-      
+
       if (clientId) {
         try {
           historicalContext = await personalAIHistoryService.getRelevantContext(
-            clientId
+            clientId,
           )
         } catch (error) {
-          console.warn(`Failed to get historical context for client ${clientId}:`, error)
+          console.warn(
+            `Failed to get historical context for client ${clientId}:`,
+            error,
+          )
         }
       }
 
@@ -197,10 +200,17 @@ class CoachingAnalysisService {
 
       // Get Personal AI suggestions in parallel using the same data as OpenAI
       try {
-        const personalAISuggestions = await this.getPersonalAISuggestions(botId, transcript, newEntries)
+        const personalAISuggestions = await this.getPersonalAISuggestions(
+          botId,
+          transcript,
+          newEntries,
+        )
         analysis.personalAISuggestions = personalAISuggestions
       } catch (error) {
-        console.warn(`Failed to get Personal AI suggestions for ${botId}:`, error)
+        console.warn(
+          `Failed to get Personal AI suggestions for ${botId}:`,
+          error,
+        )
         analysis.personalAISuggestions = []
       }
 
@@ -491,7 +501,10 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
     try {
       return await personalAIHistoryService.getClientProgressSummary(clientId)
     } catch (error) {
-      console.warn(`Failed to get client progress summary for ${clientId}:`, error)
+      console.warn(
+        `Failed to get client progress summary for ${clientId}:`,
+        error,
+      )
       return null
     }
   }
@@ -500,11 +513,14 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
   async getPersonalAISuggestions(
     botId: string,
     transcript: TranscriptEntry[],
-    newEntries: TranscriptEntry[]
+    newEntries: TranscriptEntry[],
   ): Promise<PersonalAISuggestion[]> {
     try {
       // Check if Personal AI is configured
-      if (!process.env.PERSONAL_AI_API_KEY || !process.env.PERSONAL_AI_DOMAIN_NAME) {
+      if (
+        !process.env.PERSONAL_AI_API_KEY ||
+        !process.env.PERSONAL_AI_DOMAIN_NAME
+      ) {
         return []
       }
 
@@ -523,7 +539,8 @@ Focus on being the coach's intuitive sidekick - amplifying their natural instinc
         .join('\n')
 
       // Prefer recent conversation, but use full if recent is empty
-      const conversationToAnalyze = recentConversation.trim() || fullConversation
+      const conversationToAnalyze =
+        recentConversation.trim() || fullConversation
 
       if (!conversationToAnalyze.trim()) {
         return []
@@ -558,24 +575,27 @@ Format each suggestion clearly and make them practical for real-time use.`
 
       if (aiMessage && aiMessage.trim().length > 10) {
         // More sophisticated parsing to extract actual suggestions
-        const lines = aiMessage.split(/\n+/).filter(line => line.trim().length > 0)
+        const lines = aiMessage
+          .split(/\n+/)
+          .filter(line => line.trim().length > 0)
         let suggestionCount = 0
-        
+
         for (const line of lines) {
           const trimmedLine = line.trim()
-          
+
           // Look for suggestion patterns (numbered, bulleted, or clear suggestion language)
-          if ((trimmedLine.match(/^\d+\./) || 
-               trimmedLine.match(/^[-•*]/) || 
-               trimmedLine.toLowerCase().includes('suggest') ||
-               trimmedLine.toLowerCase().includes('try') ||
-               trimmedLine.toLowerCase().includes('ask') ||
-               trimmedLine.toLowerCase().includes('explore')) &&
-              trimmedLine.length > 20 && 
-              suggestionCount < 3) {
-            
+          if (
+            (trimmedLine.match(/^\d+\./) ||
+              trimmedLine.match(/^[-•*]/) ||
+              trimmedLine.toLowerCase().includes('suggest') ||
+              trimmedLine.toLowerCase().includes('try') ||
+              trimmedLine.toLowerCase().includes('ask') ||
+              trimmedLine.toLowerCase().includes('explore')) &&
+            trimmedLine.length > 20 &&
+            suggestionCount < 3
+          ) {
             // Clean up the suggestion text
-            let suggestion = trimmedLine
+            const suggestion = trimmedLine
               .replace(/^\d+\.\s*/, '')
               .replace(/^[-•*]\s*/, '')
               .trim()
@@ -605,11 +625,15 @@ Format each suggestion clearly and make them practical for real-time use.`
         }
       }
 
-      console.log(`[Personal AI] Generated ${suggestions.length} suggestions for bot ${botId}`)
+      console.log(
+        `[Personal AI] Generated ${suggestions.length} suggestions for bot ${botId}`,
+      )
       return suggestions
-
     } catch (error) {
-      console.error(`[Personal AI] Failed to get suggestions for bot ${botId}:`, error)
+      console.error(
+        `[Personal AI] Failed to get suggestions for bot ${botId}:`,
+        error,
+      )
       return []
     }
   }

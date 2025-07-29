@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,7 +28,7 @@ export function BatchSaveStatus({ botId }: BatchSaveStatusProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchSaveStatus = async () => {
+  const fetchSaveStatus = useCallback(async () => {
     try {
       setError(null)
       const response = await fetch(`/api/meetings/batch-status/${botId}`)
@@ -44,7 +44,7 @@ export function BatchSaveStatus({ botId }: BatchSaveStatusProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [botId])
 
   const forceSave = async () => {
     try {
@@ -73,7 +73,7 @@ export function BatchSaveStatus({ botId }: BatchSaveStatusProps) {
     const interval = setInterval(fetchSaveStatus, 10000)
 
     return () => clearInterval(interval)
-  }, [botId])
+  }, [botId, fetchSaveStatus])
 
   if (loading && !saveStatus) {
     return (

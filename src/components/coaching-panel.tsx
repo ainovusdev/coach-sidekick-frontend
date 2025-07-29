@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -68,7 +68,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [metadata, setMetadata] = useState<any>(null)
 
-  const fetchSuggestions = async (autoAnalyze: boolean = true) => {
+  const fetchSuggestions = useCallback(async (autoAnalyze: boolean = true) => {
     try {
       setLoading(true)
       setError(null)
@@ -97,7 +97,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
     } finally {
       setLoading(false)
     }
-  }
+  }, [botId])
 
   const triggerAnalysis = async () => {
     try {
@@ -125,7 +125,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
     fetchSuggestions()
     const interval = setInterval(() => fetchSuggestions(), 15000)
     return () => clearInterval(interval)
-  }, [botId])
+  }, [botId, fetchSuggestions])
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {

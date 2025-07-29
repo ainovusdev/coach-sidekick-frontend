@@ -1,6 +1,5 @@
 import { personalAIClient } from './personal-ai-client';
 import { ClientHistoryContext } from '@/types/personal-ai';
-import { Client } from '@/types/meeting';
 
 export class PersonalAIHistoryService {
   private readonly client = personalAIClient;
@@ -9,8 +8,7 @@ export class PersonalAIHistoryService {
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
   async getClientHistory(
-    clientId: string,
-    client?: Client
+    clientId: string
   ): Promise<ClientHistoryContext | null> {
     try {
       const cacheKey = `client-${clientId}`;
@@ -29,8 +27,7 @@ export class PersonalAIHistoryService {
 
       const clientHistory = await this.processConversationHistory(
         clientId,
-        conversationHistory,
-        client
+        conversationHistory
       );
 
       this.cacheHistory(cacheKey, clientHistory);

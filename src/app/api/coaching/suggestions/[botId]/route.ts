@@ -4,10 +4,10 @@ import { transcriptStore } from '@/lib/transcript-store'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { botId: string } },
+  { params }: { params: Promise<{ botId: string }> },
 ) {
   try {
-    const { botId } = params
+    const { botId } = await params
     const { searchParams } = new URL(request.url)
     const autoAnalyze = searchParams.get('auto_analyze') === 'true'
     const onlyActive = searchParams.get('only_active') === 'true'
