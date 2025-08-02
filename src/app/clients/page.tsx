@@ -6,11 +6,11 @@ import PageLayout from '@/components/page-layout'
 import ClientList from '@/components/clients/client-list'
 
 export default function ClientsPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const router = useRouter()
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }

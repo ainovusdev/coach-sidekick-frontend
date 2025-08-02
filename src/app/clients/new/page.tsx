@@ -6,16 +6,16 @@ import { useAuth } from '@/contexts/auth-context'
 import PageLayout from '@/components/page-layout'
 import ClientForm from '@/components/clients/client-form'
 import { Client } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
 
 export default function NewClientPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }
@@ -38,12 +38,13 @@ export default function NewClientPage() {
     setError(null)
 
     try {
-      const response = await ApiClient.post('/api/clients', clientData)
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create client')
-      }
+      await ClientService.createClient({
+        name: clientData.name || '',
+        email: clientData.email,
+        phone: clientData.phone,
+        notes: clientData.notes,
+        tags: clientData.tags,
+      })
 
       // Success - redirect to clients list
       router.push('/clients')

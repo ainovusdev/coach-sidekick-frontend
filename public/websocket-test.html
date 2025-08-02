@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 3px;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        #log {
+            background-color: #f4f4f4;
+            padding: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Connection Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Test Basic WebSocket (No Auth)</h2>
+        <button onclick="testBasicWebSocket()">Test Basic Connection</button>
+        <div id="basic-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test Auth Token</h2>
+        <input type="text" id="auth-token" placeholder="Paste your auth token here" style="width: 100%; padding: 5px;">
+        <br><br>
+        <button onclick="testAuthToken()">Verify Token</button>
+        <div id="auth-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Debug WebSocket</h2>
+        <button onclick="testDebugWebSocket()">Test Debug WebSocket</button>
+        <div id="ws-debug-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Authenticated WebSocket</h2>
+        <button onclick="testAuthWebSocket()">Test Auth WebSocket</button>
+        <div id="ws-auth-status"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Connection Log</h2>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        const backendUrl = 'http://localhost:8000';
+        const wsUrl = 'ws://localhost:8000';
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            const entry = document.createElement('div');
+            entry.textContent = `[${timestamp}] ${message}`;
+            entry.className = type;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function setStatus(elementId, message, type) {
+            const element = document.getElementById(elementId);
+            element.className = `status ${type}`;
+            element.textContent = message;
+        }
+
+        function testBasicWebSocket() {
+            log('Testing basic WebSocket connection...');
+            const ws = new WebSocket(`${wsUrl}/ws/test`);
+            
+            ws.onopen = () => {
+                log('Basic WebSocket connected!', 'success');
+                setStatus('basic-status', '✓ WebSocket connection successful', 'success');
+            };
+            
+            ws.onmessage = (event) => {
+                log(`Received: ${event.data}`, 'info');
+            };
+            
+            ws.onerror = (error) => {
+                log(`WebSocket error: ${error}`, 'error');
+                setStatus('basic-status', '✗ WebSocket connection failed', 'error');
+            };
+            
+            ws.onclose = (event) => {
+                log(`WebSocket closed: ${event.code} - ${event.reason}`);
+            };
+        }
+
+        async function testAuthToken() {
+            const token = document.getElementById('auth-token').value;
+            if (!token) {
+                setStatus('auth-status', 'Please enter a token', 'error');
+                return;
+            }
+
+            log('Testing auth token...');
+            try {
+                const response = await fetch(`${backendUrl}/api/v1/auth/verify`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    log(`Token valid! User ID: ${data.user_id}`, 'success');
+                    setStatus('auth-status', `✓ Token valid for user: ${data.user_id}`, 'success');
+                } else {
+                    const error = await response.text();
+                    log(`Token invalid: ${response.status} - ${error}`, 'error');
+                    setStatus('auth-status', `✗ Token invalid: ${response.status}`, 'error');
+                }
+            } catch (error) {
+                log(`Auth test error: ${error}`, 'error');
+                setStatus('auth-status', `✗ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function testDebugWebSocket() {
+            const token = document.getElementById('auth-token').value;
+            const debugUrl = token 
+                ? `${wsUrl}/ws/debug?token=${encodeURIComponent(token)}`
+                : `${wsUrl}/ws/debug`;
+            
+            log(`Testing debug WebSocket: ${debugUrl}`);
+            const ws = new WebSocket(debugUrl);
+            
+            ws.onopen = () => {
+                log('Debug WebSocket connected!', 'success');
+                setStatus('ws-debug-status', '✓ Debug WebSocket connected', 'success');
+            };
+            
+            ws.onmessage = (event) => {
+                log(`Debug response: ${event.data}`, 'info');
+                try {
+                    const data = JSON.parse(event.data);
+                    log(`Query params received: ${JSON.stringify(data.query_params)}`, 'info');
+                } catch (e) {
+                    // Not JSON
+                }
+            };
+            
+            ws.onerror = (error) => {
+                log(`Debug WebSocket error: ${error}`, 'error');
+                setStatus('ws-debug-status', '✗ Debug WebSocket failed', 'error');
+            };
+            
+            ws.onclose = (event) => {
+                log(`Debug WebSocket closed: ${event.code} - ${event.reason}`);
+            };
+        }
+
+        function testAuthWebSocket() {
+            const token = document.getElementById('auth-token').value;
+            if (!token) {
+                setStatus('ws-auth-status', 'Please enter a token first', 'error');
+                return;
+            }
+
+            log('Testing authenticated WebSocket connection...');
+            const ws = new WebSocket(`${wsUrl}/ws?token=${encodeURIComponent(token)}`);
+            
+            ws.onopen = () => {
+                log('Authenticated WebSocket connected!', 'success');
+                setStatus('ws-auth-status', '✓ Authenticated WebSocket connection successful', 'success');
+                
+                // Test sending a message
+                ws.send(JSON.stringify({
+                    type: 'ping',
+                    data: {}
+                }));
+            };
+            
+            ws.onmessage = (event) => {
+                log(`Received: ${event.data}`, 'info');
+                try {
+                    const message = JSON.parse(event.data);
+                    log(`Message type: ${message.type}`, 'info');
+                } catch (e) {
+                    // Not JSON
+                }
+            };
+            
+            ws.onerror = (error) => {
+                log(`WebSocket error: ${error}`, 'error');
+                setStatus('ws-auth-status', '✗ Authenticated WebSocket connection failed', 'error');
+            };
+            
+            ws.onclose = (event) => {
+                log(`WebSocket closed: ${event.code} - ${event.reason}`, 'error');
+                if (event.code === 4001) {
+                    setStatus('ws-auth-status', '✗ Authentication failed (401)', 'error');
+                }
+            };
+        }
+
+        // Get token from localStorage if available
+        window.onload = () => {
+            const storedToken = localStorage.getItem('auth_token');
+            if (storedToken) {
+                document.getElementById('auth-token').value = storedToken;
+                log('Found token in localStorage', 'info');
+            }
+        };
+    </script>
+</body>
+</html>

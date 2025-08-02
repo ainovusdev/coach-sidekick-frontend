@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { ApiClient } from '@/lib/api-client'
+import { SessionService } from '@/services/session-service'
 
 interface MeetingSummary {
   duration_minutes: number | null
@@ -42,15 +42,31 @@ export function useMeetingHistory(limit: number = 10) {
       setLoading(true)
       setError(null)
 
-      const response = await ApiClient.get(
-        `/api/meetings/history?limit=${limit}&offset=${offset}`,
-      )
+      const page = Math.floor(offset / limit) + 1
+      const response = await SessionService.listSessions({
+        page,
+        per_page: limit,
+      })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch meeting history')
+      // Transform to expected format
+      const historyData: MeetingHistoryResponse = {
+        meetings: response.sessions.map(session => ({
+          id: session.id,
+          bot_id: session.bot_id,
+          meeting_url: session.meeting_url,
+          status: session.status,
+          created_at: session.created_at,
+          updated_at: session.updated_at,
+          metadata: session.client_id ? { client_id: session.client_id } : {},
+          meeting_summaries: null, // TODO: Fetch from session details if needed
+        })),
+        pagination: {
+          limit,
+          offset,
+          hasMore: response.total > (page * limit),
+        }
       }
-
-      const historyData = await response.json()
+      
       setData(historyData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')

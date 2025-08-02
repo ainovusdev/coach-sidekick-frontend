@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
 
 interface ClientSelectorProps {
   selectedClientId?: string
@@ -30,21 +30,15 @@ export default function ClientSelector({
   const fetchClients = async (search: string = '') => {
     try {
       setLoading(true)
-      const params = new URLSearchParams({
-        status: 'active',
-        limit: '10'
+      
+      const response = await ClientService.listClients({
+        search: search.trim() || undefined,
+        per_page: 10
       })
       
-      if (search.trim()) {
-        params.append('search', search.trim())
-      }
-
-      const response = await ApiClient.get(`/api/clients?${params.toString()}`)
-      
-      if (response.ok) {
-        const data = await response.json()
-        setClients(data.clients || [])
-      }
+      // Filter only active clients since backend doesn't support status filtering
+      const activeClients = response.clients.filter(client => client.status === 'active')
+      setClients(activeClients)
     } catch (error) {
       console.error('Error fetching clients:', error)
     } finally {
@@ -54,11 +48,8 @@ export default function ClientSelector({
 
   const fetchSelectedClient = async (clientId: string) => {
     try {
-      const response = await ApiClient.get(`/api/clients/${clientId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setSelectedClient(data.client)
-      }
+      const client = await ClientService.getClient(clientId)
+      setSelectedClient(client)
     } catch (error) {
       console.error('Error fetching selected client:', error)
     }

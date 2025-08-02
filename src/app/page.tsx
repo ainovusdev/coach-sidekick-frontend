@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useDebounceCallback } from '@/hooks/use-debounce'
-import { ApiClient } from '@/lib/api-client'
+import { MeetingService } from '@/services/meeting-service'
 import { MeetingForm } from '@/components/meeting-form'
 import PageLayout from '@/components/page-layout'
 import { SessionCard } from '@/components/session-card'
@@ -30,7 +30,7 @@ import {
 
 export default function CoachDashboard() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const {
     data: meetingHistory,
     loading: historyLoading,
@@ -52,38 +52,29 @@ export default function CoachDashboard() {
     setError(null) // Clear any previous errors
     
     try {
-      const response = await ApiClient.post('/api/recall/create-bot', {
+      // Create bot via backend API
+      const response = await MeetingService.createBot({
         meeting_url: meetingUrl,
         client_id: clientId,
+        recording_mode: 'raw_transcript',
+        bot_name: 'Coach Sidekick Assistant'
       })
 
-      if (!response.ok) {
-        let errorMessage = 'Failed to create bot'
-        try {
-          const errorData = await response.json()
-          errorMessage = errorData.error || errorData.details || response.statusText
-        } catch {
-          errorMessage = `${response.status} ${response.statusText}`
-        }
-        throw new Error(errorMessage)
-      }
+      console.log('Bot created successfully:', response)
 
-      const bot = await response.json()
-      console.log('Bot created successfully:', bot)
-
-      if (!bot.id) {
+      if (!response.id) {
         throw new Error('Bot was created but no ID was returned')
       }
 
       // Small delay to ensure state is consistent before navigation
       await new Promise(resolve => setTimeout(resolve, 100))
-      router.push(`/meeting/${bot.id}`)
+      router.push(`/meeting/${response.id}`)
     } catch (error) {
       console.error('Error creating bot:', error)
       setLoading(false) // Reset loading state immediately on error
       
       // Set error state for display in UI
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create bot'
       setError(errorMessage)
     }
   }
@@ -92,7 +83,7 @@ export default function CoachDashboard() {
   const debouncedCreateBot = useDebounceCallback(handleCreateBotImpl, 1000)
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }

@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
-import { ApiClient } from '@/lib/api-client'
+import { SessionService } from '@/services/session-service'
+import { TranscriptService } from '@/services/transcript-service'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -84,7 +85,7 @@ export default function SessionDetailsPage({
   params: Promise<{ sessionId: string }>
 }) {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [sessionData, setSessionData] = useState<SessionDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -93,26 +94,44 @@ export default function SessionDetailsPage({
   // Redirect to auth if not authenticated
 
   useEffect(() => {
-    if (!user || authLoading) return
+    if (!isAuthenticated || authLoading) return
 
     const fetchSessionDetails = async () => {
       try {
         setLoading(true)
         setError(null)
 
-        const response = await ApiClient.get(
-          `/api/meetings/${resolvedParams.sessionId}/transcript`,
+        // Fetch session details
+        const session = await SessionService.getSession(resolvedParams.sessionId)
+        
+        // Fetch transcripts
+        const transcriptData = await TranscriptService.getSessionTranscripts(
+          resolvedParams.sessionId,
+          { per_page: 500 }
         )
 
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('Session not found')
-          }
-          throw new Error('Failed to load session details')
-        }
-
-        const data = await response.json()
-        setSessionData(data)
+        // Construct session data in expected format
+        setSessionData({
+          session: {
+            id: session.id,
+            bot_id: session.bot_id,
+            meeting_url: session.meeting_url,
+            status: session.status,
+            created_at: session.created_at,
+            updated_at: session.updated_at,
+            metadata: {},
+          },
+          transcript: transcriptData.transcripts.map((t, index) => ({
+            id: `${index}`,
+            speaker: t.speaker,
+            text: t.text,
+            timestamp: t.timestamp,
+            confidence: t.confidence,
+            created_at: t.timestamp,
+          })),
+          coaching_analyses: [], // TODO: Fetch from analysis API
+          meeting_summary: null, // TODO: Fetch from session summary
+        })
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {
@@ -121,10 +140,10 @@ export default function SessionDetailsPage({
     }
 
     fetchSessionDetails()
-  }, [resolvedParams.sessionId, user, authLoading])
+  }, [resolvedParams.sessionId, isAuthenticated, authLoading])
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }

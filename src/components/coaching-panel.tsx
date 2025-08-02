@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
+import { CoachingService } from '@/services/coaching-service'
+import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
+import { useWebSocket } from '@/contexts/websocket-context'
 import {
   Lightbulb,
   AlertCircle,
@@ -67,30 +70,54 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [metadata, setMetadata] = useState<any>(null)
+  const { isConnected } = useWebSocket()
 
   const fetchSuggestions = useCallback(async (autoAnalyze: boolean = true) => {
     try {
       setLoading(true)
       setError(null)
 
-      const params = new URLSearchParams({
-        auto_analyze: autoAnalyze.toString(),
-        only_active: 'true',
-      })
+      // Get suggestions from backend
+      const suggestionsData = await CoachingService.getSuggestions(botId)
+      
+      // Transform backend data to component format
+      const transformedSuggestions: CoachingSuggestion[] = suggestionsData.suggestions.map((s, index) => ({
+        id: s.id,
+        type: s.suggestion_type === 'real_time' ? 'immediate' : 'reflection',
+        priority: s.metadata?.confidence && s.metadata.confidence > 0.8 ? 'high' : 
+                 s.metadata?.confidence && s.metadata.confidence > 0.5 ? 'medium' : 'low',
+        category: s.metadata?.related_topic || 'general',
+        suggestion: s.content,
+        rationale: s.metadata?.source || 'AI Analysis',
+        timing: s.suggestion_type === 'real_time' ? 'now' : 'next_pause',
+        timestamp: s.created_at,
+        source: s.metadata?.source === 'personal-ai' ? 'personal-ai' : 'openai'
+      }))
 
-      const response = await fetch(
-        `/api/coaching/suggestions/${botId}?${params}`,
-      )
-      const data = await response.json()
+      // Separate personal AI suggestions
+      const personalAI = transformedSuggestions.filter(s => s.source === 'personal-ai')
+      const openAI = transformedSuggestions.filter(s => s.source === 'openai')
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch suggestions')
+      setSuggestions(openAI)
+      setPersonalAISuggestions(personalAI.map((s, i) => ({
+        id: s.id,
+        suggestion: s.suggestion,
+        confidence: parseFloat(s.priority === 'high' ? '0.9' : s.priority === 'medium' ? '0.7' : '0.5'),
+        source: 'personal-ai' as const,
+        timestamp: s.timestamp
+      })))
+
+      // If autoAnalyze is true and no suggestions exist, trigger analysis
+      if (autoAnalyze && transformedSuggestions.length === 0) {
+        try {
+          await CoachingService.triggerAnalysis({ bot_id: botId, include_history: true })
+          // Fetch again after triggering
+          setTimeout(() => fetchSuggestions(false), 2000)
+        } catch (analyzeError) {
+          console.error('Failed to trigger analysis:', analyzeError)
+        }
       }
 
-      setSuggestions(data.suggestions || [])
-      setPersonalAISuggestions(data.analysis?.personalAISuggestions || [])
-      setAnalysis(data.analysis || null)
-      setMetadata(data.metadata || null)
       setLastUpdate(new Date())
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
@@ -102,17 +129,15 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   const triggerAnalysis = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/coaching/analyze/${botId}`, {
-        method: 'POST',
+      
+      // Trigger analysis via backend
+      await CoachingService.triggerAnalysis({
+        bot_id: botId,
+        include_history: true
       })
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Analysis failed')
-      }
 
       // Refresh suggestions after analysis
-      await fetchSuggestions(false)
+      setTimeout(() => fetchSuggestions(false), 2000)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Analysis failed')
     } finally {
@@ -120,12 +145,73 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
     }
   }
 
-  // Auto-refresh suggestions every 15 seconds
+  // WebSocket event handlers
+  const handleNewSuggestion = useCallback((suggestion: any) => {
+    console.log('[WebSocket] New coaching suggestion:', suggestion)
+    
+    // Transform and add new suggestion
+    const transformed: CoachingSuggestion = {
+      id: suggestion.id,
+      type: suggestion.suggestion_type === 'real_time' ? 'immediate' : 'reflection',
+      priority: suggestion.metadata?.confidence && suggestion.metadata.confidence > 0.8 ? 'high' : 
+               suggestion.metadata?.confidence && suggestion.metadata.confidence > 0.5 ? 'medium' : 'low',
+      category: suggestion.metadata?.related_topic || 'general',
+      suggestion: suggestion.content,
+      rationale: suggestion.metadata?.source || 'AI Analysis',
+      timing: suggestion.suggestion_type === 'real_time' ? 'now' : 'next_pause',
+      timestamp: suggestion.created_at,
+      source: suggestion.metadata?.source === 'personal-ai' ? 'personal-ai' : 'openai'
+    }
+    
+    if (transformed.source === 'personal-ai') {
+      setPersonalAISuggestions(prev => [...prev, {
+        id: transformed.id,
+        suggestion: transformed.suggestion,
+        confidence: parseFloat(transformed.priority === 'high' ? '0.9' : transformed.priority === 'medium' ? '0.7' : '0.5'),
+        source: 'personal-ai' as const,
+        timestamp: transformed.timestamp
+      }])
+    } else {
+      setSuggestions(prev => [...prev, transformed])
+    }
+    
+    setLastUpdate(new Date())
+  }, [])
+
+  const handleAnalysisUpdate = useCallback((data: { analysisId: string; status: string; results?: any }) => {
+    console.log('[WebSocket] Analysis update:', data)
+    
+    if (data.status === 'completed' && data.results) {
+      // Update with new analysis results
+      setAnalysis({
+        overallScore: data.results.overall_score || 0,
+        conversationPhase: 'exploration',
+        coachEnergyLevel: 0.8,
+        clientEngagementLevel: 0.7,
+        suggestions: [],
+        personalAISuggestions: [],
+        timestamp: new Date().toISOString()
+      })
+    }
+  }, [])
+
+  // Use WebSocket events
+  useCoachingWebSocket(botId, {
+    onSuggestion: handleNewSuggestion,
+    onAnalysisUpdate: handleAnalysisUpdate
+  })
+
+  // Auto-refresh suggestions on mount and when disconnected
   useEffect(() => {
     fetchSuggestions()
-    const interval = setInterval(() => fetchSuggestions(), 15000)
-    return () => clearInterval(interval)
-  }, [botId, fetchSuggestions])
+    
+    // Only use polling when WebSocket is disconnected
+    if (!isConnected) {
+      console.log('[Coaching Panel] Starting polling (WebSocket disconnected)')
+      const interval = setInterval(() => fetchSuggestions(false), 15000)
+      return () => clearInterval(interval)
+    }
+  }, [botId, isConnected, fetchSuggestions])
 
   const getPriorityIcon = (priority: string) => {
     switch (priority) {

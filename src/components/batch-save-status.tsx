@@ -2,6 +2,10 @@ import { useEffect, useState, useCallback } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { SessionService } from '@/services/session-service'
+import { TranscriptService } from '@/services/transcript-service'
+import { useWebSocketEvent } from '@/hooks/use-websocket-event'
+import { useWebSocket } from '@/contexts/websocket-context'
 import {
   Cloud,
   CloudOff,
@@ -27,53 +31,86 @@ export function BatchSaveStatus({ botId }: BatchSaveStatusProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
+  const { isConnected } = useWebSocket()
+
+  // Get session ID from bot ID
+  useEffect(() => {
+    const getSessionId = async () => {
+      try {
+        const session = await SessionService.getSessionByBotId(botId)
+        setSessionId(session.id)
+      } catch (err) {
+        console.error('Failed to get session ID:', err)
+      }
+    }
+    getSessionId()
+  }, [botId])
 
   const fetchSaveStatus = useCallback(async () => {
+    if (!sessionId) return
+    
     try {
       setError(null)
-      const response = await fetch(`/api/meetings/batch-status/${botId}`)
-
-      if (response.ok) {
-        const data = await response.json()
-        setSaveStatus(data)
-      } else {
-        throw new Error('Failed to fetch save status')
-      }
+      const status = await TranscriptService.getBatchStatus(sessionId)
+      
+      setSaveStatus({
+        totalEntries: status.saved_count,
+        savedEntries: status.saved_count,
+        unsavedEntries: 0,
+        lastBatchSave: status.last_saved_at,
+        batchSaveInProgress: status.status === 'in_progress',
+      })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
     } finally {
       setLoading(false)
     }
-  }, [botId])
+  }, [sessionId])
 
   const forceSave = async () => {
+    if (!sessionId) return
+    
     try {
       setLoading(true)
-      const response = await fetch(`/api/meetings/force-save/${botId}`, {
-        method: 'POST',
-      })
-
-      if (response.ok) {
-        // Refresh status after force save
-        await fetchSaveStatus()
-      } else {
-        throw new Error('Failed to force save')
-      }
+      await TranscriptService.forceSave(sessionId)
+      
+      // Refresh status after force save
+      await fetchSaveStatus()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Force save failed')
+      setError(err instanceof Error ? err.message : 'Failed to force save')
     } finally {
       setLoading(false)
     }
   }
 
+  // WebSocket event handler for save status updates
+  useWebSocketEvent('save:status', (data: any) => {
+    if (data.sessionId === sessionId) {
+      console.log('[WebSocket] Save status update:', data)
+      
+      setSaveStatus({
+        totalEntries: data.savedCount || 0,
+        savedEntries: data.savedCount || 0,
+        unsavedEntries: data.unsavedCount || 0,
+        lastBatchSave: data.timestamp || null,
+        batchSaveInProgress: data.status === 'in_progress'
+      })
+    }
+  }, [sessionId])
+
   useEffect(() => {
-    fetchSaveStatus()
+    if (sessionId) {
+      fetchSaveStatus()
 
-    // Poll for updates every 10 seconds
-    const interval = setInterval(fetchSaveStatus, 10000)
-
-    return () => clearInterval(interval)
-  }, [botId, fetchSaveStatus])
+      // Poll for updates only when WebSocket is disconnected
+      if (!isConnected) {
+        console.log('[Batch Save] Starting polling (WebSocket disconnected)')
+        const interval = setInterval(fetchSaveStatus, 10000)
+        return () => clearInterval(interval)
+      }
+    }
+  }, [sessionId, isConnected, fetchSaveStatus])
 
   if (loading && !saveStatus) {
     return (

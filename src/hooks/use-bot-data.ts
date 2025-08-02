@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { Bot, TranscriptEntry } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { SessionService } from '@/services/session-service'
+import { MeetingService } from '@/services/meeting-service'
+import { useBotWebSocket } from '@/hooks/use-bot-websocket'
+import { useWebSocket } from '@/contexts/websocket-context'
 
 interface UseBotDataReturn {
   bot: Bot | null
@@ -10,26 +13,26 @@ interface UseBotDataReturn {
   refetch: () => Promise<void>
 }
 
-const REFRESH_INTERVAL = 100000
+const REFRESH_INTERVAL = 30000 // 30 seconds as fallback when WebSocket is disconnected
 
 export function useBotData(botId: string): UseBotDataReturn {
   const [bot, setBot] = useState<Bot | null>(null)
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([])
+  const transcriptMapRef = useRef<Map<string, TranscriptEntry>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { isConnected } = useWebSocket()
 
   const ensureSession = useCallback(async (botData: Bot) => {
     try {
       // Ensure a coaching session exists in the database
-      await ApiClient.post('/api/meetings/ensure-session', {
-        botId: botData.id,
-        sessionData: {
-          meeting_url: botData.meeting_url,
+      await SessionService.createSession({
+        bot_id: botData.id,
+        meeting_url: botData.meeting_url,
+        session_metadata: {
           status: botData.status,
-          metadata: {
-            platform: botData.platform,
-            meeting_id: botData.meeting_id,
-          },
+          platform: botData.platform,
+          meeting_id: botData.meeting_id,
         },
       })
     } catch (error) {
@@ -43,87 +46,126 @@ export function useBotData(botId: string): UseBotDataReturn {
       setLoading(true)
       setError(null)
 
-      const realtimeResponse = await fetch(
-        `/api/recall/realtime-transcript/${botId}`,
-      )
+      // Fetch bot info and transcript from backend
+      const [botInfo, transcriptData] = await Promise.all([
+        MeetingService.getBotInfo(botId),
+        MeetingService.getRealTimeTranscript(botId)
+      ])
 
-      if (realtimeResponse.ok) {
-        const data = await realtimeResponse.json()
-
-        if (data.bot) {
-          const normalizedBot = {
-            ...data.bot,
-            meeting_url:
-              typeof data.bot.meeting_url === 'string'
-                ? data.bot.meeting_url
-                : data.bot.meeting_url?.meeting_id
-                ? `https://meet.google.com/${data.bot.meeting_url.meeting_id}`
-                : '#',
-          }
-          setBot(normalizedBot)
-
-          // Ensure session exists in database
-          await ensureSession(normalizedBot)
+      if (botInfo) {
+        const normalizedBot: Bot = {
+          id: botInfo.id,
+          status: botInfo.status,
+          meeting_url: '#', // Backend doesn't return meeting_url in status endpoint
+          platform: 'unknown', // Backend doesn't provide platform
+          meeting_id: undefined,
+          created_at: new Date().toISOString(), // Use current time as backend doesn't return this
+          video_url: undefined,
         }
+        setBot(normalizedBot)
 
-        setTranscript(data.transcript || [])
-        setLoading(false)
-        return
-      } else {
-        const errorData = await realtimeResponse.json().catch(() => ({}))
-        if (
-          errorData.error === 'Application not configured' ||
-          errorData.error === 'Configuration error'
-        ) {
-          setError(
-            errorData.message ||
-              'Application is not properly configured. Please check your environment variables.',
-          )
-          setLoading(false)
-          return
-        }
-
-        throw new Error(`API Error: ${errorData.error || 'Unknown error'}`)
+        // Ensure session exists in database
+        await ensureSession(normalizedBot)
       }
+
+      if (transcriptData && transcriptData.transcripts) {
+        // Initialize transcript map
+        transcriptMapRef.current.clear()
+        transcriptData.transcripts.forEach(entry => {
+          if (entry.id) {
+            transcriptMapRef.current.set(entry.id, entry)
+          }
+        })
+        setTranscript(transcriptData.transcripts)
+      }
+
+      setLoading(false)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
+      console.error('Error fetching bot data:', err)
+      setError(err instanceof Error ? err.message : 'Failed to fetch bot data')
       setLoading(false)
     }
   }, [botId, ensureSession])
 
+  // WebSocket event handlers
+  const handleTranscriptNew = useCallback((entry: TranscriptEntry) => {
+    console.log('[WebSocket] New transcript entry:', entry)
+    
+    // Add to transcript map
+    if (entry.id) {
+      transcriptMapRef.current.set(entry.id, entry)
+    }
+    
+    // Update transcript array
+    setTranscript(prev => [...prev, entry])
+  }, [])
+
+  const handleTranscriptUpdate = useCallback((data: { entryId: string; updates: Partial<TranscriptEntry> }) => {
+    console.log('[WebSocket] Transcript update:', data)
+    
+    // Update in map
+    const existing = transcriptMapRef.current.get(data.entryId)
+    if (existing) {
+      const updated = { ...existing, ...data.updates }
+      transcriptMapRef.current.set(data.entryId, updated)
+      
+      // Update transcript array
+      setTranscript(prev => prev.map(entry => 
+        entry.id === data.entryId ? updated : entry
+      ))
+    }
+  }, [])
+
+  const handleBotStatus = useCallback((data: { status: string; timestamp: string }) => {
+    console.log('[WebSocket] Bot status update:', data)
+    
+    setBot(prev => {
+      if (!prev) return null
+      return {
+        ...prev,
+        status: data.status
+      }
+    })
+  }, [])
+
+  const handleError = useCallback((error: { code: string; message: string }) => {
+    console.error('[WebSocket] Bot error:', error)
+    setError(error.message)
+  }, [])
+
+  // Use WebSocket events
+  useBotWebSocket(botId, {
+    onTranscriptNew: handleTranscriptNew,
+    onTranscriptUpdate: handleTranscriptUpdate,
+    onBotStatus: handleBotStatus,
+    onError: handleError
+  })
+
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {
       try {
-        const realtimeResponse = await fetch(
-          `/api/recall/realtime-transcript/${botId}`,
-        )
+        // Poll backend for updates
+        const [botInfo, transcriptData] = await Promise.all([
+          MeetingService.getBotInfo(botId),
+          MeetingService.getRealTimeTranscript(botId)
+        ])
 
-        if (realtimeResponse.ok) {
-          const data = await realtimeResponse.json()
-
-          if (data.bot) {
-            setBot(prevBot => {
-              if (!prevBot) return null
-              return {
-                ...prevBot,
-                status: data.bot.status || prevBot.status,
-              }
-            })
-          }
-
-          if (data.transcript !== undefined) {
-            setTranscript(data.transcript)
-          }
-        } else {
-          try {
-            await fetch(`/api/recall/debug?botId=${botId}`)
-          } catch {
-            // Debug fetch failed, continue silently
-          }
+        if (botInfo) {
+          setBot(prevBot => {
+            if (!prevBot) return null
+            return {
+              ...prevBot,
+              status: botInfo.status || prevBot.status,
+            }
+          })
         }
-      } catch {
+
+        if (transcriptData && transcriptData.transcripts) {
+          setTranscript(transcriptData.transcripts)
+        }
+      } catch (error) {
         // Polling error, continue silently
+        console.debug('Polling error:', error)
       }
     }, REFRESH_INTERVAL)
 
@@ -135,11 +177,13 @@ export function useBotData(botId: string): UseBotDataReturn {
   }, [fetchBotData])
 
   useEffect(() => {
-    if (bot && !loading && !error) {
+    // Only use polling when WebSocket is disconnected
+    if (bot && !loading && !error && !isConnected) {
+      console.log('[Bot Data] Starting polling (WebSocket disconnected)')
       const cleanup = startPolling()
       return cleanup
     }
-  }, [bot, loading, error, startPolling])
+  }, [bot, loading, error, isConnected, startPolling])
 
   return {
     bot,

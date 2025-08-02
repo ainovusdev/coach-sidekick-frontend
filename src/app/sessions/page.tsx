@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
 import {
   History,
   RefreshCw,
@@ -36,7 +37,7 @@ interface Client {
 
 export default function SessionsHistoryPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const [currentPage, setCurrentPage] = useState(0)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [clients, setClients] = useState<Client[]>([])
@@ -58,11 +59,8 @@ export default function SessionsHistoryPage() {
     const fetchClients = async () => {
       try {
         setLoadingClients(true)
-        const response = await ApiClient.get('/api/clients')
-        if (response.ok) {
-          const data = await response.json()
-          setClients(data.clients || [])
-        }
+        const response = await ClientService.listClients()
+        setClients(response.clients || [])
       } catch (error) {
         console.error('Failed to fetch clients:', error)
       } finally {
@@ -74,7 +72,7 @@ export default function SessionsHistoryPage() {
   }, [user, authLoading])
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }

@@ -10,7 +10,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client, ClientSessionStats } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
+import { SessionService } from '@/services/session-service'
 import {
   ArrowLeft,
   Edit,
@@ -54,7 +55,7 @@ export default function ClientDetailPage({
 }: {
   params: Promise<{ clientId: string }>
 }) {
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading, userId } = useAuth()
   const router = useRouter()
   const [client, setClient] = useState<ClientWithStats | null>(null)
   const [sessions, setSessions] = useState<ClientSession[]>([])
@@ -76,23 +77,13 @@ export default function ClientDetailPage({
 
     try {
       // Fetch client details
-      const clientResponse = await ApiClient.get(
-        `/api/clients/${clientId}`,
-      )
-      if (!clientResponse.ok) {
-        throw new Error('Failed to fetch client details')
-      }
-      const clientData = await clientResponse.json()
-      setClient(clientData.client)
+      const client = await ClientService.getClient(clientId)
+      setClient(client)
 
       // Fetch client sessions
-      const sessionsResponse = await ApiClient.get(
-        `/api/clients/${clientId}/sessions?limit=10`,
-      )
-      if (!sessionsResponse.ok) {
-        throw new Error('Failed to fetch client sessions')
-      }
-      const sessionsData = await sessionsResponse.json()
+      const sessionsData = await SessionService.getClientSessions(clientId, {
+        per_page: 10
+      })
       setSessions(sessionsData.sessions || [])
     } catch (err) {
       setError(
@@ -105,15 +96,15 @@ export default function ClientDetailPage({
 
   useEffect(() => {
     // Redirect to auth if not authenticated
-    if (!authLoading && !user) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/auth')
       return
     }
 
-    if (!user || authLoading || !clientId) return
+    if (!userId || authLoading || !clientId) return
 
     fetchClientData()
-  }, [clientId, user, authLoading, router, fetchClientData])
+  }, [clientId, userId, authLoading, router, fetchClientData])
 
   if (authLoading || loading) {
     return (

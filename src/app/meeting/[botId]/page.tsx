@@ -14,6 +14,7 @@ import { MeetingLoading } from '@/components/meeting-loading'
 import { MeetingError } from '@/components/meeting-error'
 import { useBotData } from '@/hooks/use-bot-data'
 import { useBotActions } from '@/hooks/use-bot-actions'
+import { WebSocketStatus } from '@/components/websocket-status'
 import {
   ArrowLeft,
   ExternalLink,
@@ -86,6 +87,8 @@ export default function MeetingPage() {
                     {bot.id}
                   </Badge>
                   <BotStatus bot={bot} onStop={handleStopBot} compact />
+                  <div className="h-8 w-px bg-gray-300" />
+                  <WebSocketStatus />
                 </div>
               )}
             </div>

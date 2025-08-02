@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { ApiClient } from '@/lib/api-client'
+import { MeetingService } from '@/services/meeting-service'
+import { SessionService } from '@/services/session-service'
 
 export function useBotActions() {
   const [isLoading, setIsLoading] = useState(false)
@@ -9,34 +10,26 @@ export function useBotActions() {
       setIsLoading(true)
       console.log('Stopping bot:', botId)
 
-      const response = await ApiClient.post(`/api/recall/stop-bot/${botId}`, {})
+      // Stop the bot via backend
+      const stopResponse = await MeetingService.stopBot(botId)
+      console.log('Bot stopped successfully:', stopResponse)
 
-      if (response.ok) {
-        const data = await response.json()
-        console.log('Bot stopped successfully:', data)
-
-        if (data.savedMeetingData) {
-          console.log('Meeting data saved:', {
-            transcriptEntries: data.savedMeetingData.transcriptEntries,
-            analysisCount: data.savedMeetingData.analysisCount,
-            sessionId: data.savedMeetingData.sessionId,
-          })
+      // Try to force save transcripts if session exists
+      try {
+        // Get session by bot ID first
+        const session = await SessionService.getSessionByBotId(botId)
+        if (session) {
+          await MeetingService.forceSaveTranscripts(session.id)
+          console.log('Transcripts saved for session:', session.id)
         }
-        return true
-      } else {
-        // Log the response for debugging
-        const errorData = await response
-          .json()
-          .catch(() => ({ error: 'Unknown error' }))
-        console.error('Stop bot API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData,
-        })
-        return false
+      } catch (saveError) {
+        console.warn('Failed to force save transcripts:', saveError)
+        // Don't fail the whole operation if save fails
       }
+
+      return true
     } catch (error) {
-      console.error('Failed to stop bot (network/request error):', error)
+      console.error('Failed to stop bot:', error)
       return false
     } finally {
       setIsLoading(false)

@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Brain, Mail, Lock, Eye, EyeOff } from 'lucide-react'
 
 export function AuthForm() {
-  const { signIn, signUp, resetPassword } = useAuth()
+  const { signIn, signUp } = useAuth()
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -91,33 +91,17 @@ export function AuthForm() {
     if (error) {
       setError(error.message)
     } else {
-      setSuccess('Check your email for a verification link!')
-      setFormData({ email: '', password: '', confirmPassword: '' })
+      setSuccess('Account created successfully! You can now sign in.')
+      setFormData({ email: formData.email, password: '', confirmPassword: '' })
+      // Switch to sign in tab after successful signup
+      setTimeout(() => {
+        setActiveTab('signin')
+      }, 2000)
     }
 
     setLoading(false)
   }
 
-  const handleResetPassword = async () => {
-    if (!validateEmail(formData.email)) {
-      setError('Please enter a valid email address')
-      return
-    }
-
-    setLoading(true)
-    setError(null)
-    setSuccess(null)
-
-    const { error } = await resetPassword(formData.email)
-
-    if (error) {
-      setError(error.message)
-    } else {
-      setSuccess('Password reset email sent!')
-    }
-
-    setLoading(false)
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 flex items-center justify-center p-4">
@@ -214,15 +198,6 @@ export function AuthForm() {
                 >
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
-
-                <button
-                  type="button"
-                  onClick={handleResetPassword}
-                  className="w-full text-sm text-purple-600 hover:text-purple-700 text-center"
-                  disabled={loading}
-                >
-                  Forgot your password?
-                </button>
               </form>
             </TabsContent>
 

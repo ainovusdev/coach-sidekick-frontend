@@ -8,7 +8,7 @@ import PageLayout from '@/components/page-layout'
 import { Button } from '@/components/ui/button'
 import ClientForm from '@/components/clients/client-form'
 import { Client } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
 import { ArrowLeft, User } from 'lucide-react'
 
 export default function EditClientPage({
@@ -16,7 +16,7 @@ export default function EditClientPage({
 }: {
   params: Promise<{ clientId: string }>
 }) {
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const router = useRouter()
   const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(false)
@@ -37,14 +37,8 @@ export default function EditClientPage({
     setError(null)
 
     try {
-      const response = await ApiClient.get(`/api/clients/${clientId}`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch client details')
-      }
-
-      const data = await response.json()
-      setClient(data.client)
+      const client = await ClientService.getClient(clientId)
+      setClient(client)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'An unexpected error occurred',
@@ -56,7 +50,7 @@ export default function EditClientPage({
 
   useEffect(() => {
     // Redirect to auth if not authenticated
-    if (!authLoading && !user) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/auth')
       return
     }
@@ -73,15 +67,13 @@ export default function EditClientPage({
     setError(null)
 
     try {
-      const response = await ApiClient.put(
-        `/api/clients/${clientId}`,
-        clientData,
-      )
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update client')
-      }
+      await ClientService.updateClient(clientId, {
+        name: clientData.name,
+        email: clientData.email,
+        phone: clientData.phone,
+        notes: clientData.notes,
+        tags: clientData.tags,
+      })
 
       // Success - redirect to client detail page
       router.push(`/clients/${clientId}`)

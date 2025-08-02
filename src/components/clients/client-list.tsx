@@ -8,7 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client, ClientSessionStats } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
 import {
   Search,
   Filter,
@@ -42,25 +42,35 @@ export default function ClientList() {
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
+
+      const response = await ClientService.listClients({
+        search: searchTerm.trim() || undefined,
+      })
+
+      console.log('Client list response:', response)
+      console.log('Response clients:', response.clients)
+      console.log('First client status:', response.clients[0]?.status)
+
+      // Note: Backend doesn't support status filtering yet
+      // Filter clients by status on the frontend for now
+      let filteredClients = response.clients
       if (statusFilter !== 'all') {
-        params.append('status', statusFilter)
-      }
-      if (searchTerm.trim()) {
-        params.append('search', searchTerm.trim())
-      }
-
-      const response = await ApiClient.get(`/api/clients?${params.toString()}`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch clients')
+        filteredClients = response.clients.filter(
+          client => client.status === statusFilter,
+        )
       }
 
-      const data = await response.json()
-      setClients(data.clients || [])
+      console.log('Filtered clients:', filteredClients)
+      console.log('Status filter:', statusFilter)
+
+      setClients(filteredClients)
       setError(null)
     } catch (error) {
       console.error('Error fetching clients:', error)
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+      })
       setError('Failed to load clients')
     } finally {
       setLoading(false)

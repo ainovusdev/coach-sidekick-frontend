@@ -1,19 +1,17 @@
-import { supabase } from './supabase'
+import authService from '@/services/auth-service'
 
 export class ApiClient {
   private static DEFAULT_TIMEOUT = 30000 // 30 seconds
 
   private static async getAuthHeaders(): Promise<Record<string, string>> {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
     }
 
-    if (session?.access_token) {
-      headers['Authorization'] = `Bearer ${session.access_token}`
+    const token = authService.getToken()
+    console.log('Auth token retrieved:', token ? `${token.substring(0, 20)}...` : 'No token')
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     return headers
@@ -29,9 +27,18 @@ export class ApiClient {
         signal: controller.signal,
       })
       clearTimeout(timeoutId)
+      
+      // Handle 401 responses
+      if (response.status === 401) {
+        console.error('Authentication failed - 401 response')
+        // Since refreshAccessToken doesn't exist, we'll just return the 401 response
+        // The error handling will redirect to login
+      }
+      
       return response
     } catch (error) {
       clearTimeout(timeoutId)
+      console.error('Fetch error:', error)
       if (error instanceof Error && error.name === 'AbortError') {
         throw new Error('Request timeout - please try again')
       }
@@ -52,11 +59,18 @@ export class ApiClient {
       timeout
     )
 
-    return response
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(error || `HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
   }
 
   static async get(url: string, timeout?: number) {
     const headers = await this.getAuthHeaders()
+    console.log('GET request to:', url)
+    console.log('Request headers:', headers)
 
     const response = await this.fetchWithTimeout(
       url,
@@ -67,7 +81,17 @@ export class ApiClient {
       timeout
     )
 
-    return response
+    console.log('Response status:', response.status)
+    console.log('Response ok:', response.ok)
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(error || `HTTP error! status: ${response.status}`)
+    }
+
+    const data = await response.json()
+    console.log('Response data:', data)
+    return data
   }
 
   static async put(url: string, data: any, timeout?: number) {
@@ -83,7 +107,33 @@ export class ApiClient {
       timeout
     )
 
-    return response
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(error || `HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
+  }
+
+  static async patch(url: string, data: any, timeout?: number) {
+    const headers = await this.getAuthHeaders()
+
+    const response = await this.fetchWithTimeout(
+      url,
+      {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(data),
+      },
+      timeout
+    )
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(error || `HTTP error! status: ${response.status}`)
+    }
+
+    return await response.json()
   }
 
   static async delete(url: string, timeout?: number) {
@@ -98,6 +148,16 @@ export class ApiClient {
       timeout
     )
 
-    return response
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(error || `HTTP error! status: ${response.status}`)
+    }
+
+    // DELETE typically returns no content
+    if (response.status === 204) {
+      return null
+    }
+
+    return await response.json()
   }
 }
