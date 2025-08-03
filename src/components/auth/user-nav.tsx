@@ -1,9 +1,10 @@
 'use client'
 
 import { useAuth } from '@/contexts/auth-context'
+import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { LogOut, User, Settings } from 'lucide-react'
+import { LogOut, User, Settings, Palette } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ import {
 
 export function UserNav() {
   const { isAuthenticated, signOut } = useAuth()
+  const router = useRouter()
 
   if (!isAuthenticated) return null
 
@@ -46,6 +48,10 @@ export function UserNav() {
         <DropdownMenuItem disabled>
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => router.push('/settings/preferences')}>
+          <Palette className="mr-2 h-4 w-4" />
+          <span>Coaching Preferences</span>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>
           <Settings className="mr-2 h-4 w-4" />
