@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { TranscriptViewer } from '@/components/transcript-viewer'
 import { CoachingPanel } from '@/components/coaching-panel'
+import { MeetingStatePanel } from '@/components/meeting-state-panel'
 import { BotStatus } from '@/components/bot-status'
 import { BatchSaveStatus } from '@/components/batch-save-status'
 import { Card, CardContent } from '@/components/ui/card'
@@ -23,6 +24,9 @@ import {
   Brain,
 } from 'lucide-react'
 
+import { useState, useCallback } from 'react'
+import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
+
 export default function MeetingPage() {
   const params = useParams()
   const router = useRouter()
@@ -31,6 +35,19 @@ export default function MeetingPage() {
   const { bot, transcript, loading, error } = useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const { toast, showToast, closeToast } = useToast()
+  const [meetingState, setMeetingState] = useState<any>(null)
+
+  // Handle WebSocket messages
+  const handleWebSocketMessage = useCallback((message: any) => {
+    if (message.type === 'meeting_state') {
+      setMeetingState(message.data)
+    }
+  }, [])
+
+  // Subscribe to WebSocket events
+  useCoachingWebSocket(botId, {
+    onMessage: handleWebSocketMessage
+  })
 
   const handleStopBot = async () => {
     if (!bot) return
@@ -173,8 +190,13 @@ export default function MeetingPage() {
           <BatchSaveStatus botId={botId} />
         </div>
 
+        {/* Meeting State Panel */}
+        <div className="mb-4">
+          <MeetingStatePanel state={meetingState} />
+        </div>
+
         {/* Side by Side Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[800px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[700px]">
           <Card className="shadow-md h-full overflow-scroll flex flex-col">
             <CardContent className="p-6 flex-1 flex flex-col min-h-0">
               <TranscriptViewer transcript={transcript} />

@@ -138,7 +138,7 @@ export class CoachingService {
       // Transform analysis suggestions to expected format
       const suggestions: CoachingSuggestion[] = []
       
-      if (analysis.suggestions && Array.isArray(analysis.suggestions)) {
+      if (analysis && analysis.suggestions && Array.isArray(analysis.suggestions)) {
         analysis.suggestions.forEach((suggestion: string, index: number) => {
           suggestions.push({
             id: `suggestion_${session.id}_${index}`,

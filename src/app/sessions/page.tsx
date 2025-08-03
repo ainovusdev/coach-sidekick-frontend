@@ -54,7 +54,7 @@ export default function SessionsHistoryPage() {
 
   // Fetch clients for filtering
   useEffect(() => {
-    if (!user || authLoading) return
+    if (!isAuthenticated || authLoading) return
 
     const fetchClients = async () => {
       try {
@@ -69,7 +69,7 @@ export default function SessionsHistoryPage() {
     }
 
     fetchClients()
-  }, [user, authLoading])
+  }, [isAuthenticated, authLoading])
 
   // Redirect to auth if not authenticated
   if (!authLoading && !isAuthenticated) {

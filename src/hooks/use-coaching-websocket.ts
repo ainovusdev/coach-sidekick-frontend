@@ -6,6 +6,7 @@ interface CoachingWebSocketEvents {
   onSuggestion?: (suggestion: CoachingSuggestion) => void
   onAnalysisUpdate?: (data: { analysisId: string; status: string; results?: any }) => void
   onAnalysisComplete?: (analysis: CoachingAnalysis) => void
+  onMessage?: (message: any) => void
 }
 
 /**
@@ -55,4 +56,18 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
     const unsubscribe = on('analysis:complete', handler)
     return unsubscribe
   }, [botId, events.onAnalysisComplete, on])
+
+  // Subscribe to generic message events
+  useEffect(() => {
+    if (!events.onMessage) return
+
+    const handler = (data: any) => {
+      if (data.botId === botId || data.bot_id === botId) {
+        events.onMessage(data)
+      }
+    }
+
+    const unsubscribe = on('message', handler)
+    return unsubscribe
+  }, [botId, events.onMessage, on])
 }

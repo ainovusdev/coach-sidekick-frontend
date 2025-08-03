@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { SessionService } from '@/services/session-service'
-import { TranscriptService } from '@/services/transcript-service'
+import { ApiClient } from '@/lib/api-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -101,37 +101,14 @@ export default function SessionDetailsPage({
         setLoading(true)
         setError(null)
 
-        // Fetch session details
-        const session = await SessionService.getSession(resolvedParams.sessionId)
-        
-        // Fetch transcripts
-        const transcriptData = await TranscriptService.getSessionTranscripts(
-          resolvedParams.sessionId,
-          { per_page: 500 }
+        // Fetch comprehensive session details
+        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+        const response = await ApiClient.get(
+          `${BACKEND_URL}/sessions/${resolvedParams.sessionId}/details`
         )
 
-        // Construct session data in expected format
-        setSessionData({
-          session: {
-            id: session.id,
-            bot_id: session.bot_id,
-            meeting_url: session.meeting_url,
-            status: session.status,
-            created_at: session.created_at,
-            updated_at: session.updated_at,
-            metadata: {},
-          },
-          transcript: transcriptData.transcripts.map((t, index) => ({
-            id: `${index}`,
-            speaker: t.speaker,
-            text: t.text,
-            timestamp: t.timestamp,
-            confidence: t.confidence,
-            created_at: t.timestamp,
-          })),
-          coaching_analyses: [], // TODO: Fetch from analysis API
-          meeting_summary: null, // TODO: Fetch from session summary
-        })
+        // Set session data directly from the comprehensive response
+        setSessionData(response)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
       } finally {

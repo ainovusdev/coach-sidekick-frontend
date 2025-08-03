@@ -2,24 +2,15 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Separator } from '@/components/ui/separator'
 import { CoachingService } from '@/services/coaching-service'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
 import {
-  Lightbulb,
-  AlertCircle,
-  Clock,
   Brain,
-  Heart,
-  Target,
-  BarChart3,
   RefreshCw,
   Zap,
+  AlertCircle,
 } from 'lucide-react'
 
 interface CoachingSuggestion {
@@ -146,36 +137,29 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   }
 
   // WebSocket event handlers
-  const handleNewSuggestion = useCallback((suggestion: any) => {
-    console.log('[WebSocket] New coaching suggestion:', suggestion)
+  const handleWebSocketMessage = useCallback((message: any) => {
+    console.log('[WebSocket] Message received:', message)
     
-    // Transform and add new suggestion
-    const transformed: CoachingSuggestion = {
-      id: suggestion.id,
-      type: suggestion.suggestion_type === 'real_time' ? 'immediate' : 'reflection',
-      priority: suggestion.metadata?.confidence && suggestion.metadata.confidence > 0.8 ? 'high' : 
-               suggestion.metadata?.confidence && suggestion.metadata.confidence > 0.5 ? 'medium' : 'low',
-      category: suggestion.metadata?.related_topic || 'general',
-      suggestion: suggestion.content,
-      rationale: suggestion.metadata?.source || 'AI Analysis',
-      timing: suggestion.suggestion_type === 'real_time' ? 'now' : 'next_pause',
-      timestamp: suggestion.created_at,
-      source: suggestion.metadata?.source === 'personal-ai' ? 'personal-ai' : 'openai'
+    if (message.type === 'suggestions_update') {
+      const data = message.data
+      if (data.replace) {
+        // Replace all suggestions with new ones
+        const newSuggestions = data.suggestions.map((s: any) => ({
+          id: s.id,
+          type: 'immediate' as const,
+          priority: s.priority || 'medium',
+          category: s.category || 'general',
+          suggestion: s.content,
+          rationale: s.rationale || '',
+          timing: 'now' as const,
+          timestamp: s.timestamp,
+          source: 'openai' as const
+        }))
+        setSuggestions(newSuggestions)
+        setPersonalAISuggestions([]) // Clear personal AI suggestions when replacing
+      }
+      setLastUpdate(new Date())
     }
-    
-    if (transformed.source === 'personal-ai') {
-      setPersonalAISuggestions(prev => [...prev, {
-        id: transformed.id,
-        suggestion: transformed.suggestion,
-        confidence: parseFloat(transformed.priority === 'high' ? '0.9' : transformed.priority === 'medium' ? '0.7' : '0.5'),
-        source: 'personal-ai' as const,
-        timestamp: transformed.timestamp
-      }])
-    } else {
-      setSuggestions(prev => [...prev, transformed])
-    }
-    
-    setLastUpdate(new Date())
   }, [])
 
   const handleAnalysisUpdate = useCallback((data: { analysisId: string; status: string; results?: any }) => {
@@ -197,7 +181,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
 
   // Use WebSocket events
   useCoachingWebSocket(botId, {
-    onSuggestion: handleNewSuggestion,
+    onMessage: handleWebSocketMessage,
     onAnalysisUpdate: handleAnalysisUpdate
   })
 
@@ -213,48 +197,6 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
     }
   }, [botId, isConnected, fetchSuggestions])
 
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return <AlertCircle className="h-4 w-4 text-red-500" />
-      case 'medium':
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case 'low':
-        return <Lightbulb className="h-4 w-4 text-blue-500" />
-      default:
-        return <Lightbulb className="h-4 w-4" />
-    }
-  }
-
-  const getTimingBadgeColor = (timing: string) => {
-    switch (timing) {
-      case 'now':
-        return 'destructive'
-      case 'next_pause':
-        return 'default'
-      case 'end_of_call':
-        return 'secondary'
-      default:
-        return 'outline'
-    }
-  }
-
-  const getPhaseIcon = (phase: string) => {
-    switch (phase) {
-      case 'opening':
-        return '🌅'
-      case 'exploration':
-        return '🔍'
-      case 'insight':
-        return '💡'
-      case 'commitment':
-        return '🎯'
-      case 'closing':
-        return '🏁'
-      default:
-        return '💬'
-    }
-  }
 
   if (error && error.includes('OpenAI API key')) {
     return (
@@ -280,7 +222,7 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Brain className="h-5 w-5 text-purple-600" />
-              AI Coaching Assistant
+              Coaching Suggestions
             </CardTitle>
             <div className="flex items-center gap-2">
               <Button
@@ -310,32 +252,12 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
         </CardHeader>
 
         <CardContent className="flex-1 flex flex-col overflow-hidden">
-          <Tabs
-            defaultValue="suggestions"
-            className="w-full h-full flex flex-col"
-          >
-            <TabsList className="grid w-full grid-cols-3 flex-shrink-0">
-              <TabsTrigger value="suggestions">
-                <div className="flex items-center gap-1">
-                  <Brain className="h-3 w-3" />
-                  AI Suggestions ({suggestions.length + personalAISuggestions.length})
-                </div>
-              </TabsTrigger>
-              <TabsTrigger value="insights">Insights</TabsTrigger>
-              <TabsTrigger value="scores">Scores</TabsTrigger>
-            </TabsList>
+          <div className="h-full flex flex-col">
 
-            <TabsContent
-              value="suggestions"
-              className="flex-1 mt-4 overflow-y-auto"
-            >
+            <div className="flex-1 overflow-y-auto pt-4">
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pr-2">
-                {/* OpenAI Suggestions Column */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Brain className="h-4 w-4 text-blue-600" />
-                    <h3 className="font-semibold text-blue-900">OpenAI ({suggestions.length})</h3>
-                  </div>
+                {/* AI Suggestions - Single Column */}
+                <div className="space-y-3 col-span-2">
 
                   {loading && (
                     <div className="text-center py-4 text-gray-500">
@@ -350,10 +272,10 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
                     </div>
                   )}
 
-                  {suggestions.length === 0 && !loading && !error && (
+                  {suggestions.length === 0 && personalAISuggestions.length === 0 && !loading && !error && (
                     <div className="text-center py-8 text-gray-500">
                       <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p>No OpenAI suggestions yet.</p>
+                      <p>No suggestions yet.</p>
                       <p className="text-xs mt-1">
                         {metadata?.transcriptLength
                           ? 'Keep the conversation going.'
@@ -362,210 +284,25 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
                     </div>
                   )}
 
-                  {suggestions.map(suggestion => (
-                    <Card key={suggestion.id} className="border-l-4 border-l-blue-500 bg-blue-50/30">
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            {getPriorityIcon(suggestion.priority)}
-                            {suggestion.timing === 'now' && (
-                              <Badge variant="destructive" className="text-xs">
-                                NOW
-                              </Badge>
-                            )}
-                          </div>
-                          <span className="text-xs text-gray-500">
-                            {new Date(suggestion.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-900 leading-relaxed">
-                          {suggestion.suggestion}
+                  {/* Combined suggestions */}
+                  {[...suggestions, ...personalAISuggestions].map((suggestion, index) => (
+                    <Card key={suggestion.id || `suggestion-${index}`} className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <p className="text-sm font-medium text-gray-900">
+                          {suggestion.suggestion || suggestion.content}
                         </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Personal AI Suggestions Column */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2 mb-3">
-                    <Zap className="h-4 w-4 text-purple-600" />
-                    <h3 className="font-semibold text-purple-900">Personal AI ({personalAISuggestions.length})</h3>
-                  </div>
-
-                  {loading && (
-                    <div className="text-center py-4 text-gray-500">
-                      <div className="animate-spin h-5 w-5 border-2 border-purple-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                      Getting insights...
-                    </div>
-                  )}
-
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                      {error}
-                    </div>
-                  )}
-
-                  {personalAISuggestions.length === 0 && !loading && !error && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Zap className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p>No Personal AI suggestions yet.</p>
-                      <p className="text-xs mt-1">
-                        Need conversation history for insights.
-                      </p>
-                    </div>
-                  )}
-
-                  {personalAISuggestions.map(suggestion => (
-                    <Card key={suggestion.id} className="border-l-4 border-l-purple-500 bg-purple-50/30">
-                      <CardContent className="p-3">
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="secondary" className="text-xs">
-                              {Math.round(suggestion.confidence * 100)}%
-                            </Badge>
-                          </div>
-                          <span className="text-xs text-gray-500">
-                            {new Date(suggestion.timestamp).toLocaleTimeString()}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-900 leading-relaxed">
-                          {suggestion.suggestion}
-                        </p>
+                        {suggestion.rationale && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {suggestion.rationale}
+                          </p>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
                 </div>
               </div>
-            </TabsContent>
-
-            <TabsContent
-              value="insights"
-              className="flex-1 mt-4 overflow-y-auto"
-            >
-              <div className="pr-2">
-                {analysis ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <div className="text-2xl mb-1">
-                            {getPhaseIcon(analysis.conversationPhase)}
-                          </div>
-                          <p className="text-sm font-medium capitalize">
-                            {analysis.conversationPhase.replace('_', ' ')}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Conversation Phase
-                          </p>
-                        </CardContent>
-                      </Card>
-
-                      <Card>
-                        <CardContent className="p-4 text-center">
-                          <div className="text-2xl mb-1 font-bold text-purple-600">
-                            {analysis.overallScore}/10
-                          </div>
-                          <p className="text-sm font-medium">Overall Score</p>
-                          <p className="text-xs text-gray-500">
-                            Coaching Quality
-                          </p>
-                        </CardContent>
-                      </Card>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm flex items-center gap-1">
-                            <Zap className="h-4 w-4" />
-                            Coach Energy
-                          </span>
-                          <span className="text-sm font-medium">
-                            {analysis.coachEnergyLevel}/10
-                          </span>
-                        </div>
-                        <Progress
-                          value={analysis.coachEnergyLevel * 10}
-                          className="h-2"
-                        />
-                      </div>
-
-                      <div>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-sm flex items-center gap-1">
-                            <Heart className="h-4 w-4" />
-                            Client Engagement
-                          </span>
-                          <span className="text-sm font-medium">
-                            {analysis.clientEngagementLevel}/10
-                          </span>
-                        </div>
-                        <Progress
-                          value={analysis.clientEngagementLevel * 10}
-                          className="h-2"
-                        />
-                      </div>
-                    </div>
-
-                    {metadata && (
-                      <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600">
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>Session: {metadata.sessionAge} minutes</div>
-                          <div>
-                            Transcript: {metadata.transcriptLength} entries
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <BarChart3 className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p>No analysis data available yet.</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={triggerAnalysis}
-                      className="mt-3"
-                      disabled={loading}
-                    >
-                      Start Analysis
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="scores" className="flex-1 mt-4 overflow-y-auto">
-              <div className="pr-2">
-                {analysis ? (
-                  <div className="space-y-3">
-                    <div className="text-center mb-4">
-                      <div className="text-3xl font-bold text-purple-600 mb-1">
-                        {analysis.overallScore}/10
-                      </div>
-                      <p className="text-sm text-gray-600">
-                        Overall Coaching Score
-                      </p>
-                    </div>
-
-                    <Separator />
-
-                    <div className="text-center text-sm text-gray-500">
-                      <p>Detailed criteria scoring will be available</p>
-                      <p>as the conversation progresses.</p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                    <p>No scoring data available yet.</p>
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
