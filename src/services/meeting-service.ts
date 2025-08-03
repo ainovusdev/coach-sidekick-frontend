@@ -64,29 +64,45 @@ export class MeetingService {
   }
 
   static async getBotInfo(botId: string): Promise<BotInfo> {
-    const response = await ApiClient.get(
-      `${BACKEND_URL}/bots/${botId}/status`
-    )
-    return response
+    try {
+      const response = await ApiClient.get(
+        `${BACKEND_URL}/bots/${botId}/status`
+      )
+      return response
+    } catch (error) {
+      console.error('Error fetching bot info:', error)
+      // Return default if all fails
+      return {
+        id: botId,
+        status: 'unknown',
+        meeting_status: 'unknown',
+        duration_seconds: 0,
+        updated_at: new Date().toISOString()
+      }
+    }
   }
 
   static async getRealTimeTranscript(botId: string): Promise<RealTimeTranscript> {
-    // First get session by bot ID, then get transcripts
-    const session = await ApiClient.get(
-      `${BACKEND_URL}/sessions/by-bot/${botId}`
-    )
-    
-    if (session && session.id) {
-      const transcripts = await ApiClient.get(
-        `${BACKEND_URL}/transcripts/sessions/${session.id}/transcripts`
+    try {
+      // Use backend API
+      const session = await ApiClient.get(
+        `${BACKEND_URL}/sessions/by-bot/${botId}`
       )
       
-      return {
-        session_id: session.id,
-        bot_id: botId,
-        transcripts: transcripts.transcripts || [],
-        last_updated: new Date().toISOString()
+      if (session && session.id) {
+        const transcripts = await ApiClient.get(
+          `${BACKEND_URL}/transcripts/sessions/${session.id}/transcripts`
+        )
+        
+        return {
+          session_id: session.id,
+          bot_id: botId,
+          transcripts: transcripts.transcripts || [],
+          last_updated: new Date().toISOString()
+        }
       }
+    } catch (error) {
+      console.error('Error fetching real-time transcript:', error)
     }
     
     return {

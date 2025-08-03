@@ -1,6 +1,10 @@
 import authService from '@/services/auth-service'
 
-export type WebSocketStatus = 'connecting' | 'connected' | 'disconnected' | 'error'
+export type WebSocketStatus =
+  | 'connecting'
+  | 'connected'
+  | 'disconnected'
+  | 'error'
 
 export interface WebSocketEvent {
   type: string
@@ -25,7 +29,8 @@ class WebSocketService {
   private heartbeatInterval: number
   private reconnectAttempts: number = 0
   private eventHandlers: Map<string, Set<EventHandler>> = new Map()
-  private statusChangeHandlers: Set<(status: WebSocketStatus) => void> = new Set()
+  private statusChangeHandlers: Set<(status: WebSocketStatus) => void> =
+    new Set()
   private currentStatus: WebSocketStatus = 'disconnected'
   private reconnectTimer: NodeJS.Timeout | null = null
   private heartbeatTimer: NodeJS.Timeout | null = null
@@ -37,13 +42,17 @@ class WebSocketService {
     this.reconnectInterval = config.reconnectInterval || 5000
     this.maxReconnectAttempts = config.maxReconnectAttempts || 10
     this.heartbeatInterval = config.heartbeatInterval || 30000
+    console.log('[WebSocketService] Using real WebSocket connection')
   }
 
   private buildWebSocketUrl(): string {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
     // Remove /api/v1 suffix if present and convert to ws://
-    const baseUrl = backendUrl.replace(/\/api\/v1\/?$/, '').replace(/^http/, 'ws')
-    return `${baseUrl}/ws`
+    const baseUrl = backendUrl
+      .replace(/\/api\/v1\/?$/, '')
+      .replace(/^http/, 'ws')
+    return `${baseUrl}/ws/connect`
   }
 
   connect(): void {
@@ -53,7 +62,7 @@ class WebSocketService {
     }
 
     this.updateStatus('connecting')
-    
+
     try {
       const token = authService.getToken()
       if (!token) {
@@ -64,7 +73,7 @@ class WebSocketService {
 
       // Add token as query parameter for authentication
       const wsUrl = `${this.url}?token=${encodeURIComponent(token)}`
-      
+
       this.ws = new WebSocket(wsUrl)
       this.setupEventListeners()
     } catch (error) {
@@ -81,7 +90,7 @@ class WebSocketService {
       console.log('[WebSocket] Connected')
       this.updateStatus('connected')
       this.reconnectAttempts = 0
-      
+
       // Rejoin rooms after reconnection
       this.joinedRooms.forEach(room => {
         this.send('join', { room })
@@ -94,11 +103,11 @@ class WebSocketService {
       this.startHeartbeat()
     }
 
-    this.ws.onmessage = (event) => {
+    this.ws.onmessage = event => {
       try {
         const message = JSON.parse(event.data)
         console.log('[WebSocket] Received:', message.type, message.data)
-        
+
         // Handle system messages
         if (message.type === 'pong') {
           return // Heartbeat response
@@ -116,16 +125,16 @@ class WebSocketService {
       }
     }
 
-    this.ws.onerror = (error) => {
+    this.ws.onerror = error => {
       console.error('[WebSocket] Error:', error)
       this.updateStatus('error')
     }
 
-    this.ws.onclose = (event) => {
+    this.ws.onclose = event => {
       console.log('[WebSocket] Disconnected:', event.code, event.reason)
       this.updateStatus('disconnected')
       this.stopHeartbeat()
-      
+
       // Schedule reconnection if not intentional disconnect
       if (event.code !== 1000) {
         this.scheduleReconnect()
@@ -151,10 +160,15 @@ class WebSocketService {
     }
 
     this.reconnectAttempts++
-    const delay = Math.min(this.reconnectInterval * this.reconnectAttempts, 30000)
-    
-    console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`)
-    
+    const delay = Math.min(
+      this.reconnectInterval * this.reconnectAttempts,
+      30000,
+    )
+
+    console.log(
+      `[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`,
+    )
+
     this.reconnectTimer = setTimeout(() => {
       this.connect()
     }, delay)
@@ -162,7 +176,7 @@ class WebSocketService {
 
   private startHeartbeat(): void {
     this.stopHeartbeat()
-    
+
     this.heartbeatTimer = setInterval(() => {
       if (this.ws?.readyState === WebSocket.OPEN) {
         this.send('ping', {})
@@ -178,7 +192,10 @@ class WebSocketService {
   }
 
   private processMessageQueue(): void {
-    while (this.messageQueue.length > 0 && this.ws?.readyState === WebSocket.OPEN) {
+    while (
+      this.messageQueue.length > 0 &&
+      this.ws?.readyState === WebSocket.OPEN
+    ) {
       const message = this.messageQueue.shift()
       if (message) {
         this.ws.send(JSON.stringify(message))
@@ -188,14 +205,14 @@ class WebSocketService {
 
   disconnect(): void {
     console.log('[WebSocket] Disconnecting')
-    
+
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
       this.reconnectTimer = null
     }
 
     this.stopHeartbeat()
-    
+
     if (this.ws) {
       this.ws.close(1000, 'Client disconnect')
       this.ws = null
@@ -210,7 +227,7 @@ class WebSocketService {
     const message: WebSocketEvent = {
       type,
       data,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
 
     if (this.ws?.readyState === WebSocket.OPEN) {
@@ -219,7 +236,7 @@ class WebSocketService {
       // Queue message if not connected
       console.log('[WebSocket] Queueing message:', type)
       this.messageQueue.push(message)
-      
+
       // Try to connect if disconnected
       if (this.currentStatus === 'disconnected') {
         this.connect()
@@ -241,9 +258,9 @@ class WebSocketService {
     if (!this.eventHandlers.has(event)) {
       this.eventHandlers.set(event, new Set())
     }
-    
+
     this.eventHandlers.get(event)!.add(handler)
-    
+
     // Return unsubscribe function
     return () => {
       this.eventHandlers.get(event)?.delete(handler)
@@ -252,10 +269,10 @@ class WebSocketService {
 
   onStatusChange(handler: (status: WebSocketStatus) => void): () => void {
     this.statusChangeHandlers.add(handler)
-    
+
     // Call immediately with current status
     handler(this.currentStatus)
-    
+
     // Return unsubscribe function
     return () => {
       this.statusChangeHandlers.delete(handler)
@@ -269,7 +286,10 @@ class WebSocketService {
         try {
           handler(data)
         } catch (error) {
-          console.error(`[WebSocket] Error in event handler for ${event}:`, error)
+          console.error(
+            `[WebSocket] Error in event handler for ${event}:`,
+            error,
+          )
         }
       })
     }

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Auth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 3px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #messages { background: #f4f4f4; padding: 10px; min-height: 200px; max-height: 400px; overflow-y: auto; }
+        input { width: 100%; padding: 5px; margin: 5px 0; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Auth Test</h1>
+    
+    <div>
+        <h3>1. Get Token</h3>
+        <button onclick="getToken()">Get Token from LocalStorage</button>
+        <input type="text" id="token" placeholder="Token will appear here">
+    </div>
+    
+    <div>
+        <h3>2. Connect to WebSocket</h3>
+        <button onclick="connectWS()">Connect to /ws</button>
+        <button onclick="disconnect()">Disconnect</button>
+        <div id="status" class="status info">Not connected</div>
+    </div>
+    
+    <div>
+        <h3>3. Join Bot Room</h3>
+        <input type="text" id="botId" placeholder="Enter bot ID">
+        <button onclick="joinRoom()">Join Bot Room</button>
+    </div>
+    
+    <div>
+        <h3>Messages</h3>
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        let ws = null;
+        
+        function log(msg, type = 'info') {
+            const messages = document.getElementById('messages');
+            const time = new Date().toLocaleTimeString();
+            messages.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+            messages.scrollTop = messages.scrollHeight;
+        }
+        
+        function setStatus(msg, type) {
+            const status = document.getElementById('status');
+            status.className = `status ${type}`;
+            status.textContent = msg;
+        }
+        
+        function getToken() {
+            const token = localStorage.getItem('auth_token');
+            if (token) {
+                document.getElementById('token').value = token;
+                log('Token retrieved from localStorage', 'success');
+            } else {
+                log('No token found in localStorage', 'error');
+            }
+        }
+        
+        function connectWS() {
+            const token = document.getElementById('token').value;
+            if (!token) {
+                log('Please get token first', 'error');
+                return;
+            }
+            
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                log('Already connected', 'info');
+                return;
+            }
+            
+            const url = `ws://localhost:8000/ws?token=${encodeURIComponent(token)}`;
+            log(`Connecting to ${url.substring(0, 50)}...`);
+            
+            ws = new WebSocket(url);
+            
+            ws.onopen = () => {
+                log('WebSocket connected!', 'success');
+                setStatus('Connected', 'success');
+            };
+            
+            ws.onmessage = (event) => {
+                log('Message: ' + event.data, 'info');
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type) {
+                        log(`Event type: ${data.type}`, 'info');
+                    }
+                } catch (e) {
+                    // Not JSON
+                }
+            };
+            
+            ws.onerror = (error) => {
+                log('WebSocket error: ' + error, 'error');
+                setStatus('Error', 'error');
+            };
+            
+            ws.onclose = (event) => {
+                log(`WebSocket closed: ${event.code} - ${event.reason}`, 'error');
+                setStatus('Disconnected', 'error');
+                ws = null;
+            };
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+                log('Disconnected', 'info');
+            }
+        }
+        
+        function joinRoom() {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                log('Not connected to WebSocket', 'error');
+                return;
+            }
+            
+            const botId = document.getElementById('botId').value;
+            if (!botId) {
+                log('Please enter bot ID', 'error');
+                return;
+            }
+            
+            const message = {
+                type: 'join',
+                data: { room: `bot:${botId}` }
+            };
+            
+            ws.send(JSON.stringify(message));
+            log(`Sent join request for room: bot:${botId}`, 'info');
+        }
+        
+        // Auto-load token on page load
+        window.onload = () => {
+            getToken();
+        };
+    </script>
+</body>
+</html>

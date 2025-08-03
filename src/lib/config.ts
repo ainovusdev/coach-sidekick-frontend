@@ -10,10 +10,8 @@ interface Config {
     environment: 'development' | 'production' | 'test'
     port: number
   }
-  supabase: {
-    url: string | null
-    anonKey: string | null
-    isConfigured: boolean
+  backend: {
+    url: string
   }
   isConfigured: boolean
 }
@@ -41,10 +39,6 @@ function getEnvironment(): 'development' | 'production' | 'test' {
 
 // Check if required environment variables are set
 const hasRequiredConfig = !!process.env.RECALL_API_KEY
-const hasSupabaseConfig = !!(
-  process.env.NEXT_PUBLIC_SUPABASE_URL &&
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
 
 export const config: Config = {
   recall: {
@@ -58,10 +52,8 @@ export const config: Config = {
     environment: getEnvironment(),
     port: parseInt(process.env.PORT || '3000', 10),
   },
-  supabase: {
-    url: process.env.NEXT_PUBLIC_SUPABASE_URL || null,
-    anonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || null,
-    isConfigured: hasSupabaseConfig,
+  backend: {
+    url: process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1',
   },
   isConfigured: hasRequiredConfig,
 }
