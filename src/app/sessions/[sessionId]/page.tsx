@@ -28,6 +28,7 @@ import {
   Zap,
   Trophy,
   Brain,
+  RefreshCw,
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -89,6 +90,7 @@ export default function SessionDetailsPage({
   const [sessionData, setSessionData] = useState<SessionDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [generatingSummary, setGeneratingSummary] = useState(false)
   const resolvedParams = React.use(params)
 
   // Redirect to auth if not authenticated
@@ -102,12 +104,15 @@ export default function SessionDetailsPage({
         setError(null)
 
         // Fetch comprehensive session details
-        const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
-        const response = await ApiClient.get(
-          `${BACKEND_URL}/sessions/${resolvedParams.sessionId}/details`
-        )
+        const response = await SessionService.getSessionDetails(resolvedParams.sessionId)
 
         // Set session data directly from the comprehensive response
+        console.log('Session data received:', {
+          transcriptCount: response.transcript?.length || 0,
+          firstTranscript: response.transcript?.[0]?.text?.substring(0, 50),
+          sessionId: response.session?.id,
+          status: response.session?.status
+        })
         setSessionData(response)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Unknown error')
@@ -118,6 +123,37 @@ export default function SessionDetailsPage({
 
     fetchSessionDetails()
   }, [resolvedParams.sessionId, isAuthenticated, authLoading])
+
+  const generateSummary = async () => {
+    try {
+      setGeneratingSummary(true)
+      console.log('Starting summary generation for session:', resolvedParams.sessionId)
+      console.log('Session status:', sessionData?.session?.status)
+      
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+      const response = await ApiClient.post(
+        `${BACKEND_URL}/sessions/${resolvedParams.sessionId}/generate-summary`,
+        {}
+      )
+      
+      console.log('Summary generation response:', response)
+      
+      // Refresh session data to show new summary
+      const updatedSession = await SessionService.getSessionDetails(resolvedParams.sessionId)
+      setSessionData(updatedSession)
+      
+      // Show success message (you can add a toast notification here)
+      console.log('Summary generated successfully')
+      alert('Summary generated successfully!')
+    } catch (err) {
+      console.error('Failed to generate summary:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error'
+      alert(`Failed to generate summary: ${errorMessage}`)
+      // You can show an error toast here
+    } finally {
+      setGeneratingSummary(false)
+    }
+  }
 
   // Redirect to auth if not authenticated
   if (!authLoading && !isAuthenticated) {
@@ -271,20 +307,71 @@ export default function SessionDetailsPage({
           {/* Left Column - Summary & Analysis */}
           <div className="lg:col-span-1 space-y-6">
             {/* Meeting Summary */}
-            {meeting_summary && (
+            {(meeting_summary || session.status === 'completed' || session.status === 'call_ended') && (
               <Card className="hover:shadow-xl transition-shadow duration-300 border-gray-100 overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <CardHeader className="relative">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white shadow-lg">
-                      <Trophy className="h-5 w-5" />
-                    </div>
-                    <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold">
-                      Meeting Summary
-                    </span>
-                  </CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg text-white shadow-lg">
+                        <Trophy className="h-5 w-5" />
+                      </div>
+                      <span className="bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent font-bold">
+                        Meeting Summary
+                      </span>
+                    </CardTitle>
+                    {(() => {
+                      console.log('Session status for button:', session.status)
+                      console.log('Button should show:', session.status === 'completed' || session.status === 'call_ended')
+                      console.log('Button disabled:', generatingSummary)
+                      return (session.status === 'completed' || session.status === 'call_ended') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={generateSummary}
+                          disabled={generatingSummary}
+                          className="bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 text-green-700 transition-all duration-200"
+                        >
+                        {generatingSummary ? (
+                          <>
+                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            {meeting_summary ? (
+                              <>
+                                <RefreshCw className="h-4 w-4 mr-2" />
+                                Regenerate
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Generate Summary
+                              </>
+                            )}
+                          </>
+                        )}
+                      </Button>
+                    )
+                    })()}
+                  </div>
                 </CardHeader>
                 <CardContent className="space-y-4 relative">
+                  {!meeting_summary ? (
+                    <div className="text-center py-8 text-gray-500">
+                      <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                        <Brain className="h-8 w-8 text-gray-300" />
+                      </div>
+                      <p className="text-base font-medium text-gray-400 mb-2">
+                        No summary available yet
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Click "Generate Summary" to create insights for this session
+                      </p>
+                    </div>
+                  ) : (
+                    <>
                   <div className="grid grid-cols-2 gap-3">
                     {meeting_summary.duration_minutes && (
                       <div className="bg-gradient-to-br from-purple-50 to-purple-100/50 rounded-xl p-3 border border-purple-200/50">
@@ -401,6 +488,8 @@ export default function SessionDetailsPage({
                         </ul>
                       </div>
                     )}
+                    </>
+                  )}
                 </CardContent>
               </Card>
             )}

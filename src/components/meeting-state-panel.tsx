@@ -7,7 +7,6 @@ import {
   Heart,
   TrendingUp,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react'
 
 interface MeetingState {

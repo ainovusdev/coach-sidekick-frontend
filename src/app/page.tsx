@@ -16,14 +16,9 @@ import {
   Clock,
   RefreshCw,
   MessageSquare,
-  Target,
-  TrendingUp,
-  Calendar,
   ArrowRight,
   UserCheck,
   Zap,
-  Activity,
-  CheckCircle2,
   PlayCircle,
   AlertCircle,
 } from 'lucide-react'
@@ -50,14 +45,14 @@ export default function CoachDashboard() {
     console.log('Creating bot for URL:', meetingUrl, 'ClientID:', clientId)
     setLoading(true)
     setError(null) // Clear any previous errors
-    
+
     try {
       // Create bot via backend API
       const response = await MeetingService.createBot({
         meeting_url: meetingUrl,
         client_id: clientId,
         recording_mode: 'raw_transcript',
-        bot_name: 'Coach Sidekick Assistant'
+        bot_name: 'Coach Sidekick Assistant',
       })
 
       console.log('Bot created successfully:', response)
@@ -72,9 +67,10 @@ export default function CoachDashboard() {
     } catch (error) {
       console.error('Error creating bot:', error)
       setLoading(false) // Reset loading state immediately on error
-      
+
       // Set error state for display in UI
-      const errorMessage = error instanceof Error ? error.message : 'Failed to create bot'
+      const errorMessage =
+        error instanceof Error ? error.message : 'Failed to create bot'
       setError(errorMessage)
     }
   }
@@ -105,126 +101,11 @@ export default function CoachDashboard() {
 
   // Calculate stats from meeting history
   const totalSessions = meetingHistory?.meetings.length || 0
-  const completedSessions =
-    meetingHistory?.meetings.filter(s => s.status === 'completed').length || 0
-  const activeSessions =
-    meetingHistory?.meetings.filter(s => s.status === 'recording').length || 0
-  const avgScore = (() => {
-    const sessions = meetingHistory?.meetings || []
-    const sessionsWithScores = sessions.filter(
-      s => s.meeting_summaries?.final_overall_score,
-    )
-    if (sessionsWithScores.length === 0) return 0
-    const total = sessionsWithScores.reduce(
-      (acc, s) => acc + (s.meeting_summaries?.final_overall_score || 0),
-      0,
-    )
-    return Math.round((total / sessionsWithScores.length) * 10) / 10
-  })()
-  const totalCoachingTips =
-    meetingHistory?.meetings.reduce(
-      (acc, s) => acc + (s.meeting_summaries?.total_coaching_suggestions || 0),
-      0,
-    ) || 0
 
   return (
     <PageLayout>
       {/* Enhanced Dashboard Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-blue-900">
-                    {totalSessions}
-                  </p>
-                  <p className="text-sm font-medium text-blue-600">
-                    Total Sessions
-                  </p>
-                </div>
-                <div className="p-4 bg-blue-500 rounded-2xl shadow-lg">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <TrendingUp className="h-3 w-3 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium">All time</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-green-900">
-                    {completedSessions}
-                  </p>
-                  <p className="text-sm font-medium text-green-600">
-                    Completed
-                  </p>
-                </div>
-                <div className="p-4 bg-green-500 rounded-2xl shadow-lg">
-                  <CheckCircle2 className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Activity className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-green-600 font-medium">
-                  {activeSessions > 0 && `${activeSessions} active`}
-                  {activeSessions === 0 && 'Ready for new'}
-                </span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-purple-900">
-                    {avgScore > 0 ? avgScore : '—'}
-                  </p>
-                  <p className="text-sm font-medium text-purple-600">
-                    Avg Score
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-500 rounded-2xl shadow-lg">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Target className="h-3 w-3 text-purple-500 mr-1" />
-                <span className="text-purple-600 font-medium">Performance</span>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-orange-900">
-                    {totalCoachingTips}
-                  </p>
-                  <p className="text-sm font-medium text-orange-600">
-                    AI Insights
-                  </p>
-                </div>
-                <div className="p-4 bg-orange-500 rounded-2xl shadow-lg">
-                  <Zap className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Zap className="h-3 w-3 text-orange-500 mr-1" />
-                <span className="text-orange-600 font-medium">Generated</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Enhanced Primary Action - Start New Session */}
           <div className="lg:col-span-1">

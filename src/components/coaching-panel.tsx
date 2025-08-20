@@ -185,17 +185,20 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
     onAnalysisUpdate: handleAnalysisUpdate
   })
 
-  // Auto-refresh suggestions on mount and when disconnected
+  // Auto-refresh suggestions on mount and periodically
   useEffect(() => {
     fetchSuggestions()
     
-    // Only use polling when WebSocket is disconnected
-    if (!isConnected) {
-      console.log('[Coaching Panel] Starting polling (WebSocket disconnected)')
-      const interval = setInterval(() => fetchSuggestions(false), 15000)
-      return () => clearInterval(interval)
-    }
-  }, [botId, isConnected, fetchSuggestions])
+    // Poll every 10 seconds regardless of WebSocket connection
+    // This ensures suggestions are always up-to-date
+    console.log('[Coaching Panel] Starting 10-second polling interval')
+    const interval = setInterval(() => {
+      console.log('[Coaching Panel] Auto-refreshing suggestions...')
+      fetchSuggestions(false)
+    }, 30000) // Changed from 15000 to 10000 for 10-second intervals
+    
+    return () => clearInterval(interval)
+  }, [botId, fetchSuggestions])
 
 
   if (error && error.includes('OpenAI API key')) {

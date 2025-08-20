@@ -46,7 +46,12 @@ interface BackendSession {
 }
 
 // Transform backend session to UI format
-function transformSession(backendSession: BackendSession): CoachingSession {
+function transformSession(backendSession: BackendSession): CoachingSession & {
+  summary?: string
+  duration_seconds?: number
+  key_topics?: string[]
+  action_items?: string[]
+} {
   return {
     id: backendSession.id,
     user_id: backendSession.coach_id,
@@ -56,6 +61,10 @@ function transformSession(backendSession: BackendSession): CoachingSession {
     client_id: backendSession.client_id,
     created_at: backendSession.started_at || backendSession.created_at,
     updated_at: backendSession.updated_at,
+    summary: backendSession.summary,
+    duration_seconds: backendSession.duration_seconds,
+    key_topics: backendSession.key_topics,
+    action_items: backendSession.action_items,
   }
 }
 
@@ -118,5 +127,9 @@ export class SessionService {
       page: response.page,
       per_page: response.per_page,
     }
+  }
+
+  static async getSessionDetails(sessionId: string): Promise<any> {
+    return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/details`)
   }
 }

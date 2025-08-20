@@ -12,7 +12,7 @@ export interface PreferencesUpdateData {
 
 export class PreferencesService {
   private static getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem('access_token');
+    const token = localStorage.getItem('auth_token');
     if (!token) {
       throw new Error('No authentication token found');
     }

@@ -16,16 +16,20 @@ import { MeetingError } from '@/components/meeting-error'
 import { useBotData } from '@/hooks/use-bot-data'
 import { useBotActions } from '@/hooks/use-bot-actions'
 import { WebSocketStatus } from '@/components/websocket-status'
+import { DebugPanel } from '@/components/debug-panel'
 import {
   ArrowLeft,
   ExternalLink,
   Users,
   MessageSquare,
   Brain,
+  Bug,
 } from 'lucide-react'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
+import { useWebSocket } from '@/contexts/websocket-context'
+import { cn } from '@/lib/utils'
 
 export default function MeetingPage() {
   const params = useParams()
@@ -36,17 +40,29 @@ export default function MeetingPage() {
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const { toast, showToast, closeToast } = useToast()
   const [meetingState, setMeetingState] = useState<any>(null)
+  const [showDebug, setShowDebug] = useState(false)
+  const { joinRoom, leaveRoom } = useWebSocket()
 
-  // Handle WebSocket messages
-  const handleWebSocketMessage = useCallback((message: any) => {
-    if (message.type === 'meeting_state') {
-      setMeetingState(message.data)
+  // Join WebSocket room on mount
+  useEffect(() => {
+    console.log('[MeetingPage] Joining room:', `bot:${botId}`)
+    joinRoom(`bot:${botId}`)
+    
+    return () => {
+      console.log('[MeetingPage] Leaving room:', `bot:${botId}`)
+      leaveRoom(`bot:${botId}`)
     }
+  }, [botId, joinRoom, leaveRoom])
+
+  // Handle meeting state updates
+  const handleMeetingState = useCallback((data: any) => {
+    console.log('[MeetingPage] Received meeting state:', data)
+    setMeetingState(data)
   }, [])
 
   // Subscribe to WebSocket events
   useCoachingWebSocket(botId, {
-    onMessage: handleWebSocketMessage
+    onMeetingState: handleMeetingState
   })
 
   const handleStopBot = async () => {
@@ -127,6 +143,15 @@ export default function MeetingPage() {
 
                 <div className="h-6 w-px bg-gray-300" />
 
+                <Button
+                  variant={showDebug ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowDebug(!showDebug)}
+                >
+                  <Bug className="h-4 w-4 mr-2" />
+                  Debug
+                </Button>
+
                 {bot.meeting_url !== '#' && (
                   <Button variant="outline" size="sm" asChild>
                     <a
@@ -190,22 +215,31 @@ export default function MeetingPage() {
           <BatchSaveStatus botId={botId} />
         </div>
 
-        {/* Meeting State Panel */}
         <div className="mb-4">
           <MeetingStatePanel state={meetingState} />
         </div>
 
-        {/* Side by Side Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[700px]">
-          <Card className="shadow-md h-full overflow-scroll flex flex-col">
-            <CardContent className="p-6 flex-1 flex flex-col min-h-0">
+        {/* Side by Side Layout - Adjust height when debug panel is shown */}
+        <div className={cn(
+          "grid grid-cols-1 lg:grid-cols-2 gap-6 transition-all duration-300",
+          showDebug ? "h-[450px]" : "h-[700px]"
+        )}>
+          <Card className="shadow-md h-full flex flex-col overflow-hidden">
+            <CardContent className="p-6 flex-1 min-h-0 overflow-auto">
               <TranscriptViewer transcript={transcript} />
             </CardContent>
           </Card>
-          <div className="flex flex-col h-full">
+          <div className="flex flex-col h-full overflow-hidden">
             <CoachingPanel botId={botId} className="shadow-lg h-full" />
           </div>
         </div>
+
+        {/* Debug Panel */}
+        {showDebug && bot && (
+          <div className="mt-6 pb-6">
+            <DebugPanel sessionId={bot.id} className="max-h-[500px]" />
+          </div>
+        )}
       </div>
     </div>
   )

@@ -21,6 +21,9 @@ interface MeetingSession {
   updated_at: string
   metadata: any
   meeting_summaries: MeetingSummary | null
+  summary?: string | null
+  duration_seconds?: number | null
+  client_name?: string | null
 }
 
 interface MeetingHistoryResponse {
@@ -50,7 +53,7 @@ export function useMeetingHistory(limit: number = 10) {
 
       // Transform to expected format
       const historyData: MeetingHistoryResponse = {
-        meetings: response.sessions.map(session => ({
+        meetings: response.sessions.map((session: any) => ({
           id: session.id,
           bot_id: session.bot_id,
           meeting_url: session.meeting_url,
@@ -58,7 +61,19 @@ export function useMeetingHistory(limit: number = 10) {
           created_at: session.created_at,
           updated_at: session.updated_at,
           metadata: session.client_id ? { client_id: session.client_id } : {},
-          meeting_summaries: null, // TODO: Fetch from session details if needed
+          meeting_summaries: session.summary ? {
+            duration_minutes: session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null,
+            total_transcript_entries: null,
+            total_coaching_suggestions: null,
+            final_overall_score: null,
+            final_conversation_phase: null,
+            key_insights: session.key_topics || null,
+            action_items: session.action_items || null,
+            meeting_summary: session.summary,
+          } : null,
+          summary: session.summary || null,
+          duration_seconds: session.duration_seconds || null,
+          client_name: null
         })),
         pagination: {
           limit,

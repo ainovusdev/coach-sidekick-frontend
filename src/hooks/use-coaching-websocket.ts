@@ -7,6 +7,8 @@ interface CoachingWebSocketEvents {
   onAnalysisUpdate?: (data: { analysisId: string; status: string; results?: any }) => void
   onAnalysisComplete?: (analysis: CoachingAnalysis) => void
   onMessage?: (message: any) => void
+  onMeetingState?: (state: any) => void
+  onSuggestionsUpdate?: (data: { suggestions: string[]; replace?: boolean }) => void
 }
 
 /**
@@ -70,4 +72,29 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
     const unsubscribe = on('message', handler)
     return unsubscribe
   }, [botId, events.onMessage, on])
+
+  // Subscribe to meeting_state events
+  useEffect(() => {
+    if (!events.onMeetingState) return
+
+    const handler = (data: any) => {
+      // Meeting state is sent directly without botId wrapper
+      events.onMeetingState(data)
+    }
+
+    const unsubscribe = on('meeting_state', handler)
+    return unsubscribe
+  }, [events.onMeetingState, on])
+
+  // Subscribe to suggestions_update events
+  useEffect(() => {
+    if (!events.onSuggestionsUpdate) return
+
+    const handler = (data: any) => {
+      events.onSuggestionsUpdate(data)
+    }
+
+    const unsubscribe = on('suggestions_update', handler)
+    return unsubscribe
+  }, [events.onSuggestionsUpdate, on])
 }
