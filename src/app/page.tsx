@@ -26,6 +26,7 @@ import {
   CheckCircle2,
   PlayCircle,
   AlertCircle,
+  Settings,
 } from 'lucide-react'
 
 export default function CoachDashboard() {
@@ -306,6 +307,17 @@ export default function CoachDashboard() {
                     />
                     <span className="font-medium">Refresh Data</span>
                   </div>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full justify-between hover:bg-slate-50 hover:border-slate-200 group transition-all duration-200"
+                  onClick={() => router.push('/settings')}
+                >
+                  <div className="flex items-center">
+                    <Settings className="h-4 w-4 mr-3 text-slate-600" />
+                    <span className="font-medium">Settings</span>
+                  </div>
+                  <ArrowRight className="h-4 w-4 text-slate-400 group-hover:text-slate-600 transition-colors" />
                 </Button>
               </CardContent>
             </Card>

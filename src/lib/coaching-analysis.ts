@@ -131,6 +131,7 @@ class CoachingAnalysisService {
     botId: string,
     transcript: TranscriptEntry[],
     lastAnalyzedIndex: number = 0,
+    userCoachingPreference?: string | null,
   ): Promise<CoachingAnalysis> {
     try {
       // Get only new transcript entries since last analysis
@@ -168,6 +169,7 @@ class CoachingAnalysisService {
         recentConversation,
         previousAnalysis,
         historicalContext,
+        userCoachingPreference,
       )
 
       const response = await openai.chat.completions.create({
@@ -229,6 +231,7 @@ class CoachingAnalysisService {
     recentConversation: string,
     previousAnalysis?: CoachingAnalysis,
     historicalContext?: string | null,
+    userCoachingPreference?: string | null,
   ): string {
     const criteriaList = Object.entries(COACHING_CRITERIA)
       .map(([key, description]) => `- ${key}: ${description}`)
@@ -246,6 +249,17 @@ class CoachingAnalysisService {
 🧠 COACH SIDEKICK: REAL-TIME TRANSCRIPT ANALYSIS & SUPPORT
 
 PURPOSE: You are a real-time assistant designed to augment a coach's intuition, presence, and performance by analyzing coaching conversations as they unfold and offering timely, context-aware suggestions to deepen impact, provoke vision, expand ownership, and unlock stuck moments.
+
+${
+  userCoachingPreference
+    ? `
+🎯 COACH'S PERSONAL STYLE & PREFERENCES:
+${userCoachingPreference}
+
+IMPORTANT: Tailor all suggestions to align with the coach's stated preferences above. Adapt your language, approach, and recommendations to match their coaching style while maintaining high standards of coaching excellence.
+`
+    : ''
+}
 
 🧭 FOUNDATIONAL FILTERS
 All analysis and suggestions must be filtered through these principles:
@@ -643,9 +657,10 @@ Format each suggestion clearly and make them practical for real-time use.`
     botId: string,
     transcript: TranscriptEntry[],
     lastAnalyzedIndex: number = 0,
+    userCoachingPreference?: string | null,
   ): Promise<CoachingAnalysis> {
     // This is an alias for the main analysis method which now includes historical context
-    return this.analyzeConversation(botId, transcript, lastAnalyzedIndex)
+    return this.analyzeConversation(botId, transcript, lastAnalyzedIndex, userCoachingPreference)
   }
 }
 

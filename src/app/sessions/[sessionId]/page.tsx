@@ -27,6 +27,8 @@ import {
   Zap,
   Trophy,
   Brain,
+  FileText,
+  Loader2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -63,6 +65,38 @@ interface MeetingSummary {
   created_at: string
 }
 
+interface SessionInsights {
+  id: string
+  overall_score: number
+  conversation_phase: string
+  coach_energy_level: number
+  client_engagement_level: number
+  criteria_scores: any
+  go_live_alignment: any
+  key_insights: string[]
+  patterns_detected: string[]
+  breakthrough_moments: string[]
+  resistance_patterns: string[]
+  client_commitments: string[]
+  suggested_followups: string[]
+  homework_assignments: string[]
+  most_effective_interventions: string[]
+  missed_opportunities: string[]
+  coaching_strengths: string[]
+  areas_for_improvement: string[]
+  executive_summary: string
+  session_theme: string
+  key_topics_discussed: string[]
+  emotional_journey: string
+  progress_since_last_session?: string
+  recurring_themes: string[]
+  evolution_of_challenges?: string
+  recommended_resources: string[]
+  suggested_tools: string[]
+  next_session_focus: string
+  generated_at: string
+}
+
 interface SessionDetails {
   session: {
     id: string
@@ -88,6 +122,9 @@ export default function SessionDetailsPage({
   const [sessionData, setSessionData] = useState<SessionDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [insights, setInsights] = useState<SessionInsights | null>(null)
+  const [generatingInsights, setGeneratingInsights] = useState(false)
+  const [insightsError, setInsightsError] = useState<string | null>(null)
   const resolvedParams = React.use(params)
 
   // Redirect to auth if not authenticated
@@ -122,6 +159,67 @@ export default function SessionDetailsPage({
 
     fetchSessionDetails()
   }, [resolvedParams.sessionId, user, authLoading])
+
+  // Check for existing insights when session data changes
+  useEffect(() => {
+    const checkForInsights = async () => {
+      if (!sessionData?.session?.bot_id) return
+      
+      try {
+        const response = await ApiClient.get(
+          `/api/sessions/${sessionData.session.bot_id}/generate-insights`
+        )
+        
+        if (response.ok) {
+          const data = await response.json()
+          setInsights(data.insights)
+        }
+      } catch {
+        console.log('No insights found')
+      }
+    }
+
+    if (sessionData?.session?.bot_id) {
+      checkForInsights()
+    }
+  }, [sessionData])
+
+  const generateInsights = async () => {
+    if (!sessionData?.session?.bot_id) return
+    
+    setGeneratingInsights(true)
+    setInsightsError(null)
+    
+    try {
+      const response = await ApiClient.post(
+        `/api/sessions/${sessionData.session.bot_id}/generate-insights`,
+        {}
+      )
+      
+      if (!response.ok) {
+        const error = await response.json()
+        if (error.insights_id) {
+          // Insights already exist, fetch them
+          const fetchResponse = await ApiClient.get(
+            `/api/sessions/${sessionData.session.bot_id}/generate-insights`
+          )
+          if (fetchResponse.ok) {
+            const data = await fetchResponse.json()
+            setInsights(data.insights)
+          }
+        } else {
+          throw new Error(error.error || 'Failed to generate insights')
+        }
+      } else {
+        const data = await response.json()
+        setInsights(data.insights)
+      }
+    } catch (err) {
+      setInsightsError(err instanceof Error ? err.message : 'Failed to generate insights')
+    } finally {
+      setGeneratingInsights(false)
+    }
+  }
 
   // Redirect to auth if not authenticated
   if (!authLoading && !user) {
@@ -274,6 +372,147 @@ export default function SessionDetailsPage({
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
           {/* Left Column - Summary & Analysis */}
           <div className="lg:col-span-1 space-y-6">
+            {/* Generate Insights Button */}
+            {sessionData?.session?.status === 'completed' && !insights && (
+              <Card className="hover:shadow-xl transition-shadow duration-300 border-gray-100 overflow-hidden">
+                <CardContent className="p-6">
+                  <div className="text-center space-y-4">
+                    <div className="w-16 h-16 mx-auto bg-gradient-to-br from-purple-100 to-blue-100 rounded-full flex items-center justify-center">
+                      <FileText className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        Generate Session Insights
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        Create a comprehensive analysis of this coaching session
+                      </p>
+                    </div>
+                    <Button
+                      onClick={generateInsights}
+                      disabled={generatingInsights}
+                      className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
+                    >
+                      {generatingInsights ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Generating Insights...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate Insights
+                        </>
+                      )}
+                    </Button>
+                    {insightsError && (
+                      <p className="text-sm text-red-600 mt-2">{insightsError}</p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Session Insights */}
+            {insights && (
+              <Card className="hover:shadow-xl transition-shadow duration-300 border-gray-100 overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <CardHeader className="relative">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg text-white shadow-lg">
+                      <FileText className="h-5 w-5" />
+                    </div>
+                    <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent font-bold">
+                      Session Insights
+                    </span>
+                  </CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Generated {format(new Date(insights.generated_at), 'PPp')}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6 relative">
+                  {/* Executive Summary */}
+                  {insights.executive_summary && (
+                    <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-xl p-4 border border-purple-200/50">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Brain className="h-4 w-4 text-purple-500" />
+                        Executive Summary
+                      </h4>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {insights.executive_summary}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Session Theme */}
+                  {insights.session_theme && (
+                    <div className="bg-gray-50 rounded-xl p-3 border border-gray-200/50">
+                      <span className="text-xs font-medium text-gray-500">Theme:</span>
+                      <p className="text-sm font-semibold text-gray-900 mt-1">
+                        {insights.session_theme}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Key Insights */}
+                  {insights.key_insights && insights.key_insights.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <Zap className="h-4 w-4 text-amber-500" />
+                        Key Insights
+                      </h4>
+                      <ul className="space-y-2">
+                        {insights.key_insights.slice(0, 5).map((insight, index) => (
+                          <li
+                            key={index}
+                            className="text-sm text-gray-700 flex items-start gap-3 bg-amber-50/50 rounded-lg p-2.5 border border-amber-100"
+                          >
+                            <ChevronRight className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                            <span className="leading-relaxed">{insight}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Client Commitments */}
+                  {insights.client_commitments && insights.client_commitments.length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        Client Commitments
+                      </h4>
+                      <ul className="space-y-2">
+                        {insights.client_commitments.map((commitment, index) => (
+                          <li
+                            key={index}
+                            className="text-sm text-gray-700 flex items-start gap-3 bg-green-50/50 rounded-lg p-2.5 border border-green-100"
+                          >
+                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                              <CheckCircle2 className="h-3 w-3 text-white" />
+                            </div>
+                            <span className="leading-relaxed">{commitment}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Next Session Focus */}
+                  {insights.next_session_focus && (
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200/50">
+                      <h4 className="font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                        <Target className="h-4 w-4 text-blue-500" />
+                        Next Session Focus
+                      </h4>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {insights.next_session_focus}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
             {/* Meeting Summary */}
             {meeting_summary && (
               <Card className="hover:shadow-xl transition-shadow duration-300 border-gray-100 overflow-hidden group">

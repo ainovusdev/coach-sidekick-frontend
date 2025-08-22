@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { coachingAnalysisService } from '@/lib/coaching-analysis'
 import { transcriptStore } from '@/lib/transcript-store'
+import { createClient } from '@supabase/supabase-js'
+import { supabase } from '@/lib/supabase'
 
 export async function POST(
   request: NextRequest,
@@ -42,11 +44,57 @@ export async function POST(
       })
     }
 
-    // Perform the coaching analysis
+    // Fetch user's coaching preference
+    let userCoachingPreference: string | null = null
+    try {
+      // Get user from Supabase auth
+      const authHeader = request.headers.get('authorization')
+      let user = null
+      let authToken = null
+
+      if (authHeader?.startsWith('Bearer ')) {
+        authToken = authHeader.substring(7)
+        const {
+          data: { user: authUser },
+          error: authError,
+        } = await supabase.auth.getUser(authToken)
+        if (!authError && authUser) {
+          user = authUser
+        }
+      }
+      
+      if (user && authToken) {
+        // Create an authenticated Supabase client
+        const authenticatedSupabase = createClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL!,
+          process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+          {
+            global: {
+              headers: {
+                Authorization: `Bearer ${authToken}`,
+              },
+            },
+          }
+        )
+        
+        const { data: profile } = await authenticatedSupabase
+          .from('profiles')
+          .select('coaching_preference')
+          .eq('id', user.id)
+          .single()
+        
+        userCoachingPreference = profile?.coaching_preference || null
+      }
+    } catch (error) {
+      console.warn('Failed to fetch user coaching preference:', error)
+    }
+
+    // Perform the coaching analysis with user preference
     const analysis = await coachingAnalysisService.analyzeConversation(
       botId,
       session.transcript,
       lastAnalyzedIndex,
+      userCoachingPreference,
     )
 
     return NextResponse.json({
