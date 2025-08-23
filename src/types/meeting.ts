@@ -20,13 +20,7 @@ export interface Client {
   id: string
   coach_id: string
   name: string
-  email?: string
-  phone?: string
-  company?: string
-  position?: string
   notes?: string
-  tags: string[]
-  status: 'active' | 'inactive' | 'archived'
   created_at: string
   updated_at: string
 }

@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Toast, useToast } from '@/components/ui/toast';
 import { PreferencesService } from '@/services/preferences.service';
-import PageLayout from '@/components/page-layout';
+import PageLayout from '@/components/layout/page-layout';
 import { Loader2, Save } from 'lucide-react';
 
 export default function PreferencesPage() {

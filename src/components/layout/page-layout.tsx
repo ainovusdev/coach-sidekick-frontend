@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode } from 'react'
-import Navigation from '@/components/navigation'
+import Navigation from '@/components/layout/navigation'
 
 interface PageLayoutProps {
   children: ReactNode

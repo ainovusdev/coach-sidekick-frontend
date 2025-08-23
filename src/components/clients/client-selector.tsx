@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client } from '@/types/meeting'
 import { ClientService } from '@/services/client-service'
+import { FileText } from 'lucide-react'
 
 interface ClientSelectorProps {
   selectedClientId?: string
@@ -33,12 +33,11 @@ export default function ClientSelector({
       
       const response = await ClientService.listClients({
         search: search.trim() || undefined,
-        per_page: 10
+        per_page: 20
       })
       
-      // Filter only active clients since backend doesn't support status filtering
-      const activeClients = response.clients.filter(client => client.status === 'active')
-      setClients(activeClients)
+      // Use all clients since we no longer have status
+      setClients(response.clients)
     } catch (error) {
       console.error('Error fetching clients:', error)
     } finally {
@@ -91,40 +90,37 @@ export default function ClientSelector({
       <div className="relative">
         {selectedClient ? (
           <div 
-            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white cursor-pointer hover:border-gray-400 flex items-center justify-between"
+            className="w-full px-3 py-2 border border-neutral-200 rounded-md bg-white cursor-pointer hover:border-neutral-400 flex items-center justify-between"
             onClick={() => setIsOpen(!isOpen)}
           >
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+              <Avatar className="h-8 w-8 bg-neutral-100 border border-neutral-200">
+                <AvatarFallback className="bg-white text-neutral-700 text-sm">
                   {getClientInitials(selectedClient.name)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <span className="font-medium">{selectedClient.name}</span>
-                {selectedClient.company && (
-                  <span className="text-sm text-gray-500 ml-2">@ {selectedClient.company}</span>
+                <span className="font-medium text-neutral-900">{selectedClient.name}</span>
+                {selectedClient.notes && (
+                  <span className="text-sm text-neutral-500 ml-2 truncate max-w-[200px] inline-block align-middle">
+                    {selectedClient.notes}
+                  </span>
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
-                {selectedClient.status}
-              </Badge>
-              {allowNone && (
-                <Button 
-                  size="sm" 
-                  variant="ghost" 
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleClientSelect(null)
-                  }}
-                  className="h-6 w-6 p-0 hover:bg-red-50"
-                >
-                  ×
-                </Button>
-              )}
-            </div>
+            {allowNone && (
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={(e) => {
+                  e.stopPropagation()
+                  handleClientSelect(null)
+                }}
+                className="h-6 w-6 p-0 hover:bg-neutral-50 text-neutral-500"
+              >
+                ×
+              </Button>
+            )}
           </div>
         ) : (
           <Input
@@ -132,13 +128,13 @@ export default function ClientSelector({
             value={searchTerm}
             onChange={handleSearchChange}
             onFocus={() => setIsOpen(true)}
-            className="cursor-pointer"
+            className="cursor-pointer border-neutral-200 focus:border-neutral-400 focus:ring-0"
           />
         )}
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
           {!selectedClient && (
             <div className="p-2">
               <Input
@@ -146,7 +142,7 @@ export default function ClientSelector({
                 value={searchTerm}
                 onChange={handleSearchChange}
                 autoFocus
-                className="w-full"
+                className="w-full border-neutral-200 focus:border-neutral-400 focus:ring-0"
               />
             </div>
           )}
@@ -154,46 +150,43 @@ export default function ClientSelector({
           <div className="py-1">
             {allowNone && !selectedClient && (
               <div 
-                className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b"
+                className="px-3 py-2 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100"
                 onClick={() => handleClientSelect(null)}
               >
-                <span className="text-gray-500 italic">No client selected</span>
+                <span className="text-neutral-500 italic">No client selected</span>
               </div>
             )}
             
             {loading ? (
-              <div className="px-3 py-4 text-center text-gray-500">
+              <div className="px-3 py-4 text-center text-neutral-500">
                 Loading clients...
               </div>
             ) : clients.length === 0 ? (
-              <div className="px-3 py-4 text-center text-gray-500">
-                {searchTerm ? 'No clients found' : 'No active clients'}
+              <div className="px-3 py-4 text-center text-neutral-500">
+                {searchTerm ? 'No clients found' : 'No clients available'}
               </div>
             ) : (
               clients.map((client) => (
                 <div 
                   key={client.id}
-                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-3"
+                  className="px-3 py-2 hover:bg-neutral-50 cursor-pointer flex items-center gap-3"
                   onClick={() => handleClientSelect(client)}
                 >
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-blue-100 text-blue-600 text-sm">
+                  <Avatar className="h-8 w-8 bg-neutral-100 border border-neutral-200">
+                    <AvatarFallback className="bg-white text-neutral-700 text-sm">
                       {getClientInitials(client.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium truncate">{client.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {client.status}
-                      </Badge>
+                      <span className="font-medium text-neutral-900 truncate">{client.name}</span>
                     </div>
-                    <div className="text-sm text-gray-500 truncate">
-                      {client.company && client.email 
-                        ? `${client.company} • ${client.email}`
-                        : client.company || client.email || 'No additional info'
-                      }
-                    </div>
+                    {client.notes && (
+                      <div className="text-sm text-neutral-500 truncate flex items-center gap-1">
+                        <FileText className="h-3 w-3" />
+                        {client.notes}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

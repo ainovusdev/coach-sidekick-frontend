@@ -7,28 +7,19 @@ const BACKEND_URL =
 
 export interface ClientCreateDto {
   name: string
-  email?: string
-  phone?: string
   notes?: string
-  tags?: string[]
 }
 
 export interface ClientUpdateDto {
   name?: string
-  email?: string
-  phone?: string
   notes?: string
-  tags?: string[]
 }
 
 // Backend response format
 interface BackendClient {
   id: string
   name: string
-  email?: string
-  phone?: string
   notes?: string
-  tags: string[]
   created_at: string
   updated_at: string
 }
@@ -54,13 +45,7 @@ function transformClient(backendClient: BackendClient): Client {
     id: backendClient.id,
     coach_id: userId,
     name: backendClient.name,
-    email: backendClient.email,
-    phone: backendClient.phone,
-    company: undefined,
-    position: undefined,
     notes: backendClient.notes,
-    tags: backendClient.tags || [],
-    status: 'active' as const, // Backend doesn't have status, defaulting to active
     created_at: backendClient.created_at,
     updated_at: backendClient.updated_at,
   }

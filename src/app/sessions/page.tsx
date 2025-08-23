@@ -4,12 +4,15 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
-import { SessionCard } from '@/components/session-card'
-import PageLayout from '@/components/page-layout'
+import { SessionCard } from '@/components/sessions/session-card'
+import PageLayout from '@/components/layout/page-layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ApiClient } from '@/lib/api-client'
+import { LoadingState } from '@/components/ui/loading-state'
+import { EmptyState } from '@/components/ui/empty-state'
+import { PageHeader } from '@/components/ui/page-header'
+import { StatCard } from '@/components/ui/stat-card'
 import { ClientService } from '@/services/client-service'
 import {
   History,
@@ -80,14 +83,7 @@ export default function SessionsHistoryPage() {
   if (authLoading) {
     return (
       <PageLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-3 border-blue-600 border-t-transparent mx-auto"></div>
-            <p className="mt-3 text-slate-600 font-medium">
-              Loading sessions...
-            </p>
-          </div>
-        </div>
+        <LoadingState message="Loading sessions..." />
       </PageLayout>
     )
   }
@@ -145,43 +141,29 @@ export default function SessionsHistoryPage() {
   return (
     <PageLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Enhanced Header */}
-        <div className="mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
-                  <History className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
-                    Session History
-                  </h1>
-                  <p className="text-slate-600 font-medium">
-                    Track your coaching progress and performance over time
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setCurrentPage(0)
-                  refetch()
-                }}
-                disabled={historyLoading}
-                className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`}
-                />
-                Refresh
-              </Button>
-            </div>
-          </div>
+        <PageHeader
+          title="Session History"
+          description="Track your coaching progress and performance over time"
+          icon={History}
+          iconVariant="gradient"
+          actions={
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setCurrentPage(0)
+                refetch()
+              }}
+              disabled={historyLoading}
+              className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+            >
+              <RefreshCw
+                className={`h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`}
+              />
+              Refresh
+            </Button>
+          }
+        />
 
           {/* Client Filter */}
           <div className="mb-6">
@@ -249,103 +231,64 @@ export default function SessionsHistoryPage() {
               </div>
             )}
           </div>
-        </div>
 
         {/* Enhanced Stats Summary */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-blue-900">
-                    {totalSessions}
-                  </p>
-                  <p className="text-sm font-medium text-blue-600">
-                    {selectedClient
-                      ? `${selectedClient.name}'s Sessions`
-                      : 'Total Sessions'}
-                  </p>
-                </div>
-                <div className="p-4 bg-blue-500 rounded-2xl shadow-lg">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <History className="h-3 w-3 text-blue-500 mr-1" />
-                <span className="text-blue-600 font-medium">All time</span>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title={selectedClient ? `${selectedClient.name}'s Sessions` : 'Total Sessions'}
+            value={totalSessions}
+            icon={Calendar}
+            variant="blue"
+            footer={
+              <>
+                <History className="h-3 w-3 mr-1" />
+                <span className="font-medium">All time</span>
+              </>
+            }
+          />
 
-          <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-green-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-green-900">
-                    {completedSessions}
-                  </p>
-                  <p className="text-sm font-medium text-green-600">
-                    Completed
-                  </p>
-                </div>
-                <div className="p-4 bg-green-500 rounded-2xl shadow-lg">
-                  <CheckCircle2 className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Clock className="h-3 w-3 text-green-500 mr-1" />
-                <span className="text-green-600 font-medium">
+          <StatCard
+            title="Completed"
+            value={completedSessions}
+            icon={CheckCircle2}
+            variant="green"
+            footer={
+              <>
+                <Clock className="h-3 w-3 mr-1" />
+                <span className="font-medium">
                   {inProgressSessions > 0
                     ? `${inProgressSessions} in progress`
                     : 'Ready for new'}
                 </span>
-              </div>
-            </CardContent>
-          </Card>
+              </>
+            }
+          />
 
-          <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-purple-900">
-                    {avgScore > 0 ? avgScore : '—'}
-                  </p>
-                  <p className="text-sm font-medium text-purple-600">
-                    Average Score
-                  </p>
-                </div>
-                <div className="p-4 bg-purple-500 rounded-2xl shadow-lg">
-                  <Target className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Target className="h-3 w-3 text-purple-500 mr-1" />
-                <span className="text-purple-600 font-medium">Performance</span>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Average Score"
+            value={avgScore > 0 ? avgScore : '—'}
+            icon={Target}
+            variant="purple"
+            footer={
+              <>
+                <Target className="h-3 w-3 mr-1" />
+                <span className="font-medium">Performance</span>
+              </>
+            }
+          />
 
-          <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200 shadow-sm hover:shadow-md transition-all duration-200">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-bold text-orange-900">
-                    {clients.length}
-                  </p>
-                  <p className="text-sm font-medium text-orange-600">
-                    Active Clients
-                  </p>
-                </div>
-                <div className="p-4 bg-orange-500 rounded-2xl shadow-lg">
-                  <Users className="h-6 w-6 text-white" />
-                </div>
-              </div>
-              <div className="mt-4 flex items-center text-xs">
-                <Users className="h-3 w-3 text-orange-500 mr-1" />
-                <span className="text-orange-600 font-medium">Coaching</span>
-              </div>
-            </CardContent>
-          </Card>
+          <StatCard
+            title="Active Clients"
+            value={clients.length}
+            icon={Users}
+            variant="orange"
+            footer={
+              <>
+                <Users className="h-3 w-3 mr-1" />
+                <span className="font-medium">Coaching</span>
+              </>
+            }
+          />
         </div>
 
         {/* Sessions List */}
@@ -399,22 +342,16 @@ export default function SessionsHistoryPage() {
           <CardContent className="p-6">
             {/* Error State */}
             {historyError && (
-              <div className="text-center py-12">
-                <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
-                  <MessageSquare className="h-6 w-6 text-red-600" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  Failed to load sessions
-                </h3>
-                <p className="text-red-600 mb-6">{historyError}</p>
-                <Button
-                  variant="outline"
-                  onClick={refetch}
-                  className="border-red-200 text-red-600 hover:bg-red-50"
-                >
-                  Try Again
-                </Button>
-              </div>
+              <EmptyState
+                icon={MessageSquare}
+                title="Failed to load sessions"
+                description={historyError}
+                action={{
+                  label: 'Try Again',
+                  onClick: refetch
+                }}
+                iconClassName="bg-red-100"
+              />
             )}
 
             {/* Loading State */}
@@ -444,35 +381,27 @@ export default function SessionsHistoryPage() {
 
             {/* Empty State */}
             {!historyLoading && !historyError && totalSessions === 0 && (
-              <div className="text-center py-16">
-                <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                  <MessageSquare className="h-8 w-8 text-slate-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
-                  {selectedClient
-                    ? `No sessions with ${selectedClient.name}`
-                    : 'No sessions yet'}
-                </h3>
-                <p className="text-slate-600 mb-6 max-w-sm mx-auto">
-                  {selectedClient
-                    ? `Start your first coaching session with ${selectedClient.name} to see it here.`
-                    : 'Start your first coaching session to see analytics and insights powered by AI.'}
-                </p>
-                <div className="flex items-center justify-center gap-4">
-                  <Button onClick={() => router.push('/')}>
-                    <Zap className="h-4 w-4 mr-2" />
-                    Start New Session
-                  </Button>
-                  {selectedClient && (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleClientFilter(null)}
-                    >
-                      View All Sessions
-                    </Button>
-                  )}
-                </div>
-              </div>
+              <EmptyState
+                icon={MessageSquare}
+                title={selectedClient
+                  ? `No sessions with ${selectedClient.name}`
+                  : 'No sessions yet'}
+                description={selectedClient
+                  ? `Start your first coaching session with ${selectedClient.name} to see it here.`
+                  : 'Start your first coaching session to see analytics and insights powered by AI.'}
+                action={{
+                  label: 'Start New Session',
+                  onClick: () => router.push('/'),
+                  icon: Zap
+                }}
+                secondaryAction={selectedClient ? {
+                  label: 'View All Sessions',
+                  onClick: () => handleClientFilter(null),
+                  variant: 'outline'
+                } : undefined}
+                className="py-16"
+                iconClassName="w-16 h-16 bg-slate-100"
+              />
             )}
 
             {/* Sessions Grid */}

@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Progress } from '@/components/ui/progress'
+import { LoadingState } from '@/components/ui/loading-state'
+import { EmptyState } from '@/components/ui/empty-state'
 import {
   ArrowLeft,
   Clock,
@@ -162,17 +164,12 @@ export default function SessionDetailsPage({
   }
   if (authLoading || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50 flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="relative w-16 h-16 mx-auto">
-            <div className="absolute inset-0 animate-spin rounded-full h-16 w-16 border-4 border-purple-200 border-t-purple-600"></div>
-            <div className="absolute inset-2 animate-spin rounded-full h-12 w-12 border-4 border-blue-200 border-t-blue-600 animation-delay-150"></div>
-            <div className="absolute inset-4 animate-spin rounded-full h-8 w-8 border-4 border-purple-200 border-t-purple-600 animation-delay-300"></div>
-          </div>
-          <p className="text-gray-600 font-medium animate-pulse">
-            Loading session details...
-          </p>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+        <LoadingState 
+          message="Loading session details..." 
+          variant="gradient"
+          className="min-h-screen"
+        />
       </div>
     )
   }
@@ -181,29 +178,22 @@ export default function SessionDetailsPage({
     return (
       <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50 flex items-center justify-center p-4">
         <div className="text-center max-w-md mx-auto bg-white rounded-2xl shadow-xl p-8 border border-red-100">
-          <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
-            <AlertCircle className="h-10 w-10 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-3">
-            Error Loading Session
-          </h1>
-          <p className="text-gray-600 mb-6">{error}</p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
-            <Button
-              onClick={() => router.back()}
-              className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white shadow-lg transition-all duration-200 hover:shadow-xl"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => window.location.reload()}
-              className="border-2 hover:bg-gray-50 transition-all duration-200"
-            >
-              Try Again
-            </Button>
-          </div>
+          <EmptyState
+            icon={AlertCircle}
+            title="Error Loading Session"
+            description={error}
+            action={{
+              label: 'Go Back',
+              onClick: () => router.back(),
+              icon: ArrowLeft
+            }}
+            secondaryAction={{
+              label: 'Try Again',
+              onClick: () => window.location.reload(),
+              variant: 'outline'
+            }}
+            iconClassName="w-20 h-20 bg-red-100"
+          />
         </div>
       </div>
     )
@@ -367,7 +357,7 @@ export default function SessionDetailsPage({
                         No summary available yet
                       </p>
                       <p className="text-sm text-gray-400">
-                        Click "Generate Summary" to create insights for this session
+                        Click &quot;Generate Summary&quot; to create insights for this session
                       </p>
                     </div>
                   ) : (
