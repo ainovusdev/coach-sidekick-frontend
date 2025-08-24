@@ -1,6 +1,7 @@
 import { ApiClient } from '@/lib/api-client'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface SessionSentiment {
   overall: string
@@ -95,16 +96,22 @@ export interface CoachingAnalysis {
 }
 
 export class AnalysisService {
-  static async triggerInsightsAnalysis(sessionId: string): Promise<SessionInsights> {
+  static async triggerInsightsAnalysis(
+    sessionId: string,
+  ): Promise<SessionInsights> {
     const response = await ApiClient.post(
-      `${BACKEND_URL}/analysis/${sessionId}/analyze-insights`
+      `${BACKEND_URL}/analysis/${sessionId}/analyze-insights`,
     )
     return response
   }
 
-  static async getLatestAnalysis(sessionId: string): Promise<SessionInsights | null> {
+  static async getLatestAnalysis(
+    sessionId: string,
+  ): Promise<SessionInsights | null> {
     try {
-      const response = await ApiClient.get(`${BACKEND_URL}/analysis/${sessionId}/latest-insights`)
+      const response = await ApiClient.get(
+        `${BACKEND_URL}/analysis/${sessionId}/latest-insights`,
+      )
       return response
     } catch (error) {
       // No analysis exists yet
@@ -112,16 +119,25 @@ export class AnalysisService {
     }
   }
 
-  static async triggerCoachingAnalysis(sessionId: string, force: boolean = false): Promise<CoachingAnalysis> {
+  static async triggerCoachingAnalysis(
+    sessionId: string,
+    force: boolean = false,
+  ): Promise<CoachingAnalysis> {
     const response = await ApiClient.post(
-      `${BACKEND_URL}/analysis/${sessionId}/analyze${force ? '?force=true' : ''}`
+      `${BACKEND_URL}/analysis/${sessionId}/analyze${
+        force ? '?force=true' : ''
+      }`,
     )
     return response
   }
 
-  static async getLatestCoachingAnalysis(sessionId: string): Promise<CoachingAnalysis | null> {
+  static async getLatestCoachingAnalysis(
+    sessionId: string,
+  ): Promise<CoachingAnalysis | null> {
     try {
-      const response = await ApiClient.get(`${BACKEND_URL}/analysis/${sessionId}/latest`)
+      const response = await ApiClient.get(
+        `${BACKEND_URL}/analysis/${sessionId}/latest`,
+      )
       return response
     } catch (error) {
       // No analysis exists yet
@@ -129,12 +145,15 @@ export class AnalysisService {
     }
   }
 
-  static async getRealTimeSuggestion(sessionId: string, limit: number = 5): Promise<{
+  static async getRealTimeSuggestion(
+    sessionId: string,
+    limit: number = 5,
+  ): Promise<{
     suggestion: string
     based_on_messages: number
   }> {
     const response = await ApiClient.post(
-      `${BACKEND_URL}/analysis/${sessionId}/real-time-suggestion?limit=${limit}`
+      `${BACKEND_URL}/analysis/${sessionId}/real-time-suggestion?limit=${limit}`,
     )
     return response
   }

@@ -1,7 +1,8 @@
 import { ApiClient } from '@/lib/api-client'
 import { CoachingSession } from '@/types/meeting'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface ManualSessionCreateDto {
   client_id: string
@@ -25,26 +26,34 @@ export interface FileUploadResponse {
 }
 
 export class ManualSessionService {
-  static async createManualSession(data: ManualSessionCreateDto): Promise<CoachingSession> {
-    const response = await ApiClient.post(`${BACKEND_URL}/sessions/manual`, data)
+  static async createManualSession(
+    data: ManualSessionCreateDto,
+  ): Promise<CoachingSession> {
+    const response = await ApiClient.post(
+      `${BACKEND_URL}/sessions/manual`,
+      data,
+    )
     return response
   }
 
   static async uploadMediaFile(
     sessionId: string,
     file: File,
-    _onProgress?: (progress: number) => void
+    _onProgress?: (progress: number) => void,
   ): Promise<FileUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
 
-    const response = await fetch(`${BACKEND_URL}/sessions/${sessionId}/upload`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+    const response = await fetch(
+      `${BACKEND_URL}/sessions/${sessionId}/upload`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+        },
+        body: formData,
       },
-      body: formData,
-    })
+    )
 
     if (!response.ok) {
       const error = await response.json()
@@ -54,16 +63,18 @@ export class ManualSessionService {
     return response.json()
   }
 
-  static async getTranscriptionStatus(sessionId: string): Promise<TranscriptionStatus> {
+  static async getTranscriptionStatus(
+    sessionId: string,
+  ): Promise<TranscriptionStatus> {
     const response = await ApiClient.get(
-      `${BACKEND_URL}/sessions/${sessionId}/transcription-status`
+      `${BACKEND_URL}/sessions/${sessionId}/transcription-status`,
     )
     return response
   }
 
   static subscribeToTranscriptionProgress(
     sessionId: string,
-    onProgress: (status: string, progress: number) => void
+    onProgress: (status: string, progress: number) => void,
   ) {
     // This will be implemented with WebSocket connection
     // For now, we'll poll the status endpoint
@@ -71,9 +82,11 @@ export class ManualSessionService {
       try {
         const status = await this.getTranscriptionStatus(sessionId)
         onProgress(status.transcription_status, status.transcription_progress)
-        
-        if (status.transcription_status === 'completed' || 
-            status.transcription_status === 'failed') {
+
+        if (
+          status.transcription_status === 'completed' ||
+          status.transcription_status === 'failed'
+        ) {
           clearInterval(interval)
         }
       } catch (error) {

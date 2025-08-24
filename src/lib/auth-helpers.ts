@@ -1,7 +1,8 @@
 import { NextRequest } from 'next/server'
 import axios from 'axios'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface AuthUser {
   id: string
@@ -9,7 +10,9 @@ export interface AuthUser {
   name?: string
 }
 
-export async function verifyAuth(request: NextRequest): Promise<AuthUser | null> {
+export async function verifyAuth(
+  request: NextRequest,
+): Promise<AuthUser | null> {
   try {
     // Get token from Authorization header
     const authHeader = request.headers.get('authorization')
@@ -18,12 +21,12 @@ export async function verifyAuth(request: NextRequest): Promise<AuthUser | null>
     }
 
     const token = authHeader.substring(7)
-    
+
     // Verify token with backend
     const response = await axios.get(`${API_BASE_URL}/auth/verify`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
 
     if (response.status === 200 && response.data.user) {

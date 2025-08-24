@@ -16,9 +16,10 @@ interface TranscriptEntry {
 
 interface TranscriptViewerProps {
   transcript: TranscriptEntry[]
+  compact?: boolean
 }
 
-export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
+export function TranscriptViewer({ transcript, compact = false }: TranscriptViewerProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -27,12 +28,47 @@ export function TranscriptViewer({ transcript }: TranscriptViewerProps) {
 
   if (transcript.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-gray-400 text-lg mb-2">🎤</div>
-        <p className="text-gray-500">
-          Waiting for transcript data... The bot needs to join the meeting
-          first.
+      <div className={compact ? "text-center py-6" : "text-center py-12"}>
+        <div className={compact ? "text-gray-400 text-base mb-1" : "text-gray-400 text-lg mb-2"}>🎤</div>
+        <p className={compact ? "text-gray-500 text-xs" : "text-gray-500"}>
+          {compact ? "Waiting for conversation..." : "Waiting for transcript data... The bot needs to join the meeting first."}
         </p>
+      </div>
+    )
+  }
+
+  if (compact) {
+    return (
+      <div className="space-y-2">
+        {transcript.map((entry, index) => (
+          <div
+            key={index}
+            className={`p-2 rounded-lg transition-all duration-300 ${
+              entry.is_final
+                ? 'bg-gray-50'
+                : 'bg-blue-50 opacity-80'
+            }`}
+          >
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-medium text-xs text-gray-700">
+                {entry.speaker}
+              </span>
+              {!entry.is_final && (
+                <Badge variant="secondary" className="text-xs py-0 px-1 h-4">
+                  Live
+                </Badge>
+              )}
+              <span className="text-xs text-gray-400 ml-auto">
+                {new Date(entry.timestamp).toLocaleTimeString([], { 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
+                })}
+              </span>
+            </div>
+            <p className="text-xs text-gray-700 leading-relaxed">{entry.text}</p>
+          </div>
+        ))}
+        <div ref={bottomRef} />
       </div>
     )
   }

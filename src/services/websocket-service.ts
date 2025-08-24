@@ -44,13 +44,15 @@ class WebSocketService {
     this.heartbeatInterval = config.heartbeatInterval || 30000
     // Only log in development
     if (process.env.NODE_ENV === 'development') {
-      console.log('[WebSocketService] Initialized (connection will be attempted when needed)')
+      console.log(
+        '[WebSocketService] Initialized (connection will be attempted when needed)',
+      )
     }
   }
 
   private buildWebSocketUrl(): string {
     const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
     // Remove /api/v1 suffix if present and convert to ws://
     const baseUrl = backendUrl
       .replace(/\/api\/v1\/?$/, '')
@@ -133,15 +135,23 @@ class WebSocketService {
     this.ws.onerror = error => {
       // Silently handle connection errors - this is expected when WebSocket is not available
       // Only log if we're in development mode and it's not a connection error
-      if (process.env.NODE_ENV === 'development' && this.currentStatus === 'connected') {
-        console.warn('[WebSocket] Connection error (this is normal if WebSocket server is not running)')
+      if (
+        process.env.NODE_ENV === 'development' &&
+        this.currentStatus === 'connected'
+      ) {
+        console.warn(
+          '[WebSocket] Connection error (this is normal if WebSocket server is not running)',
+        )
       }
       this.updateStatus('error')
     }
 
     this.ws.onclose = event => {
       // Only log disconnection in development and if we were previously connected
-      if (process.env.NODE_ENV === 'development' && this.currentStatus === 'connected') {
+      if (
+        process.env.NODE_ENV === 'development' &&
+        this.currentStatus === 'connected'
+      ) {
         console.log('[WebSocket] Disconnected:', event.code, event.reason)
       }
       this.updateStatus('disconnected')
@@ -233,7 +243,9 @@ class WebSocketService {
 
     this.updateStatus('disconnected')
     this.messageQueue = []
-    this.joinedRooms.clear()
+    if (this.joinedRooms) {
+      this.joinedRooms.clear()
+    }
   }
 
   send(type: string, data: any): void {
@@ -258,11 +270,17 @@ class WebSocketService {
   }
 
   joinRoom(room: string): void {
+    if (!this.joinedRooms) {
+      this.joinedRooms = new Set()
+    }
     this.joinedRooms.add(room)
     this.send('join', { room })
   }
 
   leaveRoom(room: string): void {
+    if (!this.joinedRooms) {
+      this.joinedRooms = new Set()
+    }
     this.joinedRooms.delete(room)
     this.send('leave', { room })
   }

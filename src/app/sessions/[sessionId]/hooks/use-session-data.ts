@@ -81,7 +81,7 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
         transcriptCount: response.transcript?.length || 0,
         firstTranscript: response.transcript?.[0]?.text?.substring(0, 50),
         sessionId: response.session?.id,
-        status: response.session?.status
+        status: response.session?.status,
       })
       setSessionData(response)
     } catch (err) {
@@ -96,18 +96,19 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
       setGeneratingSummary(true)
       console.log('Starting summary generation for session:', sessionId)
       console.log('Session status:', sessionData?.session?.status)
-      
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+
+      const BACKEND_URL =
+        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
       const response = await ApiClient.post(
         `${BACKEND_URL}/sessions/${sessionId}/generate-summary`,
-        {}
+        {},
       )
-      
+
       console.log('Summary generation response:', response)
-      
+
       // Refresh session data to show new summary
       await fetchSessionDetails()
-      
+
       // Show success message (you can add a toast notification here)
       console.log('Summary generated successfully')
       alert('Summary generated successfully!')
@@ -130,6 +131,6 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
     error,
     generatingSummary,
     generateSummary,
-    refetch: fetchSessionDetails
+    refetch: fetchSessionDetails,
   }
 }

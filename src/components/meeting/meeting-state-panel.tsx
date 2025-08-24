@@ -24,7 +24,7 @@ interface MeetingStatePanelProps {
   className?: string
 }
 
-export function MeetingStatePanel({ state, className }: MeetingStatePanelProps) {
+export function MeetingStatePanel({ state, className, compact = false }: MeetingStatePanelProps & { compact?: boolean }) {
   const getEnergyColor = (energy: string) => {
     switch (energy?.toLowerCase()) {
       case 'high':
@@ -59,9 +59,40 @@ export function MeetingStatePanel({ state, className }: MeetingStatePanelProps) 
   if (!state) {
     return (
       <Card className={className}>
-        <CardContent className="p-4 text-center text-gray-500">
-          <Activity className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-          <p className="text-sm">Waiting for conversation...</p>
+        <CardContent className={compact ? "p-2 text-center text-gray-500" : "p-4 text-center text-gray-500"}>
+          <Activity className={compact ? "h-4 w-4 mx-auto mb-1 text-gray-400" : "h-6 w-6 mx-auto mb-2 text-gray-400"} />
+          <p className={compact ? "text-xs" : "text-sm"}>Waiting for conversation...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (compact) {
+    return (
+      <Card className={className}>
+        <CardContent className="p-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1">
+                <Brain className="h-3 w-3 text-gray-500" />
+                <span className="text-xs font-medium capitalize">{state.topic}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Activity className={`h-3 w-3 ${getEnergyColor(state.energy)}`} />
+                <span className="text-xs capitalize">{state.energy}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-sm">{getMoodIcon(state.mood)}</span>
+                <span className="text-xs capitalize">{state.mood}</span>
+              </div>
+            </div>
+            {state.pattern && state.pattern !== 'none' && (
+              <div className="flex items-center gap-1">
+                <AlertCircle className="h-3 w-3 text-yellow-500" />
+                <span className="text-xs text-gray-600 capitalize">{state.pattern}</span>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     )

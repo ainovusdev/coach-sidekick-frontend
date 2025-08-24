@@ -1,6 +1,7 @@
 import { ApiClient } from '@/lib/api-client'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface Demographics {
   age_range?: string | null
@@ -79,9 +80,13 @@ export interface PersonaUpdateRequest {
 }
 
 export class PersonaService {
-  static async getClientPersona(clientId: string): Promise<ClientPersona | null> {
+  static async getClientPersona(
+    clientId: string,
+  ): Promise<ClientPersona | null> {
     try {
-      const response = await ApiClient.get(`${BACKEND_URL}/clients/${clientId}/persona`)
+      const response = await ApiClient.get(
+        `${BACKEND_URL}/clients/${clientId}/persona`,
+      )
       return response
     } catch (error) {
       console.error('Failed to fetch client persona:', error)
@@ -91,22 +96,22 @@ export class PersonaService {
 
   static async updateClientPersona(
     clientId: string,
-    updates: PersonaUpdateRequest
+    updates: PersonaUpdateRequest,
   ): Promise<ClientPersona> {
     const response = await ApiClient.put(
       `${BACKEND_URL}/clients/${clientId}/persona`,
-      updates
+      updates,
     )
     return response
   }
 
   static async getPersonaHistory(
     clientId: string,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<PersonaUpdateHistory[]> {
     try {
       const response = await ApiClient.get(
-        `${BACKEND_URL}/clients/${clientId}/persona/history?limit=${limit}`
+        `${BACKEND_URL}/clients/${clientId}/persona/history?limit=${limit}`,
       )
       return response
     } catch (error) {

@@ -1,7 +1,8 @@
 import { ApiClient } from '@/lib/api-client'
 import { TranscriptEntry } from '@/types/meeting'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface TranscriptCreateDto {
   speaker: string
@@ -43,7 +44,9 @@ interface BackendTranscript {
 }
 
 // Transform backend transcript to UI format
-function transformTranscript(backendTranscript: BackendTranscript): TranscriptEntry {
+function transformTranscript(
+  backendTranscript: BackendTranscript,
+): TranscriptEntry {
   return {
     speaker: backendTranscript.speaker,
     text: backendTranscript.text,
@@ -56,22 +59,26 @@ function transformTranscript(backendTranscript: BackendTranscript): TranscriptEn
 }
 
 export class TranscriptService {
-  static async getSessionTranscripts(sessionId: string, params?: {
-    page?: number
-    per_page?: number
-    include_partial?: boolean
-  }): Promise<TranscriptListResponse> {
+  static async getSessionTranscripts(
+    sessionId: string,
+    params?: {
+      page?: number
+      per_page?: number
+      include_partial?: boolean
+    },
+  ): Promise<TranscriptListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
+    if (params?.per_page)
+      queryParams.append('per_page', params.per_page.toString())
     if (params?.include_partial !== undefined) {
       queryParams.append('include_partial', params.include_partial.toString())
     }
 
     const response = await ApiClient.get(
-      `${BACKEND_URL}/transcripts/sessions/${sessionId}/transcripts?${queryParams}`
+      `${BACKEND_URL}/transcripts/sessions/${sessionId}/transcripts?${queryParams}`,
     )
-    
+
     return {
       transcripts: response.transcripts.map(transformTranscript),
       total: response.total,
@@ -80,34 +87,39 @@ export class TranscriptService {
     }
   }
 
-  static async createTranscript(sessionId: string, data: TranscriptCreateDto): Promise<TranscriptEntry> {
+  static async createTranscript(
+    sessionId: string,
+    data: TranscriptCreateDto,
+  ): Promise<TranscriptEntry> {
     const response: BackendTranscript = await ApiClient.post(
       `${BACKEND_URL}/transcripts/sessions/${sessionId}/transcripts`,
-      data
+      data,
     )
     return transformTranscript(response)
   }
 
   static async batchSaveTranscripts(
     sessionId: string,
-    data: TranscriptBatchCreateDto
+    data: TranscriptBatchCreateDto,
   ): Promise<BatchSaveStatus> {
     return await ApiClient.post(
       `${BACKEND_URL}/transcripts/sessions/${sessionId}/transcripts/batch`,
-      data
+      data,
     )
   }
 
   static async getBatchStatus(sessionId: string): Promise<BatchSaveStatus> {
     return await ApiClient.get(
-      `${BACKEND_URL}/transcripts/sessions/${sessionId}/batch-status`
+      `${BACKEND_URL}/transcripts/sessions/${sessionId}/batch-status`,
     )
   }
 
-  static async forceSave(sessionId: string): Promise<{ status: string; message: string }> {
+  static async forceSave(
+    sessionId: string,
+  ): Promise<{ status: string; message: string }> {
     return await ApiClient.post(
       `${BACKEND_URL}/transcripts/sessions/${sessionId}/force-save`,
-      {}
+      {},
     )
   }
 }

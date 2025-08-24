@@ -1,7 +1,7 @@
 import { ApiClient } from '@/lib/api-client'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface WebhookEvent {
   event: string
@@ -34,27 +34,26 @@ export interface WebhookResponse {
 }
 
 export class WebhookService {
-  static async processWebhookEvent(event: WebhookEvent): Promise<WebhookResponse> {
+  static async processWebhookEvent(
+    event: WebhookEvent,
+  ): Promise<WebhookResponse> {
     // Forward webhook event to backend
     const response = await ApiClient.post(
       `${BACKEND_URL}/webhooks/recall/transcript`,
-      event
+      event,
     )
     return response
   }
 
   static async verifyWebhookSignature(
     signature: string,
-    payload: string
+    payload: string,
   ): Promise<boolean> {
     try {
-      const response = await ApiClient.post(
-        `${BACKEND_URL}/webhooks/verify`,
-        {
-          signature,
-          payload
-        }
-      )
+      const response = await ApiClient.post(`${BACKEND_URL}/webhooks/verify`, {
+        signature,
+        payload,
+      })
       return response.valid === true
     } catch (error) {
       console.error('Failed to verify webhook signature:', error)

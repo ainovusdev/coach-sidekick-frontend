@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { CoachingService } from '@/services/coaching-service'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
+import { websocketService } from '@/services/websocket-service'
 import {
   Brain,
   RefreshCw,
@@ -20,9 +21,14 @@ interface CoachingSuggestion {
   category: string
   suggestion: string
   rationale: string
-  timing: 'now' | 'next_pause' | 'end_of_call'
+  timing: 'now' | 'next_pause' | 'end_of_call' | 'immediate' | 'next_exchange' | 'wait'
   timestamp: string
   source: 'openai' | 'personal-ai'
+  go_live_value?: string
+  go_live_emoji?: string
+  confidence?: number
+  trigger_reason?: string
+  context_confidence?: number
 }
 
 interface PersonalAISuggestion {
@@ -51,9 +57,10 @@ interface CoachingAnalysis {
 interface CoachingPanelProps {
   botId: string
   className?: string
+  simplified?: boolean
 }
 
-export function CoachingPanel({ botId, className }: CoachingPanelProps) {
+export function CoachingPanel({ botId, className, simplified = false }: CoachingPanelProps) {
   const [suggestions, setSuggestions] = useState<CoachingSuggestion[]>([])
   const [personalAISuggestions, setPersonalAISuggestions] = useState<PersonalAISuggestion[]>([])
   const [analysis, setAnalysis] = useState<CoachingAnalysis | null>(null)
@@ -61,80 +68,17 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   const [error, setError] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [metadata, setMetadata] = useState<any>(null)
+  const [waitingForSuggestions, setWaitingForSuggestions] = useState(true)
   const { isConnected } = useWebSocket()
 
   const fetchSuggestions = useCallback(async (autoAnalyze: boolean = true) => {
-    try {
-      setLoading(true)
-      setError(null)
-
-      // Get suggestions from backend
-      const suggestionsData = await CoachingService.getSuggestions(botId)
-      
-      // Transform backend data to component format
-      const transformedSuggestions: CoachingSuggestion[] = suggestionsData.suggestions.map((s, index) => ({
-        id: s.id,
-        type: s.suggestion_type === 'real_time' ? 'immediate' : 'reflection',
-        priority: s.metadata?.confidence && s.metadata.confidence > 0.8 ? 'high' : 
-                 s.metadata?.confidence && s.metadata.confidence > 0.5 ? 'medium' : 'low',
-        category: s.metadata?.related_topic || 'general',
-        suggestion: s.content,
-        rationale: s.metadata?.source || 'AI Analysis',
-        timing: s.suggestion_type === 'real_time' ? 'now' : 'next_pause',
-        timestamp: s.created_at,
-        source: s.metadata?.source === 'personal-ai' ? 'personal-ai' : 'openai'
-      }))
-
-      // Separate personal AI suggestions
-      const personalAI = transformedSuggestions.filter(s => s.source === 'personal-ai')
-      const openAI = transformedSuggestions.filter(s => s.source === 'openai')
-
-      setSuggestions(openAI)
-      setPersonalAISuggestions(personalAI.map((s, i) => ({
-        id: s.id,
-        suggestion: s.suggestion,
-        confidence: parseFloat(s.priority === 'high' ? '0.9' : s.priority === 'medium' ? '0.7' : '0.5'),
-        source: 'personal-ai' as const,
-        timestamp: s.timestamp
-      })))
-
-      // If autoAnalyze is true and no suggestions exist, trigger analysis
-      if (autoAnalyze && transformedSuggestions.length === 0) {
-        try {
-          await CoachingService.triggerAnalysis({ bot_id: botId, include_history: true })
-          // Fetch again after triggering
-          setTimeout(() => fetchSuggestions(false), 2000)
-        } catch (analyzeError) {
-          console.error('Failed to trigger analysis:', analyzeError)
-        }
-      }
-
-      setLastUpdate(new Date())
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error')
-    } finally {
-      setLoading(false)
-    }
+    // This function is now deprecated - we rely on WebSocket for suggestions
+    // Keep it empty to avoid fetching old-style suggestions
+    console.log('[Coaching Panel] Suggestions now come via WebSocket only')
+    setLastUpdate(new Date())
   }, [botId])
 
-  const triggerAnalysis = async () => {
-    try {
-      setLoading(true)
-      
-      // Trigger analysis via backend
-      await CoachingService.triggerAnalysis({
-        bot_id: botId,
-        include_history: true
-      })
-
-      // Refresh suggestions after analysis
-      setTimeout(() => fetchSuggestions(false), 2000)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Analysis failed')
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Analysis is now triggered automatically by the backend every 30-60 seconds
 
   // WebSocket event handlers
   const handleWebSocketMessage = useCallback((message: any) => {
@@ -145,18 +89,28 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
       if (data.replace) {
         // Replace all suggestions with new ones
         const newSuggestions = data.suggestions.map((s: any) => ({
-          id: s.id,
+          id: s.id || `suggestion_${Date.now()}_${Math.random()}`,
           type: 'immediate' as const,
-          priority: s.priority || 'medium',
-          category: s.category || 'general',
-          suggestion: s.content,
+          priority: s.urgency || s.priority || 'medium',
+          category: s.category || s.category_display || 'general',
+          suggestion: s.content || s.display_text || s.suggestion,
           rationale: s.rationale || '',
-          timing: 'now' as const,
-          timestamp: s.timestamp,
-          source: 'openai' as const
+          timing: s.timing || 'now',
+          timestamp: s.generated_at || s.timestamp || new Date().toISOString(),
+          source: 'openai' as const,
+          go_live_value: s.go_live_value,
+          go_live_emoji: s.go_live_emoji,
+          confidence: s.confidence,
+          trigger_reason: s.trigger_reason,
+          context_confidence: s.context_confidence
         }))
         setSuggestions(newSuggestions)
         setPersonalAISuggestions([]) // Clear personal AI suggestions when replacing
+        setMetadata({
+          context: data.context,
+          triggers: data.triggers
+        })
+        setWaitingForSuggestions(false)
       }
       setLastUpdate(new Date())
     }
@@ -182,23 +136,66 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
   // Use WebSocket events
   useCoachingWebSocket(botId, {
     onMessage: handleWebSocketMessage,
-    onAnalysisUpdate: handleAnalysisUpdate
+    onAnalysisUpdate: handleAnalysisUpdate,
+    onSuggestionsUpdate: (data) => {
+      console.log('[WebSocket] Suggestions update:', data)
+      if (data.replace && data.suggestions) {
+        const newSuggestions = data.suggestions.map((s: any) => ({
+          id: s.id || `suggestion_${Date.now()}_${Math.random()}`,
+          type: 'immediate' as const,
+          priority: s.urgency || s.priority || 'medium',
+          category: s.category || s.category_display || 'general',
+          suggestion: s.content || s.display_text || s.suggestion,
+          rationale: s.rationale || '',
+          timing: s.timing || 'now',
+          timestamp: s.generated_at || s.timestamp || new Date().toISOString(),
+          source: 'openai' as const,
+          go_live_value: s.go_live_value,
+          go_live_emoji: s.go_live_emoji,
+          confidence: s.confidence,
+          trigger_reason: s.trigger_reason,
+          context_confidence: s.context_confidence
+        }))
+        setSuggestions(newSuggestions)
+        setMetadata({
+          context: data.context,
+          triggers: data.triggers
+        })
+        setWaitingForSuggestions(false)
+      }
+      setLastUpdate(new Date())
+    },
+    onMeetingState: (state) => {
+      console.log('[WebSocket] Meeting state:', state)
+      setMetadata((prev: any) => ({ ...prev, meetingState: state }))
+    }
   })
 
-  // Auto-refresh suggestions on mount and periodically
+  // Connect to WebSocket on mount for real-time suggestions
   useEffect(() => {
-    fetchSuggestions()
+    console.log('[Coaching Panel] Initializing WebSocket connection for bot:', botId)
     
-    // Poll every 10 seconds regardless of WebSocket connection
-    // This ensures suggestions are always up-to-date
-    console.log('[Coaching Panel] Starting 10-second polling interval')
-    const interval = setInterval(() => {
-      console.log('[Coaching Panel] Auto-refreshing suggestions...')
-      fetchSuggestions(false)
-    }, 30000) // Changed from 15000 to 10000 for 10-second intervals
+    // Join the bot room to receive suggestions
+    if (!isConnected) {
+      websocketService.connect()
+    }
     
-    return () => clearInterval(interval)
-  }, [botId, fetchSuggestions])
+    // Join the bot-specific room after a short delay to ensure connection
+    const timer = setTimeout(() => {
+      if (websocketService.isConnected()) {
+        websocketService.joinRoom(`bot:${botId}`)
+        console.log('[Coaching Panel] Joined room:', `bot:${botId}`)
+      }
+    }, 1000)
+    
+    return () => {
+      clearTimeout(timer)
+      if (websocketService.isConnected()) {
+        websocketService.leaveRoom(`bot:${botId}`)
+        console.log('[Coaching Panel] Left room:', `bot:${botId}`)
+      }
+    }
+  }, [botId, isConnected])
 
 
   if (error && error.includes('OpenAI API key')) {
@@ -220,34 +217,20 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
 
   return (
     <div className={`${className} flex flex-col h-full`}>
-      <Card className="h-full flex flex-col">
-        <CardHeader className="pb-3 flex-shrink-0">
+      <Card className="h-full flex flex-col bg-white">
+        <CardHeader className={simplified ? "pb-3 flex-shrink-0 bg-gray-50 border-b" : "pb-3 flex-shrink-0"}>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-600" />
-              Coaching Suggestions
+              <Brain className={simplified ? "h-4 w-4 text-gray-600" : "h-5 w-5 text-purple-600"} />
+              <span className={simplified ? "text-sm" : ""}>Coaching Suggestions</span>
             </CardTitle>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => fetchSuggestions()}
-                disabled={loading}
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={triggerAnalysis}
-                disabled={loading}
-              >
-                <Zap className="h-4 w-4" />
-                Analyze
-              </Button>
+              <span className="text-xs text-gray-500">
+                {isConnected ? '🟢 Live' : '🔴 Offline'}
+              </span>
             </div>
           </div>
-          {lastUpdate && (
+          {!simplified && lastUpdate && (
             <p className="text-xs text-gray-500">
               Last updated: {lastUpdate.toLocaleTimeString()}
             </p>
@@ -278,30 +261,112 @@ export function CoachingPanel({ botId, className }: CoachingPanelProps) {
                   {suggestions.length === 0 && personalAISuggestions.length === 0 && !loading && !error && (
                     <div className="text-center py-8 text-gray-500">
                       <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                      <p>No suggestions yet.</p>
+                      <p>{waitingForSuggestions ? 'Analyzing conversation...' : 'No suggestions yet.'}</p>
                       <p className="text-xs mt-1">
-                        {metadata?.transcriptLength
-                          ? 'Keep the conversation going.'
-                          : 'Waiting for conversation...'}
+                        {waitingForSuggestions 
+                          ? 'Suggestions will appear every 30-60 seconds based on conversation dynamics'
+                          : 'Continue the conversation to receive more suggestions'}
                       </p>
+                      {!isConnected && (
+                        <p className="text-xs mt-2 text-orange-500">
+                          ⚠️ WebSocket disconnected. Reconnecting...
+                        </p>
+                      )}
                     </div>
                   )}
 
                   {/* Combined suggestions */}
-                  {[...suggestions, ...personalAISuggestions].map((suggestion, index) => (
-                    <Card key={suggestion.id || `suggestion-${index}`} className="border-l-4 border-l-purple-500 hover:shadow-md transition-shadow">
-                      <CardContent className="p-4">
-                        <p className="text-sm font-medium text-gray-900">
-                          {suggestion.suggestion || suggestion.content}
-                        </p>
-                        {suggestion.rationale && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            {suggestion.rationale}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {[...suggestions, ...personalAISuggestions].map((suggestion, index) => {
+                    const urgencyColors = {
+                      high: 'border-l-red-500',
+                      medium: 'border-l-yellow-500',
+                      low: 'border-l-green-500'
+                    }
+                    const borderColor = urgencyColors[suggestion.priority] || 'border-l-purple-500'
+                    
+                    if (simplified) {
+                      return (
+                        <div key={suggestion.id || `suggestion-${index}`} 
+                             className={`border-l-4 ${borderColor} bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors`}>
+                          <div className="flex items-start gap-2">
+                            {suggestion.go_live_emoji && (
+                              <span className="text-base">{suggestion.go_live_emoji}</span>
+                            )}
+                            <div className="flex-1">
+                              <p className="text-sm font-medium text-gray-900">
+                                {suggestion.suggestion || suggestion.content}
+                              </p>
+                              {suggestion.go_live_value && (
+                                <span className="text-xs text-gray-500 mt-1 inline-block">
+                                  {suggestion.go_live_value}
+                                  {suggestion.timing && suggestion.timing !== 'now' && 
+                                    ` • ${suggestion.timing.replace('_', ' ')}`}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    }
+                    
+                    return (
+                      <Card key={suggestion.id || `suggestion-${index}`} className={`border-l-4 ${borderColor} hover:shadow-md transition-shadow`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                {suggestion.go_live_emoji && (
+                                  <span className="text-lg">{suggestion.go_live_emoji}</span>
+                                )}
+                                {suggestion.go_live_value && (
+                                  <span className="text-xs font-medium text-gray-600 uppercase">
+                                    {suggestion.go_live_value}
+                                  </span>
+                                )}
+                                {suggestion.timing && suggestion.timing !== 'now' && (
+                                  <span className="text-xs text-gray-500">
+                                    • {suggestion.timing.replace('_', ' ')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {suggestion.suggestion || suggestion.content}
+                              </p>
+                              {suggestion.rationale && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  {suggestion.rationale}
+                                </p>
+                              )}
+                              {suggestion.confidence && (
+                                <div className="flex items-center gap-2 mt-2">
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-gray-400">Confidence:</span>
+                                    <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                      <div 
+                                        className="h-full bg-purple-500 rounded-full"
+                                        style={{ width: `${suggestion.confidence * 100}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                  {suggestion.context_confidence && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-xs text-gray-400">Context:</span>
+                                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                        <div 
+                                          className="h-full bg-blue-500 rounded-full"
+                                          style={{ width: `${suggestion.context_confidence * 100}%` }}
+                                        />
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
               </div>
             </div>

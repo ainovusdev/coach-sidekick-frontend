@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface TokenResponse {
   access_token: string
@@ -98,15 +98,11 @@ class AuthService {
   async signup(credentials: SignupCredentials): Promise<void> {
     try {
       // Register doesn't return a token, user needs to login after
-      await axios.post(
-        `${API_BASE_URL}/auth/register`,
-        credentials,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
+      await axios.post(`${API_BASE_URL}/auth/register`, credentials, {
+        headers: {
+          'Content-Type': 'application/json',
         },
-      )
+      })
     } catch (error) {
       console.error('Signup error:', error)
       throw error

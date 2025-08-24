@@ -1,3 +1,6 @@
+// This file is deprecated - debug endpoints have been removed from the backend
+// Keep for reference only
+
 import { useState, useEffect, useCallback } from 'react'
 import axios from 'axios'
 
@@ -89,6 +92,7 @@ interface DebugAnalysisData {
   }
 }
 
+// @deprecated - Use regular coaching service instead
 export function useDebugAnalysis(sessionId: string, autoRefresh: boolean = false) {
   const [data, setData] = useState<DebugAnalysisData | null>(null)
   const [loading, setLoading] = useState(false)
@@ -157,7 +161,7 @@ export function useDebugAnalysis(sessionId: string, autoRefresh: boolean = false
   }
 }
 
-// Hook for generating suggestions manually
+// @deprecated - Use regular coaching service instead
 export function useDebugSuggestions(sessionId: string) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -210,7 +214,7 @@ export function useDebugSuggestions(sessionId: string) {
   }
 }
 
-// Hook for conversation pattern analysis
+// @deprecated - Use regular coaching service instead
 export function useConversationAnalysis(sessionId: string) {
   const [data, setData] = useState<any>(null)
   const [loading, setLoading] = useState(false)

@@ -59,11 +59,12 @@ export default function MeetingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
 
+      {/* Compact Header */}
       <MeetingHeader
         bot={bot}
         transcriptLength={transcript.length}
@@ -74,30 +75,36 @@ export default function MeetingPage() {
         onNavigateBack={() => router.push('/')}
       />
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Section Headers */}
-        <MeetingContentHeader transcriptLength={transcript.length} />
-
-        <div className="mb-4">
-          <BatchSaveStatus botId={botId} />
-        </div>
-
-        <div className="mb-4">
-          <MeetingStatePanel state={meetingState} />
-        </div>
-
-        <MeetingPanels
-          transcript={transcript}
-          botId={botId}
-          showDebug={showDebug}
-        />
-
-        {showDebug && bot && (
-          <div className="mt-6 pb-6">
-            <DebugPanel sessionId={bot.id} className="max-h-[500px]" />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3">
+          {/* Compact Meeting State */}
+          <div className="flex-shrink-0 mb-3">
+            <MeetingStatePanel state={meetingState} compact={true} />
           </div>
-        )}
+
+          {/* Main Panels */}
+          <div className="flex-1 min-h-0">
+            <MeetingPanels
+              transcript={transcript}
+              botId={botId}
+              showDebug={showDebug}
+            />
+          </div>
+
+          {showDebug && bot && (
+            <div className="mt-3 flex-shrink-0">
+              <DebugPanel sessionId={bot.id} className="max-h-[300px]" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Save Status Bar */}
+      <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm">
+        <div className="max-w-[1600px] mx-auto px-4 py-2">
+          <BatchSaveStatus botId={botId} minimal={true} />
+        </div>
       </div>
     </div>
   )

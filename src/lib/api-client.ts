@@ -9,7 +9,10 @@ export class ApiClient {
     }
 
     const token = authService.getToken()
-    console.log('Auth token retrieved:', token ? `${token.substring(0, 20)}...` : 'No token')
+    console.log(
+      'Auth token retrieved:',
+      token ? `${token.substring(0, 20)}...` : 'No token',
+    )
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
@@ -17,24 +20,33 @@ export class ApiClient {
     return headers
   }
 
-  private static async fetchWithTimeout(url: string, options: RequestInit, timeout: number = this.DEFAULT_TIMEOUT): Promise<Response> {
+  private static async fetchWithTimeout(
+    url: string,
+    options: RequestInit,
+    timeout: number = this.DEFAULT_TIMEOUT,
+  ): Promise<Response> {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), timeout)
 
+    // make sure url doesn't have ? at the end
+    const endpointWithoutTrailingQuestionMark = url.endsWith('?')
+      ? url.replace(/\?.*$/, '/')
+      : url
+
     try {
-      const response = await fetch(url, {
+      const response = await fetch(endpointWithoutTrailingQuestionMark, {
         ...options,
         signal: controller.signal,
       })
       clearTimeout(timeoutId)
-      
+
       // Handle 401 responses
       if (response.status === 401) {
         console.error('Authentication failed - 401 response')
         // Since refreshAccessToken doesn't exist, we'll just return the 401 response
         // The error handling will redirect to login
       }
-      
+
       return response
     } catch (error) {
       clearTimeout(timeoutId)
@@ -56,7 +68,7 @@ export class ApiClient {
         headers,
         body: JSON.stringify(data),
       },
-      timeout
+      timeout,
     )
 
     if (!response.ok) {
@@ -78,7 +90,7 @@ export class ApiClient {
         method: 'GET',
         headers,
       },
-      timeout
+      timeout,
     )
 
     console.log('Response status:', response.status)
@@ -104,7 +116,7 @@ export class ApiClient {
         headers,
         body: JSON.stringify(data),
       },
-      timeout
+      timeout,
     )
 
     if (!response.ok) {
@@ -125,7 +137,7 @@ export class ApiClient {
         headers,
         body: JSON.stringify(data),
       },
-      timeout
+      timeout,
     )
 
     if (!response.ok) {
@@ -145,7 +157,7 @@ export class ApiClient {
         method: 'DELETE',
         headers,
       },
-      timeout
+      timeout,
     )
 
     if (!response.ok) {

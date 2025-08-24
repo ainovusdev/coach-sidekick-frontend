@@ -1,7 +1,7 @@
 import { ApiClient } from '@/lib/api-client'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface CoachingAnalysis {
   bot_id: string
@@ -63,36 +63,38 @@ export interface CoachingSuggestion {
 }
 
 export class CoachingService {
-  static async triggerAnalysis(data: TriggerAnalysisRequest): Promise<CoachingAnalysis> {
+  static async triggerAnalysis(
+    data: TriggerAnalysisRequest,
+  ): Promise<CoachingAnalysis> {
     // First get session ID from bot ID
     const session = await ApiClient.get(
-      `${BACKEND_URL}/sessions/by-bot/${data.bot_id}`
+      `${BACKEND_URL}/sessions/by-bot/${data.bot_id}`,
     )
-    
+
     if (!session || !session.id) {
       throw new Error('Session not found for bot')
     }
-    
+
     // Trigger analysis for the session
     const response = await ApiClient.post(
       `${BACKEND_URL}/analysis/${session.id}/analyze`,
       {
-        include_history: data.include_history
-      }
+        include_history: data.include_history,
+      },
     )
-    
+
     return {
       bot_id: data.bot_id,
       session_id: session.id,
       analysis_id: response.analysis_id || session.id,
       status: response.status || 'pending',
-      created_at: response.created_at || new Date().toISOString()
+      created_at: response.created_at || new Date().toISOString(),
     }
   }
 
   static async getAnalysis(sessionId: string): Promise<CoachingAnalysis> {
     const response = await ApiClient.get(
-      `${BACKEND_URL}/analysis/${sessionId}/latest`
+      `${BACKEND_URL}/analysis/${sessionId}/latest`,
     )
     return response
   }
@@ -100,15 +102,15 @@ export class CoachingService {
   static async getAnalysisByBot(botId: string): Promise<CoachingAnalysis> {
     // First get session ID from bot ID
     const session = await ApiClient.get(
-      `${BACKEND_URL}/sessions/by-bot/${botId}`
+      `${BACKEND_URL}/sessions/by-bot/${botId}`,
     )
-    
+
     if (!session || !session.id) {
       throw new Error('Session not found for bot')
     }
-    
+
     const response = await ApiClient.get(
-      `${BACKEND_URL}/analysis/${session.id}/latest`
+      `${BACKEND_URL}/analysis/${session.id}/latest`,
     )
     return response
   }
@@ -117,113 +119,57 @@ export class CoachingService {
     suggestions: CoachingSuggestion[]
     last_updated: string
   }> {
-    // Use the debug endpoint to get the same suggestions as the debug panel
-    // This ensures consistency between the UI and debug panel
     try {
-      // Get auth token
-      const token = localStorage.getItem('auth_token')
-      
-      if (!token) {
-        console.error('No authentication token found')
-        return {
-          suggestions: [],
-          last_updated: new Date().toISOString()
-        }
-      }
-
-      // Fetch from the debug endpoint which has the window_suggestions
-      const response = await fetch(
-        `${BACKEND_URL.replace('/api/v1', '')}/api/v1/debug/${botId}/full-analysis?window_size=10&include_similar=true`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+      // First get session ID from bot ID
+      const session = await ApiClient.get(
+        `${BACKEND_URL}/sessions/by-bot/${botId}`,
       )
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+      if (!session || !session.id) {
+        return {
+          suggestions: [],
+          last_updated: new Date().toISOString(),
+        }
       }
 
-      const debugData = await response.json()
-      
-      // Transform window_suggestions to expected format
+      // Get latest analysis which contains suggestions
+      const analysis = await ApiClient.get(
+        `${BACKEND_URL}/analysis/${session.id}/latest`,
+      )
+
+      // Transform analysis suggestions to expected format
       const suggestions: CoachingSuggestion[] = []
-      
-      if (debugData && debugData.suggestions && debugData.suggestions.window_suggestions) {
-        debugData.suggestions.window_suggestions.forEach((suggestion: any) => {
+
+      if (
+        analysis &&
+        analysis.suggestions &&
+        Array.isArray(analysis.suggestions)
+      ) {
+        analysis.suggestions.forEach((suggestion: string, index: number) => {
           suggestions.push({
-            id: suggestion.id,
+            id: `suggestion_${session.id}_${index}`,
             bot_id: botId,
-            session_id: debugData.session_id || botId,
-            suggestion_type: suggestion.priority === 'high' ? 'real_time' : 'pattern',
-            content: suggestion.content,
-            created_at: suggestion.timestamp,
+            session_id: session.id,
+            suggestion_type: 'real_time',
+            content: suggestion,
+            created_at: analysis.created_at || new Date().toISOString(),
             metadata: {
               source: 'openai',
-              confidence: suggestion.priority === 'high' ? 0.9 : suggestion.priority === 'medium' ? 0.7 : 0.5,
-              related_topic: suggestion.category
-            }
+              confidence: 0.85,
+            },
           })
         })
       }
-      
+
       return {
         suggestions,
-        last_updated: debugData.timestamp || new Date().toISOString()
+        last_updated: analysis.created_at || new Date().toISOString(),
       }
     } catch (error) {
-      console.error('Failed to get suggestions from debug endpoint:', error)
-      
-      // Fallback to the original method if debug endpoint fails
-      try {
-        // First get session ID from bot ID
-        const session = await ApiClient.get(
-          `${BACKEND_URL}/sessions/by-bot/${botId}`
-        )
-        
-        if (!session || !session.id) {
-          return {
-            suggestions: [],
-            last_updated: new Date().toISOString()
-          }
-        }
-        
-        // Get latest analysis which contains suggestions
-        const analysis = await ApiClient.get(
-          `${BACKEND_URL}/analysis/${session.id}/latest`
-        )
-        
-        // Transform analysis suggestions to expected format
-        const suggestions: CoachingSuggestion[] = []
-        
-        if (analysis && analysis.suggestions && Array.isArray(analysis.suggestions)) {
-          analysis.suggestions.forEach((suggestion: string, index: number) => {
-            suggestions.push({
-              id: `suggestion_${session.id}_${index}`,
-              bot_id: botId,
-              session_id: session.id,
-              suggestion_type: 'real_time',
-              content: suggestion,
-              created_at: analysis.created_at || new Date().toISOString(),
-              metadata: {
-                source: 'openai',
-                confidence: 0.85
-              }
-            })
-          })
-        }
-        
-        return {
-          suggestions,
-          last_updated: analysis.created_at || new Date().toISOString()
-        }
-      } catch (fallbackError) {
-        console.error('Fallback also failed:', fallbackError)
-        return {
-          suggestions: [],
-          last_updated: new Date().toISOString()
-        }
+      console.error('Failed to get suggestions:', error)
+      return {
+        suggestions: [],
+        last_updated: new Date().toISOString(),
       }
     }
   }
@@ -235,17 +181,17 @@ export class CoachingService {
     // The backend doesn't have a list endpoint yet, so we'll just get the latest
     try {
       const analysis = await ApiClient.get(
-        `${BACKEND_URL}/analysis/${sessionId}/latest`
+        `${BACKEND_URL}/analysis/${sessionId}/latest`,
       )
-      
+
       return {
         analyses: [analysis],
-        total: 1
+        total: 1,
       }
     } catch (error) {
       return {
         analyses: [],
-        total: 0
+        total: 0,
       }
     }
   }

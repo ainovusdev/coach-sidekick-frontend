@@ -1,7 +1,8 @@
 import { ApiClient } from '@/lib/api-client'
 import { CoachingSession } from '@/types/meeting'
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface SessionCreateDto {
   client_id?: string
@@ -77,12 +78,15 @@ export class SessionService {
   }): Promise<SessionListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
+    if (params?.per_page)
+      queryParams.append('per_page', params.per_page.toString())
     if (params?.client_id) queryParams.append('client_id', params.client_id)
     if (params?.status) queryParams.append('status', params.status)
 
-    const response = await ApiClient.get(`${BACKEND_URL}/sessions?${queryParams}`)
-    
+    const response = await ApiClient.get(
+      `${BACKEND_URL}/sessions/?${queryParams}`,
+    )
+
     return {
       sessions: response.sessions.map(transformSession),
       total: response.total,
@@ -92,35 +96,54 @@ export class SessionService {
   }
 
   static async getSession(sessionId: string): Promise<CoachingSession> {
-    const response: BackendSession = await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}`)
+    const response: BackendSession = await ApiClient.get(
+      `${BACKEND_URL}/sessions/${sessionId}`,
+    )
     return transformSession(response)
   }
 
   static async getSessionByBotId(botId: string): Promise<CoachingSession> {
-    const response: BackendSession = await ApiClient.get(`${BACKEND_URL}/sessions/by-bot/${botId}`)
+    const response: BackendSession = await ApiClient.get(
+      `${BACKEND_URL}/sessions/by-bot/${botId}`,
+    )
     return transformSession(response)
   }
 
   static async createSession(data: SessionCreateDto): Promise<CoachingSession> {
-    const response: BackendSession = await ApiClient.post(`${BACKEND_URL}/sessions`, data)
+    const response: BackendSession = await ApiClient.post(
+      `${BACKEND_URL}/sessions`,
+      data,
+    )
     return transformSession(response)
   }
 
-  static async updateSession(sessionId: string, data: SessionUpdateDto): Promise<CoachingSession> {
-    const response: BackendSession = await ApiClient.patch(`${BACKEND_URL}/sessions/${sessionId}`, data)
+  static async updateSession(
+    sessionId: string,
+    data: SessionUpdateDto,
+  ): Promise<CoachingSession> {
+    const response: BackendSession = await ApiClient.patch(
+      `${BACKEND_URL}/sessions/${sessionId}`,
+      data,
+    )
     return transformSession(response)
   }
 
-  static async getClientSessions(clientId: string, params?: {
-    page?: number
-    per_page?: number
-  }): Promise<SessionListResponse> {
+  static async getClientSessions(
+    clientId: string,
+    params?: {
+      page?: number
+      per_page?: number
+    },
+  ): Promise<SessionListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.per_page) queryParams.append('per_page', params.per_page.toString())
+    if (params?.per_page)
+      queryParams.append('per_page', params.per_page.toString())
 
-    const response = await ApiClient.get(`${BACKEND_URL}/clients/${clientId}/sessions?${queryParams}`)
-    
+    const response = await ApiClient.get(
+      `${BACKEND_URL}/clients/${clientId}/sessions?${queryParams}`,
+    )
+
     return {
       sessions: response.sessions.map(transformSession),
       total: response.total,

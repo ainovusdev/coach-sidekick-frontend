@@ -3,7 +3,7 @@ import { Client } from '@/types/meeting'
 import authService from '@/services/auth-service'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface ClientCreateDto {
   name: string
@@ -84,7 +84,7 @@ export class ClientService {
 
   static async createClient(data: ClientCreateDto): Promise<Client> {
     const response: BackendClient = await ApiClient.post(
-      `${BACKEND_URL}/clients`,
+      `${BACKEND_URL}/clients/`,
       data,
     )
     return transformClient(response)
