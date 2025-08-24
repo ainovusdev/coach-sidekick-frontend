@@ -10,7 +10,6 @@ import { MeetingStatePanel } from '@/components/meeting/meeting-state-panel'
 import { DebugPanel } from '@/components/meeting/debug-panel'
 import { useMeetingData } from './hooks/use-meeting-data'
 import MeetingHeader from './components/meeting-header'
-import MeetingContentHeader from './components/meeting-content-header'
 import MeetingPanels from './components/meeting-panels'
 
 export default function MeetingPage() {

@@ -3,14 +3,11 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CoachingService } from '@/services/coaching-service'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
 import { websocketService } from '@/services/websocket-service'
 import {
   Brain,
-  RefreshCw,
-  Zap,
   AlertCircle,
 } from 'lucide-react'
 
@@ -63,20 +60,20 @@ interface CoachingPanelProps {
 export function CoachingPanel({ botId, className, simplified = false }: CoachingPanelProps) {
   const [suggestions, setSuggestions] = useState<CoachingSuggestion[]>([])
   const [personalAISuggestions, setPersonalAISuggestions] = useState<PersonalAISuggestion[]>([])
-  const [analysis, setAnalysis] = useState<CoachingAnalysis | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [analysis] = useState<CoachingAnalysis | null>(null)
+  const [loading] = useState(false)
+  const [error] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [metadata, setMetadata] = useState<any>(null)
   const [waitingForSuggestions, setWaitingForSuggestions] = useState(true)
   const { isConnected } = useWebSocket()
 
-  const fetchSuggestions = useCallback(async (autoAnalyze: boolean = true) => {
+  const fetchSuggestions = useCallback(async () => {
     // This function is now deprecated - we rely on WebSocket for suggestions
     // Keep it empty to avoid fetching old-style suggestions
     console.log('[Coaching Panel] Suggestions now come via WebSocket only')
     setLastUpdate(new Date())
-  }, [botId])
+  }, [])
 
   // Analysis is now triggered automatically by the backend every 30-60 seconds
 
@@ -116,27 +113,11 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
     }
   }, [])
 
-  const handleAnalysisUpdate = useCallback((data: { analysisId: string; status: string; results?: any }) => {
-    console.log('[WebSocket] Analysis update:', data)
-    
-    if (data.status === 'completed' && data.results) {
-      // Update with new analysis results
-      setAnalysis({
-        overallScore: data.results.overall_score || 0,
-        conversationPhase: 'exploration',
-        coachEnergyLevel: 0.8,
-        clientEngagementLevel: 0.7,
-        suggestions: [],
-        personalAISuggestions: [],
-        timestamp: new Date().toISOString()
-      })
-    }
-  }, [])
+  // Removed handleAnalysisUpdate as setAnalysis is not used
 
   // Use WebSocket events
   useCoachingWebSocket(botId, {
     onMessage: handleWebSocketMessage,
-    onAnalysisUpdate: handleAnalysisUpdate,
     onSuggestionsUpdate: (data) => {
       console.log('[WebSocket] Suggestions update:', data)
       if (data.replace && data.suggestions) {

@@ -19,7 +19,7 @@ import {
   MessageSquare,
   ChevronDown
 } from 'lucide-react'
-import { chatService, type ChatMessage, type ChatResponse, type ChatStats } from '@/services/chat-service'
+import { chatService, type ChatMessage, type ChatStats } from '@/services/chat-service'
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
