@@ -42,7 +42,10 @@ class WebSocketService {
     this.reconnectInterval = config.reconnectInterval || 5000
     this.maxReconnectAttempts = config.maxReconnectAttempts || 10
     this.heartbeatInterval = config.heartbeatInterval || 30000
-    console.log('[WebSocketService] Using real WebSocket connection')
+    // Only log in development
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[WebSocketService] Initialized (connection will be attempted when needed)')
+    }
   }
 
   private buildWebSocketUrl(): string {
@@ -87,7 +90,9 @@ class WebSocketService {
     if (!this.ws) return
 
     this.ws.onopen = () => {
-      console.log('[WebSocket] Connected')
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[WebSocket] Connected')
+      }
       this.updateStatus('connected')
       this.reconnectAttempts = 0
 
@@ -126,17 +131,25 @@ class WebSocketService {
     }
 
     this.ws.onerror = error => {
-      console.error('[WebSocket] Error:', error)
+      // Silently handle connection errors - this is expected when WebSocket is not available
+      // Only log if we're in development mode and it's not a connection error
+      if (process.env.NODE_ENV === 'development' && this.currentStatus === 'connected') {
+        console.warn('[WebSocket] Connection error (this is normal if WebSocket server is not running)')
+      }
       this.updateStatus('error')
     }
 
     this.ws.onclose = event => {
-      console.log('[WebSocket] Disconnected:', event.code, event.reason)
+      // Only log disconnection in development and if we were previously connected
+      if (process.env.NODE_ENV === 'development' && this.currentStatus === 'connected') {
+        console.log('[WebSocket] Disconnected:', event.code, event.reason)
+      }
       this.updateStatus('disconnected')
       this.stopHeartbeat()
 
-      // Schedule reconnection if not intentional disconnect
-      if (event.code !== 1000) {
+      // Don't reconnect if it's a connection failure (never connected)
+      // Only reconnect if we were previously connected and lost connection
+      if (event.code !== 1000 && this.currentStatus === 'connected') {
         this.scheduleReconnect()
       }
     }

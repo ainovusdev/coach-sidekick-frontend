@@ -50,7 +50,8 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
     }
   }
 
-  const getPlatformName = (url: string) => {
+  const getPlatformName = (url: string | null | undefined) => {
+    if (!url) return 'Meeting'
     if (url.includes('zoom.us')) return 'Zoom'
     if (url.includes('meet.google.com')) return 'Google Meet'
     if (url.includes('teams.microsoft.com')) return 'Microsoft Teams'

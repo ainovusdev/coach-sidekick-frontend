@@ -37,12 +37,14 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     // Subscribe to status changes
     const unsubscribe = websocketService.onStatusChange(setStatus)
     
-    // Connect when authenticated
-    if (isAuthenticated) {
-      websocketService.connect()
-    } else {
-      websocketService.disconnect()
-    }
+    // Disable auto-connect for now - WebSocket will be connected manually when needed
+    // This prevents connection errors when the WebSocket server is not running
+    // Uncomment the following lines to re-enable auto-connection:
+    // if (isAuthenticated) {
+    //   websocketService.connect()
+    // } else {
+    //   websocketService.disconnect()
+    // }
 
     return () => {
       unsubscribe()

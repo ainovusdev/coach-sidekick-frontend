@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Client } from '@/types/meeting'
+import { ClientService } from '@/services/client-service'
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,8 @@ import {
 interface ClientModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: Partial<Client>) => Promise<void>
+  onSubmit?: (data: Partial<Client>) => Promise<void>
+  onSuccess?: () => void
   client?: Client | null
   mode: 'create' | 'edit'
 }
@@ -29,6 +31,7 @@ export default function ClientModal({
   isOpen,
   onClose,
   onSubmit,
+  onSuccess,
   client,
   mode,
 }: ClientModalProps) {
@@ -69,13 +72,31 @@ export default function ClientModal({
 
     setIsLoading(true)
     try {
-      await onSubmit({
+      const clientData = {
         name: formData.name.trim(),
         notes: formData.notes.trim() || undefined,
-      })
+      }
+
+      // If onSubmit is provided, use it; otherwise handle internally
+      if (onSubmit) {
+        await onSubmit(clientData)
+      } else if (mode === 'edit' && client) {
+        // Handle update internally
+        await ClientService.updateClient(client.id, clientData)
+      } else if (mode === 'create') {
+        // Handle create internally
+        await ClientService.createClient(clientData)
+      }
+
+      // Call onSuccess callback if provided
+      if (onSuccess) {
+        onSuccess()
+      }
+      
       onClose()
     } catch (error) {
       console.error('Error submitting client form:', error)
+      setErrors({ submit: 'Failed to save client. Please try again.' })
     } finally {
       setIsLoading(false)
     }
@@ -155,6 +176,13 @@ export default function ClientModal({
               <FileText className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
             </div>
           </div>
+
+          {/* Error message */}
+          {errors.submit && (
+            <div className="rounded-md bg-red-50 p-3">
+              <p className="text-sm text-red-800">{errors.submit}</p>
+            </div>
+          )}
 
           {/* Form Actions */}
           <div className="flex gap-3 pt-2">

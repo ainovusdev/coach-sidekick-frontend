@@ -112,19 +112,19 @@ export default function PreferencesPage() {
             <div className="space-y-3">
               <div className="bg-muted/30 p-3 rounded-lg">
                 <p className="text-sm italic">
-                  "I follow the GO LIVE methodology with a focus on transformational coaching. 
+                 {` "I follow the GO LIVE methodology with a focus on transformational coaching. 
                   I prefer asking powerful, open-ended questions that help clients discover 
                   their own solutions. My style is facilitative rather than directive. 
-                  I emphasize emotional intelligence and self-awareness in my sessions."
+                  I emphasize emotional intelligence and self-awareness in my sessions."`}
                 </p>
               </div>
               
               <div className="bg-muted/30 p-3 rounded-lg">
                 <p className="text-sm italic">
-                  "Executive coach specializing in leadership development. I use a direct, 
+                  {`"Executive coach specializing in leadership development. I use a direct, 
                   challenging approach combined with compassion. I focus on accountability, 
                   results, and sustainable behavior change. I often incorporate business 
-                  strategy into my coaching conversations."
+                  strategy into my coaching conversations."`}
                 </p>
               </div>
             </div>

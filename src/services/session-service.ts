@@ -132,4 +132,12 @@ export class SessionService {
   static async getSessionDetails(sessionId: string): Promise<any> {
     return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/details`)
   }
+
+  static async deleteSession(sessionId: string): Promise<{
+    success: boolean
+    message: string
+    session_id: string
+  }> {
+    return await ApiClient.delete(`${BACKEND_URL}/sessions/${sessionId}`)
+  }
 }
