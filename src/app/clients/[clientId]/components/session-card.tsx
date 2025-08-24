@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -37,7 +36,6 @@ interface SessionCardProps {
 }
 
 export default function SessionCard({ session, onDelete }: SessionCardProps) {
-  const router = useRouter()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
   
