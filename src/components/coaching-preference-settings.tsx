@@ -3,10 +3,16 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Loader2, Save, Settings } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
-import { supabase } from '@/lib/supabase'
+import { PreferencesService } from '@/services/preferences.service'
 
 export function CoachingPreferenceSettings() {
   const [preference, setPreference] = useState('')
@@ -21,37 +27,8 @@ export function CoachingPreferenceSettings() {
   const fetchPreference = async () => {
     setLoading(true)
     try {
-      // Get current user session
-      const { data: { session } } = await supabase.auth.getSession()
-      
-      if (!session?.user) {
-        toast({
-          title: 'Authentication Required',
-          description: 'Please log in to manage your preferences',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      // Fetch the preference directly using Supabase client
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('coaching_preference')
-        .eq('id', session.user.id)
-        .single()
-
-      if (error) {
-        console.error('Error fetching preference:', error)
-        if (error.code !== 'PGRST116') { // Not a "no rows" error
-          toast({
-            title: 'Error',
-            description: 'Failed to load coaching preference',
-            variant: 'destructive',
-          })
-        }
-      } else {
-        setPreference(profile?.coaching_preference || '')
-      }
+      const preferences = await PreferencesService.getPreferences()
+      setPreference(preferences.coaching_preferences || '')
     } catch (error) {
       console.error('Error fetching coaching preference:', error)
       toast({
@@ -67,40 +44,14 @@ export function CoachingPreferenceSettings() {
   const savePreference = async () => {
     setSaving(true)
     try {
-      // Get current user session
-      const { data: { session } } = await supabase.auth.getSession()
+      await PreferencesService.updatePreferences({
+        coaching_preferences: preference,
+      })
       
-      if (!session?.user) {
-        toast({
-          title: 'Authentication Required',
-          description: 'Please log in to save your preferences',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      // Update the preference directly using Supabase client
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          coaching_preference: preference,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', session.user.id)
-
-      if (error) {
-        console.error('Error saving preference:', error)
-        toast({
-          title: 'Error',
-          description: error.message || 'Failed to save coaching preference',
-          variant: 'destructive',
-        })
-      } else {
-        toast({
-          title: 'Success',
-          description: 'Coaching preference saved successfully',
-        })
-      }
+      toast({
+        title: 'Success',
+        description: 'Coaching preference saved successfully',
+      })
     } catch (error) {
       console.error('Error saving coaching preference:', error)
       toast({
@@ -121,7 +72,8 @@ export function CoachingPreferenceSettings() {
           Coaching Preference
         </CardTitle>
         <CardDescription>
-          Define your coaching style and preferences. This will be used to personalize AI suggestions during your coaching sessions.
+          Define your coaching style and preferences. This will be used to
+          personalize AI suggestions during your coaching sessions.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -137,12 +89,14 @@ export function CoachingPreferenceSettings() {
               </label>
               <Textarea
                 value={preference}
-                onChange={(e) => setPreference(e.target.value)}
+                onChange={e => setPreference(e.target.value)}
                 placeholder="Example: I prefer a direct, action-oriented coaching style. I focus on helping clients identify concrete steps and measurable outcomes. I value accountability and clear commitments. I like to challenge limiting beliefs while maintaining a supportive environment..."
                 className="min-h-[150px]"
               />
               <p className="text-xs text-muted-foreground">
-                Include details about your coaching philosophy, preferred approaches, areas of focus, and any specific methodologies you follow.
+                Include details about your coaching philosophy, preferred
+                approaches, areas of focus, and any specific methodologies you
+                follow.
               </p>
             </div>
             <Button
