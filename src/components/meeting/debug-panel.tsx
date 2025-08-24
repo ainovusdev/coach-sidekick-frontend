@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -433,7 +433,7 @@ export function DebugPanel({ sessionId, className }: DebugPanelProps) {
                 {expandedSections.suggestions && (
                   <div className="space-y-3">
                     {data.suggestions.window_suggestions.length > 0 ? (
-                      data.suggestions.window_suggestions.map((suggestion, idx) => (
+                      data.suggestions.window_suggestions.map((suggestion) => (
                         <div key={suggestion.id} className="border rounded p-3 bg-gray-50">
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
@@ -629,7 +629,7 @@ export function DebugPanel({ sessionId, className }: DebugPanelProps) {
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    No analysis state available. The conversation may be too short or analysis hasn't been triggered yet.
+                    No analysis state available. The conversation may be too short or analysis hasn&apos;t been triggered yet.
                   </AlertDescription>
                 </Alert>
               )}

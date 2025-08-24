@@ -3,7 +3,7 @@
 import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Brain, TrendingUp, Target, MessageSquare, Lightbulb, CheckCircle2, AlertCircle } from 'lucide-react'
+import { TrendingUp, Target, MessageSquare, Lightbulb, CheckCircle2, AlertCircle } from 'lucide-react'
 import { type SessionInsights } from '@/services/analysis-service'
 
 interface SessionInsightsCardProps {
@@ -242,7 +242,7 @@ export function SessionInsightsCard({ insights }: SessionInsightsCardProps) {
                 <ul className="space-y-1">
                   {insights.recommendations.follow_up_questions.map((question, idx) => (
                     <li key={idx} className="text-sm text-gray-700 italic">
-                      "{question}"
+                      &quot;{question}&quot;
                     </li>
                   ))}
                 </ul>

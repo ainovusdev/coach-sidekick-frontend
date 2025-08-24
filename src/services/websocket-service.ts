@@ -132,7 +132,7 @@ class WebSocketService {
       }
     }
 
-    this.ws.onerror = error => {
+    this.ws.onerror = () => {
       // Silently handle connection errors - this is expected when WebSocket is not available
       // Only log if we're in development mode and it's not a connection error
       if (

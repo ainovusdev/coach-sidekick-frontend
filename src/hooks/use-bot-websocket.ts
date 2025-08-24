@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useWebSocket } from '@/contexts/websocket-context'
 import { TranscriptEntry } from '@/types/meeting'
 

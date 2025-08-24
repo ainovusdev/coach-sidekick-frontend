@@ -188,7 +188,7 @@ export class CoachingService {
         analyses: [analysis],
         total: 1,
       }
-    } catch (error) {
+    } catch {
       return {
         analyses: [],
         total: 0,

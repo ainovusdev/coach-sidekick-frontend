@@ -113,7 +113,7 @@ export class AnalysisService {
         `${BACKEND_URL}/analysis/${sessionId}/latest-insights`,
       )
       return response
-    } catch (error) {
+    } catch {
       // No analysis exists yet
       return null
     }
@@ -139,7 +139,7 @@ export class AnalysisService {
         `${BACKEND_URL}/analysis/${sessionId}/latest`,
       )
       return response
-    } catch (error) {
+    } catch {
       // No analysis exists yet
       return null
     }

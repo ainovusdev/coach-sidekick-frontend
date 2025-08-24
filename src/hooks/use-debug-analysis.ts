@@ -107,7 +107,7 @@ export function useDebugAnalysis(sessionId: string, autoRefresh: boolean = false
 
     try {
       // Get auth token from localStorage (using the backend auth system)
-      let token = localStorage.getItem('auth_token')
+      const token = localStorage.getItem('auth_token')
       
       if (!token) {
         throw new Error('No authentication token found')

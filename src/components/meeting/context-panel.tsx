@@ -10,11 +10,9 @@ import { SimilarSessionsCard } from './similar-sessions-card'
 import { PatternInsightsCard } from './pattern-insights-card'
 import {
   TrendingUp,
-  Users,
   Brain,
   Activity,
   Target,
-  Lightbulb,
   AlertTriangle,
   Clock,
   MessageSquare,
@@ -52,7 +50,6 @@ interface ContextPanelProps {
 export function ContextPanel({ botId, className }: ContextPanelProps) {
   const [meetingState, setMeetingState] = useState<MeetingState | null>(null)
   const [patterns, setPatterns] = useState<Pattern[]>([])
-  const [contextInfo, setContextInfo] = useState<any>(null)
   const [alerts, setAlerts] = useState<any[]>([])
   const [fullContext, setFullContext] = useState<any>(null)
   const [activeTab, setActiveTab] = useState('overview')
@@ -78,9 +75,6 @@ export function ContextPanel({ botId, className }: ContextPanelProps) {
         setAlerts(prev => [...prev.slice(-2), message.data])
       }
       if (message.type === 'suggestions_update') {
-        if (message.data.context) {
-          setContextInfo(message.data.context)
-        }
         if (message.data.full_context) {
           setFullContext(message.data.full_context)
         }

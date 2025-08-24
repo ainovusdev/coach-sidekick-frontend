@@ -39,7 +39,6 @@ export class ManualSessionService {
   static async uploadMediaFile(
     sessionId: string,
     file: File,
-    _onProgress?: (progress: number) => void,
   ): Promise<FileUploadResponse> {
     const formData = new FormData()
     formData.append('file', file)
