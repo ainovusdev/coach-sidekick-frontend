@@ -7,7 +7,15 @@ import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
-import { ArrowLeft, AlertCircle, Loader2, Brain, FileText, BarChart, Sparkles } from 'lucide-react'
+import {
+  ArrowLeft,
+  AlertCircle,
+  Loader2,
+  Brain,
+  FileText,
+  BarChart,
+  Sparkles,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { MediaUploader } from '@/components/sessions/media-uploader'
@@ -15,11 +23,20 @@ import { useSessionData } from './hooks/use-session-data'
 import SessionHeader from './components/session-header'
 import TranscriptViewer from './components/transcript-viewer'
 import FullCoachingAnalysis from './components/full-coaching-analysis'
-import { AnalysisService, type SessionInsights, type CoachingAnalysis } from '@/services/analysis-service'
+import {
+  AnalysisService,
+  type SessionInsights,
+  type CoachingAnalysis,
+} from '@/services/analysis-service'
 import { SessionInsightsCard } from '@/components/sessions/session-insights-card'
 import { SessionService } from '@/services/session-service'
 import { toast } from '@/hooks/use-toast'
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
 
 export default function SessionDetailsPage({
   params,
@@ -29,26 +46,22 @@ export default function SessionDetailsPage({
   const router = useRouter()
   const { isAuthenticated, loading: authLoading } = useAuth()
   const resolvedParams = React.use(params)
-  
-  const {
-    sessionData,
-    loading,
-    error,
-    generatingSummary,
-    generateSummary,
-  } = useSessionData(resolvedParams.sessionId)
-  
+
+  const { sessionData, loading, error, generatingSummary, generateSummary } =
+    useSessionData(resolvedParams.sessionId)
+
   // Analysis state
   const [analysis, setAnalysis] = useState<SessionInsights | null>(null)
-  const [coachingAnalysis, setCoachingAnalysis] = useState<CoachingAnalysis | null>(null)
+  const [coachingAnalysis, setCoachingAnalysis] =
+    useState<CoachingAnalysis | null>(null)
   const [analyzingSession, setAnalyzingSession] = useState(false)
   const [analyzingCoaching, setAnalyzingCoaching] = useState(false)
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
-  
+
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  
+
   // Load existing analysis when component mounts
   React.useEffect(() => {
     const loadAnalysis = async () => {
@@ -56,11 +69,12 @@ export default function SessionDetailsPage({
         setLoadingAnalysis(true)
         try {
           // Load both types of analysis
-          const [existingAnalysis, existingCoachingAnalysis] = await Promise.all([
-            AnalysisService.getLatestAnalysis(sessionData.session.id),
-            AnalysisService.getLatestCoachingAnalysis(sessionData.session.id)
-          ])
-          
+          const [existingAnalysis, existingCoachingAnalysis] =
+            await Promise.all([
+              AnalysisService.getLatestAnalysis(sessionData.session.id),
+              AnalysisService.getLatestCoachingAnalysis(sessionData.session.id),
+            ])
+
           if (existingAnalysis) {
             setAnalysis(existingAnalysis)
           }
@@ -76,14 +90,16 @@ export default function SessionDetailsPage({
     }
     loadAnalysis()
   }, [sessionData?.session?.id])
-  
+
   // Trigger insights analysis function
   const triggerAnalysis = async () => {
     if (!sessionData?.session?.id) return
-    
+
     setAnalyzingSession(true)
     try {
-      const newAnalysis = await AnalysisService.triggerInsightsAnalysis(sessionData.session.id)
+      const newAnalysis = await AnalysisService.triggerInsightsAnalysis(
+        sessionData.session.id,
+      )
       setAnalysis(newAnalysis)
       toast({
         title: 'Analysis Complete',
@@ -93,21 +109,24 @@ export default function SessionDetailsPage({
       console.error('Analysis failed:', error)
       toast({
         title: 'Analysis Failed',
-        description: error instanceof Error ? error.message : 'Failed to analyze session',
+        description:
+          error instanceof Error ? error.message : 'Failed to analyze session',
         variant: 'destructive',
       })
     } finally {
       setAnalyzingSession(false)
     }
   }
-  
+
   // Trigger coaching analysis function
   const triggerCoachingAnalysis = async () => {
     if (!sessionData?.session?.id) return
-    
+
     setAnalyzingCoaching(true)
     try {
-      const newAnalysis = await AnalysisService.triggerCoachingAnalysis(sessionData.session.id)
+      const newAnalysis = await AnalysisService.triggerCoachingAnalysis(
+        sessionData.session.id,
+      )
       setCoachingAnalysis(newAnalysis)
       toast({
         title: 'Coaching Analysis Complete',
@@ -117,18 +136,21 @@ export default function SessionDetailsPage({
       console.error('Coaching analysis failed:', error)
       toast({
         title: 'Coaching Analysis Failed',
-        description: error instanceof Error ? error.message : 'Failed to analyze coaching session',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to analyze coaching session',
         variant: 'destructive',
       })
     } finally {
       setAnalyzingCoaching(false)
     }
   }
-  
+
   // Delete session handler
   const handleDeleteSession = async () => {
     if (!sessionData?.session?.id) return
-    
+
     setDeleting(true)
     try {
       await SessionService.deleteSession(sessionData.session.id)
@@ -142,7 +164,8 @@ export default function SessionDetailsPage({
       console.error('Failed to delete session:', error)
       toast({
         title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Failed to delete session',
+        description:
+          error instanceof Error ? error.message : 'Failed to delete session',
         variant: 'destructive',
       })
     } finally {
@@ -160,8 +183,8 @@ export default function SessionDetailsPage({
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gray-50">
-        <LoadingState 
-          message="Loading session details..." 
+        <LoadingState
+          message="Loading session details..."
           variant="default"
           className="min-h-screen"
         />
@@ -180,12 +203,12 @@ export default function SessionDetailsPage({
             action={{
               label: 'Go Back',
               onClick: () => router.back(),
-              icon: ArrowLeft
+              icon: ArrowLeft,
             }}
             secondaryAction={{
               label: 'Try Again',
               onClick: () => window.location.reload(),
-              variant: 'outline'
+              variant: 'outline',
             }}
             iconClassName="w-20 h-20 bg-gray-100"
           />
@@ -210,7 +233,7 @@ export default function SessionDetailsPage({
   }
 
   const { session, transcript, meeting_summary } = sessionData
-  
+
   // Show upload option for any session that needs transcripts:
   // 1. Session status is 'pending_upload' OR
   // 2. No transcripts exist and not currently processing
@@ -222,8 +245,8 @@ export default function SessionDetailsPage({
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
-      <SessionHeader 
-        session={session} 
+      <SessionHeader
+        session={session}
         onBack={() => router.back()}
         onDelete={() => setShowDeleteDialog(true)}
       />
@@ -233,7 +256,7 @@ export default function SessionDetailsPage({
         {/* Show uploader prominently for manual sessions that need upload */}
         {needsUpload ? (
           <div className="max-w-2xl mx-auto">
-            <MediaUploader 
+            <MediaUploader
               sessionId={session.id}
               onUploadComplete={() => {
                 // Refresh session data after upload
@@ -254,8 +277,8 @@ export default function SessionDetailsPage({
                   <p className="text-gray-600 text-center">
                     Your file is being transcribed. This may take a few minutes.
                   </p>
-                  <Progress 
-                    value={session.transcription_progress || 0} 
+                  <Progress
+                    value={session.transcription_progress || 0}
                     className="w-full max-w-xs mt-4"
                   />
                   <p className="text-sm text-gray-500 mt-2">
@@ -264,17 +287,34 @@ export default function SessionDetailsPage({
                 </CardContent>
               </Card>
             ) : transcript && transcript.length > 0 ? (
-              <Accordion type="single" collapsible defaultValue="transcript" className="w-full">
-                <AccordionItem value="transcript" className="bg-white rounded-xl shadow-sm border border-gray-100">
+              <Accordion
+                type="single"
+                collapsible
+                defaultValue="transcript"
+                className="w-full"
+              >
+                <AccordionItem
+                  value="transcript"
+                  className="bg-white rounded-xl shadow-sm border border-gray-100"
+                >
                   <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50/50 rounded-t-xl">
                     <div className="flex items-center gap-3">
                       <div className="p-2 bg-gray-100 rounded-lg">
                         <FileText className="h-5 w-5 text-gray-700" />
                       </div>
                       <div className="text-left">
-                        <h3 className="text-lg font-semibold text-gray-900">Session Transcript</h3>
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Session Transcript
+                        </h3>
                         <p className="text-sm text-gray-500 mt-0.5">
-                          {transcript.length} messages • {Math.round(transcript.reduce((acc, t) => acc + (t.text?.length || 0), 0) / 100)} min read
+                          {transcript.length} messages •{' '}
+                          {Math.round(
+                            transcript.reduce(
+                              (acc, t) => acc + (t.text?.length || 0),
+                              0,
+                            ) / 100,
+                          )}{' '}
+                          min read
                         </p>
                       </div>
                     </div>
@@ -305,11 +345,15 @@ export default function SessionDetailsPage({
                       <Brain className="h-6 w-6 text-gray-700" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-bold text-gray-900">Session Analysis</h2>
-                      <p className="text-sm text-gray-500">AI-powered insights and coaching metrics</p>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Session Analysis
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        AI-powered insights and coaching metrics
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex gap-3">
                     {!analysis && (
                       <Button
@@ -331,7 +375,7 @@ export default function SessionDetailsPage({
                         )}
                       </Button>
                     )}
-                    
+
                     {!coachingAnalysis && (
                       <Button
                         onClick={triggerCoachingAnalysis}
@@ -373,7 +417,9 @@ export default function SessionDetailsPage({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <Sparkles className="h-5 w-5 text-gray-700" />
-                          <h3 className="text-lg font-semibold text-gray-900">Session Insights</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Session Insights
+                          </h3>
                         </div>
                         <Button
                           size="sm"
@@ -399,7 +445,9 @@ export default function SessionDetailsPage({
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <BarChart className="h-5 w-5 text-gray-700" />
-                          <h3 className="text-lg font-semibold text-gray-900">Coaching Metrics</h3>
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Coaching Metrics
+                          </h3>
                         </div>
                         <Button
                           size="sm"
@@ -423,9 +471,12 @@ export default function SessionDetailsPage({
                   <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200 border-dashed p-12">
                     <div className="text-center">
                       <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-semibold text-gray-700 mb-2">No Analysis Yet</h3>
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        No Analysis Yet
+                      </h3>
                       <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                        Generate AI-powered insights and coaching metrics to better understand this session
+                        Generate AI-powered insights and coaching metrics to
+                        better understand this session
                       </p>
                       <div className="flex gap-3 justify-center">
                         <Button
@@ -440,7 +491,7 @@ export default function SessionDetailsPage({
                           onClick={triggerCoachingAnalysis}
                           disabled={analyzingCoaching}
                           variant="outline"
-                        className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+                          className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
                         >
                           <BarChart className="h-4 w-4 mr-2" />
                           Analyze Coaching
@@ -454,14 +505,14 @@ export default function SessionDetailsPage({
           </div>
         )}
       </div>
-      
+
       {/* Delete Confirmation Dialog */}
       <ConfirmationDialog
         open={showDeleteDialog}
         onOpenChange={setShowDeleteDialog}
         title="Delete Session"
         description="Are you sure you want to delete this session? This will permanently remove the session, all transcripts, analyses, and associated data. This action cannot be undone."
-        confirmText={deleting ? "Deleting..." : "Delete Session"}
+        confirmText={deleting ? 'Deleting...' : 'Delete Session'}
         cancelText="Cancel"
         onConfirm={handleDeleteSession}
         variant="destructive"

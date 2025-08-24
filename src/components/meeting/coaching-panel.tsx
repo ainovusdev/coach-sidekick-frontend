@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
 import { websocketService } from '@/services/websocket-service'
@@ -60,7 +59,6 @@ interface CoachingPanelProps {
 export function CoachingPanel({ botId, className, simplified = false }: CoachingPanelProps) {
   const [suggestions, setSuggestions] = useState<CoachingSuggestion[]>([])
   const [personalAISuggestions, setPersonalAISuggestions] = useState<PersonalAISuggestion[]>([])
-  const [analysis] = useState<CoachingAnalysis | null>(null)
   const [loading] = useState(false)
   const [error] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)

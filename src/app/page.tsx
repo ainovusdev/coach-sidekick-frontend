@@ -16,7 +16,7 @@ import { Users, Clock, RefreshCw } from 'lucide-react'
 export default function CoachDashboard() {
   const router = useRouter()
   const { isAuthenticated, loading: authLoading } = useAuth()
-  
+
   const {
     meetingHistory,
     historyLoading,
@@ -60,25 +60,25 @@ export default function CoachDashboard() {
     {
       label: 'Manage Clients',
       icon: Users,
-      onClick: () => router.push('/clients')
+      onClick: () => router.push('/clients'),
     },
     {
       label: 'All Sessions',
       icon: Clock,
-      onClick: () => router.push('/sessions')
+      onClick: () => router.push('/sessions'),
     },
     {
       label: 'Refresh',
       icon: RefreshCw,
       onClick: refetch,
-      disabled: historyLoading
-    }
+      disabled: historyLoading,
+    },
   ]
 
   return (
     <PageLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <PageHeader 
+        <PageHeader
           title="Dashboard"
           description="Manage your coaching sessions and clients"
         />
@@ -86,11 +86,8 @@ export default function CoachDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left Side - Clients and Sessions */}
           <div className="lg:col-span-2 space-y-6">
-            <RecentClients 
-              clients={clients} 
-              clientsLoading={clientsLoading} 
-            />
-            
+            <RecentClients clients={clients} clientsLoading={clientsLoading} />
+
             <RecentSessions
               meetingHistory={meetingHistory}
               historyLoading={historyLoading}
