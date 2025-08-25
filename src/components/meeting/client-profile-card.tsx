@@ -132,9 +132,9 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         </div>
 
         {/* Goals Section */}
-        {(profile.primary_goals?.length > 0 || 
-          profile.short_term_goals?.length > 0 || 
-          profile.long_term_goals?.length > 0) && (
+        {((profile.primary_goals?.length ?? 0) > 0 || 
+          (profile.short_term_goals?.length ?? 0) > 0 || 
+          (profile.long_term_goals?.length ?? 0) > 0) && (
           <div className="space-y-2">
             <div className="flex items-center gap-1">
               <Target className="h-3 w-3 text-green-500" />
@@ -158,7 +158,7 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         )}
 
         {/* Challenges Section */}
-        {(profile.main_challenges?.length > 0 || profile.obstacles?.length > 0) && (
+        {((profile.main_challenges?.length ?? 0) > 0 || (profile.obstacles?.length ?? 0) > 0) && (
           <div className="space-y-2">
             <div className="flex items-center gap-1">
               <AlertCircle className="h-3 w-3 text-orange-500" />
@@ -178,14 +178,14 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         )}
 
         {/* Strengths */}
-        {profile.strengths?.length > 0 && (
+        {(profile.strengths?.length ?? 0) > 0 && (
           <div className="space-y-2">
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3 text-purple-500" />
               <span className="text-xs font-medium text-gray-700">Strengths</span>
             </div>
             <div className="flex flex-wrap gap-1">
-              {profile.strengths.slice(0, 4).map((strength, i) => (
+              {profile.strengths?.slice(0, 4).map((strength, i) => (
                 <Badge key={i} className="text-xs bg-purple-50 text-purple-700 border-purple-200">
                   {strength}
                 </Badge>
@@ -195,7 +195,7 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         )}
 
         {/* Growth Areas */}
-        {(profile.growth_areas?.length > 0 || insights?.suggested_focus?.length > 0) && (
+        {((profile.growth_areas?.length ?? 0) > 0 || (insights?.suggested_focus?.length ?? 0) > 0) && (
           <div className="space-y-2">
             <div className="flex items-center gap-1">
               <TrendingUp className="h-3 w-3 text-blue-500" />
@@ -225,11 +225,11 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         )}
 
         {/* Recurring Themes */}
-        {profile.recurring_themes?.length > 0 && (
+        {(profile.recurring_themes?.length ?? 0) > 0 && (
           <div className="space-y-2">
             <span className="text-xs font-medium text-gray-700">Recurring Themes</span>
             <div className="flex flex-wrap gap-1">
-              {profile.recurring_themes.slice(0, 5).map((theme, i) => (
+              {profile.recurring_themes?.slice(0, 5).map((theme, i) => (
                 <Badge key={i} variant="secondary" className="text-xs">
                   {theme}
                 </Badge>
@@ -239,14 +239,14 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
         )}
 
         {/* Achievements */}
-        {profile.achievements?.length > 0 && (
+        {(profile.achievements?.length ?? 0) > 0 && (
           <div className="space-y-2 border-t pt-2">
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3 text-gold-500" />
               <span className="text-xs font-medium text-gray-700">Recent Achievements</span>
             </div>
             <div className="space-y-1">
-              {profile.achievements.slice(0, 2).map((achievement, i) => (
+              {profile.achievements?.slice(0, 2).map((achievement, i) => (
                 <div key={i} className="text-xs text-gray-600 flex items-start gap-1">
                   <span className="text-yellow-500">★</span>
                   <span>{achievement}</span>

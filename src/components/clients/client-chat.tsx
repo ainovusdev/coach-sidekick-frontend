@@ -268,9 +268,10 @@ export function ClientChat({ clientId, clientName }: ClientChatProps) {
                                   li: ({children}) => <li className="text-sm leading-relaxed">{children}</li>,
                                   
                                   // Code
-                                  code: ({inline, className, children}) => {
+                                  code: ({className, children, ...props}: any) => {
                                     const match = /language-(\w+)/.exec(className || '')
                                     const lang = match ? match[1] : ''
+                                    const inline = !lang && !props.node
                                     return inline ? (
                                       <code className="bg-gray-200 text-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">
                                         {children}

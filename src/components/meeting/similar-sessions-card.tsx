@@ -126,7 +126,7 @@ export function SimilarSessionsCard({ sessions, summaries, compact = false }: Si
                 </div>
 
                 {/* Topics */}
-                {(session.topics?.length > 0 || session.key_topics?.length > 0) && (
+                {((session.topics?.length ?? 0) > 0 || (session.key_topics?.length ?? 0) > 0) && (
                   <div className="flex flex-wrap gap-1 mb-2">
                     {(session.key_topics || session.topics).slice(0, 3).map((topic, i) => (
                       <Badge key={i} variant="outline" className="text-xs py-0 px-1">
@@ -149,7 +149,7 @@ export function SimilarSessionsCard({ sessions, summaries, compact = false }: Si
               {isExpanded && (
                 <div className="mt-3 pt-3 border-t space-y-2">
                   {/* Key points from summary */}
-                  {summary?.key_points && summary.key_points.length > 0 && (
+                  {summary?.key_points && (summary.key_points.length ?? 0) > 0 && (
                     <div>
                       <h4 className="text-xs font-medium text-gray-700 mb-1">Key Points:</h4>
                       <ul className="space-y-1">
@@ -164,7 +164,7 @@ export function SimilarSessionsCard({ sessions, summaries, compact = false }: Si
                   )}
 
                   {/* Action items if available */}
-                  {session.action_items && session.action_items.length > 0 && (
+                  {session.action_items && (session.action_items.length ?? 0) > 0 && (
                     <div>
                       <h4 className="text-xs font-medium text-gray-700 mb-1">Action Items:</h4>
                       <ul className="space-y-1">

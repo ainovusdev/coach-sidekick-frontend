@@ -35,20 +35,6 @@ interface PersonalAISuggestion {
   timestamp: string
 }
 
-interface CoachingAnalysis {
-  overallScore: number
-  conversationPhase:
-    | 'opening'
-    | 'exploration'
-    | 'insight'
-    | 'commitment'
-    | 'closing'
-  coachEnergyLevel: number
-  clientEngagementLevel: number
-  suggestions: CoachingSuggestion[]
-  personalAISuggestions: PersonalAISuggestion[]
-  timestamp: string
-}
 
 interface CoachingPanelProps {
   botId: string
@@ -62,16 +48,9 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
   const [loading] = useState(false)
   const [error] = useState<string | null>(null)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
-  const [metadata, setMetadata] = useState<any>(null)
   const [waitingForSuggestions, setWaitingForSuggestions] = useState(true)
   const { isConnected } = useWebSocket()
 
-  const fetchSuggestions = useCallback(async () => {
-    // This function is now deprecated - we rely on WebSocket for suggestions
-    // Keep it empty to avoid fetching old-style suggestions
-    console.log('[Coaching Panel] Suggestions now come via WebSocket only')
-    setLastUpdate(new Date())
-  }, [])
 
   // Analysis is now triggered automatically by the backend every 30-60 seconds
 
@@ -101,10 +80,6 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
         }))
         setSuggestions(newSuggestions)
         setPersonalAISuggestions([]) // Clear personal AI suggestions when replacing
-        setMetadata({
-          context: data.context,
-          triggers: data.triggers
-        })
         setWaitingForSuggestions(false)
       }
       setLastUpdate(new Date())
@@ -136,17 +111,12 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
           context_confidence: s.context_confidence
         }))
         setSuggestions(newSuggestions)
-        setMetadata({
-          context: data.context,
-          triggers: data.triggers
-        })
         setWaitingForSuggestions(false)
       }
       setLastUpdate(new Date())
     },
     onMeetingState: (state) => {
       console.log('[WebSocket] Meeting state:', state)
-      setMetadata((prev: any) => ({ ...prev, meetingState: state }))
     }
   })
 
@@ -256,29 +226,30 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
 
                   {/* Combined suggestions */}
                   {[...suggestions, ...personalAISuggestions].map((suggestion, index) => {
-                    const urgencyColors = {
+                    const urgencyColors: Record<string, string> = {
                       high: 'border-l-red-500',
                       medium: 'border-l-yellow-500',
                       low: 'border-l-green-500'
                     }
-                    const borderColor = urgencyColors[suggestion.priority] || 'border-l-purple-500'
+                    const priority = 'priority' in suggestion ? suggestion.priority : 'medium'
+                    const borderColor = urgencyColors[priority] || 'border-l-purple-500'
                     
                     if (simplified) {
                       return (
                         <div key={suggestion.id || `suggestion-${index}`} 
                              className={`border-l-4 ${borderColor} bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors`}>
                           <div className="flex items-start gap-2">
-                            {suggestion.go_live_emoji && (
+                            {'go_live_emoji' in suggestion && suggestion.go_live_emoji && (
                               <span className="text-base">{suggestion.go_live_emoji}</span>
                             )}
                             <div className="flex-1">
                               <p className="text-sm font-medium text-gray-900">
-                                {suggestion.suggestion || suggestion.content}
+                                {suggestion.suggestion || ('content' in suggestion ? (suggestion as any).content : '')}
                               </p>
-                              {suggestion.go_live_value && (
+                              {'go_live_value' in suggestion && suggestion.go_live_value && (
                                 <span className="text-xs text-gray-500 mt-1 inline-block">
                                   {suggestion.go_live_value}
-                                  {suggestion.timing && suggestion.timing !== 'now' && 
+                                  {'timing' in suggestion && suggestion.timing && suggestion.timing !== 'now' && 
                                     ` • ${suggestion.timing.replace('_', ' ')}`}
                                 </span>
                               )}
@@ -294,24 +265,24 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
-                                {suggestion.go_live_emoji && (
+                                {'go_live_emoji' in suggestion && suggestion.go_live_emoji && (
                                   <span className="text-lg">{suggestion.go_live_emoji}</span>
                                 )}
-                                {suggestion.go_live_value && (
+                                {'go_live_value' in suggestion && suggestion.go_live_value && (
                                   <span className="text-xs font-medium text-gray-600 uppercase">
                                     {suggestion.go_live_value}
                                   </span>
                                 )}
-                                {suggestion.timing && suggestion.timing !== 'now' && (
+                                {'timing' in suggestion && suggestion.timing && suggestion.timing !== 'now' && (
                                   <span className="text-xs text-gray-500">
                                     • {suggestion.timing.replace('_', ' ')}
                                   </span>
                                 )}
                               </div>
                               <p className="text-sm font-medium text-gray-900">
-                                {suggestion.suggestion || suggestion.content}
+                                {suggestion.suggestion || ('content' in suggestion ? (suggestion as any).content : '')}
                               </p>
-                              {suggestion.rationale && (
+                              {'rationale' in suggestion && suggestion.rationale && (
                                 <p className="text-xs text-gray-500 mt-1">
                                   {suggestion.rationale}
                                 </p>
@@ -327,7 +298,7 @@ export function CoachingPanel({ botId, className, simplified = false }: Coaching
                                       />
                                     </div>
                                   </div>
-                                  {suggestion.context_confidence && (
+                                  {'context_confidence' in suggestion && suggestion.context_confidence && (
                                     <div className="flex items-center gap-1">
                                       <span className="text-xs text-gray-400">Context:</span>
                                       <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">

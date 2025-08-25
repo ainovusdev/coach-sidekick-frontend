@@ -72,7 +72,7 @@ export function PatternInsightsCard({
     return pattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
-  if (!currentPatterns?.length && !patternHistory?.length && !recurringThemes?.length) {
+  if ((currentPatterns?.length ?? 0) === 0 && (patternHistory?.length ?? 0) === 0 && (recurringThemes?.length ?? 0) === 0) {
     return (
       <Card className={compact ? "h-auto" : "h-full"}>
         <CardHeader className={compact ? "pb-2 py-2" : "pb-3"}>
@@ -101,7 +101,7 @@ export function PatternInsightsCard({
       <CardContent className={compact ? "space-y-2 pt-0" : "space-y-4 overflow-y-auto max-h-[600px]"}>
         
         {/* Current Patterns */}
-        {(currentPatterns?.length > 0 || insights?.key_patterns?.length > 0) && (
+        {((currentPatterns?.length ?? 0) > 0 || (insights?.key_patterns?.length ?? 0) > 0) && (
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs font-medium text-gray-700">Active Patterns</span>
@@ -121,11 +121,11 @@ export function PatternInsightsCard({
         )}
 
         {/* Pattern Evolution */}
-        {patternHistory?.length > 0 && !compact && (
+        {(patternHistory?.length ?? 0) > 0 && !compact && (
           <div className="space-y-2">
             <span className="text-xs font-medium text-gray-700">Pattern Evolution</span>
             <div className="space-y-2">
-              {patternHistory.slice(0, 3).map((history, i) => {
+              {(patternHistory || []).slice(0, 3).map((history, i) => {
                 const date = new Date(history.date)
                 const timeAgo = getTimeAgo(date)
                 
@@ -165,11 +165,11 @@ export function PatternInsightsCard({
         )}
 
         {/* Recurring Themes */}
-        {recurringThemes?.length > 0 && (
+        {(recurringThemes?.length ?? 0) > 0 && (
           <div className="space-y-2">
             <span className="text-xs font-medium text-gray-700">Recurring Themes</span>
             <div className="flex flex-wrap gap-2">
-              {recurringThemes.map((theme, i) => (
+              {(recurringThemes || []).map((theme, i) => (
                 <div 
                   key={i}
                   className={`inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 ${getThemeSize(theme.count)}`}
@@ -187,7 +187,7 @@ export function PatternInsightsCard({
         )}
 
         {/* Pattern Insights Summary */}
-        {patternHistory?.length > 2 && !compact && (
+        {(patternHistory?.length ?? 0) > 2 && !compact && (
           <div className="border-t pt-3">
             <div className="space-y-2">
               <span className="text-xs font-medium text-gray-700">Pattern Summary</span>
@@ -195,13 +195,13 @@ export function PatternInsightsCard({
                 <div className="text-center p-2 bg-gray-50 rounded">
                   <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
                   <p className="text-xs text-gray-600">
-                    {countPositivePatterns(patternHistory)} positive shifts
+                    {countPositivePatterns(patternHistory || [])} positive shifts
                   </p>
                 </div>
                 <div className="text-center p-2 bg-gray-50 rounded">
                   <Activity className="h-4 w-4 text-blue-500 mx-auto mb-1" />
                   <p className="text-xs text-gray-600">
-                    {countUniquePatterns(patternHistory)} unique patterns
+                    {countUniquePatterns(patternHistory || [])} unique patterns
                   </p>
                 </div>
               </div>

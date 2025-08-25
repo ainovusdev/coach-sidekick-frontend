@@ -59,8 +59,7 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
       setUploadProgress(50)
       await ManualSessionService.uploadMediaFile(
         sessionId,
-        file,
-        (progress) => setUploadProgress(progress)
+        file
       )
 
       setUploadProgress(100)

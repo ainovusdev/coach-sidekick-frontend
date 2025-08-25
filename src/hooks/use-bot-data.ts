@@ -59,8 +59,6 @@ export function useBotData(botId: string): UseBotDataReturn {
           meeting_url: '#', // Backend doesn't return meeting_url in status endpoint
           platform: 'unknown', // Backend doesn't provide platform
           meeting_id: undefined,
-          created_at: new Date().toISOString(), // Use current time as backend doesn't return this
-          video_url: undefined,
         }
         setBot(normalizedBot)
 
@@ -71,12 +69,16 @@ export function useBotData(botId: string): UseBotDataReturn {
       if (transcriptData && transcriptData.transcripts) {
         // Initialize transcript map
         transcriptMapRef.current.clear()
-        transcriptData.transcripts.forEach(entry => {
+        const normalizedTranscripts = transcriptData.transcripts.map((entry: any) => ({
+          ...entry,
+          confidence: entry.confidence ?? 1.0, // Add default confidence if missing
+        }))
+        normalizedTranscripts.forEach((entry: any) => {
           if (entry.id) {
             transcriptMapRef.current.set(entry.id, entry)
           }
         })
-        setTranscript(transcriptData.transcripts)
+        setTranscript(normalizedTranscripts)
       }
 
       setLoading(false)
@@ -92,8 +94,8 @@ export function useBotData(botId: string): UseBotDataReturn {
     console.log('[WebSocket] New transcript entry:', entry)
     
     // Add to transcript map
-    if (entry.id) {
-      transcriptMapRef.current.set(entry.id, entry)
+    if ((entry as any).id) {
+      transcriptMapRef.current.set((entry as any).id, entry)
     }
     
     // Update transcript array
@@ -111,7 +113,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       
       // Update transcript array
       setTranscript(prev => prev.map(entry => 
-        entry.id === data.entryId ? updated : entry
+        (entry as any).id === data.entryId ? updated : entry
       ))
     }
   }, [])
@@ -161,7 +163,11 @@ export function useBotData(botId: string): UseBotDataReturn {
         }
 
         if (transcriptData && transcriptData.transcripts) {
-          setTranscript(transcriptData.transcripts)
+          const normalizedTranscripts = transcriptData.transcripts.map((entry: any) => ({
+            ...entry,
+            confidence: entry.confidence ?? 1.0, // Add default confidence if missing
+          }))
+          setTranscript(normalizedTranscripts)
         }
       } catch (error) {
         // Polling error, continue silently

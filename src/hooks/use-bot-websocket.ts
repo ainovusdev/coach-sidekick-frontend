@@ -35,7 +35,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const handler = (data: any) => {
       if (data.botId === botId) {
-        events.onTranscriptNew(data.entry)
+        events.onTranscriptNew?.(data.entry)
       }
     }
 
@@ -49,7 +49,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const handler = (data: any) => {
       if (data.botId === botId) {
-        events.onTranscriptUpdate(data)
+        events.onTranscriptUpdate?.(data)
       }
     }
 
@@ -63,7 +63,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const handler = (data: any) => {
       if (data.botId === botId) {
-        events.onBotStatus(data)
+        events.onBotStatus?.(data)
       }
     }
 
@@ -78,7 +78,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
     const handler = (data: any) => {
       // Filter errors related to this bot
       if (data.context?.botId === botId || !data.context) {
-        events.onError(data)
+        events.onError?.(data)
       }
     }
 

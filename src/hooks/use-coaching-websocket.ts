@@ -23,7 +23,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const handler = (data: any) => {
       if (data.botId === botId) {
-        events.onSuggestion(data.suggestion)
+        events.onSuggestion?.(data.suggestion)
       }
     }
 
@@ -37,7 +37,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const handler = (data: any) => {
       if (data.botId === botId) {
-        events.onAnalysisUpdate(data)
+        events.onAnalysisUpdate?.(data)
       }
     }
 
@@ -51,7 +51,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const handler = (data: any) => {
       if (data.botId === botId || data.bot_id === botId) {
-        events.onAnalysisComplete(data.analysis || data)
+        events.onAnalysisComplete?.(data.analysis || data)
       }
     }
 
@@ -65,7 +65,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const handler = (data: any) => {
       if (data.botId === botId || data.bot_id === botId) {
-        events.onMessage(data)
+        events.onMessage?.(data)
       }
     }
 
@@ -79,7 +79,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const handler = (data: any) => {
       // Meeting state is sent directly without botId wrapper
-      events.onMeetingState(data)
+      events.onMeetingState?.(data)
     }
 
     const unsubscribe = on('meeting_state', handler)
@@ -91,7 +91,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
     if (!events.onSuggestionsUpdate) return
 
     const handler = (data: any) => {
-      events.onSuggestionsUpdate(data)
+      events.onSuggestionsUpdate?.(data)
     }
 
     const unsubscribe = on('suggestions_update', handler)

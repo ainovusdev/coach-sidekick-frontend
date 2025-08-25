@@ -101,6 +101,7 @@ export class AnalysisService {
   ): Promise<SessionInsights> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/analysis/${sessionId}/analyze-insights`,
+      {}
     )
     return response
   }
@@ -127,6 +128,7 @@ export class AnalysisService {
       `${BACKEND_URL}/analysis/${sessionId}/analyze${
         force ? '?force=true' : ''
       }`,
+      {}
     )
     return response
   }
@@ -154,6 +156,7 @@ export class AnalysisService {
   }> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/analysis/${sessionId}/real-time-suggestion?limit=${limit}`,
+      {}
     )
     return response
   }

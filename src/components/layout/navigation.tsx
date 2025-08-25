@@ -9,7 +9,7 @@ import { Brain, BarChart3, UserCheck, History } from 'lucide-react'
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { user } = useAuth()
+  const { isAuthenticated } = useAuth()
 
   const isActivePath = (path: string) => {
     if (path === '/' && pathname === '/') return true
@@ -82,14 +82,16 @@ export default function Navigation() {
 
           {/* User Section */}
           <div className="flex items-center gap-4">
-            <div className="hidden sm:flex items-center gap-3">
-              <div className="flex items-center gap-2 text-sm text-slate-600">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                <span className="font-medium">
-                  Welcome back, {user?.email?.split('@')[0]}
-                </span>
+            {isAuthenticated && (
+              <div className="hidden sm:flex items-center gap-3">
+                <div className="flex items-center gap-2 text-sm text-slate-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">
+                    Welcome back
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
             <UserNav />
           </div>
         </div>

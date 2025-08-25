@@ -47,7 +47,7 @@ export default function SessionDetailsPage({
   const { isAuthenticated, loading: authLoading } = useAuth()
   const resolvedParams = React.use(params)
 
-  const { sessionData, loading, error, generatingSummary, generateSummary } =
+  const { sessionData, loading, error } =
     useSessionData(resolvedParams.sessionId)
 
   // Analysis state
@@ -232,7 +232,7 @@ export default function SessionDetailsPage({
     )
   }
 
-  const { session, transcript, meeting_summary } = sessionData
+  const { session, transcript } = sessionData
 
   // Show upload option for any session that needs transcripts:
   // 1. Session status is 'pending_upload' OR
