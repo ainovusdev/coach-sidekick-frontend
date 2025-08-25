@@ -39,9 +39,7 @@ export default function ClientList() {
     try {
       setLoading(true)
 
-      const response = await ClientService.listClients({
-        search: searchTerm.trim() || undefined,
-      })
+      const response = await ClientService.listClients()
 
       setClients(response.clients)
       setError(null)
@@ -82,7 +80,7 @@ export default function ClientList() {
 
   const handleEditClient = async (clientData: Partial<Client>) => {
     if (!selectedClient) return
-    
+
     try {
       await ClientService.updateClient(selectedClient.id, {
         name: clientData.name,
@@ -152,14 +150,12 @@ export default function ClientList() {
         {/* Minimal Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-semibold text-neutral-900">
-              Clients
-            </h1>
+            <h1 className="text-2xl font-semibold text-neutral-900">Clients</h1>
             <p className="text-sm text-neutral-500 mt-1">
               Manage your coaching clients
             </p>
           </div>
-          <Button 
+          <Button
             onClick={() => setIsCreateModalOpen(true)}
             className="bg-neutral-900 hover:bg-neutral-800 text-white"
           >
@@ -200,7 +196,7 @@ export default function ClientList() {
               <p className="text-sm text-neutral-500 mb-6 max-w-sm mx-auto">
                 Add your first client to start tracking coaching sessions.
               </p>
-              <Button 
+              <Button
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-neutral-900 hover:bg-neutral-800 text-white"
               >
@@ -252,7 +248,9 @@ export default function ClientList() {
                             </div>
                             <div className="flex items-center gap-1">
                               <Clock className="h-3.5 w-3.5" />
-                              <span>{formatLastSession(stats.last_session_date)}</span>
+                              <span>
+                                {formatLastSession(stats.last_session_date)}
+                              </span>
                             </div>
                           </div>
                         )}
@@ -264,7 +262,7 @@ export default function ClientList() {
                           size="sm"
                           variant="ghost"
                           className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             router.push(`/clients/${client.id}`)
                           }}
@@ -275,7 +273,7 @@ export default function ClientList() {
                           size="sm"
                           variant="ghost"
                           className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation()
                             openEditModal(client)
                           }}

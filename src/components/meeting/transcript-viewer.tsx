@@ -17,14 +17,18 @@ interface TranscriptEntry {
 interface TranscriptViewerProps {
   transcript: TranscriptEntry[]
   compact?: boolean
+  autoScroll?: boolean
 }
 
-export function TranscriptViewer({ transcript, compact = false }: TranscriptViewerProps) {
+export function TranscriptViewer({ transcript, compact = false, autoScroll = false }: TranscriptViewerProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [transcript])
+    if (autoScroll && bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' })
+    }
+  }, [transcript, autoScroll])
 
   if (transcript.length === 0) {
     return (
@@ -39,7 +43,7 @@ export function TranscriptViewer({ transcript, compact = false }: TranscriptView
 
   if (compact) {
     return (
-      <div className="space-y-2">
+      <div ref={containerRef} className="space-y-2">
         {transcript.map((entry, index) => (
           <div
             key={index}
@@ -68,13 +72,13 @@ export function TranscriptViewer({ transcript, compact = false }: TranscriptView
             <p className="text-xs text-gray-700 leading-relaxed">{entry.text}</p>
           </div>
         ))}
-        <div ref={bottomRef} />
+        {autoScroll && <div ref={bottomRef} className="h-1" />}
       </div>
     )
   }
 
   return (
-    <div className="space-y-4 h-full overflow-y-auto">
+    <div ref={containerRef} className="space-y-4">
       {transcript.map((entry, index) => (
         <Card
           key={index}
@@ -108,7 +112,7 @@ export function TranscriptViewer({ transcript, compact = false }: TranscriptView
           </CardContent>
         </Card>
       ))}
-      <div ref={bottomRef} />
+      {autoScroll && <div ref={bottomRef} className="h-1" />}
     </div>
   )
 }

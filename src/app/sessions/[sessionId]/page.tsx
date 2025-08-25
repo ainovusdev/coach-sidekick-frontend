@@ -28,7 +28,7 @@ import {
   type SessionInsights,
   type CoachingAnalysis,
 } from '@/services/analysis-service'
-import { SessionInsightsCard } from '@/components/sessions/session-insights-card'
+import { SessionInsightsModern } from '@/components/sessions/session-insights-modern'
 import { SessionService } from '@/services/session-service'
 import { toast } from '@/hooks/use-toast'
 import {
@@ -338,67 +338,67 @@ export default function SessionDetailsPage({
             {/* Analysis Section - Modern Cards Layout */}
             {hasTranscripts && (
               <div className="space-y-6">
-                {/* Analysis Header with Actions */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2.5 bg-gray-100 rounded-lg">
-                      <Brain className="h-6 w-6 text-gray-700" />
+                {/* Analysis Header with Actions - Only show if no analysis */}
+                {(!analysis || !coachingAnalysis) && (
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
+                    <div className="flex items-center gap-3">
+                      <div className="p-3 bg-gray-100 rounded-xl">
+                        <Brain className="h-6 w-6 text-gray-700" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">
+                          Ready for Analysis
+                        </h2>
+                        <p className="text-sm text-gray-500">
+                          Generate AI-powered insights from this session
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h2 className="text-xl font-bold text-gray-900">
-                        Session Analysis
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        AI-powered insights and coaching metrics
-                      </p>
+
+                    <div className="flex gap-3">
+                      {!analysis && (
+                        <Button
+                          onClick={triggerAnalysis}
+                          disabled={analyzingSession}
+                          className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
+                        >
+                          {analyzingSession ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate Insights
+                            </>
+                          )}
+                        </Button>
+                      )}
+
+                      {!coachingAnalysis && (
+                        <Button
+                          onClick={triggerCoachingAnalysis}
+                          disabled={analyzingCoaching}
+                          variant="outline"
+                          className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
+                        >
+                          {analyzingCoaching ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <BarChart className="h-4 w-4 mr-2" />
+                              Analyze Coaching
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   </div>
-
-                  <div className="flex gap-3">
-                    {!analysis && (
-                      <Button
-                        onClick={triggerAnalysis}
-                        disabled={analyzingSession}
-                        size="sm"
-                        className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
-                      >
-                        {analyzingSession ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Generate Insights
-                          </>
-                        )}
-                      </Button>
-                    )}
-
-                    {!coachingAnalysis && (
-                      <Button
-                        onClick={triggerCoachingAnalysis}
-                        disabled={analyzingCoaching}
-                        size="sm"
-                        variant="outline"
-                        className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
-                      >
-                        {analyzingCoaching ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <BarChart className="h-4 w-4 mr-2" />
-                            Analyze Coaching
-                          </>
-                        )}
-                      </Button>
-                    )}
-                  </div>
-                </div>
+                )}
 
                 {/* Loading State */}
                 {loadingAnalysis && (
@@ -410,31 +410,32 @@ export default function SessionDetailsPage({
                   </div>
                 )}
 
-                {/* Session Insights */}
+                {/* Session Insights - Modern Design */}
                 {analysis && !loadingAnalysis && (
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Sparkles className="h-5 w-5 text-gray-700" />
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            Session Insights
-                          </h3>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={triggerAnalysis}
-                          disabled={analyzingSession}
-                          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        >
-                          Regenerate
-                        </Button>
-                      </div>
+                  <div className="space-y-4">
+                    {/* Regenerate Button */}
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={triggerAnalysis}
+                        disabled={analyzingSession}
+                        className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                      >
+                        {analyzingSession ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Regenerating...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Regenerate Analysis
+                          </>
+                        )}
+                      </Button>
                     </div>
-                    <div className="p-6">
-                      <SessionInsightsCard insights={analysis} />
-                    </div>
+                    <SessionInsightsModern insights={analysis} />
                   </div>
                 )}
 

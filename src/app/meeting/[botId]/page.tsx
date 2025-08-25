@@ -58,32 +58,34 @@ export default function MeetingPage() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
+    <div className="h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col overflow-hidden">
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
 
-      {/* Compact Header */}
-      <MeetingHeader
-        bot={bot}
-        transcriptLength={transcript.length}
-        showDebug={showDebug}
-        isStoppingBot={isStoppingBot}
-        onToggleDebug={() => setShowDebug(!showDebug)}
-        onStopBot={handleStopBot}
-        onNavigateBack={() => router.push('/')}
-      />
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 z-10">
+        <MeetingHeader
+          bot={bot}
+          transcriptLength={transcript.length}
+          showDebug={showDebug}
+          isStoppingBot={isStoppingBot}
+          onToggleDebug={() => setShowDebug(!showDebug)}
+          onStopBot={handleStopBot}
+          onNavigateBack={() => router.push('/')}
+        />
+      </div>
 
-      {/* Main Content Area */}
+      {/* Main Content Area - Fixed Height */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3">
-          {/* Compact Meeting State */}
+        <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3 overflow-hidden">
+          {/* Meeting State - Fixed */}
           <div className="flex-shrink-0 mb-3">
             <MeetingStatePanel state={meetingState} compact={true} />
           </div>
 
-          {/* Main Panels */}
-          <div className="flex-1 min-h-0">
+          {/* Main Panels - Constrained Height */}
+          <div className="flex-1 overflow-hidden">
             <MeetingPanels
               transcript={transcript}
               botId={botId}
@@ -93,14 +95,14 @@ export default function MeetingPage() {
 
           {showDebug && bot && (
             <div className="mt-3 flex-shrink-0">
-              <DebugPanel sessionId={bot.id} className="max-h-[300px]" />
+              <DebugPanel sessionId={bot.id} className="max-h-[200px]" />
             </div>
           )}
         </div>
       </div>
 
-      {/* Bottom Save Status Bar */}
-      <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm">
+      {/* Fixed Bottom Save Status Bar */}
+      <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm z-10">
         <div className="max-w-[1600px] mx-auto px-4 py-2">
           <BatchSaveStatus botId={botId} minimal={true} />
         </div>

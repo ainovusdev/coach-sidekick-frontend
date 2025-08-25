@@ -15,10 +15,11 @@ export default function RecentClients({ clients, clientsLoading }: RecentClients
   const router = useRouter()
 
   return (
-    <Card className="border-neutral-200">
-      <CardHeader>
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="bg-gray-50 border-b border-gray-200">
         <SectionHeader
           title="Recent Clients"
+          subtitle={clients.length > 0 ? `${clients.length} active` : undefined}
           action={{
             label: 'View All',
             onClick: () => router.push('/clients')
@@ -27,11 +28,11 @@ export default function RecentClients({ clients, clientsLoading }: RecentClients
       </CardHeader>
       <CardContent>
         {clientsLoading ? (
-          <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map(i => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
               <div
                 key={i}
-                className="h-20 bg-neutral-100 rounded-lg animate-pulse"
+                className="h-16 bg-gray-100 rounded-lg animate-pulse"
               />
             ))}
           </div>
@@ -46,13 +47,14 @@ export default function RecentClients({ clients, clientsLoading }: RecentClients
             }}
           />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {clients.map(client => (
               <ClientCard
                 key={client.id}
                 name={client.name}
                 notes={client.notes}
                 onClick={() => router.push(`/clients/${client.id}`)}
+                className="bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300"
               />
             ))}
           </div>

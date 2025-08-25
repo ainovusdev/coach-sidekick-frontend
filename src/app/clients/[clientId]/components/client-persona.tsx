@@ -116,9 +116,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
         persona.demographics.occupation || 
         persona.demographics.location || 
         persona.demographics.family_situation) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <User className="h-5 w-5 text-gray-600" />
               Profile Overview
             </CardTitle>
@@ -170,9 +170,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       {(persona.goals.primary_goals.length > 0 || 
         persona.goals.short_term_goals.length > 0 || 
         persona.goals.long_term_goals.length > 0) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Target className="h-5 w-5 text-gray-600" />
               Goals & Aspirations
             </CardTitle>
@@ -227,9 +227,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       {(persona.challenges.main_challenges.length > 0 || 
         persona.challenges.obstacles.length > 0 || 
         persona.patterns.growth_areas.length > 0) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <AlertCircle className="h-5 w-5 text-gray-600" />
               Challenges & Growth Areas
             </CardTitle>
@@ -281,9 +281,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
         persona.personality.learning_style || 
         persona.personality.personality_traits.length > 0 || 
         persona.personality.values.length > 0) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Brain className="h-5 w-5 text-gray-600" />
               Personality & Style
             </CardTitle>
@@ -343,9 +343,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       {/* Strengths & Patterns */}
       {(persona.patterns.strengths.length > 0 || 
         persona.patterns.recurring_themes.length > 0) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-gray-600" />
               Strengths & Patterns
             </CardTitle>
@@ -359,8 +359,8 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {persona.patterns.strengths.map((strength, index) => (
-                    <div key={index} className="bg-green-50 rounded-lg p-3 border border-green-200">
-                      <p className="text-sm text-green-800">{strength}</p>
+                    <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                      <p className="text-sm text-gray-700">{strength}</p>
                     </div>
                   ))}
                 </div>
@@ -385,9 +385,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       {/* Progress & Achievements */}
       {(persona.progress.achievements.length > 0 || 
         persona.progress.breakthrough_moments.length > 0) && (
-        <Card className="border-gray-200">
-          <CardHeader className="bg-gray-50 border-b border-gray-100">
-            <CardTitle className="text-lg font-medium text-gray-900 flex items-center gap-2">
+        <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+            <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Award className="h-5 w-5 text-gray-600" />
               Progress & Achievements
             </CardTitle>
@@ -399,7 +399,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="space-y-2">
                   {persona.progress.achievements.map((achievement, index) => (
                     <div key={index} className="flex items-start gap-2">
-                      <Award className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
+                      <Award className="h-4 w-4 text-gray-600 mt-0.5 flex-shrink-0" />
                       <p className="text-sm text-gray-700">{achievement}</p>
                     </div>
                   ))}
@@ -411,8 +411,8 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <h4 className="text-sm font-medium text-gray-700 mb-2">Breakthrough Moments</h4>
                 <div className="space-y-2">
                   {persona.progress.breakthrough_moments.map((moment, index) => (
-                    <div key={index} className="bg-purple-50 rounded-lg p-3 border border-purple-200">
-                      <p className="text-sm text-purple-800">{moment}</p>
+                    <div key={index} className="bg-gray-900 rounded-lg p-3 text-white">
+                      <p className="text-sm">{moment}</p>
                     </div>
                   ))}
                 </div>

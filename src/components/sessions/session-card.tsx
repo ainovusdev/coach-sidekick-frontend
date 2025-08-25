@@ -25,12 +25,12 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
+        return <CheckCircle2 className="h-4 w-4 text-gray-700" />
       case 'in_progress':
       case 'recording':
-        return <Circle className="h-4 w-4 text-blue-600 animate-pulse" />
+        return <Circle className="h-4 w-4 text-gray-900 animate-pulse" />
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />
+        return <AlertCircle className="h-4 w-4 text-gray-800" />
       default:
         return <Circle className="h-4 w-4 text-gray-400" />
     }
@@ -39,12 +39,12 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-gray-900 text-white border-gray-900'
       case 'in_progress':
       case 'recording':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-gray-800 text-white border-gray-800'
       case 'error':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-gray-700 text-white border-gray-700'
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200'
     }
@@ -63,22 +63,22 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
   const meetingSummary = summary?.meeting_summary || session.summary
 
   return (
-    <Card className="hover:shadow-md transition-all duration-200 border-slate-200 bg-white">
+    <Card className="hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white hover:border-gray-300">
       <CardContent className="p-4 space-y-3">
         {/* Header with status and time */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {getStatusIcon(session.status)}
-            <span className="text-sm font-medium text-slate-900">
+            <span className="text-sm font-semibold text-gray-900">
               {getPlatformName(session.meeting_url)}
               {clientName && ` • ${clientName}`}
             </span>
           </div>
           <div className="flex items-center gap-2">
             {durationMinutes && (
-              <div className="flex items-center gap-1 text-xs text-slate-500">
+              <div className="flex items-center gap-1 text-xs text-gray-600">
                 <Clock className="h-3 w-3" />
-                <span>{durationMinutes}m</span>
+                <span className="font-medium">{durationMinutes}m</span>
               </div>
             )}
             <Badge className={`${getStatusColor(session.status)} text-xs`}>
@@ -89,42 +89,44 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
 
         {/* AI Summary - The main focus */}
         {meetingSummary ? (
-          <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="p-4 bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <FileText className="h-4 w-4 text-gray-700" />
+              </div>
               <div className="flex-1">
-                <p className="text-xs font-semibold text-blue-700 mb-1">
-                  AI Summary
+                <p className="text-xs font-bold text-gray-900 mb-1.5 uppercase tracking-wider">
+                  Session Summary
                 </p>
-                <p className="text-sm text-slate-700 leading-relaxed line-clamp-3">
+                <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
                   {meetingSummary}
                 </p>
               </div>
             </div>
           </div>
         ) : session.status === 'completed' ? (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-700">
-              Summary generation in progress...
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <p className="text-sm text-gray-600 font-medium">
+              Processing summary...
             </p>
           </div>
         ) : session.status === 'in_progress' || session.status === 'recording' ? (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <p className="text-sm text-blue-700">
-              Session in progress • Recording transcripts...
+          <div className="p-4 bg-gray-900 text-white rounded-xl">
+            <p className="text-sm font-medium">
+              Live Session • Recording in progress
             </p>
           </div>
         ) : (
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg">
-            <p className="text-sm text-slate-600">
-              Session initialized • Waiting for bot to join...
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <p className="text-sm text-gray-600">
+              Initializing session...
             </p>
           </div>
         )}
 
         {/* Footer with time and action */}
-        <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-          <span className="text-xs text-slate-500">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <span className="text-xs text-gray-500 font-medium">
             {formatDistanceToNow(createdAt, { addSuffix: true })}
           </span>
           {onViewDetails && (
@@ -132,7 +134,7 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
               variant="ghost"
               size="sm"
               onClick={() => onViewDetails(session.id)}
-              className="text-xs hover:bg-slate-100"
+              className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
             >
               <Eye className="h-3 w-3 mr-1" />
               View Details

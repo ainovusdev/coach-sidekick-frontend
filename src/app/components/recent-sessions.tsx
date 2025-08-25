@@ -24,11 +24,11 @@ export default function RecentSessions({
   const router = useRouter()
 
   return (
-    <Card className="border-neutral-200">
-      <CardHeader>
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <CardHeader className="bg-gray-50 border-b border-gray-200">
         <SectionHeader
           title="Recent Sessions"
-          subtitle={totalSessions > 0 ? `Last ${Math.min(5, totalSessions)}` : undefined}
+          subtitle={totalSessions > 0 ? `Showing last ${Math.min(5, totalSessions)} of ${totalSessions} total` : undefined}
         />
       </CardHeader>
       <CardContent>
@@ -48,7 +48,7 @@ export default function RecentSessions({
             {[1, 2, 3].map(i => (
               <div
                 key={i}
-                className="h-20 bg-neutral-100 rounded-lg animate-pulse"
+                className="h-24 bg-gray-100 rounded-xl animate-pulse"
               />
             ))}
           </div>
@@ -77,11 +77,11 @@ export default function RecentSessions({
             ))}
 
             {meetingHistory.meetings.length >= 5 && (
-              <div className="text-center pt-4 border-t border-neutral-100">
+              <div className="text-center pt-4 border-t border-gray-200">
                 <Button
                   variant="outline"
                   onClick={() => router.push('/sessions')}
-                  className="border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+                  className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white font-medium transition-all duration-200"
                 >
                   View All Sessions
                   <ArrowRight className="h-4 w-4 ml-2" />

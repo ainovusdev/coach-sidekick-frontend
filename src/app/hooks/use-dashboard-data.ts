@@ -12,7 +12,7 @@ export function useDashboardData() {
     error: historyError,
     refetch,
   } = useMeetingHistory(5)
-  
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clients, setClients] = useState<Client[]>([])
@@ -23,7 +23,7 @@ export function useDashboardData() {
     const fetchClients = async () => {
       try {
         setClientsLoading(true)
-        const response = await ClientService.listClients({ per_page: 4 })
+        const response = await ClientService.listClients()
         setClients(response.clients)
       } catch (error) {
         console.error('Error fetching clients:', error)
@@ -63,7 +63,7 @@ export function useDashboardData() {
 
       // Small delay to ensure state is consistent before navigation
       await new Promise(resolve => setTimeout(resolve, 100))
-      
+
       return response.id // Return the bot ID for navigation
     } catch (error) {
       console.error('Error creating bot:', error)
