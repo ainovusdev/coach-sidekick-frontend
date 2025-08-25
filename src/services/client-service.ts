@@ -52,19 +52,9 @@ function transformClient(backendClient: BackendClient): Client {
 }
 
 export class ClientService {
-  static async listClients(params?: {
-    page?: number
-    per_page?: number
-    search?: string
-  }): Promise<ClientListResponse> {
-    const queryParams = new URLSearchParams()
-    if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.per_page)
-      queryParams.append('per_page', params.per_page.toString())
-    if (params?.search) queryParams.append('search', params.search)
-
+  static async listClients(): Promise<ClientListResponse> {
     const response: BackendClientListResponse = await ApiClient.get(
-      `${BACKEND_URL}/clients?${queryParams}`,
+      `${BACKEND_URL}/clients/`,
     )
 
     return {

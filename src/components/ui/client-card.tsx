@@ -23,24 +23,24 @@ export function ClientCard({ name, notes, onClick, className }: ClientCardProps)
   return (
     <Card
       className={cn(
-        'border-neutral-200 hover:border-neutral-300 transition-colors cursor-pointer',
+        'border border-gray-200 hover:border-gray-400 hover:shadow-md transition-all duration-200 cursor-pointer bg-white',
         className
       )}
       onClick={onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         <div className="flex items-center gap-3">
-          <Avatar className="h-10 w-10 bg-neutral-100 border border-neutral-200">
-            <AvatarFallback className="bg-white text-neutral-700 text-sm">
+          <Avatar className="h-10 w-10 bg-gray-900 border border-gray-900">
+            <AvatarFallback className="bg-gray-900 text-white text-sm font-bold">
               {getInitials(name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-medium text-neutral-900 text-sm">{name}</p>
+            <p className="font-semibold text-gray-900 text-sm">{name}</p>
             {notes && (
               <div className="flex items-center gap-1 mt-0.5">
-                <FileText className="h-3 w-3 text-neutral-400" />
-                <p className="text-xs text-neutral-500 truncate">{notes}</p>
+                <FileText className="h-3 w-3 text-gray-400" />
+                <p className="text-xs text-gray-500 truncate">{notes}</p>
               </div>
             )}
           </div>

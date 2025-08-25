@@ -1,7 +1,7 @@
 import { ApiClient } from '@/lib/api-client'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL || 'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
 export interface Demographics {
   age_range?: string | null

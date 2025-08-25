@@ -2,7 +2,8 @@ import { ApiClient } from '@/lib/api-client'
 import { CoachingSession } from '@/types/meeting'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
 export interface SessionCreateDto {
   client_id?: string
@@ -111,7 +112,7 @@ export class SessionService {
 
   static async createSession(data: SessionCreateDto): Promise<CoachingSession> {
     const response: BackendSession = await ApiClient.post(
-      `${BACKEND_URL}/sessions`,
+      `${BACKEND_URL}/sessions/`,
       data,
     )
     return transformSession(response)

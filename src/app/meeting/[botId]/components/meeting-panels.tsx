@@ -4,11 +4,12 @@ import { CoachingPanel } from '@/components/meeting/coaching-panel'
 import { ClientProfileCard } from '@/components/meeting/client-profile-card'
 import { SimilarSessionsCard } from '@/components/meeting/similar-sessions-card'
 import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
-import { cn } from '@/lib/utils'
+import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { TranscriptEntry } from '@/types/meeting'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { MessageSquare } from 'lucide-react'
+import { MeetingContextService } from '@/services/meeting-context-service'
 
 interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
@@ -22,15 +23,46 @@ export default function MeetingPanels({
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
+  const [contextLoading, setContextLoading] = useState(true)
 
-  // Get recent transcript entries (last 8 messages to prevent overflow)
-  const recentTranscript = transcript.slice(-5)
+  // Get recent transcript entries
+  const recentTranscript = transcript
 
-  // Handle WebSocket updates for context
+  // Fetch meeting context on mount and periodically
+  useEffect(() => {
+    const fetchContext = async () => {
+      try {
+        setContextLoading(true)
+        const context = await MeetingContextService.getMeetingContext(botId)
+        if (context) {
+          console.log('Meeting context fetched:', context)
+          setFullContext(context)
+          if (context.patterns) {
+            setPatterns(context.patterns)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch meeting context:', error)
+      } finally {
+        setContextLoading(false)
+      }
+    }
+
+    // Fetch immediately
+    fetchContext()
+
+    // Refresh context every 30 seconds
+    const intervalId = setInterval(fetchContext, 30000)
+
+    return () => clearInterval(intervalId)
+  }, [botId])
+
+  // Handle WebSocket updates for context (as fallback or real-time updates)
   useCoachingWebSocket(botId, {
     onMessage: message => {
       if (message.type === 'suggestions_update') {
         if (message.data.full_context) {
+          console.log('Context update from WebSocket:', message.data.full_context)
           setFullContext(message.data.full_context)
         }
       }
@@ -43,33 +75,28 @@ export default function MeetingPanels({
   })
 
   return (
-    <div
-      className={cn(
-        'grid grid-cols-1 lg:grid-cols-10 gap-4 transition-all duration-300 h-full',
-      )}
-    >
+    <div className="h-full grid grid-cols-1 lg:grid-cols-10 gap-4 overflow-hidden">
       {/* Left Column - Transcript (3/10) */}
       <div className="lg:col-span-3 h-full overflow-hidden">
-        <Card className="h-full flex flex-col bg-white shadow-sm overflow-hidden">
+        <Card className="h-full flex flex-col bg-white shadow-sm">
           <CardHeader className="pb-3 border-b bg-gray-50 flex-shrink-0">
             <CardTitle className="flex items-center gap-2 text-sm">
               <MessageSquare className="h-4 w-4 text-gray-600" />
               Recent Conversation
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-4 flex-1 min-h-0 flex flex-col overflow-hidden">
-            <div className="flex-1 overflow-y-auto">
-              <TranscriptViewer transcript={recentTranscript} compact={true} />
+          <CardContent className="p-0 flex-grow min-h-0 relative">
+            <div className="absolute inset-0 overflow-y-auto px-4 py-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <TranscriptViewer transcript={recentTranscript} compact={true} autoScroll={true} />
             </div>
-            {transcript.length > 8 && (
-              <div className="text-center py-2 mt-2 border-t flex-shrink-0">
-                <span className="text-xs text-gray-500">
-                  Showing last {recentTranscript.length} of {transcript.length}{' '}
-                  messages
-                </span>
-              </div>
-            )}
           </CardContent>
+          {transcript.length > 0 && (
+            <div className="flex-shrink-0 text-center py-2 px-4 border-t bg-gray-50">
+              <span className="text-xs text-gray-500 font-medium">
+                {transcript.length} entries
+              </span>
+            </div>
+          )}
         </Card>
       </div>
 
@@ -84,29 +111,66 @@ export default function MeetingPanels({
 
       {/* Right Column - Context (3/10) */}
       <div className="lg:col-span-3 h-full overflow-hidden">
-        <div className="h-full overflow-y-auto space-y-3 pr-2">
-          {/* Client Profile */}
-          <ClientProfileCard
-            profile={fullContext?.client_profile}
-            insights={fullContext?.insights}
-            compact={true}
-          />
+        <div className="h-full overflow-y-auto space-y-3 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {contextLoading ? (
+            <>
+              {/* Loading states for context cards */}
+              <Card className="h-auto animate-pulse">
+                <CardHeader className="pb-2 py-2">
+                  <div className="h-4 bg-gray-200 rounded w-24"></div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="h-auto animate-pulse">
+                <CardHeader className="pb-2 py-2">
+                  <div className="h-4 bg-gray-200 rounded w-32"></div>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="space-y-2">
+                    <div className="h-3 bg-gray-200 rounded w-full"></div>
+                    <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
+          ) : (
+            <>
+              {/* Client Profile */}
+              <ClientProfileCard
+                profile={fullContext?.client_profile}
+                insights={fullContext?.insights}
+                compact={true}
+              />
 
-          {/* Similar Sessions */}
-          <SimilarSessionsCard
-            sessions={fullContext?.similar_sessions || []}
-            summaries={fullContext?.session_summaries}
-            compact={true}
-          />
+              {/* Similar Sessions */}
+              <SimilarSessionsCard
+                sessions={fullContext?.similar_sessions || []}
+                summaries={fullContext?.session_summaries}
+                compact={true}
+              />
 
-          {/* Pattern Insights */}
-          <PatternInsightsCard
-            currentPatterns={patterns}
-            patternHistory={fullContext?.pattern_history}
-            recurringThemes={fullContext?.recurring_themes}
-            insights={fullContext?.insights}
-            compact={true}
-          />
+              {/* Analysis Conversations */}
+              <AnalysisConversationsCard
+                conversations={fullContext?.analysis_conversations}
+                loading={contextLoading}
+                compact={true}
+              />
+
+              {/* Pattern Insights */}
+              <PatternInsightsCard
+                currentPatterns={patterns}
+                patternHistory={fullContext?.pattern_history}
+                recurringThemes={fullContext?.recurring_themes}
+                insights={fullContext?.insights}
+                compact={true}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -26,7 +26,7 @@ export const config: Config = {
     port: parseInt(process.env.PORT || '3000', 10),
   },
   backend: {
-    url: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    url: process.env.NEXT_PUBLIC_API_URL || 'https://coach-sidekick-backend-production.up.railway.app/api/v1',
   },
   isConfigured: hasRequiredConfig,
 }

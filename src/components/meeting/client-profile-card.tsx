@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -11,7 +12,9 @@ import {
   TrendingUp,
   Award,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react'
 
 interface ClientProfile {
@@ -46,6 +49,8 @@ interface ClientProfileCardProps {
 }
 
 export function ClientProfileCard({ profile, insights, compact = false }: ClientProfileCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  
   if (!profile) {
     return (
       <Card className={compact ? "h-auto" : "h-full"}>
@@ -78,21 +83,32 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
   }
 
   return (
-    <Card className={compact ? "h-auto" : "h-full overflow-hidden"}>
-      <CardHeader className={compact ? "pb-2 py-2" : "pb-3"}>
+    <Card className="h-auto">
+      <CardHeader 
+        className={`${compact ? "pb-2 py-2" : "pb-3"} cursor-pointer hover:bg-gray-50 transition-colors`}
+        onClick={() => setIsExpanded(!isExpanded)}
+      >
         <div className="flex items-center justify-between">
           <h3 className={compact ? "text-xs font-medium flex items-center gap-1" : "text-sm font-medium flex items-center gap-2"}>
             <User className={compact ? "h-3 w-3 text-gray-500" : "h-4 w-4 text-gray-500"} />
             Client Profile
+            {profile.sessions_analyzed && (
+              <Badge variant="outline" className="text-xs">
+                {profile.sessions_analyzed} sessions
+              </Badge>
+            )}
           </h3>
-          {profile.sessions_analyzed && !compact && (
-            <Badge variant="outline" className="text-xs">
-              {profile.sessions_analyzed} sessions
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {isExpanded ? (
+              <ChevronUp className="h-3 w-3 text-gray-400" />
+            ) : (
+              <ChevronDown className="h-3 w-3 text-gray-400" />
+            )}
+          </div>
         </div>
       </CardHeader>
-      <CardContent className={compact ? "space-y-2 pt-0" : "space-y-4 overflow-y-auto max-h-[600px]"}>
+      {isExpanded && (
+        <CardContent className={compact ? "space-y-2 pt-0" : "space-y-4"}>
         {/* Journey Progress */}
         {insights?.client_journey && !compact && (
           <div className="space-y-2">
@@ -255,7 +271,8 @@ export function ClientProfileCard({ profile, insights, compact = false }: Client
             </div>
           </div>
         )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   )
 }

@@ -123,6 +123,7 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
 
   useEffect(() => {
     fetchSessionDetails()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId])
 
   return {

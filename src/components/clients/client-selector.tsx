@@ -15,11 +15,11 @@ interface ClientSelectorProps {
   allowNone?: boolean
 }
 
-export default function ClientSelector({ 
-  selectedClientId, 
-  onClientSelect, 
-  placeholder = "Search and select a client...",
-  allowNone = true
+export default function ClientSelector({
+  selectedClientId,
+  onClientSelect,
+  placeholder = 'Search and select a client...',
+  allowNone = true,
 }: ClientSelectorProps) {
   const [clients, setClients] = useState<Client[]>([])
   const [searchTerm, setSearchTerm] = useState('')
@@ -27,15 +27,12 @@ export default function ClientSelector({
   const [loading, setLoading] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-  const fetchClients = async (search: string = '') => {
+  const fetchClients = async () => {
     try {
       setLoading(true)
-      
-      const response = await ClientService.listClients({
-        search: search.trim() || undefined,
-        per_page: 20
-      })
-      
+
+      const response = await ClientService.listClients()
+
       // Use all clients since we no longer have status
       setClients(response.clients)
     } catch (error) {
@@ -62,7 +59,7 @@ export default function ClientSelector({
 
   useEffect(() => {
     if (isOpen) {
-      fetchClients(searchTerm)
+      fetchClients()
     }
   }, [isOpen, searchTerm])
 
@@ -78,7 +75,8 @@ export default function ClientSelector({
   }
 
   const getClientInitials = (name: string) => {
-    return name.split(' ')
+    return name
+      .split(' ')
       .map(word => word[0])
       .join('')
       .toUpperCase()
@@ -89,7 +87,7 @@ export default function ClientSelector({
     <div className="relative w-full">
       <div className="relative">
         {selectedClient ? (
-          <div 
+          <div
             className="w-full px-3 py-2 border border-neutral-200 rounded-md bg-white cursor-pointer hover:border-neutral-400 flex items-center justify-between"
             onClick={() => setIsOpen(!isOpen)}
           >
@@ -100,7 +98,9 @@ export default function ClientSelector({
                 </AvatarFallback>
               </Avatar>
               <div>
-                <span className="font-medium text-neutral-900">{selectedClient.name}</span>
+                <span className="font-medium text-neutral-900">
+                  {selectedClient.name}
+                </span>
                 {selectedClient.notes && (
                   <span className="text-sm text-neutral-500 ml-2 truncate max-w-[200px] inline-block align-middle">
                     {selectedClient.notes}
@@ -109,10 +109,10 @@ export default function ClientSelector({
               </div>
             </div>
             {allowNone && (
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                onClick={(e) => {
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={e => {
                   e.stopPropagation()
                   handleClientSelect(null)
                 }}
@@ -146,17 +146,19 @@ export default function ClientSelector({
               />
             </div>
           )}
-          
+
           <div className="py-1">
             {allowNone && !selectedClient && (
-              <div 
+              <div
                 className="px-3 py-2 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100"
                 onClick={() => handleClientSelect(null)}
               >
-                <span className="text-neutral-500 italic">No client selected</span>
+                <span className="text-neutral-500 italic">
+                  No client selected
+                </span>
               </div>
             )}
-            
+
             {loading ? (
               <div className="px-3 py-4 text-center text-neutral-500">
                 Loading clients...
@@ -166,8 +168,8 @@ export default function ClientSelector({
                 {searchTerm ? 'No clients found' : 'No clients available'}
               </div>
             ) : (
-              clients.map((client) => (
-                <div 
+              clients.map(client => (
+                <div
                   key={client.id}
                   className="px-3 py-2 hover:bg-neutral-50 cursor-pointer flex items-center gap-3"
                   onClick={() => handleClientSelect(client)}
@@ -179,7 +181,9 @@ export default function ClientSelector({
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-neutral-900 truncate">{client.name}</span>
+                      <span className="font-medium text-neutral-900 truncate">
+                        {client.name}
+                      </span>
                     </div>
                     {client.notes && (
                       <div className="text-sm text-neutral-500 truncate flex items-center gap-1">
@@ -196,10 +200,7 @@ export default function ClientSelector({
       )}
 
       {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)}
-        />
+        <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}
     </div>
   )
