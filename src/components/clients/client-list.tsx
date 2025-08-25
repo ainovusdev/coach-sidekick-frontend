@@ -1,63 +1,49 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client, ClientSessionStats } from '@/types/meeting'
-import { ApiClient } from '@/lib/api-client'
+import { ClientService } from '@/services/client-service'
+import ClientModal from './client-modal'
 import {
   Search,
-  Filter,
   Plus,
   Users,
   Eye,
   Edit,
-  Mail,
-  Phone,
-  Building,
   Calendar,
-  TrendingUp,
   Clock,
-  BarChart3,
-  User,
-  Grid3X3,
-  Loader2,
+  FileText,
+  ChevronRight,
 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 interface ClientWithStats extends Client {
   client_session_stats?: ClientSessionStats[]
 }
 
 export default function ClientList() {
+  const router = useRouter()
   const [clients, setClients] = useState<ClientWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [error, setError] = useState<string | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
   const fetchClients = useCallback(async () => {
     try {
       setLoading(true)
-      const params = new URLSearchParams()
-      if (statusFilter !== 'all') {
-        params.append('status', statusFilter)
-      }
-      if (searchTerm.trim()) {
-        params.append('search', searchTerm.trim())
-      }
 
-      const response = await ApiClient.get(`/api/clients?${params.toString()}`)
+      const response = await ClientService.listClients({
+        search: searchTerm.trim() || undefined,
+      })
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch clients')
-      }
-
-      const data = await response.json()
-      setClients(data.clients || [])
+      setClients(response.clients)
       setError(null)
     } catch (error) {
       console.error('Error fetching clients:', error)
@@ -65,11 +51,11 @@ export default function ClientList() {
     } finally {
       setLoading(false)
     }
-  }, [statusFilter, searchTerm])
+  }, [searchTerm])
 
   useEffect(() => {
     fetchClients()
-  }, [statusFilter, fetchClients])
+  }, [fetchClients])
 
   const handleSearch = () => {
     fetchClients()
@@ -81,6 +67,39 @@ export default function ClientList() {
     }
   }
 
+  const handleCreateClient = async (clientData: Partial<Client>) => {
+    try {
+      await ClientService.createClient({
+        name: clientData.name || '',
+        notes: clientData.notes,
+      })
+      fetchClients() // Refresh the list
+    } catch (error) {
+      console.error('Error creating client:', error)
+      throw error
+    }
+  }
+
+  const handleEditClient = async (clientData: Partial<Client>) => {
+    if (!selectedClient) return
+    
+    try {
+      await ClientService.updateClient(selectedClient.id, {
+        name: clientData.name,
+        notes: clientData.notes,
+      })
+      fetchClients() // Refresh the list
+    } catch (error) {
+      console.error('Error updating client:', error)
+      throw error
+    }
+  }
+
+  const openEditModal = (client: Client) => {
+    setSelectedClient(client)
+    setIsEditModalOpen(true)
+  }
+
   const getClientInitials = (name: string) => {
     return name
       .split(' ')
@@ -90,37 +109,8 @@ export default function ClientList() {
       .slice(0, 2)
   }
 
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'active':
-        return {
-          color: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-          icon: '🟢',
-          label: 'Active',
-        }
-      case 'inactive':
-        return {
-          color: 'bg-slate-100 text-slate-800 border-slate-200',
-          icon: '⏸️',
-          label: 'Inactive',
-        }
-      case 'archived':
-        return {
-          color: 'bg-red-100 text-red-800 border-red-200',
-          icon: '📁',
-          label: 'Archived',
-        }
-      default:
-        return {
-          color: 'bg-slate-100 text-slate-800 border-slate-200',
-          icon: '❓',
-          label: status,
-        }
-    }
-  }
-
   const formatLastSession = (dateString?: string) => {
-    if (!dateString) return 'Never'
+    if (!dateString) return 'No sessions'
     const date = new Date(dateString)
     const now = new Date()
     const diffTime = Math.abs(now.getTime() - date.getTime())
@@ -136,26 +126,19 @@ export default function ClientList() {
       <div className="space-y-6">
         {/* Header Skeleton */}
         <div className="flex justify-between items-center">
-          <div className="h-8 w-32 bg-slate-200 rounded-lg animate-pulse" />
-          <div className="h-10 w-32 bg-slate-200 rounded-lg animate-pulse" />
+          <div className="h-8 w-32 bg-neutral-100 rounded animate-pulse" />
+          <div className="h-10 w-32 bg-neutral-100 rounded animate-pulse" />
         </div>
 
-        {/* Filters Skeleton */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex gap-4">
-              <div className="flex-1 h-10 bg-slate-200 rounded-lg animate-pulse" />
-              <div className="h-10 w-24 bg-slate-200 rounded-lg animate-pulse" />
-            </div>
-          </CardContent>
-        </Card>
+        {/* Search Skeleton */}
+        <div className="h-10 bg-neutral-100 rounded animate-pulse" />
 
         {/* Grid Skeleton */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
+        <div className="space-y-4">
+          {[...Array(3)].map((_, i) => (
             <div
               key={i}
-              className="h-48 bg-slate-200 rounded-xl animate-pulse"
+              className="h-24 bg-neutral-100 rounded animate-pulse"
             />
           ))}
         </div>
@@ -164,350 +147,171 @@ export default function ClientList() {
   }
 
   return (
-    <div className="space-y-6">
-      {/* Enhanced Header */}
-      <div className="flex flex-col sm:flex-row gap-4 sm:gap-0 sm:justify-between sm:items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-            <Users className="h-8 w-8 text-blue-600" />
-            Clients
-          </h1>
-          <p className="text-slate-600 mt-1">
-            Manage your coaching clients and track their progress
-          </p>
-        </div>
-        <Link href="/clients/new">
-          <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg">
-            <Plus className="h-4 w-4 mr-2" />
-            Add New Client
-          </Button>
-        </Link>
-      </div>
-
-      {/* Enhanced Filters */}
-      <Card className="shadow-sm border-slate-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Search clients by name, email, or company..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pl-10 border-slate-200 focus:border-blue-300 focus:ring-blue-200"
-              />
-            </div>
-            <div className="flex gap-3">
-              <div className="relative">
-                <Filter className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-                <select
-                  value={statusFilter}
-                  onChange={e => setStatusFilter(e.target.value)}
-                  className="pl-10 pr-8 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300 bg-white min-w-[140px]"
-                >
-                  <option value="all">All Status</option>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                  <option value="archived">Archived</option>
-                </select>
-              </div>
-              <Button
-                onClick={handleSearch}
-                variant="outline"
-                className="border-slate-200 hover:bg-slate-50"
-              >
-                {loading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Search className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Error State */}
-      {error && (
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
-                <User className="h-4 w-4 text-red-600" />
-              </div>
-              <p className="text-red-700 font-medium">{error}</p>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Client Grid */}
-      {clients.length === 0 ? (
-        <Card className="border-slate-200">
-          <CardContent className="pt-12 pb-12 text-center">
-            <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-              <Users className="h-8 w-8 text-slate-400" />
-            </div>
-            <h3 className="text-lg font-semibold text-slate-900 mb-2">
-              {searchTerm || statusFilter !== 'all'
-                ? 'No clients found'
-                : 'No clients yet'}
-            </h3>
-            <p className="text-slate-600 mb-6 max-w-sm mx-auto">
-              {searchTerm || statusFilter !== 'all'
-                ? 'Try adjusting your search criteria or filters.'
-                : 'Add your first coaching client to get started with session tracking and insights.'}
+    <>
+      <div className="space-y-8">
+        {/* Minimal Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-semibold text-neutral-900">
+              Clients
+            </h1>
+            <p className="text-sm text-neutral-500 mt-1">
+              Manage your coaching clients
             </p>
-            {!searchTerm && statusFilter === 'all' && (
-              <Link href="/clients/new">
-                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Your First Client
-                </Button>
-              </Link>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          {/* Stats Summary */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-2">
-            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Grid3X3 className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <p className="text-xl font-bold text-blue-900">
-                      {clients.length}
-                    </p>
-                    <p className="text-xs text-blue-600">Total Clients</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 border-emerald-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <Users className="h-5 w-5 text-emerald-600" />
-                  <div>
-                    <p className="text-xl font-bold text-emerald-900">
-                      {clients.filter(c => c.status === 'active').length}
-                    </p>
-                    <p className="text-xs text-emerald-600">Active</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <BarChart3 className="h-5 w-5 text-purple-600" />
-                  <div>
-                    <p className="text-xl font-bold text-purple-900">
-                      {clients.reduce(
-                        (acc, c) =>
-                          acc +
-                          (c.client_session_stats?.[0]?.total_sessions || 0),
-                        0,
-                      )}
-                    </p>
-                    <p className="text-xs text-purple-600">Total Sessions</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <TrendingUp className="h-5 w-5 text-orange-600" />
-                  <div>
-                    <p className="text-xl font-bold text-orange-900">
-                      {Math.round(
-                        (clients.reduce(
-                          (acc, c) =>
-                            acc +
-                            (c.client_session_stats?.[0]
-                              ?.average_overall_score || 0),
-                          0,
-                        ) /
-                          Math.max(
-                            clients.filter(
-                              c =>
-                                c.client_session_stats?.[0]
-                                  ?.average_overall_score,
-                            ).length,
-                            1,
-                          )) *
-                          10,
-                      ) / 10 || '—'}
-                    </p>
-                    <p className="text-xs text-orange-600">Avg Score</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-neutral-900 hover:bg-neutral-800 text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            New Client
+          </Button>
+        </div>
 
-          {/* Client Cards Grid */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {/* Clean Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+          <Input
+            placeholder="Search clients..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            onKeyPress={handleKeyPress}
+            className="pl-10 bg-white border-neutral-200 focus:border-neutral-400 focus:ring-0"
+          />
+        </div>
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+            <p className="text-sm text-neutral-600">{error}</p>
+          </div>
+        )}
+
+        {/* Client List */}
+        {clients.length === 0 ? (
+          <Card className="border-neutral-200">
+            <CardContent className="py-16 text-center">
+              <div className="mx-auto w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+                <Users className="h-6 w-6 text-neutral-400" />
+              </div>
+              <h3 className="text-base font-medium text-neutral-900 mb-2">
+                No clients yet
+              </h3>
+              <p className="text-sm text-neutral-500 mb-6 max-w-sm mx-auto">
+                Add your first client to start tracking coaching sessions.
+              </p>
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-neutral-900 hover:bg-neutral-800 text-white"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Client
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="space-y-3">
             {clients.map(client => {
               const stats = client.client_session_stats?.[0]
-              const statusConfig = getStatusConfig(client.status)
 
               return (
                 <Card
                   key={client.id}
-                  className="hover:shadow-lg transition-all duration-200 hover:-translate-y-1 border-slate-200 group"
+                  className="border-neutral-200 hover:border-neutral-300 transition-colors cursor-pointer"
+                  onClick={() => router.push(`/clients/${client.id}`)}
                 >
                   <CardContent className="p-6">
-                    {/* Client Header */}
-                    <div className="flex items-start justify-between mb-4">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <Avatar className="h-12 w-12 ring-2 ring-white shadow-md">
-                          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold text-sm">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4 flex-1">
+                        <Avatar className="h-10 w-10 bg-neutral-100 border border-neutral-200">
+                          <AvatarFallback className="bg-white text-neutral-700 text-sm font-medium">
                             {getClientInitials(client.name)}
                           </AvatarFallback>
                         </Avatar>
 
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-lg text-slate-900 truncate mb-1">
+                          <h3 className="font-medium text-neutral-900 text-base">
                             {client.name}
                           </h3>
-                          <Badge
-                            className={`${statusConfig.color} text-xs font-medium border`}
-                          >
-                            {statusConfig.icon} {statusConfig.label}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Client Info */}
-                    <div className="space-y-2 mb-4 text-sm">
-                      {client.email && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Mail className="h-3 w-3 text-slate-400" />
-                          <span className="truncate">{client.email}</span>
-                        </div>
-                      )}
-                      {client.company && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Building className="h-3 w-3 text-slate-400" />
-                          <span className="truncate">
-                            {client.company}
-                            {client.position ? ` • ${client.position}` : ''}
-                          </span>
-                        </div>
-                      )}
-                      {client.phone && (
-                        <div className="flex items-center gap-2 text-slate-600">
-                          <Phone className="h-3 w-3 text-slate-400" />
-                          <span>{client.phone}</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Tags */}
-                    {client.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mb-4">
-                        {client.tags.slice(0, 2).map((tag, index) => (
-                          <Badge
-                            key={index}
-                            variant="outline"
-                            className="text-xs border-slate-300 text-slate-600"
-                          >
-                            {tag}
-                          </Badge>
-                        ))}
-                        {client.tags.length > 2 && (
-                          <Badge
-                            variant="outline"
-                            className="text-xs border-slate-300 text-slate-600"
-                          >
-                            +{client.tags.length - 2}
-                          </Badge>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Stats */}
-                    {stats && (
-                      <div className="grid grid-cols-2 gap-3 mb-4 p-3 bg-slate-50 rounded-lg">
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Calendar className="h-3 w-3 text-slate-400" />
-                            <span className="text-xs text-slate-500">
-                              Sessions
-                            </span>
-                          </div>
-                          <p className="font-semibold text-slate-900">
-                            {stats.total_sessions}
-                          </p>
-                        </div>
-
-                        <div className="text-center">
-                          <div className="flex items-center justify-center gap-1 mb-1">
-                            <Clock className="h-3 w-3 text-slate-400" />
-                            <span className="text-xs text-slate-500">Last</span>
-                          </div>
-                          <p className="font-semibold text-slate-900 text-xs">
-                            {formatLastSession(stats.last_session_date)}
-                          </p>
-                        </div>
-
-                        {stats.average_overall_score && (
-                          <div className="text-center col-span-2">
-                            <div className="flex items-center justify-center gap-1 mb-1">
-                              <BarChart3 className="h-3 w-3 text-slate-400" />
-                              <span className="text-xs text-slate-500">
-                                Avg Score
-                              </span>
+                          {client.notes && (
+                            <div className="flex items-center gap-1 mt-1">
+                              <FileText className="h-3 w-3 text-neutral-400" />
+                              <p className="text-sm text-neutral-500 truncate max-w-md">
+                                {client.notes}
+                              </p>
                             </div>
-                            <p className="font-semibold text-slate-900">
-                              {stats.average_overall_score.toFixed(1)}
-                            </p>
+                          )}
+                        </div>
+
+                        {/* Stats */}
+                        {stats && (
+                          <div className="hidden sm:flex items-center gap-6 text-sm text-neutral-500">
+                            <div className="flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span>{stats.total_sessions} sessions</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3.5 w-3.5" />
+                              <span>{formatLastSession(stats.last_session_date)}</span>
+                            </div>
                           </div>
                         )}
                       </div>
-                    )}
 
-                    {/* Actions */}
-                    <div className="flex gap-2">
-                      <Link href={`/clients/${client.id}`} className="flex-1">
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="w-full border-slate-200 hover:bg-slate-50 group-hover:border-blue-300"
+                          variant="ghost"
+                          className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/clients/${client.id}`)
+                          }}
                         >
-                          <Eye className="h-3 w-3 mr-2" />
-                          View
+                          <Eye className="h-4 w-4" />
                         </Button>
-                      </Link>
-                      <Link
-                        href={`/clients/${client.id}/edit`}
-                        className="flex-1"
-                      >
                         <Button
                           size="sm"
-                          variant="outline"
-                          className="w-full border-slate-200 hover:bg-slate-50 group-hover:border-purple-300"
+                          variant="ghost"
+                          className="text-neutral-600 hover:text-neutral-900 hover:bg-neutral-50"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            openEditModal(client)
+                          }}
                         >
-                          <Edit className="h-3 w-3 mr-2" />
-                          Edit
+                          <Edit className="h-4 w-4" />
                         </Button>
-                      </Link>
+                        <ChevronRight className="h-4 w-4 text-neutral-300 ml-2" />
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
               )
             })}
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+
+      {/* Create Client Modal */}
+      <ClientModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreateClient}
+        mode="create"
+      />
+
+      {/* Edit Client Modal */}
+      <ClientModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false)
+          setSelectedClient(null)
+        }}
+        onSubmit={handleEditClient}
+        client={selectedClient}
+        mode="edit"
+      />
+    </>
   )
 }

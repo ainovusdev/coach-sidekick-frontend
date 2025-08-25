@@ -2,15 +2,16 @@
 
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
-import PageLayout from '@/components/page-layout'
+import PageLayout from '@/components/layout/page-layout'
 import ClientList from '@/components/clients/client-list'
+import { LoadingState } from '@/components/ui/loading-state'
 
 export default function ClientsPage() {
-  const { user, loading: authLoading } = useAuth()
+  const { isAuthenticated, loading: authLoading } = useAuth()
   const router = useRouter()
 
   // Redirect to auth if not authenticated
-  if (!authLoading && !user) {
+  if (!authLoading && !isAuthenticated) {
     router.push('/auth')
     return null
   }
@@ -18,14 +19,7 @@ export default function ClientsPage() {
   if (authLoading) {
     return (
       <PageLayout>
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-10 w-10 border-3 border-blue-600 border-t-transparent mx-auto"></div>
-            <p className="mt-3 text-slate-600 font-medium">
-              Loading clients...
-            </p>
-          </div>
-        </div>
+        <LoadingState message="Loading clients..." />
       </PageLayout>
     )
   }

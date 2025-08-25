@@ -2,34 +2,33 @@
 
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
-import { TranscriptViewer } from '@/components/transcript-viewer'
-import { CoachingPanel } from '@/components/coaching-panel'
-import { BotStatus } from '@/components/bot-status'
-import { BatchSaveStatus } from '@/components/batch-save-status'
-import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Toast, useToast } from '@/components/ui/toast'
-import { MeetingLoading } from '@/components/meeting-loading'
-import { MeetingError } from '@/components/meeting-error'
-import { useBotData } from '@/hooks/use-bot-data'
-import { useBotActions } from '@/hooks/use-bot-actions'
-import {
-  ArrowLeft,
-  ExternalLink,
-  Users,
-  MessageSquare,
-  Brain,
-} from 'lucide-react'
+import { MeetingLoading } from '@/components/meeting/meeting-loading'
+import { MeetingError } from '@/components/meeting/meeting-error'
+import { BatchSaveStatus } from '@/components/meeting/batch-save-status'
+import { MeetingStatePanel } from '@/components/meeting/meeting-state-panel'
+import { DebugPanel } from '@/components/meeting/debug-panel'
+import { useMeetingData } from './hooks/use-meeting-data'
+import MeetingHeader from './components/meeting-header'
+import MeetingPanels from './components/meeting-panels'
 
 export default function MeetingPage() {
   const params = useParams()
   const router = useRouter()
   const botId = params.botId as string
-
-  const { bot, transcript, loading, error } = useBotData(botId)
-  const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const { toast, showToast, closeToast } = useToast()
+
+  const {
+    bot,
+    transcript,
+    loading,
+    error,
+    meetingState,
+    showDebug,
+    setShowDebug,
+    stopBot,
+    isStoppingBot,
+  } = useMeetingData({ botId })
 
   const handleStopBot = async () => {
     if (!bot) return
@@ -59,127 +58,51 @@ export default function MeetingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-      {/* Toast Notification */}
+    <div className="h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col">
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
-      {/* Top Navigation Bar */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => router.push('/')}
-                className="text-gray-600 hover:text-gray-900"
-              >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Dashboard
-              </Button>
 
-              {bot && (
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-px bg-gray-300" />
-                  <Badge variant="outline" className="font-mono text-xs">
-                    {bot.id}
-                  </Badge>
-                  <BotStatus bot={bot} onStop={handleStopBot} compact />
-                </div>
-              )}
-            </div>
+      {/* Compact Header */}
+      <MeetingHeader
+        bot={bot}
+        transcriptLength={transcript.length}
+        showDebug={showDebug}
+        isStoppingBot={isStoppingBot}
+        onToggleDebug={() => setShowDebug(!showDebug)}
+        onStopBot={handleStopBot}
+        onNavigateBack={() => router.push('/')}
+      />
 
-            {bot && (
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:flex items-center gap-4 text-sm text-gray-600">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span className="capitalize">
-                      {bot.platform || 'Unknown'}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <MessageSquare className="h-4 w-4" />
-                    <span>{transcript.length} entries</span>
-                  </div>
-                </div>
-
-                <div className="h-6 w-px bg-gray-300" />
-
-                {bot.meeting_url !== '#' && (
-                  <Button variant="outline" size="sm" asChild>
-                    <a
-                      href={bot.meeting_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Join Meeting
-                    </a>
-                  </Button>
-                )}
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={handleStopBot}
-                  disabled={bot.status === 'call_ended' || isStoppingBot}
-                >
-                  {isStoppingBot ? 'Stopping...' : 'Stop Bot'}
-                </Button>
-              </div>
-            )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3">
+          {/* Compact Meeting State */}
+          <div className="flex-shrink-0 mb-3">
+            <MeetingStatePanel state={meetingState} compact={true} />
           </div>
+
+          {/* Main Panels */}
+          <div className="flex-1 min-h-0">
+            <MeetingPanels
+              transcript={transcript}
+              botId={botId}
+              showDebug={showDebug}
+            />
+          </div>
+
+          {showDebug && bot && (
+            <div className="mt-3 flex-shrink-0">
+              <DebugPanel sessionId={bot.id} className="max-h-[300px]" />
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        {/* Section Headers */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Brain className="h-6 w-6 text-purple-600" />
-              <h1 className="text-xl font-bold text-gray-900">
-                AI Coaching Assistant
-              </h1>
-              <Badge
-                variant="secondary"
-                className="bg-purple-100 text-purple-700"
-              >
-                Real-time
-              </Badge>
-            </div>
-
-            <div className="h-6 w-px bg-gray-300" />
-
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold text-gray-900">
-                Live Transcript
-              </h2>
-              <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                {transcript.length} entries
-              </Badge>
-            </div>
-          </div>
-        </div>
-
-        {/* Batch Save Status */}
-        <div className="mb-4">
-          <BatchSaveStatus botId={botId} />
-        </div>
-
-        {/* Side by Side Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[800px]">
-          <Card className="shadow-md h-full overflow-scroll flex flex-col">
-            <CardContent className="p-6 flex-1 flex flex-col min-h-0">
-              <TranscriptViewer transcript={transcript} />
-            </CardContent>
-          </Card>
-          <div className="flex flex-col h-full">
-            <CoachingPanel botId={botId} className="shadow-lg h-full" />
-          </div>
+      {/* Bottom Save Status Bar */}
+      <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm">
+        <div className="max-w-[1600px] mx-auto px-4 py-2">
+          <BatchSaveStatus botId={botId} minimal={true} />
         </div>
       </div>
     </div>

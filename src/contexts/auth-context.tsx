@@ -1,23 +1,20 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User, Session, AuthError } from '@supabase/supabase-js'
-import { supabase } from '@/lib/supabase'
+import authService from '@/services/auth-service'
+import { useRouter } from 'next/navigation'
 
 interface AuthContextType {
-  user: User | null
-  session: Session | null
+  isAuthenticated: boolean
+  userId: string | null
   loading: boolean
   signUp: (
     email: string,
     password: string,
-  ) => Promise<{ error: AuthError | null }>
-  signIn: (
-    email: string,
-    password: string,
-  ) => Promise<{ error: AuthError | null }>
-  signOut: () => Promise<{ error: AuthError | null }>
-  resetPassword: (email: string) => Promise<{ error: AuthError | null }>
+    fullName?: string,
+  ) => Promise<{ error: Error | null }>
+  signIn: (email: string, password: string) => Promise<{ error: Error | null }>
+  signOut: () => Promise<{ error: Error | null }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -35,120 +32,89 @@ interface AuthProviderProps {
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<User | null>(null)
-  const [session, setSession] = useState<Session | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [userId, setUserId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
   useEffect(() => {
-    // Get initial session
-    const getInitialSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      setSession(session)
-      setUser(session?.user ?? null)
-      setLoading(false)
-    }
+    // Check for existing authentication on mount
+    const checkAuth = () => {
+      const authenticated = authService.isAuthenticated()
+      setIsAuthenticated(authenticated)
 
-    getInitialSession()
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-
-      // Ensure profile exists when user signs in
-      if (event === 'SIGNED_IN' && session?.user) {
-        try {
-          const { data: existingProfile } = await supabase
-            .from('profiles')
-            .select('id')
-            .eq('id', session.user.id)
-            .single()
-
-          if (!existingProfile) {
-            await supabase.from('profiles').insert({
-              id: session.user.id,
-              email: session.user.email || '',
-              full_name: session.user.email?.split('@')[0] || 'User',
-            })
-          }
-        } catch {
-          console.log('Profile already exists or handled by trigger')
-        }
+      if (authenticated) {
+        const id = authService.getUserIdFromToken()
+        setUserId(id)
       }
 
       setLoading(false)
-    })
+    }
 
-    return () => subscription.unsubscribe()
+    checkAuth()
   }, [])
 
-  const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-
-    // If signup was successful, ensure profile exists
-    if (!error && data.user) {
-      try {
-        // Check if profile already exists
-        const { data: existingProfile } = await supabase
-          .from('profiles')
-          .select('id')
-          .eq('id', data.user.id)
-          .single()
-
-        // If no profile exists, create one
-        if (!existingProfile) {
-          await supabase.from('profiles').insert({
-            id: data.user.id,
-            email: data.user.email || email,
-            full_name: email.split('@')[0],
-          })
-        }
-      } catch {
-        console.log('Profile creation handled by trigger or already exists')
+  const signUp = async (email: string, password: string, fullName?: string) => {
+    try {
+      await authService.signup({ email, password, full_name: fullName })
+      // After successful signup, user needs to login
+      return { error: null }
+    } catch (error) {
+      console.error('Sign up error:', error)
+      return {
+        error: error instanceof Error ? error : new Error('Failed to sign up'),
       }
     }
-
-    return { error }
   }
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
-    return { error }
+    try {
+      await authService.login({ email, password })
+
+      // Update auth state
+      setIsAuthenticated(true)
+      const id = authService.getUserIdFromToken()
+      setUserId(id)
+
+      // Redirect to dashboard
+      router.push('/')
+
+      return { error: null }
+    } catch (error) {
+      console.error('Sign in error:', error)
+      return {
+        error: error instanceof Error ? error : new Error('Failed to sign in'),
+      }
+    }
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    return { error }
-  }
+    try {
+      await authService.logout()
 
-  const resetPassword = async (email: string) => {
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/reset-password`,
-    })
-    return { error }
+      // Update auth state
+      setIsAuthenticated(false)
+      setUserId(null)
+
+      // Redirect to auth page
+      router.push('/auth')
+
+      return { error: null }
+    } catch (error) {
+      console.error('Sign out error:', error)
+      return {
+        error: error instanceof Error ? error : new Error('Failed to sign out'),
+      }
+    }
   }
 
   const value: AuthContextType = {
-    user,
-    session,
+    isAuthenticated,
+    userId,
     loading,
     signUp,
     signIn,
     signOut,
-    resetPassword,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

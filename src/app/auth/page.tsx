@@ -6,14 +6,14 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function AuthPage() {
-  const { user, loading } = useAuth()
+  const { isAuthenticated, loading } = useAuth()
   const router = useRouter()
 
   useEffect(() => {
-    if (user && !loading) {
+    if (isAuthenticated && !loading) {
       router.push('/')
     }
-  }, [user, loading, router])
+  }, [isAuthenticated, loading, router])
 
   if (loading) {
     return (
@@ -26,7 +26,7 @@ export default function AuthPage() {
     )
   }
 
-  if (user) {
+  if (isAuthenticated) {
     return null // Will redirect in useEffect
   }
 

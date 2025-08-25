@@ -1,60 +1,72 @@
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 
-export interface Toast {
-  id: string
+export interface ToastProps {
+  id?: string
   title?: string
   description?: string
-  action?: React.ReactNode
   variant?: 'default' | 'destructive'
+  duration?: number
 }
 
-interface ToastOptions {
-  title?: string
-  description?: string
-  action?: React.ReactNode
-  variant?: 'default' | 'destructive'
-}
-
-const toastListeners: Set<(toast: Toast) => void> = new Set()
-let toastCounter = 0
+let toastIdCounter = 0
 
 export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([])
+  const [toasts, setToasts] = useState<ToastProps[]>([])
 
-  useEffect(() => {
-    const listener = (toast: Toast) => {
-      setToasts((prev) => [...prev, toast])
-      
-      // Auto-dismiss after 5 seconds
+  const toast = useCallback((props: Omit<ToastProps, 'id'>) => {
+    const id = String(++toastIdCounter)
+    const newToast = { ...props, id }
+
+    setToasts(prev => [...prev, newToast])
+
+    // Auto dismiss after duration (default 5 seconds)
+    const duration = props.duration ?? 5000
+    if (duration > 0) {
       setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== toast.id))
-      }, 5000)
+        setToasts(prev => prev.filter(t => t.id !== id))
+      }, duration)
     }
 
-    toastListeners.add(listener)
-    return () => {
-      toastListeners.delete(listener)
-    }
+    return id
   }, [])
 
-  const toast = (options: ToastOptions) => {
-    const newToast: Toast = {
-      id: `toast-${++toastCounter}`,
-      ...options,
-    }
-
-    toastListeners.forEach((listener) => listener(newToast))
-    
-    return {
-      id: newToast.id,
-      dismiss: () => {
-        setToasts((prev) => prev.filter((t) => t.id !== newToast.id))
-      },
-    }
-  }
+  const dismiss = useCallback((toastId?: string) => {
+    setToasts(prev => {
+      if (toastId) {
+        return prev.filter(t => t.id !== toastId)
+      }
+      return []
+    })
+  }, [])
 
   return {
     toast,
     toasts,
+    dismiss,
   }
+}
+
+// Export a singleton instance for global usage
+const toastState = {
+  toasts: [] as ToastProps[],
+  listeners: new Set<(toasts: ToastProps[]) => void>(),
+}
+
+export function toast(props: Omit<ToastProps, 'id'>) {
+  const id = String(++toastIdCounter)
+  const newToast = { ...props, id }
+
+  toastState.toasts = [...toastState.toasts, newToast]
+  toastState.listeners.forEach(listener => listener(toastState.toasts))
+
+  // Auto dismiss after duration (default 5 seconds)
+  const duration = props.duration ?? 5000
+  if (duration > 0) {
+    setTimeout(() => {
+      toastState.toasts = toastState.toasts.filter(t => t.id !== id)
+      toastState.listeners.forEach(listener => listener(toastState.toasts))
+    }, duration)
+  }
+
+  return id
 }
