@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
@@ -15,7 +15,7 @@ import { ClientService } from '@/services/client-service'
 import { LoadingState } from '@/components/ui/loading-state'
 import { toast } from '@/hooks/use-toast'
 
-export default function CreateManualSessionPage() {
+function CreateManualSessionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, loading: authLoading } = useAuth()
@@ -230,5 +230,23 @@ export default function CreateManualSessionPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+// Loading fallback component
+function LoadingFallback() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <LoadingState message="Loading..." />
+    </div>
+  )
+}
+
+// Main page component with Suspense boundary
+export default function CreateManualSessionPage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <CreateManualSessionContent />
+    </Suspense>
   )
 }
