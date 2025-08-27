@@ -19,18 +19,18 @@ import { ClientPersonaModern } from './components/client-persona-modern'
 import { useClientData } from './hooks/use-client-data'
 import { getClientInitials, formatDate } from './utils/client-utils'
 import { cn } from '@/lib/utils'
-import { 
-  ArrowLeft, 
-  User, 
-  Edit, 
-  Upload, 
+import {
+  ArrowLeft,
+  User,
+  Edit,
+  Upload,
   Calendar,
   Clock,
   Activity,
   MessageSquare,
   TrendingUp,
   Brain,
-  Plus
+  Plus,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -42,9 +42,13 @@ export default function ClientDetailPage({
   const router = useRouter()
   const [clientId, setClientId] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [isManualSessionModalOpen, setIsManualSessionModalOpen] = useState(false)
+  const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
+    useState(false)
   const [showPersona, setShowPersona] = useState(false)
-  const { client, sessions, loading, error, refetch } = useClientData(clientId, userId!)
+  const { client, sessions, loading, error, refetch } = useClientData(
+    clientId,
+    userId!,
+  )
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -78,7 +82,7 @@ export default function ClientDetailPage({
             action={{
               label: 'Back to Clients',
               onClick: () => router.push('/clients'),
-              icon: ArrowLeft
+              icon: ArrowLeft,
             }}
           />
         </div>
@@ -88,8 +92,11 @@ export default function ClientDetailPage({
 
   const stats = client.client_session_stats?.[0]
   const totalSessions = sessions?.length || 0
-  const completedSessions = sessions?.filter(s => s.status === 'completed').length || 0
-  const avgDuration = stats?.total_duration_minutes ? Math.round(stats.total_duration_minutes / (stats.total_sessions || 1)) : 0
+  const completedSessions =
+    sessions?.filter(s => s.status === 'completed').length || 0
+  const avgDuration = stats?.total_duration_minutes
+    ? Math.round(stats.total_duration_minutes / (stats.total_sessions || 1))
+    : 0
 
   return (
     <PageLayout>
@@ -115,7 +122,7 @@ export default function ClientDetailPage({
                     {getClientInitials(client.name)}
                   </AvatarFallback>
                 </Avatar>
-                
+
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">
                     {client.name}
@@ -126,16 +133,25 @@ export default function ClientDetailPage({
                     </p>
                   )}
                   <div className="flex items-center gap-3 mt-2">
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
+                    >
                       <Calendar className="h-3 w-3 mr-1" />
                       Added {formatDate(client.created_at)}
                     </Badge>
-                    <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                    <Badge
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
+                    >
                       <Activity className="h-3 w-3 mr-1" />
                       {totalSessions} Sessions
                     </Badge>
                     {avgDuration > 0 && (
-                      <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                      <Badge
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-700"
+                      >
                         <Clock className="h-3 w-3 mr-1" />
                         {avgDuration.toFixed(0)}m avg
                       </Badge>
@@ -190,8 +206,12 @@ export default function ClientDetailPage({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Total Sessions</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_sessions}</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">
+                        Total Sessions
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stats.total_sessions}
+                      </p>
                     </div>
                     <div className="p-3 bg-gray-100 rounded-lg">
                       <MessageSquare className="h-5 w-5 text-gray-600" />
@@ -204,8 +224,12 @@ export default function ClientDetailPage({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Total Time</p>
-                      <p className="text-2xl font-bold text-gray-900">{stats.total_duration_minutes}m</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">
+                        Total Time
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {stats.total_duration_minutes}m
+                      </p>
                     </div>
                     <div className="p-3 bg-gray-100 rounded-lg">
                       <Clock className="h-5 w-5 text-gray-600" />
@@ -218,8 +242,12 @@ export default function ClientDetailPage({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Avg Duration</p>
-                      <p className="text-2xl font-bold text-gray-900">{avgDuration}m</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">
+                        Avg Duration
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {avgDuration}m
+                      </p>
                     </div>
                     <div className="p-3 bg-gray-100 rounded-lg">
                       <TrendingUp className="h-5 w-5 text-gray-600" />
@@ -232,8 +260,12 @@ export default function ClientDetailPage({
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs text-gray-500 uppercase tracking-wider">Completed</p>
-                      <p className="text-2xl font-bold text-gray-900">{completedSessions}</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wider">
+                        Completed
+                      </p>
+                      <p className="text-2xl font-bold text-gray-900">
+                        {completedSessions}
+                      </p>
                     </div>
                     <div className="p-3 bg-gray-100 rounded-lg">
                       <Activity className="h-5 w-5 text-gray-600" />
@@ -246,25 +278,23 @@ export default function ClientDetailPage({
         )}
 
         {/* Main Content Area */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Sessions List - Left Side */}
             <div>
               <Card className="border-gray-200 shadow-sm overflow-hidden">
-                <CardHeader className="bg-gray-50 border-b border-gray-200">
+                <CardHeader className="border-b border-gray-200">
                   <div className="flex items-center justify-between">
                     <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                       <MessageSquare className="h-5 w-5 text-gray-600" />
                       Coaching Sessions
                     </h2>
                     <Button
-                      variant="ghost"
                       size="sm"
                       onClick={() => setIsManualSessionModalOpen(true)}
-                      className="text-gray-600 hover:text-gray-900"
                     >
                       <Plus className="h-4 w-4 mr-1" />
-                      Add Session
+                      Add Past Session
                     </Button>
                   </div>
                 </CardHeader>
@@ -275,12 +305,12 @@ export default function ClientDetailPage({
                         <div
                           key={session.id}
                           className={cn(
-                            "p-4 hover:bg-gray-50 transition-colors cursor-pointer",
-                            index !== 0 && "border-t border-gray-100"
+                            'p-4 hover:bg-gray-50 transition-colors cursor-pointer',
+                            index !== 0 && 'border-t border-gray-100',
                           )}
                           onClick={() => router.push(`/sessions/${session.id}`)}
                         >
-                          <SessionCardCompact 
+                          <SessionCardCompact
                             session={session}
                             showClient={false}
                           />
@@ -291,9 +321,12 @@ export default function ClientDetailPage({
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center p-8">
                         <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-gray-900 font-medium mb-2">No sessions yet</h3>
+                        <h3 className="text-gray-900 font-medium mb-2">
+                          No sessions yet
+                        </h3>
                         <p className="text-gray-500 text-sm mb-4">
-                          Start recording your first coaching session with {client.name}
+                          Start recording your first coaching session with{' '}
+                          {client.name}
                         </p>
                         <Button
                           onClick={() => setIsManualSessionModalOpen(true)}
@@ -313,16 +346,16 @@ export default function ClientDetailPage({
             <div>
               <div className="sticky top-6">
                 <Card className="border-gray-200 shadow-sm overflow-hidden">
-                  <CardHeader className="bg-gray-50 border-b border-gray-200 py-3">
+                  <CardHeader className="border-b border-gray-200 py-3">
                     <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
                       <MessageSquare className="h-4 w-4 text-gray-600" />
                       Ask About {client.name}
                     </h2>
                   </CardHeader>
                   <CardContent className="p-0 h-[600px]">
-                    <ClientChatWidget 
-                      clientId={client.id} 
-                      clientName={client.name} 
+                    <ClientChatWidget
+                      clientId={client.id}
+                      clientName={client.name}
                     />
                   </CardContent>
                 </Card>

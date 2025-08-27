@@ -91,7 +91,42 @@ export default function SessionDetailsPage({
     loadAnalysis()
   }, [sessionData?.session?.id])
 
-  // Trigger insights analysis function
+  // Combined trigger function for both insights and coaching analysis
+  const triggerBothAnalyses = async () => {
+    if (!sessionData?.session?.id) return
+
+    setAnalyzingSession(true)
+    setAnalyzingCoaching(true)
+    
+    try {
+      // Run both analyses in parallel
+      const [newInsights, newCoaching] = await Promise.all([
+        AnalysisService.triggerInsightsAnalysis(sessionData.session.id),
+        AnalysisService.triggerCoachingAnalysis(sessionData.session.id)
+      ])
+      
+      setAnalysis(newInsights)
+      setCoachingAnalysis(newCoaching)
+      
+      toast({
+        title: 'Analysis Complete',
+        description: 'Session insights and coaching metrics have been generated successfully.',
+      })
+    } catch (error) {
+      console.error('Analysis failed:', error)
+      toast({
+        title: 'Analysis Failed',
+        description:
+          error instanceof Error ? error.message : 'Failed to analyze session',
+        variant: 'destructive',
+      })
+    } finally {
+      setAnalyzingSession(false)
+      setAnalyzingCoaching(false)
+    }
+  }
+
+  // Trigger insights analysis function (for regeneration)
   const triggerAnalysis = async () => {
     if (!sessionData?.session?.id) return
 
@@ -118,7 +153,7 @@ export default function SessionDetailsPage({
     }
   }
 
-  // Trigger coaching analysis function
+  // Trigger coaching analysis function (for regeneration)
   const triggerCoachingAnalysis = async () => {
     if (!sessionData?.session?.id) return
 
@@ -356,46 +391,23 @@ export default function SessionDetailsPage({
                     </div>
 
                     <div className="flex gap-3">
-                      {!analysis && (
-                        <Button
-                          onClick={triggerAnalysis}
-                          disabled={analyzingSession}
-                          className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
-                        >
-                          {analyzingSession ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              Generate Insights
-                            </>
-                          )}
-                        </Button>
-                      )}
-
-                      {!coachingAnalysis && (
-                        <Button
-                          onClick={triggerCoachingAnalysis}
-                          disabled={analyzingCoaching}
-                          variant="outline"
-                          className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
-                        >
-                          {analyzingCoaching ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <BarChart className="h-4 w-4 mr-2" />
-                              Analyze Coaching
-                            </>
-                          )}
-                        </Button>
-                      )}
+                      <Button
+                        onClick={triggerBothAnalyses}
+                        disabled={analyzingSession || analyzingCoaching}
+                        className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
+                      >
+                        {(analyzingSession || analyzingCoaching) ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-4 w-4 mr-2" />
+                            Generate Insights
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -481,21 +493,21 @@ export default function SessionDetailsPage({
                       </p>
                       <div className="flex gap-3 justify-center">
                         <Button
-                          onClick={triggerAnalysis}
-                          disabled={analyzingSession}
+                          onClick={triggerBothAnalyses}
+                          disabled={analyzingSession || analyzingCoaching}
                           className="bg-gray-900 hover:bg-gray-800 text-white"
                         >
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Generate Insights
-                        </Button>
-                        <Button
-                          onClick={triggerCoachingAnalysis}
-                          disabled={analyzingCoaching}
-                          variant="outline"
-                          className="border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white"
-                        >
-                          <BarChart className="h-4 w-4 mr-2" />
-                          Analyze Coaching
+                          {(analyzingSession || analyzingCoaching) ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate Insights
+                            </>
+                          )}
                         </Button>
                       </div>
                     </div>
