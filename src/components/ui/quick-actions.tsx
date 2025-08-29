@@ -14,7 +14,10 @@ interface QuickActionsProps {
   actions: QuickAction[]
 }
 
-export function QuickActions({ title = 'Quick Actions', actions }: QuickActionsProps) {
+export function QuickActions({
+  title = 'Quick Actions',
+  actions,
+}: QuickActionsProps) {
   return (
     <Card className="border-neutral-200">
       <CardHeader>

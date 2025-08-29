@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,7 +18,6 @@ import { toast } from '@/hooks/use-toast'
 function CreateManualSessionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { isAuthenticated, loading: authLoading } = useAuth()
   const [clients, setClients] = useState<any[]>([])
   const [loadingClients, setLoadingClients] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -33,15 +32,8 @@ function CreateManualSessionContent() {
   })
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/auth')
-      return
-    }
-    
-    if (isAuthenticated) {
-      loadClients()
-    }
-  }, [isAuthenticated, authLoading])
+    loadClients()
+  }, [])
 
   const loadClients = async () => {
     try {
@@ -106,7 +98,7 @@ function CreateManualSessionContent() {
     }
   }
 
-  if (authLoading || loadingClients) {
+  if (loadingClients) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
         <LoadingState 
@@ -245,8 +237,10 @@ function LoadingFallback() {
 // Main page component with Suspense boundary
 export default function CreateManualSessionPage() {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      <CreateManualSessionContent />
-    </Suspense>
+    <ProtectedRoute loadingMessage="Loading session creation...">
+      <Suspense fallback={<LoadingFallback />}>
+        <CreateManualSessionContent />
+      </Suspense>
+    </ProtectedRoute>
   )
 }

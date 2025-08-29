@@ -1,11 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context'
 import PageLayout from '@/components/layout/page-layout'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { Button } from '@/components/ui/button'
-import { LoadingState } from '@/components/ui/loading-state'
 import { PageHeader } from '@/components/ui/page-header'
 import { useSessionsData } from './hooks/use-sessions-data'
 import { calculateSessionStats } from './utils/session-stats'
@@ -15,8 +13,6 @@ import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { History, RefreshCw, Upload } from 'lucide-react'
 
 export default function SessionsHistoryPage() {
-  const router = useRouter()
-  const { isAuthenticated, loading: authLoading } = useAuth()
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] = useState(false)
   const pageSize = 12
 
@@ -40,22 +36,9 @@ export default function SessionsHistoryPage() {
   // Calculate stats
   const stats = calculateSessionStats(filteredSessions)
 
-  // Redirect to auth if not authenticated
-  if (!authLoading && !isAuthenticated) {
-    router.push('/auth')
-    return null
-  }
-
-  if (authLoading) {
-    return (
-      <PageLayout>
-        <LoadingState message="Loading sessions..." />
-      </PageLayout>
-    )
-  }
-
   return (
-    <PageLayout>
+    <ProtectedRoute loadingMessage="Loading sessions...">
+      <PageLayout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <PageHeader
           title="Session History"
@@ -127,5 +110,6 @@ export default function SessionsHistoryPage() {
         }}
       />
     </PageLayout>
+    </ProtectedRoute>
   )
 }

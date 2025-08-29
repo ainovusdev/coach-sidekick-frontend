@@ -113,46 +113,58 @@ export default function ClientModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-neutral-900">
-            {mode === 'create' ? 'New Client' : 'Edit Client'}
+      <DialogContent className="sm:max-w-md border-0 shadow-xl">
+        <DialogHeader className="pb-2">
+          <DialogTitle className="text-xl font-semibold text-gray-900">
+            {mode === 'create' ? 'Add New Client' : 'Edit Client'}
           </DialogTitle>
+          <p className="text-sm text-gray-500 mt-1">
+            {mode === 'create' 
+              ? 'Create a new client profile to track coaching sessions.' 
+              : 'Update client information and notes.'}
+          </p>
           <button
             onClick={onClose}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-white transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-neutral-400 focus:ring-offset-2 disabled:pointer-events-none"
+            className="absolute right-4 top-4 rounded-lg p-1 opacity-70 ring-offset-white transition-all hover:opacity-100 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 disabled:pointer-events-none"
           >
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </button>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-5 pt-6">
           {/* Name Field */}
           <div className="space-y-2">
             <label
               htmlFor="name"
-              className="block text-sm font-medium text-neutral-700"
+              className="block text-sm font-medium text-gray-700"
             >
-              Name
+              Client Name <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <Input
                 id="name"
                 value={formData.name}
                 onChange={e => handleFieldChange('name', e.target.value)}
-                className={`pl-10 ${
+                className={`pl-11 py-2.5 ${
                   errors.name
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                    : 'border-neutral-200 focus:border-neutral-400 focus:ring-0'
-                }`}
-                placeholder="Enter client name"
+                    : 'border-gray-200 focus:border-gray-400 focus:ring-2 focus:ring-gray-100'
+                } rounded-lg transition-all`}
+                placeholder="Enter client's full name"
                 disabled={isLoading}
               />
-              <User className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2">
+                <div className="p-1 bg-gray-100 rounded">
+                  <User className="h-3.5 w-3.5 text-gray-600" />
+                </div>
+              </div>
             </div>
             {errors.name && (
-              <p className="text-sm text-red-600">{errors.name}</p>
+              <p className="text-sm text-red-600 flex items-center gap-1">
+                <span className="inline-block w-1 h-1 bg-red-500 rounded-full"></span>
+                {errors.name}
+              </p>
             )}
           </div>
 
@@ -160,37 +172,44 @@ export default function ClientModal({
           <div className="space-y-2">
             <label
               htmlFor="notes"
-              className="block text-sm font-medium text-neutral-700"
+              className="block text-sm font-medium text-gray-700"
             >
-              Notes
+              Notes <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
             <div className="relative">
               <textarea
                 id="notes"
                 value={formData.notes}
                 onChange={e => handleFieldChange('notes', e.target.value)}
-                className="w-full px-4 py-3 pl-10 border border-neutral-200 rounded-lg focus:outline-none focus:ring-0 focus:border-neutral-400 min-h-[100px] resize-y"
-                placeholder="Add any notes about the client..."
+                className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 min-h-[120px] resize-y transition-all"
+                placeholder="Add background information, goals, or any relevant notes..."
                 disabled={isLoading}
               />
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-neutral-400" />
+              <div className="absolute left-3 top-3">
+                <div className="p-1 bg-gray-100 rounded">
+                  <FileText className="h-3.5 w-3.5 text-gray-600" />
+                </div>
+              </div>
+              <div className="absolute bottom-3 right-3 text-xs text-gray-400">
+                {formData.notes.length}/500
+              </div>
             </div>
           </div>
 
           {/* Error message */}
           {errors.submit && (
-            <div className="rounded-md bg-red-50 p-3">
-              <p className="text-sm text-red-800">{errors.submit}</p>
+            <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-800 font-medium">{errors.submit}</p>
             </div>
           )}
 
           {/* Form Actions */}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-4 border-t border-gray-100">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+              className="flex-1 border-gray-200 hover:bg-gray-50 hover:border-gray-300 text-gray-700 rounded-lg py-2.5 transition-all"
               disabled={isLoading}
             >
               Cancel
@@ -199,7 +218,7 @@ export default function ClientModal({
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 bg-neutral-900 hover:bg-neutral-800 text-white"
+              className="flex-1 bg-gray-900 hover:bg-gray-800 text-white rounded-lg py-2.5 transition-all hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
@@ -207,7 +226,9 @@ export default function ClientModal({
                   {mode === 'create' ? 'Creating...' : 'Updating...'}
                 </>
               ) : (
-                mode === 'create' ? 'Create' : 'Update'
+                <>
+                  {mode === 'create' ? 'Create Client' : 'Save Changes'}
+                </>
               )}
             </Button>
           </div>

@@ -24,21 +24,28 @@ export default function RecentSessions({
   const router = useRouter()
 
   return (
-    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <CardHeader className="bg-gray-50 border-b border-gray-200">
+    <Card className="bg-white border border-gray-200 shadow-sm hover:shadow-md transition-shadow duration-200 !py-0 !gap-0 overflow-hidden">
+      <CardHeader className="bg-gray-50 border-b border-gray-200 py-6">
         <SectionHeader
           title="Recent Sessions"
-          subtitle={totalSessions > 0 ? `Showing last ${Math.min(5, totalSessions)} of ${totalSessions} total` : undefined}
+          subtitle={
+            totalSessions > 0
+              ? `Showing last ${Math.min(
+                  5,
+                  totalSessions,
+                )} of ${totalSessions} total`
+              : undefined
+          }
         />
       </CardHeader>
-      <CardContent>
+      <CardContent className="py-6">
         {historyError && (
           <EmptyState
             icon={MessageSquare}
             title="Failed to load sessions"
             action={{
               label: 'Try Again',
-              onClick: onRefetch
+              onClick: onRefetch,
             }}
           />
         )}

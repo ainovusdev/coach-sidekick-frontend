@@ -227,22 +227,9 @@ export function useConversationAnalysis(sessionId: string) {
     setError(null)
 
     try {
-      // Get auth token
-      const authData = localStorage.getItem('supabase.auth.token')
-      let token = null
+      // Get auth token from localStorage (using the backend auth system)
+      const token = localStorage.getItem('auth_token')
       
-      if (authData) {
-        try {
-          const parsed = JSON.parse(authData)
-          token = parsed?.currentSession?.access_token || parsed?.access_token
-        } catch {
-          const tokenData = localStorage.getItem('auth_token')
-          if (tokenData) {
-            token = tokenData
-          }
-        }
-      }
-
       if (!token) {
         throw new Error('No authentication token found')
       }
