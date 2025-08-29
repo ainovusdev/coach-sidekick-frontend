@@ -16,10 +16,8 @@ import {
   Edit,
   Calendar,
   Clock,
-  FileText,
   ChevronRight,
   X,
-  Filter,
   ArrowUpDown,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -53,7 +51,7 @@ export default function ClientList() {
     } finally {
       setLoading(false)
     }
-  }, [searchTerm])
+  }, [])
 
   useEffect(() => {
     fetchClients()
@@ -125,7 +123,7 @@ export default function ClientList() {
 
   // Sort and filter clients
   const getSortedClients = () => {
-    let filtered = clients.filter(client =>
+    const filtered = clients.filter(client =>
       client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (client.notes && client.notes.toLowerCase().includes(searchTerm.toLowerCase()))
     )

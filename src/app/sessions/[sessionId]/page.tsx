@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/contexts/auth-context'
+import { ProtectedRoute } from '@/components/auth/protected-route'
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
@@ -44,7 +44,6 @@ export default function SessionDetailsPage({
   params: Promise<{ sessionId: string }>
 }) {
   const router = useRouter()
-  const { isAuthenticated, loading: authLoading } = useAuth()
   const resolvedParams = React.use(params)
 
   const { sessionData, loading, error } =
@@ -209,13 +208,7 @@ export default function SessionDetailsPage({
     }
   }
 
-  // Redirect to auth if not authenticated
-  if (!authLoading && !isAuthenticated) {
-    router.push('/auth')
-    return null
-  }
-
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <LoadingState
@@ -278,7 +271,8 @@ export default function SessionDetailsPage({
   const needsUpload = (isPendingUpload || !hasTranscripts) && !isProcessing
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+    <ProtectedRoute loadingMessage="Loading session details...">
+      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
       {/* Header */}
       <SessionHeader
         session={session}
@@ -530,6 +524,7 @@ export default function SessionDetailsPage({
         onConfirm={handleDeleteSession}
         variant="destructive"
       />
-    </div>
+      </div>
+    </ProtectedRoute>
   )
 }

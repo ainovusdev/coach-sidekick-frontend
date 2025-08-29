@@ -11,7 +11,10 @@ interface RecentClientsProps {
   clientsLoading: boolean
 }
 
-export default function RecentClients({ clients, clientsLoading }: RecentClientsProps) {
+export default function RecentClients({
+  clients,
+  clientsLoading,
+}: RecentClientsProps) {
   const router = useRouter()
 
   return (
@@ -22,7 +25,7 @@ export default function RecentClients({ clients, clientsLoading }: RecentClients
           subtitle={clients.length > 0 ? `${clients.length} active` : undefined}
           action={{
             label: 'View All',
-            onClick: () => router.push('/clients')
+            onClick: () => router.push('/clients'),
           }}
         />
       </CardHeader>
@@ -43,7 +46,7 @@ export default function RecentClients({ clients, clientsLoading }: RecentClients
             action={{
               label: 'Add Client',
               onClick: () => router.push('/clients'),
-              icon: Plus
+              icon: Plus,
             }}
           />
         ) : (

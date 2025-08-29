@@ -15,6 +15,7 @@ import {
   BookOpen,
   ChevronDown,
   AlertCircle,
+  Mic,
 } from 'lucide-react'
 import {
   chatService,
@@ -24,6 +25,7 @@ import {
 import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
+import { useSimpleVoice } from '@/hooks/use-simple-voice'
 
 interface ClientChatWidgetProps {
   clientId: string
@@ -41,8 +43,43 @@ export function ClientChatWidget({
   const [loadingStats, setLoadingStats] = useState(true)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
   const [showSources, setShowSources] = useState<{ [key: number]: boolean }>({})
+  const [voiceEnabled, setVoiceEnabled] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const lastTranscriptRef = useRef<string>('')
+
+  // Initialize simple voice
+  const {
+    isListening,
+    isSpeaking,
+    transcript,
+    interimTranscript,
+    startListening,
+    stopListening,
+    speak,
+    stopSpeaking,
+    isSupported: isVoiceSupported,
+    fullTranscript
+  } = useSimpleVoice()
+
+  // Handle voice transcript updates
+  useEffect(() => {
+    if (voiceEnabled && transcript && transcript !== lastTranscriptRef.current) {
+      setInput(fullTranscript)
+      lastTranscriptRef.current = transcript
+    }
+  }, [transcript, fullTranscript, voiceEnabled])
+
+  // Auto-send when stop listening with content
+  useEffect(() => {
+    if (!isListening && voiceEnabled && transcript.trim() && lastTranscriptRef.current) {
+      const finalText = transcript.trim()
+      setInput('')
+      lastTranscriptRef.current = ''
+      handleSend(finalText)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isListening, voiceEnabled, transcript])
 
   useEffect(() => {
     fetchStats()
@@ -70,10 +107,11 @@ export function ClientChatWidget({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return
+  const handleSend = async (messageText?: string) => {
+    const textToSend = messageText || input.trim()
+    if (!textToSend || isLoading) return
 
-    const userMessage: ChatMessage = { role: 'user', content: input.trim() }
+    const userMessage: ChatMessage = { role: 'user', content: textToSend }
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
@@ -96,6 +134,11 @@ export function ClientChatWidget({
       }
 
       setMessages(prev => [...prev, assistantMessage])
+
+      // Text-to-speech for the response if voice is enabled
+      if (voiceEnabled && response.answer) {
+        speak(response.answer)
+      }
 
       if (
         response.suggested_questions &&
@@ -145,6 +188,51 @@ export function ClientChatWidget({
     }
   }
 
+  // Handle keyboard shortcuts for voice
+  useEffect(() => {
+    if (!voiceEnabled) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Space for push-to-talk (when not typing)
+      if (e.code === 'Space' && document.activeElement !== inputRef.current) {
+        e.preventDefault()
+        if (!isListening) {
+          startListening()
+        }
+      }
+      // Escape to stop speaking
+      if (e.code === 'Escape') {
+        stopSpeaking()
+      }
+    }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      // Release space to stop listening
+      if (e.code === 'Space' && document.activeElement !== inputRef.current) {
+        e.preventDefault()
+        if (isListening) {
+          stopListening()
+        }
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [voiceEnabled, isListening, startListening, stopListening, stopSpeaking])
+
+  const handleToggleVoice = () => {
+    setVoiceEnabled(!voiceEnabled)
+    if (isListening) {
+      stopListening()
+    }
+    stopSpeaking()
+  }
+
   if (loadingStats) {
     return (
       <div className="flex flex-col h-full">
@@ -192,14 +280,31 @@ export function ClientChatWidget({
               </span>
             </div>
           </div>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setMessages([])}
-            className="h-7 px-2 text-gray-500 hover:text-gray-700"
-          >
-            <RotateCw className="h-3 w-3" />
-          </Button>
+          <div className="flex items-center gap-2">
+            {isVoiceSupported && (
+              <Button
+                size="sm"
+                variant={voiceEnabled ? "default" : "ghost"}
+                onClick={handleToggleVoice}
+                className={cn(
+                  "h-7 px-2",
+                  voiceEnabled 
+                    ? "bg-gray-900 text-white hover:bg-gray-800" 
+                    : "text-gray-500 hover:text-gray-700"
+                )}
+              >
+                {voiceEnabled ? "Voice On" : "Voice Off"}
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setMessages([])}
+              className="h-7 px-2 text-gray-500 hover:text-gray-700"
+            >
+              <RotateCw className="h-3 w-3" />
+            </Button>
+          </div>
         </div>
         {stats.top_topics.length > 0 && (
           <div className="flex gap-1 mt-2 flex-wrap">
@@ -445,20 +550,71 @@ export function ClientChatWidget({
 
       {/* Input Area */}
       <div className="border-t border-gray-200 p-3 bg-white">
+        {/* Voice Controls */}
+        {voiceEnabled && (
+          <div className="mb-2 flex items-center gap-2">
+            <Button
+              size="sm"
+              onClick={() => isListening ? stopListening() : startListening()}
+              className={cn(
+                "gap-2",
+                isListening 
+                  ? "bg-red-500 hover:bg-red-600 text-white" 
+                  : "bg-gray-900 hover:bg-gray-800 text-white"
+              )}
+            >
+              {isListening ? (
+                <>
+                  <div className="h-3 w-3 rounded-full bg-white animate-pulse" />
+                  Stop Recording
+                </>
+              ) : (
+                <>
+                  <Mic className="h-4 w-4" />
+                  Start Recording
+                </>
+              )}
+            </Button>
+            
+            {isSpeaking && (
+              <Button
+                size="sm"
+                onClick={stopSpeaking}
+                className="gap-2 bg-orange-500 hover:bg-orange-600 text-white"
+              >
+                <div className="h-3 w-3 rounded-full bg-white animate-pulse" />
+                Stop Speaking
+              </Button>
+            )}
+            
+            {isListening && interimTranscript && (
+              <span className="text-sm text-gray-500 italic">
+                {interimTranscript}
+              </span>
+            )}
+            
+            {isSpeaking && !isListening && (
+              <span className="text-sm text-orange-600 font-medium animate-pulse">
+                AI is speaking...
+              </span>
+            )}
+          </div>
+        )}
+        
         <div className="flex gap-2 items-center">
           <textarea
             ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Ask about ${clientName || 'this client'}...`}
+            placeholder={voiceEnabled ? `Speak or type to ask about ${clientName || 'this client'}...` : `Ask about ${clientName || 'this client'}...`}
             className="flex-1 min-h-[36px] max-h-[80px] px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder:text-gray-400"
-            disabled={isLoading}
+            disabled={isLoading || isListening}
             rows={2}
           />
           <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
+            onClick={() => handleSend()}
+            disabled={!input.trim() || isLoading || isListening}
             size="sm"
             className="bg-gray-900 hover:bg-gray-800 text-white h-9 w-9 p-0"
           >
@@ -470,7 +626,9 @@ export function ClientChatWidget({
           </Button>
         </div>
         <p className="text-xs text-gray-400 mt-1.5">
-          Press Enter to send • Shift+Enter for new line
+          {voiceEnabled 
+            ? "Hold Space to talk • Enter to send text • Esc to stop AI speaking"
+            : "Press Enter to send • Shift+Enter for new line"}
         </p>
       </div>
     </div>
