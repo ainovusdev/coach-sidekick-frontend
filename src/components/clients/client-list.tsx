@@ -19,8 +19,10 @@ import {
   ChevronRight,
   X,
   ArrowUpDown,
+  Info,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { usePermissions } from '@/contexts/permission-context'
 
 interface ClientWithStats extends Client {
   client_session_stats?: ClientSessionStats[]
@@ -28,6 +30,8 @@ interface ClientWithStats extends Client {
 
 export default function ClientList() {
   const router = useRouter()
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
   const [clients, setClients] = useState<ClientWithStats[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -213,17 +217,36 @@ export default function ClientList() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
               <p className="text-base text-gray-500 mt-2">
-                Manage and track your coaching relationships
+                {isViewer ? 'View assigned clients and their information' : 'Manage and track your coaching relationships'}
               </p>
             </div>
-            <Button
-              onClick={() => setIsCreateModalOpen(true)}
-              className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-5 py-2.5 transition-all hover:shadow-lg"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Client
-            </Button>
+            {!isViewer && (
+              <Button
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-5 py-2.5 transition-all hover:shadow-lg"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Client
+              </Button>
+            )}
           </div>
+          
+          {/* Viewer Notice */}
+          {isViewer && (
+            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-blue-900">
+                    Viewer Access
+                  </p>
+                  <p className="text-sm text-blue-700 mt-1">
+                    You have read-only access to these assigned clients. Contact your administrator to modify access levels.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Stats Bar */}
           <div className="grid grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-100">
@@ -368,15 +391,19 @@ export default function ClientList() {
                 Welcome to Your Client Hub
               </h3>
               <p className="text-base text-gray-500 mb-8 max-w-md mx-auto">
-                Start building meaningful coaching relationships. Add your first client to begin tracking sessions and progress.
+                {isViewer 
+                  ? 'No clients have been assigned to you yet. Contact your administrator for access.'
+                  : 'Start building meaningful coaching relationships. Add your first client to begin tracking sessions and progress.'}
               </p>
-              <Button
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6 py-3 transition-all hover:shadow-lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Add Your First Client
-              </Button>
+              {!isViewer && (
+                <Button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  className="bg-gray-900 hover:bg-gray-800 text-white rounded-lg px-6 py-3 transition-all hover:shadow-lg"
+                >
+                  <Plus className="h-5 w-5 mr-2" />
+                  Add Your First Client
+                </Button>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -476,17 +503,19 @@ export default function ClientList() {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                              onClick={e => {
-                                e.stopPropagation()
-                                openEditModal(client)
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
+                            {!isViewer && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  openEditModal(client)
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
                             <div className="ml-2 transform group-hover:translate-x-1 transition-transform">
                               <ChevronRight className="h-5 w-5 text-gray-400" />
                             </div>

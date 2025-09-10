@@ -17,5 +17,5 @@ export function useWebSocketEvent(
   useEffect(() => {
     const unsubscribe = on(event, handler)
     return unsubscribe
-  }, deps ? [event, ...deps] : [event])
+  }, deps ? [event, ...deps] : [event]) // eslint-disable-line react-hooks/exhaustive-deps
 }

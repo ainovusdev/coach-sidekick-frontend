@@ -2,14 +2,17 @@
 
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
+import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
-import { BarChart3, UserCheck, History, Sparkles } from 'lucide-react'
+import { BarChart3, UserCheck, History, Sparkles, Shield } from 'lucide-react'
 import Image from 'next/image'
+import { Button } from '@/components/ui/button'
 
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, hasAnyRole } = useAuth()
+  const permissions = usePermissions()
 
   const isActivePath = (path: string) => {
     if (path === '/' && pathname === '/') return true
@@ -17,11 +20,17 @@ export default function Navigation() {
     return false
   }
 
-  const navItems = [
-    { path: '/', label: 'Dashboard', icon: BarChart3 },
-    { path: '/clients', label: 'Clients', icon: UserCheck },
-    { path: '/sessions', label: 'Sessions', icon: History },
+  // Filter navigation items based on permissions
+  const allNavItems = [
+    { path: '/', label: 'Dashboard', icon: BarChart3, permission: null },
+    { path: '/clients', label: 'Clients', icon: UserCheck, permission: { resource: 'clients', action: 'view' } },
+    { path: '/sessions', label: 'Sessions', icon: History, permission: { resource: 'sessions', action: 'view' } },
   ]
+  
+  const navItems = allNavItems.filter(item => {
+    if (!item.permission) return true
+    return permissions.hasPermission(item.permission.resource as any, item.permission.action as any)
+  })
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -93,17 +102,32 @@ export default function Navigation() {
           {/* Right Section */}
           <div className="flex items-center gap-4">
             {isAuthenticated && (
-              <div className="hidden lg:flex items-center">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
-                  <div className="relative">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+              <>
+                <div className="hidden lg:flex items-center">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                    <div className="relative">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+                    </div>
+                    <span className="text-sm font-medium text-gray-700">
+                      Active
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-gray-700">
-                    Active
-                  </span>
                 </div>
-              </div>
+
+                {/* Admin Button - Only show for admin and super_admin roles */}
+                {hasAnyRole(['admin', 'super_admin']) && (
+                  <Button
+                    onClick={() => router.push('/admin/dashboard')}
+                    variant={pathname.startsWith('/admin') ? 'default' : 'outline'}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Shield className="h-4 w-4" />
+                    <span className="hidden sm:inline">Admin</span>
+                  </Button>
+                )}
+              </>
             )}
 
             <UserNav />

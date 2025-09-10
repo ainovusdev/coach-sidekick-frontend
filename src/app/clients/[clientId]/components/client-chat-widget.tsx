@@ -16,6 +16,9 @@ import {
   ChevronDown,
   AlertCircle,
   Mic,
+  Brain,
+  Zap,
+  Database,
 } from 'lucide-react'
 import {
   chatService,
@@ -26,6 +29,15 @@ import { cn } from '@/lib/utils'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useSimpleVoice } from '@/hooks/use-simple-voice'
+import {
+  AIProviderSelector,
+  type AIProvider,
+} from '@/components/ui/ai-provider-selector'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 
 interface ClientChatWidgetProps {
   clientId: string
@@ -44,6 +56,8 @@ export function ClientChatWidget({
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
   const [showSources, setShowSources] = useState<{ [key: number]: boolean }>({})
   const [voiceEnabled, setVoiceEnabled] = useState(false)
+  const [selectedProvider, setSelectedProvider] = useState<AIProvider>('openai')
+  const [showProviderSettings, setShowProviderSettings] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const lastTranscriptRef = useRef<string>('')
@@ -59,12 +73,16 @@ export function ClientChatWidget({
     speak,
     stopSpeaking,
     isSupported: isVoiceSupported,
-    fullTranscript
+    fullTranscript,
   } = useSimpleVoice()
 
   // Handle voice transcript updates
   useEffect(() => {
-    if (voiceEnabled && transcript && transcript !== lastTranscriptRef.current) {
+    if (
+      voiceEnabled &&
+      transcript &&
+      transcript !== lastTranscriptRef.current
+    ) {
       setInput(fullTranscript)
       lastTranscriptRef.current = transcript
     }
@@ -72,7 +90,12 @@ export function ClientChatWidget({
 
   // Auto-send when stop listening with content
   useEffect(() => {
-    if (!isListening && voiceEnabled && transcript.trim() && lastTranscriptRef.current) {
+    if (
+      !isListening &&
+      voiceEnabled &&
+      transcript.trim() &&
+      lastTranscriptRef.current
+    ) {
       const finalText = transcript.trim()
       setInput('')
       lastTranscriptRef.current = ''
@@ -121,16 +144,19 @@ export function ClientChatWidget({
         clientId,
         userMessage.content,
         messages,
+        selectedProvider,
       )
 
       const assistantMessage: ChatMessage & {
         sources?: any[]
         confidence?: string
+        provider?: string
       } = {
         role: 'assistant',
         content: response.answer,
         sources: response.sources,
         confidence: response.confidence,
+        provider: response.provider,
       }
 
       setMessages(prev => [...prev, assistantMessage])
@@ -263,72 +289,139 @@ export function ClientChatWidget({
   }
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="px-4 -mt-4 pb-3 border-b border-gray-100 bg-gray-50/50">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4 text-xs">
-            <div>
-              <span className="text-gray-500">Sessions:</span>
-              <span className="ml-1 font-semibold text-gray-900">
-                {stats.unique_sessions}
-              </span>
+    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {/* Modern Header */}
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+        <div className="px-5 py-4">
+          {/* Title Row */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-200">
+                <MessageSquare className="h-5 w-5 text-gray-700" />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">
+                  {clientName ? `Chat with ${clientName}'s AI` : 'AI Assistant'}
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Powered by your coaching session insights
+                </p>
+              </div>
             </div>
-            <div>
-              <span className="text-gray-500">Knowledge:</span>
-              <span className="ml-1 font-semibold text-gray-900">
-                {stats.total_chunks}
-              </span>
-            </div>
+            
+            {/* AI Provider Selector - Modern Style */}
+            <Popover
+              open={showProviderSettings}
+              onOpenChange={setShowProviderSettings}
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 px-3 bg-white hover:bg-gray-50 border-gray-200 shadow-sm"
+                >
+                  {selectedProvider === 'openai' && <Brain className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
+                  {selectedProvider === 'gemini' && <Sparkles className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
+                  {selectedProvider === 'claude' && <Zap className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
+                  <span className="text-sm font-medium capitalize text-gray-700">{selectedProvider}</span>
+                  <ChevronDown className="h-3 w-3 ml-1.5 text-gray-400" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80 p-4" align="end">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="text-sm font-semibold text-gray-900">AI Model</h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Choose which AI model to power your conversations
+                    </p>
+                  </div>
+                  <AIProviderSelector
+                    value={selectedProvider}
+                    onChange={provider => {
+                      setSelectedProvider(provider)
+                      setShowProviderSettings(false)
+                    }}
+                    variant="radio"
+                  />
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
-          <div className="flex items-center gap-2">
-            {isVoiceSupported && (
+
+          {/* Stats Bar - Modern Pills */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
+                <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
+                <span className="text-xs font-medium text-gray-700">{stats.unique_sessions} sessions</span>
+              </div>
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
+                <Database className="h-3 w-3 text-gray-500" />
+                <span className="text-xs font-medium text-gray-700">{stats.total_chunks} insights</span>
+              </div>
+              {stats.top_topics.length > 0 && (
+                <div className="hidden sm:flex items-center gap-1 ml-2">
+                  {stats.top_topics.slice(0, 2).map((topic, idx) => (
+                    <Badge
+                      key={idx}
+                      variant="secondary"
+                      className="text-xs bg-gray-100 text-gray-600 border-0 font-normal"
+                    >
+                      {topic.topic}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Action Buttons - Refined */}
+            <div className="flex items-center gap-1">
+              {isVoiceSupported && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleToggleVoice}
+                  className={cn(
+                    'h-8 px-2.5 rounded-lg transition-all',
+                    voiceEnabled
+                      ? 'bg-gray-900 text-white hover:bg-gray-800'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+                  )}
+                >
+                  <Mic className="h-3.5 w-3.5 mr-1.5" />
+                  <span className="text-xs font-medium">
+                    {voiceEnabled ? 'On' : 'Off'}
+                  </span>
+                </Button>
+              )}
               <Button
                 size="sm"
-                variant={voiceEnabled ? "default" : "ghost"}
-                onClick={handleToggleVoice}
-                className={cn(
-                  "h-7 px-2",
-                  voiceEnabled 
-                    ? "bg-gray-900 text-white hover:bg-gray-800" 
-                    : "text-gray-500 hover:text-gray-700"
-                )}
+                variant="ghost"
+                onClick={() => setMessages([])}
+                className="h-8 w-8 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                title="Clear chat"
               >
-                {voiceEnabled ? "Voice On" : "Voice Off"}
+                <RotateCw className="h-3.5 w-3.5" />
               </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setMessages([])}
-              className="h-7 px-2 text-gray-500 hover:text-gray-700"
-            >
-              <RotateCw className="h-3 w-3" />
-            </Button>
+            </div>
           </div>
         </div>
-        {stats.top_topics.length > 0 && (
-          <div className="flex gap-1 mt-2 flex-wrap">
-            {stats.top_topics.slice(0, 3).map((topic, idx) => (
-              <Badge
-                key={idx}
-                className="text-xs bg-white border-gray-200 text-gray-600 py-0"
-              >
-                {topic.topic}
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Messages Area */}
-      <ScrollArea className="flex-1">
-        <div className="p-4 space-y-4">
+      {/* Messages Area - Clean Background */}
+      <ScrollArea className="flex-1 bg-gray-50/50">
+        <div className="p-5 space-y-4">
           {messages.length === 0 ? (
             <div>
-              <div className="text-center py-4">
-                <Bot className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-600 mb-4">
-                  Ask me about {clientName || 'this client'}
+              <div className="text-center py-8">
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mx-auto mb-4 flex items-center justify-center shadow-sm">
+                  <Bot className="h-7 w-7 text-gray-600" />
+                </div>
+                <p className="text-sm font-medium text-gray-900 mb-1">
+                  Ready to assist you
+                </p>
+                <p className="text-xs text-gray-500">
+                  Ask me anything about {clientName || 'your client'}
                 </p>
               </div>
 
@@ -342,11 +435,13 @@ export function ClientChatWidget({
                     <button
                       key={idx}
                       onClick={() => handleSuggestedQuestion(question)}
-                      className="w-full text-left p-2.5 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all group"
+                      className="w-full text-left p-3 rounded-lg bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
                     >
-                      <div className="flex items-start gap-2">
-                        <Sparkles className="h-3.5 w-3.5 text-gray-400 mt-0.5 flex-shrink-0 group-hover:text-gray-600" />
-                        <span className="text-xs text-gray-700 leading-relaxed">
+                      <div className="flex items-start gap-2.5">
+                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
+                          <Sparkles className="h-3 w-3 text-gray-600" />
+                        </div>
+                        <span className="text-xs text-gray-700 leading-relaxed font-medium">
                           {question}
                         </span>
                       </div>
@@ -371,8 +466,8 @@ export function ClientChatWidget({
                   >
                     {isAssistant && (
                       <div className="flex-shrink-0">
-                        <div className="h-7 w-7 rounded-lg bg-gray-100 flex items-center justify-center">
-                          <Bot className="h-4 w-4 text-gray-600" />
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm">
+                          <Bot className="h-4 w-4 text-gray-700" />
                         </div>
                       </div>
                     )}
@@ -385,10 +480,10 @@ export function ClientChatWidget({
                     >
                       <div
                         className={cn(
-                          'rounded-lg px-3 py-2',
+                          'rounded-lg px-3.5 py-2.5 shadow-sm',
                           isAssistant
-                            ? 'bg-gray-50 text-gray-900 border border-gray-200'
-                            : 'bg-gray-900 text-white',
+                            ? 'bg-white text-gray-900 border border-gray-200'
+                            : 'bg-gray-900 text-white border border-gray-800',
                         )}
                       >
                         {isAssistant ? (
@@ -503,17 +598,32 @@ export function ClientChatWidget({
                               </div>
                             )}
 
-                            {messageData.confidence && (
-                              <div
-                                className={cn(
-                                  'inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border',
-                                  getConfidenceColor(messageData.confidence),
+                            {(messageData.confidence ||
+                              messageData.provider) && (
+                              <div className="flex items-center gap-2">
+                                {messageData.confidence && (
+                                  <div
+                                    className={cn(
+                                      'inline-flex items-center gap-1 text-xs px-2 py-1 rounded-md border',
+                                      getConfidenceColor(
+                                        messageData.confidence,
+                                      ),
+                                    )}
+                                  >
+                                    <AlertCircle className="h-3 w-3" />
+                                    <span className="font-medium capitalize">
+                                      {messageData.confidence} confidence
+                                    </span>
+                                  </div>
                                 )}
-                              >
-                                <AlertCircle className="h-3 w-3" />
-                                <span className="font-medium capitalize">
-                                  {messageData.confidence} confidence
-                                </span>
+                                {messageData.provider && (
+                                  <Badge
+                                    variant="outline"
+                                    className="text-xs capitalize bg-white border-gray-200 text-gray-600 py-0"
+                                  >
+                                    {messageData.provider}
+                                  </Badge>
+                                )}
                               </div>
                             )}
                           </div>
@@ -522,7 +632,7 @@ export function ClientChatWidget({
 
                     {!isAssistant && (
                       <div className="flex-shrink-0">
-                        <div className="h-7 w-7 rounded-lg bg-gray-900 flex items-center justify-center">
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shadow-sm">
                           <User className="h-4 w-4 text-white" />
                         </div>
                       </div>
@@ -533,11 +643,12 @@ export function ClientChatWidget({
 
               {isLoading && (
                 <div className="flex gap-2 justify-start">
-                  <div className="h-7 w-7 rounded-lg bg-gray-100 flex items-center justify-center">
-                    <Bot className="h-4 w-4 text-gray-600" />
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm">
+                    <Bot className="h-4 w-4 text-gray-700" />
                   </div>
-                  <div className="bg-gray-50 rounded-lg px-3 py-2 border border-gray-200">
+                  <div className="bg-white rounded-lg px-4 py-3 border border-gray-200 shadow-sm flex items-center gap-2">
                     <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-600" />
+                    <span className="text-xs text-gray-500">Thinking...</span>
                   </div>
                 </div>
               )}
@@ -548,19 +659,19 @@ export function ClientChatWidget({
         </div>
       </ScrollArea>
 
-      {/* Input Area */}
-      <div className="border-t border-gray-200 p-3 bg-white">
+      {/* Input Area - Modern Style */}
+      <div className="border-t border-gray-200 p-4 bg-gradient-to-b from-white to-gray-50">
         {/* Voice Controls */}
         {voiceEnabled && (
           <div className="mb-2 flex items-center gap-2">
             <Button
               size="sm"
-              onClick={() => isListening ? stopListening() : startListening()}
+              onClick={() => (isListening ? stopListening() : startListening())}
               className={cn(
-                "gap-2",
-                isListening 
-                  ? "bg-red-500 hover:bg-red-600 text-white" 
-                  : "bg-gray-900 hover:bg-gray-800 text-white"
+                'gap-2',
+                isListening
+                  ? 'bg-red-500 hover:bg-red-600 text-white'
+                  : 'bg-gray-900 hover:bg-gray-800 text-white',
               )}
             >
               {isListening ? (
@@ -575,7 +686,7 @@ export function ClientChatWidget({
                 </>
               )}
             </Button>
-            
+
             {isSpeaking && (
               <Button
                 size="sm"
@@ -586,13 +697,13 @@ export function ClientChatWidget({
                 Stop Speaking
               </Button>
             )}
-            
+
             {isListening && interimTranscript && (
               <span className="text-sm text-gray-500 italic">
                 {interimTranscript}
               </span>
             )}
-            
+
             {isSpeaking && !isListening && (
               <span className="text-sm text-orange-600 font-medium animate-pulse">
                 AI is speaking...
@@ -600,36 +711,47 @@ export function ClientChatWidget({
             )}
           </div>
         )}
-        
-        <div className="flex gap-2 items-center">
+
+        <div className="relative">
           <textarea
             ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={voiceEnabled ? `Speak or type to ask about ${clientName || 'this client'}...` : `Ask about ${clientName || 'this client'}...`}
-            className="flex-1 min-h-[36px] max-h-[80px] px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent placeholder:text-gray-400"
+            placeholder={
+              voiceEnabled
+                ? `Speak or type to ask about ${clientName || 'this client'}...`
+                : `Ask about ${clientName || 'this client'}...`
+            }
+            className="w-full min-h-[44px] max-h-[120px] pl-4 pr-12 py-3 text-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400 bg-white shadow-sm"
             disabled={isLoading || isListening}
-            rows={2}
+            rows={1}
           />
           <Button
             onClick={() => handleSend()}
             disabled={!input.trim() || isLoading || isListening}
             size="sm"
-            className="bg-gray-900 hover:bg-gray-800 text-white h-9 w-9 p-0"
+            className="absolute right-2 bottom-2 bg-gray-900 hover:bg-gray-800 text-white h-8 w-8 p-0 rounded-lg shadow-sm transition-all disabled:opacity-50"
           >
             {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Send className="h-4 w-4" />
+              <Send className="h-3.5 w-3.5" />
             )}
           </Button>
         </div>
-        <p className="text-xs text-gray-400 mt-1.5">
-          {voiceEnabled 
-            ? "Hold Space to talk • Enter to send text • Esc to stop AI speaking"
-            : "Press Enter to send • Shift+Enter for new line"}
-        </p>
+        <div className="flex items-center justify-between mt-2">
+          <p className="text-xs text-gray-500">
+            {voiceEnabled
+              ? 'Hold Space to talk • Esc to stop AI'
+              : 'Enter to send • Shift+Enter for new line'}
+          </p>
+          {messages.length > 0 && (
+            <span className="text-xs text-gray-400">
+              {messages.length} messages
+            </span>
+          )}
+        </div>
       </div>
     </div>
   )

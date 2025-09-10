@@ -9,6 +9,8 @@ import {
   Users,
   MessageSquare,
   Bug,
+  Pause,
+  Play,
 } from 'lucide-react'
 
 interface MeetingHeaderProps {
@@ -16,8 +18,10 @@ interface MeetingHeaderProps {
   transcriptLength: number
   showDebug: boolean
   isStoppingBot: boolean
+  isPaused: boolean
   onToggleDebug: () => void
   onStopBot: () => void
+  onPauseResume: () => void
   onNavigateBack: () => void
 }
 
@@ -26,8 +30,10 @@ export default function MeetingHeader({
   transcriptLength,
   showDebug,
   isStoppingBot,
+  isPaused,
   onToggleDebug,
   onStopBot,
+  onPauseResume,
   onNavigateBack,
 }: MeetingHeaderProps) {
   return (
@@ -96,6 +102,27 @@ export default function MeetingHeader({
                   </a>
                 </Button>
               )}
+              
+              <Button
+                variant={isPaused ? 'default' : 'outline'}
+                size="sm"
+                onClick={onPauseResume}
+                disabled={bot.status === 'call_ended' || isStoppingBot}
+                className={isPaused ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
+              >
+                {isPaused ? (
+                  <>
+                    <Play className="h-4 w-4 mr-2" />
+                    Resume
+                  </>
+                ) : (
+                  <>
+                    <Pause className="h-4 w-4 mr-2" />
+                    Pause
+                  </>
+                )}
+              </Button>
+
               <Button
                 variant="destructive"
                 size="sm"

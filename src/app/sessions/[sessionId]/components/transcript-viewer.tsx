@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { MessageSquare, Bot, User } from 'lucide-react'
+import { MessageSquare, Bot, User, Lock } from 'lucide-react'
 import { format } from 'date-fns'
+import { usePermissions } from '@/contexts/permission-context'
 
 interface TranscriptEntry {
   id: string
@@ -18,6 +19,51 @@ interface TranscriptViewerProps {
 }
 
 export default function TranscriptViewer({ transcript }: TranscriptViewerProps) {
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
+  
+  // Viewers cannot see transcript content
+  if (isViewer) {
+    return (
+      <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200">
+        <CardHeader className="bg-gray-50 border-b border-gray-200">
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="p-2 bg-gray-400 rounded-lg text-white">
+                <Lock className="h-5 w-5" />
+              </div>
+              <span className="text-lg font-bold text-gray-700">
+                Meeting Transcript
+              </span>
+            </div>
+            <Badge
+              variant="secondary"
+              className="bg-gray-200 text-gray-600 border-gray-300"
+            >
+              Restricted
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-16 text-gray-500">
+            <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Lock className="h-10 w-10 text-gray-400" />
+            </div>
+            <p className="text-lg font-medium text-gray-600">
+              Transcript Access Restricted
+            </p>
+            <p className="text-sm text-gray-500 mt-2">
+              You do not have permission to view session transcripts.
+            </p>
+            <p className="text-xs text-gray-400 mt-4">
+              Contact your administrator for access.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+  
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200">
       <CardHeader className="bg-gray-50 border-b border-gray-200">

@@ -33,7 +33,7 @@ function CreateManualSessionContent() {
 
   useEffect(() => {
     loadClients()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadClients = async () => {
     try {

@@ -12,6 +12,7 @@ export interface ChatMessage {
 export interface ChatRequest {
   question: string
   conversation_history?: ChatMessage[]
+  provider?: 'openai' | 'gemini' | 'claude'  // AI provider to use
 }
 
 export interface ChatSource {
@@ -31,6 +32,7 @@ export interface ChatResponse {
   confidence: 'high' | 'medium' | 'low'
   topics?: string[]
   suggested_questions?: string[]
+  provider?: string  // AI provider that was used
 }
 
 export interface ChatStats {
@@ -55,14 +57,16 @@ class ChatService {
   async askQuestion(
     clientId: string, 
     question: string, 
-    conversationHistory?: ChatMessage[]
+    conversationHistory?: ChatMessage[],
+    provider?: 'openai' | 'gemini' | 'claude'
   ): Promise<ChatResponse> {
     try {
       const response = await axios.post<ChatResponse>(
         `${API_URL}/chat/clients/${clientId}/chat`,
         {
           question,
-          conversation_history: conversationHistory
+          conversation_history: conversationHistory,
+          provider: provider || 'openai'  // Default to OpenAI
         },
         { headers: this.getAuthHeaders() }
       )

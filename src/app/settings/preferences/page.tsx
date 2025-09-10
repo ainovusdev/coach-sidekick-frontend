@@ -19,7 +19,7 @@ export default function PreferencesPage() {
 
   useEffect(() => {
     loadPreferences();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadPreferences = async () => {
     try {
