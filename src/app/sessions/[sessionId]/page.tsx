@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { usePermissions } from '@/contexts/permission-context'
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
@@ -15,9 +16,11 @@ import {
   FileText,
   BarChart,
   Sparkles,
+  Eye,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
+import { Badge } from '@/components/ui/badge'
 import { MediaUploader } from '@/components/sessions/media-uploader'
 import { useSessionData } from './hooks/use-session-data'
 import SessionHeader from './components/session-header'
@@ -44,6 +47,8 @@ export default function SessionDetailsPage({
   params: Promise<{ sessionId: string }>
 }) {
   const router = useRouter()
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
   const resolvedParams = React.use(params)
 
   const { sessionData, loading, error } =
@@ -260,15 +265,17 @@ export default function SessionDetailsPage({
     )
   }
 
-  const { session, transcript } = sessionData
+  const { session, transcript, meeting_summary } = sessionData
 
   // Show upload option for any session that needs transcripts:
   // 1. Session status is 'pending_upload' OR
   // 2. No transcripts exist and not currently processing
+  // For viewers, check meeting_summary.total_transcript_entries to see if transcripts exist
   const hasTranscripts = transcript && transcript.length > 0
+  const transcriptsExist = hasTranscripts || (meeting_summary?.total_transcript_entries && meeting_summary.total_transcript_entries > 0)
   const isPendingUpload = session.status === 'pending_upload'
   const isProcessing = session.transcription_status === 'processing'
-  const needsUpload = (isPendingUpload || !hasTranscripts) && !isProcessing
+  const needsUpload = (isPendingUpload || !transcriptsExist) && !isProcessing
 
   return (
     <ProtectedRoute loadingMessage="Loading session details...">
@@ -277,13 +284,13 @@ export default function SessionDetailsPage({
       <SessionHeader
         session={session}
         onBack={() => router.back()}
-        onDelete={() => setShowDeleteDialog(true)}
+        onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
       />
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
         {/* Show uploader prominently for manual sessions that need upload */}
-        {needsUpload ? (
+        {needsUpload && !isViewer ? (
           <div className="max-w-2xl mx-auto">
             <MediaUploader
               sessionId={session.id}
@@ -293,6 +300,20 @@ export default function SessionDetailsPage({
               }}
             />
           </div>
+        ) : needsUpload && isViewer ? (
+          <Card className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100">
+            <CardContent className="p-8 text-center">
+              <div className="text-gray-400 mb-4">
+                <FileText className="h-12 w-12 mx-auto" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                Upload Required
+              </h3>
+              <p className="text-gray-600">
+                This session requires a recording upload, which is not available with viewer permissions.
+              </p>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-8">
             {/* Transcript Section with Accordion */}
@@ -315,7 +336,7 @@ export default function SessionDetailsPage({
                   </p>
                 </CardContent>
               </Card>
-            ) : transcript && transcript.length > 0 ? (
+            ) : transcript && transcript.length > 0 && !isViewer ? (
               <Accordion
                 type="single"
                 collapsible
@@ -355,6 +376,24 @@ export default function SessionDetailsPage({
                   </AccordionContent>
                 </AccordionItem>
               </Accordion>
+            ) : isViewer && transcriptsExist ? (
+              <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
+                <CardContent className="flex flex-col items-center justify-center py-12">
+                  <div className="p-3 bg-gray-100 rounded-full mb-4">
+                    <Eye className="h-8 w-8 text-gray-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    Transcript Not Available
+                  </h3>
+                  <p className="text-sm text-gray-600 text-center max-w-md">
+                    Session transcripts are not accessible with viewer permissions. 
+                    You can view session insights and coaching analyses below.
+                  </p>
+                  <Badge variant="outline" className="mt-3 bg-blue-50 border-blue-200 text-blue-700">
+                    Viewer Access
+                  </Badge>
+                </CardContent>
+              </Card>
             ) : (
               <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
                 <CardContent className="flex flex-col items-center justify-center py-12">
@@ -365,10 +404,10 @@ export default function SessionDetailsPage({
             )}
 
             {/* Analysis Section - Modern Cards Layout */}
-            {hasTranscripts && (
+            {transcriptsExist && (
               <div className="space-y-6">
-                {/* Analysis Header with Actions - Only show if no analysis */}
-                {(!analysis || !coachingAnalysis) && (
+                {/* Analysis Header with Actions - Only show for non-viewers if no analysis */}
+                {(!analysis || !coachingAnalysis) && !isViewer && (
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
                     <div className="flex items-center gap-3">
                       <div className="p-3 bg-gray-100 rounded-xl">
@@ -419,28 +458,30 @@ export default function SessionDetailsPage({
                 {/* Session Insights - Modern Design */}
                 {analysis && !loadingAnalysis && (
                   <div className="space-y-4">
-                    {/* Regenerate Button */}
-                    <div className="flex justify-end">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={triggerAnalysis}
-                        disabled={analyzingSession}
-                        className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                      >
-                        {analyzingSession ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Regenerating...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Regenerate Analysis
-                          </>
-                        )}
-                      </Button>
-                    </div>
+                    {/* Regenerate Button - Hide for viewers */}
+                    {!isViewer && (
+                      <div className="flex justify-end">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={triggerAnalysis}
+                          disabled={analyzingSession}
+                          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                        >
+                          {analyzingSession ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Regenerating...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Regenerate Analysis
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
                     <SessionInsightsModern insights={analysis} />
                   </div>
                 )}
@@ -456,15 +497,17 @@ export default function SessionDetailsPage({
                             Coaching Metrics
                           </h3>
                         </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={triggerCoachingAnalysis}
-                          disabled={analyzingCoaching}
-                          className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                        >
-                          Regenerate
-                        </Button>
+                        {!isViewer && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={triggerCoachingAnalysis}
+                            disabled={analyzingCoaching}
+                            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                          >
+                            Regenerate
+                          </Button>
+                        )}
                       </div>
                     </div>
                     <div className="p-6">
@@ -482,28 +525,31 @@ export default function SessionDetailsPage({
                         No Analysis Yet
                       </h3>
                       <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                        Generate AI-powered insights and coaching metrics to
-                        better understand this session
+                        {isViewer 
+                          ? "No insights have been generated for this session yet."
+                          : "Generate AI-powered insights and coaching metrics to better understand this session"}
                       </p>
-                      <div className="flex gap-3 justify-center">
-                        <Button
-                          onClick={triggerBothAnalyses}
-                          disabled={analyzingSession || analyzingCoaching}
-                          className="bg-gray-900 hover:bg-gray-800 text-white"
-                        >
-                          {(analyzingSession || analyzingCoaching) ? (
-                            <>
-                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <Sparkles className="h-4 w-4 mr-2" />
-                              Generate Insights
-                            </>
-                          )}
-                        </Button>
-                      </div>
+                      {!isViewer && (
+                        <div className="flex gap-3 justify-center">
+                          <Button
+                            onClick={triggerBothAnalyses}
+                            disabled={analyzingSession || analyzingCoaching}
+                            className="bg-gray-900 hover:bg-gray-800 text-white"
+                          >
+                            {(analyzingSession || analyzingCoaching) ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Analyzing...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Generate Insights
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

@@ -29,7 +29,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('coaching:suggestion', handler)
     return unsubscribe
-  }, [botId, events.onSuggestion, on])
+  }, [botId, events.onSuggestion, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to coaching:analysis events
   useEffect(() => {
@@ -43,7 +43,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('coaching:analysis', handler)
     return unsubscribe
-  }, [botId, events.onAnalysisUpdate, on])
+  }, [botId, events.onAnalysisUpdate, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to analysis:complete events
   useEffect(() => {
@@ -57,7 +57,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('analysis:complete', handler)
     return unsubscribe
-  }, [botId, events.onAnalysisComplete, on])
+  }, [botId, events.onAnalysisComplete, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to generic message events
   useEffect(() => {
@@ -71,7 +71,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('message', handler)
     return unsubscribe
-  }, [botId, events.onMessage, on])
+  }, [botId, events.onMessage, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to meeting_state events
   useEffect(() => {
@@ -84,7 +84,7 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('meeting_state', handler)
     return unsubscribe
-  }, [events.onMeetingState, on])
+  }, [events.onMeetingState, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to suggestions_update events
   useEffect(() => {
@@ -96,5 +96,5 @@ export function useCoachingWebSocket(botId: string, events: CoachingWebSocketEve
 
     const unsubscribe = on('suggestions_update', handler)
     return unsubscribe
-  }, [events.onSuggestionsUpdate, on])
+  }, [events.onSuggestionsUpdate, on]) // eslint-disable-line react-hooks/exhaustive-deps
 }

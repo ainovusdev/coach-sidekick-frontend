@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import PageLayout from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { usePermissions } from '@/contexts/permission-context'
 import { Button } from '@/components/ui/button'
 import { PageHeader } from '@/components/ui/page-header'
 import { useSessionsData } from './hooks/use-sessions-data'
@@ -13,6 +14,8 @@ import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { History, RefreshCw, Upload } from 'lucide-react'
 
 export default function SessionsHistoryPage() {
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] = useState(false)
   const pageSize = 12
 
@@ -47,15 +50,17 @@ export default function SessionsHistoryPage() {
           iconVariant="gradient"
           actions={
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsManualSessionModalOpen(true)}
-                className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
-              >
-                <Upload className="h-4 w-4" />
-                Upload Recording
-              </Button>
+              {!isViewer && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsManualSessionModalOpen(true)}
+                  className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                >
+                  <Upload className="h-4 w-4" />
+                  Upload Recording
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"

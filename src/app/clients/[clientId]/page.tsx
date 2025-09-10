@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
+import { usePermissions } from '@/contexts/permission-context'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import PageLayout from '@/components/layout/page-layout'
 import { LoadingState } from '@/components/ui/loading-state'
@@ -32,6 +33,8 @@ import {
   TrendingUp,
   Brain,
   Plus,
+  Lock,
+  Eye,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -40,6 +43,8 @@ export default function ClientDetailPage({
   params: Promise<{ clientId: string }>
 }) {
   const { userId } = useAuth()
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
   const router = useRouter()
   const [clientId, setClientId] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -166,21 +171,31 @@ export default function ClientDetailPage({
                     <Brain className="h-4 w-4 mr-2" />
                     {showPersona ? 'Hide' : 'View'} Persona
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsManualSessionModalOpen(true)}
-                    className="border-gray-300 hover:bg-gray-50"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Upload
-                  </Button>
-                  <Button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="bg-gray-900 hover:bg-gray-800 text-white"
-                  >
-                    <Edit className="h-4 w-4 mr-2" />
-                    Edit
-                  </Button>
+                  {!isViewer && (
+                    <>
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsManualSessionModalOpen(true)}
+                        className="border-gray-300 hover:bg-gray-50"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload
+                      </Button>
+                      <Button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="bg-gray-900 hover:bg-gray-800 text-white"
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
+                      </Button>
+                    </>
+                  )}
+                  {isViewer && (
+                    <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 px-3 py-2">
+                      <Eye className="h-3.5 w-3.5 mr-1.5" />
+                      View Only Access
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
@@ -286,13 +301,15 @@ export default function ClientDetailPage({
                         <MessageSquare className="h-5 w-5 text-gray-600" />
                         Coaching Sessions
                       </h2>
-                      <Button
-                        size="sm"
-                        onClick={() => setIsManualSessionModalOpen(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add Past Session
-                      </Button>
+                      {!isViewer && (
+                        <Button
+                          size="sm"
+                          onClick={() => setIsManualSessionModalOpen(true)}
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Past Session
+                        </Button>
+                      )}
                     </div>
                   </CardHeader>
                   <ScrollArea className="h-[600px]">
@@ -324,16 +341,19 @@ export default function ClientDetailPage({
                             No sessions yet
                           </h3>
                           <p className="text-gray-500 text-sm mb-4">
-                            Start recording your first coaching session with{' '}
-                            {client.name}
+                            {isViewer 
+                              ? `No sessions have been recorded for ${client.name} yet.`
+                              : `Start recording your first coaching session with ${client.name}`}
                           </p>
-                          <Button
-                            onClick={() => setIsManualSessionModalOpen(true)}
-                            className="bg-gray-900 hover:bg-gray-800 text-white"
-                          >
-                            <Upload className="h-4 w-4 mr-2" />
-                            Upload Recording
-                          </Button>
+                          {!isViewer && (
+                            <Button
+                              onClick={() => setIsManualSessionModalOpen(true)}
+                              className="bg-gray-900 hover:bg-gray-800 text-white"
+                            >
+                              <Upload className="h-4 w-4 mr-2" />
+                              Upload Recording
+                            </Button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -341,25 +361,37 @@ export default function ClientDetailPage({
                 </Card>
               </div>
 
-              {/* Chat Panel - Right Side */}
-              <div>
-                <div className="sticky top-6">
-                  <Card className="border-gray-200 shadow-sm overflow-hidden">
-                    <CardHeader className="border-b border-gray-200 py-3">
-                      <h2 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                        <MessageSquare className="h-4 w-4 text-gray-600" />
-                        Ask About {client.name}
-                      </h2>
-                    </CardHeader>
-                    <CardContent className="p-0 h-[600px]">
-                      <ClientChatWidget
-                        clientId={client.id}
-                        clientName={client.name}
-                      />
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
+              {/* Chat Widget - Hidden for viewers */}
+              {!isViewer ? (
+                <Card className="border-gray-200 shadow-sm overflow-hidden">
+                  <CardContent className="p-0 h-full -my-4">
+                    <ClientChatWidget
+                      clientId={client.id}
+                      clientName={client.name}
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="border-gray-200 shadow-sm overflow-hidden">
+                  <CardContent className="p-8">
+                    <div className="flex flex-col items-center justify-center h-full text-center">
+                      <div className="p-4 bg-blue-50 rounded-full mb-4">
+                        <Lock className="h-8 w-8 text-blue-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Restricted Access
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Chat functionality is not available with viewer permissions.
+                      </p>
+                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                        <Eye className="h-3 w-3 mr-1.5" />
+                        View Only Mode
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         </div>

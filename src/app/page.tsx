@@ -3,16 +3,21 @@
 import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import { usePermissions } from '@/contexts/permission-context'
 import { QuickActions } from '@/components/ui/quick-actions'
 import { useDashboardData } from './hooks/use-dashboard-data'
 import RecentClients from './components/recent-clients'
 import RecentSessions from './components/recent-sessions'
 import StartRecording from './components/start-recording'
 import SystemStatus from './components/system-status'
-import { Users, Clock, RefreshCw } from 'lucide-react'
+import { Users, Clock, RefreshCw, Eye } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 
 export default function CoachDashboard() {
   const router = useRouter()
+  const permissions = usePermissions()
+  const isViewer = permissions.isViewer()
 
   const {
     meetingHistory,
@@ -78,11 +83,30 @@ export default function CoachDashboard() {
             </div>
 
             <div className="lg:col-span-1 space-y-4">
-              <StartRecording
-                loading={loading}
-                error={error}
-                onSubmit={handleCreateBot}
-              />
+              {!isViewer ? (
+                <StartRecording
+                  loading={loading}
+                  error={error}
+                  onSubmit={handleCreateBot}
+                />
+              ) : (
+                <Card className="border-gray-200">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center">
+                      <div className="p-3 bg-blue-50 rounded-full mb-3">
+                        <Eye className="h-6 w-6 text-blue-600" />
+                      </div>
+                      <h3 className="font-semibold text-gray-900 mb-2">Viewer Mode</h3>
+                      <p className="text-sm text-gray-600 mb-3">
+                        You have read-only access to view assigned clients and their sessions.
+                      </p>
+                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                        View Only Access
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <QuickActions actions={quickActions} />
             </div>

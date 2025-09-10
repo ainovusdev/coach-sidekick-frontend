@@ -10,7 +10,7 @@ interface UseMeetingDataProps {
 
 export function useMeetingData({ botId }: UseMeetingDataProps) {
   const { bot, transcript, loading, error } = useBotData(botId)
-  const { stopBot, isLoading: isStoppingBot } = useBotActions()
+  const { stopBot, pauseBot, resumeBot, isLoading: isStoppingBot, isPaused } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
   const [showDebug, setShowDebug] = useState(false)
   const { joinRoom, leaveRoom } = useWebSocket()
@@ -46,6 +46,9 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     showDebug,
     setShowDebug,
     stopBot,
-    isStoppingBot
+    pauseBot,
+    resumeBot,
+    isStoppingBot,
+    isPaused
   }
 }

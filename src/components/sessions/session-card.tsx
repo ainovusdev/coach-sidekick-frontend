@@ -9,8 +9,10 @@ import {
   AlertCircle,
   Eye,
   FileText,
+  Lock,
 } from 'lucide-react'
 import { MeetingSession } from '@/hooks/use-meeting-history'
+import { usePermissions, PermissionGate } from '@/contexts/permission-context'
 
 interface SessionCardProps {
   session: MeetingSession
@@ -18,9 +20,13 @@ interface SessionCardProps {
 }
 
 export function SessionCard({ session, onViewDetails }: SessionCardProps) {
+  const permissions = usePermissions()
   const summary = session.meeting_summaries
   const createdAt = new Date(session.created_at)
   const durationMinutes = summary?.duration_minutes || (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
+  
+  // Check if user is a viewer (restricted access)
+  const isViewer = permissions.isViewer()
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -88,7 +94,24 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
         </div>
 
         {/* AI Summary - The main focus */}
-        {meetingSummary ? (
+        {isViewer ? (
+          // Viewers see restricted message instead of actual content
+          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <div className="p-2 bg-gray-100 rounded-lg">
+                <Lock className="h-4 w-4 text-gray-500" />
+              </div>
+              <div className="flex-1">
+                <p className="text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                  Restricted Access
+                </p>
+                <p className="text-sm text-gray-500 leading-relaxed">
+                  Session content is not available with viewer permissions
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : meetingSummary ? (
           <div className="p-4 bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-xl">
             <div className="flex items-start gap-3">
               <div className="p-2 bg-gray-100 rounded-lg">
@@ -130,15 +153,31 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
             {formatDistanceToNow(createdAt, { addSuffix: true })}
           </span>
           {onViewDetails && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onViewDetails(session.id)}
-              className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
+            <PermissionGate
+              resource="sessions"
+              action="view"
+              fallback={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled
+                  className="text-xs text-gray-400 font-medium cursor-not-allowed"
+                >
+                  <Lock className="h-3 w-3 mr-1" />
+                  Restricted
+                </Button>
+              }
             >
-              <Eye className="h-3 w-3 mr-1" />
-              View Details
-            </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onViewDetails(session.id)}
+                className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
+              >
+                <Eye className="h-3 w-3 mr-1" />
+                View Details
+              </Button>
+            </PermissionGate>
           )}
         </div>
       </CardContent>

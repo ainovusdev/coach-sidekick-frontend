@@ -27,7 +27,10 @@ export default function MeetingPage() {
     showDebug,
     setShowDebug,
     stopBot,
+    pauseBot,
+    resumeBot,
     isStoppingBot,
+    isPaused,
   } = useMeetingData({ botId })
 
   const handleStopBot = async () => {
@@ -46,6 +49,31 @@ export default function MeetingPage() {
     } catch (error) {
       console.error('Error stopping bot:', error)
       showToast('Failed to stop bot. Please try again.', 'error')
+    }
+  }
+
+  const handlePauseResume = async () => {
+    if (!bot) return
+
+    try {
+      if (isPaused) {
+        const success = await resumeBot(bot.id)
+        if (success) {
+          showToast('Recording resumed', 'success')
+        } else {
+          showToast('Failed to resume recording', 'error')
+        }
+      } else {
+        const success = await pauseBot(bot.id)
+        if (success) {
+          showToast('Recording paused', 'success')
+        } else {
+          showToast('Failed to pause recording', 'error')
+        }
+      }
+    } catch (error) {
+      console.error('Error toggling pause state:', error)
+      showToast('Failed to toggle pause state', 'error')
     }
   }
 
@@ -70,8 +98,10 @@ export default function MeetingPage() {
           transcriptLength={transcript.length}
           showDebug={showDebug}
           isStoppingBot={isStoppingBot}
+          isPaused={isPaused}
           onToggleDebug={() => setShowDebug(!showDebug)}
           onStopBot={handleStopBot}
+          onPauseResume={handlePauseResume}
           onNavigateBack={() => router.push('/')}
         />
       </div>

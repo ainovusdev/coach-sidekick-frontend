@@ -41,7 +41,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const unsubscribe = on('transcript:new', handler)
     return unsubscribe
-  }, [botId, events.onTranscriptNew, on])
+  }, [botId, events.onTranscriptNew, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to transcript:update events
   useEffect(() => {
@@ -55,7 +55,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const unsubscribe = on('transcript:update', handler)
     return unsubscribe
-  }, [botId, events.onTranscriptUpdate, on])
+  }, [botId, events.onTranscriptUpdate, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to bot:status events
   useEffect(() => {
@@ -69,7 +69,7 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const unsubscribe = on('bot:status', handler)
     return unsubscribe
-  }, [botId, events.onBotStatus, on])
+  }, [botId, events.onBotStatus, on]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Subscribe to error events
   useEffect(() => {
@@ -84,5 +84,5 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
 
     const unsubscribe = on('error', handler)
     return unsubscribe
-  }, [botId, events.onError, on])
+  }, [botId, events.onError, on]) // eslint-disable-line react-hooks/exhaustive-deps
 }

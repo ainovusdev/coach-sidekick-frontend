@@ -139,7 +139,7 @@ export function useDebugAnalysis(sessionId: string, autoRefresh: boolean = false
   // Initial fetch
   useEffect(() => {
     fetchDebugData()
-  }, [sessionId])
+  }, [sessionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Auto-refresh
   useEffect(() => {
