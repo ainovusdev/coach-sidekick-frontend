@@ -25,7 +25,21 @@ export function useBotData(botId: string): UseBotDataReturn {
 
   const ensureSession = useCallback(async (botData: Bot) => {
     try {
-      // Ensure a coaching session exists in the database
+      // First check if a session already exists for this bot
+      try {
+        const existingSession = await SessionService.getSessionByBotId(
+          botData.id,
+        )
+        if (existingSession) {
+          console.log('Session already exists for bot:', botData.id)
+          return
+        }
+      } catch (error) {
+        console.log('error', error)
+        // Session doesn't exist, continue to create one
+      }
+
+      // Only create a new session if one doesn't exist
       await SessionService.createSession({
         bot_id: botData.id,
         meeting_url: botData.meeting_url,
@@ -35,6 +49,7 @@ export function useBotData(botId: string): UseBotDataReturn {
           meeting_id: botData.meeting_id,
         },
       })
+      console.log('Created new session for bot:', botData.id)
     } catch (error) {
       console.warn('Failed to ensure session exists:', error)
       // Don't fail the whole process if session creation fails
@@ -63,6 +78,7 @@ export function useBotData(botId: string): UseBotDataReturn {
         setBot(normalizedBot)
 
         // Only ensure session if bot is in active recording state
+        // and not for completed/ended meetings
         if (
           botInfo.status === 'in_call_recording' ||
           botInfo.status === 'in_call_not_recording'
