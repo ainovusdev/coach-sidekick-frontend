@@ -56,14 +56,19 @@ export function useBotData(botId: string): UseBotDataReturn {
         const normalizedBot: Bot = {
           id: botInfo.id,
           status: botInfo.status,
-          meeting_url: '#', // Backend doesn't return meeting_url in status endpoint
-          platform: 'unknown', // Backend doesn't provide platform
-          meeting_id: undefined,
+          meeting_url: botInfo.meeting_url || '#',
+          platform: botInfo.platform || 'unknown',
+          meeting_id: botInfo.meeting_id,
         }
         setBot(normalizedBot)
 
-        // Ensure session exists in database
-        await ensureSession(normalizedBot)
+        // Only ensure session if bot is in active recording state
+        if (
+          botInfo.status === 'in_call_recording' ||
+          botInfo.status === 'in_call_not_recording'
+        ) {
+          await ensureSession(normalizedBot)
+        }
       }
 
       if (transcriptData && transcriptData.transcripts) {
