@@ -51,6 +51,12 @@ class WebSocketService {
   }
 
   private buildWebSocketUrl(): string {
+    // Use dedicated WebSocket URL if available
+    if (process.env.NEXT_PUBLIC_WS_URL) {
+      return `${process.env.NEXT_PUBLIC_WS_URL}/ws/connect`
+    }
+
+    // Fallback to deriving from API URL
     const backendUrl =
       process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
     // Remove /api/v1 suffix if present and convert to ws://
