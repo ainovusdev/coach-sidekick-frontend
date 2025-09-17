@@ -4,7 +4,10 @@ import { TranscriptEntry } from '@/types/meeting'
 
 interface BotWebSocketEvents {
   onTranscriptNew?: (entry: TranscriptEntry) => void
-  onTranscriptUpdate?: (data: { entryId: string; updates: Partial<TranscriptEntry> }) => void
+  onTranscriptUpdate?: (data: {
+    entryId: string
+    updates: Partial<TranscriptEntry>
+  }) => void
   onBotStatus?: (data: { status: string; timestamp: string }) => void
   onError?: (error: { code: string; message: string }) => void
 }
@@ -19,12 +22,19 @@ export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
   // Join bot room when connected
   useEffect(() => {
     if (isConnected && botId) {
-      console.log(`[WebSocket] Joining bot room: bot:${botId}`)
-      joinRoom(`bot:${botId}`)
+      const roomName = `bot:${botId}`
+      console.log(`[useBotWebSocket] Joining room: ${roomName}`)
+
+      // Add a small delay to ensure connection is established
+      const joinTimer = setTimeout(() => {
+        console.log(`[useBotWebSocket] Executing join for room: ${roomName}`)
+        joinRoom(roomName)
+      }, 100)
 
       return () => {
-        console.log(`[WebSocket] Leaving bot room: bot:${botId}`)
-        leaveRoom(`bot:${botId}`)
+        clearTimeout(joinTimer)
+        console.log(`[useBotWebSocket] Leaving room: ${roomName}`)
+        leaveRoom(roomName)
       }
     }
   }, [isConnected, botId, joinRoom, leaveRoom])

@@ -105,7 +105,12 @@ class WebSocketService {
       this.reconnectAttempts = 0
 
       // Rejoin rooms after reconnection
+      console.log(
+        '[WebSocket] Rejoining rooms after reconnection:',
+        Array.from(this.joinedRooms),
+      )
       this.joinedRooms.forEach(room => {
+        console.log(`[WebSocket] Auto-rejoining room: ${room}`)
         this.send('join', { room })
       })
 
@@ -279,8 +284,19 @@ class WebSocketService {
     if (!this.joinedRooms) {
       this.joinedRooms = new Set()
     }
+
+    console.log(`[WebSocketService] joinRoom called for: ${room}`)
+    console.log(
+      `[WebSocketService] Current connection status: ${this.currentStatus}`,
+    )
+    console.log(
+      `[WebSocketService] WebSocket readyState: ${this.ws?.readyState}`,
+    )
+
     this.joinedRooms.add(room)
     this.send('join', { room })
+
+    console.log(`[WebSocketService] Join message sent/queued for room: ${room}`)
   }
 
   leaveRoom(room: string): void {

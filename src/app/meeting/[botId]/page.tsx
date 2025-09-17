@@ -7,6 +7,7 @@ import { MeetingLoading } from '@/components/meeting/meeting-loading'
 import { MeetingError } from '@/components/meeting/meeting-error'
 import { BatchSaveStatus } from '@/components/meeting/batch-save-status'
 import { MeetingStatePanel } from '@/components/meeting/meeting-state-panel'
+import { WebSocketControl } from '@/components/meeting/websocket-control'
 import { useMeetingData } from './hooks/use-meeting-data'
 import MeetingHeader from './components/meeting-header'
 import MeetingPanels from './components/meeting-panels'
@@ -104,8 +105,9 @@ export default function MeetingPage() {
       {/* Main Content Area - Fixed Height */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3 overflow-hidden">
-          {/* Meeting State - Fixed */}
-          <div className="flex-shrink-0 mb-3">
+          {/* WebSocket Control and Meeting State - Fixed */}
+          <div className="flex-shrink-0 mb-3 space-y-3">
+            <WebSocketControl botId={botId} />
             <MeetingStatePanel state={meetingState} compact={true} />
           </div>
 
