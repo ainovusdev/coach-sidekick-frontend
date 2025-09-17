@@ -1,8 +1,7 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { useBotData } from '@/hooks/use-bot-data'
 import { useBotActions } from '@/hooks/use-bot-actions'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
-import { useWebSocket } from '@/contexts/websocket-context'
 
 interface UseMeetingDataProps {
   botId: string
@@ -18,18 +17,9 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     isPaused,
   } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
-  const { joinRoom, leaveRoom } = useWebSocket()
 
-  // Join WebSocket room on mount
-  useEffect(() => {
-    console.log('[MeetingPage] Joining room:', `bot:${botId}`)
-    joinRoom(`bot:${botId}`)
-
-    return () => {
-      console.log('[MeetingPage] Leaving room:', `bot:${botId}`)
-      leaveRoom(`bot:${botId}`)
-    }
-  }, [botId, joinRoom, leaveRoom])
+  // Room joining is handled by useBotWebSocket in use-bot-data.ts
+  // No need to join again here
 
   // Handle meeting state updates
   const handleMeetingState = useCallback((data: any) => {
