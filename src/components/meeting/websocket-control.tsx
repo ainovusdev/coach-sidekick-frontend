@@ -29,10 +29,22 @@ export function WebSocketControl({
   const [isJoining, setIsJoining] = useState(false)
   const roomName = `bot:${botId}`
 
+  // Don't auto-reconnect, let user control it
+  // useEffect(() => {
+  //   if (!hasReconnected && status === 'connected') {
+  //     console.log('[WebSocketControl] Performing initial reconnect for fresh connection')
+  //     handleReconnect()
+  //     setHasReconnected(true)
+  //   }
+  // }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Auto-join room when connected
   useEffect(() => {
     if (isConnected && !roomJoined && botId) {
-      handleJoinRoom()
+      // Add a small delay after connection to ensure socket is ready
+      setTimeout(() => {
+        handleJoinRoom()
+      }, 500)
     }
   }, [isConnected, botId]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -49,6 +61,19 @@ export function WebSocketControl({
     }
     disconnect()
   }, [disconnect, leaveRoom, roomJoined, roomName])
+
+  const handleReconnect = useCallback(() => {
+    console.log('[WebSocketControl] Reconnecting with fresh connection...')
+    setRoomJoined(false)
+
+    // Disconnect first
+    disconnect()
+
+    // Wait a moment then reconnect
+    setTimeout(() => {
+      connect()
+    }, 100)
+  }, [connect, disconnect])
 
   const handleJoinRoom = useCallback(async () => {
     if (!isConnected) {
@@ -167,6 +192,15 @@ export function WebSocketControl({
                     Leave Room
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleReconnect}
+                  className="text-xs"
+                >
+                  <RefreshCw className="h-3 w-3 mr-1" />
+                  Reconnect
+                </Button>
                 <Button
                   size="sm"
                   variant="ghost"
