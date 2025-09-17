@@ -1,0 +1,12 @@
+name: push
+description: Push changes to GitHub with a commit message
+user_prompt: |
+  Please commit and push all changes to GitHub.
+
+  Commit message: {{message:Describe your changes}}
+
+  Steps:
+  1. Check git status
+  2. Add all changes
+  3. Commit with the provided message
+  4. Push to the current branch

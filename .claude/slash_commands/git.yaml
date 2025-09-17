@@ -1,0 +1,25 @@
+name: git
+description: Git operations - commit, push, or both
+user_prompt: |
+  Please perform the following git operation: {{operation|choice:commit,push,commit-and-push}}
+
+  {{#if (or (eq operation "commit") (eq operation "commit-and-push"))}}
+  Commit message: {{message:Enter commit message}}
+  {{/if}}
+
+  {{#if (eq operation "commit")}}
+  Please commit all changes with the message above.
+  {{/if}}
+
+  {{#if (eq operation "push")}}
+  Please push the current branch to origin.
+  {{/if}}
+
+  {{#if (eq operation "commit-and-push")}}
+  Please commit all changes with the message above and push to origin.
+  {{/if}}
+
+  Always:
+  1. First check git status
+  2. Show me what will be committed
+  3. Then proceed with the operation
