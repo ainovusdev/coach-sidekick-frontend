@@ -1,16 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { adminService } from '@/services/admin-service'
-import { 
-  Users, 
-  Shield, 
+import {
+  Users,
+  Shield,
   LockKeyhole,
   Activity,
   TrendingUp,
@@ -22,7 +28,7 @@ import {
   AlertCircle,
   CheckCircle2,
   UserPlus,
-  Settings
+  Settings,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 
@@ -38,14 +44,23 @@ interface StatCardProps {
   onClick?: () => void
 }
 
-function StatCard({ title, value, description, icon, trend, onClick }: StatCardProps) {
+function StatCard({
+  title,
+  value,
+  description,
+  icon,
+  trend,
+  onClick,
+}: StatCardProps) {
   return (
-    <Card 
-      className="relative overflow-hidden transition-all hover:shadow-lg cursor-pointer" 
+    <Card
+      className="relative overflow-hidden transition-all hover:shadow-lg cursor-pointer"
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-gray-600">
+          {title}
+        </CardTitle>
         <div className="h-10 w-10 rounded-full bg-gray-50 flex items-center justify-center">
           {icon}
         </div>
@@ -55,9 +70,11 @@ function StatCard({ title, value, description, icon, trend, onClick }: StatCardP
         <div className="flex items-center justify-between mt-2">
           <p className="text-xs text-gray-500">{description}</p>
           {trend && (
-            <div className={`flex items-center gap-1 text-xs font-medium ${
-              trend.isPositive ? 'text-green-600' : 'text-red-600'
-            }`}>
+            <div
+              className={`flex items-center gap-1 text-xs font-medium ${
+                trend.isPositive ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
               {trend.isPositive ? (
                 <ArrowUp className="h-3 w-3" />
               ) : (
@@ -85,31 +102,31 @@ export default function AdminDashboard() {
       admin: 0,
       coach: 0,
       viewer: 0,
-    }
+    },
   })
   const [loading, setLoading] = useState(true)
   const [recentActivity, setRecentActivity] = useState<any[]>([])
   const [systemHealth] = useState({
     api: 'operational',
     database: 'operational',
-    auth: 'operational'
+    auth: 'operational',
   })
 
   useEffect(() => {
     fetchDashboardData()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const fetchDashboardData = async () => {
     try {
       setLoading(true)
-      
+
       // Fetch users
       const users = await adminService.getUsers({ limit: 1000 })
-      
+
       // Calculate stats
       const totalUsers = users.length
       const activeUsers = users.filter(u => u.is_active).length
-      
+
       // Calculate role distribution
       const roleDistribution = {
         super_admin: 0,
@@ -117,7 +134,7 @@ export default function AdminDashboard() {
         coach: 0,
         viewer: 0,
       }
-      
+
       users.forEach(user => {
         user.roles.forEach(role => {
           if (role in roleDistribution) {
@@ -125,56 +142,57 @@ export default function AdminDashboard() {
           }
         })
       })
-      
+
       // Fetch client access data
       const accessMatrix = await adminService.getAccessMatrix({ limit: 100 })
       const totalClients = accessMatrix.length
-      const assignedClients = accessMatrix.filter(c => c.assigned_users.length > 0).length
-      
+      const assignedClients = accessMatrix.filter(
+        c => c.assigned_users.length > 0,
+      ).length
+
       setStats({
         totalUsers,
         activeUsers,
         totalClients,
         assignedClients,
-        roleDistribution
+        roleDistribution,
       })
-      
+
       // Mock recent activity (in production, this would come from audit logs)
       setRecentActivity([
-        { 
-          id: 1, 
+        {
+          id: 1,
           type: 'user_created',
-          action: 'New user registered', 
-          user: 'john.doe@example.com', 
+          action: 'New user registered',
+          user: 'john.doe@example.com',
           time: '2 minutes ago',
-          status: 'success'
+          status: 'success',
         },
-        { 
-          id: 2, 
+        {
+          id: 2,
           type: 'role_assigned',
-          action: 'Coach role assigned', 
-          user: 'jane.smith@example.com', 
+          action: 'Coach role assigned',
+          user: 'jane.smith@example.com',
           time: '5 minutes ago',
-          status: 'success'
+          status: 'success',
         },
-        { 
-          id: 3, 
+        {
+          id: 3,
           type: 'access_granted',
-          action: 'Client access granted', 
-          user: 'mike.wilson@example.com', 
+          action: 'Client access granted',
+          user: 'mike.wilson@example.com',
           time: '10 minutes ago',
-          status: 'success'
+          status: 'success',
         },
-        { 
-          id: 4, 
+        {
+          id: 4,
           type: 'user_deactivated',
-          action: 'User account deactivated', 
-          user: 'old.user@example.com', 
+          action: 'User account deactivated',
+          user: 'old.user@example.com',
           time: '1 hour ago',
-          status: 'warning'
+          status: 'warning',
         },
       ])
-      
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error)
     } finally {
@@ -218,7 +236,9 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <p className="text-gray-500 mt-2">Welcome back, let&apos;s see how things are going</p>
+            <p className="text-gray-500 mt-2">
+              Welcome back, let&apos;s see how things are going
+            </p>
           </div>
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-2" />
@@ -256,7 +276,10 @@ export default function AdminDashboard() {
     )
   }
 
-  const totalRoleUsers = Object.values(stats.roleDistribution).reduce((a, b) => a + b, 0)
+  const totalRoleUsers = Object.values(stats.roleDistribution).reduce(
+    (a, b) => a + b,
+    0,
+  )
 
   return (
     <div className="space-y-8">
@@ -266,7 +289,9 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-gray-500 mt-2">Welcome back, let&apos;s see how things are going</p>
+          <p className="text-gray-500 mt-2">
+            Welcome back, let&apos;s see how things are going
+          </p>
         </div>
         <Button variant="outline" size="sm">
           <Settings className="h-4 w-4 mr-2" />
@@ -302,7 +327,9 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Administrators"
-          value={stats.roleDistribution.admin + stats.roleDistribution.super_admin}
+          value={
+            stats.roleDistribution.admin + stats.roleDistribution.super_admin
+          }
           description="System admins"
           icon={<Shield className="h-5 w-5 text-orange-600" />}
           onClick={() => router.push('/admin/roles')}
@@ -322,22 +349,34 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-6">
             {Object.entries(stats.roleDistribution).map(([role, count]) => {
-              const percentage = totalRoleUsers > 0 ? Math.round((count / totalRoleUsers) * 100) : 0
+              const percentage =
+                totalRoleUsers > 0
+                  ? Math.round((count / totalRoleUsers) * 100)
+                  : 0
               return (
                 <div key={role} className="space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <div className={`h-2 w-2 rounded-full ${
-                        role === 'super_admin' ? 'bg-red-500' :
-                        role === 'admin' ? 'bg-blue-500' :
-                        role === 'coach' ? 'bg-green-500' :
-                        role === 'viewer' ? 'bg-gray-500' : ''
-                      }`} />
+                      <div
+                        className={`h-2 w-2 rounded-full ${
+                          role === 'super_admin'
+                            ? 'bg-red-500'
+                            : role === 'admin'
+                              ? 'bg-blue-500'
+                              : role === 'coach'
+                                ? 'bg-green-500'
+                                : role === 'viewer'
+                                  ? 'bg-gray-500'
+                                  : ''
+                        }`}
+                      />
                       <span className="text-sm font-medium text-gray-700 capitalize">
                         {role.replace('_', ' ')}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-gray-900">{count}</span>
+                    <span className="text-sm font-bold text-gray-900">
+                      {count}
+                    </span>
                   </div>
                   <Progress value={percentage} className="h-2" />
                 </div>
@@ -346,7 +385,9 @@ export default function AdminDashboard() {
             <div className="pt-4 border-t">
               <div className="flex items-center justify-between text-sm">
                 <span className="text-gray-500">Total Users with Roles</span>
-                <span className="font-semibold text-gray-900">{totalRoleUsers}</span>
+                <span className="font-semibold text-gray-900">
+                  {totalRoleUsers}
+                </span>
               </div>
             </div>
           </CardContent>
@@ -359,7 +400,9 @@ export default function AdminDashboard() {
               <span>Recent Activity</span>
               <Clock className="h-5 w-5 text-gray-400" />
             </CardTitle>
-            <CardDescription>Latest system events and user actions</CardDescription>
+            <CardDescription>
+              Latest system events and user actions
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="all" className="w-full">
@@ -369,9 +412,14 @@ export default function AdminDashboard() {
                 <TabsTrigger value="system">System</TabsTrigger>
               </TabsList>
               <TabsContent value="all" className="space-y-4 mt-4">
-                {recentActivity.map((activity) => (
-                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                    <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(activity.status)}`}>
+                {recentActivity.map(activity => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div
+                      className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(activity.status)}`}
+                    >
                       {getActivityIcon(activity.type)}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -379,7 +427,9 @@ export default function AdminDashboard() {
                         <p className="text-sm font-medium text-gray-900">
                           {activity.action}
                         </p>
-                        <span className="text-xs text-gray-500">{activity.time}</span>
+                        <span className="text-xs text-gray-500">
+                          {activity.time}
+                        </span>
                       </div>
                       <p className="text-xs text-gray-500 mt-1">
                         {activity.user}
@@ -390,10 +440,22 @@ export default function AdminDashboard() {
               </TabsContent>
               <TabsContent value="users" className="space-y-4 mt-4">
                 {recentActivity
-                  .filter(a => ['user_created', 'role_assigned', 'access_granted', 'user_deactivated'].includes(a.type))
-                  .map((activity) => (
-                    <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-                      <div className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(activity.status)}`}>
+                  .filter(a =>
+                    [
+                      'user_created',
+                      'role_assigned',
+                      'access_granted',
+                      'user_deactivated',
+                    ].includes(a.type),
+                  )
+                  .map(activity => (
+                    <div
+                      key={activity.id}
+                      className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    >
+                      <div
+                        className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(activity.status)}`}
+                      >
                         {getActivityIcon(activity.type)}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -401,7 +463,9 @@ export default function AdminDashboard() {
                           <p className="text-sm font-medium text-gray-900">
                             {activity.action}
                           </p>
-                          <span className="text-xs text-gray-500">{activity.time}</span>
+                          <span className="text-xs text-gray-500">
+                            {activity.time}
+                          </span>
                         </div>
                         <p className="text-xs text-gray-500 mt-1">
                           {activity.user}
@@ -429,29 +493,50 @@ export default function AdminDashboard() {
               <span>System Health</span>
               <Activity className="h-5 w-5 text-gray-400" />
             </CardTitle>
-            <CardDescription>Current system status and performance</CardDescription>
+            <CardDescription>
+              Current system status and performance
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {Object.entries(systemHealth).map(([service, status]) => (
-                <div key={service} className="flex items-center justify-between p-3 rounded-lg bg-gray-50">
+                <div
+                  key={service}
+                  className="flex items-center justify-between p-3 rounded-lg bg-gray-50"
+                >
                   <div className="flex items-center gap-3">
-                    <div className={`h-3 w-3 rounded-full ${
-                      status === 'operational' ? 'bg-green-500 animate-pulse' :
-                      status === 'degraded' ? 'bg-yellow-500' :
-                      status === 'down' ? 'bg-red-500' : ''
-                    }`} />
-                    <span className="font-medium capitalize text-gray-700">{service} Service</span>
+                    <div
+                      className={`h-3 w-3 rounded-full ${
+                        status === 'operational'
+                          ? 'bg-green-500 animate-pulse'
+                          : status === 'degraded'
+                            ? 'bg-yellow-500'
+                            : status === 'down'
+                              ? 'bg-red-500'
+                              : ''
+                      }`}
+                    />
+                    <span className="font-medium capitalize text-gray-700">
+                      {service} Service
+                    </span>
                   </div>
-                  <Badge 
-                    variant={status === 'operational' ? 'default' : 'destructive'}
+                  <Badge
+                    variant={
+                      status === 'operational' ? 'default' : 'destructive'
+                    }
                     className={`${
-                      status === 'operational' ? 'bg-green-100 text-green-700 hover:bg-green-100' :
-                      status === 'degraded' ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100' :
-                      status === 'down' ? 'bg-red-100 text-red-700 hover:bg-red-100' : ''
+                      status === 'operational'
+                        ? 'bg-green-100 text-green-700 hover:bg-green-100'
+                        : status === 'degraded'
+                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100'
+                          : status === 'down'
+                            ? 'bg-red-100 text-red-700 hover:bg-red-100'
+                            : ''
                     }`}
                   >
-                    {status === 'operational' && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                    {status === 'operational' && (
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                    )}
                     {status}
                   </Badge>
                 </div>
@@ -507,7 +592,7 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 className="h-auto flex-col gap-2 py-4 hover:bg-gray-50"
-                onClick={() => window.location.href = '/admin/settings'}
+                onClick={() => (window.location.href = '/admin/settings')}
               >
                 <Settings className="h-5 w-5 text-gray-600" />
                 <div className="text-center">
@@ -522,4 +607,3 @@ export default function AdminDashboard() {
     </div>
   )
 }
-

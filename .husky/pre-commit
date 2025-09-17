@@ -1,0 +1,7 @@
+# Run lint-staged for automatic fixes
+echo "🔍 Running lint-staged..."
+npx lint-staged
+
+# Run build to check for TypeScript errors
+echo "🏗️  Checking TypeScript build..."
+pnpm build
