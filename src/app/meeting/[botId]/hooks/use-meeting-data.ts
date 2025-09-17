@@ -10,16 +10,21 @@ interface UseMeetingDataProps {
 
 export function useMeetingData({ botId }: UseMeetingDataProps) {
   const { bot, transcript, loading, error } = useBotData(botId)
-  const { stopBot, pauseBot, resumeBot, isLoading: isStoppingBot, isPaused } = useBotActions()
+  const {
+    stopBot,
+    pauseBot,
+    resumeBot,
+    isLoading: isStoppingBot,
+    isPaused,
+  } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
-  const [showDebug, setShowDebug] = useState(false)
   const { joinRoom, leaveRoom } = useWebSocket()
 
   // Join WebSocket room on mount
   useEffect(() => {
     console.log('[MeetingPage] Joining room:', `bot:${botId}`)
     joinRoom(`bot:${botId}`)
-    
+
     return () => {
       console.log('[MeetingPage] Leaving room:', `bot:${botId}`)
       leaveRoom(`bot:${botId}`)
@@ -34,7 +39,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
 
   // Subscribe to WebSocket events
   useCoachingWebSocket(botId, {
-    onMeetingState: handleMeetingState
+    onMeetingState: handleMeetingState,
   })
 
   return {
@@ -43,12 +48,10 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     loading,
     error,
     meetingState,
-    showDebug,
-    setShowDebug,
     stopBot,
     pauseBot,
     resumeBot,
     isStoppingBot,
-    isPaused
+    isPaused,
   }
 }

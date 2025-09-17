@@ -8,7 +8,6 @@ import {
   ExternalLink,
   Users,
   MessageSquare,
-  Bug,
   Pause,
   Play,
 } from 'lucide-react'
@@ -16,10 +15,8 @@ import {
 interface MeetingHeaderProps {
   bot: Bot | null
   transcriptLength: number
-  showDebug: boolean
   isStoppingBot: boolean
   isPaused: boolean
-  onToggleDebug: () => void
   onStopBot: () => void
   onPauseResume: () => void
   onNavigateBack: () => void
@@ -28,10 +25,8 @@ interface MeetingHeaderProps {
 export default function MeetingHeader({
   bot,
   transcriptLength,
-  showDebug,
   isStoppingBot,
   isPaused,
-  onToggleDebug,
   onStopBot,
   onPauseResume,
   onNavigateBack,
@@ -81,15 +76,6 @@ export default function MeetingHeader({
 
               <div className="h-6 w-px bg-gray-300" />
 
-              <Button
-                variant={showDebug ? 'default' : 'outline'}
-                size="sm"
-                onClick={onToggleDebug}
-              >
-                <Bug className="h-4 w-4 mr-2" />
-                Debug
-              </Button>
-
               {bot.meeting_url !== '#' && (
                 <Button variant="outline" size="sm" asChild>
                   <a
@@ -102,7 +88,7 @@ export default function MeetingHeader({
                   </a>
                 </Button>
               )}
-              
+
               <Button
                 variant={isPaused ? 'default' : 'outline'}
                 size="sm"
