@@ -7,7 +7,6 @@ import { MeetingLoading } from '@/components/meeting/meeting-loading'
 import { MeetingError } from '@/components/meeting/meeting-error'
 import { BatchSaveStatus } from '@/components/meeting/batch-save-status'
 import { MeetingStatePanel } from '@/components/meeting/meeting-state-panel'
-import { DebugPanel } from '@/components/meeting/debug-panel'
 import { useMeetingData } from './hooks/use-meeting-data'
 import MeetingHeader from './components/meeting-header'
 import MeetingPanels from './components/meeting-panels'
@@ -24,8 +23,6 @@ export default function MeetingPage() {
     loading,
     error,
     meetingState,
-    showDebug,
-    setShowDebug,
     stopBot,
     pauseBot,
     resumeBot,
@@ -96,10 +93,8 @@ export default function MeetingPage() {
         <MeetingHeader
           bot={bot}
           transcriptLength={transcript.length}
-          showDebug={showDebug}
           isStoppingBot={isStoppingBot}
           isPaused={isPaused}
-          onToggleDebug={() => setShowDebug(!showDebug)}
           onStopBot={handleStopBot}
           onPauseResume={handlePauseResume}
           onNavigateBack={() => router.push('/')}
@@ -116,18 +111,8 @@ export default function MeetingPage() {
 
           {/* Main Panels - Constrained Height */}
           <div className="flex-1 overflow-hidden">
-            <MeetingPanels
-              transcript={transcript}
-              botId={botId}
-              showDebug={showDebug}
-            />
+            <MeetingPanels transcript={transcript} botId={botId} />
           </div>
-
-          {showDebug && bot && (
-            <div className="mt-3 flex-shrink-0">
-              <DebugPanel sessionId={bot.id} className="max-h-[200px]" />
-            </div>
-          )}
         </div>
       </div>
 

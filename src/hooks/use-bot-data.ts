@@ -49,7 +49,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       // Fetch bot info and transcript from backend
       const [botInfo, transcriptData] = await Promise.all([
         MeetingService.getBotInfo(botId),
-        MeetingService.getRealTimeTranscript(botId)
+        MeetingService.getRealTimeTranscript(botId),
       ])
 
       if (botInfo) {
@@ -69,10 +69,12 @@ export function useBotData(botId: string): UseBotDataReturn {
       if (transcriptData && transcriptData.transcripts) {
         // Initialize transcript map
         transcriptMapRef.current.clear()
-        const normalizedTranscripts = transcriptData.transcripts.map((entry: any) => ({
-          ...entry,
-          confidence: entry.confidence ?? 1.0, // Add default confidence if missing
-        }))
+        const normalizedTranscripts = transcriptData.transcripts.map(
+          (entry: any) => ({
+            ...entry,
+            confidence: entry.confidence ?? 1.0, // Add default confidence if missing
+          }),
+        )
         normalizedTranscripts.forEach((entry: any) => {
           if (entry.id) {
             transcriptMapRef.current.set(entry.id, entry)
@@ -92,55 +94,66 @@ export function useBotData(botId: string): UseBotDataReturn {
   // WebSocket event handlers
   const handleTranscriptNew = useCallback((entry: TranscriptEntry) => {
     console.log('[WebSocket] New transcript entry:', entry)
-    
+
     // Add to transcript map
     if ((entry as any).id) {
       transcriptMapRef.current.set((entry as any).id, entry)
     }
-    
+
     // Update transcript array
     setTranscript(prev => [...prev, entry])
   }, [])
 
-  const handleTranscriptUpdate = useCallback((data: { entryId: string; updates: Partial<TranscriptEntry> }) => {
-    console.log('[WebSocket] Transcript update:', data)
-    
-    // Update in map
-    const existing = transcriptMapRef.current.get(data.entryId)
-    if (existing) {
-      const updated = { ...existing, ...data.updates }
-      transcriptMapRef.current.set(data.entryId, updated)
-      
-      // Update transcript array
-      setTranscript(prev => prev.map(entry => 
-        (entry as any).id === data.entryId ? updated : entry
-      ))
-    }
-  }, [])
+  const handleTranscriptUpdate = useCallback(
+    (data: { entryId: string; updates: Partial<TranscriptEntry> }) => {
+      console.log('[WebSocket] Transcript update:', data)
 
-  const handleBotStatus = useCallback((data: { status: string; timestamp: string }) => {
-    console.log('[WebSocket] Bot status update:', data)
-    
-    setBot(prev => {
-      if (!prev) return null
-      return {
-        ...prev,
-        status: data.status
+      // Update in map
+      const existing = transcriptMapRef.current.get(data.entryId)
+      if (existing) {
+        const updated = { ...existing, ...data.updates }
+        transcriptMapRef.current.set(data.entryId, updated)
+
+        // Update transcript array
+        setTranscript(prev =>
+          prev.map(entry =>
+            (entry as any).id === data.entryId ? updated : entry,
+          ),
+        )
       }
-    })
-  }, [])
+    },
+    [],
+  )
 
-  const handleError = useCallback((error: { code: string; message: string }) => {
-    console.error('[WebSocket] Bot error:', error)
-    setError(error.message)
-  }, [])
+  const handleBotStatus = useCallback(
+    (data: { status: string; timestamp: string }) => {
+      console.log('[WebSocket] Bot status update:', data)
+
+      setBot(prev => {
+        if (!prev) return null
+        return {
+          ...prev,
+          status: data.status,
+        }
+      })
+    },
+    [],
+  )
+
+  const handleError = useCallback(
+    (error: { code: string; message: string }) => {
+      console.error('[WebSocket] Bot error:', error)
+      setError(error.message)
+    },
+    [],
+  )
 
   // Use WebSocket events
   useBotWebSocket(botId, {
     onTranscriptNew: handleTranscriptNew,
     onTranscriptUpdate: handleTranscriptUpdate,
     onBotStatus: handleBotStatus,
-    onError: handleError
+    onError: handleError,
   })
 
   const startPolling = useCallback(() => {
@@ -149,7 +162,7 @@ export function useBotData(botId: string): UseBotDataReturn {
         // Poll backend for updates
         const [botInfo, transcriptData] = await Promise.all([
           MeetingService.getBotInfo(botId),
-          MeetingService.getRealTimeTranscript(botId)
+          MeetingService.getRealTimeTranscript(botId),
         ])
 
         if (botInfo) {
@@ -163,15 +176,16 @@ export function useBotData(botId: string): UseBotDataReturn {
         }
 
         if (transcriptData && transcriptData.transcripts) {
-          const normalizedTranscripts = transcriptData.transcripts.map((entry: any) => ({
-            ...entry,
-            confidence: entry.confidence ?? 1.0, // Add default confidence if missing
-          }))
+          const normalizedTranscripts = transcriptData.transcripts.map(
+            (entry: any) => ({
+              ...entry,
+              confidence: entry.confidence ?? 1.0, // Add default confidence if missing
+            }),
+          )
           setTranscript(normalizedTranscripts)
         }
-      } catch (error) {
+      } catch {
         // Polling error, continue silently
-        console.debug('Polling error:', error)
       }
     }, REFRESH_INTERVAL)
 

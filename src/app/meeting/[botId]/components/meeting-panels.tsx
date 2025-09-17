@@ -14,7 +14,6 @@ import { MeetingContextService } from '@/services/meeting-context-service'
 interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
   botId: string
-  showDebug: boolean
 }
 
 export default function MeetingPanels({
@@ -62,7 +61,10 @@ export default function MeetingPanels({
     onMessage: message => {
       if (message.type === 'suggestions_update') {
         if (message.data.full_context) {
-          console.log('Context update from WebSocket:', message.data.full_context)
+          console.log(
+            'Context update from WebSocket:',
+            message.data.full_context,
+          )
           setFullContext(message.data.full_context)
         }
       }
@@ -87,7 +89,11 @@ export default function MeetingPanels({
           </CardHeader>
           <CardContent className="p-0 flex-grow min-h-0 relative">
             <div className="absolute inset-0 overflow-y-auto px-4 py-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <TranscriptViewer transcript={recentTranscript} compact={true} autoScroll={true} />
+              <TranscriptViewer
+                transcript={recentTranscript}
+                compact={true}
+                autoScroll={true}
+              />
             </div>
           </CardContent>
           {transcript.length > 0 && (
