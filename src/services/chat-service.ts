@@ -2,7 +2,8 @@
 
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
 export interface ChatMessage {
   role: 'user' | 'assistant'
@@ -12,7 +13,7 @@ export interface ChatMessage {
 export interface ChatRequest {
   question: string
   conversation_history?: ChatMessage[]
-  provider?: 'openai' | 'gemini' | 'claude'  // AI provider to use
+  provider?: 'openai' | 'gemini' | 'claude' // AI provider to use
 }
 
 export interface ChatSource {
@@ -32,7 +33,7 @@ export interface ChatResponse {
   confidence: 'high' | 'medium' | 'low'
   topics?: string[]
   suggested_questions?: string[]
-  provider?: string  // AI provider that was used
+  provider?: string // AI provider that was used
 }
 
 export interface ChatStats {
@@ -50,15 +51,15 @@ class ChatService {
     }
     return {
       Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     }
   }
 
   async askQuestion(
-    clientId: string, 
-    question: string, 
+    clientId: string,
+    question: string,
     conversationHistory?: ChatMessage[],
-    provider?: 'openai' | 'gemini' | 'claude'
+    provider?: 'openai' | 'gemini' | 'claude',
   ): Promise<ChatResponse> {
     try {
       const response = await axios.post<ChatResponse>(
@@ -66,9 +67,9 @@ class ChatService {
         {
           question,
           conversation_history: conversationHistory,
-          provider: provider || 'openai'  // Default to OpenAI
+          provider: provider || 'openai', // Default to OpenAI
         },
-        { headers: this.getAuthHeaders() }
+        { headers: this.getAuthHeaders() },
       )
       return response.data
     } catch (error) {
@@ -81,7 +82,7 @@ class ChatService {
     try {
       const response = await axios.get<ChatStats>(
         `${API_URL}/chat/clients/${clientId}/chat/stats`,
-        { headers: this.getAuthHeaders() }
+        { headers: this.getAuthHeaders() },
       )
       return response.data
     } catch (error) {
@@ -92,10 +93,9 @@ class ChatService {
 
   async clearClientIndex(clientId: string): Promise<void> {
     try {
-      await axios.delete(
-        `${API_URL}/chat/clients/${clientId}/chat/index`,
-        { headers: this.getAuthHeaders() }
-      )
+      await axios.delete(`${API_URL}/chat/clients/${clientId}/chat/index`, {
+        headers: this.getAuthHeaders(),
+      })
     } catch (error) {
       console.error('Failed to clear client index:', error)
       throw error
@@ -103,4 +103,42 @@ class ChatService {
   }
 }
 
+class RealtimeService {
+  private getAuthHeaders() {
+    const token = localStorage.getItem('auth_token')
+    if (!token) {
+      throw new Error('No authentication token found')
+    }
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
+  async checkRealtimeStatus(): Promise<{
+    available: boolean
+    model: string
+    features: any
+    voices: string[]
+    pricing: any
+  }> {
+    try {
+      const response = await axios.get(`${API_URL}/realtime/status`, {
+        headers: this.getAuthHeaders(),
+      })
+      return response.data
+    } catch (error) {
+      console.error('Failed to check realtime status:', error)
+      return {
+        available: false,
+        model: 'gpt-4o-realtime',
+        features: {},
+        voices: [],
+        pricing: {},
+      }
+    }
+  }
+}
+
 export const chatService = new ChatService()
+export const realtimeService = new RealtimeService()

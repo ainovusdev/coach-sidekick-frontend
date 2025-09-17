@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
-import { ClientChatWidget } from './components/client-chat-widget'
+import { ClientChatUnified } from './components/client-chat-unified'
 import { SessionCardCompact } from './components/session-card-compact'
 import { ClientPersonaModern } from './components/client-persona-modern'
 import { useClientData } from './hooks/use-client-data'
@@ -191,7 +191,10 @@ export default function ClientDetailPage({
                     </>
                   )}
                   {isViewer && (
-                    <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 px-3 py-2">
+                    <Badge
+                      variant="outline"
+                      className="bg-blue-50 border-blue-200 text-blue-700 px-3 py-2"
+                    >
                       <Eye className="h-3.5 w-3.5 mr-1.5" />
                       View Only Access
                     </Badge>
@@ -341,7 +344,7 @@ export default function ClientDetailPage({
                             No sessions yet
                           </h3>
                           <p className="text-gray-500 text-sm mb-4">
-                            {isViewer 
+                            {isViewer
                               ? `No sessions have been recorded for ${client.name} yet.`
                               : `Start recording your first coaching session with ${client.name}`}
                           </p>
@@ -361,11 +364,11 @@ export default function ClientDetailPage({
                 </Card>
               </div>
 
-              {/* Chat Widget - Hidden for viewers */}
+              {/* Unified Chat Widget - Hidden for viewers */}
               {!isViewer ? (
                 <Card className="border-gray-200 shadow-sm overflow-hidden">
                   <CardContent className="p-0 h-full -my-4">
-                    <ClientChatWidget
+                    <ClientChatUnified
                       clientId={client.id}
                       clientName={client.name}
                     />
@@ -382,9 +385,13 @@ export default function ClientDetailPage({
                         Restricted Access
                       </h3>
                       <p className="text-sm text-gray-600 mb-4">
-                        Chat functionality is not available with viewer permissions.
+                        Chat functionality is not available with viewer
+                        permissions.
                       </p>
-                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 border-blue-200 text-blue-700"
+                      >
                         <Eye className="h-3 w-3 mr-1.5" />
                         View Only Mode
                       </Badge>
