@@ -67,7 +67,6 @@ export function RealtimeVoiceModal({
     stopSpeaking,
     clearConversation,
     sendMessage,
-    updateVoice,
   } = useRealtimeChat({
     clientId,
     token,
@@ -167,8 +166,11 @@ export function RealtimeVoiceModal({
 
   // Handle voice change
   const handleVoiceChange = (voice: string) => {
-    setSelectedVoice(voice)
-    updateVoice?.(voice)
+    // Only allow voice change when not connected
+    // OpenAI doesn't allow changing voice mid-conversation
+    if (!isConnected) {
+      setSelectedVoice(voice)
+    }
   }
 
   // Sync voice from hook if it changes
@@ -176,24 +178,22 @@ export function RealtimeVoiceModal({
     if (currentVoice && currentVoice !== selectedVoice) {
       setSelectedVoice(currentVoice)
     }
-  }, [currentVoice])
+  }, [currentVoice, selectedVoice])
 
-  // Voice options
+  // Voice options - updated to match OpenAI's supported values
   const voices = [
     { value: 'alloy', label: 'Alloy (Neutral)' },
-    { value: 'echo', label: 'Echo (Warm)' },
-    { value: 'fable', label: 'Fable (British)' },
-    { value: 'onyx', label: 'Onyx (Deep)' },
-    { value: 'nova', label: 'Nova (Friendly)' },
+    { value: 'ash', label: 'Ash (Conversational)' },
+    { value: 'ballad', label: 'Ballad (Warm)' },
+    { value: 'coral', label: 'Coral (Friendly)' },
+    { value: 'echo', label: 'Echo (Smooth)' },
+    { value: 'sage', label: 'Sage (Wise)' },
     { value: 'shimmer', label: 'Shimmer (Soft)' },
+    { value: 'verse', label: 'Verse (Professional)' },
   ]
 
-  // Update voice when selection changes
-  useEffect(() => {
-    if (isConnected && selectedVoice !== currentVoice) {
-      updateVoice(selectedVoice)
-    }
-  }, [selectedVoice, isConnected, currentVoice, updateVoice])
+  // Voice can only be set before connection
+  // OpenAI Realtime API doesn't allow changing voice after audio is present
 
   return (
     <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
@@ -207,8 +207,12 @@ export function RealtimeVoiceModal({
               )}
             </div>
             <div className="flex items-center gap-3">
-              <Select value={selectedVoice} onValueChange={handleVoiceChange}>
-                <SelectTrigger className="w-[140px] h-8">
+              <Select
+                value={selectedVoice}
+                onValueChange={handleVoiceChange}
+                disabled={isConnected}
+              >
+                <SelectTrigger className="w-[140px] h-8" disabled={isConnected}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

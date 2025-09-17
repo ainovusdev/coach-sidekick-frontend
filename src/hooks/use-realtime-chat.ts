@@ -91,9 +91,9 @@ export function useRealtimeChat(config: RealtimeConfig) {
     isConnectingRef.current = true
 
     try {
-      // Construct WebSocket URL with token
+      // Construct WebSocket URL with token and voice
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
-      const url = `${wsUrl}/api/v1/realtime/ws/realtime/${clientId}?token=${encodeURIComponent(token)}`
+      const url = `${wsUrl}/api/v1/realtime/ws/realtime/${clientId}?token=${encodeURIComponent(token)}&voice=${encodeURIComponent(currentVoice)}`
 
       console.log('Creating new WebSocket connection to:', url)
       wsRef.current = new WebSocket(url)
@@ -114,16 +114,8 @@ export function useRealtimeChat(config: RealtimeConfig) {
           reconnectTimeoutRef.current = null
         }
 
-        // Send initial session configuration with voice
-        if (wsRef.current) {
-          const sessionConfig: RealtimeMessage = {
-            type: 'session.update',
-            session: {
-              voice: currentVoice,
-            },
-          }
-          wsRef.current.send(JSON.stringify(sessionConfig))
-        }
+        // Voice is configured server-side during session setup
+        // We cannot change voice after connection is established
       }
 
       wsRef.current.onmessage = async event => {
@@ -396,24 +388,17 @@ export function useRealtimeChat(config: RealtimeConfig) {
   }, [sendMessage])
 
   /**
-   * Update voice setting
+   * Update voice setting (only works before connection)
    */
   const updateVoice = useCallback(
     (voice: string) => {
-      setCurrentVoice(voice)
-
-      // Update session configuration if connected
-      if (wsRef.current?.readyState === WebSocket.OPEN) {
-        const message: RealtimeMessage = {
-          type: 'session.update',
-          session: {
-            voice: voice,
-          },
-        }
-        sendMessage(message)
+      // Voice can only be set before connection
+      // OpenAI doesn't allow changing voice after audio is present
+      if (!isConnected) {
+        setCurrentVoice(voice)
       }
     },
-    [sendMessage],
+    [isConnected],
   )
 
   // Auto-connect/disconnect based on enabled flag
