@@ -22,6 +22,9 @@ export interface CreateBotResponse {
 export interface BotInfo {
   id: string
   status: string
+  meeting_url?: string
+  platform?: string
+  meeting_id?: string
   meeting_status?: string
   duration_seconds?: number
   updated_at?: string
@@ -60,7 +63,9 @@ export class MeetingService {
     return response
   }
 
-  static async pauseBot(botId: string): Promise<{ success: boolean; message: string }> {
+  static async pauseBot(
+    botId: string,
+  ): Promise<{ success: boolean; message: string }> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/bots/${botId}/pause`,
       {},
@@ -68,7 +73,9 @@ export class MeetingService {
     return response
   }
 
-  static async resumeBot(botId: string): Promise<{ success: boolean; message: string }> {
+  static async resumeBot(
+    botId: string,
+  ): Promise<{ success: boolean; message: string }> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/bots/${botId}/resume`,
       {},
