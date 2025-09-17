@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run lint-staged for automatic fixes
 echo "🔍 Running lint-staged..."
 npx lint-staged
