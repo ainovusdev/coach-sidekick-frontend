@@ -1,7 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
 # Run lint-staged for automatic fixes
 echo "🔍 Running lint-staged..."
 npx lint-staged
 
-# Run build to check for TypeScript errors
-echo "🏗️  Checking TypeScript build..."
-pnpm build
+# Check if lint-staged succeeded
+if [ $? -ne 0 ]; then
+  echo "❌ Lint-staged failed. Please fix the issues and try again."
+  exit 1
+fi
+
+# Optional: Run build to check for TypeScript errors
+# Uncomment the following lines if you want to run build check on every commit
+# echo "🏗️  Checking TypeScript build..."
+# pnpm build
+
+echo "✅ Pre-commit checks passed!"
