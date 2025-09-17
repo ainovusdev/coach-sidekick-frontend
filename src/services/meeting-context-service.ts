@@ -204,9 +204,10 @@ export class MeetingContextService {
   }> {
     try {
       // Fetch recent sessions for the client
-      const response = await ApiClient.get(
-        `${BACKEND_URL}/sessions?client_id=${clientId}&limit=10`,
-      )
+      const response = await ApiClient.post(`${BACKEND_URL}/sessions/list`, {
+        client_id: clientId,
+        limit: 10,
+      })
 
       const sessions: SimilarSession[] = []
       const summaries: SessionSummary[] = []
