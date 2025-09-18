@@ -4,7 +4,6 @@ import { SessionService } from '@/services/session-service'
 
 export function useBotActions() {
   const [isLoading, setIsLoading] = useState(false)
-  const [isPaused, setIsPaused] = useState(false)
 
   const stopBot = async (botId: string): Promise<boolean> => {
     try {
@@ -37,49 +36,8 @@ export function useBotActions() {
     }
   }
 
-  const pauseBot = async (botId: string): Promise<boolean> => {
-    try {
-      setIsLoading(true)
-      console.log('Pausing bot:', botId)
-
-      // Pause the bot via backend
-      const pauseResponse = await MeetingService.pauseBot(botId)
-      console.log('Bot paused successfully:', pauseResponse)
-      
-      setIsPaused(true)
-      return true
-    } catch (error) {
-      console.error('Failed to pause bot:', error)
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const resumeBot = async (botId: string): Promise<boolean> => {
-    try {
-      setIsLoading(true)
-      console.log('Resuming bot:', botId)
-
-      // Resume the bot via backend
-      const resumeResponse = await MeetingService.resumeBot(botId)
-      console.log('Bot resumed successfully:', resumeResponse)
-      
-      setIsPaused(false)
-      return true
-    } catch (error) {
-      console.error('Failed to resume bot:', error)
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
   return {
     stopBot,
-    pauseBot,
-    resumeBot,
     isLoading,
-    isPaused,
   }
 }

@@ -25,10 +25,7 @@ export default function MeetingPage() {
     error,
     meetingState,
     stopBot,
-    pauseBot,
-    resumeBot,
     isStoppingBot,
-    isPaused,
   } = useMeetingData({ botId })
 
   const handleStopBot = async () => {
@@ -50,31 +47,6 @@ export default function MeetingPage() {
     }
   }
 
-  const handlePauseResume = async () => {
-    if (!bot) return
-
-    try {
-      if (isPaused) {
-        const success = await resumeBot(bot.id)
-        if (success) {
-          showToast('Recording resumed', 'success')
-        } else {
-          showToast('Failed to resume recording', 'error')
-        }
-      } else {
-        const success = await pauseBot(bot.id)
-        if (success) {
-          showToast('Recording paused', 'success')
-        } else {
-          showToast('Failed to pause recording', 'error')
-        }
-      }
-    } catch (error) {
-      console.error('Error toggling pause state:', error)
-      showToast('Failed to toggle pause state', 'error')
-    }
-  }
-
   if (loading) {
     return <MeetingLoading />
   }
@@ -89,40 +61,28 @@ export default function MeetingPage() {
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
 
-      {/* Fixed Header */}
       <div className="flex-shrink-0 z-10">
         <MeetingHeader
           bot={bot}
           transcriptLength={transcript.length}
           isStoppingBot={isStoppingBot}
-          isPaused={isPaused}
           onStopBot={handleStopBot}
-          onPauseResume={handlePauseResume}
           onNavigateBack={() => router.push('/')}
         />
       </div>
-
-      {/* Main Content Area - Fixed Height */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3 overflow-hidden">
-          {/* WebSocket Control and Meeting State - Fixed */}
           <div className="flex-shrink-0 mb-3 space-y-3">
             <WebSocketControl botId={botId} />
             <MeetingStatePanel state={meetingState} compact={true} />
           </div>
-
-          {/* Main Panels - Constrained Height */}
           <div className="flex-1 overflow-hidden">
             <MeetingPanels transcript={transcript} botId={botId} />
           </div>
         </div>
       </div>
-
-      {/* Fixed Bottom Save Status Bar */}
       <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm z-10">
-        <div className="max-w-[1600px] mx-auto px-4 py-2">
-          <BatchSaveStatus botId={botId} minimal={true} />
-        </div>
+        <BatchSaveStatus botId={botId} minimal={true} />
       </div>
     </div>
   )
