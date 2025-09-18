@@ -8,18 +8,9 @@ interface UseMeetingDataProps {
 }
 
 export function useMeetingData({ botId }: UseMeetingDataProps) {
-  const { bot, transcript, loading, error } = useBotData(botId)
-  const {
-    stopBot,
-    pauseBot,
-    resumeBot,
-    isLoading: isStoppingBot,
-    isPaused,
-  } = useBotActions()
+  const { bot, transcript, loading, error, sessionId } = useBotData(botId)
+  const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
-
-  // Room joining is handled by useBotWebSocket in use-bot-data.ts
-  // No need to join again here
 
   // Handle meeting state updates
   const handleMeetingState = useCallback((data: any) => {
@@ -38,10 +29,8 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     loading,
     error,
     meetingState,
+    sessionId,
     stopBot,
-    pauseBot,
-    resumeBot,
     isStoppingBot,
-    isPaused,
   }
 }
