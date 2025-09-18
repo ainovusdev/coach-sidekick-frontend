@@ -23,6 +23,7 @@ export default function MeetingPage() {
     loading,
     error,
     meetingState,
+    sessionId,
     stopBot,
     isStoppingBot,
   } = useMeetingData({ botId })
@@ -31,7 +32,7 @@ export default function MeetingPage() {
     if (!bot) return
 
     try {
-      const success = await stopBot(bot.id)
+      const success = await stopBot(bot.id, sessionId || undefined)
       if (success) {
         showToast('Bot stopped successfully! Redirecting...', 'success')
         setTimeout(() => {
@@ -80,7 +81,7 @@ export default function MeetingPage() {
         </div>
       </div>
       <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm z-10">
-        <BatchSaveStatus botId={botId} minimal={true} />
+        <BatchSaveStatus botId={botId} sessionId={sessionId} minimal={true} />
       </div>
     </div>
   )

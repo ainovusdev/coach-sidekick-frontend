@@ -5,7 +5,10 @@ import { SessionService } from '@/services/session-service'
 export function useBotActions() {
   const [isLoading, setIsLoading] = useState(false)
 
-  const stopBot = async (botId: string): Promise<boolean> => {
+  const stopBot = async (
+    botId: string,
+    sessionId?: string,
+  ): Promise<boolean> => {
     try {
       setIsLoading(true)
       console.log('Stopping bot:', botId)
@@ -16,11 +19,16 @@ export function useBotActions() {
 
       // Try to force save transcripts if session exists
       try {
-        // Get session by bot ID first
-        const session = await SessionService.getSessionByBotId(botId)
-        if (session) {
-          await MeetingService.forceSaveTranscripts(session.id)
-          console.log('Transcripts saved for session:', session.id)
+        let finalSessionId = sessionId
+        // Only fetch session if not provided
+        if (!finalSessionId) {
+          const session = await SessionService.getSessionByBotId(botId)
+          finalSessionId = session?.id
+        }
+
+        if (finalSessionId) {
+          await MeetingService.forceSaveTranscripts(finalSessionId)
+          console.log('Transcripts saved for session:', finalSessionId)
         }
       } catch (saveError) {
         console.warn('Failed to force save transcripts:', saveError)
