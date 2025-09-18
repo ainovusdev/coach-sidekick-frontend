@@ -260,24 +260,6 @@ class WebSocketService {
     }
   }
 
-  reconnect(): void {
-    console.log('[WebSocket] Reconnecting with fresh connection')
-    // Clear any existing connection
-    if (this.ws) {
-      this.ws.close(1000, 'Reconnecting')
-      this.ws = null
-    }
-
-    // Reset connection attempts
-    this.reconnectAttempts = 0
-
-    // Clear message queue to start fresh
-    this.messageQueue = []
-
-    // Connect again
-    this.connect()
-  }
-
   send(type: string, data: any): void {
     const message: WebSocketEvent = {
       type,

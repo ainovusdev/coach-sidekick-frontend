@@ -169,13 +169,18 @@ export function useBotData(botId: string): UseBotDataReturn {
     [],
   )
 
-  // Use WebSocket events
-  useBotWebSocket(botId, {
-    onTranscriptNew: handleTranscriptNew,
-    onTranscriptUpdate: handleTranscriptUpdate,
-    onBotStatus: handleBotStatus,
-    onError: handleError,
-  })
+  // Use WebSocket events - only join room after bot data is loaded
+  // Pass bot to ensure room is only joined when bot exists
+  useBotWebSocket(
+    botId,
+    {
+      onTranscriptNew: handleTranscriptNew,
+      onTranscriptUpdate: handleTranscriptUpdate,
+      onBotStatus: handleBotStatus,
+      onError: handleError,
+    },
+    bot,
+  ) // Pass bot to control when room joining happens
 
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {

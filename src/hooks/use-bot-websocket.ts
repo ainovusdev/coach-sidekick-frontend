@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useWebSocket } from '@/contexts/websocket-context'
-import { TranscriptEntry } from '@/types/meeting'
+import { TranscriptEntry, Bot } from '@/types/meeting'
 
 interface BotWebSocketEvents {
   onTranscriptNew?: (entry: TranscriptEntry) => void
@@ -14,30 +14,56 @@ interface BotWebSocketEvents {
 
 /**
  * Hook for bot-specific WebSocket events
- * Automatically joins/leaves the bot room
+ * Automatically joins/leaves the bot room AFTER bot data is loaded
  */
-export function useBotWebSocket(botId: string, events: BotWebSocketEvents) {
+export function useBotWebSocket(
+  botId: string,
+  events: BotWebSocketEvents,
+  bot: Bot | null, // Add bot parameter to wait for data
+) {
   const { joinRoom, leaveRoom, on, isConnected } = useWebSocket()
 
-  // Join bot room when connected
+  // Join bot room ONLY when connected AND bot data is loaded
   useEffect(() => {
-    if (isConnected && botId) {
+    // Wait for: WebSocket connected, botId exists, and bot data is fetched
+    if (isConnected && botId && bot) {
       const roomName = `bot:${botId}`
-      console.log(`[useBotWebSocket] Joining room: ${roomName}`)
+      console.log(
+        `[useBotWebSocket] Bot data loaded, WebSocket connected, joining room: ${roomName}`,
+      )
+      console.log(
+        `[useBotWebSocket] Bot status: ${bot.status}, Platform: ${bot.platform}`,
+      )
 
-      // Add a small delay to ensure connection is established
+      // Small delay to ensure WebSocket is ready
       const joinTimer = setTimeout(() => {
-        console.log(`[useBotWebSocket] Executing join for room: ${roomName}`)
+        console.log(
+          `[useBotWebSocket] Sending join message for room: ${roomName}`,
+        )
         joinRoom(roomName)
-      }, 100)
+
+        // Send a second join after delay as safety measure for production
+        setTimeout(() => {
+          console.log(
+            `[useBotWebSocket] Sending second join for room: ${roomName} (redundancy)`,
+          )
+          joinRoom(roomName)
+        }, 1500)
+      }, 300) // Small delay after bot data is available
 
       return () => {
         clearTimeout(joinTimer)
-        console.log(`[useBotWebSocket] Leaving room: ${roomName}`)
+        console.log(`[useBotWebSocket] Cleanup - leaving room: ${roomName}`)
         leaveRoom(roomName)
       }
+    } else {
+      // Log why we're not joining yet
+      if (!isConnected)
+        console.log('[useBotWebSocket] Waiting for WebSocket connection...')
+      if (!bot) console.log('[useBotWebSocket] Waiting for bot data to load...')
+      if (!botId) console.log('[useBotWebSocket] No botId provided')
     }
-  }, [isConnected, botId, joinRoom, leaveRoom])
+  }, [isConnected, botId, bot, joinRoom, leaveRoom])
 
   // Subscribe to transcript:new events
   useEffect(() => {
