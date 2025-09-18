@@ -12,9 +12,6 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
 
-  // Room joining is handled by useBotWebSocket in use-bot-data.ts
-  // No need to join again here
-
   // Handle meeting state updates
   const handleMeetingState = useCallback((data: any) => {
     console.log('[MeetingPage] Received meeting state:', data)

@@ -67,8 +67,14 @@ class WebSocketService {
   }
 
   connect(): void {
+    // Check if already connected or connecting
     if (this.ws?.readyState === WebSocket.OPEN) {
       console.log('[WebSocket] Already connected')
+      return
+    }
+
+    if (this.ws?.readyState === WebSocket.CONNECTING) {
+      console.log('[WebSocket] Already connecting')
       return
     }
 
@@ -248,7 +254,14 @@ class WebSocketService {
     this.stopHeartbeat()
 
     if (this.ws) {
-      this.ws.close(1000, 'Client disconnect')
+      // Only close if the WebSocket is OPEN or CLOSING
+      // Don't close if CONNECTING (readyState = 0) to avoid the error
+      if (
+        this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CLOSING
+      ) {
+        this.ws.close(1000, 'Client disconnect')
+      }
       this.ws = null
     }
 
@@ -360,12 +373,3 @@ class WebSocketService {
 
 // Create singleton instance
 export const websocketService = new WebSocketService()
-
-// Auto-connect when authenticated
-if (typeof window !== 'undefined') {
-  // Check auth status and connect if authenticated
-  const token = authService.getToken()
-  if (token && authService.isAuthenticated()) {
-    websocketService.connect()
-  }
-}
