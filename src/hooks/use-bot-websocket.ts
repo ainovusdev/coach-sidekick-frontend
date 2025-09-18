@@ -41,14 +41,6 @@ export function useBotWebSocket(
           `[useBotWebSocket] Sending join message for room: ${roomName}`,
         )
         joinRoom(roomName)
-
-        // Send a second join after delay as safety measure for production
-        setTimeout(() => {
-          console.log(
-            `[useBotWebSocket] Sending second join for room: ${roomName} (redundancy)`,
-          )
-          joinRoom(roomName)
-        }, 1500)
       }, 300) // Small delay after bot data is available
 
       return () => {
