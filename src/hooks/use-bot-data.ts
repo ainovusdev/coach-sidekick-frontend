@@ -10,6 +10,7 @@ interface UseBotDataReturn {
   transcript: TranscriptEntry[]
   loading: boolean
   error: string | null
+  sessionId: string | null
   refetch: () => Promise<void>
 }
 
@@ -21,6 +22,7 @@ export function useBotData(botId: string): UseBotDataReturn {
   const transcriptMapRef = useRef<Map<string, TranscriptEntry>>(new Map())
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(null)
   const { isConnected } = useWebSocket()
 
   const ensureSession = useCallback(async (botData: Bot) => {
@@ -32,7 +34,8 @@ export function useBotData(botId: string): UseBotDataReturn {
         )
         if (existingSession) {
           console.log('Session already exists for bot:', botData.id)
-          return
+          setSessionId(existingSession.id)
+          return existingSession.id
         }
       } catch (error) {
         console.log('error', error)
@@ -40,7 +43,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       }
 
       // Only create a new session if one doesn't exist
-      await SessionService.createSession({
+      const newSession = await SessionService.createSession({
         bot_id: botData.id,
         meeting_url: botData.meeting_url,
         session_metadata: {
@@ -50,9 +53,12 @@ export function useBotData(botId: string): UseBotDataReturn {
         },
       })
       console.log('Created new session for bot:', botData.id)
+      setSessionId(newSession.id)
+      return newSession.id
     } catch (error) {
       console.warn('Failed to ensure session exists:', error)
       // Don't fail the whole process if session creation fails
+      return null
     }
   }, [])
 
@@ -169,13 +175,18 @@ export function useBotData(botId: string): UseBotDataReturn {
     [],
   )
 
-  // Use WebSocket events
-  useBotWebSocket(botId, {
-    onTranscriptNew: handleTranscriptNew,
-    onTranscriptUpdate: handleTranscriptUpdate,
-    onBotStatus: handleBotStatus,
-    onError: handleError,
-  })
+  // Use WebSocket events - only join room after bot data is loaded
+  // Pass bot to ensure room is only joined when bot exists
+  useBotWebSocket(
+    botId,
+    {
+      onTranscriptNew: handleTranscriptNew,
+      onTranscriptUpdate: handleTranscriptUpdate,
+      onBotStatus: handleBotStatus,
+      onError: handleError,
+    },
+    bot,
+  ) // Pass bot to control when room joining happens
 
   const startPolling = useCallback(() => {
     const interval = setInterval(async () => {
@@ -231,6 +242,7 @@ export function useBotData(botId: string): UseBotDataReturn {
     transcript,
     loading,
     error,
+    sessionId,
     refetch: fetchBotData,
   }
 }

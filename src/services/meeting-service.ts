@@ -63,26 +63,6 @@ export class MeetingService {
     return response
   }
 
-  static async pauseBot(
-    botId: string,
-  ): Promise<{ success: boolean; message: string }> {
-    const response = await ApiClient.post(
-      `${BACKEND_URL}/bots/${botId}/pause`,
-      {},
-    )
-    return response
-  }
-
-  static async resumeBot(
-    botId: string,
-  ): Promise<{ success: boolean; message: string }> {
-    const response = await ApiClient.post(
-      `${BACKEND_URL}/bots/${botId}/resume`,
-      {},
-    )
-    return response
-  }
-
   static async getBotInfo(botId: string): Promise<BotInfo> {
     try {
       const response = await ApiClient.get(

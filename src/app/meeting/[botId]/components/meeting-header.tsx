@@ -3,22 +3,13 @@ import { Badge } from '@/components/ui/badge'
 import { BotStatus } from '@/components/meeting/bot-status'
 import { WebSocketStatus } from '@/components/meeting/websocket-status'
 import { Bot } from '@/types/meeting'
-import {
-  ArrowLeft,
-  ExternalLink,
-  Users,
-  MessageSquare,
-  Pause,
-  Play,
-} from 'lucide-react'
+import { ArrowLeft, ExternalLink, Users, MessageSquare } from 'lucide-react'
 
 interface MeetingHeaderProps {
   bot: Bot | null
   transcriptLength: number
   isStoppingBot: boolean
-  isPaused: boolean
   onStopBot: () => void
-  onPauseResume: () => void
   onNavigateBack: () => void
 }
 
@@ -26,9 +17,7 @@ export default function MeetingHeader({
   bot,
   transcriptLength,
   isStoppingBot,
-  isPaused,
   onStopBot,
-  onPauseResume,
   onNavigateBack,
 }: MeetingHeaderProps) {
   return (
@@ -88,26 +77,6 @@ export default function MeetingHeader({
                   </a>
                 </Button>
               )}
-
-              <Button
-                variant={isPaused ? 'default' : 'outline'}
-                size="sm"
-                onClick={onPauseResume}
-                disabled={bot.status === 'call_ended' || isStoppingBot}
-                className={isPaused ? 'bg-yellow-600 hover:bg-yellow-700' : ''}
-              >
-                {isPaused ? (
-                  <>
-                    <Play className="h-4 w-4 mr-2" />
-                    Resume
-                  </>
-                ) : (
-                  <>
-                    <Pause className="h-4 w-4 mr-2" />
-                    Pause
-                  </>
-                )}
-              </Button>
 
               <Button
                 variant="destructive"
