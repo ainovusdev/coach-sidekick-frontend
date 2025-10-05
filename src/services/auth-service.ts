@@ -42,7 +42,7 @@ class AuthService {
     // Initialize from localStorage if available
     if (typeof window !== 'undefined') {
       this.token = localStorage.getItem('auth_token')
-      
+
       // If we have a token, extract roles from it rather than localStorage
       // This ensures we always have the most up-to-date roles
       if (this.token) {
@@ -51,16 +51,19 @@ class AuthService {
           const decoded = JSON.parse(atob(payload)) as JWTPayload
           this.userRoles = decoded.roles || []
           this.clientAccess = decoded.client_access || []
-          
+
           // Also update localStorage to keep it in sync
           localStorage.setItem('user_roles', JSON.stringify(this.userRoles))
-          localStorage.setItem('client_access', JSON.stringify(this.clientAccess))
+          localStorage.setItem(
+            'client_access',
+            JSON.stringify(this.clientAccess),
+          )
         } catch (error) {
           console.error('Failed to decode token:', error)
           // Fall back to localStorage
           const storedRoles = localStorage.getItem('user_roles')
           const storedClientAccess = localStorage.getItem('client_access')
-          
+
           if (storedRoles) {
             try {
               this.userRoles = JSON.parse(storedRoles)
@@ -68,7 +71,7 @@ class AuthService {
               this.userRoles = []
             }
           }
-          
+
           if (storedClientAccess) {
             try {
               this.clientAccess = JSON.parse(storedClientAccess)
@@ -81,7 +84,7 @@ class AuthService {
         this.userRoles = []
         this.clientAccess = []
       }
-      
+
       this.setupAxiosInterceptors()
     }
   }
@@ -102,7 +105,7 @@ class AuthService {
     try {
       const response = await axiosInstance.post<TokenResponse>(
         '/auth/login',
-        credentials
+        credentials,
       )
 
       // Store auth data including roles from response
@@ -110,7 +113,7 @@ class AuthService {
       this.setAuthData({
         ...tokenData,
         roles: tokenData.roles || [],
-        client_access: tokenData.client_access || []
+        client_access: tokenData.client_access || [],
       })
       return tokenData
     } catch (error) {
@@ -270,6 +273,34 @@ class AuthService {
     // Admins have access to all clients
     if (this.isAdmin()) return true
     return this.clientAccess.includes(clientId)
+  }
+
+  // Password reset methods
+  async requestPasswordReset(email: string): Promise<{ message: string }> {
+    const response = await axiosInstance.post('/auth/request-password-reset', {
+      email: email.toLowerCase(),
+    })
+    return response.data
+  }
+
+  async verifyResetToken(
+    token: string,
+  ): Promise<{ valid: boolean; email: string }> {
+    const response = await axiosInstance.post('/auth/verify-reset-token', {
+      token,
+    })
+    return response.data
+  }
+
+  async completePasswordReset(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const response = await axiosInstance.post('/auth/complete-password-reset', {
+      token,
+      new_password: newPassword,
+    })
+    return response.data
   }
 }
 

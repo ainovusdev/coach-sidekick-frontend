@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client, ClientSessionStats } from '@/types/meeting'
 import { ClientService } from '@/services/client-service'
 import ClientModal from './client-modal'
+import { ClientInvitationModal } from './client-invitation-modal'
 import {
   Search,
   Plus,
@@ -20,6 +21,8 @@ import {
   X,
   ArrowUpDown,
   Info,
+  Send,
+  UserCheck,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePermissions } from '@/contexts/permission-context'
@@ -38,6 +41,7 @@ export default function ClientList() {
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [sortBy, setSortBy] = useState<'name' | 'recent' | 'sessions'>('recent')
 
@@ -127,9 +131,11 @@ export default function ClientList() {
 
   // Sort and filter clients
   const getSortedClients = () => {
-    const filtered = clients.filter(client =>
-      client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (client.notes && client.notes.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = clients.filter(
+      client =>
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (client.notes &&
+          client.notes.toLowerCase().includes(searchTerm.toLowerCase())),
     )
 
     return filtered.sort((a, b) => {
@@ -143,8 +149,12 @@ export default function ClientList() {
           return (statsB?.total_sessions || 0) - (statsA?.total_sessions || 0)
         case 'recent':
         default:
-          const dateA = statsA?.last_session_date ? new Date(statsA.last_session_date).getTime() : 0
-          const dateB = statsB?.last_session_date ? new Date(statsB.last_session_date).getTime() : 0
+          const dateA = statsA?.last_session_date
+            ? new Date(statsA.last_session_date).getTime()
+            : 0
+          const dateB = statsB?.last_session_date
+            ? new Date(statsB.last_session_date).getTime()
+            : 0
           return dateB - dateA
       }
     })
@@ -217,7 +227,9 @@ export default function ClientList() {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Clients</h1>
               <p className="text-base text-gray-500 mt-2">
-                {isViewer ? 'View assigned clients and their information' : 'Manage and track your coaching relationships'}
+                {isViewer
+                  ? 'View assigned clients and their information'
+                  : 'Manage and track your coaching relationships'}
               </p>
             </div>
             {!isViewer && (
@@ -230,7 +242,7 @@ export default function ClientList() {
               </Button>
             )}
           </div>
-          
+
           {/* Viewer Notice */}
           {isViewer && (
             <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -241,13 +253,14 @@ export default function ClientList() {
                     Viewer Access
                   </p>
                   <p className="text-sm text-blue-700 mt-1">
-                    You have read-only access to these assigned clients. Contact your administrator to modify access levels.
+                    You have read-only access to these assigned clients. Contact
+                    your administrator to modify access levels.
                   </p>
                 </div>
               </div>
             </div>
           )}
-          
+
           {/* Stats Bar */}
           <div className="grid grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-100">
             <div className="flex items-center gap-3">
@@ -255,7 +268,9 @@ export default function ClientList() {
                 <Users className="h-5 w-5 text-gray-700" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">{clients.length}</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {clients.length}
+                </p>
                 <p className="text-sm text-gray-500">Total Clients</p>
               </div>
             </div>
@@ -265,7 +280,12 @@ export default function ClientList() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {clients.reduce((acc, client) => acc + (client.client_session_stats?.[0]?.total_sessions || 0), 0)}
+                  {clients.reduce(
+                    (acc, client) =>
+                      acc +
+                      (client.client_session_stats?.[0]?.total_sessions || 0),
+                    0,
+                  )}
                 </p>
                 <p className="text-sm text-gray-500">Total Sessions</p>
               </div>
@@ -276,13 +296,17 @@ export default function ClientList() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {clients.filter(c => {
-                    const stats = c.client_session_stats?.[0]
-                    if (!stats?.last_session_date) return false
-                    const date = new Date(stats.last_session_date)
-                    const daysDiff = Math.ceil((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24))
-                    return daysDiff <= 7
-                  }).length}
+                  {
+                    clients.filter(c => {
+                      const stats = c.client_session_stats?.[0]
+                      if (!stats?.last_session_date) return false
+                      const date = new Date(stats.last_session_date)
+                      const daysDiff = Math.ceil(
+                        (Date.now() - date.getTime()) / (1000 * 60 * 60 * 24),
+                      )
+                      return daysDiff <= 7
+                    }).length
+                  }
                 </p>
                 <p className="text-sm text-gray-500">Active This Week</p>
               </div>
@@ -323,7 +347,11 @@ export default function ClientList() {
             >
               <ArrowUpDown className="h-4 w-4 text-gray-500" />
               <span className="text-gray-700">
-                {sortBy === 'name' ? 'Name' : sortBy === 'sessions' ? 'Sessions' : 'Recent'}
+                {sortBy === 'name'
+                  ? 'Name'
+                  : sortBy === 'sessions'
+                    ? 'Sessions'
+                    : 'Recent'}
               </span>
             </Button>
             <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
@@ -331,7 +359,9 @@ export default function ClientList() {
                 <button
                   onClick={() => setSortBy('recent')}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    sortBy === 'recent' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                    sortBy === 'recent'
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Most Recent
@@ -339,7 +369,9 @@ export default function ClientList() {
                 <button
                   onClick={() => setSortBy('name')}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    sortBy === 'name' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                    sortBy === 'name'
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Name (A-Z)
@@ -347,7 +379,9 @@ export default function ClientList() {
                 <button
                   onClick={() => setSortBy('sessions')}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                    sortBy === 'sessions' ? 'bg-gray-100 text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-50'
+                    sortBy === 'sessions'
+                      ? 'bg-gray-100 text-gray-900 font-medium'
+                      : 'text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   Most Sessions
@@ -365,9 +399,11 @@ export default function ClientList() {
                 <X className="h-5 w-5 text-red-600" />
               </div>
               <div>
-                <h4 className="font-medium text-red-900">Unable to load clients</h4>
+                <h4 className="font-medium text-red-900">
+                  Unable to load clients
+                </h4>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
-                <Button 
+                <Button
                   onClick={fetchClients}
                   variant="outline"
                   size="sm"
@@ -391,7 +427,7 @@ export default function ClientList() {
                 Welcome to Your Client Hub
               </h3>
               <p className="text-base text-gray-500 mb-8 max-w-md mx-auto">
-                {isViewer 
+                {isViewer
                   ? 'No clients have been assigned to you yet. Contact your administrator for access.'
                   : 'Start building meaningful coaching relationships. Add your first client to begin tracking sessions and progress.'}
               </p>
@@ -410,8 +446,12 @@ export default function ClientList() {
           <div className="grid gap-4">
             {getSortedClients().map(client => {
               const stats = client.client_session_stats?.[0]
-              const isActive = stats?.last_session_date && 
-                Math.ceil((Date.now() - new Date(stats.last_session_date).getTime()) / (1000 * 60 * 60 * 24)) <= 7
+              const isActive =
+                stats?.last_session_date &&
+                Math.ceil(
+                  (Date.now() - new Date(stats.last_session_date).getTime()) /
+                    (1000 * 60 * 60 * 24),
+                ) <= 7
 
               return (
                 <Card
@@ -422,8 +462,10 @@ export default function ClientList() {
                   <CardContent className="p-0">
                     <div className="flex items-center">
                       {/* Left accent bar */}
-                      <div className={`w-1 h-full ${isActive ? 'bg-gray-900' : 'bg-gray-200'}`} />
-                      
+                      <div
+                        className={`w-1 h-full ${isActive ? 'bg-gray-900' : 'bg-gray-200'}`}
+                      />
+
                       <div className="flex-1 p-6">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4 flex-1">
@@ -449,24 +491,42 @@ export default function ClientList() {
                                     Active
                                   </span>
                                 )}
+                                {client.invitation_status === 'invited' && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full flex items-center gap-1">
+                                    <Send className="h-3 w-3" />
+                                    Invited
+                                  </span>
+                                )}
+                                {client.invitation_status === 'accepted' && (
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                                    <UserCheck className="h-3 w-3" />
+                                    Portal Active
+                                  </span>
+                                )}
                               </div>
                               {client.notes && (
                                 <p className="text-sm text-gray-500 mt-1 line-clamp-2">
                                   {client.notes}
                                 </p>
                               )}
-                              
+
                               {/* Mobile Stats */}
                               <div className="flex items-center gap-4 mt-3 sm:hidden">
                                 {stats && (
                                   <>
                                     <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                       <Calendar className="h-3.5 w-3.5" />
-                                      <span>{stats.total_sessions} sessions</span>
+                                      <span>
+                                        {stats.total_sessions} sessions
+                                      </span>
                                     </div>
                                     <div className="flex items-center gap-1.5 text-xs text-gray-500">
                                       <Clock className="h-3.5 w-3.5" />
-                                      <span>{formatLastSession(stats.last_session_date)}</span>
+                                      <span>
+                                        {formatLastSession(
+                                          stats.last_session_date,
+                                        )}
+                                      </span>
                                     </div>
                                   </>
                                 )}
@@ -477,14 +537,20 @@ export default function ClientList() {
                             {stats && (
                               <div className="hidden sm:flex items-center gap-6">
                                 <div className="flex flex-col">
-                                  <span className="text-lg font-semibold text-gray-900">{stats.total_sessions}</span>
-                                  <span className="text-xs text-gray-500">Sessions</span>
+                                  <span className="text-lg font-semibold text-gray-900">
+                                    {stats.total_sessions}
+                                  </span>
+                                  <span className="text-xs text-gray-500">
+                                    Sessions
+                                  </span>
                                 </div>
                                 <div className="flex flex-col">
                                   <span className="text-sm font-medium text-gray-700">
                                     {formatLastSession(stats.last_session_date)}
                                   </span>
-                                  <span className="text-xs text-gray-500">Last session</span>
+                                  <span className="text-xs text-gray-500">
+                                    Last session
+                                  </span>
                                 </div>
                               </div>
                             )}
@@ -504,17 +570,32 @@ export default function ClientList() {
                               <Eye className="h-4 w-4" />
                             </Button>
                             {!isViewer && (
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  openEditModal(client)
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-lg"
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    setSelectedClient(client)
+                                    setIsInviteModalOpen(true)
+                                  }}
+                                  title="Invite to Portal"
+                                >
+                                  <Send className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    openEditModal(client)
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </>
                             )}
                             <div className="ml-2 transform group-hover:translate-x-1 transition-transform">
                               <ChevronRight className="h-5 w-5 text-gray-400" />
@@ -550,6 +631,22 @@ export default function ClientList() {
         client={selectedClient}
         mode="edit"
       />
+
+      {/* Client Invitation Modal */}
+      {selectedClient && (
+        <ClientInvitationModal
+          isOpen={isInviteModalOpen}
+          onClose={() => {
+            setIsInviteModalOpen(false)
+            setSelectedClient(null)
+          }}
+          clientId={selectedClient.id}
+          clientName={selectedClient.name}
+          clientEmail={selectedClient.email}
+          invitationStatus={selectedClient.invitation_status}
+          onInvitationSent={fetchClients}
+        />
+      )}
     </>
   )
 }

@@ -17,6 +17,7 @@ import {
 
 interface BatchSaveStatusProps {
   botId: string
+  sessionId?: string | null
   minimal?: boolean
 }
 
@@ -28,15 +29,26 @@ interface SaveStatus {
   batchSaveInProgress: boolean
 }
 
-export function BatchSaveStatus({ botId, minimal = false }: BatchSaveStatusProps) {
+export function BatchSaveStatus({
+  botId,
+  sessionId: propSessionId,
+  minimal = false,
+}: BatchSaveStatusProps) {
   const [saveStatus, setSaveStatus] = useState<SaveStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [sessionId, setSessionId] = useState<string | null>(null)
+  const [sessionId, setSessionId] = useState<string | null>(
+    propSessionId || null,
+  )
   const { isConnected } = useWebSocket()
 
-  // Get session ID from bot ID
+  // Get session ID from bot ID only if not provided as prop
   useEffect(() => {
+    if (propSessionId) {
+      setSessionId(propSessionId)
+      return
+    }
+
     const getSessionId = async () => {
       try {
         const session = await SessionService.getSessionByBotId(botId)
@@ -46,15 +58,15 @@ export function BatchSaveStatus({ botId, minimal = false }: BatchSaveStatusProps
       }
     }
     getSessionId()
-  }, [botId])
+  }, [botId, propSessionId])
 
   const fetchSaveStatus = useCallback(async () => {
     if (!sessionId) return
-    
+
     try {
       setError(null)
       const status = await TranscriptService.getBatchStatus(sessionId)
-      
+
       setSaveStatus({
         totalEntries: status.saved_count,
         savedEntries: status.saved_count,
@@ -71,11 +83,11 @@ export function BatchSaveStatus({ botId, minimal = false }: BatchSaveStatusProps
 
   const forceSave = async () => {
     if (!sessionId) return
-    
+
     try {
       setLoading(true)
       await TranscriptService.forceSave(sessionId)
-      
+
       // Refresh status after force save
       await fetchSaveStatus()
     } catch (err) {
@@ -86,19 +98,23 @@ export function BatchSaveStatus({ botId, minimal = false }: BatchSaveStatusProps
   }
 
   // WebSocket event handler for save status updates
-  useWebSocketEvent('save:status', (data: any) => {
-    if (data.sessionId === sessionId) {
-      console.log('[WebSocket] Save status update:', data)
-      
-      setSaveStatus({
-        totalEntries: data.savedCount || 0,
-        savedEntries: data.savedCount || 0,
-        unsavedEntries: data.unsavedCount || 0,
-        lastBatchSave: data.timestamp || null,
-        batchSaveInProgress: data.status === 'in_progress'
-      })
-    }
-  }, [sessionId])
+  useWebSocketEvent(
+    'save:status',
+    (data: any) => {
+      if (data.sessionId === sessionId) {
+        console.log('[WebSocket] Save status update:', data)
+
+        setSaveStatus({
+          totalEntries: data.savedCount || 0,
+          savedEntries: data.savedCount || 0,
+          unsavedEntries: data.unsavedCount || 0,
+          lastBatchSave: data.timestamp || null,
+          batchSaveInProgress: data.status === 'in_progress',
+        })
+      }
+    },
+    [sessionId],
+  )
 
   useEffect(() => {
     if (sessionId) {
@@ -154,7 +170,7 @@ export function BatchSaveStatus({ botId, minimal = false }: BatchSaveStatusProps
   if (!saveStatus) return null
 
   const getSaveStatusIcon = () => {
-    const size = minimal ? "h-3 w-3" : "h-4 w-4"
+    const size = minimal ? 'h-3 w-3' : 'h-4 w-4'
     if (saveStatus.batchSaveInProgress) {
       return <Loader2 className={`${size} animate-spin text-blue-600`} />
     }

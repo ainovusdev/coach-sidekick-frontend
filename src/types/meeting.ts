@@ -21,8 +21,12 @@ export interface Client {
   coach_id: string
   name: string
   notes?: string
+  email?: string
   created_at: string
   updated_at: string
+  user_id?: string
+  invitation_status?: 'not_invited' | 'invited' | 'accepted'
+  invitation_sent_at?: string
 }
 
 export interface ClientSessionStats {

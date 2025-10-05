@@ -67,6 +67,7 @@ interface PermissionContextType {
   canViewAnalytics: () => boolean
   canViewPersona: () => boolean
   canCreateClient: () => boolean
+  canCreateMeeting: () => boolean
   isViewerOnly: () => boolean
   isCoach: () => boolean
   isAdmin: () => boolean
@@ -74,7 +75,9 @@ interface PermissionContextType {
   isViewer: () => boolean
 }
 
-const PermissionContext = createContext<PermissionContextType | undefined>(undefined)
+const PermissionContext = createContext<PermissionContextType | undefined>(
+  undefined,
+)
 
 // Define permissions for each role
 const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
@@ -89,7 +92,7 @@ const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
     analytics: { view: true },
     data: { export: true },
     sensitive_info: { view: true },
-    access: { view: true, manage: true }
+    access: { view: true, manage: true },
   },
   admin: {
     user: { view: true, create: true, edit: true, delete: false },
@@ -102,7 +105,7 @@ const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
     analytics: { view: true },
     data: { export: true },
     sensitive_info: { view: true },
-    access: { view: true, manage: true }
+    access: { view: true, manage: true },
   },
   coach: {
     user: { view: false, create: false, edit: false, delete: false },
@@ -115,7 +118,7 @@ const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
     analytics: { view: true },
     data: { export: true },
     sensitive_info: { view: true },
-    access: { view: false, manage: false }
+    access: { view: false, manage: false },
   },
   viewer: {
     user: { view: false, create: false, edit: false, delete: false },
@@ -128,11 +131,15 @@ const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
     analytics: { view: true },
     data: { export: false },
     sensitive_info: { view: false },
-    access: { view: false, manage: false }
-  }
+    access: { view: false, manage: false },
+  },
 }
 
-export function PermissionProvider({ children }: { children: React.ReactNode }) {
+export function PermissionProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const { roles, hasRole, hasAnyRole, clientAccess: _clientAccess } = useAuth()
 
   // Calculate effective permissions based on highest role
@@ -160,13 +167,15 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
     hasPermission: (resource: keyof PermissionMatrix, action: string) => {
       const resourcePermissions = permissions[resource]
       if (!resourcePermissions) return false
-      return resourcePermissions[action as keyof typeof resourcePermissions] === true
+      return (
+        resourcePermissions[action as keyof typeof resourcePermissions] === true
+      )
     },
 
     canViewTranscript: (clientId?: string) => {
       // Check basic permission
       if (!permissions.transcript.view) return false
-      
+
       // If clientId provided, check client access
       if (clientId && !hasRole('super_admin')) {
         if (hasRole('admin')) {
@@ -182,7 +191,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
         // Viewer cannot see transcripts
         return false
       }
-      
+
       return permissions.transcript.view
     },
 
@@ -192,27 +201,27 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
     canEditClient: (clientId?: string) => {
       if (!permissions.client.edit) return false
-      
+
       // Additional checks for specific client could go here
       if (clientId && hasRole('coach')) {
         // Coach can only edit their own clients
         // This would need to be checked against actual data
         return true
       }
-      
+
       return permissions.client.edit
     },
 
     canDeleteClient: (clientId?: string) => {
       if (!permissions.client.delete) return false
-      
+
       // Additional checks for specific client could go here
       if (clientId && hasRole('coach')) {
         // Coach can only delete their own clients
         // This would need to be checked against actual data
         return true
       }
-      
+
       return permissions.client.delete
     },
 
@@ -244,6 +253,10 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
       return permissions.client.create
     },
 
+    canCreateMeeting: () => {
+      return permissions.sessions.create
+    },
+
     isViewerOnly: () => {
       return hasRole('viewer') && !hasAnyRole(['super_admin', 'admin', 'coach'])
     },
@@ -262,7 +275,7 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
     isSuperAdmin: () => {
       return hasRole('super_admin')
-    }
+    },
   }
 
   return (
@@ -293,35 +306,38 @@ interface PermissionGateProps {
   }
 }
 
-export function PermissionGate({ 
-  children, 
+export function PermissionGate({
+  children,
   fallback = null,
   resource,
   action,
-  require 
+  require,
 }: PermissionGateProps) {
   const permissions = usePermissions()
-  
+
   // Check direct resource/action props
   if (resource && action) {
     const hasPermission = permissions.hasPermission(resource, action)
     return hasPermission ? <>{children}</> : <>{fallback}</>
   }
-  
+
   // Check require prop for backwards compatibility
   if (require) {
     // Check custom permission function
     if (require.customCheck) {
       return require.customCheck() ? <>{children}</> : <>{fallback}</>
     }
-    
+
     // Check resource/action permission
     if (require.resource && require.action) {
-      const hasPermission = permissions.hasPermission(require.resource, require.action)
+      const hasPermission = permissions.hasPermission(
+        require.resource,
+        require.action,
+      )
       return hasPermission ? <>{children}</> : <>{fallback}</>
     }
   }
-  
+
   // If no requirements specified, render children
   return <>{children}</>
 }

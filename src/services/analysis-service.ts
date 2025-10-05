@@ -95,17 +95,76 @@ export interface CoachingAnalysis {
   processing_time_ms: number
 }
 
+export interface FullAnalysisResponse {
+  session_id: string
+  timestamp: string
+  insights: SessionInsights | null
+  coaching: {
+    coaching_scores: CoachingScores
+    go_live_scores: GOLIVEScores
+    sentiment: {
+      overall: string
+      score: number
+      emotions: string[]
+      engagement: string
+    }
+    suggestions: string[]
+    analysis_version: string
+    processing_time_ms: number
+  } | null
+  total_processing_time_ms?: number
+}
+
 export class AnalysisService {
+  // ===== NEW UNIFIED ENDPOINTS =====
+
+  /**
+   * Trigger complete analysis (insights + coaching metrics) in one call
+   */
+  static async triggerAnalysis(
+    sessionId: string,
+    force: boolean = false,
+  ): Promise<FullAnalysisResponse> {
+    const response = await ApiClient.post(
+      `${BACKEND_URL}/analysis/${sessionId}/analyze${
+        force ? '?force=true' : ''
+      }`,
+      {},
+      120000, // 2 minute timeout for analysis
+    )
+    return response
+  }
+
+  /**
+   * Get the latest analysis (both insights and coaching) in one call
+   */
+  static async getAnalysis(
+    sessionId: string,
+  ): Promise<FullAnalysisResponse | null> {
+    try {
+      const response = await ApiClient.get(
+        `${BACKEND_URL}/analysis/${sessionId}/analysis`,
+      )
+      return response
+    } catch {
+      return null
+    }
+  }
+
+  // ===== OLD ENDPOINTS (DEPRECATED - use triggerAnalysis/getAnalysis instead) =====
+
+  /** @deprecated Use triggerAnalysis() instead */
   static async triggerInsightsAnalysis(
     sessionId: string,
   ): Promise<SessionInsights> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/analysis/${sessionId}/analyze-insights`,
-      {}
+      {},
     )
     return response
   }
 
+  /** @deprecated Use getAnalysis() instead */
   static async getLatestAnalysis(
     sessionId: string,
   ): Promise<SessionInsights | null> {
@@ -120,6 +179,7 @@ export class AnalysisService {
     }
   }
 
+  /** @deprecated Use triggerAnalysis() instead */
   static async triggerCoachingAnalysis(
     sessionId: string,
     force: boolean = false,
@@ -128,11 +188,12 @@ export class AnalysisService {
       `${BACKEND_URL}/analysis/${sessionId}/analyze${
         force ? '?force=true' : ''
       }`,
-      {}
+      {},
     )
     return response
   }
 
+  /** @deprecated Use getAnalysis() instead */
   static async getLatestCoachingAnalysis(
     sessionId: string,
   ): Promise<CoachingAnalysis | null> {
@@ -156,7 +217,7 @@ export class AnalysisService {
   }> {
     const response = await ApiClient.post(
       `${BACKEND_URL}/analysis/${sessionId}/real-time-suggestion?limit=${limit}`,
-      {}
+      {},
     )
     return response
   }
