@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
+import { ClientInvitationModal } from '@/components/clients/client-invitation-modal'
 import { ClientChatUnified } from './components/client-chat-unified'
 import { SessionCardCompact } from './components/session-card-compact'
 import { ClientPersonaModern } from './components/client-persona-modern'
@@ -35,6 +36,8 @@ import {
   Plus,
   Lock,
   Eye,
+  Send,
+  UserCheck,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -50,6 +53,7 @@ export default function ClientDetailPage({
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
   const { client, sessions, loading, error, refetch } = useClientData(
     clientId,
@@ -158,6 +162,24 @@ export default function ClientDetailPage({
                           {avgDuration.toFixed(0)}m avg
                         </Badge>
                       )}
+                      {client.invitation_status === 'accepted' && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-green-100 text-green-700"
+                        >
+                          <UserCheck className="h-3 w-3 mr-1" />
+                          Portal Active
+                        </Badge>
+                      )}
+                      {client.invitation_status === 'invited' && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-purple-100 text-purple-700"
+                        >
+                          <Send className="h-3 w-3 mr-1" />
+                          Invited
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -173,6 +195,18 @@ export default function ClientDetailPage({
                   </Button>
                   {!isViewer && (
                     <>
+                      {client.invitation_status !== 'accepted' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsInviteModalOpen(true)}
+                          className="border-purple-300 hover:bg-purple-50 text-purple-700"
+                        >
+                          <Send className="h-4 w-4 mr-2" />
+                          {client.invitation_status === 'invited'
+                            ? 'Resend Invite'
+                            : 'Invite to Portal'}
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         onClick={() => setIsManualSessionModalOpen(true)}
@@ -410,6 +444,16 @@ export default function ClientDetailPage({
           onSuccess={refetch}
           client={client}
           mode="edit"
+        />
+
+        <ClientInvitationModal
+          isOpen={isInviteModalOpen}
+          onClose={() => setIsInviteModalOpen(false)}
+          clientId={client.id}
+          clientName={client.name}
+          clientEmail={client.email}
+          invitationStatus={client.invitation_status}
+          onInvitationSent={refetch}
         />
 
         <ManualSessionModal

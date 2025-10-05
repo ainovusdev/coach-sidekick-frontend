@@ -24,7 +24,7 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import Image from 'next/image'
-import { ForgotPasswordForm } from './forgot-password-form'
+import { ForgotPasswordRequest } from './forgot-password-request'
 
 export function AuthForm() {
   const { signIn, signUp } = useAuth()
@@ -159,7 +159,7 @@ export function AuthForm() {
 
         {/* Auth Card or Forgot Password Form */}
         {showForgotPassword ? (
-          <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
+          <ForgotPasswordRequest onBack={() => setShowForgotPassword(false)} />
         ) : (
           <Card className="border-gray-200 shadow-xl bg-white/95 backdrop-blur">
             <CardHeader className="pb-4">

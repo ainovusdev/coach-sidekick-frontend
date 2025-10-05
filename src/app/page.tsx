@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge'
 export default function CoachDashboard() {
   const router = useRouter()
   const permissions = usePermissions()
-  const isViewer = permissions.isViewer()
+  const canCreateMeeting = permissions.canCreateMeeting()
 
   const {
     meetingHistory,
@@ -83,7 +83,7 @@ export default function CoachDashboard() {
             </div>
 
             <div className="lg:col-span-1 space-y-4">
-              {!isViewer ? (
+              {canCreateMeeting ? (
                 <StartRecording
                   loading={loading}
                   error={error}
@@ -96,11 +96,17 @@ export default function CoachDashboard() {
                       <div className="p-3 bg-blue-50 rounded-full mb-3">
                         <Eye className="h-6 w-6 text-blue-600" />
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-2">Viewer Mode</h3>
+                      <h3 className="font-semibold text-gray-900 mb-2">
+                        Viewer Mode
+                      </h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        You have read-only access to view assigned clients and their sessions.
+                        You have read-only access to view assigned clients and
+                        their sessions.
                       </p>
-                      <Badge variant="outline" className="bg-blue-50 border-blue-200 text-blue-700">
+                      <Badge
+                        variant="outline"
+                        className="bg-blue-50 border-blue-200 text-blue-700"
+                      >
                         View Only Access
                       </Badge>
                     </div>
