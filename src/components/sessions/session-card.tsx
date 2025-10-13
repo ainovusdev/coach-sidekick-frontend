@@ -23,8 +23,10 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
   const permissions = usePermissions()
   const summary = session.meeting_summaries
   const createdAt = new Date(session.created_at)
-  const durationMinutes = summary?.duration_minutes || (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
-  
+  const durationMinutes =
+    summary?.duration_minutes ||
+    (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
+
   // Check if user is a viewer (restricted access)
   const isViewer = permissions.isViewer()
 
@@ -64,8 +66,10 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
     return 'Meeting'
   }
 
-  // Extract client info from metadata
-  const clientName = session.client_name || session.metadata?.client_name || null
+  // Extract client and coach info from metadata or session
+  const clientName =
+    session.client_name || session.metadata?.client_name || null
+  const coachName = session.coach_name || session.metadata?.coach_name || null
   const meetingSummary = summary?.meeting_summary || session.summary
 
   return (
@@ -73,12 +77,25 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
       <CardContent className="p-4 space-y-3">
         {/* Header with status and time */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             {getStatusIcon(session.status)}
-            <span className="text-sm font-semibold text-gray-900">
-              {getPlatformName(session.meeting_url)}
-              {clientName && ` • ${clientName}`}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-gray-900">
+                {getPlatformName(session.meeting_url)}
+              </span>
+              {/* NEW: Coach and Client info */}
+              {(coachName || clientName) && (
+                <span className="text-xs text-gray-500">
+                  {coachName && (
+                    <span className="font-medium">Coach: {coachName}</span>
+                  )}
+                  {coachName && clientName && <span className="mx-1">•</span>}
+                  {clientName && (
+                    <span className="font-medium">Client: {clientName}</span>
+                  )}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {durationMinutes && (
@@ -133,7 +150,8 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
               Processing summary...
             </p>
           </div>
-        ) : session.status === 'in_progress' || session.status === 'recording' ? (
+        ) : session.status === 'in_progress' ||
+          session.status === 'recording' ? (
           <div className="p-4 bg-gray-900 text-white rounded-xl">
             <p className="text-sm font-medium">
               Live Session • Recording in progress
@@ -141,9 +159,7 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
           </div>
         ) : (
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-            <p className="text-sm text-gray-600">
-              Initializing session...
-            </p>
+            <p className="text-sm text-gray-600">Initializing session...</p>
           </div>
         )}
 

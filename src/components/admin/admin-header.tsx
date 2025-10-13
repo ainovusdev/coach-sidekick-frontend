@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
+import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { User, LogOut, Settings, Shield } from 'lucide-react'
 
 export function AdminHeader() {
@@ -42,15 +43,17 @@ export function AdminHeader() {
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="px-6 py-4">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-gray-900">
-              Administration
-            </h1>
-            <p className="text-sm text-gray-500 mt-1">
-              Manage users, roles, and client access
-            </p>
+          <div className="flex items-center gap-4">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Administration
+              </h1>
+              <p className="text-sm text-gray-500 mt-1">
+                Manage users, roles, and client access
+              </p>
+            </div>
           </div>
-          
+
           <div className="flex items-center gap-4">
             {/* Role Badges */}
             <div className="flex items-center gap-2">
@@ -65,6 +68,9 @@ export function AdminHeader() {
                 </Badge>
               ))}
             </div>
+
+            {/* Role Switcher */}
+            <RoleSwitcher />
 
             {/* User Menu */}
             <DropdownMenu>

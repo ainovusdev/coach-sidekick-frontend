@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,7 +30,6 @@ import {
 import { format } from 'date-fns'
 
 export default function EnhancedClientDashboard() {
-  const router = useRouter()
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(
     null,
   )
@@ -49,9 +47,8 @@ export default function EnhancedClientDashboard() {
   }, [])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
@@ -62,7 +59,6 @@ export default function EnhancedClientDashboard() {
     } catch (err: any) {
       console.error('Dashboard fetch error:', err)
       if (err.message.includes('authentication')) {
-        router.push('/client-portal/auth/login')
       } else {
         setError(err.message || 'Failed to load dashboard')
       }

@@ -10,6 +10,8 @@ export interface User {
   roles: string[]
   client_count: number
   created_at: string
+  deleted_at?: string | null // NEW: Soft delete timestamp
+  deleted_by?: string | null // NEW: Who deleted the user
 }
 
 export interface RoleAssignment {
@@ -48,11 +50,12 @@ class AdminService {
   }
 
   // User Management
-  async getUsers(params?: { 
+  async getUsers(params?: {
     skip?: number
     limit?: number
     search?: string
-    role_filter?: string 
+    role_filter?: string
+    include_deleted?: boolean // NEW: Include soft-deleted users
   }): Promise<User[]> {
     const response = await axiosInstance.get('/admin/users', { params })
     return response.data
@@ -74,18 +77,27 @@ class AdminService {
     return response.data
   }
 
-  async updateUser(userId: string, data: {
-    email?: string
-    full_name?: string
-    is_active?: boolean
-    password?: string
-  }): Promise<User> {
+  async updateUser(
+    userId: string,
+    data: {
+      email?: string
+      full_name?: string
+      is_active?: boolean
+      password?: string
+    },
+  ): Promise<User> {
     const response = await axiosInstance.put(`/admin/users/${userId}`, data)
     return response.data
   }
 
   async deleteUser(userId: string): Promise<void> {
     await axiosInstance.delete(`/admin/users/${userId}`)
+  }
+
+  // NEW: Restore soft-deleted user
+  async restoreUser(userId: string): Promise<{ message: string; user: any }> {
+    const response = await axiosInstance.post(`/admin/users/${userId}/restore`)
+    return response.data
   }
 
   // Role Management
@@ -105,7 +117,7 @@ class AdminService {
   async assignRoles(userId: string, roles: string[]): Promise<void> {
     await axiosInstance.post('/admin/roles/assign', {
       user_id: userId,
-      roles
+      roles,
     })
   }
 
@@ -122,30 +134,40 @@ class AdminService {
     skip?: number
     limit?: number
   }): Promise<ClientAccessMatrix[]> {
-    const response = await axiosInstance.get('/admin/client-access/matrix', { params })
+    const response = await axiosInstance.get('/admin/client-access/matrix', {
+      params,
+    })
     return response.data
   }
 
-  async getUserClientAccess(userId: string): Promise<{
-    client_id: string
-    client_name: string
-    access_level: string
-    is_admin_access?: boolean
-  }[]> {
-    const response = await axiosInstance.get(`/admin/client-access/user/${userId}`)
+  async getUserClientAccess(userId: string): Promise<
+    {
+      client_id: string
+      client_name: string
+      access_level: string
+      is_admin_access?: boolean
+    }[]
+  > {
+    const response = await axiosInstance.get(
+      `/admin/client-access/user/${userId}`,
+    )
     return response.data
   }
 
-  async getClientUserAccess(clientId: string): Promise<{
-    user_id: string
-    email: string
-    full_name: string | null
-    roles: string[]
-    access_level: string
-    granted_at?: string
-    is_admin_access?: boolean
-  }[]> {
-    const response = await axiosInstance.get(`/admin/client-access/client/${clientId}`)
+  async getClientUserAccess(clientId: string): Promise<
+    {
+      user_id: string
+      email: string
+      full_name: string | null
+      roles: string[]
+      access_level: string
+      granted_at?: string
+      is_admin_access?: boolean
+    }[]
+  > {
+    const response = await axiosInstance.get(
+      `/admin/client-access/client/${clientId}`,
+    )
     return response.data
   }
 
@@ -165,17 +187,24 @@ class AdminService {
     message: string
     assigned_count: number
   }> {
-    const response = await axiosInstance.post('/admin/client-access/bulk-assign', data)
+    const response = await axiosInstance.post(
+      '/admin/client-access/bulk-assign',
+      data,
+    )
     return response.data
   }
 
   async revokeClientAccess(clientId: string, userId: string): Promise<void> {
-    await axiosInstance.delete(`/admin/client-access/revoke/${clientId}/${userId}`)
+    await axiosInstance.delete(
+      `/admin/client-access/revoke/${clientId}/${userId}`,
+    )
   }
 
   // Access Management Methods
   async getClientsForAssignment(userId: string): Promise<any[]> {
-    const response = await axiosInstance.get(`/access/clients-for-assignment/${userId}`)
+    const response = await axiosInstance.get(
+      `/access/clients-for-assignment/${userId}`,
+    )
     return response.data
   }
 
@@ -202,7 +231,10 @@ class AdminService {
   }
 
   // Coach Access Management
-  async assignCoachToAdmin(coachUserId: string, adminUserId: string): Promise<{
+  async assignCoachToAdmin(
+    coachUserId: string,
+    adminUserId: string,
+  ): Promise<{
     id: string
     admin_user_id: string
     coach_user_id: string
@@ -213,34 +245,43 @@ class AdminService {
   }> {
     const response = await axiosInstance.post('/access/coach-access', {
       coach_user_id: coachUserId,
-      admin_user_id: adminUserId
+      admin_user_id: adminUserId,
     })
     return response.data
   }
 
-  async removeCoachFromAdmin(coachUserId: string, adminUserId: string): Promise<void> {
-    await axiosInstance.delete(`/access/coach-access/${coachUserId}/${adminUserId}`)
+  async removeCoachFromAdmin(
+    coachUserId: string,
+    adminUserId: string,
+  ): Promise<void> {
+    await axiosInstance.delete(
+      `/access/coach-access/${coachUserId}/${adminUserId}`,
+    )
   }
 
-  async getAllCoachAccess(): Promise<{
-    id: string
-    admin_user_id: string
-    coach_user_id: string
-    granted_by: string
-    granted_at: string
-    coach_email?: string
-    admin_email?: string
-  }[]> {
+  async getAllCoachAccess(): Promise<
+    {
+      id: string
+      admin_user_id: string
+      coach_user_id: string
+      granted_by: string
+      granted_at: string
+      coach_email?: string
+      admin_email?: string
+    }[]
+  > {
     const response = await axiosInstance.get('/access/coach-access')
     return response.data
   }
 
-  async getUsersByRole(role: string): Promise<{
-    id: string
-    email: string
-    full_name: string | null
-    roles: string[]
-  }[]> {
+  async getUsersByRole(role: string): Promise<
+    {
+      id: string
+      email: string
+      full_name: string | null
+      roles: string[]
+    }[]
+  > {
     const response = await axiosInstance.get(`/access/users-by-role/${role}`)
     return response.data
   }

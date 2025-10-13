@@ -67,20 +67,25 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { hasAnyRole } = useAuth()
 
-  const filteredMenuItems = menuItems.filter(item => 
-    hasAnyRole(item.requiredRole)
+  const filteredMenuItems = menuItems.filter(item =>
+    hasAnyRole(item.requiredRole),
   )
 
   return (
     <div
       className={cn(
         'bg-gray-900 text-white transition-all duration-300 ease-in-out flex flex-col',
-        collapsed ? 'w-16' : 'w-64'
+        collapsed ? 'w-16' : 'w-64',
       )}
     >
       {/* Logo Section */}
       <div className="flex items-center justify-between p-4 border-b border-gray-800">
-        <div className={cn('flex items-center gap-2', collapsed && 'justify-center')}>
+        <div
+          className={cn(
+            'flex items-center gap-2',
+            collapsed && 'justify-center',
+          )}
+        >
           <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
             <UserCheck className="h-5 w-5 text-gray-900" />
           </div>
@@ -106,10 +111,10 @@ export function AdminSidebar() {
       {/* Navigation */}
       <nav className="flex-1 py-4">
         <ul className="space-y-1 px-2">
-          {filteredMenuItems.map((item) => {
+          {filteredMenuItems.map(item => {
             const Icon = item.icon
             const isActive = pathname === item.href
-            
+
             return (
               <li key={item.href}>
                 <Link
@@ -118,7 +123,7 @@ export function AdminSidebar() {
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
                     'hover:bg-gray-800',
                     isActive && 'bg-gray-800 border-l-4 border-white',
-                    collapsed && 'justify-center'
+                    collapsed && 'justify-center',
                   )}
                   title={collapsed ? item.title : undefined}
                 >
@@ -132,30 +137,6 @@ export function AdminSidebar() {
           })}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-800">
-        <Link
-          href="/"
-          className={cn(
-            'flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors',
-            collapsed && 'justify-center'
-          )}
-        >
-          <svg
-            className="h-4 w-4"
-            fill="none"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          {!collapsed && 'Back to App'}
-        </Link>
-      </div>
     </div>
   )
 }

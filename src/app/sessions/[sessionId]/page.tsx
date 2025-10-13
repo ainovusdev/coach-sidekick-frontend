@@ -32,6 +32,10 @@ import {
 } from '@/services/analysis-service'
 import { SessionInsightsModern } from '@/components/sessions/session-insights-modern'
 import { SessionService } from '@/services/session-service'
+import { CommitmentService } from '@/services/commitment-service'
+import { DraftCommitmentsReview } from '@/components/commitments/draft-commitments-review'
+import { CommitmentForm } from '@/components/commitments/commitment-form'
+import type { Commitment } from '@/types/commitment'
 import { toast } from '@/hooks/use-toast'
 import {
   Accordion,
@@ -39,6 +43,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { NotesList } from '@/components/session-notes'
 
 export default function SessionDetailsPage({
   params,
@@ -62,6 +67,11 @@ export default function SessionDetailsPage({
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
   const [autoTriggered, setAutoTriggered] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
+
+  // Commitments state
+  const [draftCommitments, setDraftCommitments] = useState<Commitment[]>([])
+  const [extractingCommitments, setExtractingCommitments] = useState(false)
+  const [showCreateCommitment, setShowCreateCommitment] = useState(false)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -159,6 +169,58 @@ export default function SessionDetailsPage({
       setTimeout(() => setAnalysisProgress(0), 1000)
     }
   }
+
+  // Load draft commitments for this session
+  const loadDraftCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    try {
+      const response = await CommitmentService.listCommitments({
+        session_id: sessionData.session.id,
+        status: 'draft',
+      })
+      setDraftCommitments(response.commitments)
+    } catch (error) {
+      console.error('Failed to load draft commitments:', error)
+    }
+  }
+
+  // Extract commitments from session transcript
+  const extractCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    setExtractingCommitments(true)
+    try {
+      const extracted = await CommitmentService.extractFromSession(
+        sessionData.session.id,
+      )
+      toast({
+        title: 'Commitments Extracted',
+        description: `Found ${extracted.length} potential commitments from the session.`,
+      })
+      // Reload draft commitments
+      await loadDraftCommitments()
+    } catch (error) {
+      console.error('Failed to extract commitments:', error)
+      toast({
+        title: 'Extraction Failed',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to extract commitments',
+        variant: 'destructive',
+      })
+    } finally {
+      setExtractingCommitments(false)
+    }
+  }
+
+  // Load draft commitments when session loads
+  React.useEffect(() => {
+    if (sessionData?.session?.id && !isViewer) {
+      loadDraftCommitments()
+    }
+  }, [sessionData?.session?.id, isViewer])
 
   // Delete session handler
   const handleDeleteSession = async () => {
@@ -616,9 +678,106 @@ export default function SessionDetailsPage({
                   )}
                 </div>
               )}
+
+              {/* Session Notes Section */}
+              {transcriptsExist && !isViewer && (
+                <div className="mt-8">
+                  <NotesList sessionId={sessionData.session.id} />
+                </div>
+              )}
+
+              {/* Commitments Section */}
+              {transcriptsExist && !isViewer && (
+                <div className="space-y-6 mt-8">
+                  <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
+                    <CardContent className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            Commitments
+                          </h3>
+                          <p className="text-sm text-gray-600">
+                            Track client commitments from this session
+                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={extractCommitments}
+                            disabled={extractingCommitments || !analysisData}
+                            variant="outline"
+                            className="border-gray-300"
+                          >
+                            {extractingCommitments ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Extracting...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="h-4 w-4 mr-2" />
+                                Extract from AI
+                              </>
+                            )}
+                          </Button>
+                          <Button
+                            onClick={() => setShowCreateCommitment(true)}
+                            className="bg-gray-900 hover:bg-gray-800"
+                          >
+                            <span className="mr-2">+</span>
+                            Create Commitment
+                          </Button>
+                        </div>
+                      </div>
+
+                      {/* Draft Commitments Review */}
+                      {draftCommitments.length > 0 ? (
+                        <DraftCommitmentsReview
+                          sessionId={sessionData.session.id}
+                          onRefresh={loadDraftCommitments}
+                        />
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <p>
+                            No commitments extracted yet. Click &quot;Extract
+                            from AI&quot; to analyze the conversation.
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </div>
           )}
         </div>
+
+        {/* Create Commitment Modal */}
+        <CommitmentForm
+          open={showCreateCommitment}
+          onOpenChange={setShowCreateCommitment}
+          onSubmit={async data => {
+            try {
+              await CommitmentService.createCommitment(data)
+              toast({
+                title: 'Commitment Created',
+                description: 'The commitment has been created successfully.',
+              })
+              setShowCreateCommitment(false)
+              loadDraftCommitments()
+            } catch (error) {
+              toast({
+                title: 'Creation Failed',
+                description:
+                  error instanceof Error
+                    ? error.message
+                    : 'Failed to create commitment',
+                variant: 'destructive',
+              })
+            }
+          }}
+          clientId={sessionData?.session?.client_id || undefined}
+          sessionId={sessionData?.session?.id}
+        />
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog

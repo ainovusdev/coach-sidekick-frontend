@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/card'
 import { ApiClient } from '@/lib/api-client'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import authService from '@/services/auth-service' // NEW
 
 interface InvitationInfo {
   valid: boolean
@@ -22,6 +23,8 @@ interface InvitationInfo {
   coach_name: string
   email: string
   expires_at: string
+  existing_user?: boolean // NEW: Whether email is already registered
+  existing_roles?: string[] // NEW: Existing user's roles
 }
 
 function ClientSignupContent() {
@@ -68,38 +71,41 @@ function ClientSignupContent() {
     e.preventDefault()
     setError('')
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match')
-      return
-    }
+    // NEW: For existing users, password is optional
+    if (password || !invitationInfo?.existing_user) {
+      if (password !== confirmPassword) {
+        setError('Passwords do not match')
+        return
+      }
 
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters')
-      return
+      if (password && password.length < 8) {
+        setError('Password must be at least 8 characters')
+        return
+      }
     }
 
     setIsLoading(true)
     try {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+      // Make signup request
       const response = await ApiClient.post(`${apiUrl}/auth/client-signup`, {
         token,
         password,
         full_name: fullName,
       })
 
-      // Store auth token
-      localStorage.setItem('client_auth_token', response.access_token)
-      localStorage.setItem(
-        'client_user_data',
-        JSON.stringify({
-          id: response.user_id,
-          email: response.email,
-          fullName: response.full_name,
-          clientId: response.client_id,
-          roles: ['client'],
-        }),
-      )
+      // NEW: Use authService to store token properly
+      authService['setAuthData']({
+        access_token: response.access_token,
+        token_type: 'bearer',
+        user_id: response.user_id,
+        email: response.email,
+        full_name: response.full_name,
+        roles: response.roles || ['client'],
+        client_id: response.client_id,
+      })
 
       // Redirect to dashboard
       router.push('/client-portal/dashboard')
@@ -136,10 +142,29 @@ function ClientSignupContent() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Welcome to Coach Sidekick!</CardTitle>
+          <CardTitle>
+            {invitationInfo.existing_user
+              ? 'Add Client Access'
+              : 'Welcome to Coach Sidekick!'}
+          </CardTitle>
           <p className="text-sm text-muted-foreground mt-2">
             {invitationInfo.coach_name} has invited you to join the platform
           </p>
+          {/* NEW: Show message if user already exists */}
+          {invitationInfo.existing_user && invitationInfo.existing_roles && (
+            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-800">
+                <strong>Existing Account Detected</strong>
+              </p>
+              <p className="text-xs text-blue-600 mt-1">
+                You already have an account as a{' '}
+                {invitationInfo.existing_roles
+                  .map(r => r.replace('_', ' '))
+                  .join(', ')}
+                . This will add client access to your existing account.
+              </p>
+            </div>
+          )}
         </CardHeader>
 
         <form onSubmit={handleSubmit}>
@@ -153,6 +178,11 @@ function ClientSignupContent() {
                 disabled
                 className="bg-muted"
               />
+              {invitationInfo.existing_user && (
+                <p className="text-xs text-blue-600 mt-1">
+                  This email is already registered in our system
+                </p>
+              )}
             </div>
 
             <div>
@@ -167,18 +197,28 @@ function ClientSignupContent() {
             </div>
 
             <div>
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">
+                {invitationInfo.existing_user
+                  ? 'New Password (Optional)'
+                  : 'Password'}
+              </Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
-                placeholder="At least 8 characters"
-                required
+                placeholder={
+                  invitationInfo.existing_user
+                    ? 'Leave blank to keep current password'
+                    : 'At least 8 characters'
+                }
+                required={!invitationInfo.existing_user}
                 minLength={8}
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Must be at least 8 characters
+                {invitationInfo.existing_user
+                  ? 'Leave blank to keep your current password'
+                  : 'Must be at least 8 characters'}
               </p>
             </div>
 
@@ -189,8 +229,12 @@ function ClientSignupContent() {
                 type="password"
                 value={confirmPassword}
                 onChange={e => setConfirmPassword(e.target.value)}
-                placeholder="Re-enter your password"
-                required
+                placeholder={
+                  invitationInfo.existing_user
+                    ? 'Confirm new password (if changing)'
+                    : 'Re-enter your password'
+                }
+                required={!invitationInfo.existing_user && password.length > 0}
               />
             </div>
 
@@ -203,8 +247,20 @@ function ClientSignupContent() {
 
           <CardFooter className="pt-6">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading
+                ? invitationInfo.existing_user
+                  ? 'Adding Client Access...'
+                  : 'Creating Account...'
+                : invitationInfo.existing_user
+                  ? 'Add Client Access'
+                  : 'Create Account'}
             </Button>
+            {invitationInfo.existing_user && (
+              <p className="text-xs text-center text-muted-foreground mt-2">
+                After completing this, you&apos;ll be able to switch between
+                your coach and client views
+              </p>
+            )}
           </CardFooter>
         </form>
       </Card>

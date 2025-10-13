@@ -27,6 +27,8 @@ export interface Client {
   user_id?: string
   invitation_status?: 'not_invited' | 'invited' | 'accepted'
   invitation_sent_at?: string
+  is_my_client?: boolean
+  coach_name?: string
 }
 
 export interface ClientSessionStats {

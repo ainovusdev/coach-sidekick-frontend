@@ -6,14 +6,27 @@ import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 
 export default function AuthPage() {
-  const { isAuthenticated, loading } = useAuth()
+  const { isAuthenticated, loading, roles } = useAuth()
   const router = useRouter()
 
+  // Smart redirect for already-authenticated users
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      router.push('/')
+      // Redirect based on roles to avoid loops
+      const hasAdmin = roles.some(r => ['admin', 'super_admin'].includes(r))
+      const hasCoach = roles.includes('coach')
+      const hasClient = roles.includes('client')
+      const isClientOnly = roles.length === 1 && hasClient
+
+      if (hasAdmin) {
+        router.push('/admin/dashboard')
+      } else if (hasCoach) {
+        router.push('/')
+      } else if (isClientOnly) {
+        router.push('/client-portal/dashboard')
+      }
     }
-  }, [isAuthenticated, loading, router])
+  }, [isAuthenticated, loading, roles, router])
 
   if (loading) {
     return (
@@ -27,7 +40,15 @@ export default function AuthPage() {
   }
 
   if (isAuthenticated) {
-    return null // Will redirect in useEffect
+    // Show loading while redirecting
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    )
   }
 
   return <AuthForm />

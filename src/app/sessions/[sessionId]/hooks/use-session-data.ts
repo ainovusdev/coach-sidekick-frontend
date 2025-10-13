@@ -47,6 +47,7 @@ interface SessionDetails {
     created_at: string
     updated_at: string
     metadata: any
+    client_id?: string
   }
   transcript: TranscriptEntry[]
   coaching_analyses: CoachingAnalysis[]

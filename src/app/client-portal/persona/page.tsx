@@ -43,9 +43,8 @@ export default function ClientPersonaPage() {
   }, [])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
@@ -62,7 +61,6 @@ export default function ClientPersonaPage() {
     } catch (err: any) {
       console.error('Persona fetch error:', err)
       if (err.message.includes('authentication')) {
-        router.push('/client-portal/auth/login')
       } else {
         setError(err.message || 'Failed to load persona')
       }

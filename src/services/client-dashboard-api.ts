@@ -2,6 +2,8 @@
  * Client Dashboard API Service
  */
 
+import axiosInstance from '@/lib/axios-config'
+
 // Types
 export interface DashboardStats {
   total_sessions: number
@@ -141,45 +143,10 @@ export interface Notification {
 }
 
 class ClientDashboardAPI {
-  constructor() {
-    // ApiClient is not used since we're using clientFetch directly
-  }
-
-  private getClientToken(): string | null {
-    return localStorage.getItem('client_auth_token')
-  }
-
-  private async clientFetch<T>(
-    endpoint: string,
-    options?: RequestInit,
-  ): Promise<T> {
-    const token = this.getClientToken()
-    if (!token) {
-      throw new Error('No client authentication token')
-    }
-
-    const apiUrl =
-      process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-    const response = await fetch(`${apiUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-        ...options?.headers,
-      },
-    })
-
-    if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `Request failed: ${response.statusText}`)
-    }
-
-    return response.json()
-  }
-
   // Dashboard
   async getDashboard(): Promise<DashboardSummary> {
-    return this.clientFetch<DashboardSummary>('/client/dashboard')
+    const response = await axiosInstance.get('/client/dashboard')
+    return response.data
   }
 
   // Sessions
@@ -194,11 +161,13 @@ class ClientDashboardAPI {
     })
     if (status) params.append('status', status)
 
-    return this.clientFetch<SessionSummary[]>(`/client/sessions?${params}`)
+    const response = await axiosInstance.get(`/client/sessions?${params}`)
+    return response.data
   }
 
   async getSessionDetails(sessionId: string) {
-    return this.clientFetch(`/client/sessions/${sessionId}`)
+    const response = await axiosInstance.get(`/client/sessions/${sessionId}`)
+    return response.data
   }
 
   // Tasks
@@ -216,21 +185,23 @@ class ClientDashboardAPI {
     if (filters?.limit !== undefined)
       params.append('limit', filters.limit.toString())
 
-    return this.clientFetch<Task[]>(`/tasks?${params}`)
+    const response = await axiosInstance.get(`/tasks?${params}`)
+    return response.data
   }
 
   async getTask(taskId: string): Promise<Task> {
-    return this.clientFetch<Task>(`/tasks/${taskId}`)
+    const response = await axiosInstance.get(`/tasks/${taskId}`)
+    return response.data
   }
 
   async updateTaskStatus(
     taskId: string,
     status: 'pending' | 'in_progress' | 'completed' | 'cancelled',
   ): Promise<Task> {
-    return this.clientFetch<Task>(`/tasks/${taskId}/status`, {
-      method: 'PATCH',
-      body: JSON.stringify({ status }),
+    const response = await axiosInstance.patch(`/tasks/${taskId}/status`, {
+      status,
     })
+    return response.data
   }
 
   async addTaskComment(
@@ -238,25 +209,23 @@ class ClientDashboardAPI {
     content: string,
     mentions: string[] = [],
   ): Promise<TaskComment> {
-    return this.clientFetch<TaskComment>(`/tasks/${taskId}/comments`, {
-      method: 'POST',
-      body: JSON.stringify({
-        content,
-        mentions,
-        attachments: [],
-      }),
+    const response = await axiosInstance.post(`/tasks/${taskId}/comments`, {
+      content,
+      mentions,
+      attachments: [],
     })
+    return response.data
   }
 
   async getTaskComments(taskId: string): Promise<TaskComment[]> {
-    return this.clientFetch<TaskComment[]>(`/tasks/${taskId}/comments`)
+    const response = await axiosInstance.get(`/tasks/${taskId}/comments`)
+    return response.data
   }
 
   // Persona
   async getPersona(): Promise<ClientPersona | { message: string }> {
-    return this.clientFetch<ClientPersona | { message: string }>(
-      '/client/persona',
-    )
+    const response = await axiosInstance.get('/client/persona')
+    return response.data
   }
 
   // Timeline
@@ -268,24 +237,22 @@ class ClientDashboardAPI {
     if (startDate) params.append('start_date', startDate)
     if (endDate) params.append('end_date', endDate)
 
-    return this.clientFetch<TimelineItem[]>(`/client/timeline?${params}`)
+    const response = await axiosInstance.get(`/client/timeline?${params}`)
+    return response.data
   }
 
   // Notifications
   async getNotifications(limit = 10): Promise<Notification[]> {
-    return this.clientFetch<Notification[]>(`/notifications?limit=${limit}`)
+    const response = await axiosInstance.get(`/notifications?limit=${limit}`)
+    return response.data
   }
 
   async markNotificationRead(notificationId: string): Promise<void> {
-    return this.clientFetch<void>(`/notifications/${notificationId}/read`, {
-      method: 'PATCH',
-    })
+    await axiosInstance.patch(`/notifications/${notificationId}/read`)
   }
 
   async markAllNotificationsRead(): Promise<void> {
-    return this.clientFetch<void>('/notifications/mark-all-read', {
-      method: 'POST',
-    })
+    await axiosInstance.post('/notifications/mark-all-read')
   }
 }
 

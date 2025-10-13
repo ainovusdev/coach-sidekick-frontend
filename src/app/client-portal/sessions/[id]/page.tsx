@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,6 +19,7 @@ import {
   MessageSquare,
   FileText,
 } from 'lucide-react'
+import { NotesList } from '@/components/session-notes/notes-list'
 
 interface SessionDetail {
   session: {
@@ -78,7 +79,6 @@ interface SessionDetail {
 }
 
 export default function ClientSessionDetailPage() {
-  const router = useRouter()
   const params = useParams()
   const sessionId = params.id as string
 
@@ -94,17 +94,15 @@ export default function ClientSessionDetailPage() {
   }, [sessionId])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
   const fetchSessionDetail = async () => {
     try {
-      const token = localStorage.getItem('client_auth_token')
+      const token = localStorage.getItem('auth_token')
       if (!token) {
-        router.push('/client-portal/auth/login')
         return
       }
 
@@ -119,7 +117,6 @@ export default function ClientSessionDetailPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push('/client-portal/auth/login')
           return
         }
         if (response.status === 404) {
@@ -164,70 +161,76 @@ export default function ClientSessionDetailPage() {
       case 'negative':
         return 'text-red-500'
       case 'neutral':
-        return 'text-zinc-400'
+        return 'text-gray-600'
       default:
-        return 'text-zinc-400'
+        return 'text-gray-600'
     }
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <LoadingSpinner />
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto py-12">
-        <Alert
-          variant="destructive"
-          className="bg-red-950 border-red-800 text-red-300"
-        >
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <Link href="/client-portal/sessions">
-          <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Sessions
-          </Button>
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-2xl mx-auto py-12">
+          <Alert
+            variant="destructive"
+            className="bg-red-950 border-red-800 text-red-300"
+          >
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Link href="/client-portal/sessions">
+            <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Sessions
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   if (!sessionData) {
     return (
-      <div className="text-center py-12">
-        <p className="text-zinc-400">Session not found</p>
-        <Link href="/client-portal/sessions">
-          <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Sessions
-          </Button>
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Session not found</p>
+          <Link href="/client-portal/sessions">
+            <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Sessions
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <Link href="/client-portal/sessions">
           <Button
             variant="ghost"
             size="sm"
-            className="mb-4 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Sessions
           </Button>
         </Link>
 
-        <h1 className="text-3xl font-bold text-white">Session Details</h1>
-        <div className="flex items-center space-x-4 mt-2 text-zinc-400">
+        <h1 className="text-3xl font-bold text-gray-900">Session Details</h1>
+        <div className="flex items-center space-x-4 mt-2 text-gray-600">
           <div className="flex items-center space-x-2">
             <Calendar className="h-4 w-4" />
             <span>
@@ -245,7 +248,7 @@ export default function ClientSessionDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800">
+        <TabsList className="grid w-full grid-cols-6 bg-white border-gray-200">
           <TabsTrigger
             value="overview"
             className="data-[state=active]:bg-white data-[state=active]:text-black"
@@ -265,6 +268,12 @@ export default function ClientSessionDetailPage() {
             Insights
           </TabsTrigger>
           <TabsTrigger
+            value="notes"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+          >
+            Notes
+          </TabsTrigger>
+          <TabsTrigger
             value="tasks"
             className="data-[state=active]:bg-white data-[state=active]:text-black"
           >
@@ -281,7 +290,7 @@ export default function ClientSessionDetailPage() {
         {/* Overview Tab */}
         <TabsContent value="overview" className="space-y-4">
           {sessionData.session.status === 'processing' && (
-            <Card className="bg-yellow-950/20 border-yellow-800/50">
+            <Card className="bg-yellow-50 border-yellow-200">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
                   <Clock className="h-5 w-5 text-yellow-500" />
@@ -299,21 +308,23 @@ export default function ClientSessionDetailPage() {
             </Card>
           )}
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Session Summary</CardTitle>
+              <CardTitle className="text-gray-900">Session Summary</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-zinc-400">
+              <p className="text-gray-600">
                 {sessionData.session.summary ||
                   'Summary will be available after the session is completed'}
               </p>
             </CardContent>
           </Card>
 
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Key Topics Discussed</CardTitle>
+              <CardTitle className="text-gray-900">
+                Key Topics Discussed
+              </CardTitle>
             </CardHeader>
             <CardContent>
               {sessionData.session?.key_topics &&
@@ -324,14 +335,14 @@ export default function ClientSessionDetailPage() {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="bg-zinc-800 text-zinc-300 border-zinc-700"
+                      className="bg-gray-50 text-gray-700 border-gray-300"
                     >
                       {topic}
                     </Badge>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-zinc-500 text-center py-4">
+                <p className="text-sm text-gray-500 text-center py-4">
                   No topics identified
                 </p>
               )}
@@ -340,9 +351,9 @@ export default function ClientSessionDetailPage() {
 
           {sessionData.analysis && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle className="text-base text-white">
+                  <CardTitle className="text-base text-gray-900">
                     Session Sentiment
                   </CardTitle>
                 </CardHeader>
@@ -355,9 +366,9 @@ export default function ClientSessionDetailPage() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-900 border-zinc-800">
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle className="text-base text-white">
+                  <CardTitle className="text-base text-gray-900">
                     Engagement Level
                   </CardTitle>
                 </CardHeader>
@@ -373,10 +384,12 @@ export default function ClientSessionDetailPage() {
 
         {/* Transcript Tab */}
         <TabsContent value="transcript">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Session Transcript</CardTitle>
-              <p className="text-sm text-zinc-400">
+              <CardTitle className="text-gray-900">
+                Session Transcript
+              </CardTitle>
+              <p className="text-sm text-gray-600">
                 Full conversation from your coaching session
               </p>
             </CardHeader>
@@ -387,31 +400,36 @@ export default function ClientSessionDetailPage() {
                     {sessionData.transcript.map((entry, index) => (
                       <div
                         key={index}
-                        className="border-l-2 border-zinc-700 pl-4 py-2 hover:border-white transition-colors"
+                        className="border-l-2 border-gray-300 pl-4 py-2 hover:border-white transition-colors"
                       >
                         <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-sm text-white">
+                          <span className="font-semibold text-sm text-gray-900">
                             {entry.speaker}
                           </span>
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-gray-500">
                             {entry.timestamp ? formatTime(entry.timestamp) : ''}
                           </span>
                         </div>
-                        <p className="text-sm text-zinc-400">{entry.text}</p>
+                        <p className="text-sm text-gray-600">{entry.text}</p>
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
               ) : (
                 <div className="text-center py-12">
-                  <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
+                  <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500">
                     Transcript not available for this session
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <NotesList sessionId={sessionId} isClientPortal={true} />
         </TabsContent>
 
         {/* Insights Tab */}
@@ -421,10 +439,12 @@ export default function ClientSessionDetailPage() {
               {/* Session Insights */}
               {sessionData.insights.insights &&
                 sessionData.insights.insights.length > 0 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">Key Insights</CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <CardTitle className="text-gray-900">
+                        Key Insights
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
                         AI-powered observations from your session
                       </p>
                     </CardHeader>
@@ -436,7 +456,7 @@ export default function ClientSessionDetailPage() {
                             className="flex items-start space-x-2"
                           >
                             <TrendingUp className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-zinc-300">
+                            <span className="text-sm text-gray-700">
                               {insight}
                             </span>
                           </li>
@@ -451,9 +471,9 @@ export default function ClientSessionDetailPage() {
                 sessionData.insights.keywords?.length > 0) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {sessionData.insights.topics?.length > 0 && (
-                    <Card className="bg-zinc-900 border-zinc-800">
+                    <Card className="bg-white border-gray-200">
                       <CardHeader>
-                        <CardTitle className="text-white">Topics</CardTitle>
+                        <CardTitle className="text-gray-900">Topics</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
@@ -461,7 +481,7 @@ export default function ClientSessionDetailPage() {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className="bg-zinc-800 text-zinc-300 border-zinc-700"
+                              className="bg-gray-50 text-gray-700 border-gray-300"
                             >
                               {topic}
                             </Badge>
@@ -471,9 +491,11 @@ export default function ClientSessionDetailPage() {
                     </Card>
                   )}
                   {sessionData.insights.keywords?.length > 0 && (
-                    <Card className="bg-zinc-900 border-zinc-800">
+                    <Card className="bg-white border-gray-200">
                       <CardHeader>
-                        <CardTitle className="text-white">Keywords</CardTitle>
+                        <CardTitle className="text-gray-900">
+                          Keywords
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
@@ -482,7 +504,7 @@ export default function ClientSessionDetailPage() {
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-400"
+                                className="border-gray-300 text-gray-600"
                               >
                                 {keyword}
                               </Badge>
@@ -499,12 +521,12 @@ export default function ClientSessionDetailPage() {
               {sessionData.analysis?.coaching_scores &&
                 Object.keys(sessionData.analysis.coaching_scores).length >
                   1 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">
+                      <CardTitle className="text-gray-900">
                         Coaching Scores
                       </CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-gray-600">
                         How your coach performed in key areas
                       </p>
                     </CardHeader>
@@ -519,12 +541,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-zinc-300 capitalize">
+                              <span className="text-sm text-gray-700 capitalize">
                                 {key.replace(/_/g, ' ')}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-300"
+                                className="border-gray-300 text-gray-700"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -539,12 +561,12 @@ export default function ClientSessionDetailPage() {
               {/* GO LIVE Scores */}
               {sessionData.analysis?.go_live_scores &&
                 Object.keys(sessionData.analysis.go_live_scores).length > 1 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">
+                      <CardTitle className="text-gray-900">
                         GO LIVE Values
                       </CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-gray-600">
                         Alignment with core coaching values
                       </p>
                     </CardHeader>
@@ -559,12 +581,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-zinc-300 capitalize">
+                              <span className="text-sm text-gray-700 capitalize">
                                 {key}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-300"
+                                className="border-gray-300 text-gray-700"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -579,9 +601,9 @@ export default function ClientSessionDetailPage() {
               {/* Recommendations */}
               {sessionData.insights.recommendations?.follow_up_questions
                 ?.length > 0 && (
-                <Card className="bg-zinc-900 border-zinc-800">
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
-                    <CardTitle className="text-white">
+                    <CardTitle className="text-gray-900">
                       Recommended Follow-up Questions
                     </CardTitle>
                   </CardHeader>
@@ -594,7 +616,7 @@ export default function ClientSessionDetailPage() {
                             className="flex items-start space-x-2"
                           >
                             <MessageSquare className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-zinc-300">
+                            <span className="text-sm text-gray-700">
                               {question}
                             </span>
                           </li>
@@ -606,10 +628,10 @@ export default function ClientSessionDetailPage() {
               )}
             </div>
           ) : (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-gray-200">
               <CardContent className="text-center py-12">
-                <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                <p className="text-zinc-500">
+                <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500">
                   Insights for this session are being processed. Check back
                   soon!
                 </p>
@@ -620,10 +642,10 @@ export default function ClientSessionDetailPage() {
 
         {/* Tasks Tab */}
         <TabsContent value="tasks">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Session Tasks</CardTitle>
-              <p className="text-sm text-zinc-400">
+              <CardTitle className="text-gray-900">Session Tasks</CardTitle>
+              <p className="text-sm text-gray-600">
                 Tasks assigned during this session
               </p>
             </CardHeader>
@@ -633,28 +655,28 @@ export default function ClientSessionDetailPage() {
                   {sessionData.tasks.map(task => (
                     <div
                       key={task.id}
-                      className="p-4 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
+                      className="p-4 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-white">
+                        <h4 className="font-semibold text-gray-900">
                           {task.title}
                         </h4>
                         <Badge
                           variant="outline"
-                          className="border-zinc-700 text-zinc-300"
+                          className="border-gray-300 text-gray-700"
                         >
                           {task.status}
                         </Badge>
                       </div>
                       {task.description && (
-                        <p className="text-sm text-zinc-400 mb-2">
+                        <p className="text-sm text-gray-600 mb-2">
                           {task.description}
                         </p>
                       )}
-                      <div className="flex items-center gap-3 text-xs text-zinc-500">
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
                         <Badge
                           variant="outline"
-                          className="border-zinc-700 text-zinc-400"
+                          className="border-gray-300 text-gray-600"
                         >
                           {task.priority}
                         </Badge>
@@ -670,8 +692,8 @@ export default function ClientSessionDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <Target className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
+                  <Target className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500">
                     No tasks assigned in this session
                   </p>
                 </div>
@@ -682,10 +704,10 @@ export default function ClientSessionDetailPage() {
 
         {/* Materials Tab */}
         <TabsContent value="materials">
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="text-white">Session Materials</CardTitle>
-              <p className="text-sm text-zinc-400">
+              <CardTitle className="text-gray-900">Session Materials</CardTitle>
+              <p className="text-sm text-gray-600">
                 Resources shared during this session
               </p>
             </CardHeader>
@@ -695,24 +717,24 @@ export default function ClientSessionDetailPage() {
                   {sessionData.materials.map(material => (
                     <div
                       key={material.id}
-                      className="p-4 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
+                      className="p-4 border border-gray-200 rounded-xl hover:bg-gray-100 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-zinc-500" />
-                          <h4 className="font-semibold text-white">
+                          <FileText className="h-4 w-4 text-gray-500" />
+                          <h4 className="font-semibold text-gray-900">
                             {material.title}
                           </h4>
                         </div>
                         <Badge
                           variant="outline"
-                          className="border-zinc-700 text-zinc-300"
+                          className="border-gray-300 text-gray-700"
                         >
                           {material.material_type}
                         </Badge>
                       </div>
                       {material.description && (
-                        <p className="text-sm text-zinc-400 mb-2">
+                        <p className="text-sm text-gray-600 mb-2">
                           {material.description}
                         </p>
                       )}
@@ -731,8 +753,8 @@ export default function ClientSessionDetailPage() {
                 </div>
               ) : (
                 <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
+                  <FileText className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-500">
                     No materials shared in this session
                   </p>
                 </div>

@@ -38,6 +38,7 @@ import {
   Eye,
   Send,
   UserCheck,
+  Users,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -130,9 +131,21 @@ export default function ClientDetailPage({
                   </Avatar>
 
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
-                      {client.name}
-                    </h1>
+                    <div className="flex items-center gap-3">
+                      <h1 className="text-2xl font-bold text-gray-900">
+                        {client.name}
+                      </h1>
+                      {/* NEW: Ownership indicator */}
+                      {client.is_my_client === false && client.coach_name && (
+                        <Badge
+                          variant="outline"
+                          className="bg-blue-50 border-blue-300 text-blue-700"
+                        >
+                          <Users className="h-3 w-3 mr-1" />
+                          {client.coach_name}&apos;s Client
+                        </Badge>
+                      )}
+                    </div>
                     {client.notes && (
                       <p className="text-sm text-gray-600 max-w-2xl mt-1">
                         {client.notes}
@@ -195,18 +208,18 @@ export default function ClientDetailPage({
                   </Button>
                   {!isViewer && (
                     <>
-                      {client.invitation_status !== 'accepted' && (
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsInviteModalOpen(true)}
-                          className="border-purple-300 hover:bg-purple-50 text-purple-700"
-                        >
-                          <Send className="h-4 w-4 mr-2" />
-                          {client.invitation_status === 'invited'
-                            ? 'Resend Invite'
-                            : 'Invite to Portal'}
-                        </Button>
-                      )}
+                      {/* FIXED: Only show invite button if client doesn't have portal access yet */}
+                      {client.invitation_status !== 'accepted' &&
+                        !client.user_id && (
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsInviteModalOpen(true)}
+                            className="border-purple-300 hover:bg-purple-50 text-purple-700"
+                          >
+                            <Send className="h-4 w-4 mr-2" />
+                            Invite to Portal
+                          </Button>
+                        )}
                       <Button
                         variant="outline"
                         onClick={() => setIsManualSessionModalOpen(true)}

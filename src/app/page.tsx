@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
-import { ProtectedRoute } from '@/components/auth/protected-route'
+import { CoachRoute } from '@/components/auth/coach-route' // CHANGED: Use CoachRoute instead of ProtectedRoute
 import { usePermissions } from '@/contexts/permission-context'
 import { QuickActions } from '@/components/ui/quick-actions'
 import { useDashboardData } from './hooks/use-dashboard-data'
@@ -63,7 +63,7 @@ export default function CoachDashboard() {
   ]
 
   return (
-    <ProtectedRoute loadingMessage="Loading dashboard...">
+    <CoachRoute>
       <PageLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -121,6 +121,6 @@ export default function CoachDashboard() {
           <SystemStatus />
         </div>
       </PageLayout>
-    </ProtectedRoute>
+    </CoachRoute>
   )
 }
