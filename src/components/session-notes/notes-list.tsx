@@ -193,26 +193,10 @@ export function NotesList({
 
       {/* Notes List */}
       {!isEditing && (
-        <Card
-          className={
-            isClientPortal
-              ? 'bg-zinc-900 border-zinc-800'
-              : 'bg-white border-gray-200'
-          }
-        >
-          <CardHeader
-            className={
-              isClientPortal
-                ? 'border-b border-zinc-800'
-                : 'border-b border-gray-200'
-            }
-          >
+        <Card className="bg-white border-gray-200">
+          <CardHeader className="border-b border-gray-200">
             <div className="flex items-center justify-between">
-              <CardTitle
-                className={`text-lg font-semibold ${
-                  isClientPortal ? 'text-white' : 'text-gray-900'
-                }`}
-              >
+              <CardTitle className="text-lg font-semibold text-gray-900">
                 Session Notes
               </CardTitle>
               <div className="flex gap-2">
@@ -230,11 +214,7 @@ export function NotesList({
                 <Button
                   onClick={handleCreateNote}
                   size="sm"
-                  className={
-                    isClientPortal
-                      ? 'bg-white text-black hover:bg-zinc-200'
-                      : 'bg-gray-900 hover:bg-gray-800'
-                  }
+                  className="bg-gray-900 text-white hover:bg-gray-800"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   New Note
@@ -249,21 +229,13 @@ export function NotesList({
               onValueChange={value => setActiveTab(value as NoteType)}
             >
               <TabsList
-                className={`grid w-full ${
-                  isClientPortal
-                    ? 'grid-cols-2 bg-zinc-800 border-zinc-700'
-                    : `grid-cols-${tabs.length} bg-gray-100`
-                }`}
+                className={`grid w-full grid-cols-${isClientPortal ? '2' : tabs.length} bg-gray-100`}
               >
                 {tabs.map(tab => (
                   <TabsTrigger
                     key={tab.value}
                     value={tab.value}
-                    className={
-                      isClientPortal
-                        ? 'data-[state=active]:bg-white data-[state=active]:text-black'
-                        : 'data-[state=active]:bg-white'
-                    }
+                    className="data-[state=active]:bg-white data-[state=active]:text-gray-900"
                   >
                     {tab.label}
                   </TabsTrigger>
@@ -278,11 +250,7 @@ export function NotesList({
                 >
                   {loading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2
-                        className={`h-8 w-8 animate-spin ${
-                          isClientPortal ? 'text-zinc-400' : 'text-gray-400'
-                        }`}
-                      />
+                      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                     </div>
                   ) : filteredNotes.length > 0 ? (
                     <div className="space-y-4">
@@ -298,27 +266,15 @@ export function NotesList({
                     </div>
                   ) : (
                     <div className="text-center py-12">
-                      <FileText
-                        className={`h-12 w-12 mx-auto mb-4 ${
-                          isClientPortal ? 'text-zinc-600' : 'text-gray-300'
-                        }`}
-                      />
-                      <p
-                        className={`text-sm ${
-                          isClientPortal ? 'text-zinc-500' : 'text-gray-500'
-                        }`}
-                      >
+                      <FileText className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-sm text-gray-500">
                         No {tab.label.toLowerCase()} yet
                       </p>
                       <Button
                         onClick={handleCreateNote}
                         variant="outline"
                         size="sm"
-                        className={`mt-4 ${
-                          isClientPortal
-                            ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
-                            : ''
-                        }`}
+                        className="mt-4 border-gray-300 text-gray-900 hover:bg-gray-100"
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Create First Note
@@ -337,29 +293,19 @@ export function NotesList({
         open={!!noteToDelete}
         onOpenChange={open => !open && setNoteToDelete(null)}
       >
-        <AlertDialogContent
-          className={isClientPortal ? 'bg-zinc-900 border-zinc-800' : ''}
-        >
+        <AlertDialogContent className="bg-white border-gray-200">
           <AlertDialogHeader>
-            <AlertDialogTitle
-              className={isClientPortal ? 'text-white' : 'text-gray-900'}
-            >
+            <AlertDialogTitle className="text-gray-900">
               Delete Note
             </AlertDialogTitle>
-            <AlertDialogDescription
-              className={isClientPortal ? 'text-zinc-400' : 'text-gray-600'}
-            >
+            <AlertDialogDescription className="text-gray-600">
               Are you sure you want to delete &quot;{noteToDelete?.title}&quot;?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              className={
-                isClientPortal
-                  ? 'border-zinc-700 text-zinc-300 hover:bg-zinc-800'
-                  : ''
-              }
+              className="border-gray-300 text-gray-900 hover:bg-gray-100"
               disabled={deleting}
             >
               Cancel

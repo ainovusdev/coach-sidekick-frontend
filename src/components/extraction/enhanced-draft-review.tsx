@@ -12,11 +12,12 @@ import {
   Sparkles,
   CheckCircle2,
   XCircle,
-  Link2,
   Trophy,
   Loader2,
+  Link2,
 } from 'lucide-react'
 import { toast } from 'sonner'
+import { CommitmentTargetSelector } from './commitment-target-selector'
 
 interface DraftGoal {
   id: string
@@ -54,6 +55,7 @@ interface EnhancedDraftReviewProps {
   draftGoals: DraftGoal[]
   draftTargets: DraftTarget[]
   draftCommitments: DraftCommitment[]
+  currentSprintId?: string | null
   onConfirmGoals: (goalIds: string[]) => Promise<void>
   onConfirmTargets: (targetIds: string[]) => Promise<void>
   onConfirmCommitments: (commitmentIds: string[]) => Promise<void>
@@ -65,6 +67,7 @@ export function EnhancedDraftReview({
   draftGoals,
   draftTargets,
   draftCommitments,
+  currentSprintId,
   onConfirmGoals,
   onConfirmTargets,
   onConfirmCommitments,
@@ -372,24 +375,29 @@ export function EnhancedDraftReview({
                               {Math.round(commitment.confidence * 100)}%
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{commitment.type}</Badge>
-                            {(commitment.link_to_target_ids?.length || 0) +
-                              (commitment.suggested_target_indices?.length ||
-                                0) >
-                              0 && (
-                              <div className="flex items-center gap-1 text-xs text-gray-600">
-                                <Link2 className="h-3 w-3" />
-                                <span>
-                                  {(commitment.link_to_target_ids?.length ||
-                                    0) +
-                                    (commitment.suggested_target_indices
-                                      ?.length || 0)}{' '}
-                                  targets
-                                </span>
-                              </div>
-                            )}
+
+                          {/* Target Selector for Commitment */}
+                          <div className="space-y-2 mt-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline">{commitment.type}</Badge>
+                            </div>
+                            <CommitmentTargetSelector
+                              linkedTargetIds={
+                                commitment.link_to_target_ids || []
+                              }
+                              suggestedTargetIndices={
+                                commitment.suggested_target_indices || []
+                              }
+                              extractedTargets={draftTargets}
+                              currentSprintId={currentSprintId || null}
+                              onChange={(targetIds, indices) => {
+                                // Update the commitment directly (mutations are ok for draft data)
+                                commitment.link_to_target_ids = targetIds
+                                commitment.suggested_target_indices = indices
+                              }}
+                            />
                           </div>
+
                           {commitment.transcript_context && (
                             <div className="bg-gray-50 border border-gray-200 rounded p-2 text-sm italic text-gray-700">
                               &quot;{commitment.transcript_context}&quot;
@@ -644,31 +652,27 @@ export function EnhancedDraftReview({
                               confidence
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{commitment.type}</Badge>
-                            {(commitment.link_to_target_ids?.length || 0) +
-                              (commitment.suggested_target_indices?.length ||
-                                0) >
-                              0 && (
-                              <div className="flex items-center gap-1 text-xs text-green-600">
-                                <Link2 className="h-3 w-3" />
-                                <span>
-                                  Linked to{' '}
-                                  {(commitment.link_to_target_ids?.length ||
-                                    0) +
-                                    (commitment.suggested_target_indices
-                                      ?.length || 0)}{' '}
-                                  target
-                                  {(commitment.link_to_target_ids?.length ||
-                                    0) +
-                                    (commitment.suggested_target_indices
-                                      ?.length || 0) !==
-                                  1
-                                    ? 's'
-                                    : ''}
-                                </span>
-                              </div>
-                            )}
+
+                          {/* Target Selector */}
+                          <div className="space-y-2 mt-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Badge variant="outline">{commitment.type}</Badge>
+                            </div>
+                            <CommitmentTargetSelector
+                              linkedTargetIds={
+                                commitment.link_to_target_ids || []
+                              }
+                              suggestedTargetIndices={
+                                commitment.suggested_target_indices || []
+                              }
+                              extractedTargets={draftTargets}
+                              currentSprintId={currentSprintId || null}
+                              onChange={(targetIds, indices) => {
+                                // Update the commitment directly (mutations are ok for draft data)
+                                commitment.link_to_target_ids = targetIds
+                                commitment.suggested_target_indices = indices
+                              }}
+                            />
                           </div>
                           {commitment.transcript_context && (
                             <div className="bg-green-50 border border-green-200 rounded p-3">

@@ -645,6 +645,7 @@ export default function SessionDetailsPage({
                           draftGoals={extractionResult.draft_goals}
                           draftTargets={extractionResult.draft_targets}
                           draftCommitments={extractionResult.draft_commitments}
+                          currentSprintId={extractionResult.current_sprint_id}
                           onConfirmGoals={async ids => {
                             await GoalService.bulkConfirmGoals(ids)
                           }}
