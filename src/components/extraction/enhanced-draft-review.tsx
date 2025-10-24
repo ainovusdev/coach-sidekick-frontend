@@ -48,9 +48,6 @@ interface EnhancedDraftReviewProps {
   draftTargets: DraftTarget[]
   draftCommitments: DraftCommitment[]
   currentSprintId?: string | null
-  onConfirmGoals: (goalIds: string[]) => Promise<void>
-  onConfirmTargets: (targetIds: string[]) => Promise<void>
-  onConfirmCommitments: (commitmentIds: string[]) => Promise<void>
   onConfirmAll: () => Promise<void>
   onRefresh?: () => void
 }
@@ -60,9 +57,6 @@ export function EnhancedDraftReview({
   draftTargets,
   draftCommitments,
   currentSprintId,
-  onConfirmGoals,
-  onConfirmTargets,
-  onConfirmCommitments,
   onConfirmAll,
   onRefresh,
 }: EnhancedDraftReviewProps) {
@@ -390,25 +384,6 @@ export function EnhancedDraftReview({
                     </CardContent>
                   </Card>
                 ))}
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      setConfirming(true)
-                      try {
-                        await onConfirmGoals(Array.from(selectedGoals))
-                        toast.success('Outcomes Confirmed')
-                        onRefresh?.()
-                      } finally {
-                        setConfirming(false)
-                      }
-                    }}
-                    disabled={selectedGoals.size === 0 || confirming}
-                  >
-                    Confirm {selectedGoals.size} Outcome
-                    {selectedGoals.size !== 1 ? 's' : ''}
-                  </Button>
-                </div>
               </>
             )}
           </TabsContent>
@@ -462,25 +437,6 @@ export function EnhancedDraftReview({
                     </CardContent>
                   </Card>
                 ))}
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      setConfirming(true)
-                      try {
-                        await onConfirmTargets(Array.from(selectedTargets))
-                        toast.success('Desired Wins Confirmed')
-                        onRefresh?.()
-                      } finally {
-                        setConfirming(false)
-                      }
-                    }}
-                    disabled={selectedTargets.size === 0 || confirming}
-                  >
-                    Confirm {selectedTargets.size} Desired Win
-                    {selectedTargets.size !== 1 ? 's' : ''}
-                  </Button>
-                </div>
               </>
             )}
           </TabsContent>
@@ -555,27 +511,6 @@ export function EnhancedDraftReview({
                     </CardContent>
                   </Card>
                 ))}
-                <div className="flex justify-end gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={async () => {
-                      setConfirming(true)
-                      try {
-                        await onConfirmCommitments(
-                          Array.from(selectedCommitments),
-                        )
-                        toast.success('Commitments Confirmed')
-                        onRefresh?.()
-                      } finally {
-                        setConfirming(false)
-                      }
-                    }}
-                    disabled={selectedCommitments.size === 0 || confirming}
-                  >
-                    Confirm {selectedCommitments.size} Commitment
-                    {selectedCommitments.size !== 1 ? 's' : ''}
-                  </Button>
-                </div>
               </>
             )}
           </TabsContent>

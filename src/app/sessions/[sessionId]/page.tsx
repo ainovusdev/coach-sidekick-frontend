@@ -36,8 +36,6 @@ import {
 import { SessionInsightsModern } from '@/components/sessions/session-insights-modern'
 import { SessionService } from '@/services/session-service'
 import { CommitmentService } from '@/services/commitment-service'
-import { GoalService } from '@/services/goal-service'
-import { TargetService } from '@/services/target-service'
 import {
   EnhancedExtractionService,
   ExtractionResult,
@@ -659,15 +657,6 @@ export default function SessionDetailsPage({
                           draftTargets={extractionResult.draft_targets}
                           draftCommitments={extractionResult.draft_commitments}
                           currentSprintId={extractionResult.current_sprint_id}
-                          onConfirmGoals={async ids => {
-                            await GoalService.bulkConfirmGoals(ids)
-                          }}
-                          onConfirmTargets={async ids => {
-                            await TargetService.bulkConfirmTargets(ids)
-                          }}
-                          onConfirmCommitments={async ids => {
-                            await CommitmentService.bulkConfirm(ids)
-                          }}
                           onConfirmAll={handleConfirmAll}
                           onRefresh={() => {
                             setExtractionResult(null)
