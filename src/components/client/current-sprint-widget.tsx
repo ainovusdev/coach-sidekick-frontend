@@ -9,19 +9,29 @@ import { Button } from '@/components/ui/button'
 import { SprintService } from '@/services/sprint-service'
 import { SprintDetail } from '@/types/sprint'
 import { SprintStatusMenu } from '@/components/sprints/sprint-status-menu'
-import { Target, Calendar, TrendingUp, ChevronRight } from 'lucide-react'
+import {
+  Target,
+  Calendar,
+  TrendingUp,
+  ChevronRight,
+  CheckCircle,
+  Plus,
+} from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
+import { toast } from 'sonner'
 
 interface CurrentSprintWidgetProps {
   clientId: string
   onRefresh?: () => void
   showStatusMenu?: boolean
+  onCreateSprint?: () => void
 }
 
 export function CurrentSprintWidget({
   clientId,
   onRefresh,
   showStatusMenu = false,
+  onCreateSprint,
 }: CurrentSprintWidgetProps) {
   const router = useRouter()
   const [sprint, setSprint] = useState<SprintDetail | null>(null)
@@ -64,6 +74,21 @@ export function CurrentSprintWidget({
     )
   }
 
+  const handleFinishSprint = async () => {
+    if (!sprint) return
+
+    try {
+      await SprintService.updateSprintStatus(sprint.id, 'completed')
+      toast.success('Sprint Completed', {
+        description: 'Sprint has been marked as completed',
+      })
+      loadCurrentSprint()
+      onRefresh?.()
+    } catch (error) {
+      console.error('Failed to complete sprint:', error)
+    }
+  }
+
   if (!sprint) {
     return (
       <Card>
@@ -77,9 +102,15 @@ export function CurrentSprintWidget({
           <div className="text-center py-8">
             <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">No active sprint</p>
-            <p className="text-sm text-gray-500">
-              Your coach will create a sprint to organize your outcomes
-            </p>
+            {onCreateSprint && (
+              <Button
+                onClick={onCreateSprint}
+                className="bg-gray-900 hover:bg-gray-800"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Create New Sprint
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -100,9 +131,34 @@ export function CurrentSprintWidget({
             Current Sprint
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge className="bg-green-100 text-green-800 border-green-200">
+            <Badge
+              className={
+                sprint.status === 'active'
+                  ? 'bg-green-100 text-green-800 border-green-200'
+                  : sprint.status === 'completed'
+                    ? 'bg-gray-100 text-gray-800 border-gray-200'
+                    : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+              }
+            >
               {sprint.status}
             </Badge>
+            {sprint.status === 'active' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleFinishSprint}
+                className="border-green-600 text-green-700 hover:bg-green-50"
+              >
+                <CheckCircle className="h-4 w-4 mr-1" />
+                Finish Sprint
+              </Button>
+            )}
+            {onCreateSprint && sprint.status === 'completed' && (
+              <Button variant="outline" size="sm" onClick={onCreateSprint}>
+                <Plus className="h-4 w-4 mr-1" />
+                New Sprint
+              </Button>
+            )}
             {showStatusMenu && (
               <SprintStatusMenu
                 sprintId={sprint.id}

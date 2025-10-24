@@ -121,7 +121,7 @@ export function GoalsList({
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <Target className="h-5 w-5" />
-              Contract outcome
+              Desired outcomes
             </CardTitle>
             {showCreateButton && (
               <Button size="sm" onClick={handleCreateClick}>

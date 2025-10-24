@@ -494,30 +494,12 @@ export default function ClientDetailPage({
                 />
 
                 {/* 2. Sprint Overview */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  <CurrentSprintWidget
-                    clientId={client.id}
-                    onRefresh={refetch}
-                    showStatusMenu={true}
-                  />
-                  <Card className="border-gray-200 shadow-sm">
-                    <CardHeader>
-                      <h3 className="font-semibold text-gray-900">
-                        Quick Actions
-                      </h3>
-                    </CardHeader>
-                    <CardContent className="space-y-2">
-                      <Button
-                        variant="outline"
-                        className="w-full justify-start"
-                        onClick={() => setIsSprintModalOpen(true)}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create New Sprint
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </div>
+                <CurrentSprintWidget
+                  clientId={client.id}
+                  onRefresh={refetch}
+                  showStatusMenu={true}
+                  onCreateSprint={() => setIsSprintModalOpen(true)}
+                />
 
                 {/* 3. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
