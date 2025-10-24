@@ -373,11 +373,18 @@ export function EnhancedDraftReview({
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{commitment.type}</Badge>
-                            {commitment.linked_target_ids.length > 0 && (
+                            {(commitment.link_to_target_ids?.length || 0) +
+                              (commitment.suggested_target_indices?.length ||
+                                0) >
+                              0 && (
                               <div className="flex items-center gap-1 text-xs text-gray-600">
                                 <Link2 className="h-3 w-3" />
                                 <span>
-                                  {commitment.linked_target_ids.length} targets
+                                  {(commitment.link_to_target_ids?.length ||
+                                    0) +
+                                    (commitment.suggested_target_indices
+                                      ?.length || 0)}{' '}
+                                  targets
                                 </span>
                               </div>
                             )}
