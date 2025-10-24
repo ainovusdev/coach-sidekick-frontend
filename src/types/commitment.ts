@@ -67,6 +67,7 @@ export interface Commitment extends CommitmentBase {
   // Related data
   updates?: CommitmentUpdateEntry[]
   milestones?: Milestone[]
+  linked_target_ids?: string[] // IDs of linked targets/desired wins
 }
 
 // Commitment progress update
