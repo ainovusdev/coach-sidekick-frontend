@@ -237,9 +237,17 @@ export default function SessionDetailsPage({
 
   // Handle bulk confirmation of all extracted entities
   const handleConfirmAll = async () => {
-    if (!extractionResult || !sessionData?.session) return
+    console.log('=== CONFIRM ALL CALLED ===')
+    console.log('extractionResult:', extractionResult)
+    console.log('sessionData:', sessionData?.session)
+
+    if (!extractionResult || !sessionData?.session) {
+      console.log('Early return: missing extraction result or session')
+      return
+    }
 
     if (!sessionData.session.client_id) {
+      console.log('Early return: missing client_id')
       toast({
         title: 'Error',
         description: 'Session must have a client to confirm extraction',
@@ -247,6 +255,8 @@ export default function SessionDetailsPage({
       })
       return
     }
+
+    console.log('=== PROCEEDING WITH CONFIRMATION ===')
 
     try {
       // Use new confirmation endpoint that creates records
@@ -259,9 +269,15 @@ export default function SessionDetailsPage({
         current_sprint_id: extractionResult.current_sprint_id,
       }
 
-      console.log('Confirming extraction with request:', confirmRequest)
+      console.log(
+        'Sending confirmation request:',
+        JSON.stringify(confirmRequest, null, 2),
+      )
 
-      await EnhancedExtractionService.confirmExtraction(confirmRequest)
+      const result =
+        await EnhancedExtractionService.confirmExtraction(confirmRequest)
+
+      console.log('Confirmation result:', result)
 
       toast({
         title: 'Extraction Confirmed',

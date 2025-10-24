@@ -76,15 +76,21 @@ export function EnhancedDraftReview({
     )
   }
   const handleConfirmAll = async () => {
+    console.log('EnhancedDraftReview: handleConfirmAll clicked')
+    console.log('onConfirmAll function:', onConfirmAll)
+
     setConfirming(true)
     try {
+      console.log('Calling parent onConfirmAll...')
       await onConfirmAll()
+      console.log('Parent onConfirmAll completed')
+
       toast.success('All Confirmed', {
         description: `Successfully confirmed ${totalExtracted} extracted items`,
       })
       onRefresh?.()
     } catch (error) {
-      console.error('Failed to confirm all:', error)
+      console.error('EnhancedDraftReview: Failed to confirm all:', error)
     } finally {
       setConfirming(false)
     }
