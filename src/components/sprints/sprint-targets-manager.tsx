@@ -16,7 +16,9 @@ import {
   Circle,
   Link2,
   Loader2,
+  Trophy,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import {
   Accordion,
   AccordionContent,
@@ -27,11 +29,15 @@ import {
 interface SprintTargetsManagerProps {
   clientId: string
   onRefresh?: () => void
+  onTargetClick?: (targetId: string) => void
+  selectedTargetId?: string | null
 }
 
 export function SprintTargetsManager({
   clientId,
   onRefresh,
+  onTargetClick,
+  selectedTargetId,
 }: SprintTargetsManagerProps) {
   const [sprint, setSprint] = useState<SprintDetail | null>(null)
   const [loading, setLoading] = useState(true)
@@ -188,7 +194,16 @@ export function SprintTargetsManager({
                     <AccordionContent>
                       <div className="space-y-3 pl-14 pr-4">
                         {targets.map(target => (
-                          <Card key={target.id} className="border-gray-200">
+                          <Card
+                            key={target.id}
+                            onClick={() => onTargetClick?.(target.id)}
+                            className={cn(
+                              'border-2 transition-all cursor-pointer',
+                              selectedTargetId === target.id
+                                ? 'border-purple-400 bg-purple-50 shadow-md'
+                                : 'border-gray-200 hover:border-gray-300 hover:shadow-sm',
+                            )}
+                          >
                             <CardContent className="p-4">
                               <div className="flex items-start justify-between mb-3">
                                 <div className="flex-1">
@@ -201,6 +216,11 @@ export function SprintTargetsManager({
                                     <h4 className="font-medium text-gray-900">
                                       {target.title}
                                     </h4>
+                                  </div>
+                                  {/* Show linked outcome */}
+                                  <div className="flex items-center gap-1 text-xs text-purple-700 ml-6 mb-1">
+                                    <Trophy className="h-3 w-3" />
+                                    <span>Outcome: {goalTitle}</span>
                                   </div>
                                   {target.description && (
                                     <p className="text-sm text-gray-600 ml-6">

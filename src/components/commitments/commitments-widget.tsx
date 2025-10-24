@@ -18,6 +18,7 @@ interface CommitmentsWidgetProps {
   showHeader?: boolean
   viewAllLink?: string
   className?: string
+  targetId?: string | null // Filter by target ID
 }
 
 export function CommitmentsWidget({
@@ -26,6 +27,7 @@ export function CommitmentsWidget({
   showHeader = true,
   viewAllLink = '/client-portal/commitments',
   className,
+  targetId,
 }: CommitmentsWidgetProps) {
   const [loading, setLoading] = useState(true)
   const [commitments, setCommitments] = useState<Commitment[]>([])
@@ -33,7 +35,7 @@ export function CommitmentsWidget({
 
   useEffect(() => {
     loadCommitments()
-  }, [clientId])
+  }, [clientId, targetId])
 
   const loadCommitments = async () => {
     setLoading(true)
@@ -44,8 +46,18 @@ export function CommitmentsWidget({
         status: 'active',
         include_drafts: false,
       })
+
+      let commitmentsList = response.commitments || []
+
+      // Filter by target if specified
+      if (targetId) {
+        commitmentsList = commitmentsList.filter(c =>
+          c.linked_target_ids?.includes(targetId),
+        )
+      }
+
       // Sort by deadline and take top N
-      const sorted = (response.commitments || [])
+      const sorted = commitmentsList
         .sort((a, b) => {
           if (!a.target_date && !b.target_date) return 0
           if (!a.target_date) return 1

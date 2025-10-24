@@ -64,6 +64,7 @@ export default function ClientDetailPage({
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
+  const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
   const { client, sessions, loading, error, refetch } = useClientData(
     clientId,
     userId!,
@@ -508,6 +509,12 @@ export default function ClientDetailPage({
                     <SprintTargetsManager
                       clientId={client.id}
                       onRefresh={refetch}
+                      onTargetClick={targetId => {
+                        setSelectedTargetId(
+                          selectedTargetId === targetId ? null : targetId,
+                        )
+                      }}
+                      selectedTargetId={selectedTargetId}
                     />
                   </div>
 
@@ -515,15 +522,30 @@ export default function ClientDetailPage({
                   <div>
                     <Card className="border-gray-200 shadow-sm">
                       <CardHeader>
-                        <div className="flex items-center gap-2">
-                          <Activity className="h-5 w-5" />
-                          <h3 className="font-semibold text-gray-900">
-                            Sprint Commitments
-                          </h3>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <Activity className="h-5 w-5" />
+                              <h3 className="font-semibold text-gray-900">
+                                Sprint Commitments
+                              </h3>
+                            </div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {selectedTargetId
+                                ? 'Filtered by selected desired win'
+                                : 'All active commitments for current sprint'}
+                            </p>
+                          </div>
+                          {selectedTargetId && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setSelectedTargetId(null)}
+                            >
+                              Clear Filter
+                            </Button>
+                          )}
                         </div>
-                        <p className="text-sm text-gray-600 mt-1">
-                          Active commitments for current sprint
-                        </p>
                       </CardHeader>
                       <CardContent>
                         <CommitmentsWidget
@@ -531,6 +553,7 @@ export default function ClientDetailPage({
                           limit={10}
                           showHeader={false}
                           viewAllLink={`/clients/${client.id}?tab=commitments`}
+                          targetId={selectedTargetId}
                         />
                       </CardContent>
                     </Card>
