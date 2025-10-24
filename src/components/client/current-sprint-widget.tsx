@@ -78,7 +78,7 @@ export function CurrentSprintWidget({
     if (!sprint) return
 
     try {
-      await SprintService.updateSprintStatus(sprint.id, 'completed')
+      await SprintService.updateSprint(sprint.id, { status: 'completed' })
       toast.success('Sprint Completed', {
         description: 'Sprint has been marked as completed',
       })
