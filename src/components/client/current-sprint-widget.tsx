@@ -11,7 +11,6 @@ import { SprintDetail } from '@/types/sprint'
 import { SprintStatusMenu } from '@/components/sprints/sprint-status-menu'
 import { Target, Calendar, TrendingUp, ChevronRight } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
-import { toast } from 'sonner'
 
 interface CurrentSprintWidgetProps {
   clientId: string
@@ -175,17 +174,22 @@ export function CurrentSprintWidget({
           className="w-full"
           onClick={e => {
             e.stopPropagation()
-            // Navigate to client-portal sprint detail if in client portal
+            // Navigate to client sprint view
             const isClientPortal =
               window.location.pathname.includes('/client-portal')
             if (isClientPortal) {
               router.push(`/client-portal/sprints/${sprint.id}`)
             } else {
-              // For coaches, scroll to sprints tab or show message
-              toast.info('Sprint Details', {
-                description:
-                  'Switch to the "Sprints & Goals" tab to view full sprint details',
-              })
+              // For coaches, navigate to a sprint details modal or trigger tab switch
+              if (window.location.pathname.includes('/clients/')) {
+                // Trigger tab switch via custom event or direct DOM manipulation
+                const tabTrigger = document.querySelector(
+                  '[value="sprints"]',
+                ) as HTMLButtonElement
+                if (tabTrigger) {
+                  tabTrigger.click()
+                }
+              }
             }
           }}
         >
