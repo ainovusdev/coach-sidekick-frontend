@@ -527,11 +527,7 @@ export default function ClientDetailPage({
               </TabsContent>
 
               <TabsContent value="commitments" className="space-y-4">
-                <CommitmentsWidget
-                  clientId={client.id}
-                  limit={20}
-                  showAll={true}
-                />
+                <CommitmentsWidget clientId={client.id} limit={20} />
               </TabsContent>
             </Tabs>
           </div>

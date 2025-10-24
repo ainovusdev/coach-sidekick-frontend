@@ -91,9 +91,8 @@ export function CommitmentForm({
       if (!open || !defaultClientId) return
 
       try {
-        // Get client's current sprint targets
+        // Get all active targets (will be filtered by current sprint)
         const targets = await TargetService.listTargets({
-          client_id: defaultClientId,
           status: 'active',
         })
         setAvailableTargets(targets || [])

@@ -209,7 +209,7 @@ export function PersonaHistoryTimeline({
       const sessionKey = update.session_id || 'manual'
       if (!acc[sessionKey]) {
         acc[sessionKey] = {
-          sessionId: update.session_id,
+          sessionId: update.session_id || null,
           sessionDate: new Date(update.created_at),
           updates: [],
           avgConfidence: 0,

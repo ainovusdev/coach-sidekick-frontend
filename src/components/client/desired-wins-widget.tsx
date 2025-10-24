@@ -34,7 +34,9 @@ export function DesiredWinsWidget({
       setLoading(true)
 
       // Get current sprint
-      const currentSprint = await SprintService.getCurrentSprint()
+      if (!clientId) return
+
+      const currentSprint = await SprintService.getCurrentSprint(clientId)
 
       if (currentSprint) {
         // Fetch active targets for current sprint

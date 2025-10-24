@@ -42,12 +42,17 @@ interface SessionDetails {
     meeting_url: string | null
     status: string
     session_type?: string
+    title?: string | null
     transcription_status?: string
     transcription_progress?: number
     created_at: string
     updated_at: string
     metadata: any
     client_id?: string
+    client?: {
+      id: string
+      name: string
+    } | null
   }
   transcript: TranscriptEntry[]
   coaching_analyses: CoachingAnalysis[]
