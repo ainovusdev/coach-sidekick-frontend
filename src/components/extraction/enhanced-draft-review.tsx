@@ -737,40 +737,25 @@ export function EnhancedDraftReview({
           </TabsContent>
         </Tabs>
 
-        {/* Global Actions */}
-        <div className="mt-6 pt-4 border-t flex justify-end gap-2">
-          <Button
-            variant="outline"
-            onClick={handleConfirmSelected}
-            disabled={
-              confirming ||
-              (selectedGoals.size === 0 &&
-                selectedTargets.size === 0 &&
-                selectedCommitments.size === 0)
-            }
-          >
-            {confirming ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            ) : (
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-            )}
-            Confirm Selected (
-            {selectedGoals.size +
-              selectedTargets.size +
-              selectedCommitments.size}
-            )
-          </Button>
+        {/* Global Action at Bottom */}
+        <div className="mt-6 pt-4 border-t flex justify-center">
           <Button
             onClick={handleConfirmAll}
             disabled={confirming}
-            className="bg-purple-600 hover:bg-purple-700"
+            size="lg"
+            className="bg-purple-600 hover:bg-purple-700 text-white px-8"
           >
             {confirming ? (
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              <>
+                <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                Confirming...
+              </>
             ) : (
-              <Sparkles className="h-4 w-4 mr-2" />
+              <>
+                <Sparkles className="h-5 w-5 mr-2" />
+                Confirm & Save All ({totalExtracted} items)
+              </>
             )}
-            Confirm All ({totalExtracted})
           </Button>
         </div>
       </CardContent>
