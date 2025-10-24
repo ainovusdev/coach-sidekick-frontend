@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner' // NEW: Use Sonner instead of custom hook
 import { Send, Mail, CheckCircle, AlertCircle } from 'lucide-react'
 
 interface ClientInvitationModalProps {
@@ -35,11 +35,12 @@ export function ClientInvitationModal({
   invitationStatus,
   onInvitationSent,
 }: ClientInvitationModalProps) {
-  const { toast } = useToast()
   const [email, setEmail] = useState(clientEmail || '')
   const [isSending, setIsSending] = useState(false)
   const [invitationSent, setInvitationSent] = useState(false)
   const [error, setError] = useState('')
+  const [invitationType, setInvitationType] = useState<string>('')
+  const [responseMessage, setResponseMessage] = useState('')
 
   const handleSendInvitation = async () => {
     if (!email) {
@@ -70,37 +71,78 @@ export function ClientInvitationModal({
       })
 
       if (!response.ok) {
-        const errorData = await response.text()
-        throw new Error(errorData || 'Failed to send invitation')
+        const errorData = await response
+          .json()
+          .catch(() => ({ detail: 'Failed to send invitation' }))
+        throw new Error(errorData.detail || 'Failed to send invitation')
       }
 
-      await response.json()
+      const data = await response.json()
+
+      // NEW: Handle different response types
+      setInvitationType(data.type || 'signup_invitation_sent')
+      setResponseMessage(data.message || 'Invitation sent successfully')
+
+      // NEW: Show different messages based on invitation type
+      if (data.type === 'already_connected') {
+        toast.info('Client Already Connected', {
+          description:
+            'This client already has access to their portal for your coaching.',
+          duration: 4000,
+        })
+        if (onInvitationSent) onInvitationSent()
+        setTimeout(() => handleClose(), 2000)
+        return
+      }
+
+      if (
+        data.type === 'already_invited' ||
+        data.type === 'signup_invitation_pending'
+      ) {
+        toast.info('Invitation Already Sent', {
+          description:
+            'An invitation is already pending for this client. They should check their email.',
+          duration: 4000,
+        })
+        if (onInvitationSent) onInvitationSent()
+        setTimeout(() => handleClose(), 2000)
+        return
+      }
 
       setInvitationSent(true)
 
-      // Show success toast with more details
-      toast({
-        title: '✉️ Invitation Sent Successfully!',
-        description: `An invitation has been sent to ${email}. They'll receive instructions to set up their account.`,
-        duration: 5000,
-      })
+      // Show success toast based on type
+      const isAccessInvitation = data.type === 'access_invitation_sent'
+
+      if (isAccessInvitation) {
+        toast.success('Access Invitation Sent!', {
+          description: `${email} will receive an invitation to add your coaching to their existing account.`,
+          duration: 5000,
+        })
+      } else {
+        toast.success('Signup Invitation Sent!', {
+          description: `${email} will receive instructions to create their client portal account.`,
+          duration: 5000,
+        })
+      }
 
       // Call callback if provided
       if (onInvitationSent) {
         onInvitationSent()
       }
 
-      // Close modal after a longer delay to let user read the success message
+      // Close modal after delay
       setTimeout(() => {
         handleClose()
       }, 4000)
     } catch (err: any) {
       console.error('Error sending invitation:', err)
-      setError(err.message || 'Failed to send invitation. Please try again.')
-      toast({
-        title: 'Error',
-        description: err.message || 'Failed to send invitation',
-        variant: 'destructive',
+      const errorMessage =
+        err.message || 'Failed to send invitation. Please try again.'
+      setError(errorMessage)
+      toast.error('Failed to Send Invitation', {
+        description: errorMessage,
+        duration: 5000,
       })
     } finally {
       setIsSending(false)
@@ -111,6 +153,8 @@ export function ClientInvitationModal({
     setEmail(clientEmail || '')
     setError('')
     setInvitationSent(false)
+    setInvitationType('') // NEW: Reset type
+    setResponseMessage('') // NEW: Reset message
     onClose()
   }
 
@@ -205,7 +249,9 @@ export function ClientInvitationModal({
                 <CheckCircle className="h-10 w-10 text-green-600" />
               </div>
               <h3 className="mt-4 text-xl font-semibold text-gray-900">
-                Invitation Sent Successfully!
+                {invitationType === 'access_invitation_sent'
+                  ? 'Access Invitation Sent!'
+                  : 'Invitation Sent Successfully!'}
               </h3>
               <div className="mt-4 space-y-2">
                 <p className="text-sm font-medium text-gray-700">
@@ -213,8 +259,8 @@ export function ClientInvitationModal({
                   Sent to: <span className="text-gray-900">{email}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  {clientName} will receive an email with a secure link to set
-                  up their account.
+                  {responseMessage ||
+                    `${clientName} will receive an email with a secure link.`}
                 </p>
               </div>
 
@@ -222,31 +268,59 @@ export function ClientInvitationModal({
                 <h4 className="text-sm font-medium text-blue-900 mb-2">
                   What happens next:
                 </h4>
-                <ul className="space-y-1.5 text-xs text-blue-700">
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>
-                      The client will receive an email within a few minutes
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>
-                      They can click the secure link to create their password
-                    </span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>The invitation link expires in 7 days</span>
-                  </li>
-                  <li className="flex items-start">
-                    <span className="mr-2">•</span>
-                    <span>
-                      Once registered, they&apos;ll have access to their
-                      dashboard and sessions
-                    </span>
-                  </li>
-                </ul>
+                {invitationType === 'access_invitation_sent' ? (
+                  <ul className="space-y-1.5 text-xs text-blue-700">
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        The client will receive an email with an invitation link
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        They can accept to add your coaching to their existing
+                        account
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        They can manage multiple coaches from one account
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>The invitation link expires in 7 days</span>
+                    </li>
+                  </ul>
+                ) : (
+                  <ul className="space-y-1.5 text-xs text-blue-700">
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        The client will receive an email within a few minutes
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        They can click the secure link to create their password
+                      </span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>The invitation link expires in 7 days</span>
+                    </li>
+                    <li className="flex items-start">
+                      <span className="mr-2">•</span>
+                      <span>
+                        Once registered, they&apos;ll have access to their
+                        dashboard and sessions
+                      </span>
+                    </li>
+                  </ul>
+                )}
               </div>
 
               <div className="mt-6 flex justify-center">

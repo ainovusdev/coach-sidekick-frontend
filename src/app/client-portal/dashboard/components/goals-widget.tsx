@@ -61,15 +61,15 @@ export function GoalsWidget({ goals }: GoalsWidgetProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Your Goals
+            Your Outcomes
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">
-              No goals set yet. Your coach will help you establish goals in your
-              next session.
+              No outcomes set yet. Your coach will help you establish goals in
+              your next session.
             </p>
           </div>
         </CardContent>
@@ -83,7 +83,7 @@ export function GoalsWidget({ goals }: GoalsWidgetProps) {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Your Goals
+            Your Outcomes
           </CardTitle>
           <Badge variant="secondary">{goals.length} Active</Badge>
         </div>

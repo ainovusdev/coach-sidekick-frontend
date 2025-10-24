@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,7 +18,11 @@ import {
   TrendingUp,
   MessageSquare,
   FileText,
+  CheckCircle2,
+  ListTodo,
+  BookOpen,
 } from 'lucide-react'
+import { NotesList } from '@/components/session-notes/notes-list'
 
 interface SessionDetail {
   session: {
@@ -30,6 +34,11 @@ interface SessionDetail {
     summary: string | null
     key_topics: string[]
     action_items: any[]
+    coach: {
+      id: string
+      name: string
+      email: string
+    } | null
   }
   transcript: Array<{
     speaker: string
@@ -78,7 +87,6 @@ interface SessionDetail {
 }
 
 export default function ClientSessionDetailPage() {
-  const router = useRouter()
   const params = useParams()
   const sessionId = params.id as string
 
@@ -94,17 +102,15 @@ export default function ClientSessionDetailPage() {
   }, [sessionId])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
   const fetchSessionDetail = async () => {
     try {
-      const token = localStorage.getItem('client_auth_token')
+      const token = localStorage.getItem('auth_token')
       if (!token) {
-        router.push('/client-portal/auth/login')
         return
       }
 
@@ -119,7 +125,6 @@ export default function ClientSessionDetailPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          router.push('/client-portal/auth/login')
           return
         }
         if (response.status === 404) {
@@ -157,95 +162,168 @@ export default function ClientSessionDetailPage() {
     })
   }
 
-  const getSentimentColor = (sentiment: string) => {
+  const _getSentimentColor = (sentiment: string) => {
     switch (sentiment?.toLowerCase()) {
       case 'positive':
         return 'text-green-500'
       case 'negative':
         return 'text-red-500'
       case 'neutral':
-        return 'text-zinc-400'
+        return 'text-gray-600'
       default:
-        return 'text-zinc-400'
+        return 'text-gray-600'
     }
   }
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <LoadingSpinner />
+        </div>
       </div>
     )
   }
 
   if (error) {
     return (
-      <div className="max-w-2xl mx-auto py-12">
-        <Alert
-          variant="destructive"
-          className="bg-red-950 border-red-800 text-red-300"
-        >
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <Link href="/client-portal/sessions">
-          <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Sessions
-          </Button>
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-2xl mx-auto py-12">
+          <Alert
+            variant="destructive"
+            className="bg-red-950 border-red-800 text-red-300"
+          >
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Link href="/client-portal/sessions">
+            <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Sessions
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   if (!sessionData) {
     return (
-      <div className="text-center py-12">
-        <p className="text-zinc-400">Session not found</p>
-        <Link href="/client-portal/sessions">
-          <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Sessions
-          </Button>
-        </Link>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <p className="text-gray-600">Session not found</p>
+          <Link href="/client-portal/sessions">
+            <Button className="mt-4 bg-white text-black hover:bg-zinc-200">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Sessions
+            </Button>
+          </Link>
+        </div>
       </div>
     )
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-6">
         <Link href="/client-portal/sessions">
           <Button
             variant="ghost"
             size="sm"
-            className="mb-4 text-zinc-400 hover:text-white hover:bg-zinc-800"
+            className="mb-4 text-gray-600 hover:text-gray-900 hover:bg-gray-50"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Sessions
           </Button>
         </Link>
 
-        <h1 className="text-3xl font-bold text-white">Session Details</h1>
-        <div className="flex items-center space-x-4 mt-2 text-zinc-400">
-          <div className="flex items-center space-x-2">
-            <Calendar className="h-4 w-4" />
-            <span>
-              {sessionData.session.started_at
-                ? formatDate(sessionData.session.started_at)
-                : 'Date not available'}
-            </span>
+        <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+          <div className="flex items-start justify-between mb-6">
+            <div className="flex-1">
+              <h1 className="text-3xl font-bold text-gray-900 mb-3">
+                Session Summary
+              </h1>
+              <div className="flex flex-wrap items-center gap-3 text-gray-700">
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                  <Calendar className="h-4 w-4 text-gray-700" />
+                  <span className="text-sm font-medium">
+                    {sessionData.session.started_at
+                      ? formatDate(sessionData.session.started_at)
+                      : 'Date not available'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-lg border border-gray-200">
+                  <Clock className="h-4 w-4 text-gray-700" />
+                  <span className="text-sm font-medium">
+                    {sessionData.session.duration_minutes || 0} min
+                  </span>
+                </div>
+                <Badge
+                  variant="outline"
+                  className="border-gray-300 text-gray-700 px-3 py-1 capitalize"
+                >
+                  {sessionData.session.status}
+                </Badge>
+              </div>
+            </div>
+            {sessionData.session.coach && (
+              <div className="flex items-center gap-3 bg-gray-50 px-4 py-3 rounded-lg border border-gray-200">
+                <div className="h-12 w-12 rounded-full bg-gray-900 flex items-center justify-center text-white font-semibold text-lg">
+                  {sessionData.session.coach.name?.charAt(0).toUpperCase() ||
+                    'C'}
+                </div>
+                <div className="text-left">
+                  <p className="text-xs text-gray-500 mb-1">Your Coach</p>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {sessionData.session.coach.name}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
-          <div className="flex items-center space-x-2">
-            <Clock className="h-4 w-4" />
-            <span>{sessionData.session.duration_minutes || 0} minutes</span>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-gray-700" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Tasks Assigned</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {sessionData.tasks?.length || 0}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <BookOpen className="h-5 w-5 text-gray-700" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Materials Shared</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {sessionData.materials?.length || 0}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
+                <ListTodo className="h-5 w-5 text-gray-700" />
+              </div>
+              <div>
+                <p className="text-xs text-gray-500">Key Topics</p>
+                <p className="text-lg font-bold text-gray-900">
+                  {sessionData.session.key_topics?.length || 0}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 bg-zinc-900 border-zinc-800">
+        <TabsList className="grid w-full grid-cols-6 bg-white border-gray-200">
           <TabsTrigger
             value="overview"
             className="data-[state=active]:bg-white data-[state=active]:text-black"
@@ -265,6 +343,12 @@ export default function ClientSessionDetailPage() {
             Insights
           </TabsTrigger>
           <TabsTrigger
+            value="notes"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+          >
+            Notes
+          </TabsTrigger>
+          <TabsTrigger
             value="tasks"
             className="data-[state=active]:bg-white data-[state=active]:text-black"
           >
@@ -279,17 +363,17 @@ export default function ClientSessionDetailPage() {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-4">
+        <TabsContent value="overview" className="space-y-6">
           {sessionData.session.status === 'processing' && (
-            <Card className="bg-yellow-950/20 border-yellow-800/50">
+            <Card className="bg-yellow-50 border-yellow-200">
               <CardContent className="p-4">
                 <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-yellow-500" />
+                  <Clock className="h-5 w-5 text-yellow-600" />
                   <div>
-                    <p className="text-sm font-medium text-yellow-500">
+                    <p className="text-sm font-medium text-yellow-800">
                       Session Processing
                     </p>
-                    <p className="text-xs text-yellow-600/80">
+                    <p className="text-xs text-yellow-700">
                       This session is still being processed. Details will appear
                       once the session is complete.
                     </p>
@@ -299,70 +383,119 @@ export default function ClientSessionDetailPage() {
             </Card>
           )}
 
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white">Session Summary</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-zinc-400">
-                {sessionData.session.summary ||
-                  'Summary will be available after the session is completed'}
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white">Key Topics Discussed</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {sessionData.session?.key_topics &&
-              Array.isArray(sessionData.session.key_topics) &&
-              sessionData.session.key_topics.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {sessionData.session.key_topics.map((topic, index) => (
-                    <Badge
-                      key={index}
-                      variant="secondary"
-                      className="bg-zinc-800 text-zinc-300 border-zinc-700"
-                    >
-                      {topic}
-                    </Badge>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-zinc-500 text-center py-4">
-                  No topics identified
+          {/* Session Summary */}
+          {sessionData.session.summary && (
+            <Card className="bg-white border-gray-200 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg font-semibold text-gray-900">
+                  What We Covered
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-gray-700 leading-relaxed">
+                  {sessionData.session.summary}
                 </p>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          )}
 
-          {sessionData.analysis && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-base text-white">
-                    Session Sentiment
+          {/* Action Items */}
+          {sessionData.session.action_items &&
+            sessionData.session.action_items.length > 0 && (
+              <Card className="bg-white border-gray-200 shadow-sm border-l-4 border-l-gray-900">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="h-5 w-5 text-gray-900" />
+                    <CardTitle className="text-lg font-semibold text-gray-900">
+                      Action Items
+                    </CardTitle>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">
+                    Key takeaways and next steps from your session
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <ul className="space-y-3">
+                    {sessionData.session.action_items.map((item, index) => (
+                      <li
+                        key={index}
+                        className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      >
+                        <div className="mt-0.5">
+                          <div className="h-6 w-6 rounded-full border-2 border-gray-300 flex items-center justify-center bg-white">
+                            <span className="text-xs font-semibold text-gray-600">
+                              {index + 1}
+                            </span>
+                          </div>
+                        </div>
+                        <span className="text-sm text-gray-900 flex-1 leading-relaxed">
+                          {typeof item === 'string'
+                            ? item
+                            : item.text || item.title}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            )}
+
+          {/* Key Topics */}
+          {sessionData.session?.key_topics &&
+            Array.isArray(sessionData.session.key_topics) &&
+            sessionData.session.key_topics.length > 0 && (
+              <Card className="bg-white border-gray-200 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-lg font-semibold text-gray-900">
+                    Topics Discussed
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p
-                    className={`text-lg font-semibold ${getSentimentColor(sessionData.analysis.sentiment)}`}
-                  >
+                  <div className="flex flex-wrap gap-2">
+                    {sessionData.session.key_topics.map((topic, index) => (
+                      <Badge
+                        key={index}
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-900 border border-gray-300 px-3 py-1.5 text-sm"
+                      >
+                        {topic}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+          {/* Session Metrics */}
+          {sessionData.analysis && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="bg-white border-gray-200 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">
+                    Session Sentiment
+                  </CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Overall emotional tone
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-3xl font-bold text-gray-900 capitalize">
                     {sessionData.analysis.sentiment || 'Not analyzed'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-zinc-900 border-zinc-800">
-                <CardHeader>
-                  <CardTitle className="text-base text-white">
+              <Card className="bg-white border-gray-200 shadow-sm">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base font-semibold text-gray-900">
                     Engagement Level
                   </CardTitle>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Conversation interaction
+                  </p>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-lg font-semibold text-blue-400">
+                  <p className="text-3xl font-bold text-gray-900 capitalize">
                     {sessionData.analysis.engagement || 'Not analyzed'}
                   </p>
                 </CardContent>
@@ -373,45 +506,59 @@ export default function ClientSessionDetailPage() {
 
         {/* Transcript Tab */}
         <TabsContent value="transcript">
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white">Session Transcript</CardTitle>
-              <p className="text-sm text-zinc-400">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Session Transcript
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
                 Full conversation from your coaching session
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {sessionData.transcript && sessionData.transcript.length > 0 ? (
                 <ScrollArea className="h-[600px] pr-4">
                   <div className="space-y-4">
                     {sessionData.transcript.map((entry, index) => (
                       <div
                         key={index}
-                        className="border-l-2 border-zinc-700 pl-4 py-2 hover:border-white transition-colors"
+                        className="border-l-4 border-gray-200 pl-4 py-2 hover:border-gray-400 transition-colors"
                       >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-semibold text-sm text-white">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-semibold text-sm text-gray-900">
                             {entry.speaker}
                           </span>
-                          <span className="text-xs text-zinc-500">
+                          <span className="text-xs text-gray-500">
                             {entry.timestamp ? formatTime(entry.timestamp) : ''}
                           </span>
                         </div>
-                        <p className="text-sm text-zinc-400">{entry.text}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {entry.text}
+                        </p>
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
               ) : (
-                <div className="text-center py-12">
-                  <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
-                    Transcript not available for this session
+                <div className="text-center py-16">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-900 font-medium mb-1">
+                    No transcript available
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Transcript for this session is not yet available
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Notes Tab */}
+        <TabsContent value="notes">
+          <NotesList sessionId={sessionId} isClientPortal={true} />
         </TabsContent>
 
         {/* Insights Tab */}
@@ -421,10 +568,12 @@ export default function ClientSessionDetailPage() {
               {/* Session Insights */}
               {sessionData.insights.insights &&
                 sessionData.insights.insights.length > 0 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">Key Insights</CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <CardTitle className="text-gray-900">
+                        Key Insights
+                      </CardTitle>
+                      <p className="text-sm text-gray-600">
                         AI-powered observations from your session
                       </p>
                     </CardHeader>
@@ -435,8 +584,8 @@ export default function ClientSessionDetailPage() {
                             key={index}
                             className="flex items-start space-x-2"
                           >
-                            <TrendingUp className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-zinc-300">
+                            <TrendingUp className="h-4 w-4 text-gray-900 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-900">
                               {insight}
                             </span>
                           </li>
@@ -451,9 +600,9 @@ export default function ClientSessionDetailPage() {
                 sessionData.insights.keywords?.length > 0) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {sessionData.insights.topics?.length > 0 && (
-                    <Card className="bg-zinc-900 border-zinc-800">
+                    <Card className="bg-white border-gray-200">
                       <CardHeader>
-                        <CardTitle className="text-white">Topics</CardTitle>
+                        <CardTitle className="text-gray-900">Topics</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
@@ -461,7 +610,7 @@ export default function ClientSessionDetailPage() {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className="bg-zinc-800 text-zinc-300 border-zinc-700"
+                              className="bg-gray-100 text-gray-900 border-gray-300"
                             >
                               {topic}
                             </Badge>
@@ -471,9 +620,11 @@ export default function ClientSessionDetailPage() {
                     </Card>
                   )}
                   {sessionData.insights.keywords?.length > 0 && (
-                    <Card className="bg-zinc-900 border-zinc-800">
+                    <Card className="bg-white border-gray-200">
                       <CardHeader>
-                        <CardTitle className="text-white">Keywords</CardTitle>
+                        <CardTitle className="text-gray-900">
+                          Keywords
+                        </CardTitle>
                       </CardHeader>
                       <CardContent>
                         <div className="flex flex-wrap gap-2">
@@ -482,7 +633,7 @@ export default function ClientSessionDetailPage() {
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-400"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {keyword}
                               </Badge>
@@ -499,12 +650,12 @@ export default function ClientSessionDetailPage() {
               {sessionData.analysis?.coaching_scores &&
                 Object.keys(sessionData.analysis.coaching_scores).length >
                   1 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">
+                      <CardTitle className="text-gray-900">
                         Coaching Scores
                       </CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-gray-600">
                         How your coach performed in key areas
                       </p>
                     </CardHeader>
@@ -519,12 +670,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-zinc-300 capitalize">
+                              <span className="text-sm text-gray-900 capitalize">
                                 {key.replace(/_/g, ' ')}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-300"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -539,12 +690,12 @@ export default function ClientSessionDetailPage() {
               {/* GO LIVE Scores */}
               {sessionData.analysis?.go_live_scores &&
                 Object.keys(sessionData.analysis.go_live_scores).length > 1 && (
-                  <Card className="bg-zinc-900 border-zinc-800">
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
-                      <CardTitle className="text-white">
+                      <CardTitle className="text-gray-900">
                         GO LIVE Values
                       </CardTitle>
-                      <p className="text-sm text-zinc-400">
+                      <p className="text-sm text-gray-600">
                         Alignment with core coaching values
                       </p>
                     </CardHeader>
@@ -559,12 +710,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-zinc-300 capitalize">
+                              <span className="text-sm text-gray-900 capitalize">
                                 {key}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-zinc-700 text-zinc-300"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -579,9 +730,9 @@ export default function ClientSessionDetailPage() {
               {/* Recommendations */}
               {sessionData.insights.recommendations?.follow_up_questions
                 ?.length > 0 && (
-                <Card className="bg-zinc-900 border-zinc-800">
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
-                    <CardTitle className="text-white">
+                    <CardTitle className="text-gray-900">
                       Recommended Follow-up Questions
                     </CardTitle>
                   </CardHeader>
@@ -593,8 +744,8 @@ export default function ClientSessionDetailPage() {
                             key={index}
                             className="flex items-start space-x-2"
                           >
-                            <MessageSquare className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-zinc-300">
+                            <MessageSquare className="h-4 w-4 text-gray-900 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-900">
                               {question}
                             </span>
                           </li>
@@ -606,10 +757,10 @@ export default function ClientSessionDetailPage() {
               )}
             </div>
           ) : (
-            <Card className="bg-zinc-900 border-zinc-800">
+            <Card className="bg-white border-gray-200">
               <CardContent className="text-center py-12">
-                <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                <p className="text-zinc-500">
+                <MessageSquare className="h-12 w-12 text-gray-600 mx-auto mb-4" />
+                <p className="text-gray-500">
                   Insights for this session are being processed. Check back
                   soon!
                 </p>
@@ -620,59 +771,115 @@ export default function ClientSessionDetailPage() {
 
         {/* Tasks Tab */}
         <TabsContent value="tasks">
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white">Session Tasks</CardTitle>
-              <p className="text-sm text-zinc-400">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Session Tasks
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
                 Tasks assigned during this session
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {sessionData.tasks && sessionData.tasks.length > 0 ? (
-                <div className="space-y-3">
-                  {sessionData.tasks.map(task => (
-                    <div
-                      key={task.id}
-                      className="p-4 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-white">
-                          {task.title}
-                        </h4>
-                        <Badge
-                          variant="outline"
-                          className="border-zinc-700 text-zinc-300"
-                        >
-                          {task.status}
-                        </Badge>
+                <div className="space-y-4">
+                  {sessionData.tasks.map(task => {
+                    const isPending = task.status === 'pending'
+                    const isCompleted = task.status === 'completed'
+                    const isInProgress = task.status === 'in_progress'
+
+                    return (
+                      <div
+                        key={task.id}
+                        className={`p-4 border-2 rounded-xl transition-all ${
+                          isCompleted
+                            ? 'border-gray-300 bg-gray-50'
+                            : isPending
+                              ? 'border-gray-300 bg-white hover:border-gray-400'
+                              : 'border-gray-400 bg-white'
+                        }`}
+                      >
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="mt-1">
+                            <div
+                              className={`h-5 w-5 rounded-full border-2 flex items-center justify-center ${
+                                isCompleted
+                                  ? 'border-gray-900 bg-gray-900'
+                                  : 'border-gray-400 bg-white'
+                              }`}
+                            >
+                              {isCompleted && (
+                                <CheckCircle2 className="h-3 w-3 text-white" />
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between mb-2">
+                              <h4
+                                className={`font-semibold text-gray-900 ${
+                                  isCompleted
+                                    ? 'line-through text-gray-600'
+                                    : ''
+                                }`}
+                              >
+                                {task.title}
+                              </h4>
+                              <Badge
+                                variant="outline"
+                                className={`capitalize ml-2 ${
+                                  isCompleted
+                                    ? 'border-gray-400 text-gray-600 bg-gray-100'
+                                    : isInProgress
+                                      ? 'border-gray-900 text-gray-900 bg-gray-50'
+                                      : 'border-gray-400 text-gray-700'
+                                }`}
+                              >
+                                {task.status.replace('_', ' ')}
+                              </Badge>
+                            </div>
+                            {task.description && (
+                              <p className="text-sm text-gray-600 mb-3">
+                                {task.description}
+                              </p>
+                            )}
+                            <div className="flex items-center gap-4 text-xs">
+                              <Badge
+                                variant="outline"
+                                className={`capitalize ${
+                                  task.priority === 'high'
+                                    ? 'border-gray-900 text-gray-900 bg-gray-50'
+                                    : 'border-gray-300 text-gray-600'
+                                }`}
+                              >
+                                {task.priority} priority
+                              </Badge>
+                              {task.due_date && (
+                                <div className="flex items-center gap-1 text-gray-600">
+                                  <Calendar className="h-3 w-3" />
+                                  <span>Due {formatDate(task.due_date)}</span>
+                                </div>
+                              )}
+                              {task.comment_count > 0 && (
+                                <div className="flex items-center gap-1 text-gray-600">
+                                  <MessageSquare className="h-3 w-3" />
+                                  <span>{task.comment_count} comments</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                      {task.description && (
-                        <p className="text-sm text-zinc-400 mb-2">
-                          {task.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 text-xs text-zinc-500">
-                        <Badge
-                          variant="outline"
-                          className="border-zinc-700 text-zinc-400"
-                        >
-                          {task.priority}
-                        </Badge>
-                        {task.due_date && (
-                          <span>Due: {formatDate(task.due_date)}</span>
-                        )}
-                        {task.comment_count > 0 && (
-                          <span>{task.comment_count} comments</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <Target className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
-                    No tasks assigned in this session
+                <div className="text-center py-16">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <Target className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-900 font-medium mb-1">No tasks yet</p>
+                  <p className="text-sm text-gray-500">
+                    Tasks assigned during this session will appear here
                   </p>
                 </div>
               )}
@@ -682,37 +889,43 @@ export default function ClientSessionDetailPage() {
 
         {/* Materials Tab */}
         <TabsContent value="materials">
-          <Card className="bg-zinc-900 border-zinc-800">
-            <CardHeader>
-              <CardTitle className="text-white">Session Materials</CardTitle>
-              <p className="text-sm text-zinc-400">
-                Resources shared during this session
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="border-b border-gray-200">
+              <CardTitle className="text-lg font-semibold text-gray-900">
+                Session Materials
+              </CardTitle>
+              <p className="text-sm text-gray-600 mt-1">
+                Resources and materials shared by your coach
               </p>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {sessionData.materials && sessionData.materials.length > 0 ? (
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {sessionData.materials.map(material => (
                     <div
                       key={material.id}
-                      className="p-4 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
+                      className="p-4 border-2 border-gray-200 rounded-xl hover:border-gray-400 transition-all group"
                     >
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-zinc-500" />
-                          <h4 className="font-semibold text-white">
-                            {material.title}
-                          </h4>
+                      <div className="flex items-start gap-3 mb-3">
+                        <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                          <FileText className="h-5 w-5 text-gray-700" />
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="border-zinc-700 text-zinc-300"
-                        >
-                          {material.material_type}
-                        </Badge>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between mb-1">
+                            <h4 className="font-semibold text-gray-900 truncate">
+                              {material.title}
+                            </h4>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="border-gray-300 text-gray-600 text-xs capitalize"
+                          >
+                            {material.material_type}
+                          </Badge>
+                        </div>
                       </div>
                       {material.description && (
-                        <p className="text-sm text-zinc-400 mb-2">
+                        <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                           {material.description}
                         </p>
                       )}
@@ -721,19 +934,25 @@ export default function ClientSessionDetailPage() {
                           href={material.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-sm text-blue-400 hover:text-blue-300 underline"
+                          className="inline-flex items-center gap-2 text-sm font-medium text-gray-900 hover:text-gray-700 underline underline-offset-2"
                         >
                           View Material
+                          <ArrowLeft className="h-3 w-3 rotate-180" />
                         </a>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-12">
-                  <FileText className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-                  <p className="text-zinc-500">
-                    No materials shared in this session
+                <div className="text-center py-16">
+                  <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                    <FileText className="h-8 w-8 text-gray-400" />
+                  </div>
+                  <p className="text-gray-900 font-medium mb-1">
+                    No materials shared
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Resources shared during the session will appear here
                   </p>
                 </div>
               )}

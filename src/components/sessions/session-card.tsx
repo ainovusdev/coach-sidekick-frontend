@@ -1,7 +1,9 @@
-import { formatDistanceToNow } from 'date-fns'
+import { useState } from 'react'
+import { formatDistanceToNow, format } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import {
   Clock,
   CheckCircle2,
@@ -10,23 +12,44 @@ import {
   Eye,
   FileText,
   Lock,
+  Pencil,
+  Check,
+  X,
 } from 'lucide-react'
 import { MeetingSession } from '@/hooks/use-meeting-history'
 import { usePermissions, PermissionGate } from '@/contexts/permission-context'
+import { SessionService } from '@/services/session-service'
+import { toast } from 'sonner'
 
 interface SessionCardProps {
   session: MeetingSession
   onViewDetails?: (sessionId: string) => void
+  onTitleUpdated?: (sessionId: string, newTitle: string) => void
 }
 
-export function SessionCard({ session, onViewDetails }: SessionCardProps) {
+export function SessionCard({
+  session,
+  onViewDetails,
+  onTitleUpdated,
+}: SessionCardProps) {
   const permissions = usePermissions()
   const summary = session.meeting_summaries
   const createdAt = new Date(session.created_at)
-  const durationMinutes = summary?.duration_minutes || (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
-  
+  const durationMinutes =
+    summary?.duration_minutes ||
+    (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
+
   // Check if user is a viewer (restricted access)
   const isViewer = permissions.isViewer()
+
+  // Title editing state
+  const [isEditingTitle, setIsEditingTitle] = useState(false)
+  const [editedTitle, setEditedTitle] = useState(session.title || '')
+  const [isSavingTitle, setIsSavingTitle] = useState(false)
+
+  // Generate default title
+  const defaultTitle = `Session - ${format(createdAt, 'PPP')}`
+  const displayTitle = session.title || defaultTitle
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -64,21 +87,125 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
     return 'Meeting'
   }
 
-  // Extract client info from metadata
-  const clientName = session.client_name || session.metadata?.client_name || null
+  // Extract client and coach info from metadata or session
+  const clientName =
+    session.client_name || session.metadata?.client_name || null
+  const coachName = session.coach_name || session.metadata?.coach_name || null
   const meetingSummary = summary?.meeting_summary || session.summary
+
+  // Handle title save
+  const handleSaveTitle = async () => {
+    if (!editedTitle.trim()) {
+      toast.error('Title cannot be empty')
+      return
+    }
+
+    setIsSavingTitle(true)
+    try {
+      await SessionService.updateSession(session.id, {
+        title: editedTitle.trim(),
+      })
+      toast.success('Session title updated')
+      setIsEditingTitle(false)
+      session.title = editedTitle.trim() // Update local state
+      onTitleUpdated?.(session.id, editedTitle.trim())
+    } catch (error) {
+      console.error('Failed to update session title:', error)
+      toast.error('Failed to update session title')
+    } finally {
+      setIsSavingTitle(false)
+    }
+  }
+
+  const handleCancelEdit = () => {
+    setEditedTitle(session.title || '')
+    setIsEditingTitle(false)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSaveTitle()
+    } else if (e.key === 'Escape') {
+      handleCancelEdit()
+    }
+  }
 
   return (
     <Card className="hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white hover:border-gray-300">
       <CardContent className="p-4 space-y-3">
+        {/* Session Title - Editable */}
+        {!isViewer && isEditingTitle ? (
+          <div className="flex items-center gap-2">
+            <Input
+              value={editedTitle}
+              onChange={e => setEditedTitle(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Enter session title"
+              className="text-sm font-semibold h-8 px-2"
+              autoFocus
+              disabled={isSavingTitle}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSaveTitle}
+              disabled={isSavingTitle}
+              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+            >
+              <Check className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancelEdit}
+              disabled={isSavingTitle}
+              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2 group">
+            <h3 className="text-sm font-semibold text-gray-900 flex-1 line-clamp-1">
+              {displayTitle}
+            </h3>
+            {!isViewer && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setEditedTitle(session.title || '')
+                  setIsEditingTitle(true)
+                }}
+                className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <Pencil className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
+
         {/* Header with status and time */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-1">
             {getStatusIcon(session.status)}
-            <span className="text-sm font-semibold text-gray-900">
-              {getPlatformName(session.meeting_url)}
-              {clientName && ` • ${clientName}`}
-            </span>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-gray-900">
+                {getPlatformName(session.meeting_url)}
+              </span>
+              {/* NEW: Coach and Client info */}
+              {(coachName || clientName) && (
+                <span className="text-xs text-gray-500">
+                  {coachName && (
+                    <span className="font-medium">Coach: {coachName}</span>
+                  )}
+                  {coachName && clientName && <span className="mx-1">•</span>}
+                  {clientName && (
+                    <span className="font-medium">Client: {clientName}</span>
+                  )}
+                </span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {durationMinutes && (
@@ -133,7 +260,8 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
               Processing summary...
             </p>
           </div>
-        ) : session.status === 'in_progress' || session.status === 'recording' ? (
+        ) : session.status === 'in_progress' ||
+          session.status === 'recording' ? (
           <div className="p-4 bg-gray-900 text-white rounded-xl">
             <p className="text-sm font-medium">
               Live Session • Recording in progress
@@ -141,9 +269,7 @@ export function SessionCard({ session, onViewDetails }: SessionCardProps) {
           </div>
         ) : (
           <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-            <p className="text-sm text-gray-600">
-              Initializing session...
-            </p>
+            <p className="text-sm text-gray-600">Initializing session...</p>
           </div>
         )}
 

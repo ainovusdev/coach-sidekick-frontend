@@ -43,9 +43,8 @@ export default function ClientPersonaPage() {
   }, [])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
@@ -62,7 +61,6 @@ export default function ClientPersonaPage() {
     } catch (err: any) {
       console.error('Persona fetch error:', err)
       if (err.message.includes('authentication')) {
-        router.push('/client-portal/auth/login')
       } else {
         setError(err.message || 'Failed to load persona')
       }
@@ -167,7 +165,7 @@ export default function ClientPersonaPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="goals">Goals & Aspirations</TabsTrigger>
+          <TabsTrigger value="goals">Outcomes & Aspirations</TabsTrigger>
           <TabsTrigger value="personality">Personality</TabsTrigger>
           <TabsTrigger value="development">Development</TabsTrigger>
         </TabsList>

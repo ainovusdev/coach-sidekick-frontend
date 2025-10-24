@@ -3,12 +3,12 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { formatDistanceToNow } from 'date-fns'
-import { 
-  MessageSquare, 
-  ArrowRight, 
-  Clock, 
-  CheckCircle2, 
-  Circle, 
+import {
+  MessageSquare,
+  ArrowRight,
+  Clock,
+  CheckCircle2,
+  Circle,
   AlertCircle,
   FileText,
   Lock,
@@ -17,7 +17,7 @@ import {
   Sparkles,
   TrendingUp,
   Activity,
-  Eye
+  Eye,
 } from 'lucide-react'
 import { usePermissions } from '@/contexts/permission-context'
 
@@ -121,9 +121,14 @@ export default function RecentSessions({
   const SessionCardModern = ({ session }: { session: any }) => {
     const summary = session.meeting_summaries
     const createdAt = new Date(session.created_at)
-    const durationMinutes = summary?.duration_minutes || 
-      (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
-    const clientName = session.client_name || session.metadata?.client_name || null
+    const durationMinutes =
+      summary?.duration_minutes ||
+      (session.duration_seconds
+        ? Math.ceil(session.duration_seconds / 60)
+        : null)
+    const clientName =
+      session.client_name || session.metadata?.client_name || null
+    const coachName = session.coach_name || session.metadata?.coach_name || null // NEW
     const meetingSummary = summary?.meeting_summary || session.summary
 
     return (
@@ -136,7 +141,8 @@ export default function RecentSessions({
               <div className="h-12 w-12 bg-gradient-to-br from-gray-100 to-gray-50 rounded-xl flex items-center justify-center">
                 {session.status === 'completed' ? (
                   <FileText className="h-6 w-6 text-gray-700" />
-                ) : session.status === 'recording' || session.status === 'in_progress' ? (
+                ) : session.status === 'recording' ||
+                  session.status === 'in_progress' ? (
                   <Activity className="h-6 w-6 text-blue-600 animate-pulse" />
                 ) : (
                   <MessageSquare className="h-6 w-6 text-gray-500" />
@@ -155,6 +161,20 @@ export default function RecentSessions({
                     </h3>
                     {getStatusBadge(session.status)}
                   </div>
+                  {/* NEW: Coach and Client info row */}
+                  <div className="flex items-center gap-2 mb-2">
+                    {coachName && (
+                      <span className="text-xs text-gray-600 bg-blue-50 px-2 py-0.5 rounded">
+                        <span className="font-medium">Coach:</span> {coachName}
+                      </span>
+                    )}
+                    {clientName && (
+                      <span className="text-xs text-gray-600 bg-purple-50 px-2 py-0.5 rounded">
+                        <span className="font-medium">Client:</span>{' '}
+                        {clientName}
+                      </span>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
                       {getPlatformIcon(session.meeting_url)}
@@ -172,7 +192,9 @@ export default function RecentSessions({
                     <span className="text-gray-300">•</span>
                     <div className="flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
-                      <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
+                      <span>
+                        {formatDistanceToNow(createdAt, { addSuffix: true })}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -183,7 +205,9 @@ export default function RecentSessions({
                 <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
                   <div className="flex items-center gap-2 text-sm text-gray-500">
                     <Lock className="h-3.5 w-3.5" />
-                    <span className="italic">Content restricted for viewer role</span>
+                    <span className="italic">
+                      Content restricted for viewer role
+                    </span>
                   </div>
                 </div>
               ) : meetingSummary ? (
@@ -197,13 +221,18 @@ export default function RecentSessions({
                 </div>
               ) : session.status === 'completed' ? (
                 <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                  <p className="text-sm text-gray-500 italic">Processing summary...</p>
+                  <p className="text-sm text-gray-500 italic">
+                    Processing summary...
+                  </p>
                 </div>
-              ) : session.status === 'in_progress' || session.status === 'recording' ? (
+              ) : session.status === 'in_progress' ||
+                session.status === 'recording' ? (
                 <div className="mt-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
                   <div className="flex items-center gap-2">
                     <div className="h-2 w-2 bg-blue-600 rounded-full animate-pulse" />
-                    <p className="text-sm text-blue-700 font-medium">Live recording in progress</p>
+                    <p className="text-sm text-blue-700 font-medium">
+                      Live recording in progress
+                    </p>
                   </div>
                 </div>
               ) : null}
@@ -244,11 +273,14 @@ export default function RecentSessions({
               <div className="p-2 bg-gray-900 rounded-lg">
                 <MessageSquare className="h-5 w-5 text-white" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">Recent Sessions</h2>
+              <h2 className="text-lg font-bold text-gray-900">
+                Recent Sessions
+              </h2>
             </div>
             {totalSessions > 0 && (
               <p className="text-sm text-gray-600 ml-11">
-                Showing {Math.min(5, totalSessions)} of {totalSessions} total sessions
+                Showing {Math.min(5, totalSessions)} of {totalSessions} total
+                sessions
               </p>
             )}
           </div>
@@ -273,8 +305,12 @@ export default function RecentSessions({
             <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 rounded-full mb-4">
               <AlertCircle className="h-7 w-7 text-red-600" />
             </div>
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">Failed to load sessions</h3>
-            <p className="text-xs text-gray-500 mb-4">Something went wrong while fetching your sessions</p>
+            <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              Failed to load sessions
+            </h3>
+            <p className="text-xs text-gray-500 mb-4">
+              Something went wrong while fetching your sessions
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -306,30 +342,33 @@ export default function RecentSessions({
           </div>
         )}
 
-        {!historyLoading && !historyError && meetingHistory?.meetings.length === 0 && (
-          <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
-              <MessageSquare className="h-8 w-8 text-gray-400" />
+        {!historyLoading &&
+          !historyError &&
+          meetingHistory?.meetings.length === 0 && (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+                <MessageSquare className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-base font-semibold text-gray-900 mb-2">
+                No sessions yet
+              </h3>
+              <p className="text-sm text-gray-500 mb-6">
+                Start your first coaching session to see it here
+              </p>
+              <Button
+                onClick={() => router.push('/')}
+                className="bg-gray-900 hover:bg-gray-800 text-white"
+              >
+                Start Recording
+                <Video className="h-4 w-4 ml-2" />
+              </Button>
             </div>
-            <h3 className="text-base font-semibold text-gray-900 mb-2">No sessions yet</h3>
-            <p className="text-sm text-gray-500 mb-6">Start your first coaching session to see it here</p>
-            <Button
-              onClick={() => router.push('/')}
-              className="bg-gray-900 hover:bg-gray-800 text-white"
-            >
-              Start Recording
-              <Video className="h-4 w-4 ml-2" />
-            </Button>
-          </div>
-        )}
+          )}
 
         {meetingHistory && meetingHistory.meetings.length > 0 && (
           <div className="space-y-3">
             {meetingHistory.meetings.map((session: any) => (
-              <SessionCardModern 
-                key={session.id} 
-                session={session}
-              />
+              <SessionCardModern key={session.id} session={session} />
             ))}
 
             {/* Stats Summary */}
@@ -338,19 +377,31 @@ export default function RecentSessions({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <TrendingUp className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-700">Session Activity</span>
+                    <span className="text-sm font-medium text-gray-700">
+                      Session Activity
+                    </span>
                   </div>
                   <div className="flex items-center gap-4 text-xs text-gray-500">
                     <div className="flex items-center gap-1">
                       <span className="font-semibold text-gray-900">
-                        {meetingHistory.meetings.filter((s: any) => s.status === 'completed').length}
+                        {
+                          meetingHistory.meetings.filter(
+                            (s: any) => s.status === 'completed',
+                          ).length
+                        }
                       </span>
                       <span>completed</span>
                     </div>
                     <span className="text-gray-300">•</span>
                     <div className="flex items-center gap-1">
                       <span className="font-semibold text-gray-900">
-                        {meetingHistory.meetings.filter((s: any) => s.status === 'in_progress' || s.status === 'recording').length}
+                        {
+                          meetingHistory.meetings.filter(
+                            (s: any) =>
+                              s.status === 'in_progress' ||
+                              s.status === 'recording',
+                          ).length
+                        }
                       </span>
                       <span>active</span>
                     </div>

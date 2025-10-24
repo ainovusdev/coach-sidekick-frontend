@@ -167,7 +167,7 @@ export function AuthForm() {
                 Welcome Back
               </CardTitle>
               <CardDescription className="text-center text-gray-600">
-                Sign in to continue to your coaching dashboard
+                Sign in to your Coach Sidekick account
               </CardDescription>
             </CardHeader>
             <CardContent>

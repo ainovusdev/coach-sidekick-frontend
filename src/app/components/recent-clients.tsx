@@ -58,6 +58,8 @@ export default function RecentClients({
                 notes={client.notes}
                 onClick={() => router.push(`/clients/${client.id}`)}
                 className="bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300"
+                isMyClient={client.is_my_client} // NEW
+                coachName={client.coach_name} // NEW
               />
             ))}
           </div>

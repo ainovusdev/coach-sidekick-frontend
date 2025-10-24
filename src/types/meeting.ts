@@ -21,12 +21,15 @@ export interface Client {
   coach_id: string
   name: string
   notes?: string
+  meta_performance_vision?: string
   email?: string
   created_at: string
   updated_at: string
   user_id?: string
   invitation_status?: 'not_invited' | 'invited' | 'accepted'
   invitation_sent_at?: string
+  is_my_client?: boolean
+  coach_name?: string
 }
 
 export interface ClientSessionStats {
@@ -46,6 +49,7 @@ export interface CoachingSession {
   user_id: string
   bot_id: string
   meeting_url: string
+  title?: string | null
   status: string
   client_id?: string
   client?: Client

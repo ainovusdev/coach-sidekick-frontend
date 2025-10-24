@@ -5,6 +5,7 @@ import { ClientProfileCard } from '@/components/meeting/client-profile-card'
 import { SimilarSessionsCard } from '@/components/meeting/similar-sessions-card'
 import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
+import { QuickNote } from '@/components/session-notes/quick-note' // NEW: Import QuickNote
 import { TranscriptEntry } from '@/types/meeting'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
@@ -14,11 +15,13 @@ import { MeetingContextService } from '@/services/meeting-context-service'
 interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
   botId: string
+  sessionId?: string // NEW: Add session ID for notes
 }
 
 export default function MeetingPanels({
   transcript,
   botId,
+  sessionId, // NEW
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
@@ -115,9 +118,14 @@ export default function MeetingPanels({
         />
       </div>
 
-      {/* Right Column - Context (3/10) */}
+      {/* Right Column - Quick Notes & Context (3/10) */}
       <div className="lg:col-span-3 h-full overflow-hidden">
         <div className="h-full overflow-y-auto space-y-3 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          {/* NEW: Quick Notes - Always show at top */}
+          {sessionId && (
+            <QuickNote sessionId={sessionId} noteType="coach_private" />
+          )}
+
           {contextLoading ? (
             <>
               {/* Loading states for context cards */}

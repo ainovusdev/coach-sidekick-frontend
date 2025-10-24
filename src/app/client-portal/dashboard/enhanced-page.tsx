@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,7 +30,6 @@ import {
 import { format } from 'date-fns'
 
 export default function EnhancedClientDashboard() {
-  const router = useRouter()
   const [dashboardData, setDashboardData] = useState<DashboardSummary | null>(
     null,
   )
@@ -49,9 +47,8 @@ export default function EnhancedClientDashboard() {
   }, [])
 
   const checkAuth = () => {
-    const token = localStorage.getItem('client_auth_token')
+    const token = localStorage.getItem('auth_token')
     if (!token) {
-      router.push('/client-portal/auth/login')
     }
   }
 
@@ -62,7 +59,6 @@ export default function EnhancedClientDashboard() {
     } catch (err: any) {
       console.error('Dashboard fetch error:', err)
       if (err.message.includes('authentication')) {
-        router.push('/client-portal/auth/login')
       } else {
         setError(err.message || 'Failed to load dashboard')
       }
@@ -248,7 +244,9 @@ export default function EnhancedClientDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Outcomes
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -283,7 +281,7 @@ export default function EnhancedClientDashboard() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
+          <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -386,7 +384,7 @@ export default function EnhancedClientDashboard() {
           <Timeline items={timelineItems} />
         </TabsContent>
 
-        <TabsContent value="goals">
+        <TabsContent value="outcomes">
           <GoalsWidget goals={dashboardData.active_goals} />
         </TabsContent>
       </Tabs>

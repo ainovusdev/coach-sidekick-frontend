@@ -34,9 +34,17 @@ export default function MeetingPage() {
     try {
       const success = await stopBot(bot.id, sessionId || undefined)
       if (success) {
-        showToast('Bot stopped successfully! Redirecting...', 'success')
+        showToast(
+          'Bot stopped successfully! Redirecting to session details...',
+          'success',
+        )
         setTimeout(() => {
-          router.push('/')
+          // Navigate to session details page if sessionId exists, otherwise go to dashboard
+          if (sessionId) {
+            router.push(`/sessions/${sessionId}`)
+          } else {
+            router.push('/')
+          }
         }, 2000)
       } else {
         showToast('Failed to stop bot. Please try again.', 'error')
@@ -76,7 +84,11 @@ export default function MeetingPage() {
             <MeetingStatePanel state={meetingState} compact={true} />
           </div>
           <div className="flex-1 overflow-hidden">
-            <MeetingPanels transcript={transcript} botId={botId} />
+            <MeetingPanels
+              transcript={transcript}
+              botId={botId}
+              sessionId={sessionId || undefined}
+            />
           </div>
         </div>
       </div>

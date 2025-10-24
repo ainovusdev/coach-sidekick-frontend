@@ -1,6 +1,13 @@
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Calendar, ExternalLink, Activity, Trash2 } from 'lucide-react'
+import { SessionTitleEditor } from '@/components/sessions/session-title-editor'
+import {
+  ArrowLeft,
+  Calendar,
+  ExternalLink,
+  Activity,
+  Trash2,
+} from 'lucide-react'
 import { format } from 'date-fns'
 import { getStatusColor } from '../utils/session-utils'
 
@@ -11,12 +18,21 @@ interface SessionHeaderProps {
     created_at: string
     meeting_url: string | null
     session_type?: string
+    title?: string | null
   }
   onBack: () => void
   onDelete?: () => void
+  onTitleUpdate?: (newTitle: string) => void
 }
 
-export default function SessionHeader({ session, onBack, onDelete }: SessionHeaderProps) {
+export default function SessionHeader({
+  session,
+  onBack,
+  onDelete,
+  onTitleUpdate,
+}: SessionHeaderProps) {
+  const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
+
   return (
     <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
@@ -32,9 +48,12 @@ export default function SessionHeader({ session, onBack, onDelete }: SessionHead
           </Button>
           <div className="flex-1 w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Session Details
-              </h1>
+              <SessionTitleEditor
+                sessionId={session.id}
+                initialTitle={session.title}
+                defaultTitle={defaultTitle}
+                onTitleUpdated={onTitleUpdate}
+              />
               <Badge
                 className={`${getStatusColor(
                   session.status,

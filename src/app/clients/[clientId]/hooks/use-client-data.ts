@@ -5,6 +5,8 @@ import { SessionService } from '@/services/session-service'
 
 interface ClientWithStats extends Client {
   client_session_stats?: ClientSessionStats[]
+  is_my_client?: boolean
+  coach_name?: string
 }
 
 interface ClientSession {
@@ -31,7 +33,10 @@ interface UseClientDataReturn {
   refetch: () => Promise<void>
 }
 
-export function useClientData(clientId: string | null | undefined, userId: string | undefined): UseClientDataReturn {
+export function useClientData(
+  clientId: string | null | undefined,
+  userId: string | undefined,
+): UseClientDataReturn {
   const [client, setClient] = useState<ClientWithStats | null>(null)
   const [sessions, setSessions] = useState<ClientSession[]>([])
   const [loading, setLoading] = useState(true)
@@ -39,7 +44,7 @@ export function useClientData(clientId: string | null | undefined, userId: strin
 
   const fetchClientData = useCallback(async () => {
     if (!clientId || !userId) return
-    
+
     setLoading(true)
     setError(null)
 
@@ -50,7 +55,7 @@ export function useClientData(clientId: string | null | undefined, userId: strin
 
       // Fetch client sessions
       const sessionsData = await SessionService.getClientSessions(clientId, {
-        per_page: 10
+        per_page: 10,
       })
       setSessions(sessionsData.sessions || [])
     } catch (err) {
@@ -76,6 +81,6 @@ export function useClientData(clientId: string | null | undefined, userId: strin
     sessions,
     loading,
     error,
-    refetch: fetchClientData
+    refetch: fetchClientData,
   }
 }

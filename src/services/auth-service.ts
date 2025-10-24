@@ -11,6 +11,7 @@ export interface TokenResponse {
   full_name: string | null
   roles?: string[]
   client_access?: string[]
+  client_id?: string // User's own client profile ID (if they have 'client' role)
 }
 
 export interface LoginCredentials {
@@ -30,6 +31,7 @@ interface JWTPayload {
   exp: number
   roles?: string[]
   client_access?: string[]
+  client_id?: string // User's own client profile ID
 }
 
 class AuthService {
@@ -37,11 +39,15 @@ class AuthService {
   private token: string | null = null
   private userRoles: string[] = []
   private clientAccess: string[] = []
+  private ownClientId: string | null = null // NEW: User's own client profile ID
 
   private constructor() {
     // Initialize from localStorage if available
     if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('auth_token')
+      // NEW: Support both tokens during migration, prioritize auth_token
+      this.token =
+        localStorage.getItem('auth_token') ||
+        localStorage.getItem('client_auth_token')
 
       // If we have a token, extract roles from it rather than localStorage
       // This ensures we always have the most up-to-date roles
@@ -51,13 +57,24 @@ class AuthService {
           const decoded = JSON.parse(atob(payload)) as JWTPayload
           this.userRoles = decoded.roles || []
           this.clientAccess = decoded.client_access || []
+          this.ownClientId = decoded.client_id || null // NEW: Extract client_id
 
-          // Also update localStorage to keep it in sync
+          // Migrate to unified storage
+          localStorage.setItem('auth_token', this.token)
           localStorage.setItem('user_roles', JSON.stringify(this.userRoles))
           localStorage.setItem(
             'client_access',
             JSON.stringify(this.clientAccess),
           )
+
+          // NEW: Store client_id if present
+          if (this.ownClientId) {
+            localStorage.setItem('user_client_id', this.ownClientId)
+          }
+
+          // NEW: Clean up legacy client token storage
+          localStorage.removeItem('client_auth_token')
+          localStorage.removeItem('client_user_data')
         } catch (error) {
           console.error('Failed to decode token:', error)
           // Fall back to localStorage
@@ -83,6 +100,7 @@ class AuthService {
       } else {
         this.userRoles = []
         this.clientAccess = []
+        this.ownClientId = null
       }
 
       this.setupAxiosInterceptors()
@@ -141,13 +159,24 @@ class AuthService {
     this.token = authData.access_token
     this.userRoles = authData.roles || []
     this.clientAccess = authData.client_access || []
+    this.ownClientId = authData.client_id || null // NEW
 
     if (typeof window !== 'undefined') {
+      // Write to unified storage
       localStorage.setItem('auth_token', authData.access_token)
       localStorage.setItem('user_roles', JSON.stringify(this.userRoles))
       localStorage.setItem('client_access', JSON.stringify(this.clientAccess))
       localStorage.setItem('user_email', authData.email || '')
       localStorage.setItem('user_full_name', authData.full_name || '')
+
+      // NEW: Store client_id
+      if (this.ownClientId) {
+        localStorage.setItem('user_client_id', this.ownClientId)
+      }
+
+      // NEW: Clean up legacy storage
+      localStorage.removeItem('client_auth_token')
+      localStorage.removeItem('client_user_data')
     }
   }
 
@@ -155,13 +184,20 @@ class AuthService {
     this.token = null
     this.userRoles = []
     this.clientAccess = []
+    this.ownClientId = null // NEW
 
     if (typeof window !== 'undefined') {
+      // Clear all auth-related storage
       localStorage.removeItem('auth_token')
       localStorage.removeItem('user_roles')
       localStorage.removeItem('client_access')
       localStorage.removeItem('user_email')
       localStorage.removeItem('user_full_name')
+      localStorage.removeItem('user_client_id') // NEW
+
+      // Also clear legacy keys
+      localStorage.removeItem('client_auth_token')
+      localStorage.removeItem('client_user_data')
     }
   }
 
@@ -264,6 +300,11 @@ class AuthService {
     return this.hasRole('viewer')
   }
 
+  // NEW: Check if user has client role
+  isClient(): boolean {
+    return this.hasRole('client')
+  }
+
   // Client access methods
   getClientAccess(): string[] {
     return this.clientAccess
@@ -273,6 +314,17 @@ class AuthService {
     // Admins have access to all clients
     if (this.isAdmin()) return true
     return this.clientAccess.includes(clientId)
+  }
+
+  // NEW: Get user's own client profile ID
+  getOwnClientId(): string | null {
+    if (this.ownClientId) return this.ownClientId
+
+    // Fallback to localStorage
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('user_client_id')
+    }
+    return null
   }
 
   // Password reset methods

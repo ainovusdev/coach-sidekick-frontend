@@ -53,6 +53,8 @@ import {
   Mail,
   Calendar,
   AlertCircle,
+  RotateCcw, // NEW: Restore icon
+  Archive, // NEW: Deleted users icon
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 
@@ -61,10 +63,12 @@ export default function UsersPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRole, setSelectedRole] = useState<string>('all')
+  const [showDeleted, setShowDeleted] = useState(false) // NEW: Toggle for deleted users
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false) // NEW: Restore dialog
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [availableRoles, setAvailableRoles] = useState<string[]>([])
   const { toast } = useToast()
@@ -83,12 +87,17 @@ export default function UsersPage() {
     fetchAvailableRoles()
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fetchUsers = async (search?: string, roleFilter?: string) => {
+  const fetchUsers = async (
+    search?: string,
+    roleFilter?: string,
+    includeDeleted?: boolean,
+  ) => {
     try {
       setLoading(true)
       const params: any = { limit: 1000 }
       if (search) params.search = search
       if (roleFilter && roleFilter !== 'all') params.role_filter = roleFilter
+      if (includeDeleted) params.include_deleted = true // NEW: Include deleted users
 
       const data = await adminService.getUsers(params)
       setUsers(data)
@@ -115,12 +124,18 @@ export default function UsersPage() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-    fetchUsers(query, selectedRole)
+    fetchUsers(query, selectedRole, showDeleted)
   }
 
   const handleRoleFilter = (role: string) => {
     setSelectedRole(role)
-    fetchUsers(searchQuery, role)
+    fetchUsers(searchQuery, role, showDeleted)
+  }
+
+  // NEW: Handle toggle for showing deleted users
+  const handleToggleDeleted = (checked: boolean) => {
+    setShowDeleted(checked)
+    fetchUsers(searchQuery, selectedRole, checked)
   }
 
   const handleCreateUser = async () => {
@@ -208,7 +223,7 @@ export default function UsersPage() {
       })
       setIsDeleteDialogOpen(false)
       setSelectedUser(null)
-      fetchUsers()
+      fetchUsers(searchQuery, selectedRole, showDeleted)
     } catch (error: any) {
       console.log(error)
 
@@ -218,6 +233,36 @@ export default function UsersPage() {
         variant: 'destructive',
       })
     }
+  }
+
+  // NEW: Handle restore user
+  const handleRestoreUser = async () => {
+    if (!selectedUser) return
+
+    try {
+      await adminService.restoreUser(selectedUser.id)
+      toast({
+        title: 'Success',
+        description: 'User restored successfully',
+      })
+      setIsRestoreDialogOpen(false)
+      setSelectedUser(null)
+      fetchUsers(searchQuery, selectedRole, showDeleted)
+    } catch (error: any) {
+      console.log(error)
+
+      toast({
+        title: 'Error',
+        description: 'Failed to restore user',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  // NEW: Open restore dialog
+  const openRestoreDialog = (user: User) => {
+    setSelectedUser(user)
+    setIsRestoreDialogOpen(true)
   }
 
   const openEditDialog = (user: User) => {
@@ -290,9 +335,10 @@ export default function UsersPage() {
 
   // Calculate statistics
   const stats = {
-    total: users.length,
-    active: users.filter(u => u.is_active).length,
-    inactive: users.filter(u => !u.is_active).length,
+    total: users.filter(u => !u.deleted_at).length, // NEW: Exclude deleted from total
+    active: users.filter(u => u.is_active && !u.deleted_at).length,
+    inactive: users.filter(u => !u.is_active && !u.deleted_at).length,
+    deleted: users.filter(u => u.deleted_at).length, // NEW: Count deleted users
     admins: users.filter(
       u => u.roles.includes('admin') || u.roles.includes('super_admin'),
     ).length,
@@ -325,7 +371,7 @@ export default function UsersPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
@@ -366,6 +412,21 @@ export default function UsersPage() {
             <CardContent>
               <div className="text-2xl font-bold text-gray-400">
                 {stats.inactive}
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  Deleted
+                </CardTitle>
+                <Archive className="h-4 w-4 text-red-400" />
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {stats.deleted}
               </div>
             </CardContent>
           </Card>
@@ -442,6 +503,17 @@ export default function UsersPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
+            {/* NEW: Toggle for showing deleted users */}
+            <div className="flex items-center gap-2">
+              <Label htmlFor="show-deleted" className="text-sm text-gray-600">
+                Show Deleted
+              </Label>
+              <Switch
+                id="show-deleted"
+                checked={showDeleted}
+                onCheckedChange={handleToggleDeleted}
+              />
+            </div>
           </div>
         </CardHeader>
       </Card>
@@ -484,10 +556,15 @@ export default function UsersPage() {
               </TableHeader>
               <TableBody>
                 {users.map(user => (
-                  <TableRow key={user.id} className="hover:bg-gray-50">
+                  <TableRow
+                    key={user.id}
+                    className={`hover:bg-gray-50 ${user.deleted_at ? 'bg-red-50 opacity-60' : ''}`}
+                  >
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="h-10 w-10">
+                        <Avatar
+                          className={`h-10 w-10 ${user.deleted_at ? 'opacity-50' : ''}`}
+                        >
                           <AvatarImage
                             src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`}
                           />
@@ -496,13 +573,28 @@ export default function UsersPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="font-medium text-gray-900">
-                            {user.full_name || user.email}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p
+                              className={`font-medium ${user.deleted_at ? 'text-gray-500 line-through' : 'text-gray-900'}`}
+                            >
+                              {user.full_name || user.email}
+                            </p>
+                            {user.deleted_at && (
+                              <Badge variant="destructive" className="text-xs">
+                                Deleted
+                              </Badge>
+                            )}
+                          </div>
                           {user.full_name && (
                             <p className="text-sm text-gray-500 flex items-center gap-1">
                               <Mail className="h-3 w-3" />
                               {user.email}
+                            </p>
+                          )}
+                          {user.deleted_at && (
+                            <p className="text-xs text-red-600 mt-1">
+                              Deleted{' '}
+                              {new Date(user.deleted_at).toLocaleDateString()}
                             </p>
                           )}
                         </div>
@@ -576,36 +668,52 @@ export default function UsersPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem
-                            onClick={() => {
-                              openEditDialog(user)
-                            }}
-                          >
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit User
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => {
-                              openRoleDialog(user)
-                            }}
-                          >
-                            <Shield className="h-4 w-4 mr-2" />
-                            Manage Roles
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            <LockKeyhole className="h-4 w-4 mr-2" />
-                            Client Access
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            onClick={() => {
-                              openDeleteDialog(user)
-                            }}
-                            className="text-red-600 focus:text-red-600"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete User
-                          </DropdownMenuItem>
+                          {!user.deleted_at ? (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  openEditDialog(user)
+                                }}
+                              >
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit User
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  openRoleDialog(user)
+                                }}
+                              >
+                                <Shield className="h-4 w-4 mr-2" />
+                                Manage Roles
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <LockKeyhole className="h-4 w-4 mr-2" />
+                                Client Access
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  openDeleteDialog(user)
+                                }}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete User
+                              </DropdownMenuItem>
+                            </>
+                          ) : (
+                            <>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  openRestoreDialog(user)
+                                }}
+                                className="text-green-600 focus:text-green-600"
+                              >
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                Restore User
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
@@ -867,7 +975,13 @@ export default function UsersPage() {
               <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
               <p>Are you sure you want to delete this user?</p>
               <p className="font-semibold">{selectedUser?.email}</p>
-              <p className="text-red-600">This action cannot be undone.</p>
+              <p className="text-amber-600">
+                This will soft delete the user. They will be deactivated and
+                hidden from the user list.
+              </p>
+              <p className="text-sm text-gray-500">
+                You can restore deleted users later from the deleted users view.
+              </p>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -879,6 +993,37 @@ export default function UsersPage() {
             </Button>
             <Button variant="destructive" onClick={handleDeleteUser}>
               Delete User
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* NEW: Restore User Dialog */}
+      <Dialog open={isRestoreDialogOpen} onOpenChange={setIsRestoreDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Restore User</DialogTitle>
+            <DialogDescription className="space-y-2">
+              <RotateCcw className="h-12 w-12 text-green-500 mx-auto" />
+              <p>Are you sure you want to restore this user?</p>
+              <p className="font-semibold">{selectedUser?.email}</p>
+              <p className="text-green-600">
+                This will reactivate the user and restore their access.
+              </p>
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRestoreDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-green-600 hover:bg-green-700"
+              onClick={handleRestoreUser}
+            >
+              Restore User
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,10 +2,23 @@
 
 import React, { useState, useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
-import { Upload, File, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import {
+  Upload,
+  File,
+  X,
+  CheckCircle,
+  AlertCircle,
+  Loader2,
+} from 'lucide-react'
 import { ManualSessionService } from '@/services/manual-session-service'
 import { toast } from '@/hooks/use-toast'
 import { cn } from '@/lib/utils'
@@ -16,7 +29,11 @@ interface MediaUploaderProps {
   className?: string
 }
 
-export function MediaUploader({ sessionId, onUploadComplete, className }: MediaUploaderProps) {
+export function MediaUploader({
+  sessionId,
+  onUploadComplete,
+  className,
+}: MediaUploaderProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -25,10 +42,15 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
 
   const supportedFormats = {
     audio: ['.mp3', '.wav', '.m4a', '.ogg', '.webm'],
-    video: ['.mp4', '.mov', '.avi', '.mkv']
+    video: ['.mp4', '.mov', '.avi', '.mkv'],
+    documents: ['.txt', '.docx', '.pdf'],
   }
 
-  const allFormats = [...supportedFormats.audio, ...supportedFormats.video]
+  const _allFormats = [
+    ...supportedFormats.audio,
+    ...supportedFormats.video,
+    ...supportedFormats.documents,
+  ]
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles.length > 0) {
@@ -40,11 +62,15 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
     onDrop,
     accept: {
       'audio/*': supportedFormats.audio,
-      'video/*': supportedFormats.video
+      'video/*': supportedFormats.video,
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
+        ['.docx'],
+      'application/pdf': ['.pdf'],
+      'text/plain': ['.txt'],
     },
     maxFiles: 1,
-    maxSize: 1024 * 1024 * 1024, // 1GB
-    disabled: uploading
+    maxSize: 1024 * 1024 * 1024, // 1GB for media files (documents validated separately)
+    disabled: uploading,
   })
 
   const handleUpload = async () => {
@@ -57,25 +83,22 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
     try {
       // Upload file
       setUploadProgress(50)
-      await ManualSessionService.uploadMediaFile(
-        sessionId,
-        file
-      )
+      await ManualSessionService.uploadMediaFile(sessionId, file)
 
       setUploadProgress(100)
       setTranscriptionStatus('processing')
-      
+
       // Subscribe to transcription progress
       const unsubscribe = ManualSessionService.subscribeToTranscriptionProgress(
         sessionId,
         (status, progress) => {
           setTranscriptionStatus(status)
           setTranscriptionProgress(progress)
-          
+
           if (status === 'completed') {
             toast({
               title: 'Success',
-              description: 'File transcribed successfully!'
+              description: 'File processed successfully!',
             })
             if (onUploadComplete) {
               onUploadComplete()
@@ -83,22 +106,21 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
           } else if (status === 'failed') {
             toast({
               title: 'Error',
-              description: 'Transcription failed. Please try again.',
-              variant: 'destructive'
+              description: 'Processing failed. Please try again.',
+              variant: 'destructive',
             })
           }
-        }
+        },
       )
 
       // Cleanup subscription on unmount
       return () => unsubscribe()
-      
     } catch (error) {
       console.error('Upload failed:', error)
       toast({
         title: 'Error',
         description: error instanceof Error ? error.message : 'Upload failed',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       setUploading(false)
       setTranscriptionStatus('')
@@ -121,9 +143,10 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
   return (
     <Card className={className}>
       <CardHeader>
-        <CardTitle>Upload Recording</CardTitle>
+        <CardTitle>Upload Session Content</CardTitle>
         <CardDescription>
-          Upload an audio or video file to transcribe
+          Upload an audio/video recording to transcribe, or upload a transcript
+          document
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -131,9 +154,11 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
           <div
             {...getRootProps()}
             className={cn(
-              "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-              isDragActive ? "border-gray-900 bg-gray-50" : "border-gray-300 hover:border-gray-400",
-              uploading && "opacity-50 cursor-not-allowed"
+              'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+              isDragActive
+                ? 'border-gray-900 bg-gray-50'
+                : 'border-gray-300 hover:border-gray-400',
+              uploading && 'opacity-50 cursor-not-allowed',
             )}
           >
             <input {...getInputProps()} />
@@ -145,12 +170,33 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
                 <p className="text-gray-600 mb-2">
                   Drag & drop a file here, or click to select
                 </p>
-                <p className="text-sm text-gray-500">
-                  Supported formats: {allFormats.join(', ')}
-                </p>
-                <p className="text-sm text-gray-500 mt-1">
-                  Maximum file size: 1GB (videos will be compressed)
-                </p>
+                <div className="mt-4 space-y-3">
+                  <div className="text-sm">
+                    <p className="font-semibold text-gray-700 mb-1">
+                      📹 Recordings
+                    </p>
+                    <p className="text-gray-500">
+                      Audio: {supportedFormats.audio.join(', ')}
+                    </p>
+                    <p className="text-gray-500">
+                      Video: {supportedFormats.video.join(', ')}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Max 1GB</p>
+                  </div>
+                  <div className="text-sm">
+                    <p className="font-semibold text-gray-700 mb-1">
+                      📄 Transcripts
+                    </p>
+                    <p className="text-gray-500">
+                      {supportedFormats.documents.join(', ')}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">Max 10MB</p>
+                  </div>
+                  <p className="text-xs text-blue-600 mt-2">
+                    ℹ️ Transcript files are processed instantly without
+                    transcription
+                  </p>
+                </div>
               </>
             )}
           </div>
@@ -162,15 +208,13 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
                 <File className="w-8 h-8 text-gray-700" />
                 <div>
                   <p className="font-medium text-gray-900">{file.name}</p>
-                  <p className="text-sm text-gray-500">{formatFileSize(file.size)}</p>
+                  <p className="text-sm text-gray-500">
+                    {formatFileSize(file.size)}
+                  </p>
                 </div>
               </div>
               {!uploading && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={removeFile}
-                >
+                <Button variant="ghost" size="icon" onClick={removeFile}>
                   <X className="w-4 h-4" />
                 </Button>
               )}
@@ -181,21 +225,25 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">Uploading...</span>
-                  <span className="text-gray-900 font-medium">{uploadProgress}%</span>
+                  <span className="text-gray-900 font-medium">
+                    {uploadProgress}%
+                  </span>
                 </div>
                 <Progress value={uploadProgress} className="h-2" />
               </div>
             )}
 
-            {/* Transcription Progress */}
+            {/* Processing Progress */}
             {transcriptionStatus === 'processing' && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-gray-600 flex items-center">
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Transcribing...
+                    Processing...
                   </span>
-                  <span className="text-gray-900 font-medium">{transcriptionProgress}%</span>
+                  <span className="text-gray-900 font-medium">
+                    {transcriptionProgress}%
+                  </span>
                 </div>
                 <Progress value={transcriptionProgress} className="h-2" />
               </div>
@@ -205,14 +253,14 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
             {transcriptionStatus === 'completed' && (
               <div className="flex items-center space-x-2 text-gray-900">
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-medium">Transcription complete!</span>
+                <span className="font-medium">Processing complete!</span>
               </div>
             )}
 
             {transcriptionStatus === 'failed' && (
               <div className="flex items-center space-x-2 text-gray-900">
                 <AlertCircle className="w-5 h-5" />
-                <span className="font-medium">Transcription failed</span>
+                <span className="font-medium">Processing failed</span>
               </div>
             )}
 
@@ -224,7 +272,7 @@ export function MediaUploader({ sessionId, onUploadComplete, className }: MediaU
                 className="w-full bg-gray-900 hover:bg-gray-800 text-white"
               >
                 <Upload className="w-4 h-4 mr-2" />
-                Upload & Transcribe
+                Upload & Process
               </Button>
             )}
           </div>

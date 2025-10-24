@@ -133,6 +133,20 @@ const ROLE_PERMISSIONS: Record<string, PermissionMatrix> = {
     sensitive_info: { view: false },
     access: { view: false, manage: false },
   },
+  // NEW: Client role permissions
+  client: {
+    user: { view: false, create: false, edit: false, delete: false },
+    clients: { view: false, create: false, edit: false, delete: false },
+    client: { view: true, create: false, edit: true, delete: false }, // Own profile only
+    sessions: { view: true, create: false, edit: false, delete: false }, // Own sessions only
+    transcript: { view: false }, // Clients typically don't see raw transcripts
+    insights: { view: true, generate: false }, // View their own insights
+    persona: { view: true }, // View their own persona
+    analytics: { view: true }, // Their own analytics
+    data: { export: false },
+    sensitive_info: { view: false },
+    access: { view: false, manage: false },
+  },
 }
 
 export function PermissionProvider({
@@ -156,6 +170,9 @@ export function PermissionProvider({
       effectivePermissions = ROLE_PERMISSIONS.coach
     } else if (hasRole('viewer')) {
       effectivePermissions = ROLE_PERMISSIONS.viewer
+    } else if (hasRole('client')) {
+      // NEW
+      effectivePermissions = ROLE_PERMISSIONS.client
     }
 
     return effectivePermissions

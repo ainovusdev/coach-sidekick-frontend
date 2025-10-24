@@ -8,6 +8,7 @@ import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
   AlertCircle,
@@ -17,6 +18,8 @@ import {
   BarChart,
   Sparkles,
   Eye,
+  Target,
+  StickyNote,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -32,13 +35,17 @@ import {
 } from '@/services/analysis-service'
 import { SessionInsightsModern } from '@/components/sessions/session-insights-modern'
 import { SessionService } from '@/services/session-service'
-import { toast } from '@/hooks/use-toast'
+import { CommitmentService } from '@/services/commitment-service'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
+  EnhancedExtractionService,
+  ExtractionResult,
+} from '@/services/enhanced-extraction-service'
+import { DraftCommitmentsReview } from '@/components/commitments/draft-commitments-review'
+import { EnhancedDraftReview } from '@/components/extraction/enhanced-draft-review'
+import { CommitmentForm } from '@/components/commitments/commitment-form'
+import type { Commitment } from '@/types/commitment'
+import { toast } from '@/hooks/use-toast'
+import { NotesList } from '@/components/session-notes'
 
 export default function SessionDetailsPage({
   params,
@@ -62,6 +69,17 @@ export default function SessionDetailsPage({
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
   const [autoTriggered, setAutoTriggered] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
+
+  // Commitments state
+  const [draftCommitments, setDraftCommitments] = useState<Commitment[]>([])
+  const [activeCommitments, setActiveCommitments] = useState<Commitment[]>([])
+  const [extractingCommitments, setExtractingCommitments] = useState(false)
+  const [showCreateCommitment, setShowCreateCommitment] = useState(false)
+
+  // Enhanced extraction state
+  const [extractionResult, setExtractionResult] =
+    useState<ExtractionResult | null>(null)
+  const [useEnhancedExtraction] = useState(true)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -110,6 +128,7 @@ export default function SessionDetailsPage({
       }
     }
     loadAndAutoTriggerAnalysis()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionData?.session?.id, autoTriggered, isViewer])
 
   // Trigger unified analysis with progress
@@ -147,18 +166,166 @@ export default function SessionDetailsPage({
           'Session insights and coaching metrics have been generated successfully.',
       })
     } catch (error) {
+      // ApiClient already shows error toast, just log it
       console.error('Analysis failed:', error)
-      toast({
-        title: 'Analysis Failed',
-        description:
-          error instanceof Error ? error.message : 'Failed to analyze session',
-        variant: 'destructive',
-      })
     } finally {
       setAnalyzing(false)
       setTimeout(() => setAnalysisProgress(0), 1000)
     }
   }
+
+  // Load draft commitments for this session
+  const loadDraftCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    console.log(
+      'Loading draft commitments for session:',
+      sessionData.session.id,
+    )
+    try {
+      const response = await CommitmentService.listCommitments({
+        session_id: sessionData.session.id,
+        status: 'draft',
+        include_drafts: true,
+      })
+      console.log(
+        'Draft commitments loaded:',
+        response.commitments?.length || 0,
+        response.commitments,
+      )
+      setDraftCommitments(response.commitments || [])
+    } catch (error) {
+      console.error('Failed to load draft commitments:', error)
+    }
+  }
+
+  // Load active commitments for this session
+  const loadActiveCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    try {
+      const response = await CommitmentService.listCommitments({
+        session_id: sessionData.session.id,
+        status: 'active',
+      })
+      console.log(
+        'Active commitments loaded:',
+        response.commitments?.length || 0,
+      )
+      setActiveCommitments(response.commitments || [])
+    } catch (error) {
+      console.error('Failed to load active commitments:', error)
+    }
+  }
+
+  // Extract commitments from session transcript (or enhanced extraction)
+  const extractCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    setExtractingCommitments(true)
+    try {
+      if (useEnhancedExtraction) {
+        // Enhanced extraction: goals + targets + commitments
+        const result = await EnhancedExtractionService.extractFromSession(
+          sessionData.session.id,
+        )
+        console.log('Enhanced extraction result:', result)
+        setExtractionResult(result)
+        toast({
+          title: 'Extraction Complete',
+          description: `Found ${result.total_created} items: ${result.draft_goals.length} outcomes, ${result.draft_targets.length} desired wins, ${result.draft_commitments.length} commitments`,
+        })
+      } else {
+        // Old method: commitments only
+        const extracted = await CommitmentService.extractFromSession(
+          sessionData.session.id,
+        )
+        console.log('Extracted commitments:', extracted)
+        toast({
+          title: 'Commitments Extracted',
+          description: `Found ${extracted.length} potential commitments from the session.`,
+        })
+        await loadDraftCommitments()
+      }
+    } catch (error) {
+      // ApiClient already shows error toast, just log it
+      console.error('Failed to extract:', error)
+    } finally {
+      setExtractingCommitments(false)
+    }
+  }
+
+  // Handle bulk confirmation of all extracted entities
+  const handleConfirmAll = async () => {
+    console.log('=== CONFIRM ALL CALLED ===')
+    console.log('extractionResult:', extractionResult)
+    console.log('sessionData:', sessionData?.session)
+
+    if (!extractionResult || !sessionData?.session) {
+      console.log('Early return: missing extraction result or session')
+      return
+    }
+
+    // Get client_id from nested client object
+    const clientId =
+      sessionData.session.client_id || sessionData.session.client?.id
+
+    if (!clientId) {
+      console.log('Early return: missing client_id')
+      toast({
+        title: 'Error',
+        description: 'Session must have a client to confirm extraction',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    console.log('=== PROCEEDING WITH CONFIRMATION ===')
+    console.log('Using client_id:', clientId)
+
+    try {
+      // Use new confirmation endpoint that creates records
+      const confirmRequest = {
+        session_id: sessionData.session.id,
+        client_id: clientId,
+        goals: extractionResult.draft_goals,
+        targets: extractionResult.draft_targets,
+        commitments: extractionResult.draft_commitments,
+        current_sprint_id: extractionResult.current_sprint_id,
+      }
+
+      console.log(
+        'Sending confirmation request:',
+        JSON.stringify(confirmRequest, null, 2),
+      )
+
+      const result =
+        await EnhancedExtractionService.confirmExtraction(confirmRequest)
+
+      console.log('Confirmation result:', result)
+
+      toast({
+        title: 'Extraction Confirmed',
+        description: `Created ${extractionResult.total_created} items successfully.`,
+      })
+
+      // Clear extraction result and reload both draft and active commitments
+      setExtractionResult(null)
+      await Promise.all([loadDraftCommitments(), loadActiveCommitments()])
+    } catch (error) {
+      console.error('Failed to confirm all:', error)
+      // Error is already shown by ApiClient, just log it
+    }
+  }
+
+  // Load commitments when session loads
+  React.useEffect(() => {
+    if (sessionData?.session?.id && !isViewer) {
+      loadDraftCommitments()
+      loadActiveCommitments()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionData?.session?.id, isViewer])
 
   // Delete session handler
   const handleDeleteSession = async () => {
@@ -174,13 +341,8 @@ export default function SessionDetailsPage({
       // Navigate back to sessions list
       router.push('/sessions')
     } catch (error) {
+      // ApiClient already shows error toast, just log it
       console.error('Failed to delete session:', error)
-      toast({
-        title: 'Delete Failed',
-        description:
-          error instanceof Error ? error.message : 'Failed to delete session',
-        variant: 'destructive',
-      })
     } finally {
       setDeleting(false)
       setShowDeleteDialog(false)
@@ -241,10 +403,7 @@ export default function SessionDetailsPage({
 
   const { session, transcript, meeting_summary } = sessionData
 
-  // Show upload option for any session that needs transcripts:
-  // 1. Session status is 'pending_upload' OR
-  // 2. No transcripts exist and not currently processing
-  // For viewers, check meeting_summary.total_transcript_entries to see if transcripts exist
+  // Show upload option for any session that needs transcripts
   const hasTranscripts = transcript && transcript.length > 0
   const transcriptsExist =
     hasTranscripts ||
@@ -262,27 +421,29 @@ export default function SessionDetailsPage({
           session={session}
           onBack={() => router.back()}
           onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
+          onTitleUpdate={newTitle => {
+            if (sessionData?.session) {
+              sessionData.session.title = newTitle
+            }
+          }}
         />
 
         {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
-          {/* Show uploader prominently for manual sessions that need upload */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          {/* Upload Required State */}
           {needsUpload && !isViewer ? (
             <div className="max-w-2xl mx-auto">
               <MediaUploader
                 sessionId={session.id}
                 onUploadComplete={() => {
-                  // Refresh session data after upload
                   window.location.reload()
                 }}
               />
             </div>
           ) : needsUpload && isViewer ? (
-            <Card className="max-w-2xl mx-auto bg-white rounded-xl shadow-sm border border-gray-100">
+            <Card className="max-w-2xl mx-auto">
               <CardContent className="p-8 text-center">
-                <div className="text-gray-400 mb-4">
-                  <FileText className="h-12 w-12 mx-auto" />
-                </div>
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Upload Required
                 </h3>
@@ -292,333 +453,439 @@ export default function SessionDetailsPage({
                 </p>
               </CardContent>
             </Card>
+          ) : session.transcription_status === 'processing' ? (
+            /* Processing State */
+            <Card className="max-w-2xl mx-auto">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="w-12 h-12 text-gray-600 animate-spin mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Processing Recording...
+                </h3>
+                <p className="text-gray-600 text-center">
+                  Your file is being transcribed. This may take a few minutes.
+                </p>
+                <Progress
+                  value={session.transcription_progress || 0}
+                  className="w-full max-w-xs mt-4"
+                />
+                <p className="text-sm text-gray-500 mt-2">
+                  {session.transcription_progress || 0}% complete
+                </p>
+              </CardContent>
+            </Card>
           ) : (
-            <div className="space-y-8">
-              {/* Transcript Section with Accordion */}
-              {session.transcription_status === 'processing' ? (
-                <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <Loader2 className="w-12 h-12 text-gray-600 animate-spin mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Processing Recording...
-                    </h3>
-                    <p className="text-gray-600 text-center">
-                      Your file is being transcribed. This may take a few
-                      minutes.
-                    </p>
-                    <Progress
-                      value={session.transcription_progress || 0}
-                      className="w-full max-w-xs mt-4"
-                    />
-                    <p className="text-sm text-gray-500 mt-2">
-                      {session.transcription_progress || 0}% complete
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : transcript && transcript.length > 0 && !isViewer ? (
-                <Accordion type="single" collapsible className="w-full">
-                  <AccordionItem
-                    value="transcript"
-                    className="bg-white rounded-xl shadow-sm border border-gray-100"
+            /* Main Tabs */
+            <Tabs defaultValue="analysis" className="space-y-6">
+              <div className="flex items-center justify-between">
+                <TabsList className="bg-gray-100 p-1 rounded-lg">
+                  <TabsTrigger
+                    value="analysis"
+                    className="data-[state=active]:bg-white"
                   >
-                    <AccordionTrigger className="px-6 py-4 hover:no-underline hover:bg-gray-50/50 rounded-t-xl">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <FileText className="h-5 w-5 text-gray-700" />
-                        </div>
-                        <div className="text-left">
-                          <h3 className="text-lg font-semibold text-gray-900">
-                            Session Transcript
-                          </h3>
-                          <p className="text-sm text-gray-500 mt-0.5">
-                            {transcript.length} messages •{' '}
-                            {Math.round(
-                              transcript.reduce(
-                                (acc, t) => acc + (t.text?.length || 0),
-                                0,
-                              ) / 100,
-                            )}{' '}
-                            min read
-                          </p>
-                        </div>
+                    <Brain className="h-4 w-4 mr-2" />
+                    Insights
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="performance"
+                    className="data-[state=active]:bg-white"
+                  >
+                    <BarChart className="h-4 w-4 mr-2" />
+                    Performance
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="transcript"
+                    className="data-[state=active]:bg-white"
+                  >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Transcript
+                  </TabsTrigger>
+                  {!isViewer && (
+                    <>
+                      <TabsTrigger
+                        value="commitments"
+                        className="data-[state=active]:bg-white"
+                      >
+                        <Target className="h-4 w-4 mr-2" />
+                        Commitments
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="notes"
+                        className="data-[state=active]:bg-white"
+                      >
+                        <StickyNote className="h-4 w-4 mr-2" />
+                        Notes
+                      </TabsTrigger>
+                    </>
+                  )}
+                </TabsList>
+
+                {/* Global Actions */}
+                {!isViewer && !analyzing && (
+                  <Button
+                    onClick={triggerAnalysisWithProgress}
+                    disabled={analyzing || !transcriptsExist}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    {analysisData ? 'Regenerate' : 'Generate'} Analysis
+                  </Button>
+                )}
+              </div>
+
+              {/* Analyzing Progress Indicator */}
+              {analyzing && (
+                <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-4">
+                      <Brain className="h-8 w-8 text-white animate-pulse" />
+                      <div className="flex-1">
+                        <p className="text-white font-medium mb-2">
+                          Analyzing session...
+                        </p>
+                        <Progress value={analysisProgress} className="h-2" />
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-6 pb-6">
-                      <div className="border-t border-gray-100 pt-4">
-                        <TranscriptViewer transcript={transcript} />
-                      </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                </Accordion>
-              ) : isViewer && transcriptsExist ? (
-                <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <div className="p-3 bg-gray-100 rounded-full mb-4">
-                      <Eye className="h-8 w-8 text-gray-600" />
+                      <span className="text-white text-sm font-medium">
+                        {analysisProgress}%
+                      </span>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                      Transcript Not Available
-                    </h3>
-                    <p className="text-sm text-gray-600 text-center max-w-md">
-                      Session transcripts are not accessible with viewer
-                      permissions. You can view session insights and coaching
-                      analyses below.
-                    </p>
-                    <Badge
-                      variant="outline"
-                      className="mt-3 bg-blue-50 border-blue-200 text-blue-700"
-                    >
-                      Viewer Access
-                    </Badge>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <FileText className="h-12 w-12 text-gray-300 mb-3" />
-                    <p className="text-gray-500">No transcript available</p>
                   </CardContent>
                 </Card>
               )}
 
-              {/* Analysis Section - Modern Cards Layout */}
-              {transcriptsExist && (
-                <div className="space-y-6">
-                  {/* Analyzing Progress UI */}
-                  {analyzing && (
-                    <Card className="bg-gradient-to-br from-black via-zinc-950 to-black border-zinc-800 overflow-hidden">
-                      <CardContent className="p-8">
-                        <div className="flex flex-col items-center justify-center space-y-6">
-                          {/* Animated Icon */}
-                          <div className="relative">
-                            <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl animate-pulse" />
-                            <div className="relative p-6 bg-gradient-to-br from-zinc-800 to-zinc-900 rounded-full border border-zinc-700">
-                              <Brain className="h-12 w-12 text-white animate-pulse" />
-                            </div>
-                          </div>
-
-                          {/* Progress Text */}
-                          <div className="text-center space-y-2">
-                            <h3 className="text-2xl font-bold text-white">
-                              Generating Analysis
-                            </h3>
-                            <p className="text-zinc-400 max-w-md">
-                              AI is analyzing your session to generate insights,
-                              coaching metrics, and actionable recommendations
-                            </p>
-                          </div>
-
-                          {/* Progress Bar */}
-                          <div className="w-full max-w-md space-y-3">
-                            <div className="relative h-3 bg-zinc-900 rounded-full overflow-hidden border border-zinc-800">
-                              <div
-                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-white via-zinc-200 to-white rounded-full transition-all duration-500 ease-out shadow-lg shadow-white/20"
-                                style={{ width: `${analysisProgress}%` }}
-                              />
-                            </div>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-zinc-500">
-                                Processing transcripts...
-                              </span>
-                              <span className="text-white font-medium">
-                                {analysisProgress}%
-                              </span>
-                            </div>
-                          </div>
-
-                          {/* Status Steps */}
-                          <div className="flex gap-6 text-xs text-zinc-500">
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`h-2 w-2 rounded-full ${analysisProgress > 0 ? 'bg-white' : 'bg-zinc-700'}`}
-                              />
-                              <span
-                                className={
-                                  analysisProgress > 0 ? 'text-white' : ''
-                                }
-                              >
-                                Insights
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`h-2 w-2 rounded-full ${analysisProgress > 50 ? 'bg-white' : 'bg-zinc-700'}`}
-                              />
-                              <span
-                                className={
-                                  analysisProgress > 50 ? 'text-white' : ''
-                                }
-                              >
-                                Metrics
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`h-2 w-2 rounded-full ${analysisProgress >= 100 ? 'bg-white' : 'bg-zinc-700'}`}
-                              />
-                              <span
-                                className={
-                                  analysisProgress >= 100 ? 'text-white' : ''
-                                }
-                              >
-                                Complete
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-
-                  {/* Analysis Header with Actions - Only show for non-viewers if no analysis */}
-                  {!analysisData && !isViewer && !analyzing && (
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-gradient-to-r from-gray-50 to-white rounded-xl border border-gray-200">
-                      <div className="flex items-center gap-3">
-                        <div className="p-3 bg-gray-100 rounded-xl">
-                          <Brain className="h-6 w-6 text-gray-700" />
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-bold text-gray-900">
-                            Ready for Analysis
-                          </h2>
-                          <p className="text-sm text-gray-500">
-                            Generate AI-powered insights from this session
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex gap-3">
+              {/* Insights Tab */}
+              <TabsContent value="analysis" className="space-y-6">
+                {loadingAnalysis ? (
+                  <Card>
+                    <CardContent className="py-12 flex items-center justify-center">
+                      <Loader2 className="h-10 w-10 text-gray-600 animate-spin" />
+                    </CardContent>
+                  </Card>
+                ) : analysisData?.insights ? (
+                  <SessionInsightsModern insights={analysisData.insights} />
+                ) : (
+                  <Card className="border-dashed border-2">
+                    <CardContent className="py-16 text-center">
+                      <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        No Insights Yet
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                        {isViewer
+                          ? 'No insights have been generated for this session yet.'
+                          : 'Generate AI-powered session insights'}
+                      </p>
+                      {!isViewer && (
                         <Button
                           onClick={triggerAnalysisWithProgress}
                           disabled={analyzing}
-                          className="bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
+                          className="bg-gray-900 hover:bg-gray-800"
                         >
                           <Sparkles className="h-4 w-4 mr-2" />
-                          Generate Insights
+                          Generate Analysis
                         </Button>
-                      </div>
-                    </div>
-                  )}
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
 
-                  {/* Loading State */}
-                  {loadingAnalysis && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12">
-                      <div className="flex flex-col items-center justify-center">
-                        <Loader2 className="h-10 w-10 text-gray-600 animate-spin mb-4" />
-                        <p className="text-gray-600">Loading analysis...</p>
+              {/* Performance/Coaching Metrics Tab */}
+              <TabsContent value="performance" className="space-y-6">
+                {loadingAnalysis ? (
+                  <Card>
+                    <CardContent className="py-12 flex items-center justify-center">
+                      <Loader2 className="h-10 w-10 text-gray-600 animate-spin" />
+                    </CardContent>
+                  </Card>
+                ) : analysisData?.coaching ? (
+                  <Card className="overflow-hidden">
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <BarChart className="h-5 w-5 text-gray-700" />
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Coaching Performance Metrics
+                        </h3>
                       </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        GO LIVE methodology evaluation and coaching quality
+                        scores
+                      </p>
                     </div>
-                  )}
-
-                  {/* Session Insights - Modern Design */}
-                  {analysisData?.insights && !loadingAnalysis && (
-                    <div className="space-y-4">
-                      {/* Regenerate Button - Hide for viewers */}
+                    <div className="p-6">
+                      <FullCoachingAnalysis
+                        analysis={{
+                          ...analysisData.coaching,
+                          session_id: analysisData.session_id,
+                          timestamp: analysisData.timestamp,
+                        }}
+                      />
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="border-dashed border-2">
+                    <CardContent className="py-16 text-center">
+                      <BarChart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        No Performance Data Yet
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                        {isViewer
+                          ? 'No coaching metrics have been generated for this session yet.'
+                          : 'Generate coaching performance metrics and GO LIVE scores'}
+                      </p>
                       {!isViewer && (
-                        <div className="flex justify-end">
+                        <Button
+                          onClick={triggerAnalysisWithProgress}
+                          disabled={analyzing}
+                          className="bg-gray-900 hover:bg-gray-800"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate Analysis
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Transcript Tab */}
+              <TabsContent value="transcript">
+                {transcript && transcript.length > 0 && !isViewer ? (
+                  <Card>
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-5 w-5 text-gray-700" />
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Session Transcript
+                        </h3>
+                        <Badge variant="secondary" className="ml-auto">
+                          {transcript.length} messages
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="p-6">
+                      <TranscriptViewer transcript={transcript} />
+                    </div>
+                  </Card>
+                ) : isViewer && transcriptsExist ? (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <Eye className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                        Transcript Not Available
+                      </h3>
+                      <p className="text-gray-600">
+                        Transcripts are not accessible with viewer permissions.
+                      </p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="py-12 text-center">
+                      <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                      <p className="text-gray-500">No transcript available</p>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Commitments Tab */}
+              {!isViewer && (
+                <TabsContent value="commitments">
+                  <Card>
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Target className="h-5 w-5 text-gray-700" />
+                          <h3 className="text-lg font-semibold text-gray-900">
+                            Commitments
+                          </h3>
+                        </div>
+                        <div className="flex gap-2">
                           <Button
-                            size="sm"
+                            onClick={extractCommitments}
+                            disabled={extractingCommitments || !analysisData}
                             variant="outline"
-                            onClick={triggerAnalysisWithProgress}
-                            disabled={analyzing}
-                            className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                            size="sm"
                           >
-                            {analyzing ? (
+                            {extractingCommitments ? (
                               <>
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Regenerating...
+                                Extracting...
                               </>
                             ) : (
                               <>
                                 <Sparkles className="h-4 w-4 mr-2" />
-                                Regenerate Analysis
+                                Extract from AI
                               </>
                             )}
                           </Button>
-                        </div>
-                      )}
-                      <SessionInsightsModern insights={analysisData.insights} />
-                    </div>
-                  )}
-
-                  {/* Coaching Analysis */}
-                  {analysisData?.coaching && !loadingAnalysis && (
-                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <BarChart className="h-5 w-5 text-gray-700" />
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Coaching Metrics
-                            </h3>
-                          </div>
-                          {!isViewer && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={triggerAnalysisWithProgress}
-                              disabled={analyzing}
-                              className="text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                            >
-                              Regenerate
-                            </Button>
-                          )}
+                          <Button
+                            onClick={() => setShowCreateCommitment(true)}
+                            size="sm"
+                          >
+                            + Create
+                          </Button>
                         </div>
                       </div>
-                      <div className="p-6">
-                        <FullCoachingAnalysis
-                          analysis={{
-                            ...analysisData.coaching,
-                            session_id: analysisData.session_id,
-                            timestamp: analysisData.timestamp,
+                    </div>
+                    <div className="p-6 space-y-6">
+                      {/* Extraction Review */}
+                      {extractionResult && (
+                        <EnhancedDraftReview
+                          draftGoals={extractionResult.draft_goals}
+                          draftTargets={extractionResult.draft_targets}
+                          draftCommitments={extractionResult.draft_commitments}
+                          currentSprintId={extractionResult.current_sprint_id}
+                          onConfirmAll={handleConfirmAll}
+                          onRefresh={() => {
+                            setExtractionResult(null)
+                            loadDraftCommitments()
+                            loadActiveCommitments()
                           }}
                         />
-                      </div>
-                    </div>
-                  )}
+                      )}
 
-                  {/* Empty State */}
-                  {!analysisData && !loadingAnalysis && (
-                    <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200 border-dashed p-12">
-                      <div className="text-center">
-                        <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                          No Analysis Yet
-                        </h3>
-                        <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                          {isViewer
-                            ? 'No insights have been generated for this session yet.'
-                            : 'Generate AI-powered insights and coaching metrics to better understand this session'}
-                        </p>
-                        {!isViewer && (
-                          <div className="flex gap-3 justify-center">
-                            <Button
-                              onClick={triggerAnalysisWithProgress}
-                              disabled={analyzing}
-                              className="bg-gray-900 hover:bg-gray-800 text-white"
-                            >
-                              {analyzing ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Analyzing...
-                                </>
-                              ) : (
-                                <>
-                                  <Sparkles className="h-4 w-4 mr-2" />
-                                  Generate Insights
-                                </>
-                              )}
-                            </Button>
+                      {/* Draft Commitments */}
+                      {!extractionResult && draftCommitments.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                            Draft Commitments
+                          </h4>
+                          <DraftCommitmentsReview
+                            sessionId={sessionData.session.id}
+                            drafts={draftCommitments}
+                            loading={false}
+                            onRefresh={() => {
+                              loadDraftCommitments()
+                              loadActiveCommitments()
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Active Commitments from this session */}
+                      {activeCommitments.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>Commitments from this Session</span>
+                            <Badge variant="secondary">
+                              {activeCommitments.length}
+                            </Badge>
+                          </h4>
+                          <div className="space-y-3">
+                            {activeCommitments.map(commitment => (
+                              <Card
+                                key={commitment.id}
+                                className="border-gray-200"
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <h5 className="font-medium text-gray-900 mb-1">
+                                        {commitment.title}
+                                      </h5>
+                                      {commitment.description && (
+                                        <p className="text-sm text-gray-600 mb-2">
+                                          {commitment.description}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <Badge variant="outline">
+                                          {commitment.type}
+                                        </Badge>
+                                        <Badge
+                                          variant="secondary"
+                                          className={
+                                            commitment.priority === 'high'
+                                              ? 'bg-red-100 text-red-700'
+                                              : commitment.priority === 'medium'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                          }
+                                        >
+                                          {commitment.priority}
+                                        </Badge>
+                                        {commitment.target_date && (
+                                          <Badge
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            Due:{' '}
+                                            {new Date(
+                                              commitment.target_date,
+                                            ).toLocaleDateString()}
+                                          </Badge>
+                                        )}
+                                        {commitment.extracted_from_transcript && (
+                                          <Badge
+                                            variant="secondary"
+                                            className="bg-purple-100 text-purple-700"
+                                          >
+                                            <Sparkles className="h-3 w-3 mr-1" />
+                                            AI Extracted
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Empty state */}
+                      {!extractionResult &&
+                        draftCommitments.length === 0 &&
+                        activeCommitments.length === 0 && (
+                          <div className="text-center py-12">
+                            <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-600 mb-2">
+                              No commitments yet
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Extract commitments from AI or create manually
+                            </p>
                           </div>
                         )}
-                      </div>
                     </div>
-                  )}
-                </div>
+                  </Card>
+                </TabsContent>
               )}
-            </div>
+
+              {/* Notes Tab */}
+              {!isViewer && (
+                <TabsContent value="notes">
+                  <NotesList sessionId={sessionData.session.id} />
+                </TabsContent>
+              )}
+            </Tabs>
           )}
         </div>
+
+        {/* Create Commitment Modal */}
+        <CommitmentForm
+          open={showCreateCommitment}
+          onOpenChange={setShowCreateCommitment}
+          onSubmit={async data => {
+            try {
+              await CommitmentService.createCommitment(data)
+              toast({
+                title: 'Commitment Created',
+                description: 'The commitment has been created successfully.',
+              })
+              setShowCreateCommitment(false)
+              loadDraftCommitments()
+            } catch (error) {
+              console.error('Failed to create commitment:', error)
+            }
+          }}
+          clientId={sessionData?.session?.client_id || undefined}
+          sessionId={sessionData?.session?.id}
+        />
 
         {/* Delete Confirmation Dialog */}
         <ConfirmationDialog

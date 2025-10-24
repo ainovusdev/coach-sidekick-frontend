@@ -4,6 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
+import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { BarChart3, UserCheck, History, Sparkles, Shield } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
@@ -11,8 +12,11 @@ import { Button } from '@/components/ui/button'
 export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, hasAnyRole } = useAuth()
+  const { isAuthenticated, hasAnyRole, roles } = useAuth() // NEW: Get roles
   const permissions = usePermissions()
+
+  // NEW: Check if user is client-only (no coach/admin/viewer roles)
+  const isClientOnly = roles.length === 1 && roles.includes('client')
 
   const isActivePath = (path: string) => {
     if (path === '/' && pathname === '/') return true
@@ -23,14 +27,37 @@ export default function Navigation() {
   // Filter navigation items based on permissions
   const allNavItems = [
     { path: '/', label: 'Dashboard', icon: BarChart3, permission: null },
-    { path: '/clients', label: 'Clients', icon: UserCheck, permission: { resource: 'clients', action: 'view' } },
-    { path: '/sessions', label: 'Sessions', icon: History, permission: { resource: 'sessions', action: 'view' } },
+    {
+      path: '/clients',
+      label: 'Clients',
+      icon: UserCheck,
+      permission: { resource: 'clients', action: 'view' },
+    },
+    {
+      path: '/sessions',
+      label: 'Sessions',
+      icon: History,
+      permission: { resource: 'sessions', action: 'view' },
+    },
   ]
-  
-  const navItems = allNavItems.filter(item => {
-    if (!item.permission) return true
-    return permissions.hasPermission(item.permission.resource as any, item.permission.action as any)
-  })
+
+  // NEW: Hide coach/admin nav items for client-only users
+  const navItems = isClientOnly
+    ? []
+    : allNavItems.filter(item => {
+        if (!item.permission) return true
+        return permissions.hasPermission(
+          item.permission.resource as any,
+          item.permission.action as any,
+        )
+      })
+
+  // Removed auto-redirect - handled by CoachRoute instead to prevent loops
+
+  // NEW: Don't render navigation for client-only users (they have their own in client portal)
+  if (isClientOnly) {
+    return null
+  }
 
   return (
     <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
@@ -115,11 +142,16 @@ export default function Navigation() {
                   </div>
                 </div>
 
+                {/* NEW: Role Switcher */}
+                <RoleSwitcher />
+
                 {/* Admin Button - Only show for admin and super_admin roles */}
                 {hasAnyRole(['admin', 'super_admin']) && (
                   <Button
                     onClick={() => router.push('/admin/dashboard')}
-                    variant={pathname.startsWith('/admin') ? 'default' : 'outline'}
+                    variant={
+                      pathname.startsWith('/admin') ? 'default' : 'outline'
+                    }
                     size="sm"
                     className="flex items-center gap-2"
                   >
