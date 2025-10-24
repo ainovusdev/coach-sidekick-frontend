@@ -11,12 +11,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  User,
-  FileText,
-  Loader2,
-  X,
-} from 'lucide-react'
+import { User, FileText, Loader2, X } from 'lucide-react'
 
 interface ClientModalProps {
   isOpen: boolean
@@ -92,7 +87,7 @@ export default function ClientModal({
       if (onSuccess) {
         onSuccess()
       }
-      
+
       onClose()
     } catch (error) {
       console.error('Error submitting client form:', error)
@@ -104,7 +99,7 @@ export default function ClientModal({
 
   const handleFieldChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
-    
+
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
@@ -119,8 +114,8 @@ export default function ClientModal({
             {mode === 'create' ? 'Add New Client' : 'Edit Client'}
           </DialogTitle>
           <p className="text-sm text-gray-500 mt-1">
-            {mode === 'create' 
-              ? 'Create a new client profile to track coaching sessions.' 
+            {mode === 'create'
+              ? 'Create a new client profile to track coaching sessions.'
               : 'Update client information and notes.'}
           </p>
           <button
@@ -174,7 +169,8 @@ export default function ClientModal({
               htmlFor="notes"
               className="block text-sm font-medium text-gray-700"
             >
-              Notes <span className="text-gray-400 font-normal">(Optional)</span>
+              Notes{' '}
+              <span className="text-gray-400 font-normal">(Optional)</span>
             </label>
             <div className="relative">
               <textarea
@@ -182,7 +178,7 @@ export default function ClientModal({
                 value={formData.notes}
                 onChange={e => handleFieldChange('notes', e.target.value)}
                 className="w-full px-4 py-3 pl-11 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 min-h-[120px] resize-y transition-all"
-                placeholder="Add background information, goals, or any relevant notes..."
+                placeholder="Add background information, outcomes, or any relevant notes..."
                 disabled={isLoading}
               />
               <div className="absolute left-3 top-3">
@@ -199,7 +195,9 @@ export default function ClientModal({
           {/* Error message */}
           {errors.submit && (
             <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-              <p className="text-sm text-red-800 font-medium">{errors.submit}</p>
+              <p className="text-sm text-red-800 font-medium">
+                {errors.submit}
+              </p>
             </div>
           )}
 
@@ -226,9 +224,7 @@ export default function ClientModal({
                   {mode === 'create' ? 'Creating...' : 'Updating...'}
                 </>
               ) : (
-                <>
-                  {mode === 'create' ? 'Create Client' : 'Save Changes'}
-                </>
+                <>{mode === 'create' ? 'Create Client' : 'Save Changes'}</>
               )}
             </Button>
           </div>

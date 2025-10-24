@@ -244,7 +244,9 @@ export default function EnhancedClientDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Goals</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Outcomes
+            </CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -279,7 +281,7 @@ export default function EnhancedClientDashboard() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="timeline">Timeline</TabsTrigger>
-          <TabsTrigger value="goals">Goals</TabsTrigger>
+          <TabsTrigger value="outcomes">Outcomes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -382,7 +384,7 @@ export default function EnhancedClientDashboard() {
           <Timeline items={timelineItems} />
         </TabsContent>
 
-        <TabsContent value="goals">
+        <TabsContent value="outcomes">
           <GoalsWidget goals={dashboardData.active_goals} />
         </TabsContent>
       </Tabs>

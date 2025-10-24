@@ -197,9 +197,11 @@ export function EnhancedDraftReview({
         <Tabs defaultValue="all" className="space-y-4">
           <TabsList className="bg-gray-50">
             <TabsTrigger value="all">All ({totalExtracted})</TabsTrigger>
-            <TabsTrigger value="goals">Goals ({draftGoals.length})</TabsTrigger>
+            <TabsTrigger value="goals">
+              Outcomes ({draftGoals.length})
+            </TabsTrigger>
             <TabsTrigger value="targets">
-              Targets ({draftTargets.length})
+              Desired Wins ({draftTargets.length})
             </TabsTrigger>
             <TabsTrigger value="commitments">
               Commitments ({draftCommitments.length})
@@ -217,9 +219,9 @@ export function EnhancedDraftReview({
                     Extraction Complete
                   </h4>
                   <p className="text-sm text-purple-800">
-                    Found {draftGoals.length} goals, {draftTargets.length}{' '}
-                    targets, and {draftCommitments.length} commitments from the
-                    session transcript. Review and confirm the items below.
+                    Found {draftGoals.length} outcomes, {draftTargets.length}{' '}
+                    desired wins, and {draftCommitments.length} commitments from
+                    the session transcript. Review and confirm the items below.
                   </p>
                 </div>
               </div>
@@ -231,7 +233,7 @@ export function EnhancedDraftReview({
                 <div className="flex items-center gap-2">
                   <Trophy className="h-4 w-4 text-purple-600" />
                   <h3 className="font-semibold text-gray-900">
-                    New Goals ({draftGoals.length})
+                    New Outcomes ({draftGoals.length})
                   </h3>
                 </div>
                 {draftGoals.map(goal => (
@@ -285,7 +287,7 @@ export function EnhancedDraftReview({
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-blue-600" />
                   <h3 className="font-semibold text-gray-900">
-                    New Targets ({draftTargets.length})
+                    New Desired Wins ({draftTargets.length})
                   </h3>
                 </div>
                 {draftTargets.map(target => (
@@ -317,7 +319,7 @@ export function EnhancedDraftReview({
                           </div>
                           <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Link2 className="h-3 w-3" />
-                            <span>Links to goal</span>
+                            <span>Links to outcome</span>
                           </div>
                           {target.transcript_context && (
                             <div className="bg-gray-50 border border-gray-200 rounded p-2 text-sm italic text-gray-700">
@@ -465,7 +467,7 @@ export function EnhancedDraftReview({
           <TabsContent value="goals" className="space-y-3">
             {draftGoals.length === 0 ? (
               <p className="text-center text-gray-500 py-8">
-                No goals extracted
+                No outcomes extracted
               </p>
             ) : (
               <>
@@ -519,7 +521,7 @@ export function EnhancedDraftReview({
                       setConfirming(true)
                       try {
                         await onConfirmGoals(Array.from(selectedGoals))
-                        toast.success('Goals Confirmed')
+                        toast.success('Outcomes Confirmed')
                         onRefresh?.()
                       } finally {
                         setConfirming(false)
@@ -527,7 +529,7 @@ export function EnhancedDraftReview({
                     }}
                     disabled={selectedGoals.size === 0 || confirming}
                   >
-                    Confirm {selectedGoals.size} Goal
+                    Confirm {selectedGoals.size} Outcome
                     {selectedGoals.size !== 1 ? 's' : ''}
                   </Button>
                 </div>
@@ -539,7 +541,7 @@ export function EnhancedDraftReview({
           <TabsContent value="targets" className="space-y-3">
             {draftTargets.length === 0 ? (
               <p className="text-center text-gray-500 py-8">
-                No targets extracted
+                No desired wins extracted
               </p>
             ) : (
               <>
@@ -596,7 +598,7 @@ export function EnhancedDraftReview({
                       setConfirming(true)
                       try {
                         await onConfirmTargets(Array.from(selectedTargets))
-                        toast.success('Targets Confirmed')
+                        toast.success('Desired Wins Confirmed')
                         onRefresh?.()
                       } finally {
                         setConfirming(false)
@@ -604,7 +606,7 @@ export function EnhancedDraftReview({
                     }}
                     disabled={selectedTargets.size === 0 || confirming}
                   >
-                    Confirm {selectedTargets.size} Target
+                    Confirm {selectedTargets.size} Desired Win
                     {selectedTargets.size !== 1 ? 's' : ''}
                   </Button>
                 </div>

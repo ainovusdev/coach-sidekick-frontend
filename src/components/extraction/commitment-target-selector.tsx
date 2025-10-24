@@ -148,7 +148,7 @@ export function CommitmentTargetSelector({
         <DropdownMenuTrigger asChild>
           <Button variant="outline" size="sm" className="h-8 text-xs">
             <Plus className="h-3 w-3 mr-1" />
-            {totalLinked > 0 ? 'Add More Targets' : 'Link to Target'}
+            {totalLinked > 0 ? 'Add More Desired Wins' : 'Link to Desired Win'}
             <ChevronDown className="h-3 w-3 ml-1" />
           </Button>
         </DropdownMenuTrigger>
@@ -192,7 +192,7 @@ export function CommitmentTargetSelector({
           {existingTargets.length > 0 ? (
             <>
               <DropdownMenuLabel className="text-xs text-gray-500">
-                Existing Sprint Targets
+                Existing Sprint Desired Wins
               </DropdownMenuLabel>
               {existingTargets.map(target => (
                 <DropdownMenuItem
@@ -229,7 +229,7 @@ export function CommitmentTargetSelector({
             !loading && (
               <div className="p-3 text-xs text-gray-500 text-center">
                 {currentSprintId
-                  ? 'No existing targets in current sprint'
+                  ? 'No existing desired wins in current sprint'
                   : 'No active sprint found'}
               </div>
             )
@@ -237,14 +237,14 @@ export function CommitmentTargetSelector({
 
           {loading && (
             <div className="p-3 text-xs text-gray-500 text-center">
-              Loading targets...
+              Loading desired wins...
             </div>
           )}
         </DropdownMenuContent>
       </DropdownMenu>
 
       {totalLinked === 0 && (
-        <p className="text-xs text-gray-500">No targets linked yet</p>
+        <p className="text-xs text-gray-500">No desired wins linked yet</p>
       )}
     </div>
   )

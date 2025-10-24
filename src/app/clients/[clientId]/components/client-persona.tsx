@@ -5,12 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  User, 
-  Target, 
-  AlertCircle, 
-  Brain, 
-  TrendingUp, 
+import {
+  User,
+  Target,
+  AlertCircle,
+  Brain,
+  TrendingUp,
   Award,
   MapPin,
   Briefcase,
@@ -21,7 +21,7 @@ import {
   Heart,
   Zap,
   Shield,
-  Sparkles
+  Sparkles,
 } from 'lucide-react'
 import { PersonaService, type ClientPersona } from '@/services/persona-service'
 
@@ -52,7 +52,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
   if (loading) {
     return (
       <div className="space-y-6">
-        {[1, 2, 3, 4].map((i) => (
+        {[1, 2, 3, 4].map(i => (
           <Card key={i} className="border-gray-200">
             <CardHeader>
               <Skeleton className="h-6 w-32" />
@@ -74,8 +74,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
     return (
       <div className="text-center py-12">
         <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No Persona Data Yet</h3>
-        <p className="text-gray-500">Persona will be built as sessions are analyzed</p>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">
+          No Persona Data Yet
+        </h3>
+        <p className="text-gray-500">
+          Persona will be built as sessions are analyzed
+        </p>
       </div>
     )
   }
@@ -89,19 +93,29 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Sessions Analyzed</p>
-              <p className="text-lg font-semibold text-gray-900">{persona.metadata.sessions_analyzed}</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                Sessions Analyzed
+              </p>
+              <p className="text-lg font-semibold text-gray-900">
+                {persona.metadata.sessions_analyzed}
+              </p>
             </div>
             <div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider">Confidence Score</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wider">
+                Confidence Score
+              </p>
               <div className="flex items-center gap-2">
                 <Progress value={confidencePercentage} className="w-24 h-2" />
-                <span className="text-sm font-medium text-gray-700">{confidencePercentage.toFixed(0)}%</span>
+                <span className="text-sm font-medium text-gray-700">
+                  {confidencePercentage.toFixed(0)}%
+                </span>
               </div>
             </div>
             {persona.metadata.last_updated && (
               <div>
-                <p className="text-xs text-gray-500 uppercase tracking-wider">Last Updated</p>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  Last Updated
+                </p>
                 <p className="text-sm text-gray-700">
                   {new Date(persona.metadata.last_updated).toLocaleDateString()}
                 </p>
@@ -112,9 +126,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       </div>
 
       {/* Profile Overview */}
-      {(persona.demographics.age_range || 
-        persona.demographics.occupation || 
-        persona.demographics.location || 
+      {(persona.demographics.age_range ||
+        persona.demographics.occupation ||
+        persona.demographics.location ||
         persona.demographics.family_situation) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -129,8 +143,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Age Range</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.demographics.age_range}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Age Range
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.demographics.age_range}
+                    </p>
                   </div>
                 </div>
               )}
@@ -138,8 +156,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <Briefcase className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Occupation</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.demographics.occupation}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Occupation
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.demographics.occupation}
+                    </p>
                   </div>
                 </div>
               )}
@@ -147,8 +169,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Location</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.demographics.location}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Location
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.demographics.location}
+                    </p>
                   </div>
                 </div>
               )}
@@ -156,8 +182,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <Users className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Family</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.demographics.family_situation}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Family
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.demographics.family_situation}
+                    </p>
                   </div>
                 </div>
               )}
@@ -167,8 +197,8 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       )}
 
       {/* Goals & Aspirations */}
-      {(persona.goals.primary_goals.length > 0 || 
-        persona.goals.short_term_goals.length > 0 || 
+      {(persona.goals.primary_goals.length > 0 ||
+        persona.goals.short_term_goals.length > 0 ||
         persona.goals.long_term_goals.length > 0) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -186,7 +216,11 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {persona.goals.primary_goals.map((goal, index) => (
-                    <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-gray-100 text-gray-700"
+                    >
                       {goal}
                     </Badge>
                   ))}
@@ -195,10 +229,15 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             )}
             {persona.goals.short_term_goals.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Short-term Goals (3 months)</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Short-term Outcomes (3 months)
+                </h4>
                 <ul className="space-y-1">
                   {persona.goals.short_term_goals.map((goal, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                    <li
+                      key={index}
+                      className="text-sm text-gray-600 flex items-start gap-2"
+                    >
                       <span className="text-gray-400 mt-0.5">•</span>
                       <span>{goal}</span>
                     </li>
@@ -208,10 +247,15 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             )}
             {persona.goals.long_term_goals.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Long-term Goals (6+ months)</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Long-term Outcomes (6+ months)
+                </h4>
                 <ul className="space-y-1">
                   {persona.goals.long_term_goals.map((goal, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                    <li
+                      key={index}
+                      className="text-sm text-gray-600 flex items-start gap-2"
+                    >
                       <span className="text-gray-400 mt-0.5">•</span>
                       <span>{goal}</span>
                     </li>
@@ -224,8 +268,8 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       )}
 
       {/* Challenges & Growth Areas */}
-      {(persona.challenges.main_challenges.length > 0 || 
-        persona.challenges.obstacles.length > 0 || 
+      {(persona.challenges.main_challenges.length > 0 ||
+        persona.challenges.obstacles.length > 0 ||
         persona.patterns.growth_areas.length > 0) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -237,22 +281,35 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
           <CardContent className="pt-6 space-y-4">
             {persona.challenges.main_challenges.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Main Challenges</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Main Challenges
+                </h4>
                 <div className="space-y-2">
-                  {persona.challenges.main_challenges.map((challenge, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
-                      <p className="text-sm text-gray-700">{challenge}</p>
-                    </div>
-                  ))}
+                  {persona.challenges.main_challenges.map(
+                    (challenge, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-50 rounded-lg p-3 border border-gray-100"
+                      >
+                        <p className="text-sm text-gray-700">{challenge}</p>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             )}
             {persona.patterns.growth_areas.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Growth Areas</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Growth Areas
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {persona.patterns.growth_areas.map((area, index) => (
-                    <Badge key={index} variant="outline" className="border-gray-300 text-gray-600">
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="border-gray-300 text-gray-600"
+                    >
                       {area}
                     </Badge>
                   ))}
@@ -261,10 +318,15 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             )}
             {persona.challenges.obstacles.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Obstacles</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Obstacles
+                </h4>
                 <ul className="space-y-1">
                   {persona.challenges.obstacles.map((obstacle, index) => (
-                    <li key={index} className="text-sm text-gray-600 flex items-start gap-2">
+                    <li
+                      key={index}
+                      className="text-sm text-gray-600 flex items-start gap-2"
+                    >
                       <Shield className="h-3.5 w-3.5 text-gray-400 mt-0.5" />
                       <span>{obstacle}</span>
                     </li>
@@ -277,9 +339,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       )}
 
       {/* Personality & Communication */}
-      {(persona.personality.communication_style || 
-        persona.personality.learning_style || 
-        persona.personality.personality_traits.length > 0 || 
+      {(persona.personality.communication_style ||
+        persona.personality.learning_style ||
+        persona.personality.personality_traits.length > 0 ||
         persona.personality.values.length > 0) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -294,8 +356,12 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Communication Style</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.personality.communication_style}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Communication Style
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.personality.communication_style}
+                    </p>
                   </div>
                 </div>
               )}
@@ -303,21 +369,32 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 <div className="flex items-start gap-3">
                   <BookOpen className="h-4 w-4 text-gray-400 mt-0.5" />
                   <div>
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">Learning Style</p>
-                    <p className="text-sm font-medium text-gray-900">{persona.personality.learning_style}</p>
+                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                      Learning Style
+                    </p>
+                    <p className="text-sm font-medium text-gray-900">
+                      {persona.personality.learning_style}
+                    </p>
                   </div>
                 </div>
               )}
             </div>
             {persona.personality.personality_traits.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Personality Traits</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Personality Traits
+                </h4>
                 <div className="flex flex-wrap gap-2">
-                  {persona.personality.personality_traits.map((trait, index) => (
-                    <Badge key={index} className="bg-gray-100 text-gray-700 border-0">
-                      {trait}
-                    </Badge>
-                  ))}
+                  {persona.personality.personality_traits.map(
+                    (trait, index) => (
+                      <Badge
+                        key={index}
+                        className="bg-gray-100 text-gray-700 border-0"
+                      >
+                        {trait}
+                      </Badge>
+                    ),
+                  )}
                 </div>
               </div>
             )}
@@ -329,7 +406,11 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {persona.personality.values.map((value, index) => (
-                    <Badge key={index} variant="secondary" className="bg-gray-50 text-gray-700 border border-gray-200">
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="bg-gray-50 text-gray-700 border border-gray-200"
+                    >
                       {value}
                     </Badge>
                   ))}
@@ -341,7 +422,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       )}
 
       {/* Strengths & Patterns */}
-      {(persona.patterns.strengths.length > 0 || 
+      {(persona.patterns.strengths.length > 0 ||
         persona.patterns.recurring_themes.length > 0) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -359,7 +440,10 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                   {persona.patterns.strengths.map((strength, index) => (
-                    <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div
+                      key={index}
+                      className="bg-gray-50 rounded-lg p-3 border border-gray-200"
+                    >
                       <p className="text-sm text-gray-700">{strength}</p>
                     </div>
                   ))}
@@ -368,10 +452,16 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             )}
             {persona.patterns.recurring_themes.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Recurring Themes</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Recurring Themes
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {persona.patterns.recurring_themes.map((theme, index) => (
-                    <Badge key={index} variant="outline" className="border-gray-300 text-gray-600">
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="border-gray-300 text-gray-600"
+                    >
                       {theme}
                     </Badge>
                   ))}
@@ -383,7 +473,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
       )}
 
       {/* Progress & Achievements */}
-      {(persona.progress.achievements.length > 0 || 
+      {(persona.progress.achievements.length > 0 ||
         persona.progress.breakthrough_moments.length > 0) && (
         <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
@@ -395,7 +485,9 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
           <CardContent className="pt-6 space-y-4">
             {persona.progress.achievements.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Achievements</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Achievements
+                </h4>
                 <div className="space-y-2">
                   {persona.progress.achievements.map((achievement, index) => (
                     <div key={index} className="flex items-start gap-2">
@@ -408,13 +500,20 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             )}
             {persona.progress.breakthrough_moments.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Breakthrough Moments</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">
+                  Breakthrough Moments
+                </h4>
                 <div className="space-y-2">
-                  {persona.progress.breakthrough_moments.map((moment, index) => (
-                    <div key={index} className="bg-gray-900 rounded-lg p-3 text-white">
-                      <p className="text-sm">{moment}</p>
-                    </div>
-                  ))}
+                  {persona.progress.breakthrough_moments.map(
+                    (moment, index) => (
+                      <div
+                        key={index}
+                        className="bg-gray-900 rounded-lg p-3 text-white"
+                      >
+                        <p className="text-sm">{moment}</p>
+                      </div>
+                    ),
+                  )}
                 </div>
               </div>
             )}

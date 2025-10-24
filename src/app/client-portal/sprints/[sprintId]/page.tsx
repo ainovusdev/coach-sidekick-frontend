@@ -14,7 +14,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { SprintService } from '@/services/sprint-service'
-import { GoalService } from '@/services/goal-service'
+import { OutcomeService } from '@/services/goal-service'
 import { SprintDetail, Target } from '@/types/sprint'
 import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import {
@@ -40,22 +40,22 @@ export default function ClientSprintDetailPage({
     Record<string, Target[]>
   >({})
   const [isTargetModalOpen, setIsTargetModalOpen] = useState(false)
-  const [availableGoals, setAvailableGoals] = useState<
+  const [availableOutcomes, setAvailableOutcomes] = useState<
     Array<{ id: string; title: string }>
   >([])
 
   useEffect(() => {
     loadSprint()
-    loadGoals()
+    loadOutcomes()
   }, [resolvedParams.sprintId])
 
-  const loadGoals = async () => {
+  const loadOutcomes = async () => {
     if (!sprint?.client_id) return
 
     try {
       // Load goals from API
-      const goals = await GoalService.listGoals(sprint.client_id)
-      setAvailableGoals(goals.map(g => ({ id: g.id, title: g.title })))
+      const goals = await OutcomeService.listOutcomes(sprint.client_id)
+      setAvailableOutcomes(goals.map(g => ({ id: g.id, title: g.title })))
     } catch (error) {
       console.error('Failed to load goals:', error)
       // Fallback: extract from sprint targets
@@ -66,7 +66,7 @@ export default function ClientSprintDetailPage({
             goalsMap.set(target.goal_id, target.goal_title)
           }
         })
-        setAvailableGoals(
+        setAvailableOutcomes(
           Array.from(goalsMap.entries()).map(([id, title]) => ({ id, title })),
         )
       }
@@ -184,7 +184,7 @@ export default function ClientSprintDetailPage({
                 {sprint.completed_target_count || 0}/{sprint.target_count || 0}
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                Targets Completed
+                Desired Wins Completed
               </div>
             </div>
           </CardContent>
@@ -218,24 +218,24 @@ export default function ClientSprintDetailPage({
         </Card>
       </div>
 
-      {/* Goals & Targets */}
+      {/* Outcomes & Targets */}
       <Card className="bg-white border-gray-200 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Your Goals & Targets</CardTitle>
+            <CardTitle>Your Outcomes & Desired Wins</CardTitle>
             <Button
               size="sm"
               variant="outline"
               onClick={() => setIsTargetModalOpen(true)}
-              disabled={availableGoals.length === 0}
+              disabled={availableOutcomes.length === 0}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Target
             </Button>
           </div>
-          {availableGoals.length === 0 && (
+          {availableOutcomes.length === 0 && (
             <p className="text-sm text-gray-600 mt-2">
-              Your coach needs to create goals before adding targets
+              Your coach needs to create outcomes before adding desired wins
             </p>
           )}
         </CardHeader>
@@ -243,12 +243,14 @@ export default function ClientSprintDetailPage({
           {Object.entries(groupedTargets).length === 0 ? (
             <div className="text-center py-12">
               <TargetIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">No targets in this sprint yet</p>
+              <p className="text-gray-600">
+                No desired wins in this sprint yet
+              </p>
             </div>
           ) : (
             <Accordion type="multiple" className="w-full">
               {Object.entries(groupedTargets).map(([goalId, targets]) => {
-                const goalTitle = targets[0]?.goal_title || 'Goal'
+                const goalTitle = targets[0]?.goal_title || 'Outcome'
                 const goalProgress =
                   targets.reduce((sum, t) => sum + t.progress_percentage, 0) /
                   targets.length
@@ -266,7 +268,7 @@ export default function ClientSprintDetailPage({
                               {goalTitle}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <span>{targets.length} targets</span>
+                              <span>{targets.length} desired wins</span>
                               <span>•</span>
                               <span>{Math.round(goalProgress)}% complete</span>
                             </div>
@@ -342,10 +344,10 @@ export default function ClientSprintDetailPage({
         open={isTargetModalOpen}
         onOpenChange={setIsTargetModalOpen}
         sprintId={resolvedParams.sprintId}
-        goals={availableGoals}
+        goals={availableOutcomes}
         onSuccess={() => {
           loadSprint()
-          loadGoals()
+          loadOutcomes()
         }}
       />
     </div>

@@ -226,7 +226,7 @@ export default function ClientDashboard() {
         <Card className="bg-white border-gray-200 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">
-              Active Goals
+              Active Outcomes
             </CardTitle>
             <FileText className="h-4 w-4 text-gray-400" />
           </CardHeader>

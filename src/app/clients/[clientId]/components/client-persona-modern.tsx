@@ -162,7 +162,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
                   persona.goals.short_term_goals.length}
               </span>
             </div>
-            <p className="text-xs text-gray-600">Active Goals</p>
+            <p className="text-xs text-gray-600">Active Outcomes</p>
           </div>
         </div>
 

@@ -107,7 +107,7 @@ export function SprintTargetsManager({
           <TargetIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-600">No active sprint</p>
           <p className="text-sm text-gray-500 mt-2">
-            Create a sprint first to add targets
+            Create a sprint first to add desired wins
           </p>
         </CardContent>
       </Card>
@@ -119,19 +119,19 @@ export function SprintTargetsManager({
       <Card className="border-gray-200 shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Sprint Targets & Goals</CardTitle>
+            <CardTitle>Sprint Desired Wins & Outcomes</CardTitle>
             <Button
               size="sm"
               onClick={() => setIsTargetModalOpen(true)}
               disabled={availableGoals.length === 0}
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Target
+              Add Desired Win
             </Button>
           </div>
           {availableGoals.length === 0 && (
             <p className="text-sm text-gray-600 mt-2">
-              Create goals first before adding targets
+              Create outcomes first before adding desired wins
             </p>
           )}
         </CardHeader>
@@ -139,7 +139,9 @@ export function SprintTargetsManager({
           {Object.entries(groupedTargets).length === 0 ? (
             <div className="text-center py-8">
               <TargetIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600">No targets in this sprint yet</p>
+              <p className="text-gray-600">
+                No desired wins in this sprint yet
+              </p>
               <Button
                 variant="outline"
                 size="sm"
@@ -148,13 +150,13 @@ export function SprintTargetsManager({
                 disabled={availableGoals.length === 0}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create First Target
+                Create First Desired Win
               </Button>
             </div>
           ) : (
             <Accordion type="multiple" className="w-full">
               {Object.entries(groupedTargets).map(([goalId, targets]) => {
-                const goalTitle = targets[0]?.goal_title || 'Goal'
+                const goalTitle = targets[0]?.goal_title || 'Outcome'
                 const goalProgress =
                   targets.reduce((sum, t) => sum + t.progress_percentage, 0) /
                   targets.length
@@ -172,7 +174,7 @@ export function SprintTargetsManager({
                               {goalTitle}
                             </h3>
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <span>{targets.length} targets</span>
+                              <span>{targets.length} desired wins</span>
                               <span>•</span>
                               <span>{Math.round(goalProgress)}% complete</span>
                             </div>

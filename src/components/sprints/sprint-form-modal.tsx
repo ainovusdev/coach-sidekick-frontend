@@ -100,7 +100,7 @@ export function SprintFormModal({
         <DialogHeader>
           <DialogTitle>Create New Sprint</DialogTitle>
           <DialogDescription>
-            Create a 6-8 week sprint to organize goals and targets
+            Create a 6-8 week sprint to organize outcomes and desired wins
           </DialogDescription>
         </DialogHeader>
 

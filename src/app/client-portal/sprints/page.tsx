@@ -86,7 +86,7 @@ export default function ClientSprintsPage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900">My Sprints</h1>
         <p className="text-gray-600 mt-2">
-          View your sprint goals and track progress over 6-8 week periods
+          View your sprint outcomes and track progress over 6-8 week periods
         </p>
       </div>
 
@@ -99,7 +99,8 @@ export default function ClientSprintsPage() {
               No Sprints Yet
             </h3>
             <p className="text-gray-600 text-center max-w-md">
-              Your coach will create sprints to organize your goals and targets
+              Your coach will create sprints to organize your outcomes and
+              desired wins
             </p>
           </CardContent>
         </Card>
@@ -165,7 +166,9 @@ export default function ClientSprintsPage() {
                         <div className="font-medium text-gray-900">
                           {sprint.target_count || 0}
                         </div>
-                        <div className="text-gray-500 text-xs">Targets</div>
+                        <div className="text-gray-500 text-xs">
+                          Desired Wins
+                        </div>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">

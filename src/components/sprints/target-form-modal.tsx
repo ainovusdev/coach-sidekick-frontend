@@ -63,12 +63,12 @@ export function TargetFormModal({
     e.preventDefault()
 
     if (!formData.title.trim()) {
-      toast.error('Target title is required')
+      toast.error('Desired Win title is required')
       return
     }
 
     if (!formData.goal_id) {
-      toast.error('Please select a goal for this target')
+      toast.error('Please select an outcome for this desired win')
       return
     }
 
@@ -83,8 +83,8 @@ export function TargetFormModal({
       }
 
       await TargetService.createTarget(targetData)
-      toast.success('Target Created', {
-        description: 'The target has been added to the sprint',
+      toast.success('Desired Win Created', {
+        description: 'The desired win has been added to the sprint',
       })
 
       onOpenChange(false)
@@ -100,16 +100,16 @@ export function TargetFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Target</DialogTitle>
+          <DialogTitle>Create New Desired Win</DialogTitle>
           <DialogDescription>
-            Add a short-term target to this sprint
+            Add a short-term desired win to this sprint
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="goal_id">Link to Goal *</Label>
+              <Label htmlFor="goal_id">Link to Outcome *</Label>
               <Select
                 value={formData.goal_id}
                 onValueChange={value =>
@@ -118,7 +118,7 @@ export function TargetFormModal({
                 required
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a goal" />
+                  <SelectValue placeholder="Select an outcome" />
                 </SelectTrigger>
                 <SelectContent>
                   {goals.map(goal => (
@@ -131,7 +131,7 @@ export function TargetFormModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Target Title *</Label>
+              <Label htmlFor="title">Desired Win Title *</Label>
               <Input
                 id="title"
                 placeholder="e.g., Complete 3 weekly 1-on-1s"
@@ -167,7 +167,7 @@ export function TargetFormModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Target'}
+              {loading ? 'Creating...' : 'Create Desired Win'}
             </Button>
           </DialogFooter>
         </form>

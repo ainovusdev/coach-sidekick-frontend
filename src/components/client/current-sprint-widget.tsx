@@ -79,7 +79,7 @@ export function CurrentSprintWidget({
             <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-600 mb-4">No active sprint</p>
             <p className="text-sm text-gray-500">
-              Your coach will create a sprint to organize your goals
+              Your coach will create a sprint to organize your outcomes
             </p>
           </div>
         </CardContent>
@@ -143,7 +143,7 @@ export function CurrentSprintWidget({
             <div className="text-lg font-bold text-gray-900">
               {sprint.target_count || 0}
             </div>
-            <div className="text-xs text-gray-600">Targets</div>
+            <div className="text-xs text-gray-600">Desired Wins</div>
           </div>
           <div className="text-center">
             <div className="text-lg font-bold text-gray-900">
@@ -197,7 +197,7 @@ export function CurrentSprintWidget({
         {sprint.targets && sprint.targets.length > 0 && (
           <div className="pt-3 border-t border-gray-100">
             <p className="text-xs font-semibold text-gray-600 mb-2">
-              Active Targets ({sprint.completed_target_count || 0}/
+              Active Desired Wins ({sprint.completed_target_count || 0}/
               {sprint.target_count || 0} completed)
             </p>
             <div className="space-y-2">
@@ -225,7 +225,7 @@ export function CurrentSprintWidget({
               ))}
               {sprint.targets.length > 3 && (
                 <p className="text-xs text-gray-500 text-center pt-1">
-                  +{sprint.targets.length - 3} more targets
+                  +{sprint.targets.length - 3} more desired wins
                 </p>
               )}
             </div>

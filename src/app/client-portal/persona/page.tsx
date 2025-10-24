@@ -165,7 +165,7 @@ export default function ClientPersonaPage() {
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="goals">Goals & Aspirations</TabsTrigger>
+          <TabsTrigger value="goals">Outcomes & Aspirations</TabsTrigger>
           <TabsTrigger value="personality">Personality</TabsTrigger>
           <TabsTrigger value="development">Development</TabsTrigger>
         </TabsList>

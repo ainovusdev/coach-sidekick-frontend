@@ -363,7 +363,7 @@ export default function ClientDetailPage({
                   className="data-[state=active]:bg-white"
                 >
                   <Target className="h-4 w-4 mr-2" />
-                  Sprints & Goals
+                  Sprints & Outcomes
                 </TabsTrigger>
                 <TabsTrigger
                   value="commitments"

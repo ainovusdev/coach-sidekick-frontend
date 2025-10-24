@@ -215,7 +215,7 @@ export default function SessionDetailsPage({
         setExtractionResult(result)
         toast({
           title: 'Extraction Complete',
-          description: `Found ${result.total_created} items: ${result.draft_goals.length} goals, ${result.draft_targets.length} targets, ${result.draft_commitments.length} commitments`,
+          description: `Found ${result.total_created} items: ${result.draft_goals.length} outcomes, ${result.draft_targets.length} desired wins, ${result.draft_commitments.length} commitments`,
         })
       } else {
         // Old method: commitments only
