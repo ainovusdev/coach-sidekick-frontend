@@ -26,6 +26,18 @@ import {
   CommitmentType,
   CommitmentPriority,
 } from '@/types/commitment'
+import { TargetService } from '@/services/target-service'
+import { Badge } from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { Link2, Plus, X, ChevronDown } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 interface CommitmentFormProps {
   open: boolean
@@ -59,6 +71,8 @@ export function CommitmentForm({
   sessionId: defaultSessionId,
 }: CommitmentFormProps) {
   const [loading, setLoading] = useState(false)
+  const [availableTargets, setAvailableTargets] = useState<any[]>([])
+  const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [formData, setFormData] = useState<CommitmentCreate>({
     client_id: defaultClientId || '',
     session_id: defaultSessionId,
@@ -70,6 +84,35 @@ export function CommitmentForm({
     target_date: undefined,
     measurement_criteria: '',
   })
+
+  // Load available targets when form opens
+  useEffect(() => {
+    const loadTargets = async () => {
+      if (!open || !defaultClientId) return
+
+      try {
+        // Get client's current sprint targets
+        const targets = await TargetService.listTargets({
+          client_id: defaultClientId,
+          status: 'active',
+        })
+        setAvailableTargets(targets || [])
+      } catch (error) {
+        console.error('Failed to load targets:', error)
+      }
+    }
+
+    loadTargets()
+  }, [open, defaultClientId])
+
+  // Load linked targets for existing commitment
+  useEffect(() => {
+    if (open && commitment?.linked_target_ids) {
+      setSelectedTargetIds(commitment.linked_target_ids)
+    } else if (open) {
+      setSelectedTargetIds([])
+    }
+  }, [open, commitment])
 
   // Reset form when dialog opens/closes or commitment changes
   useEffect(() => {
@@ -107,7 +150,13 @@ export function CommitmentForm({
     setLoading(true)
 
     try {
-      await onSubmit(formData)
+      // Include selected targets in submission
+      const dataWithTargets = {
+        ...formData,
+        target_ids:
+          selectedTargetIds.length > 0 ? selectedTargetIds : undefined,
+      }
+      await onSubmit(dataWithTargets)
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to save commitment:', error)
@@ -253,6 +302,122 @@ export function CommitmentForm({
               <p className="text-xs text-muted-foreground">
                 Define clear, measurable criteria for success
               </p>
+            </div>
+
+            {/* Link to Desired Wins (Targets) */}
+            <div className="space-y-2">
+              <Label>Link to Desired Wins</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Connect this commitment to sprint desired wins
+              </p>
+
+              {/* Selected Targets */}
+              {selectedTargetIds.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {selectedTargetIds.map(targetId => {
+                    const target = availableTargets.find(t => t.id === targetId)
+                    return (
+                      <Badge
+                        key={targetId}
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1 pr-1"
+                      >
+                        <Link2 className="h-3 w-3" />
+                        <span className="text-xs">
+                          {target?.title || 'Desired Win'}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedTargetIds(prev =>
+                              prev.filter(id => id !== targetId),
+                            )
+                          }
+                          className="ml-1 hover:bg-blue-200 rounded p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    )
+                  })}
+                </div>
+              )}
+
+              {/* Add Target Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    {selectedTargetIds.length > 0
+                      ? 'Add More Desired Wins'
+                      : 'Link to Desired Wins'}
+                    <ChevronDown className="h-4 w-4 ml-auto" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-full">
+                  {availableTargets.length > 0 ? (
+                    <>
+                      <DropdownMenuLabel className="text-xs">
+                        Available Desired Wins
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {availableTargets.map(target => (
+                        <DropdownMenuItem
+                          key={target.id}
+                          onClick={() => {
+                            if (!selectedTargetIds.includes(target.id)) {
+                              setSelectedTargetIds(prev => [...prev, target.id])
+                            }
+                          }}
+                          disabled={selectedTargetIds.includes(target.id)}
+                          className={cn(
+                            'text-sm',
+                            selectedTargetIds.includes(target.id) &&
+                              'opacity-50 cursor-not-allowed',
+                          )}
+                        >
+                          <div className="flex items-center gap-2 w-full">
+                            <div
+                              className={cn(
+                                'h-2 w-2 rounded-full',
+                                target.status === 'completed'
+                                  ? 'bg-green-500'
+                                  : 'bg-gray-400',
+                              )}
+                            />
+                            <span className="flex-1 truncate">
+                              {target.title}
+                            </span>
+                            <span className="text-xs text-gray-400">
+                              {target.progress_percentage}%
+                            </span>
+                            {selectedTargetIds.includes(target.id) && (
+                              <span className="text-xs text-gray-400">
+                                Linked
+                              </span>
+                            )}
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="p-3 text-xs text-gray-500 text-center">
+                      No active desired wins available
+                    </div>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {selectedTargetIds.length === 0 && (
+                <p className="text-xs text-gray-500">
+                  No desired wins linked yet
+                </p>
+              )}
             </div>
           </div>
 

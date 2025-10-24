@@ -28,6 +28,7 @@ export interface CommitmentBase {
 export interface CommitmentCreate extends CommitmentBase {
   client_id: string
   session_id?: string
+  target_ids?: string[] // Target IDs to link to
 }
 
 // Update commitment request
