@@ -8,7 +8,20 @@ import { Badge } from '@/components/ui/badge'
 import { CommitmentService } from '@/services/commitment-service'
 import { Commitment } from '@/types/commitment'
 import { CommitmentQuickComplete } from './commitment-quick-complete'
-import { ArrowRight, Target, Loader2, AlertCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  Target,
+  Loader2,
+  AlertCircle,
+  Edit,
+  MoreVertical,
+} from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns'
 
@@ -19,6 +32,7 @@ interface CommitmentsWidgetProps {
   viewAllLink?: string
   className?: string
   targetId?: string | null // Filter by target ID
+  onEdit?: (commitment: Commitment) => void // Edit callback
 }
 
 export function CommitmentsWidget({
@@ -28,6 +42,7 @@ export function CommitmentsWidget({
   viewAllLink = '/client-portal/commitments',
   className,
   targetId,
+  onEdit,
 }: CommitmentsWidgetProps) {
   const [loading, setLoading] = useState(true)
   const [commitments, setCommitments] = useState<Commitment[]>([])
@@ -213,6 +228,29 @@ export function CommitmentsWidget({
                         )}
                     </div>
                   </div>
+
+                  {/* Edit Menu */}
+                  {onEdit && (
+                    <div className="pt-0.5">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(commitment)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit & Link Targets
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
                 </div>
               )
             })}

@@ -24,6 +24,8 @@ import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
 import { SprintTargetsManager } from '@/components/sprints/sprint-targets-manager'
 import { GoalsList } from '@/components/goals/goals-list'
+import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentService } from '@/services/commitment-service'
 import { useClientData } from './hooks/use-client-data'
 import { getClientInitials, formatDate } from './utils/client-utils'
 import { cn } from '@/lib/utils'
@@ -66,6 +68,8 @@ export default function ClientDetailPage({
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
+  const [editingCommitment, setEditingCommitment] = useState<any>(null)
+  const [showCommitmentForm, setShowCommitmentForm] = useState(false)
   const { client, sessions, loading, error, refetch } = useClientData(
     clientId,
     userId!,
@@ -558,6 +562,10 @@ export default function ClientDetailPage({
                           showHeader={false}
                           viewAllLink={`/clients/${client.id}?tab=commitments`}
                           targetId={selectedTargetId}
+                          onEdit={commitment => {
+                            setEditingCommitment(commitment)
+                            setShowCommitmentForm(true)
+                          }}
                         />
                       </CardContent>
                     </Card>
@@ -609,6 +617,30 @@ export default function ClientDetailPage({
           onOpenChange={setIsSprintModalOpen}
           clientId={client.id}
           onSuccess={refetch}
+        />
+
+        {/* Commitment Edit Modal */}
+        <CommitmentForm
+          open={showCommitmentForm}
+          onOpenChange={open => {
+            setShowCommitmentForm(open)
+            if (!open) setEditingCommitment(null)
+          }}
+          onSubmit={async data => {
+            if (editingCommitment) {
+              await CommitmentService.updateCommitment(
+                editingCommitment.id,
+                data,
+              )
+            } else {
+              await CommitmentService.createCommitment(data)
+            }
+            setShowCommitmentForm(false)
+            setEditingCommitment(null)
+            refetch()
+          }}
+          commitment={editingCommitment}
+          clientId={client.id}
         />
       </PageLayout>
     </ProtectedRoute>
