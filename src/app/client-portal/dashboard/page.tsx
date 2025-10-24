@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
+import { DesiredWinsWidget } from '@/components/client/desired-wins-widget'
 import { GoalsList } from '@/components/goals/goals-list'
 import {
   Calendar,
@@ -243,6 +244,14 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <CurrentSprintWidget clientId={dashboardData?.client_info?.id} />
         <CommitmentsWidget
+          clientId={dashboardData?.client_info?.id}
+          limit={5}
+        />
+      </div>
+
+      {/* Desired Wins */}
+      <div className="mb-8">
+        <DesiredWinsWidget
           clientId={dashboardData?.client_info?.id}
           limit={5}
         />

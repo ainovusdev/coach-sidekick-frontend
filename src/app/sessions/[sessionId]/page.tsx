@@ -483,7 +483,14 @@ export default function SessionDetailsPage({
                     className="data-[state=active]:bg-white"
                   >
                     <Brain className="h-4 w-4 mr-2" />
-                    Analysis
+                    Insights
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="performance"
+                    className="data-[state=active]:bg-white"
+                  >
+                    <BarChart className="h-4 w-4 mr-2" />
+                    Performance
                   </TabsTrigger>
                   <TabsTrigger
                     value="transcript"
@@ -546,7 +553,7 @@ export default function SessionDetailsPage({
                 </Card>
               )}
 
-              {/* Analysis Tab */}
+              {/* Insights Tab */}
               <TabsContent value="analysis" className="space-y-6">
                 {loadingAnalysis ? (
                   <Card>
@@ -554,47 +561,78 @@ export default function SessionDetailsPage({
                       <Loader2 className="h-10 w-10 text-gray-600 animate-spin" />
                     </CardContent>
                   </Card>
-                ) : analysisData ? (
-                  <div className="space-y-6">
-                    {/* Insights */}
-                    {analysisData.insights && (
-                      <SessionInsightsModern insights={analysisData.insights} />
-                    )}
-
-                    {/* Coaching Metrics */}
-                    {analysisData.coaching && (
-                      <Card className="overflow-hidden">
-                        <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                          <div className="flex items-center gap-2">
-                            <BarChart className="h-5 w-5 text-gray-700" />
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              Coaching Metrics
-                            </h3>
-                          </div>
-                        </div>
-                        <div className="p-6">
-                          <FullCoachingAnalysis
-                            analysis={{
-                              ...analysisData.coaching,
-                              session_id: analysisData.session_id,
-                              timestamp: analysisData.timestamp,
-                            }}
-                          />
-                        </div>
-                      </Card>
-                    )}
-                  </div>
+                ) : analysisData?.insights ? (
+                  <SessionInsightsModern insights={analysisData.insights} />
                 ) : (
                   <Card className="border-dashed border-2">
                     <CardContent className="py-16 text-center">
                       <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                       <h3 className="text-lg font-semibold text-gray-700 mb-2">
-                        No Analysis Yet
+                        No Insights Yet
                       </h3>
                       <p className="text-gray-500 mb-6 max-w-md mx-auto">
                         {isViewer
                           ? 'No insights have been generated for this session yet.'
-                          : 'Generate AI-powered insights and coaching metrics'}
+                          : 'Generate AI-powered session insights'}
+                      </p>
+                      {!isViewer && (
+                        <Button
+                          onClick={triggerAnalysisWithProgress}
+                          disabled={analyzing}
+                          className="bg-gray-900 hover:bg-gray-800"
+                        >
+                          <Sparkles className="h-4 w-4 mr-2" />
+                          Generate Analysis
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+
+              {/* Performance/Coaching Metrics Tab */}
+              <TabsContent value="performance" className="space-y-6">
+                {loadingAnalysis ? (
+                  <Card>
+                    <CardContent className="py-12 flex items-center justify-center">
+                      <Loader2 className="h-10 w-10 text-gray-600 animate-spin" />
+                    </CardContent>
+                  </Card>
+                ) : analysisData?.coaching ? (
+                  <Card className="overflow-hidden">
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                      <div className="flex items-center gap-2">
+                        <BarChart className="h-5 w-5 text-gray-700" />
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          Coaching Performance Metrics
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 mt-1">
+                        GO LIVE methodology evaluation and coaching quality
+                        scores
+                      </p>
+                    </div>
+                    <div className="p-6">
+                      <FullCoachingAnalysis
+                        analysis={{
+                          ...analysisData.coaching,
+                          session_id: analysisData.session_id,
+                          timestamp: analysisData.timestamp,
+                        }}
+                      />
+                    </div>
+                  </Card>
+                ) : (
+                  <Card className="border-dashed border-2">
+                    <CardContent className="py-16 text-center">
+                      <BarChart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                        No Performance Data Yet
+                      </h3>
+                      <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                        {isViewer
+                          ? 'No coaching metrics have been generated for this session yet.'
+                          : 'Generate coaching performance metrics and GO LIVE scores'}
                       </p>
                       {!isViewer && (
                         <Button

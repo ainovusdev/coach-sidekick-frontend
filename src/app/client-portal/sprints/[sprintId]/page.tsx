@@ -14,7 +14,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion'
 import { SprintService } from '@/services/sprint-service'
-import { OutcomeService } from '@/services/goal-service'
+import { GoalService } from '@/services/goal-service'
 import { SprintDetail, Target } from '@/types/sprint'
 import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import {
@@ -54,7 +54,7 @@ export default function ClientSprintDetailPage({
 
     try {
       // Load goals from API
-      const goals = await OutcomeService.listOutcomes(sprint.client_id)
+      const goals = await GoalService.listGoals(sprint.client_id)
       setAvailableOutcomes(goals.map(g => ({ id: g.id, title: g.title })))
     } catch (error) {
       console.error('Failed to load goals:', error)

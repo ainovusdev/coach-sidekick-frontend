@@ -26,7 +26,6 @@ export function ClientNavigation() {
   const navItems = [
     { path: '/client-portal/dashboard', label: 'Dashboard', icon: Home },
     { path: '/client-portal/sprints', label: 'Sprints', icon: Target },
-    { path: '/client-portal/targets', label: 'Desired Wins', icon: Trophy },
     { path: '/client-portal/sessions', label: 'Sessions', icon: Calendar },
     {
       path: '/client-portal/my-commitments',
