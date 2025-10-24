@@ -7,15 +7,7 @@ import { Badge } from '@/components/ui/badge'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
-import {
-  Target,
-  Sparkles,
-  CheckCircle2,
-  XCircle,
-  Trophy,
-  Loader2,
-  Link2,
-} from 'lucide-react'
+import { Target, Sparkles, Trophy, Loader2, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { CommitmentTargetSelector } from './commitment-target-selector'
 
@@ -284,7 +276,7 @@ export function EnhancedDraftReview({
             {draftCommitments.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <Target className="h-4 w-4 text-green-600" />
                   <h3 className="font-semibold text-gray-900">
                     New Commitments ({draftCommitments.length})
                   </h3>
@@ -350,53 +342,6 @@ export function EnhancedDraftReview({
             )}
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="text-sm text-gray-600">
-                {selectedGoals.size +
-                  selectedTargets.size +
-                  selectedCommitments.size}{' '}
-                of {totalExtracted} selected
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedGoals(new Set())
-                    setSelectedTargets(new Set())
-                    setSelectedCommitments(new Set())
-                  }}
-                  disabled={confirming}
-                >
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Deselect All
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleConfirmSelected}
-                  disabled={
-                    confirming ||
-                    (selectedGoals.size === 0 &&
-                      selectedTargets.size === 0 &&
-                      selectedCommitments.size === 0)
-                  }
-                >
-                  {confirming ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                  )}
-                  Confirm Selected
-                </Button>
-                <Button onClick={handleConfirmAll} disabled={confirming}>
-                  {confirming ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                  )}
-                  Confirm All
-                </Button>
-              </div>
-            </div>
           </TabsContent>
 
           {/* Goals Tab */}
