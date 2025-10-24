@@ -366,13 +366,6 @@ export default function ClientDetailPage({
                   <Target className="h-4 w-4 mr-2" />
                   Sprints & Outcomes
                 </TabsTrigger>
-                <TabsTrigger
-                  value="commitments"
-                  className="data-[state=active]:bg-white"
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  All Commitments
-                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="sessions" className="space-y-4">
@@ -559,10 +552,6 @@ export default function ClientDetailPage({
                     </Card>
                   </div>
                 </div>
-              </TabsContent>
-
-              <TabsContent value="commitments" className="space-y-4">
-                <CommitmentsWidget clientId={client.id} limit={20} />
               </TabsContent>
             </Tabs>
           </div>
