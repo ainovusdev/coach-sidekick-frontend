@@ -72,6 +72,7 @@ export default function SessionDetailsPage({
 
   // Commitments state
   const [draftCommitments, setDraftCommitments] = useState<Commitment[]>([])
+  const [activeCommitments, setActiveCommitments] = useState<Commitment[]>([])
   const [extractingCommitments, setExtractingCommitments] = useState(false)
   const [showCreateCommitment, setShowCreateCommitment] = useState(false)
 
@@ -198,6 +199,25 @@ export default function SessionDetailsPage({
     }
   }
 
+  // Load active commitments for this session
+  const loadActiveCommitments = async () => {
+    if (!sessionData?.session?.id) return
+
+    try {
+      const response = await CommitmentService.listCommitments({
+        session_id: sessionData.session.id,
+        status: 'active',
+      })
+      console.log(
+        'Active commitments loaded:',
+        response.commitments?.length || 0,
+      )
+      setActiveCommitments(response.commitments || [])
+    } catch (error) {
+      console.error('Failed to load active commitments:', error)
+    }
+  }
+
   // Extract commitments from session transcript (or enhanced extraction)
   const extractCommitments = async () => {
     if (!sessionData?.session?.id) return
@@ -289,19 +309,20 @@ export default function SessionDetailsPage({
         description: `Created ${extractionResult.total_created} items successfully.`,
       })
 
-      // Clear extraction result and reload
+      // Clear extraction result and reload both draft and active commitments
       setExtractionResult(null)
-      await loadDraftCommitments()
+      await Promise.all([loadDraftCommitments(), loadActiveCommitments()])
     } catch (error) {
       console.error('Failed to confirm all:', error)
       // Error is already shown by ApiClient, just log it
     }
   }
 
-  // Load draft commitments when session loads
+  // Load commitments when session loads
   React.useEffect(() => {
     if (sessionData?.session?.id && !isViewer) {
       loadDraftCommitments()
+      loadActiveCommitments()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionData?.session?.id, isViewer])
@@ -671,8 +692,9 @@ export default function SessionDetailsPage({
                         </div>
                       </div>
                     </div>
-                    <div className="p-6">
-                      {extractionResult ? (
+                    <div className="p-6 space-y-6">
+                      {/* Extraction Review */}
+                      {extractionResult && (
                         <EnhancedDraftReview
                           draftGoals={extractionResult.draft_goals}
                           draftTargets={extractionResult.draft_targets}
@@ -682,16 +704,115 @@ export default function SessionDetailsPage({
                           onRefresh={() => {
                             setExtractionResult(null)
                             loadDraftCommitments()
+                            loadActiveCommitments()
                           }}
                         />
-                      ) : (
-                        <DraftCommitmentsReview
-                          sessionId={sessionData.session.id}
-                          drafts={draftCommitments}
-                          loading={false}
-                          onRefresh={loadDraftCommitments}
-                        />
                       )}
+
+                      {/* Draft Commitments */}
+                      {!extractionResult && draftCommitments.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3">
+                            Draft Commitments
+                          </h4>
+                          <DraftCommitmentsReview
+                            sessionId={sessionData.session.id}
+                            drafts={draftCommitments}
+                            loading={false}
+                            onRefresh={() => {
+                              loadDraftCommitments()
+                              loadActiveCommitments()
+                            }}
+                          />
+                        </div>
+                      )}
+
+                      {/* Active Commitments from this session */}
+                      {activeCommitments.length > 0 && (
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                            <span>Commitments from this Session</span>
+                            <Badge variant="secondary">
+                              {activeCommitments.length}
+                            </Badge>
+                          </h4>
+                          <div className="space-y-3">
+                            {activeCommitments.map(commitment => (
+                              <Card
+                                key={commitment.id}
+                                className="border-gray-200"
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="flex-1">
+                                      <h5 className="font-medium text-gray-900 mb-1">
+                                        {commitment.title}
+                                      </h5>
+                                      {commitment.description && (
+                                        <p className="text-sm text-gray-600 mb-2">
+                                          {commitment.description}
+                                        </p>
+                                      )}
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <Badge variant="outline">
+                                          {commitment.type}
+                                        </Badge>
+                                        <Badge
+                                          variant="secondary"
+                                          className={
+                                            commitment.priority === 'high'
+                                              ? 'bg-red-100 text-red-700'
+                                              : commitment.priority === 'medium'
+                                                ? 'bg-yellow-100 text-yellow-700'
+                                                : 'bg-gray-100 text-gray-700'
+                                          }
+                                        >
+                                          {commitment.priority}
+                                        </Badge>
+                                        {commitment.target_date && (
+                                          <Badge
+                                            variant="outline"
+                                            className="text-xs"
+                                          >
+                                            Due:{' '}
+                                            {new Date(
+                                              commitment.target_date,
+                                            ).toLocaleDateString()}
+                                          </Badge>
+                                        )}
+                                        {commitment.extracted_from_transcript && (
+                                          <Badge
+                                            variant="secondary"
+                                            className="bg-purple-100 text-purple-700"
+                                          >
+                                            <Sparkles className="h-3 w-3 mr-1" />
+                                            AI Extracted
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Empty state */}
+                      {!extractionResult &&
+                        draftCommitments.length === 0 &&
+                        activeCommitments.length === 0 && (
+                          <div className="text-center py-12">
+                            <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                            <p className="text-gray-600 mb-2">
+                              No commitments yet
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              Extract commitments from AI or create manually
+                            </p>
+                          </div>
+                        )}
                     </div>
                   </Card>
                 </TabsContent>
