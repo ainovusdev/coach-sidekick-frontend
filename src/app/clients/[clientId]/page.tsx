@@ -46,6 +46,7 @@ import {
   UserCheck,
   Users,
   Target,
+  Sparkles,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -155,8 +156,26 @@ export default function ClientDetailPage({
                         </Badge>
                       )}
                     </div>
+
+                    {/* Meta Performance Vision */}
+                    {client.meta_performance_vision && (
+                      <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-500 rounded-r-lg">
+                        <div className="flex items-start gap-2">
+                          <Sparkles className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-purple-900 uppercase tracking-wider mb-1">
+                              Meta Performance Vision
+                            </p>
+                            <p className="text-sm text-gray-800 italic leading-relaxed">
+                              &ldquo;{client.meta_performance_vision}&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {client.notes && (
-                      <p className="text-sm text-gray-600 max-w-2xl mt-1">
+                      <p className="text-sm text-gray-600 max-w-2xl mt-2">
                         {client.notes}
                       </p>
                     )}
