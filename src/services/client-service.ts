@@ -8,11 +8,13 @@ const BACKEND_URL =
 export interface ClientCreateDto {
   name: string
   notes?: string
+  meta_performance_vision?: string
 }
 
 export interface ClientUpdateDto {
   name?: string
   notes?: string
+  meta_performance_vision?: string
 }
 
 // Backend response format
@@ -20,6 +22,7 @@ interface BackendClient {
   id: string
   name: string
   notes?: string
+  meta_performance_vision?: string
   created_at: string
   updated_at: string
 }
@@ -46,6 +49,7 @@ function transformClient(backendClient: BackendClient): Client {
     coach_id: userId,
     name: backendClient.name,
     notes: backendClient.notes,
+    meta_performance_vision: backendClient.meta_performance_vision,
     created_at: backendClient.created_at,
     updated_at: backendClient.updated_at,
   }
