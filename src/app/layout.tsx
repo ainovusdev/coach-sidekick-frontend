@@ -36,12 +36,18 @@ export default function RootLayout({
           <PermissionProvider>
             <WebSocketProvider>
               {children}
-              {/* NEW: Sonner toast notifications */}
+              {/* Sonner toast notifications - high z-index to appear above all content */}
               <Toaster
                 position="top-right"
                 richColors
                 closeButton
-                duration={4000}
+                duration={5000}
+                expand={true}
+                toastOptions={{
+                  style: {
+                    zIndex: 99999,
+                  },
+                }}
               />
             </WebSocketProvider>
           </PermissionProvider>

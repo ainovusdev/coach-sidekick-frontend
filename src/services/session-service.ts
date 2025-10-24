@@ -13,6 +13,7 @@ export interface SessionCreateDto {
 }
 
 export interface SessionUpdateDto {
+  title?: string
   status?: string
   ended_at?: string
   summary?: string

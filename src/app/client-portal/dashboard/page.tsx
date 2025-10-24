@@ -6,6 +6,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
+import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
+import { GoalsList } from '@/components/goals/goals-list'
 import {
   Calendar,
   Clock,
@@ -237,11 +239,20 @@ export default function ClientDashboard() {
         </Card>
       </div>
 
-      {/* Active Commitments Widget */}
-      <div className="mb-8">
+      {/* Current Sprint & Active Commitments */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <CurrentSprintWidget clientId={dashboardData?.client_info?.id} />
         <CommitmentsWidget
           clientId={dashboardData?.client_info?.id}
           limit={5}
+        />
+      </div>
+
+      {/* Goals */}
+      <div className="mb-8">
+        <GoalsList
+          clientId={dashboardData?.client_info?.id}
+          showCreateButton={false}
         />
       </div>
 

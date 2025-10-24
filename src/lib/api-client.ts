@@ -1,7 +1,83 @@
 import authService from '@/services/auth-service'
+import { toast } from 'sonner'
 
 export class ApiClient {
   private static DEFAULT_TIMEOUT = 30000 // 30 seconds
+
+  private static async handleErrorResponse(response: Response): Promise<never> {
+    let errorMessage = `HTTP error! status: ${response.status}`
+
+    try {
+      const contentType = response.headers.get('content-type')
+      if (contentType && contentType.includes('application/json')) {
+        const errorData = await response.json()
+        errorMessage = errorData.detail || errorData.message || errorMessage
+      } else {
+        const errorText = await response.text()
+        // Try to parse as JSON if it looks like JSON
+        if (errorText.startsWith('{')) {
+          try {
+            const errorData = JSON.parse(errorText)
+            errorMessage = errorData.detail || errorData.message || errorText
+          } catch {
+            errorMessage = errorText || errorMessage
+          }
+        } else {
+          errorMessage = errorText || errorMessage
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing error response:', e)
+    }
+
+    console.log('API Error:', response.status, errorMessage)
+
+    // Show toast notification for user-friendly errors
+    // Use setTimeout to ensure toast is rendered before error is thrown
+    const showToast = () => {
+      if (response.status === 403) {
+        console.log('Showing 403 toast:', errorMessage)
+        toast.error('Access Denied', {
+          description: errorMessage,
+          duration: 5000,
+        })
+      } else if (response.status === 404) {
+        toast.error('Not Found', {
+          description: errorMessage,
+          duration: 5000,
+        })
+      } else if (response.status === 400) {
+        toast.error('Invalid Request', {
+          description: errorMessage,
+          duration: 5000,
+        })
+      } else if (response.status === 401) {
+        toast.error('Authentication Required', {
+          description: 'Please log in to continue',
+          duration: 5000,
+        })
+      } else if (response.status >= 500) {
+        toast.error('Server Error', {
+          description:
+            'Something went wrong on the server. Please try again later.',
+          duration: 5000,
+        })
+      } else {
+        toast.error('Request Failed', {
+          description: errorMessage,
+          duration: 5000,
+        })
+      }
+    }
+
+    // Show toast immediately
+    showToast()
+
+    // Small delay to ensure toast is rendered
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    throw new Error(errorMessage)
+  }
 
   private static async getAuthHeaders(): Promise<Record<string, string>> {
     const headers: Record<string, string> = {
@@ -72,8 +148,7 @@ export class ApiClient {
     )
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `HTTP error! status: ${response.status}`)
+      await this.handleErrorResponse(response)
     }
 
     return await response.json()
@@ -97,8 +172,7 @@ export class ApiClient {
     console.log('Response ok:', response.ok)
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `HTTP error! status: ${response.status}`)
+      await this.handleErrorResponse(response)
     }
 
     const data = await response.json()
@@ -120,8 +194,7 @@ export class ApiClient {
     )
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `HTTP error! status: ${response.status}`)
+      await this.handleErrorResponse(response)
     }
 
     return await response.json()
@@ -141,8 +214,7 @@ export class ApiClient {
     )
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `HTTP error! status: ${response.status}`)
+      await this.handleErrorResponse(response)
     }
 
     return await response.json()
@@ -161,8 +233,7 @@ export class ApiClient {
     )
 
     if (!response.ok) {
-      const error = await response.text()
-      throw new Error(error || `HTTP error! status: ${response.status}`)
+      await this.handleErrorResponse(response)
     }
 
     // DELETE typically returns no content

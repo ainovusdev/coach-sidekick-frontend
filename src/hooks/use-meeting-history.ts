@@ -25,6 +25,7 @@ interface MeetingSession {
   duration_seconds?: number | null
   client_name?: string | null
   coach_name?: string | null // NEW: Coach's name
+  title?: string | null // Custom session title
 }
 
 interface MeetingHistoryResponse {
@@ -81,6 +82,7 @@ export function useMeetingHistory(limit: number = 10) {
             duration_seconds: session.duration_seconds || null,
             client_name: session.client_name || null, // FIXED: Use actual client_name from API
             coach_name: session.coach_name || null, // NEW: Use coach_name from API
+            title: session.title || null, // Custom session title
           })),
           pagination: {
             limit,

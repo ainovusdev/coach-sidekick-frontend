@@ -25,9 +25,13 @@ export function ClientNavigation() {
 
   const navItems = [
     { path: '/client-portal/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/client-portal/sprints', label: 'Sprints', icon: Target },
     { path: '/client-portal/sessions', label: 'Sessions', icon: Calendar },
-    { path: '/client-portal/progress', label: 'Progress', icon: BarChart },
-    { path: '/client-portal/commitments', label: 'Commitments', icon: Target },
+    {
+      path: '/client-portal/my-commitments',
+      label: 'Commitments',
+      icon: BarChart,
+    },
     { path: '/client-portal/profile', label: 'Profile', icon: User },
   ]
 

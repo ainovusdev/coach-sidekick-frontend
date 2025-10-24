@@ -19,9 +19,15 @@ import { ClientInvitationModal } from '@/components/clients/client-invitation-mo
 import { ClientChatUnified } from './components/client-chat-unified'
 import { SessionCardCompact } from './components/session-card-compact'
 import { ClientPersonaModern } from './components/client-persona-modern'
+import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
+import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
+import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
+import { SprintTargetsManager } from '@/components/sprints/sprint-targets-manager'
+import { GoalsList } from '@/components/goals/goals-list'
 import { useClientData } from './hooks/use-client-data'
 import { getClientInitials, formatDate } from './utils/client-utils'
 import { cn } from '@/lib/utils'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
   User,
@@ -39,6 +45,7 @@ import {
   Send,
   UserCheck,
   Users,
+  Target,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -55,6 +62,7 @@ export default function ClientDetailPage({
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
   const { client, sessions, loading, error, refetch } = useClientData(
     clientId,
@@ -339,114 +347,193 @@ export default function ClientDetailPage({
             </div>
           )}
 
-          {/* Main Content Area */}
+          {/* Main Content Area with Tabs */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Sessions List - Left Side */}
-              <div>
-                <Card className="border-gray-200 shadow-sm overflow-hidden pt-2">
-                  <CardHeader className="border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                        <MessageSquare className="h-5 w-5 text-gray-600" />
-                        Coaching Sessions
-                      </h2>
-                      {!isViewer && (
-                        <Button
-                          size="sm"
-                          onClick={() => setIsManualSessionModalOpen(true)}
-                        >
-                          <Plus className="h-4 w-4 mr-1" />
-                          Add Past Session
-                        </Button>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <ScrollArea className="h-[600px]">
-                    {sessions && sessions.length > 0 ? (
-                      <div>
-                        {sessions.map((session, index) => (
-                          <div
-                            key={session.id}
-                            className={cn(
-                              'p-4 hover:bg-gray-50 transition-colors cursor-pointer',
-                              index !== 0 && 'border-t border-gray-100',
-                            )}
-                            onClick={() =>
-                              router.push(`/sessions/${session.id}`)
-                            }
-                          >
-                            <SessionCardCompact
-                              session={session}
-                              showClient={false}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center h-full">
-                        <div className="text-center p-8">
-                          <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                          <h3 className="text-gray-900 font-medium mb-2">
-                            No sessions yet
-                          </h3>
-                          <p className="text-gray-500 text-sm mb-4">
-                            {isViewer
-                              ? `No sessions have been recorded for ${client.name} yet.`
-                              : `Start recording your first coaching session with ${client.name}`}
-                          </p>
+            <Tabs defaultValue="sessions" className="space-y-6">
+              <TabsList className="bg-gray-50 p-1 rounded-lg">
+                <TabsTrigger
+                  value="sessions"
+                  className="data-[state=active]:bg-white"
+                >
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Sessions
+                </TabsTrigger>
+                <TabsTrigger
+                  value="sprints"
+                  className="data-[state=active]:bg-white"
+                >
+                  <Target className="h-4 w-4 mr-2" />
+                  Sprints & Goals
+                </TabsTrigger>
+                <TabsTrigger
+                  value="commitments"
+                  className="data-[state=active]:bg-white"
+                >
+                  <Activity className="h-4 w-4 mr-2" />
+                  All Commitments
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="sessions" className="space-y-4">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Sessions List - Left Side */}
+                  <div>
+                    <Card className="border-gray-200 shadow-sm overflow-hidden pt-2">
+                      <CardHeader className="border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                            <MessageSquare className="h-5 w-5 text-gray-600" />
+                            Coaching Sessions
+                          </h2>
                           {!isViewer && (
                             <Button
+                              size="sm"
                               onClick={() => setIsManualSessionModalOpen(true)}
-                              className="bg-gray-900 hover:bg-gray-800 text-white"
                             >
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload Recording
+                              <Plus className="h-4 w-4 mr-1" />
+                              Add Past Session
                             </Button>
                           )}
                         </div>
-                      </div>
-                    )}
-                  </ScrollArea>
-                </Card>
-              </div>
+                      </CardHeader>
+                      <ScrollArea className="h-[600px]">
+                        {sessions && sessions.length > 0 ? (
+                          <div>
+                            {sessions.map((session, index) => (
+                              <div
+                                key={session.id}
+                                className={cn(
+                                  'p-4 hover:bg-gray-50 transition-colors cursor-pointer',
+                                  index !== 0 && 'border-t border-gray-100',
+                                )}
+                                onClick={() =>
+                                  router.push(`/sessions/${session.id}`)
+                                }
+                              >
+                                <SessionCardCompact
+                                  session={session}
+                                  showClient={false}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center h-full">
+                            <div className="text-center p-8">
+                              <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                              <h3 className="text-gray-900 font-medium mb-2">
+                                No sessions yet
+                              </h3>
+                              <p className="text-gray-500 text-sm mb-4">
+                                {isViewer
+                                  ? `No sessions have been recorded for ${client.name} yet.`
+                                  : `Start recording your first coaching session with ${client.name}`}
+                              </p>
+                              {!isViewer && (
+                                <Button
+                                  onClick={() =>
+                                    setIsManualSessionModalOpen(true)
+                                  }
+                                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                                >
+                                  <Upload className="h-4 w-4 mr-2" />
+                                  Upload Recording
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </ScrollArea>
+                    </Card>
+                  </div>
 
-              {/* Unified Chat Widget - Hidden for viewers */}
-              {!isViewer ? (
-                <Card className="border-gray-200 shadow-sm overflow-hidden">
-                  <CardContent className="p-0 h-full -my-4">
-                    <ClientChatUnified
-                      clientId={client.id}
-                      clientName={client.name}
-                    />
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card className="border-gray-200 shadow-sm overflow-hidden">
-                  <CardContent className="p-8">
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                      <div className="p-4 bg-blue-50 rounded-full mb-4">
-                        <Lock className="h-8 w-8 text-blue-600" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                        Restricted Access
+                  {/* Unified Chat Widget - Hidden for viewers */}
+                  {!isViewer ? (
+                    <Card className="border-gray-200 shadow-sm overflow-hidden">
+                      <CardContent className="p-0 h-full -my-4">
+                        <ClientChatUnified
+                          clientId={client.id}
+                          clientName={client.name}
+                        />
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <Card className="border-gray-200 shadow-sm overflow-hidden">
+                      <CardContent className="p-8">
+                        <div className="flex flex-col items-center justify-center h-full text-center">
+                          <div className="p-4 bg-blue-50 rounded-full mb-4">
+                            <Lock className="h-8 w-8 text-blue-600" />
+                          </div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                            Restricted Access
+                          </h3>
+                          <p className="text-sm text-gray-600 mb-4">
+                            Chat functionality is not available with viewer
+                            permissions.
+                          </p>
+                          <Badge
+                            variant="outline"
+                            className="bg-blue-50 border-blue-200 text-blue-700"
+                          >
+                            <Eye className="h-3 w-3 mr-1.5" />
+                            View Only Mode
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              </TabsContent>
+
+              <TabsContent value="sprints" className="space-y-6">
+                {/* Sprint Overview */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                  <CurrentSprintWidget
+                    clientId={client.id}
+                    onRefresh={refetch}
+                    showStatusMenu={true}
+                  />
+                  <Card className="border-gray-200 shadow-sm">
+                    <CardHeader>
+                      <h3 className="font-semibold text-gray-900">
+                        Quick Actions
                       </h3>
-                      <p className="text-sm text-gray-600 mb-4">
-                        Chat functionality is not available with viewer
-                        permissions.
-                      </p>
-                      <Badge
+                    </CardHeader>
+                    <CardContent className="space-y-2">
+                      <Button
                         variant="outline"
-                        className="bg-blue-50 border-blue-200 text-blue-700"
+                        className="w-full justify-start"
+                        onClick={() => setIsSprintModalOpen(true)}
                       >
-                        <Eye className="h-3 w-3 mr-1.5" />
-                        View Only Mode
-                      </Badge>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create New Sprint
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Goals List */}
+                <GoalsList
+                  clientId={client.id}
+                  onRefresh={refetch}
+                  showCreateButton={true}
+                />
+
+                {/* Targets Manager - Shows current sprint targets and add button */}
+                <SprintTargetsManager
+                  clientId={client.id}
+                  onRefresh={refetch}
+                />
+              </TabsContent>
+
+              <TabsContent value="commitments" className="space-y-4">
+                <CommitmentsWidget
+                  clientId={client.id}
+                  limit={20}
+                  showAll={true}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
         </div>
 
@@ -476,6 +563,13 @@ export default function ClientDetailPage({
             refetch()
           }}
           preselectedClientId={client.id}
+        />
+
+        <SprintFormModal
+          open={isSprintModalOpen}
+          onOpenChange={setIsSprintModalOpen}
+          clientId={client.id}
+          onSuccess={refetch}
         />
       </PageLayout>
     </ProtectedRoute>

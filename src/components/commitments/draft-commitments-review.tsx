@@ -18,46 +18,57 @@ import { useToast } from '@/hooks/use-toast'
 
 interface DraftCommitmentsReviewProps {
   sessionId: string
+  drafts?: Commitment[]
+  loading?: boolean
   onConfirmAll?: () => void
   onRefresh?: () => void
 }
 
 export function DraftCommitmentsReview({
   sessionId,
+  drafts: propsDrafts,
+  loading: propsLoading = false,
   onConfirmAll,
   onRefresh,
 }: DraftCommitmentsReviewProps) {
-  const [loading, setLoading] = useState(false)
-  const [drafts, setDrafts] = useState<Commitment[]>([])
+  const [internalDrafts, setInternalDrafts] = useState<Commitment[]>([])
+  const [internalLoading, setInternalLoading] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [confirming, setConfirming] = useState(false)
   const [discarding, setDiscarding] = useState(false)
   const { toast } = useToast()
 
+  // Use props drafts if provided, otherwise load internally
+  const drafts = propsDrafts !== undefined ? propsDrafts : internalDrafts
+  const loading = propsDrafts !== undefined ? propsLoading : internalLoading
+
   useEffect(() => {
-    loadDrafts()
-  }, [sessionId])
+    // Only load internally if drafts not provided via props
+    if (propsDrafts === undefined) {
+      loadDrafts()
+    }
+  }, [sessionId, propsDrafts])
+
+  // Auto-select all drafts when they change
+  useEffect(() => {
+    if (drafts.length > 0) {
+      setSelectedIds(new Set(drafts.map(c => c.id)))
+    }
+  }, [drafts])
 
   const loadDrafts = async () => {
-    setLoading(true)
+    setInternalLoading(true)
     try {
       const response = await CommitmentService.listCommitments({
         session_id: sessionId,
         status: 'draft',
         include_drafts: true,
       })
-      setDrafts(response.commitments || [])
-      // Auto-select all drafts
-      setSelectedIds(new Set(response.commitments?.map(c => c.id) || []))
+      setInternalDrafts(response.commitments || [])
     } catch (error) {
       console.error('Failed to load draft commitments:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load draft commitments',
-        variant: 'destructive',
-      })
     } finally {
-      setLoading(false)
+      setInternalLoading(false)
     }
   }
 
@@ -128,6 +139,11 @@ export function DraftCommitmentsReview({
     }
   }
 
+  console.log('DraftCommitmentsReview render:', {
+    drafts: drafts.length,
+    loading,
+  })
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -136,7 +152,7 @@ export function DraftCommitmentsReview({
     )
   }
 
-  if (drafts.length === 0) {
+  if (!drafts || drafts.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">
         <Sparkles className="size-8 mx-auto mb-2 opacity-50" />

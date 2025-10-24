@@ -35,7 +35,7 @@ export function RoleSwitcher() {
   if (hasRole('coach')) {
     roleViews.push({
       role: 'coach',
-      label: 'Coach View',
+      label: 'Coach Dashboard',
       icon: UserCheck,
       path: '/',
       description: 'Manage clients and sessions',

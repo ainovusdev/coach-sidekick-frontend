@@ -4,17 +4,11 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { CommitmentService } from '@/services/commitment-service'
 import { Commitment } from '@/types/commitment'
-import {
-  ArrowRight,
-  Target,
-  TrendingUp,
-  Loader2,
-  AlertCircle,
-} from 'lucide-react'
+import { CommitmentQuickComplete } from './commitment-quick-complete'
+import { ArrowRight, Target, Loader2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns'
 
@@ -92,10 +86,10 @@ export function CommitmentsWidget({
 
   if (loading) {
     return (
-      <Card className={cn('bg-zinc-900 border-zinc-800', className)}>
+      <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
         <CardContent className="py-12">
           <div className="flex items-center justify-center">
-            <Loader2 className="size-6 animate-spin text-zinc-500" />
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
           </div>
         </CardContent>
       </Card>
@@ -104,16 +98,16 @@ export function CommitmentsWidget({
 
   if (error) {
     return (
-      <Card className={cn('bg-zinc-900 border-zinc-800', className)}>
+      <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
         <CardContent className="py-12">
           <div className="text-center">
-            <AlertCircle className="size-8 mx-auto mb-2 text-red-600" />
-            <p className="text-zinc-400">{error}</p>
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-600" />
+            <p className="text-gray-600">{error}</p>
             <Button
               variant="outline"
               size="sm"
               onClick={loadCommitments}
-              className="mt-4 border-zinc-700 text-zinc-300"
+              className="mt-4"
             >
               Retry
             </Button>
@@ -124,19 +118,19 @@ export function CommitmentsWidget({
   }
 
   return (
-    <Card className={cn('bg-zinc-900 border-zinc-800', className)}>
+    <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
       {showHeader && (
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-white flex items-center gap-2">
-              <Target className="size-5" />
+            <CardTitle className="text-gray-900 flex items-center gap-2">
+              <Target className="h-5 w-5" />
               My Active Commitments
             </CardTitle>
             <Link href={viewAllLink}>
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-zinc-400 hover:text-white hover:bg-zinc-800"
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
                 View All
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -149,71 +143,72 @@ export function CommitmentsWidget({
       <CardContent>
         {commitments.length === 0 ? (
           <div className="text-center py-8">
-            <Target className="size-12 mx-auto mb-3 text-zinc-700" />
-            <p className="text-zinc-500">No active commitments</p>
-            <p className="text-sm text-zinc-600 mt-1">
+            <Target className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <p className="text-gray-600">No active commitments</p>
+            <p className="text-sm text-gray-500 mt-1">
               Commitments from your coaching sessions will appear here
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {commitments.map(commitment => {
               const deadlineStatus = getDeadlineStatus(commitment)
               return (
                 <div
                   key={commitment.id}
-                  className="p-4 border border-zinc-800 rounded-xl hover:bg-zinc-800/50 transition-colors"
+                  className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
                 >
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="font-medium text-white flex-1">
-                        {commitment.title}
-                      </h4>
+                  {/* Quick Complete Checkbox */}
+                  <div className="pt-0.5">
+                    <CommitmentQuickComplete
+                      commitment={commitment}
+                      onComplete={loadCommitments}
+                      size="md"
+                    />
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm text-gray-900 line-clamp-1">
+                      {commitment.title}
+                    </h4>
+
+                    {/* Compact Metadata */}
+                    <div className="flex items-center gap-2 mt-1 text-xs flex-wrap">
                       <Badge
-                        variant="outline"
-                        className="bg-blue-500/10 text-blue-400 border-blue-500/20"
+                        variant="secondary"
+                        className={cn(
+                          commitment.type === 'action' &&
+                            'bg-blue-100 text-blue-700',
+                          commitment.type === 'habit' &&
+                            'bg-purple-100 text-purple-700',
+                          commitment.type === 'milestone' &&
+                            'bg-green-100 text-green-700',
+                        )}
                       >
                         {commitment.type}
                       </Badge>
-                    </div>
-
-                    {commitment.description && (
-                      <p className="text-sm text-zinc-400 line-clamp-2">
-                        {commitment.description}
-                      </p>
-                    )}
-
-                    {/* Progress Bar */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-zinc-400">Progress</span>
-                        <span className="text-white font-medium">
-                          {commitment.progress_percentage}%
-                        </span>
-                      </div>
-                      <Progress
-                        value={commitment.progress_percentage}
-                        className="h-2 bg-zinc-800"
-                      />
-                    </div>
-
-                    {/* Deadline */}
-                    {deadlineStatus && (
-                      <div className="flex items-center gap-2 text-sm">
+                      {deadlineStatus && (
                         <span className={deadlineStatus.className}>
                           {deadlineStatus.text}
                         </span>
-                      </div>
-                    )}
+                      )}
+                      {commitment.progress_percentage > 0 &&
+                        commitment.progress_percentage < 100 && (
+                          <span className="text-gray-600">
+                            {commitment.progress_percentage}%
+                          </span>
+                        )}
+                    </div>
                   </div>
                 </div>
               )
             })}
 
             <Link href={viewAllLink}>
-              <Button className="w-full bg-white text-black hover:bg-zinc-200 mt-2">
-                <TrendingUp className="size-4 mr-2" />
-                Update Progress
+              <Button className="w-full bg-gray-900 text-white hover:bg-gray-800 mt-2">
+                View All Commitments
+                <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </Link>
           </div>

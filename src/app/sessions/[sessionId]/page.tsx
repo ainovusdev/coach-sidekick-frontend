@@ -33,7 +33,14 @@ import {
 import { SessionInsightsModern } from '@/components/sessions/session-insights-modern'
 import { SessionService } from '@/services/session-service'
 import { CommitmentService } from '@/services/commitment-service'
+import { GoalService } from '@/services/goal-service'
+import { TargetService } from '@/services/target-service'
+import {
+  EnhancedExtractionService,
+  ExtractionResult,
+} from '@/services/enhanced-extraction-service'
 import { DraftCommitmentsReview } from '@/components/commitments/draft-commitments-review'
+import { EnhancedDraftReview } from '@/components/extraction/enhanced-draft-review'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
 import type { Commitment } from '@/types/commitment'
 import { toast } from '@/hooks/use-toast'
@@ -72,6 +79,11 @@ export default function SessionDetailsPage({
   const [draftCommitments, setDraftCommitments] = useState<Commitment[]>([])
   const [extractingCommitments, setExtractingCommitments] = useState(false)
   const [showCreateCommitment, setShowCreateCommitment] = useState(false)
+
+  // Enhanced extraction state
+  const [extractionResult, setExtractionResult] =
+    useState<ExtractionResult | null>(null)
+  const [useEnhancedExtraction] = useState(true)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -157,13 +169,8 @@ export default function SessionDetailsPage({
           'Session insights and coaching metrics have been generated successfully.',
       })
     } catch (error) {
+      // ApiClient already shows error toast, just log it
       console.error('Analysis failed:', error)
-      toast({
-        title: 'Analysis Failed',
-        description:
-          error instanceof Error ? error.message : 'Failed to analyze session',
-        variant: 'destructive',
-      })
     } finally {
       setAnalyzing(false)
       setTimeout(() => setAnalysisProgress(0), 1000)
@@ -174,44 +181,96 @@ export default function SessionDetailsPage({
   const loadDraftCommitments = async () => {
     if (!sessionData?.session?.id) return
 
+    console.log(
+      'Loading draft commitments for session:',
+      sessionData.session.id,
+    )
     try {
       const response = await CommitmentService.listCommitments({
         session_id: sessionData.session.id,
         status: 'draft',
+        include_drafts: true,
       })
-      setDraftCommitments(response.commitments)
+      console.log(
+        'Draft commitments loaded:',
+        response.commitments?.length || 0,
+        response.commitments,
+      )
+      setDraftCommitments(response.commitments || [])
     } catch (error) {
       console.error('Failed to load draft commitments:', error)
     }
   }
 
-  // Extract commitments from session transcript
+  // Extract commitments from session transcript (or enhanced extraction)
   const extractCommitments = async () => {
     if (!sessionData?.session?.id) return
 
     setExtractingCommitments(true)
     try {
-      const extracted = await CommitmentService.extractFromSession(
-        sessionData.session.id,
-      )
-      toast({
-        title: 'Commitments Extracted',
-        description: `Found ${extracted.length} potential commitments from the session.`,
-      })
-      // Reload draft commitments
-      await loadDraftCommitments()
+      if (useEnhancedExtraction) {
+        // Enhanced extraction: goals + targets + commitments
+        const result = await EnhancedExtractionService.extractFromSession(
+          sessionData.session.id,
+        )
+        console.log('Enhanced extraction result:', result)
+        setExtractionResult(result)
+        toast({
+          title: 'Extraction Complete',
+          description: `Found ${result.total_created} items: ${result.draft_goals.length} goals, ${result.draft_targets.length} targets, ${result.draft_commitments.length} commitments`,
+        })
+      } else {
+        // Old method: commitments only
+        const extracted = await CommitmentService.extractFromSession(
+          sessionData.session.id,
+        )
+        console.log('Extracted commitments:', extracted)
+        toast({
+          title: 'Commitments Extracted',
+          description: `Found ${extracted.length} potential commitments from the session.`,
+        })
+        await loadDraftCommitments()
+      }
     } catch (error) {
-      console.error('Failed to extract commitments:', error)
-      toast({
-        title: 'Extraction Failed',
-        description:
-          error instanceof Error
-            ? error.message
-            : 'Failed to extract commitments',
-        variant: 'destructive',
-      })
+      // ApiClient already shows error toast, just log it
+      console.error('Failed to extract:', error)
     } finally {
       setExtractingCommitments(false)
+    }
+  }
+
+  // Handle bulk confirmation of all extracted entities
+  const handleConfirmAll = async () => {
+    if (!extractionResult) return
+
+    try {
+      // Confirm goals first
+      if (extractionResult.draft_goals.length > 0) {
+        await GoalService.bulkConfirmGoals(
+          extractionResult.draft_goals.map(g => g.id),
+        )
+      }
+
+      // Then targets
+      if (extractionResult.draft_targets.length > 0) {
+        await TargetService.bulkConfirmTargets(
+          extractionResult.draft_targets.map(t => t.id),
+        )
+      }
+
+      // Finally commitments
+      if (extractionResult.draft_commitments.length > 0) {
+        await CommitmentService.bulkConfirm(
+          extractionResult.draft_commitments.map(c => c.id),
+        )
+      }
+
+      // Clear extraction result and reload
+      setExtractionResult(null)
+      await loadDraftCommitments()
+    } catch (error) {
+      console.error('Failed to confirm all:', error)
+      throw error
     }
   }
 
@@ -236,13 +295,8 @@ export default function SessionDetailsPage({
       // Navigate back to sessions list
       router.push('/sessions')
     } catch (error) {
+      // ApiClient already shows error toast, just log it
       console.error('Failed to delete session:', error)
-      toast({
-        title: 'Delete Failed',
-        description:
-          error instanceof Error ? error.message : 'Failed to delete session',
-        variant: 'destructive',
-      })
     } finally {
       setDeleting(false)
       setShowDeleteDialog(false)
@@ -324,6 +378,12 @@ export default function SessionDetailsPage({
           session={session}
           onBack={() => router.back()}
           onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
+          onTitleUpdate={newTitle => {
+            // Update local session data
+            if (sessionData?.session) {
+              sessionData.session.title = newTitle
+            }
+          }}
         />
 
         {/* Main Content */}
@@ -729,19 +789,34 @@ export default function SessionDetailsPage({
                         </div>
                       </div>
 
-                      {/* Draft Commitments Review */}
-                      {draftCommitments.length > 0 ? (
-                        <DraftCommitmentsReview
-                          sessionId={sessionData.session.id}
-                          onRefresh={loadDraftCommitments}
+                      {/* Enhanced Extraction Review or Old Drafts */}
+                      {extractionResult ? (
+                        <EnhancedDraftReview
+                          draftGoals={extractionResult.draft_goals}
+                          draftTargets={extractionResult.draft_targets}
+                          draftCommitments={extractionResult.draft_commitments}
+                          onConfirmGoals={async ids => {
+                            await GoalService.bulkConfirmGoals(ids)
+                          }}
+                          onConfirmTargets={async ids => {
+                            await TargetService.bulkConfirmTargets(ids)
+                          }}
+                          onConfirmCommitments={async ids => {
+                            await CommitmentService.bulkConfirm(ids)
+                          }}
+                          onConfirmAll={handleConfirmAll}
+                          onRefresh={() => {
+                            setExtractionResult(null)
+                            loadDraftCommitments()
+                          }}
                         />
                       ) : (
-                        <div className="text-center py-8 text-gray-500">
-                          <p>
-                            No commitments extracted yet. Click &quot;Extract
-                            from AI&quot; to analyze the conversation.
-                          </p>
-                        </div>
+                        <DraftCommitmentsReview
+                          sessionId={sessionData.session.id}
+                          drafts={draftCommitments}
+                          loading={false}
+                          onRefresh={loadDraftCommitments}
+                        />
                       )}
                     </CardContent>
                   </Card>
@@ -765,14 +840,8 @@ export default function SessionDetailsPage({
               setShowCreateCommitment(false)
               loadDraftCommitments()
             } catch (error) {
-              toast({
-                title: 'Creation Failed',
-                description:
-                  error instanceof Error
-                    ? error.message
-                    : 'Failed to create commitment',
-                variant: 'destructive',
-              })
+              // ApiClient already shows error toast, just log it
+              console.error('Failed to create commitment:', error)
             }
           }}
           clientId={sessionData?.session?.client_id || undefined}

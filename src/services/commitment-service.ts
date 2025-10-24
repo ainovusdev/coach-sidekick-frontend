@@ -40,6 +40,20 @@ export class CommitmentService {
     const url = `${BACKEND_URL}/commitments/${queryString ? `?${queryString}` : ''}`
 
     const response = await ApiClient.get(url)
+
+    console.log('CommitmentService.listCommitments response:', response)
+    console.log('Is array?', Array.isArray(response))
+
+    // Backend returns array directly, wrap it in expected format
+    if (Array.isArray(response)) {
+      const wrapped = {
+        commitments: response,
+        total: response.length,
+      }
+      console.log('Wrapped response:', wrapped)
+      return wrapped
+    }
+
     return response
   }
 

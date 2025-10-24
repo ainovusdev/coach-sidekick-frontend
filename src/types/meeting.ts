@@ -48,6 +48,7 @@ export interface CoachingSession {
   user_id: string
   bot_id: string
   meeting_url: string
+  title?: string | null
   status: string
   client_id?: string
   client?: Client
