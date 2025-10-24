@@ -239,29 +239,23 @@ export default function SessionDetailsPage({
 
   // Handle bulk confirmation of all extracted entities
   const handleConfirmAll = async () => {
-    if (!extractionResult) return
+    if (!extractionResult || !sessionData?.session) return
 
     try {
-      // Confirm goals first
-      if (extractionResult.draft_goals.length > 0) {
-        await GoalService.bulkConfirmGoals(
-          extractionResult.draft_goals.map(g => g.id),
-        )
-      }
+      // Use new confirmation endpoint that creates records
+      await EnhancedExtractionService.confirmExtraction({
+        session_id: sessionData.session.id,
+        client_id: sessionData.session.client_id,
+        goals: extractionResult.draft_goals,
+        targets: extractionResult.draft_targets,
+        commitments: extractionResult.draft_commitments,
+        current_sprint_id: extractionResult.current_sprint_id,
+      })
 
-      // Then targets
-      if (extractionResult.draft_targets.length > 0) {
-        await TargetService.bulkConfirmTargets(
-          extractionResult.draft_targets.map(t => t.id),
-        )
-      }
-
-      // Finally commitments
-      if (extractionResult.draft_commitments.length > 0) {
-        await CommitmentService.bulkConfirm(
-          extractionResult.draft_commitments.map(c => c.id),
-        )
-      }
+      toast({
+        title: 'Extraction Confirmed',
+        description: `Created ${extractionResult.total_created} items successfully.`,
+      })
 
       // Clear extraction result and reload
       setExtractionResult(null)
