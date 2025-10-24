@@ -4,7 +4,7 @@ import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
-import { Home, Calendar, BarChart, Target, User, Trophy } from 'lucide-react'
+import { Home, Calendar, BarChart, Target, User } from 'lucide-react'
 import Image from 'next/image'
 
 export function ClientNavigation() {
