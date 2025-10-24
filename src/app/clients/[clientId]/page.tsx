@@ -506,15 +506,7 @@ export default function ClientDetailPage({
                   showCreateButton={true}
                 />
 
-                {/* 2. Sprint Overview */}
-                <CurrentSprintWidget
-                  clientId={client.id}
-                  onRefresh={refetch}
-                  showStatusMenu={true}
-                  onCreateSprint={() => setIsSprintModalOpen(true)}
-                />
-
-                {/* 3. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
+                {/* 2. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left: Desired Wins */}
                   <div>
@@ -571,6 +563,14 @@ export default function ClientDetailPage({
                     </Card>
                   </div>
                 </div>
+
+                {/* 3. Current Sprint Overview (Bottom, Full Width) */}
+                <CurrentSprintWidget
+                  clientId={client.id}
+                  onRefresh={refetch}
+                  showStatusMenu={true}
+                  onCreateSprint={() => setIsSprintModalOpen(true)}
+                />
               </TabsContent>
             </Tabs>
           </div>
