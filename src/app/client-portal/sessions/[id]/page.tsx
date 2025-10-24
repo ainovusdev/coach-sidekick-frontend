@@ -159,7 +159,7 @@ export default function ClientSessionDetailPage() {
     })
   }
 
-  const getSentimentColor = (sentiment: string) => {
+  const _getSentimentColor = (sentiment: string) => {
     switch (sentiment?.toLowerCase()) {
       case 'positive':
         return 'text-green-500'
@@ -234,44 +234,38 @@ export default function ClientSessionDetailPage() {
           </Button>
         </Link>
 
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-xl p-6">
+        <div className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900 mb-3">
                 Session Details
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-gray-700">
-                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <Calendar className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-2 border border-gray-200 px-3 py-2 rounded-lg">
+                  <Calendar className="h-4 w-4 text-gray-900" />
                   <span className="text-sm font-medium">
                     {sessionData.session.started_at
                       ? formatDate(sessionData.session.started_at)
                       : 'Date not available'}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 bg-white px-3 py-2 rounded-lg shadow-sm">
-                  <Clock className="h-4 w-4 text-blue-600" />
+                <div className="flex items-center gap-2 border border-gray-200 px-3 py-2 rounded-lg">
+                  <Clock className="h-4 w-4 text-gray-900" />
                   <span className="text-sm font-medium">
                     {sessionData.session.duration_minutes || 0} minutes
                   </span>
                 </div>
                 <Badge
                   variant="outline"
-                  className={`${
-                    sessionData.session.status === 'completed'
-                      ? 'bg-green-50 text-green-700 border-green-300'
-                      : sessionData.session.status === 'processing'
-                        ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
-                        : 'bg-blue-50 text-blue-700 border-blue-300'
-                  } px-3 py-1`}
+                  className="border-gray-300 text-gray-700 px-3 py-1"
                 >
                   {sessionData.session.status}
                 </Badge>
               </div>
             </div>
             {sessionData.session.coach && (
-              <div className="flex items-center gap-3 bg-white px-4 py-3 rounded-lg shadow-sm">
-                <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold">
+              <div className="flex items-center gap-3 border border-gray-200 px-4 py-3 rounded-lg">
+                <div className="h-10 w-10 rounded-full bg-gray-900 flex items-center justify-center text-white font-semibold">
                   {sessionData.session.coach.name?.charAt(0).toUpperCase() ||
                     'C'}
                 </div>
@@ -349,7 +343,7 @@ export default function ClientSessionDetailPage() {
             </Card>
           )}
 
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
               <CardTitle className="text-gray-900">Session Summary</CardTitle>
             </CardHeader>
@@ -361,7 +355,7 @@ export default function ClientSessionDetailPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-white border-gray-200 shadow-sm">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
               <CardTitle className="text-gray-900">
                 Key Topics Discussed
@@ -376,7 +370,7 @@ export default function ClientSessionDetailPage() {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100 transition-colors"
+                      className="bg-gray-100 text-gray-900 border-gray-300"
                     >
                       {topic}
                     </Badge>
@@ -392,31 +386,27 @@ export default function ClientSessionDetailPage() {
 
           {sessionData.analysis && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 border-green-200 shadow-sm">
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle className="text-base text-gray-900 flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-green-600" />
+                  <CardTitle className="text-base text-gray-900">
                     Session Sentiment
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p
-                    className={`text-2xl font-bold ${getSentimentColor(sessionData.analysis.sentiment)}`}
-                  >
+                  <p className="text-2xl font-bold text-gray-900">
                     {sessionData.analysis.sentiment || 'Not analyzed'}
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200 shadow-sm">
+              <Card className="bg-white border-gray-200">
                 <CardHeader>
-                  <CardTitle className="text-base text-gray-900 flex items-center gap-2">
-                    <Target className="h-4 w-4 text-purple-600" />
+                  <CardTitle className="text-base text-gray-900">
                     Engagement Level
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-purple-700">
+                  <p className="text-2xl font-bold text-gray-900">
                     {sessionData.analysis.engagement || 'Not analyzed'}
                   </p>
                 </CardContent>
@@ -498,8 +488,8 @@ export default function ClientSessionDetailPage() {
                             key={index}
                             className="flex items-start space-x-2"
                           >
-                            <TrendingUp className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">
+                            <TrendingUp className="h-4 w-4 text-gray-900 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-900">
                               {insight}
                             </span>
                           </li>
@@ -524,7 +514,7 @@ export default function ClientSessionDetailPage() {
                             <Badge
                               key={index}
                               variant="secondary"
-                              className="bg-gray-50 text-gray-700 border-gray-300"
+                              className="bg-gray-100 text-gray-900 border-gray-300"
                             >
                               {topic}
                             </Badge>
@@ -547,7 +537,7 @@ export default function ClientSessionDetailPage() {
                               <Badge
                                 key={index}
                                 variant="outline"
-                                className="border-gray-300 text-gray-600"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {keyword}
                               </Badge>
@@ -584,12 +574,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-gray-700 capitalize">
+                              <span className="text-sm text-gray-900 capitalize">
                                 {key.replace(/_/g, ' ')}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-gray-300 text-gray-700"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -624,12 +614,12 @@ export default function ClientSessionDetailPage() {
                               key={key}
                               className="flex justify-between items-center p-2"
                             >
-                              <span className="text-sm text-gray-700 capitalize">
+                              <span className="text-sm text-gray-900 capitalize">
                                 {key}
                               </span>
                               <Badge
                                 variant="outline"
-                                className="border-gray-300 text-gray-700"
+                                className="border-gray-300 text-gray-900"
                               >
                                 {String(value)}/10
                               </Badge>
@@ -658,8 +648,8 @@ export default function ClientSessionDetailPage() {
                             key={index}
                             className="flex items-start space-x-2"
                           >
-                            <MessageSquare className="h-4 w-4 text-blue-400 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">
+                            <MessageSquare className="h-4 w-4 text-gray-900 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-900">
                               {question}
                             </span>
                           </li>

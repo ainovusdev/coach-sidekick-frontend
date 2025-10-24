@@ -39,14 +39,15 @@ interface DraftTarget {
 }
 
 interface DraftCommitment {
-  id: string
+  id?: string
   title: string
   description?: string
   type: string
-  status: string
+  status?: string
   confidence: number
-  linked_target_ids: string[]
-  transcript_context: string
+  link_to_target_ids?: string[]
+  suggested_target_indices?: number[]
+  transcript_context?: string
 }
 
 interface EnhancedDraftReviewProps {
@@ -645,13 +646,24 @@ export function EnhancedDraftReview({
                           </div>
                           <div className="flex items-center gap-2">
                             <Badge variant="outline">{commitment.type}</Badge>
-                            {commitment.linked_target_ids.length > 0 && (
+                            {(commitment.link_to_target_ids?.length || 0) +
+                              (commitment.suggested_target_indices?.length ||
+                                0) >
+                              0 && (
                               <div className="flex items-center gap-1 text-xs text-green-600">
                                 <Link2 className="h-3 w-3" />
                                 <span>
                                   Linked to{' '}
-                                  {commitment.linked_target_ids.length} target
-                                  {commitment.linked_target_ids.length !== 1
+                                  {(commitment.link_to_target_ids?.length ||
+                                    0) +
+                                    (commitment.suggested_target_indices
+                                      ?.length || 0)}{' '}
+                                  target
+                                  {(commitment.link_to_target_ids?.length ||
+                                    0) +
+                                    (commitment.suggested_target_indices
+                                      ?.length || 0) !==
+                                  1
                                     ? 's'
                                     : ''}
                                 </span>
