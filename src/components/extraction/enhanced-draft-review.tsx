@@ -210,20 +210,40 @@ export function EnhancedDraftReview({
 
           {/* All Tab */}
           <TabsContent value="all" className="space-y-6">
-            {/* Summary */}
+            {/* Summary & Action */}
             <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
-                <div className="flex-1">
-                  <h4 className="font-semibold text-purple-900 mb-1">
-                    Extraction Complete
-                  </h4>
-                  <p className="text-sm text-purple-800">
-                    Found {draftGoals.length} outcomes, {draftTargets.length}{' '}
-                    desired wins, and {draftCommitments.length} commitments from
-                    the session transcript. Review and confirm the items below.
-                  </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-start gap-3 flex-1">
+                  <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-purple-900 mb-1">
+                      Extraction Complete
+                    </h4>
+                    <p className="text-sm text-purple-800">
+                      Found {draftGoals.length} outcomes, {draftTargets.length}{' '}
+                      desired wins, {draftCommitments.length} commitments.
+                      Review and confirm to save.
+                    </p>
+                  </div>
                 </div>
+                <Button
+                  onClick={handleConfirmAll}
+                  disabled={confirming}
+                  size="lg"
+                  className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
+                >
+                  {confirming ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      Confirm & Save ({totalExtracted})
+                    </>
+                  )}
+                </Button>
               </div>
             </div>
 
