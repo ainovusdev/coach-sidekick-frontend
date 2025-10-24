@@ -246,7 +246,11 @@ export default function SessionDetailsPage({
       return
     }
 
-    if (!sessionData.session.client_id) {
+    // Get client_id from nested client object
+    const clientId =
+      sessionData.session.client_id || sessionData.session.client?.id
+
+    if (!clientId) {
       console.log('Early return: missing client_id')
       toast({
         title: 'Error',
@@ -257,12 +261,13 @@ export default function SessionDetailsPage({
     }
 
     console.log('=== PROCEEDING WITH CONFIRMATION ===')
+    console.log('Using client_id:', clientId)
 
     try {
       // Use new confirmation endpoint that creates records
       const confirmRequest = {
         session_id: sessionData.session.id,
-        client_id: sessionData.session.client_id,
+        client_id: clientId,
         goals: extractionResult.draft_goals,
         targets: extractionResult.draft_targets,
         commitments: extractionResult.draft_commitments,
