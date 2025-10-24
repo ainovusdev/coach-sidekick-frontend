@@ -33,6 +33,7 @@ export default function ClientModal({
   const [formData, setFormData] = useState({
     name: '',
     notes: '',
+    meta_performance_vision: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -43,6 +44,7 @@ export default function ClientModal({
       setFormData({
         name: client?.name || '',
         notes: client?.notes || '',
+        meta_performance_vision: client?.meta_performance_vision || '',
       })
       setErrors({})
     }
@@ -70,6 +72,8 @@ export default function ClientModal({
       const clientData = {
         name: formData.name.trim(),
         notes: formData.notes.trim() || undefined,
+        meta_performance_vision:
+          formData.meta_performance_vision.trim() || undefined,
       }
 
       // If onSubmit is provided, use it; otherwise handle internally
@@ -190,6 +194,32 @@ export default function ClientModal({
                 {formData.notes.length}/500
               </div>
             </div>
+          </div>
+
+          {/* Meta Performance Vision */}
+          <div>
+            <label
+              htmlFor="meta_performance_vision"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
+              Meta Performance Vision{' '}
+              <span className="text-gray-400 font-normal">(Optional)</span>
+            </label>
+            <p className="text-xs text-gray-500 mb-2">
+              The client&apos;s super long-term vision - their ultimate
+              transformation and legacy
+            </p>
+            <textarea
+              id="meta_performance_vision"
+              rows={5}
+              value={formData.meta_performance_vision}
+              onChange={e =>
+                handleFieldChange('meta_performance_vision', e.target.value)
+              }
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-100 focus:border-gray-400 resize-y transition-all"
+              placeholder="e.g., Build a legacy as an innovative leader who transforms organizational culture, inspires thousands through authentic leadership, and creates lasting impact that outlives their career..."
+              disabled={isLoading}
+            />
           </div>
 
           {/* Error message */}

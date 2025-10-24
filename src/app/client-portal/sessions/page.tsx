@@ -14,17 +14,22 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  CheckCircle2,
+  TrendingUp,
 } from 'lucide-react'
 
 interface Session {
   id: string
-  date: string
+  session_date: string
   duration_minutes: number
   status: string
   summary?: string
-  has_transcript: boolean
-  has_analysis: boolean
+  sentiment_score?: number
+  engagement_level?: string
+  tasks_assigned: number
+  materials_shared: number
   key_topics: string[]
+  action_items: string[]
 }
 
 export default function ClientSessionsPage() {
@@ -80,13 +85,33 @@ export default function ClientSessionsPage() {
   }
 
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
+    if (!dateString) return 'Date unavailable'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return 'Invalid date'
+      return date.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    } catch {
+      return 'Invalid date'
+    }
+  }
+
+  const _formatTime = (dateString: string) => {
+    if (!dateString) return ''
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return ''
+      return date.toLocaleTimeString('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    } catch {
+      return ''
+    }
   }
 
   const filteredSessions = sessions.filter(session => {
@@ -95,10 +120,10 @@ export default function ClientSessionsPage() {
     const searchLower = searchTerm.toLowerCase()
     return (
       session.summary?.toLowerCase().includes(searchLower) ||
-      session.key_topics.some(topic =>
+      session.key_topics?.some(topic =>
         topic.toLowerCase().includes(searchLower),
       ) ||
-      formatDate(session.date).toLowerCase().includes(searchLower)
+      formatDate(session.session_date).toLowerCase().includes(searchLower)
     )
   })
 
@@ -173,99 +198,116 @@ export default function ClientSessionsPage() {
       ) : (
         <div className="space-y-4">
           {filteredSessions.map(session => (
-            <Card
+            <Link
               key={session.id}
-              className="bg-white border-gray-200 hover:border-gray-300 transition-all"
+              href={`/client-portal/sessions/${session.id}`}
+              className="block"
             >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Date and Duration Row */}
-                    <div className="flex items-center space-x-4 mb-3">
-                      <div className="flex items-center space-x-2 text-sm text-gray-700">
-                        <Calendar className="h-4 w-4" />
-                        <span className="font-medium">
-                          {formatDate(session.date)}
-                        </span>
+              <Card className="bg-white border-2 border-gray-200 hover:border-gray-400 transition-all shadow-sm hover:shadow-md group">
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between gap-6">
+                    <div className="flex-1 min-w-0">
+                      {/* Header with Date and Status */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 text-gray-900">
+                            <Calendar className="h-4 w-4 text-gray-700" />
+                            <span className="font-semibold text-base">
+                              {formatDate(session.session_date)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-gray-600">
+                            <Clock className="h-4 w-4" />
+                            <span className="text-sm">
+                              {session.duration_minutes || 0} min
+                            </span>
+                          </div>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="border-gray-300 text-gray-700 capitalize px-3 py-1"
+                        >
+                          {session.status}
+                        </Badge>
                       </div>
-                      <div className="flex items-center space-x-2 text-sm text-gray-700">
-                        <Clock className="h-4 w-4" />
-                        <span>{session.duration_minutes} minutes</span>
+
+                      {/* Summary */}
+                      {session.summary ? (
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                            {session.summary}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mb-4">
+                          <p className="text-sm text-gray-500 italic">
+                            No summary available yet
+                          </p>
+                        </div>
+                      )}
+
+                      {/* Key Topics */}
+                      {session.key_topics && session.key_topics.length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex flex-wrap gap-2">
+                            {session.key_topics
+                              .slice(0, 4)
+                              .map((topic, index) => (
+                                <Badge
+                                  key={index}
+                                  variant="secondary"
+                                  className="bg-gray-100 text-gray-900 border border-gray-300 text-xs"
+                                >
+                                  {topic}
+                                </Badge>
+                              ))}
+                            {session.key_topics.length > 4 && (
+                              <Badge
+                                variant="secondary"
+                                className="bg-gray-100 text-gray-600 border border-gray-300 text-xs"
+                              >
+                                +{session.key_topics.length - 4} more
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Session Stats */}
+                      <div className="flex items-center gap-6 text-sm text-gray-600">
+                        {session.tasks_assigned > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>{session.tasks_assigned} tasks</span>
+                          </div>
+                        )}
+                        {session.materials_shared > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="h-4 w-4" />
+                            <span>{session.materials_shared} materials</span>
+                          </div>
+                        )}
+                        {session.engagement_level && (
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="h-4 w-4" />
+                            <span className="capitalize">
+                              {session.engagement_level} engagement
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      <Badge
-                        variant="outline"
-                        className="border-gray-300 text-gray-700 bg-gray-100"
-                      >
-                        {session.status}
-                      </Badge>
                     </div>
 
-                    {/* Summary */}
-                    {session.summary ? (
-                      <div className="mb-3 p-3 bg-gray-100 rounded-lg border border-gray-300">
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {session.summary}
-                        </p>
+                    {/* Arrow Icon */}
+                    <div className="flex items-center">
+                      <div className="h-10 w-10 rounded-full bg-gray-100 group-hover:bg-gray-900 flex items-center justify-center transition-colors">
+                        <ChevronRight className="h-5 w-5 text-gray-700 group-hover:text-white transition-colors" />
                       </div>
-                    ) : (
-                      <div className="mb-3 p-3 bg-gray-50 rounded-lg border border-gray-300">
-                        <p className="text-sm text-gray-500 italic">
-                          No summary available yet
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Key Topics */}
-                    {session.key_topics && session.key_topics.length > 0 && (
-                      <div className="mb-3">
-                        <p className="text-xs text-gray-500 mb-2">
-                          Key Topics:
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {session.key_topics.map((topic, index) => (
-                            <Badge
-                              key={index}
-                              variant="secondary"
-                              className="bg-blue-500/20 text-blue-300 border-blue-500/30"
-                            >
-                              {topic}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Session Indicators */}
-                    <div className="flex items-center space-x-4 text-sm">
-                      {session.has_transcript && (
-                        <div className="flex items-center space-x-1 text-green-400">
-                          <FileText className="h-3.5 w-3.5" />
-                          <span className="font-medium">
-                            Transcript Available
-                          </span>
-                        </div>
-                      )}
-                      {session.has_analysis && (
-                        <div className="flex items-center space-x-1 text-purple-400">
-                          <FileText className="h-3.5 w-3.5" />
-                          <span className="font-medium">Analysis Complete</span>
-                        </div>
-                      )}
                     </div>
                   </div>
-
-                  {/* View Details Button - FIXED contrast */}
-                  <Link href={`/client-portal/sessions/${session.id}`}>
-                    <Button
-                      variant="outline"
-                      className="border-gray-400 bg-gray-50 text-gray-900 hover:bg-white hover:text-black transition-all"
-                    >
-                      View Details
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

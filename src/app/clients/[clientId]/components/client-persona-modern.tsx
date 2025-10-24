@@ -36,6 +36,8 @@ import {
 import { PersonaService, type ClientPersona } from '@/services/persona-service'
 import { PersonaHistoryTimeline } from '@/components/persona/persona-history-timeline'
 import { PersonaEvolutionTimeline } from '@/components/persona/persona-evolution-timeline'
+import { ClientService } from '@/services/client-service'
+import type { Client } from '@/types/meeting'
 
 interface ClientPersonaProps {
   clientId: string
@@ -43,14 +45,19 @@ interface ClientPersonaProps {
 
 export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
   const [persona, setPersona] = useState<ClientPersona | null>(null)
+  const [client, setClient] = useState<Client | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchPersona = async () => {
+    const fetchData = async () => {
       setLoading(true)
       try {
-        const data = await PersonaService.getClientPersona(clientId)
-        setPersona(data)
+        const [personaData, clientData] = await Promise.all([
+          PersonaService.getClientPersona(clientId),
+          ClientService.getClient(clientId),
+        ])
+        setPersona(personaData)
+        setClient(clientData)
       } catch (error) {
         console.error('Failed to fetch persona:', error)
       } finally {
@@ -58,7 +65,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
       }
     }
 
-    fetchPersona()
+    fetchData()
   }, [clientId])
 
   if (loading) {
@@ -120,6 +127,32 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
       </TabsList>
 
       <TabsContent value="overview" className="space-y-8">
+        {/* Meta Performance Vision */}
+        {client?.meta_performance_vision && (
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-8 text-white">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full -mr-32 -mt-32" />
+            <div className="absolute bottom-0 left-0 w-48 h-48 bg-white opacity-5 rounded-full -ml-24 -mb-24" />
+
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-white/10 rounded-xl backdrop-blur-sm">
+                  <Sparkles className="h-6 w-6" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold">Meta Performance Vision</h2>
+                  <p className="text-gray-300 text-sm">
+                    Ultimate transformation and legacy
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-lg leading-relaxed text-gray-100 italic">
+                &ldquo;{client.meta_performance_vision}&rdquo;
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Hero Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-xl p-4 text-white">

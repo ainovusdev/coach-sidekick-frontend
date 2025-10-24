@@ -21,6 +21,7 @@ export interface Client {
   coach_id: string
   name: string
   notes?: string
+  meta_performance_vision?: string
   email?: string
   created_at: string
   updated_at: string
