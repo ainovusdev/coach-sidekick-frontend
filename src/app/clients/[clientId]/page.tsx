@@ -486,8 +486,15 @@ export default function ClientDetailPage({
               </TabsContent>
 
               <TabsContent value="sprints" className="space-y-6">
-                {/* Sprint Overview */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                {/* 1. Outcomes at Top */}
+                <GoalsList
+                  clientId={client.id}
+                  onRefresh={refetch}
+                  showCreateButton={true}
+                />
+
+                {/* 2. Sprint Overview */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <CurrentSprintWidget
                     clientId={client.id}
                     onRefresh={refetch}
@@ -512,18 +519,41 @@ export default function ClientDetailPage({
                   </Card>
                 </div>
 
-                {/* Goals List */}
-                <GoalsList
-                  clientId={client.id}
-                  onRefresh={refetch}
-                  showCreateButton={true}
-                />
+                {/* 3. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Left: Desired Wins */}
+                  <div>
+                    <SprintTargetsManager
+                      clientId={client.id}
+                      onRefresh={refetch}
+                    />
+                  </div>
 
-                {/* Targets Manager - Shows current sprint targets and add button */}
-                <SprintTargetsManager
-                  clientId={client.id}
-                  onRefresh={refetch}
-                />
+                  {/* Right: Sprint Commitments */}
+                  <div>
+                    <Card className="border-gray-200 shadow-sm">
+                      <CardHeader>
+                        <div className="flex items-center gap-2">
+                          <Activity className="h-5 w-5" />
+                          <h3 className="font-semibold text-gray-900">
+                            Sprint Commitments
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          Active commitments for current sprint
+                        </p>
+                      </CardHeader>
+                      <CardContent>
+                        <CommitmentsWidget
+                          clientId={client.id}
+                          limit={10}
+                          showHeader={false}
+                          viewAllLink={`/clients/${client.id}?tab=commitments`}
+                        />
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
               </TabsContent>
 
               <TabsContent value="commitments" className="space-y-4">

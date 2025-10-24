@@ -126,7 +126,7 @@ export function GoalsList({
             {showCreateButton && (
               <Button size="sm" onClick={handleCreateClick}>
                 <Plus className="h-4 w-4 mr-2" />
-                New Goal
+                New Outcome
               </Button>
             )}
           </div>
