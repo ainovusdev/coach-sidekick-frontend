@@ -241,6 +241,15 @@ export default function SessionDetailsPage({
   const handleConfirmAll = async () => {
     if (!extractionResult || !sessionData?.session) return
 
+    if (!sessionData.session.client_id) {
+      toast({
+        title: 'Error',
+        description: 'Session must have a client to confirm extraction',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       // Use new confirmation endpoint that creates records
       await EnhancedExtractionService.confirmExtraction({
@@ -262,7 +271,7 @@ export default function SessionDetailsPage({
       await loadDraftCommitments()
     } catch (error) {
       console.error('Failed to confirm all:', error)
-      throw error
+      // Error is already shown by ApiClient, just log it
     }
   }
 
