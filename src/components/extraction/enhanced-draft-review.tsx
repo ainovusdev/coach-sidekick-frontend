@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -74,15 +74,6 @@ export function EnhancedDraftReview({
   onConfirmAll,
   onRefresh,
 }: EnhancedDraftReviewProps) {
-  const [selectedGoals, setSelectedGoals] = useState<Set<string>>(
-    new Set(draftGoals.map(g => g.id)),
-  )
-  const [selectedTargets, setSelectedTargets] = useState<Set<string>>(
-    new Set(draftTargets.map(t => t.id)),
-  )
-  const [selectedCommitments, setSelectedCommitments] = useState<Set<string>>(
-    new Set(draftCommitments.map(c => c.id)),
-  )
   const [confirming, setConfirming] = useState(false)
 
   const totalExtracted =
@@ -98,37 +89,6 @@ export function EnhancedDraftReview({
       </Card>
     )
   }
-
-  const handleToggleGoal = (id: string) => {
-    const newSet = new Set(selectedGoals)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSelectedGoals(newSet)
-  }
-
-  const handleToggleTarget = (id: string) => {
-    const newSet = new Set(selectedTargets)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSelectedTargets(newSet)
-  }
-
-  const handleToggleCommitment = (id: string) => {
-    const newSet = new Set(selectedCommitments)
-    if (newSet.has(id)) {
-      newSet.delete(id)
-    } else {
-      newSet.add(id)
-    }
-    setSelectedCommitments(newSet)
-  }
-
   const handleConfirmAll = async () => {
     setConfirming(true)
     try {
@@ -139,33 +99,6 @@ export function EnhancedDraftReview({
       onRefresh?.()
     } catch (error) {
       console.error('Failed to confirm all:', error)
-    } finally {
-      setConfirming(false)
-    }
-  }
-
-  const handleConfirmSelected = async () => {
-    setConfirming(true)
-    try {
-      // Confirm in order: goals → targets → commitments (respects dependencies)
-      if (selectedGoals.size > 0) {
-        await onConfirmGoals(Array.from(selectedGoals))
-      }
-      if (selectedTargets.size > 0) {
-        await onConfirmTargets(Array.from(selectedTargets))
-      }
-      if (selectedCommitments.size > 0) {
-        await onConfirmCommitments(Array.from(selectedCommitments))
-      }
-
-      const totalConfirmed =
-        selectedGoals.size + selectedTargets.size + selectedCommitments.size
-      toast.success('Confirmed Selected', {
-        description: `Successfully confirmed ${totalConfirmed} items`,
-      })
-      onRefresh?.()
-    } catch (error) {
-      console.error('Failed to confirm selected:', error)
     } finally {
       setConfirming(false)
     }
@@ -260,11 +193,6 @@ export function EnhancedDraftReview({
                   <Card key={goal.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedGoals.has(goal.id)}
-                          onCheckedChange={() => handleToggleGoal(goal.id)}
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
@@ -314,11 +242,6 @@ export function EnhancedDraftReview({
                   <Card key={target.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedTargets.has(target.id)}
-                          onCheckedChange={() => handleToggleTarget(target.id)}
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
@@ -370,13 +293,6 @@ export function EnhancedDraftReview({
                   <Card key={commitment.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedCommitments.has(commitment.id)}
-                          onCheckedChange={() =>
-                            handleToggleCommitment(commitment.id)
-                          }
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
@@ -495,11 +411,6 @@ export function EnhancedDraftReview({
                   <Card key={goal.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedGoals.has(goal.id)}
-                          onCheckedChange={() => handleToggleGoal(goal.id)}
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
@@ -569,11 +480,6 @@ export function EnhancedDraftReview({
                   <Card key={target.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedTargets.has(target.id)}
-                          onCheckedChange={() => handleToggleTarget(target.id)}
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
@@ -646,13 +552,6 @@ export function EnhancedDraftReview({
                   <Card key={commitment.id} className="border-gray-200">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
-                        <Checkbox
-                          checked={selectedCommitments.has(commitment.id)}
-                          onCheckedChange={() =>
-                            handleToggleCommitment(commitment.id)
-                          }
-                          className="mt-1"
-                        />
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
