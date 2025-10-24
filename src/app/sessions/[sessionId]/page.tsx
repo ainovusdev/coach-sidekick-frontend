@@ -252,14 +252,18 @@ export default function SessionDetailsPage({
 
     try {
       // Use new confirmation endpoint that creates records
-      await EnhancedExtractionService.confirmExtraction({
+      const confirmRequest = {
         session_id: sessionData.session.id,
         client_id: sessionData.session.client_id,
         goals: extractionResult.draft_goals,
         targets: extractionResult.draft_targets,
         commitments: extractionResult.draft_commitments,
         current_sprint_id: extractionResult.current_sprint_id,
-      })
+      }
+
+      console.log('Confirming extraction with request:', confirmRequest)
+
+      await EnhancedExtractionService.confirmExtraction(confirmRequest)
 
       toast({
         title: 'Extraction Confirmed',
