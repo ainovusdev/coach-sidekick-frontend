@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import { SprintService } from '@/services/sprint-service'
-import { SprintDetail } from '@/types/sprint'
+import { useCurrentSprint } from '@/hooks/queries/use-sprints'
 import { SprintStatusMenu } from '@/components/sprints/sprint-status-menu'
 import {
   Target,
@@ -19,6 +18,8 @@ import {
 } from 'lucide-react'
 import { format, differenceInDays } from 'date-fns'
 import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 
 interface CurrentSprintWidgetProps {
   clientId: string
@@ -27,6 +28,14 @@ interface CurrentSprintWidgetProps {
   onCreateSprint?: () => void
 }
 
+/**
+ * Current Sprint Widget - Now using TanStack Query
+ *
+ * Benefits:
+ * - Sprint data cached and shown instantly
+ * - Automatic background refresh
+ * - Shared cache with sprint pages
+ */
 export function CurrentSprintWidget({
   clientId,
   onRefresh,
@@ -34,27 +43,14 @@ export function CurrentSprintWidget({
   onCreateSprint,
 }: CurrentSprintWidgetProps) {
   const router = useRouter()
-  const [sprint, setSprint] = useState<SprintDetail | null>(null)
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
 
-  useEffect(() => {
-    if (clientId) {
-      loadCurrentSprint()
-    }
-  }, [clientId])
-
-  const loadCurrentSprint = async () => {
-    setLoading(true)
-    try {
-      const data = await SprintService.getCurrentSprint(clientId)
-      setSprint(data)
-    } catch (error) {
-      console.error('Failed to load current sprint:', error)
-      // Don't show error toast - widget will just show "no active sprint"
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Use TanStack Query for current sprint
+  const {
+    data: sprint,
+    isLoading: loading,
+    refetch,
+  } = useCurrentSprint(clientId)
 
   if (loading) {
     return (
@@ -82,7 +78,8 @@ export function CurrentSprintWidget({
       toast.success('Sprint Completed', {
         description: 'Sprint has been marked as completed',
       })
-      loadCurrentSprint()
+      queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+      refetch()
       onRefresh?.()
     } catch (error) {
       console.error('Failed to complete sprint:', error)
@@ -164,7 +161,10 @@ export function CurrentSprintWidget({
                 sprintId={sprint.id}
                 currentStatus={sprint.status as any}
                 onStatusChanged={() => {
-                  loadCurrentSprint()
+                  queryClient.invalidateQueries({
+                    queryKey: queryKeys.sprints.all,
+                  })
+                  refetch()
                   onRefresh?.()
                 }}
               />

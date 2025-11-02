@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useMemo } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Trophy, CheckCircle, Circle, Loader2, ArrowRight } from 'lucide-react'
-import { SprintService } from '@/services/sprint-service'
-import { TargetService } from '@/services/target-service'
-import { Target } from '@/types/sprint'
+import { useCurrentSprint } from '@/hooks/queries/use-sprints'
+import { useTargets } from '@/hooks/queries/use-targets'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 
@@ -16,42 +15,39 @@ interface DesiredWinsWidgetProps {
   limit?: number
 }
 
+/**
+ * Desired Wins Widget - Now using TanStack Query
+ *
+ * Benefits:
+ * - Sprint and targets cached across components
+ * - Instant display if data already loaded
+ * - Automatic deduplication
+ */
 export function DesiredWinsWidget({
   clientId,
   limit = 5,
 }: DesiredWinsWidgetProps) {
-  const [loading, setLoading] = useState(true)
-  const [targets, setTargets] = useState<Target[]>([])
+  // Use TanStack Query for current sprint
+  const { data: currentSprint, isLoading: sprintLoading } =
+    useCurrentSprint(clientId)
 
-  useEffect(() => {
-    if (clientId) {
-      loadTargets()
-    }
-  }, [clientId])
+  // Use TanStack Query for targets (only fetch if we have a sprint)
+  const { data: allTargets = [], isLoading: targetsLoading } = useTargets(
+    {
+      sprint_id: currentSprint?.id,
+      status: 'active',
+    },
+    {
+      enabled: !!currentSprint?.id,
+    },
+  )
 
-  const loadTargets = async () => {
-    try {
-      setLoading(true)
+  const loading = sprintLoading || targetsLoading
 
-      // Get current sprint
-      if (!clientId) return
-
-      const currentSprint = await SprintService.getCurrentSprint(clientId)
-
-      if (currentSprint) {
-        // Fetch active targets for current sprint
-        const sprintTargets = await TargetService.listTargets({
-          sprint_id: currentSprint.id,
-          status: 'active',
-        })
-        setTargets(sprintTargets.slice(0, limit))
-      }
-    } catch (error) {
-      console.error('Failed to load targets:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Limit targets to display
+  const targets = useMemo(() => {
+    return allTargets.slice(0, limit)
+  }, [allTargets, limit])
 
   const getStatusIcon = (status: string, progress: number) => {
     if (status === 'completed' || progress === 100) {
