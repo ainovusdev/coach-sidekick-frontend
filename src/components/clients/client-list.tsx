@@ -313,7 +313,6 @@ export default function ClientList() {
                 placeholder="Search by name or notes..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:border-gray-400 focus:ring-2 focus:ring-gray-100 focus:outline-none transition-all text-gray-900 placeholder:text-gray-400"
               />
               {searchTerm && (
