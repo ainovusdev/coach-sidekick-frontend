@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { SessionService } from '@/services/session-service'
+import { useMemo } from 'react'
+import { useSessions } from '@/hooks/queries/use-sessions'
 
 interface MeetingSummary {
   duration_minutes: number | null
@@ -24,8 +24,8 @@ interface MeetingSession {
   summary?: string | null
   duration_seconds?: number | null
   client_name?: string | null
-  coach_name?: string | null // NEW: Coach's name
-  title?: string | null // Custom session title
+  coach_name?: string | null
+  title?: string | null
 }
 
 interface MeetingHistoryResponse {
@@ -37,80 +37,83 @@ interface MeetingHistoryResponse {
   }
 }
 
+/**
+ * Hook to fetch meeting/session history with pagination
+ * Now powered by TanStack Query for automatic caching
+ *
+ * Benefits:
+ * - Sessions cached and shown instantly if recently visited
+ * - Automatic background refresh
+ * - No duplicate requests across components
+ */
 export function useMeetingHistory(limit: number = 10) {
-  const [data, setData] = useState<MeetingHistoryResponse | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Use TanStack Query for sessions data
+  const {
+    data: sessionsData,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useSessions({
+    page: 1,
+    per_page: limit,
+  })
 
-  const fetchHistory = useCallback(
-    async (offset: number = 0) => {
-      try {
-        setLoading(true)
-        setError(null)
+  // Transform sessions data to expected format
+  const data: MeetingHistoryResponse | null = useMemo(() => {
+    if (!sessionsData) return null
 
-        const page = Math.floor(offset / limit) + 1
-        const response = await SessionService.listSessions({
-          page,
-          per_page: limit,
-        })
+    return {
+      meetings: sessionsData.sessions.map((session: any) => ({
+        id: session.id,
+        bot_id: session.bot_id,
+        meeting_url: session.meeting_url,
+        status: session.status,
+        created_at: session.created_at,
+        updated_at: session.updated_at,
+        metadata: session.client_id ? { client_id: session.client_id } : {},
+        meeting_summaries: session.summary
+          ? {
+              duration_minutes: session.duration_seconds
+                ? Math.ceil(session.duration_seconds / 60)
+                : null,
+              total_transcript_entries: null,
+              total_coaching_suggestions: null,
+              final_overall_score: null,
+              final_conversation_phase: null,
+              key_insights: session.key_topics || null,
+              action_items: session.action_items || null,
+              meeting_summary: session.summary,
+            }
+          : null,
+        summary: session.summary || null,
+        duration_seconds: session.duration_seconds || null,
+        client_name: session.client_name || null,
+        coach_name: session.coach_name || null,
+        title: session.title || null,
+      })),
+      pagination: {
+        limit,
+        offset: 0,
+        hasMore: sessionsData.total > limit,
+      },
+    }
+  }, [sessionsData, limit])
 
-        // Transform to expected format
-        const historyData: MeetingHistoryResponse = {
-          meetings: response.sessions.map((session: any) => ({
-            id: session.id,
-            bot_id: session.bot_id,
-            meeting_url: session.meeting_url,
-            status: session.status,
-            created_at: session.created_at,
-            updated_at: session.updated_at,
-            metadata: session.client_id ? { client_id: session.client_id } : {},
-            meeting_summaries: session.summary
-              ? {
-                  duration_minutes: session.duration_seconds
-                    ? Math.ceil(session.duration_seconds / 60)
-                    : null,
-                  total_transcript_entries: null,
-                  total_coaching_suggestions: null,
-                  final_overall_score: null,
-                  final_conversation_phase: null,
-                  key_insights: session.key_topics || null,
-                  action_items: session.action_items || null,
-                  meeting_summary: session.summary,
-                }
-              : null,
-            summary: session.summary || null,
-            duration_seconds: session.duration_seconds || null,
-            client_name: session.client_name || null, // FIXED: Use actual client_name from API
-            coach_name: session.coach_name || null, // NEW: Use coach_name from API
-            title: session.title || null, // Custom session title
-          })),
-          pagination: {
-            limit,
-            offset,
-            hasMore: response.total > page * limit,
-          },
-        }
+  const error = queryError ? 'Failed to load sessions' : null
 
-        setData(historyData)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error')
-      } finally {
-        setLoading(false)
-      }
-    },
-    [limit],
-  )
-
-  useEffect(() => {
-    fetchHistory()
-  }, [limit, fetchHistory])
+  // Fetch more function for pagination
+  const fetchMore = (_offset: number) => {
+    // For now, just refetch - can be enhanced with proper pagination later
+    // TODO: Implement proper pagination with useInfiniteQuery
+    refetch()
+  }
 
   return {
     data,
     loading,
     error,
-    refetch: () => fetchHistory(),
-    fetchMore: (offset: number) => fetchHistory(offset),
+    refetch,
+    fetchMore,
   }
 }
 
