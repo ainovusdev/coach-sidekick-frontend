@@ -51,7 +51,7 @@ export function useClientData(
     isLoading: clientLoading,
     error: clientError,
     refetch: refetchClient,
-  } = useClient(clientId)
+  } = useClient(clientId ?? undefined)
 
   // Fetch client sessions with TanStack Query
   const {
@@ -59,7 +59,7 @@ export function useClientData(
     isLoading: sessionsLoading,
     error: sessionsError,
     refetch: refetchSessions,
-  } = useClientSessions(clientId, { per_page: 10 })
+  } = useClientSessions(clientId ?? undefined, { per_page: 10 })
 
   // Combined loading state
   const loading = clientLoading || sessionsLoading
