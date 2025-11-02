@@ -1,6 +1,5 @@
 import { Card, CardContent } from './card'
 import { Avatar, AvatarFallback } from './avatar'
-import { Badge } from './badge'
 import { FileText, Lock, Users } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { usePermissions, PermissionGate } from '@/contexts/permission-context'
@@ -68,41 +67,66 @@ export function ClientCard({
     >
       <Card
         className={cn(
-          'border border-gray-200 hover:border-gray-400 hover:shadow-md transition-all duration-200',
+          'border border-gray-200 hover:border-gray-400 hover:shadow-md transition-all duration-200 group',
           onClick && !isViewer ? 'cursor-pointer' : 'cursor-default',
+          isMyClient === false && 'border-blue-200 bg-blue-50/10', // Subtle blue tint for assigned clients
           className,
         )}
         onClick={isViewer ? undefined : onClick}
       >
         <CardContent className="p-3">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 bg-gray-900 border border-gray-900">
-              <AvatarFallback className="bg-gray-900 text-white text-sm font-bold">
-                {getInitials(name)}
-              </AvatarFallback>
-            </Avatar>
+            <div className="relative">
+              <Avatar
+                className={cn(
+                  'h-10 w-10 border-2 transition-all group-hover:scale-105',
+                  isMyClient === false
+                    ? 'bg-gradient-to-br from-blue-500 to-blue-600 border-blue-400'
+                    : 'bg-gray-900 border-gray-900',
+                )}
+              >
+                <AvatarFallback
+                  className={cn(
+                    'text-sm font-bold',
+                    isMyClient === false
+                      ? 'bg-gradient-to-br from-blue-500 to-blue-600 text-white'
+                      : 'bg-gray-900 text-white',
+                  )}
+                >
+                  {getInitials(name)}
+                </AvatarFallback>
+              </Avatar>
+              {/* Ownership indicator dot */}
+              {isMyClient === false && (
+                <div
+                  className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-blue-500 rounded-full border-2 border-white"
+                  title={`Assigned by ${coachName}`}
+                />
+              )}
+            </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
-                <p className="font-semibold text-gray-900 text-sm">{name}</p>
-                {/* NEW: Ownership indicator badge */}
-                {isMyClient === false && coachName && (
-                  <Badge
-                    variant="outline"
-                    className="bg-blue-50 border-blue-300 text-blue-700 text-xs"
-                  >
-                    <Users className="h-2.5 w-2.5 mr-1" />
-                    {coachName}
-                  </Badge>
-                )}
+                <p className="font-semibold text-gray-900 text-sm truncate">
+                  {name}
+                </p>
               </div>
-              {notes && !isViewer && (
-                <div className="flex items-center gap-1 mt-0.5">
+              {/* Ownership badge - more prominent */}
+              {isMyClient === false && coachName && (
+                <div className="flex items-center gap-1 mt-1">
+                  <Users className="h-3 w-3 text-blue-600" />
+                  <span className="text-xs text-blue-600 font-medium">
+                    by {coachName}
+                  </span>
+                </div>
+              )}
+              {notes && !isViewer && isMyClient !== false && (
+                <div className="flex items-center gap-1 mt-1">
                   <FileText className="h-3 w-3 text-gray-400" />
                   <p className="text-xs text-gray-500 truncate">{notes}</p>
                 </div>
               )}
               {notes && isViewer && (
-                <div className="flex items-center gap-1 mt-0.5">
+                <div className="flex items-center gap-1 mt-1">
                   <Lock className="h-3 w-3 text-gray-400" />
                   <p className="text-xs text-gray-400 italic">Notes hidden</p>
                 </div>
