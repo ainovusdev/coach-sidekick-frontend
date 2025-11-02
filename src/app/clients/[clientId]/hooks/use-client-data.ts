@@ -1,7 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
 import { Client, ClientSessionStats } from '@/types/meeting'
-import { ClientService } from '@/services/client-service'
-import { SessionService } from '@/services/session-service'
+import { useClient, useClientSessions } from '@/hooks/queries/use-clients'
 
 interface ClientWithStats extends Client {
   client_session_stats?: ClientSessionStats[]
@@ -30,57 +28,60 @@ interface UseClientDataReturn {
   sessions: ClientSession[]
   loading: boolean
   error: string | null
-  refetch: () => Promise<void>
+  refetch: () => void
 }
 
+/**
+ * Custom hook to fetch client data and their sessions
+ * Now powered by TanStack Query for automatic caching and deduplication
+ *
+ * Benefits:
+ * - Cached data shown immediately on revisit
+ * - Automatic background revalidation
+ * - No duplicate requests if multiple components use this
+ * - Built-in error handling and retry logic
+ */
 export function useClientData(
   clientId: string | null | undefined,
-  userId: string | undefined,
+  _userId: string | undefined,
 ): UseClientDataReturn {
-  const [client, setClient] = useState<ClientWithStats | null>(null)
-  const [sessions, setSessions] = useState<ClientSession[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  // Fetch client details with TanStack Query
+  const {
+    data: client,
+    isLoading: clientLoading,
+    error: clientError,
+    refetch: refetchClient,
+  } = useClient(clientId)
 
-  const fetchClientData = useCallback(async () => {
-    if (!clientId || !userId) return
+  // Fetch client sessions with TanStack Query
+  const {
+    data: sessionsData,
+    isLoading: sessionsLoading,
+    error: sessionsError,
+    refetch: refetchSessions,
+  } = useClientSessions(clientId, { per_page: 10 })
 
-    setLoading(true)
-    setError(null)
+  // Combined loading state
+  const loading = clientLoading || sessionsLoading
 
-    try {
-      // Fetch client details
-      const clientData = await ClientService.getClient(clientId)
-      setClient(clientData)
+  // Combined error state
+  const error = clientError
+    ? 'Failed to load client details'
+    : sessionsError
+      ? 'Failed to load client sessions'
+      : null
 
-      // Fetch client sessions
-      const sessionsData = await SessionService.getClientSessions(clientId, {
-        per_page: 10,
-      })
-      setSessions(sessionsData.sessions || [])
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'An unexpected error occurred',
-      )
-    } finally {
-      setLoading(false)
-    }
-  }, [clientId, userId])
-
-  useEffect(() => {
-    if (!userId || !clientId) {
-      setLoading(false)
-      return
-    }
-
-    fetchClientData()
-  }, [clientId, userId, fetchClientData])
+  // Combined refetch function
+  const refetch = () => {
+    refetchClient()
+    refetchSessions()
+  }
 
   return {
-    client,
-    sessions,
+    client: client ?? null,
+    sessions: sessionsData?.sessions ?? [],
     loading,
     error,
-    refetch: fetchClientData,
+    refetch,
   }
 }

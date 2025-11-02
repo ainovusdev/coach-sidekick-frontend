@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Client, ClientSessionStats } from '@/types/meeting'
-import { ClientService } from '@/services/client-service'
+import { Client } from '@/types/meeting'
+import { useClients } from '@/hooks/queries/use-clients'
 import ClientModal from './client-modal'
 import { ClientInvitationModal } from './client-invitation-modal'
 import {
@@ -26,81 +26,69 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePermissions } from '@/contexts/permission-context'
-
-interface ClientWithStats extends Client {
-  client_session_stats?: ClientSessionStats[]
-}
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ClientService } from '@/services/client-service'
+import { queryKeys } from '@/lib/query-client'
 
 export default function ClientList() {
   const router = useRouter()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
-  const [clients, setClients] = useState<ClientWithStats[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+
+  // Use TanStack Query for data fetching
+  const { data, isLoading: loading, error: queryError, refetch } = useClients()
+  const clients = data?.clients ?? []
+  const error = queryError ? 'Failed to load clients' : null
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [sortBy, setSortBy] = useState<'name' | 'recent' | 'sessions'>('recent')
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setLoading(true)
-
-      const response = await ClientService.listClients()
-
-      setClients(response.clients)
-      setError(null)
-    } catch (error) {
-      console.error('Error fetching clients:', error)
-      setError('Failed to load clients')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchClients()
-  }, [fetchClients])
-
-  const handleSearch = () => {
-    fetchClients()
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }
-
-  const handleCreateClient = async (clientData: Partial<Client>) => {
-    try {
-      await ClientService.createClient({
+  // Create client mutation with optimistic updates
+  const createMutation = useMutation({
+    mutationFn: (clientData: Partial<Client>) =>
+      ClientService.createClient({
         name: clientData.name || '',
         notes: clientData.notes,
-      })
-      fetchClients() // Refresh the list
-    } catch (error) {
-      console.error('Error creating client:', error)
-      throw error
-    }
+      }),
+    onSuccess: () => {
+      // Invalidate and refetch clients list
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+    },
+  })
+
+  // Update client mutation with optimistic updates
+  const updateMutation = useMutation({
+    mutationFn: ({
+      clientId,
+      data,
+    }: {
+      clientId: string
+      data: Partial<Client>
+    }) => ClientService.updateClient(clientId, data),
+    onSuccess: () => {
+      // Invalidate and refetch clients list
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+    },
+  })
+
+  const handleCreateClient = async (clientData: Partial<Client>) => {
+    await createMutation.mutateAsync(clientData)
   }
 
   const handleEditClient = async (clientData: Partial<Client>) => {
     if (!selectedClient) return
-
-    try {
-      await ClientService.updateClient(selectedClient.id, {
+    await updateMutation.mutateAsync({
+      clientId: selectedClient.id,
+      data: {
         name: clientData.name,
         notes: clientData.notes,
-      })
-      fetchClients() // Refresh the list
-    } catch (error) {
-      console.error('Error updating client:', error)
-      throw error
-    }
+      },
+    })
   }
 
   const openEditModal = (client: Client) => {
@@ -404,7 +392,7 @@ export default function ClientList() {
                 </h4>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
                 <Button
-                  onClick={fetchClients}
+                  onClick={() => refetch()}
                   variant="outline"
                   size="sm"
                   className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
@@ -644,7 +632,7 @@ export default function ClientList() {
           clientName={selectedClient.name}
           clientEmail={selectedClient.email}
           invitationStatus={selectedClient.invitation_status}
-          onInvitationSent={fetchClients}
+          onInvitationSent={() => refetch()}
         />
       )}
     </>
