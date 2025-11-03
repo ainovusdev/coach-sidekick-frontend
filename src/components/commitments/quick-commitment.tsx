@@ -13,8 +13,7 @@ import {
 } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Check, Loader2, Target, CalendarIcon } from 'lucide-react'
-import { CommitmentService } from '@/services/commitment-service'
-import { toast } from 'sonner'
+import { useCreateCommitment } from '@/hooks/mutations/use-commitment-mutations'
 import { cn } from '@/lib/utils'
 
 interface QuickCommitmentProps {
@@ -25,36 +24,22 @@ interface QuickCommitmentProps {
 export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const [title, setTitle] = useState('')
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined)
-  const [saving, setSaving] = useState(false)
+  const createCommitment = useCreateCommitment()
 
   const handleSave = async () => {
-    if (!title.trim() || saving) return
+    if (!title.trim() || createCommitment.isPending) return
 
-    setSaving(true)
-    try {
-      await CommitmentService.createCommitment({
-        client_id: clientId,
-        session_id: sessionId,
-        title: title.trim(),
-        target_date: targetDate ? format(targetDate, 'yyyy-MM-dd') : undefined,
-        type: 'action', // Default to action
-        priority: 'medium', // Default to medium
-      })
+    await createCommitment.mutateAsync({
+      client_id: clientId,
+      session_id: sessionId,
+      title: title.trim(),
+      target_date: targetDate ? format(targetDate, 'yyyy-MM-dd') : undefined,
+      type: 'action', // Default to action
+      priority: 'medium', // Default to medium
+    })
 
-      toast.success('Commitment Saved', {
-        description: 'You can add more details after the session',
-      })
-
-      setTitle('') // Clear after save
-      setTargetDate(undefined)
-    } catch (error) {
-      toast.error('Failed to Save Commitment', {
-        description:
-          error instanceof Error ? error.message : 'Please try again',
-      })
-    } finally {
-      setSaving(false)
-    }
+    setTitle('') // Clear after save
+    setTargetDate(undefined)
   }
 
   return (
@@ -89,7 +74,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 }
               }}
               className="border-gray-200 focus:border-blue-400 text-base h-11"
-              disabled={saving}
+              disabled={createCommitment.isPending}
               maxLength={200}
             />
           </div>
@@ -103,7 +88,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                     'w-full justify-start text-left font-normal h-9 border-gray-200',
                     !targetDate && 'text-muted-foreground',
                   )}
-                  disabled={saving}
+                  disabled={createCommitment.isPending}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {targetDate ? (
@@ -131,11 +116,11 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
           </p>
           <Button
             onClick={handleSave}
-            disabled={!title.trim() || saving}
+            disabled={!title.trim() || createCommitment.isPending}
             size="sm"
             className="bg-blue-600 hover:bg-blue-700"
           >
-            {saving ? (
+            {createCommitment.isPending ? (
               <>
                 <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                 Saving...

@@ -7,6 +7,7 @@ import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { QuickNote } from '@/components/session-notes/quick-note' // NEW: Import QuickNote
 import { QuickCommitment } from '@/components/commitments/quick-commitment' // NEW: Import QuickCommitment
+import { RecentCommitmentsCard } from '@/components/meeting/recent-commitments-card' // NEW: Import RecentCommitmentsCard
 import { TranscriptEntry } from '@/types/meeting'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
@@ -132,6 +133,11 @@ export default function MeetingPanels({
           {/* NEW: Quick Commitments - Show after quick notes */}
           {sessionId && clientId && (
             <QuickCommitment sessionId={sessionId} clientId={clientId} />
+          )}
+
+          {/* NEW: Recent Commitments - Show active commitments */}
+          {clientId && (
+            <RecentCommitmentsCard clientId={clientId} compact={true} />
           )}
 
           {contextLoading ? (

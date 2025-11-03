@@ -6,8 +6,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Check, Loader2, StickyNote } from 'lucide-react'
-import { SessionNotesService } from '@/services/session-notes-service'
-import { toast } from 'sonner' // UPDATED: Use Sonner
+import { useCreateNote } from '@/hooks/mutations/use-note-mutations'
 
 interface QuickNoteProps {
   sessionId: string
@@ -19,32 +18,18 @@ export function QuickNote({
   noteType = 'coach_private',
 }: QuickNoteProps) {
   const [content, setContent] = useState('')
-  const [saving, setSaving] = useState(false)
+  const createNote = useCreateNote(sessionId)
 
   const handleSave = async () => {
-    if (!content.trim() || saving) return
+    if (!content.trim() || createNote.isPending) return
 
-    setSaving(true)
-    try {
-      await SessionNotesService.createNote(sessionId, {
-        note_type: noteType,
-        title: `Quick note - ${new Date().toLocaleTimeString()}`,
-        content: content.trim(),
-      })
+    await createNote.mutateAsync({
+      note_type: noteType,
+      title: `Quick note - ${new Date().toLocaleTimeString()}`,
+      content: content.trim(),
+    })
 
-      toast.success('Note Saved', {
-        description: 'Your quick note has been saved',
-      })
-
-      setContent('') // Clear after save
-    } catch (error) {
-      toast.error('Failed to Save Note', {
-        description:
-          error instanceof Error ? error.message : 'Please try again',
-      })
-    } finally {
-      setSaving(false)
-    }
+    setContent('') // Clear after save
   }
 
   return (
@@ -76,7 +61,7 @@ export function QuickNote({
             }
           }}
           className="min-h-[100px] resize-none border-gray-200 focus:border-gray-400 text-sm mb-3"
-          disabled={saving}
+          disabled={createNote.isPending}
         />
 
         <div className="flex items-center justify-between">
@@ -89,11 +74,11 @@ export function QuickNote({
           </p>
           <Button
             onClick={handleSave}
-            disabled={!content.trim() || saving}
+            disabled={!content.trim() || createNote.isPending}
             size="sm"
             className="bg-gray-900 hover:bg-gray-800"
           >
-            {saving ? (
+            {createNote.isPending ? (
               <>
                 <Loader2 className="h-3 w-3 mr-2 animate-spin" />
                 Saving...
