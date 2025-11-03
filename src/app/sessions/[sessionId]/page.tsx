@@ -25,7 +25,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { Badge } from '@/components/ui/badge'
 import { MediaUploader } from '@/components/sessions/media-uploader'
-import { useSessionData } from './hooks/use-session-data'
 import SessionHeader from './components/session-header'
 import TranscriptViewer from './components/transcript-viewer'
 import FullCoachingAnalysis from './components/full-coaching-analysis'
@@ -43,9 +42,13 @@ import {
 import { DraftCommitmentsReview } from '@/components/commitments/draft-commitments-review'
 import { EnhancedDraftReview } from '@/components/extraction/enhanced-draft-review'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
-import type { Commitment } from '@/types/commitment'
+import { CommitmentListItem } from '@/components/commitments/commitment-list-item'
 import { toast } from '@/hooks/use-toast'
 import { NotesList } from '@/components/session-notes'
+import { useSessionDetails } from '@/hooks/queries/use-session-details'
+import { useCommitments } from '@/hooks/queries/use-commitments'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 
 export default function SessionDetailsPage({
   params,
@@ -56,10 +59,26 @@ export default function SessionDetailsPage({
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
   const resolvedParams = React.use(params)
+  const queryClient = useQueryClient()
 
-  const { sessionData, loading, error } = useSessionData(
-    resolvedParams.sessionId,
+  // Use TanStack Query for instant caching
+  const {
+    data: sessionData,
+    isLoading: loading,
+    error: queryError,
+  } = useSessionDetails(resolvedParams.sessionId)
+  const error = queryError ? String(queryError) : null
+
+  // Fetch commitments with caching
+  const { data: commitmentsData } = useCommitments(
+    { session_id: resolvedParams.sessionId },
+    { enabled: !!sessionData?.session?.id },
   )
+
+  // Helper to refresh commitments from cache
+  const refreshCommitments = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+  }
 
   // Analysis state (unified)
   const [analysisData, setAnalysisData] = useState<FullAnalysisResponse | null>(
@@ -70,9 +89,11 @@ export default function SessionDetailsPage({
   const [autoTriggered, setAutoTriggered] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
 
-  // Commitments state
-  const [draftCommitments, setDraftCommitments] = useState<Commitment[]>([])
-  const [activeCommitments, setActiveCommitments] = useState<Commitment[]>([])
+  // Commitments state (now from TanStack Query cache)
+  const draftCommitments =
+    commitmentsData?.commitments?.filter(c => c.status === 'draft') ?? []
+  const activeCommitments =
+    commitmentsData?.commitments?.filter(c => c.status === 'active') ?? []
   const [extractingCommitments, setExtractingCommitments] = useState(false)
   const [showCreateCommitment, setShowCreateCommitment] = useState(false)
 
@@ -174,50 +195,6 @@ export default function SessionDetailsPage({
     }
   }
 
-  // Load draft commitments for this session
-  const loadDraftCommitments = async () => {
-    if (!sessionData?.session?.id) return
-
-    console.log(
-      'Loading draft commitments for session:',
-      sessionData.session.id,
-    )
-    try {
-      const response = await CommitmentService.listCommitments({
-        session_id: sessionData.session.id,
-        status: 'draft',
-        include_drafts: true,
-      })
-      console.log(
-        'Draft commitments loaded:',
-        response.commitments?.length || 0,
-        response.commitments,
-      )
-      setDraftCommitments(response.commitments || [])
-    } catch (error) {
-      console.error('Failed to load draft commitments:', error)
-    }
-  }
-
-  // Load active commitments for this session
-  const loadActiveCommitments = async () => {
-    if (!sessionData?.session?.id) return
-
-    try {
-      const response = await CommitmentService.listCommitments({
-        session_id: sessionData.session.id,
-        status: 'active',
-      })
-      console.log(
-        'Active commitments loaded:',
-        response.commitments?.length || 0,
-      )
-      setActiveCommitments(response.commitments || [])
-    } catch (error) {
-      console.error('Failed to load active commitments:', error)
-    }
-  }
-
   // Extract commitments from session transcript (or enhanced extraction)
   const extractCommitments = async () => {
     if (!sessionData?.session?.id) return
@@ -245,7 +222,7 @@ export default function SessionDetailsPage({
           title: 'Commitments Extracted',
           description: `Found ${extracted.length} potential commitments from the session.`,
         })
-        await loadDraftCommitments()
+        refreshCommitments()
       }
     } catch (error) {
       // ApiClient already shows error toast, just log it
@@ -311,21 +288,12 @@ export default function SessionDetailsPage({
 
       // Clear extraction result and reload both draft and active commitments
       setExtractionResult(null)
-      await Promise.all([loadDraftCommitments(), loadActiveCommitments()])
+      refreshCommitments()
     } catch (error) {
       console.error('Failed to confirm all:', error)
       // Error is already shown by ApiClient, just log it
     }
   }
-
-  // Load commitments when session loads
-  React.useEffect(() => {
-    if (sessionData?.session?.id && !isViewer) {
-      loadDraftCommitments()
-      loadActiveCommitments()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionData?.session?.id, isViewer])
 
   // Delete session handler
   const handleDeleteSession = async () => {
@@ -741,8 +709,8 @@ export default function SessionDetailsPage({
                           onConfirmAll={handleConfirmAll}
                           onRefresh={() => {
                             setExtractionResult(null)
-                            loadDraftCommitments()
-                            loadActiveCommitments()
+                            refreshCommitments()
+                            refreshCommitments()
                           }}
                         />
                       )}
@@ -758,8 +726,8 @@ export default function SessionDetailsPage({
                             drafts={draftCommitments}
                             loading={false}
                             onRefresh={() => {
-                              loadDraftCommitments()
-                              loadActiveCommitments()
+                              refreshCommitments()
+                              refreshCommitments()
                             }}
                           />
                         </div>
@@ -776,62 +744,11 @@ export default function SessionDetailsPage({
                           </h4>
                           <div className="space-y-3">
                             {activeCommitments.map(commitment => (
-                              <Card
+                              <CommitmentListItem
                                 key={commitment.id}
-                                className="border-gray-200"
-                              >
-                                <CardContent className="p-4">
-                                  <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                      <h5 className="font-medium text-gray-900 mb-1">
-                                        {commitment.title}
-                                      </h5>
-                                      {commitment.description && (
-                                        <p className="text-sm text-gray-600 mb-2">
-                                          {commitment.description}
-                                        </p>
-                                      )}
-                                      <div className="flex items-center gap-2 flex-wrap">
-                                        <Badge variant="outline">
-                                          {commitment.type}
-                                        </Badge>
-                                        <Badge
-                                          variant="secondary"
-                                          className={
-                                            commitment.priority === 'high'
-                                              ? 'bg-red-100 text-red-700'
-                                              : commitment.priority === 'medium'
-                                                ? 'bg-yellow-100 text-yellow-700'
-                                                : 'bg-gray-100 text-gray-700'
-                                          }
-                                        >
-                                          {commitment.priority}
-                                        </Badge>
-                                        {commitment.target_date && (
-                                          <Badge
-                                            variant="outline"
-                                            className="text-xs"
-                                          >
-                                            Due:{' '}
-                                            {new Date(
-                                              commitment.target_date,
-                                            ).toLocaleDateString()}
-                                          </Badge>
-                                        )}
-                                        {commitment.extracted_from_transcript && (
-                                          <Badge
-                                            variant="secondary"
-                                            className="bg-purple-100 text-purple-700"
-                                          >
-                                            <Sparkles className="h-3 w-3 mr-1" />
-                                            AI Extracted
-                                          </Badge>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                                commitment={commitment}
+                                onUpdate={refreshCommitments}
+                              />
                             ))}
                           </div>
                         </div>
@@ -878,7 +795,7 @@ export default function SessionDetailsPage({
                 description: 'The commitment has been created successfully.',
               })
               setShowCreateCommitment(false)
-              loadDraftCommitments()
+              refreshCommitments()
             } catch (error) {
               console.error('Failed to create commitment:', error)
             }
