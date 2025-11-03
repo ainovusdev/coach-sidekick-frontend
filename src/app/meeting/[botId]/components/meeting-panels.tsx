@@ -6,6 +6,7 @@ import { SimilarSessionsCard } from '@/components/meeting/similar-sessions-card'
 import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { QuickNote } from '@/components/session-notes/quick-note' // NEW: Import QuickNote
+import { QuickCommitment } from '@/components/commitments/quick-commitment' // NEW: Import QuickCommitment
 import { TranscriptEntry } from '@/types/meeting'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
@@ -16,12 +17,14 @@ interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
   botId: string
   sessionId?: string // NEW: Add session ID for notes
+  clientId?: string // NEW: Add client ID for commitments
 }
 
 export default function MeetingPanels({
   transcript,
   botId,
   sessionId, // NEW
+  clientId, // NEW
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
@@ -124,6 +127,11 @@ export default function MeetingPanels({
           {/* NEW: Quick Notes - Always show at top */}
           {sessionId && (
             <QuickNote sessionId={sessionId} noteType="coach_private" />
+          )}
+
+          {/* NEW: Quick Commitments - Show after quick notes */}
+          {sessionId && clientId && (
+            <QuickCommitment sessionId={sessionId} clientId={clientId} />
           )}
 
           {contextLoading ? (
