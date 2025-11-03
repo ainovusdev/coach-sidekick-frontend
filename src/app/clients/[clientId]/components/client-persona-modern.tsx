@@ -1,6 +1,5 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
@@ -33,40 +32,30 @@ import {
   XCircle,
   Clock,
 } from 'lucide-react'
-import { PersonaService, type ClientPersona } from '@/services/persona-service'
+import { useClientPersona } from '@/hooks/queries/use-personas'
+import { useClient } from '@/hooks/queries/use-clients'
 import { PersonaHistoryTimeline } from '@/components/persona/persona-history-timeline'
 import { PersonaEvolutionTimeline } from '@/components/persona/persona-evolution-timeline'
-import { ClientService } from '@/services/client-service'
-import type { Client } from '@/types/meeting'
 
 interface ClientPersonaProps {
   clientId: string
 }
 
+/**
+ * Client Persona Modern - Now using TanStack Query
+ *
+ * Benefits:
+ * - Persona and client data cached
+ * - Instant display if already loaded
+ * - Parallel queries with shared cache
+ */
 export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
-  const [persona, setPersona] = useState<ClientPersona | null>(null)
-  const [client, setClient] = useState<Client | null>(null)
-  const [loading, setLoading] = useState(true)
+  // Use TanStack Query for persona and client data
+  const { data: persona, isLoading: personaLoading } =
+    useClientPersona(clientId)
+  const { data: client, isLoading: clientLoading } = useClient(clientId)
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      try {
-        const [personaData, clientData] = await Promise.all([
-          PersonaService.getClientPersona(clientId),
-          ClientService.getClient(clientId),
-        ])
-        setPersona(personaData)
-        setClient(clientData)
-      } catch (error) {
-        console.error('Failed to fetch persona:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [clientId])
+  const loading = personaLoading || clientLoading
 
   if (loading) {
     return (

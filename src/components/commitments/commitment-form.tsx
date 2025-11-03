@@ -73,6 +73,7 @@ export function CommitmentForm({
   const [loading, setLoading] = useState(false)
   const [availableTargets, setAvailableTargets] = useState<any[]>([])
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [formData, setFormData] = useState<CommitmentCreate>({
     client_id: defaultClientId || '',
     session_id: defaultSessionId,
@@ -214,95 +215,6 @@ export function CommitmentForm({
               />
             </div>
 
-            {/* Type and Priority */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={value =>
-                    updateField('type', value as CommitmentType)
-                  }
-                >
-                  <SelectTrigger id="type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {typeOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="priority">Priority</Label>
-                <Select
-                  value={formData.priority}
-                  onValueChange={value =>
-                    updateField('priority', value as CommitmentPriority)
-                  }
-                >
-                  <SelectTrigger id="priority">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {priorityOptions.map(option => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="start_date">Start Date</Label>
-                <Input
-                  id="start_date"
-                  type="date"
-                  value={formData.start_date || ''}
-                  onChange={e =>
-                    updateField('start_date', e.target.value || undefined)
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="target_date">Target Date</Label>
-                <Input
-                  id="target_date"
-                  type="date"
-                  value={formData.target_date || ''}
-                  onChange={e =>
-                    updateField('target_date', e.target.value || undefined)
-                  }
-                />
-              </div>
-            </div>
-
-            {/* Measurement Criteria */}
-            <div className="space-y-2">
-              <Label htmlFor="measurement_criteria">Success Criteria</Label>
-              <Textarea
-                id="measurement_criteria"
-                value={formData.measurement_criteria}
-                onChange={e =>
-                  updateField('measurement_criteria', e.target.value)
-                }
-                placeholder="How will success be measured?"
-                rows={2}
-              />
-              <p className="text-xs text-muted-foreground">
-                Define clear, measurable criteria for success
-              </p>
-            </div>
-
             {/* Link to Desired Wins (Targets) */}
             <div className="space-y-2">
               <Label>Link to Desired Wins</Label>
@@ -418,6 +330,111 @@ export function CommitmentForm({
                 </p>
               )}
             </div>
+
+            {/* Show More Details Toggle */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="w-full text-gray-600 hover:text-gray-900"
+            >
+              {showAdvanced ? '▼ Hide Details' : '▶ Show More Details'}
+            </Button>
+
+            {/* Advanced Fields (Collapsible) */}
+            {showAdvanced && (
+              <div className="space-y-4 pt-4 border-t">
+                {/* Type and Priority */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={value =>
+                        updateField('type', value as CommitmentType)
+                      }
+                    >
+                      <SelectTrigger id="type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {typeOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="priority">Priority</Label>
+                    <Select
+                      value={formData.priority}
+                      onValueChange={value =>
+                        updateField('priority', value as CommitmentPriority)
+                      }
+                    >
+                      <SelectTrigger id="priority">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {priorityOptions.map(option => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Dates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="start_date">Start Date</Label>
+                    <Input
+                      id="start_date"
+                      type="date"
+                      value={formData.start_date || ''}
+                      onChange={e =>
+                        updateField('start_date', e.target.value || undefined)
+                      }
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="target_date">Target Date</Label>
+                    <Input
+                      id="target_date"
+                      type="date"
+                      value={formData.target_date || ''}
+                      onChange={e =>
+                        updateField('target_date', e.target.value || undefined)
+                      }
+                    />
+                  </div>
+                </div>
+
+                {/* Measurement Criteria */}
+                <div className="space-y-2">
+                  <Label htmlFor="measurement_criteria">Success Criteria</Label>
+                  <Textarea
+                    id="measurement_criteria"
+                    value={formData.measurement_criteria}
+                    onChange={e =>
+                      updateField('measurement_criteria', e.target.value)
+                    }
+                    placeholder="How will success be measured?"
+                    rows={2}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Define clear, measurable criteria for success
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>

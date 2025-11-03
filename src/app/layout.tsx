@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'
 import { PermissionProvider } from '@/contexts/permission-context'
 import { WebSocketProvider } from '@/contexts/websocket-context'
+import { QueryProvider } from '@/components/providers/query-provider'
 import { Toaster } from 'sonner' // NEW: Sonner toast notifications
 import './globals.css'
 
@@ -32,26 +33,28 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <AuthProvider>
-          <PermissionProvider>
-            <WebSocketProvider>
-              {children}
-              {/* Sonner toast notifications - high z-index to appear above all content */}
-              <Toaster
-                position="top-right"
-                richColors
-                closeButton
-                duration={5000}
-                expand={true}
-                toastOptions={{
-                  style: {
-                    zIndex: 99999,
-                  },
-                }}
-              />
-            </WebSocketProvider>
-          </PermissionProvider>
-        </AuthProvider>
+        <QueryProvider>
+          <AuthProvider>
+            <PermissionProvider>
+              <WebSocketProvider>
+                {children}
+                {/* Sonner toast notifications - high z-index to appear above all content */}
+                <Toaster
+                  position="top-right"
+                  richColors
+                  closeButton
+                  duration={5000}
+                  expand={true}
+                  toastOptions={{
+                    style: {
+                      zIndex: 99999,
+                    },
+                  }}
+                />
+              </WebSocketProvider>
+            </PermissionProvider>
+          </AuthProvider>
+        </QueryProvider>
       </body>
     </html>
   )

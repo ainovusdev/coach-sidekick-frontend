@@ -1,14 +1,27 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useMemo } from 'react'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CommitmentService } from '@/services/commitment-service'
+import { useCommitments } from '@/hooks/queries/use-commitments'
 import { Commitment } from '@/types/commitment'
 import { CommitmentQuickComplete } from './commitment-quick-complete'
-import { ArrowRight, Target, Loader2, AlertCircle } from 'lucide-react'
+import {
+  ArrowRight,
+  Target,
+  Loader2,
+  AlertCircle,
+  Edit,
+  MoreVertical,
+} from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { formatDistanceToNow, isPast, parseISO } from 'date-fns'
 
@@ -18,9 +31,18 @@ interface CommitmentsWidgetProps {
   showHeader?: boolean
   viewAllLink?: string
   className?: string
-  targetId?: string | null // Filter by target ID
+  targetId?: string | null
+  onEdit?: (commitment: Commitment) => void
 }
 
+/**
+ * Commitments Widget - Now using TanStack Query
+ *
+ * Benefits:
+ * - Cached data shows instantly across multiple widget instances
+ * - Automatic background refresh
+ * - No duplicate API calls
+ */
 export function CommitmentsWidget({
   clientId,
   limit = 5,
@@ -28,54 +50,45 @@ export function CommitmentsWidget({
   viewAllLink = '/client-portal/commitments',
   className,
   targetId,
+  onEdit,
 }: CommitmentsWidgetProps) {
-  const [loading, setLoading] = useState(true)
-  const [commitments, setCommitments] = useState<Commitment[]>([])
-  const [error, setError] = useState<string | null>(null)
+  // Use TanStack Query for commitments
+  const {
+    data: commitmentsData,
+    isLoading: loading,
+    error: queryError,
+    refetch,
+  } = useCommitments({
+    client_id: clientId,
+    status: 'active',
+    include_drafts: false,
+  })
 
-  useEffect(() => {
-    loadCommitments()
-  }, [clientId, targetId])
+  const error = queryError ? 'Failed to load commitments' : null
 
-  const loadCommitments = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const response = await CommitmentService.listCommitments({
-        client_id: clientId,
-        status: 'active',
-        include_drafts: false,
-      })
+  // Filter and sort commitments
+  const displayCommitments = useMemo(() => {
+    let commitmentsList = commitmentsData?.commitments || []
 
-      let commitmentsList = response.commitments || []
-
-      // Filter by target if specified
-      if (targetId) {
-        commitmentsList = commitmentsList.filter(c =>
-          c.linked_target_ids?.includes(targetId),
-        )
-      }
-
-      // Sort by deadline and take top N
-      const sorted = commitmentsList
-        .sort((a, b) => {
-          if (!a.target_date && !b.target_date) return 0
-          if (!a.target_date) return 1
-          if (!b.target_date) return -1
-          return (
-            new Date(a.target_date).getTime() -
-            new Date(b.target_date).getTime()
-          )
-        })
-        .slice(0, limit)
-      setCommitments(sorted)
-    } catch (err) {
-      console.error('Failed to load commitments:', err)
-      setError('Failed to load commitments')
-    } finally {
-      setLoading(false)
+    // Filter by target if specified
+    if (targetId) {
+      commitmentsList = commitmentsList.filter(c =>
+        c.linked_target_ids?.includes(targetId),
+      )
     }
-  }
+
+    // Sort by deadline and take top N
+    return commitmentsList
+      .sort((a, b) => {
+        if (!a.target_date && !b.target_date) return 0
+        if (!a.target_date) return 1
+        if (!b.target_date) return -1
+        return (
+          new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
+        )
+      })
+      .slice(0, limit)
+  }, [commitmentsData, targetId, limit])
 
   const getDeadlineStatus = (commitment: Commitment) => {
     if (!commitment.target_date) return null
@@ -118,7 +131,7 @@ export function CommitmentsWidget({
             <Button
               variant="outline"
               size="sm"
-              onClick={loadCommitments}
+              onClick={() => refetch()}
               className="mt-4"
             >
               Retry
@@ -153,7 +166,7 @@ export function CommitmentsWidget({
       )}
 
       <CardContent>
-        {commitments.length === 0 ? (
+        {displayCommitments.length === 0 ? (
           <div className="text-center py-8">
             <Target className="h-12 w-12 mx-auto mb-3 text-gray-300" />
             <p className="text-gray-600">No active commitments</p>
@@ -163,7 +176,7 @@ export function CommitmentsWidget({
           </div>
         ) : (
           <div className="space-y-2">
-            {commitments.map(commitment => {
+            {displayCommitments.map(commitment => {
               const deadlineStatus = getDeadlineStatus(commitment)
               return (
                 <div
@@ -174,7 +187,7 @@ export function CommitmentsWidget({
                   <div className="pt-0.5">
                     <CommitmentQuickComplete
                       commitment={commitment}
-                      onComplete={loadCommitments}
+                      onComplete={() => refetch()}
                       size="md"
                     />
                   </div>
@@ -213,6 +226,29 @@ export function CommitmentsWidget({
                         )}
                     </div>
                   </div>
+
+                  {/* Edit Menu */}
+                  {onEdit && (
+                    <div className="pt-0.5">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => onEdit(commitment)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit & Link Targets
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  )}
                 </div>
               )
             })}

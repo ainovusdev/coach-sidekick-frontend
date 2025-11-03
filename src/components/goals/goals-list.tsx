@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
-import { GoalService, Goal } from '@/services/goal-service'
+import { Goal } from '@/services/goal-service'
+import { useGoals } from '@/hooks/queries/use-goals'
 import { GoalFormModal } from './goal-form-modal'
 import { Target, Plus, Edit, Trophy, Pause, X, Loader2 } from 'lucide-react'
 
@@ -15,37 +16,28 @@ interface GoalsListProps {
   showCreateButton?: boolean
 }
 
+/**
+ * Goals List - Now using TanStack Query
+ *
+ * Benefits:
+ * - Goals cached and shown instantly
+ * - Automatic background refresh
+ * - Shared cache with other goal components
+ */
 export function GoalsList({
   clientId,
   onRefresh,
   showCreateButton = true,
 }: GoalsListProps) {
-  const [goals, setGoals] = useState<Goal[]>([])
-  const [loading, setLoading] = useState(true)
+  // Use TanStack Query for goals
+  const { data: goals = [], isLoading: loading, refetch } = useGoals(clientId)
+
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<Goal | null>(null)
   const [modalMode, setModalMode] = useState<'create' | 'edit'>('create')
 
-  useEffect(() => {
-    if (clientId) {
-      loadGoals()
-    }
-  }, [clientId])
-
-  const loadGoals = async () => {
-    setLoading(true)
-    try {
-      const data = await GoalService.listGoals(clientId)
-      setGoals(data)
-    } catch (error) {
-      console.error('Failed to load goals:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const handleGoalCreated = () => {
-    loadGoals()
+    refetch()
     onRefresh?.()
   }
 

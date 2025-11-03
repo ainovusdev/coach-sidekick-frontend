@@ -11,7 +11,11 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Commitment } from '@/types/commitment'
-import { CommitmentService } from '@/services/commitment-service'
+import { useCommitments } from '@/hooks/queries/use-commitments'
+import {
+  useBulkConfirmCommitments,
+  useBulkDiscardCommitments,
+} from '@/hooks/mutations/use-commitment-mutations'
 import { Loader2, CheckCircle2, XCircle, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useToast } from '@/hooks/use-toast'
@@ -24,6 +28,14 @@ interface DraftCommitmentsReviewProps {
   onRefresh?: () => void
 }
 
+/**
+ * Draft Commitments Review - Now using TanStack Query
+ *
+ * Benefits:
+ * - Draft commitments cached
+ * - Instant display if already loaded
+ * - Automatic background refresh
+ */
 export function DraftCommitmentsReview({
   sessionId,
   drafts: propsDrafts,
@@ -31,23 +43,31 @@ export function DraftCommitmentsReview({
   onConfirmAll,
   onRefresh,
 }: DraftCommitmentsReviewProps) {
-  const [internalDrafts, setInternalDrafts] = useState<Commitment[]>([])
-  const [internalLoading, setInternalLoading] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [confirming, setConfirming] = useState(false)
-  const [discarding, setDiscarding] = useState(false)
   const { toast } = useToast()
 
-  // Use props drafts if provided, otherwise load internally
-  const drafts = propsDrafts !== undefined ? propsDrafts : internalDrafts
-  const loading = propsDrafts !== undefined ? propsLoading : internalLoading
+  // Use TanStack Query for draft commitments (only if not provided via props)
+  const { data: commitmentsData, isLoading: internalLoading } = useCommitments(
+    {
+      session_id: sessionId,
+      status: 'draft',
+      include_drafts: true,
+    },
+    {
+      enabled: propsDrafts === undefined,
+    },
+  )
 
-  useEffect(() => {
-    // Only load internally if drafts not provided via props
-    if (propsDrafts === undefined) {
-      loadDrafts()
-    }
-  }, [sessionId, propsDrafts])
+  // Use mutation hooks for bulk operations
+  const bulkConfirm = useBulkConfirmCommitments()
+  const bulkDiscard = useBulkDiscardCommitments()
+
+  // Use props drafts if provided, otherwise use query data
+  const drafts =
+    propsDrafts !== undefined ? propsDrafts : commitmentsData?.commitments || []
+  const loading = propsDrafts !== undefined ? propsLoading : internalLoading
+  const confirming = bulkConfirm.isPending
+  const discarding = bulkDiscard.isPending
 
   // Auto-select all drafts when they change
   useEffect(() => {
@@ -55,22 +75,6 @@ export function DraftCommitmentsReview({
       setSelectedIds(new Set(drafts.map(c => c.id)))
     }
   }, [drafts])
-
-  const loadDrafts = async () => {
-    setInternalLoading(true)
-    try {
-      const response = await CommitmentService.listCommitments({
-        session_id: sessionId,
-        status: 'draft',
-        include_drafts: true,
-      })
-      setInternalDrafts(response.commitments || [])
-    } catch (error) {
-      console.error('Failed to load draft commitments:', error)
-    } finally {
-      setInternalLoading(false)
-    }
-  }
 
   const handleSelectAll = () => {
     if (selectedIds.size === drafts.length) {
@@ -93,14 +97,8 @@ export function DraftCommitmentsReview({
   const handleConfirmSelected = async () => {
     if (selectedIds.size === 0) return
 
-    setConfirming(true)
     try {
-      await CommitmentService.bulkConfirm(Array.from(selectedIds))
-      toast({
-        title: 'Success',
-        description: `Confirmed ${selectedIds.size} commitment${selectedIds.size > 1 ? 's' : ''}`,
-      })
-      await loadDrafts()
+      await bulkConfirm.mutateAsync(Array.from(selectedIds))
       onConfirmAll?.()
       onRefresh?.()
     } catch (error) {
@@ -110,22 +108,14 @@ export function DraftCommitmentsReview({
         description: 'Failed to confirm commitments',
         variant: 'destructive',
       })
-    } finally {
-      setConfirming(false)
     }
   }
 
   const handleDiscardSelected = async () => {
     if (selectedIds.size === 0) return
 
-    setDiscarding(true)
     try {
-      await CommitmentService.bulkDiscard(Array.from(selectedIds))
-      toast({
-        title: 'Success',
-        description: `Discarded ${selectedIds.size} commitment${selectedIds.size > 1 ? 's' : ''}`,
-      })
-      await loadDrafts()
+      await bulkDiscard.mutateAsync(Array.from(selectedIds))
       onRefresh?.()
     } catch (error) {
       console.error('Failed to discard commitments:', error)
@@ -134,8 +124,6 @@ export function DraftCommitmentsReview({
         description: 'Failed to discard commitments',
         variant: 'destructive',
       })
-    } finally {
-      setDiscarding(false)
     }
   }
 

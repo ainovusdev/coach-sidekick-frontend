@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Client, ClientSessionStats } from '@/types/meeting'
-import { ClientService } from '@/services/client-service'
+import { Client } from '@/types/meeting'
+import { useClients } from '@/hooks/queries/use-clients'
 import ClientModal from './client-modal'
 import { ClientInvitationModal } from './client-invitation-modal'
 import {
@@ -26,81 +26,69 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { usePermissions } from '@/contexts/permission-context'
-
-interface ClientWithStats extends Client {
-  client_session_stats?: ClientSessionStats[]
-}
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { ClientService } from '@/services/client-service'
+import { queryKeys } from '@/lib/query-client'
 
 export default function ClientList() {
   const router = useRouter()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
-  const [clients, setClients] = useState<ClientWithStats[]>([])
-  const [loading, setLoading] = useState(true)
+  const queryClient = useQueryClient()
+
+  // Use TanStack Query for data fetching
+  const { data, isLoading: loading, error: queryError, refetch } = useClients()
+  const clients = data?.clients ?? []
+  const error = queryError ? 'Failed to load clients' : null
+
   const [searchTerm, setSearchTerm] = useState('')
-  const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [sortBy, setSortBy] = useState<'name' | 'recent' | 'sessions'>('recent')
 
-  const fetchClients = useCallback(async () => {
-    try {
-      setLoading(true)
-
-      const response = await ClientService.listClients()
-
-      setClients(response.clients)
-      setError(null)
-    } catch (error) {
-      console.error('Error fetching clients:', error)
-      setError('Failed to load clients')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchClients()
-  }, [fetchClients])
-
-  const handleSearch = () => {
-    fetchClients()
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleSearch()
-    }
-  }
-
-  const handleCreateClient = async (clientData: Partial<Client>) => {
-    try {
-      await ClientService.createClient({
+  // Create client mutation with optimistic updates
+  const createMutation = useMutation({
+    mutationFn: (clientData: Partial<Client>) =>
+      ClientService.createClient({
         name: clientData.name || '',
         notes: clientData.notes,
-      })
-      fetchClients() // Refresh the list
-    } catch (error) {
-      console.error('Error creating client:', error)
-      throw error
-    }
+      }),
+    onSuccess: () => {
+      // Invalidate and refetch clients list
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+    },
+  })
+
+  // Update client mutation with optimistic updates
+  const updateMutation = useMutation({
+    mutationFn: ({
+      clientId,
+      data,
+    }: {
+      clientId: string
+      data: Partial<Client>
+    }) => ClientService.updateClient(clientId, data),
+    onSuccess: () => {
+      // Invalidate and refetch clients list
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+    },
+  })
+
+  const handleCreateClient = async (clientData: Partial<Client>) => {
+    await createMutation.mutateAsync(clientData)
   }
 
   const handleEditClient = async (clientData: Partial<Client>) => {
     if (!selectedClient) return
-
-    try {
-      await ClientService.updateClient(selectedClient.id, {
+    await updateMutation.mutateAsync({
+      clientId: selectedClient.id,
+      data: {
         name: clientData.name,
         notes: clientData.notes,
-      })
-      fetchClients() // Refresh the list
-    } catch (error) {
-      console.error('Error updating client:', error)
-      throw error
-    }
+      },
+    })
   }
 
   const openEditModal = (client: Client) => {
@@ -159,6 +147,11 @@ export default function ClientList() {
       }
     })
   }
+
+  // Separate into my clients vs assigned clients
+  const sortedClients = getSortedClients()
+  const myClients = sortedClients.filter(c => c.is_my_client !== false)
+  const assignedClients = sortedClients.filter(c => c.is_my_client === false)
 
   if (loading) {
     return (
@@ -261,20 +254,31 @@ export default function ClientList() {
             </div>
           )}
 
-          {/* Stats Bar */}
-          <div className="grid grid-cols-3 gap-6 mt-8 pt-6 border-t border-gray-100">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
-                <Users className="h-5 w-5 text-gray-700" />
+          {/* Stats Bar - Enhanced with Ownership Breakdown */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-gray-100">
+            <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-xl">
+              <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-gray-900">
-                  {clients.length}
+                  {myClients.length}
                 </p>
-                <p className="text-sm text-gray-500">Total Clients</p>
+                <p className="text-xs text-gray-600 font-medium">My Clients</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 bg-blue-50 p-4 rounded-xl">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <UserCheck className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-blue-900">
+                  {assignedClients.length}
+                </p>
+                <p className="text-xs text-blue-700 font-medium">Assigned</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-100">
               <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-gray-700" />
               </div>
@@ -287,10 +291,10 @@ export default function ClientList() {
                     0,
                   )}
                 </p>
-                <p className="text-sm text-gray-500">Total Sessions</p>
+                <p className="text-xs text-gray-600">Total Sessions</p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 bg-gradient-to-br from-gray-50 to-white p-4 rounded-xl border border-gray-100">
               <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center">
                 <Clock className="h-5 w-5 text-gray-700" />
               </div>
@@ -308,7 +312,7 @@ export default function ClientList() {
                     }).length
                   }
                 </p>
-                <p className="text-sm text-gray-500">Active This Week</p>
+                <p className="text-xs text-gray-600">Active This Week</p>
               </div>
             </div>
           </div>
@@ -325,7 +329,6 @@ export default function ClientList() {
                 placeholder="Search by name or notes..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
                 className="w-full pl-12 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:border-gray-400 focus:ring-2 focus:ring-gray-100 focus:outline-none transition-all text-gray-900 placeholder:text-gray-400"
               />
               {searchTerm && (
@@ -404,7 +407,7 @@ export default function ClientList() {
                 </h4>
                 <p className="text-sm text-red-700 mt-1">{error}</p>
                 <Button
-                  onClick={fetchClients}
+                  onClick={() => refetch()}
                   variant="outline"
                   size="sm"
                   className="mt-3 border-red-200 text-red-700 hover:bg-red-50"
@@ -416,7 +419,7 @@ export default function ClientList() {
           </div>
         )}
 
-        {/* Client List */}
+        {/* Client Sections */}
         {clients.length === 0 ? (
           <Card className="border-0 shadow-sm bg-white rounded-2xl">
             <CardContent className="py-20 text-center">
@@ -443,171 +446,373 @@ export default function ClientList() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
-            {getSortedClients().map(client => {
-              const stats = client.client_session_stats?.[0]
-              const isActive =
-                stats?.last_session_date &&
-                Math.ceil(
-                  (Date.now() - new Date(stats.last_session_date).getTime()) /
-                    (1000 * 60 * 60 * 24),
-                ) <= 7
-
-              return (
-                <Card
-                  key={client.id}
-                  className="group border-0 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
-                  onClick={() => router.push(`/clients/${client.id}`)}
-                >
-                  <CardContent className="p-0">
-                    <div className="flex items-center">
-                      {/* Left accent bar */}
-                      <div
-                        className={`w-1 h-full ${isActive ? 'bg-gray-900' : 'bg-gray-200'}`}
-                      />
-
-                      <div className="flex-1 p-6">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4 flex-1">
-                            {/* Enhanced Avatar */}
-                            <div className="relative">
-                              <Avatar className="h-12 w-12 bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-white shadow-sm">
-                                <AvatarFallback className="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700 text-base font-semibold">
-                                  {getClientInitials(client.name)}
-                                </AvatarFallback>
-                              </Avatar>
-                              {isActive && (
-                                <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gray-900 rounded-full border-2 border-white" />
-                              )}
-                            </div>
-
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3">
-                                <h3 className="font-semibold text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
-                                  {client.name}
-                                </h3>
-                                {isActive && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                                    Active
-                                  </span>
-                                )}
-                                {client.invitation_status === 'invited' && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full flex items-center gap-1">
-                                    <Send className="h-3 w-3" />
-                                    Invited
-                                  </span>
-                                )}
-                                {client.invitation_status === 'accepted' && (
-                                  <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
-                                    <UserCheck className="h-3 w-3" />
-                                    Portal Active
-                                  </span>
-                                )}
-                              </div>
-                              {client.notes && (
-                                <p className="text-sm text-gray-500 mt-1 line-clamp-2">
-                                  {client.notes}
-                                </p>
-                              )}
-
-                              {/* Mobile Stats */}
-                              <div className="flex items-center gap-4 mt-3 sm:hidden">
-                                {stats && (
-                                  <>
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                      <Calendar className="h-3.5 w-3.5" />
-                                      <span>
-                                        {stats.total_sessions} sessions
-                                      </span>
-                                    </div>
-                                    <div className="flex items-center gap-1.5 text-xs text-gray-500">
-                                      <Clock className="h-3.5 w-3.5" />
-                                      <span>
-                                        {formatLastSession(
-                                          stats.last_session_date,
-                                        )}
-                                      </span>
-                                    </div>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* Desktop Stats */}
-                            {stats && (
-                              <div className="hidden sm:flex items-center gap-6">
-                                <div className="flex flex-col">
-                                  <span className="text-lg font-semibold text-gray-900">
-                                    {stats.total_sessions}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    Sessions
-                                  </span>
-                                </div>
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium text-gray-700">
-                                    {formatLastSession(stats.last_session_date)}
-                                  </span>
-                                  <span className="text-xs text-gray-500">
-                                    Last session
-                                  </span>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Actions */}
-                          <div className="flex items-center gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                              onClick={e => {
-                                e.stopPropagation()
-                                router.push(`/clients/${client.id}`)
-                              }}
-                            >
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                            {!isViewer && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-lg"
-                                  onClick={e => {
-                                    e.stopPropagation()
-                                    setSelectedClient(client)
-                                    setIsInviteModalOpen(true)
-                                  }}
-                                  title="Invite to Portal"
-                                >
-                                  <Send className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
-                                  onClick={e => {
-                                    e.stopPropagation()
-                                    openEditModal(client)
-                                  }}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            <div className="ml-2 transform group-hover:translate-x-1 transition-transform">
-                              <ChevronRight className="h-5 w-5 text-gray-400" />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
+          <div className="space-y-6">
+            {/* My Clients Section */}
+            {myClients.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gray-900 rounded-lg">
+                      <Users className="h-5 w-5 text-white" />
                     </div>
-                  </CardContent>
-                </Card>
-              )
-            })}
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        My Clients
+                      </h2>
+                      <p className="text-sm text-gray-500">
+                        {myClients.length}{' '}
+                        {myClients.length === 1 ? 'client' : 'clients'} you
+                        created and manage
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-4">
+                  {myClients.map(client => {
+                    const stats = client.client_session_stats?.[0]
+                    const isActive =
+                      stats?.last_session_date &&
+                      Math.ceil(
+                        (Date.now() -
+                          new Date(stats.last_session_date).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      ) <= 7
+
+                    return (
+                      <Card
+                        key={client.id}
+                        className="group border-0 bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+                        onClick={() => router.push(`/clients/${client.id}`)}
+                      >
+                        <CardContent className="p-0">
+                          <div className="flex items-center">
+                            {/* Left accent bar */}
+                            <div
+                              className={`w-1 h-full ${isActive ? 'bg-gray-900' : 'bg-gray-200'}`}
+                            />
+
+                            <div className="flex-1 p-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4 flex-1">
+                                  {/* Enhanced Avatar */}
+                                  <div className="relative">
+                                    <Avatar className="h-12 w-12 bg-gradient-to-br from-gray-100 to-gray-200 border-2 border-white shadow-sm">
+                                      <AvatarFallback className="bg-gradient-to-br from-gray-50 to-gray-100 text-gray-700 text-base font-semibold">
+                                        {getClientInitials(client.name)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {isActive && (
+                                      <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-gray-900 rounded-full border-2 border-white" />
+                                    )}
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3">
+                                      <h3 className="font-semibold text-gray-900 text-lg group-hover:text-gray-700 transition-colors">
+                                        {client.name}
+                                      </h3>
+                                      {isActive && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                                          Active
+                                        </span>
+                                      )}
+                                      {client.invitation_status ===
+                                        'invited' && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full flex items-center gap-1">
+                                          <Send className="h-3 w-3" />
+                                          Invited
+                                        </span>
+                                      )}
+                                      {client.invitation_status ===
+                                        'accepted' && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                                          <UserCheck className="h-3 w-3" />
+                                          Portal Active
+                                        </span>
+                                      )}
+                                    </div>
+                                    {client.notes && (
+                                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                        {client.notes}
+                                      </p>
+                                    )}
+
+                                    {/* Mobile Stats */}
+                                    <div className="flex items-center gap-4 mt-3 sm:hidden">
+                                      {stats && (
+                                        <>
+                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                            <Calendar className="h-3.5 w-3.5" />
+                                            <span>
+                                              {stats.total_sessions} sessions
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                            <Clock className="h-3.5 w-3.5" />
+                                            <span>
+                                              {formatLastSession(
+                                                stats.last_session_date,
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Desktop Stats */}
+                                  {stats && (
+                                    <div className="hidden sm:flex items-center gap-6">
+                                      <div className="flex flex-col">
+                                        <span className="text-lg font-semibold text-gray-900">
+                                          {stats.total_sessions}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          Sessions
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-gray-700">
+                                          {formatLastSession(
+                                            stats.last_session_date,
+                                          )}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          Last session
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      router.push(`/clients/${client.id}`)
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  {!isViewer && (
+                                    <>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-purple-600 hover:text-purple-900 hover:bg-purple-100 rounded-lg"
+                                        onClick={e => {
+                                          e.stopPropagation()
+                                          setSelectedClient(client)
+                                          setIsInviteModalOpen(true)
+                                        }}
+                                        title="Invite to Portal"
+                                      >
+                                        <Send className="h-4 w-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg"
+                                        onClick={e => {
+                                          e.stopPropagation()
+                                          openEditModal(client)
+                                        }}
+                                      >
+                                        <Edit className="h-4 w-4" />
+                                      </Button>
+                                    </>
+                                  )}
+                                  <div className="ml-2 transform group-hover:translate-x-1 transition-transform">
+                                    <ChevronRight className="h-5 w-5 text-gray-400" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Assigned Clients Section */}
+            {assignedClients.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                      <UserCheck className="h-5 w-5 text-white" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Assigned Clients
+                      </h2>
+                      <p className="text-sm text-blue-600">
+                        {assignedClients.length}{' '}
+                        {assignedClients.length === 1 ? 'client' : 'clients'}{' '}
+                        shared with you by other coaches
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="grid gap-4">
+                  {assignedClients.map(client => {
+                    const stats = client.client_session_stats?.[0]
+                    const isActive =
+                      stats?.last_session_date &&
+                      Math.ceil(
+                        (Date.now() -
+                          new Date(stats.last_session_date).getTime()) /
+                          (1000 * 60 * 60 * 24),
+                      ) <= 7
+
+                    return (
+                      <Card
+                        key={client.id}
+                        className="group border-0 bg-gradient-to-br from-white to-blue-50/20 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer overflow-hidden"
+                        onClick={() => router.push(`/clients/${client.id}`)}
+                      >
+                        <CardContent className="p-0">
+                          <div className="flex items-center">
+                            {/* Left accent bar - blue for assigned */}
+                            <div
+                              className={`w-1 h-full ${isActive ? 'bg-blue-600' : 'bg-blue-300'}`}
+                            />
+
+                            <div className="flex-1 p-6">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4 flex-1">
+                                  {/* Enhanced Avatar - Blue theme */}
+                                  <div className="relative">
+                                    <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 border-2 border-blue-400 shadow-sm">
+                                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-base font-semibold">
+                                        {getClientInitials(client.name)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    {isActive && (
+                                      <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-blue-600 rounded-full border-2 border-white" />
+                                    )}
+                                  </div>
+
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                      <h3 className="font-semibold text-gray-900 text-lg group-hover:text-blue-700 transition-colors">
+                                        {client.name}
+                                      </h3>
+                                      {/* Coach name badge */}
+                                      {client.coach_name && (
+                                        <span className="px-2.5 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full flex items-center gap-1">
+                                          <Users className="h-3 w-3" />
+                                          by {client.coach_name}
+                                        </span>
+                                      )}
+                                      {isActive && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                                          Active
+                                        </span>
+                                      )}
+                                      {client.invitation_status ===
+                                        'invited' && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full flex items-center gap-1">
+                                          <Send className="h-3 w-3" />
+                                          Invited
+                                        </span>
+                                      )}
+                                      {client.invitation_status ===
+                                        'accepted' && (
+                                        <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                                          <UserCheck className="h-3 w-3" />
+                                          Portal Active
+                                        </span>
+                                      )}
+                                    </div>
+                                    {client.notes && (
+                                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                                        {client.notes}
+                                      </p>
+                                    )}
+
+                                    {/* Mobile Stats */}
+                                    <div className="flex items-center gap-4 mt-3 sm:hidden">
+                                      {stats && (
+                                        <>
+                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                            <Calendar className="h-3.5 w-3.5" />
+                                            <span>
+                                              {stats.total_sessions} sessions
+                                            </span>
+                                          </div>
+                                          <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                            <Clock className="h-3.5 w-3.5" />
+                                            <span>
+                                              {formatLastSession(
+                                                stats.last_session_date,
+                                              )}
+                                            </span>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  {/* Desktop Stats */}
+                                  {stats && (
+                                    <div className="hidden sm:flex items-center gap-6">
+                                      <div className="flex flex-col">
+                                        <span className="text-lg font-semibold text-gray-900">
+                                          {stats.total_sessions}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          Sessions
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col">
+                                        <span className="text-sm font-medium text-gray-700">
+                                          {formatLastSession(
+                                            stats.last_session_date,
+                                          )}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          Last session
+                                        </span>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* Actions */}
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-600 hover:text-blue-900 hover:bg-blue-100 rounded-lg"
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      router.push(`/clients/${client.id}`)
+                                    }}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                  </Button>
+                                  <div className="ml-2 transform group-hover:translate-x-1 transition-transform">
+                                    <ChevronRight className="h-5 w-5 text-blue-400" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -644,7 +849,7 @@ export default function ClientList() {
           clientName={selectedClient.name}
           clientEmail={selectedClient.email}
           invitationStatus={selectedClient.invitation_status}
-          onInvitationSent={fetchClients}
+          onInvitationSent={() => refetch()}
         />
       )}
     </>

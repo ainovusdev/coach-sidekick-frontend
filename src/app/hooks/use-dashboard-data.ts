@@ -1,10 +1,16 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useDebounceCallback } from '@/hooks/use-debounce'
 import { MeetingService } from '@/services/meeting-service'
-import { ClientService } from '@/services/client-service'
-import { Client } from '@/types/meeting'
+import { useClients } from '@/hooks/queries/use-clients'
 
+/**
+ * Dashboard data hook - now using TanStack Query for clients
+ * Benefits:
+ * - Clients data cached and deduplicated
+ * - Instant loading if data already in cache
+ * - Automatic background refresh
+ */
 export function useDashboardData() {
   const {
     data: meetingHistory,
@@ -15,25 +21,10 @@ export function useDashboardData() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [clients, setClients] = useState<Client[]>([])
-  const [clientsLoading, setClientsLoading] = useState(true)
 
-  // Fetch clients
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        setClientsLoading(true)
-        const response = await ClientService.listClients()
-        setClients(response.clients)
-      } catch (error) {
-        console.error('Error fetching clients:', error)
-      } finally {
-        setClientsLoading(false)
-      }
-    }
-
-    fetchClients()
-  }, [])
+  // Use TanStack Query for clients (automatic caching)
+  const { data: clientsData, isLoading: clientsLoading } = useClients()
+  const clients = clientsData?.clients || []
 
   const handleCreateBotImpl = async (meetingUrl: string, clientId?: string) => {
     // Prevent multiple submissions

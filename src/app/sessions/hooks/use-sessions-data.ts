@@ -1,19 +1,14 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
-import { ClientService } from '@/services/client-service'
+import { useClients } from '@/hooks/queries/use-clients'
 
-interface Client {
-  id: string
-  name: string
-  email?: string
-  company?: string
-}
-
+/**
+ * Custom hook for sessions page data management
+ * Now using TanStack Query for clients data with automatic caching
+ */
 export function useSessionsData(pageSize: number = 12) {
   const [currentPage, setCurrentPage] = useState(0)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
-  const [clients, setClients] = useState<Client[]>([])
-  const [loadingClients, setLoadingClients] = useState(true)
 
   const {
     data: meetingHistory,
@@ -23,22 +18,9 @@ export function useSessionsData(pageSize: number = 12) {
     fetchMore,
   } = useMeetingHistory(pageSize)
 
-  // Fetch clients for filtering
-  useEffect(() => {
-    const fetchClients = async () => {
-      try {
-        setLoadingClients(true)
-        const response = await ClientService.listClients()
-        setClients(response.clients || [])
-      } catch (error) {
-        console.error('Failed to fetch clients:', error)
-      } finally {
-        setLoadingClients(false)
-      }
-    }
-
-    fetchClients()
-  }, [])
+  // Use TanStack Query for clients (automatic caching and deduplication)
+  const { data: clientsData, isLoading: loadingClients } = useClients()
+  const clients = clientsData?.clients || []
 
   const handleNextPage = () => {
     const newOffset = (currentPage + 1) * pageSize

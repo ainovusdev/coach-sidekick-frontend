@@ -24,6 +24,7 @@ export default function MeetingPage() {
     error,
     meetingState,
     sessionId,
+    clientId,
     stopBot,
     isStoppingBot,
   } = useMeetingData({ botId })
@@ -88,6 +89,7 @@ export default function MeetingPage() {
               transcript={transcript}
               botId={botId}
               sessionId={sessionId || undefined}
+              clientId={clientId || undefined}
             />
           </div>
         </div>

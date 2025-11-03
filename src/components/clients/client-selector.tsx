@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client } from '@/types/meeting'
-import { ClientService } from '@/services/client-service'
+import { useClients, useClient } from '@/hooks/queries/use-clients'
 import { FileText } from 'lucide-react'
 
 interface ClientSelectorProps {
@@ -21,47 +21,34 @@ export default function ClientSelector({
   placeholder = 'Search and select a client...',
   allowNone = true,
 }: ClientSelectorProps) {
-  const [clients, setClients] = useState<Client[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-  const fetchClients = async () => {
-    try {
-      setLoading(true)
+  // Use TanStack Query for clients - automatic caching!
+  const { data: clientsData, isLoading: loading } = useClients()
+  const clients = clientsData?.clients ?? []
 
-      const response = await ClientService.listClients()
-
-      // Use all clients since we no longer have status
-      setClients(response.clients)
-    } catch (error) {
-      console.error('Error fetching clients:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const fetchSelectedClient = async (clientId: string) => {
-    try {
-      const client = await ClientService.getClient(clientId)
-      setSelectedClient(client)
-    } catch (error) {
-      console.error('Error fetching selected client:', error)
-    }
-  }
+  // Fetch selected client if provided (uses cache if available)
+  const { data: fetchedSelectedClient } = useClient(
+    selectedClientId && !selectedClient ? selectedClientId : undefined,
+  )
 
   useEffect(() => {
-    if (selectedClientId && !selectedClient) {
-      fetchSelectedClient(selectedClientId)
+    if (fetchedSelectedClient && !selectedClient) {
+      setSelectedClient(fetchedSelectedClient)
     }
-  }, [selectedClientId, selectedClient])
+  }, [fetchedSelectedClient, selectedClient])
 
-  useEffect(() => {
-    if (isOpen) {
-      fetchClients()
-    }
-  }, [isOpen, searchTerm])
+  // Filter clients based on search term
+  const filteredClients = useMemo(() => {
+    if (!searchTerm) return clients
+    return clients.filter(
+      client =>
+        client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.notes?.toLowerCase().includes(searchTerm.toLowerCase()),
+    )
+  }, [clients, searchTerm])
 
   const handleClientSelect = (client: Client | null) => {
     setSelectedClient(client)
@@ -159,16 +146,16 @@ export default function ClientSelector({
               </div>
             )}
 
-            {loading ? (
+            {loading && clients.length === 0 ? (
               <div className="px-3 py-4 text-center text-neutral-500">
                 Loading clients...
               </div>
-            ) : clients.length === 0 ? (
+            ) : filteredClients.length === 0 ? (
               <div className="px-3 py-4 text-center text-neutral-500">
                 {searchTerm ? 'No clients found' : 'No clients available'}
               </div>
             ) : (
-              clients.map(client => (
+              filteredClients.map(client => (
                 <div
                   key={client.id}
                   className="px-3 py-2 hover:bg-neutral-50 cursor-pointer flex items-center gap-3"

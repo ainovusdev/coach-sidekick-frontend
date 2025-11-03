@@ -8,7 +8,8 @@ interface UseMeetingDataProps {
 }
 
 export function useMeetingData({ botId }: UseMeetingDataProps) {
-  const { bot, transcript, loading, error, sessionId } = useBotData(botId)
+  const { bot, transcript, loading, error, sessionId, clientId } =
+    useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
 
@@ -30,6 +31,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     error,
     meetingState,
     sessionId,
+    clientId,
     stopBot,
     isStoppingBot,
   }

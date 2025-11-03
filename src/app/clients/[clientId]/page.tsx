@@ -24,6 +24,8 @@ import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
 import { SprintTargetsManager } from '@/components/sprints/sprint-targets-manager'
 import { GoalsList } from '@/components/goals/goals-list'
+import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentService } from '@/services/commitment-service'
 import { useClientData } from './hooks/use-client-data'
 import { getClientInitials, formatDate } from './utils/client-utils'
 import { cn } from '@/lib/utils'
@@ -46,6 +48,7 @@ import {
   UserCheck,
   Users,
   Target,
+  Sparkles,
 } from 'lucide-react'
 
 export default function ClientDetailPage({
@@ -65,6 +68,8 @@ export default function ClientDetailPage({
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
+  const [editingCommitment, setEditingCommitment] = useState<any>(null)
+  const [showCommitmentForm, setShowCommitmentForm] = useState(false)
   const { client, sessions, loading, error, refetch } = useClientData(
     clientId,
     userId!,
@@ -155,8 +160,26 @@ export default function ClientDetailPage({
                         </Badge>
                       )}
                     </div>
+
+                    {/* Meta Performance Vision */}
+                    {client.meta_performance_vision && (
+                      <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-500 rounded-r-lg">
+                        <div className="flex items-start gap-2">
+                          <Sparkles className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-xs font-semibold text-purple-900 uppercase tracking-wider mb-1">
+                              Meta Performance Vision
+                            </p>
+                            <p className="text-sm text-gray-800 italic leading-relaxed">
+                              &ldquo;{client.meta_performance_vision}&rdquo;
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {client.notes && (
-                      <p className="text-sm text-gray-600 max-w-2xl mt-1">
+                      <p className="text-sm text-gray-600 max-w-2xl mt-2">
                         {client.notes}
                       </p>
                     )}
@@ -366,13 +389,6 @@ export default function ClientDetailPage({
                   <Target className="h-4 w-4 mr-2" />
                   Sprints & Outcomes
                 </TabsTrigger>
-                <TabsTrigger
-                  value="commitments"
-                  className="data-[state=active]:bg-white"
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  All Commitments
-                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="sessions" className="space-y-4">
@@ -494,15 +510,7 @@ export default function ClientDetailPage({
                   showCreateButton={true}
                 />
 
-                {/* 2. Sprint Overview */}
-                <CurrentSprintWidget
-                  clientId={client.id}
-                  onRefresh={refetch}
-                  showStatusMenu={true}
-                  onCreateSprint={() => setIsSprintModalOpen(true)}
-                />
-
-                {/* 3. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
+                {/* 2. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   {/* Left: Desired Wins */}
                   <div>
@@ -554,15 +562,23 @@ export default function ClientDetailPage({
                           showHeader={false}
                           viewAllLink={`/clients/${client.id}?tab=commitments`}
                           targetId={selectedTargetId}
+                          onEdit={commitment => {
+                            setEditingCommitment(commitment)
+                            setShowCommitmentForm(true)
+                          }}
                         />
                       </CardContent>
                     </Card>
                   </div>
                 </div>
-              </TabsContent>
 
-              <TabsContent value="commitments" className="space-y-4">
-                <CommitmentsWidget clientId={client.id} limit={20} />
+                {/* 3. Current Sprint Overview (Bottom, Full Width) */}
+                <CurrentSprintWidget
+                  clientId={client.id}
+                  onRefresh={refetch}
+                  showStatusMenu={true}
+                  onCreateSprint={() => setIsSprintModalOpen(true)}
+                />
               </TabsContent>
             </Tabs>
           </div>
@@ -601,6 +617,30 @@ export default function ClientDetailPage({
           onOpenChange={setIsSprintModalOpen}
           clientId={client.id}
           onSuccess={refetch}
+        />
+
+        {/* Commitment Edit Modal */}
+        <CommitmentForm
+          open={showCommitmentForm}
+          onOpenChange={open => {
+            setShowCommitmentForm(open)
+            if (!open) setEditingCommitment(null)
+          }}
+          onSubmit={async data => {
+            if (editingCommitment) {
+              await CommitmentService.updateCommitment(
+                editingCommitment.id,
+                data,
+              )
+            } else {
+              await CommitmentService.createCommitment(data)
+            }
+            setShowCommitmentForm(false)
+            setEditingCommitment(null)
+            refetch()
+          }}
+          commitment={editingCommitment}
+          clientId={client.id}
         />
       </PageLayout>
     </ProtectedRoute>

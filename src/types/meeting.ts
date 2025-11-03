@@ -30,6 +30,7 @@ export interface Client {
   invitation_sent_at?: string
   is_my_client?: boolean
   coach_name?: string
+  client_session_stats?: ClientSessionStats[]
 }
 
 export interface ClientSessionStats {
