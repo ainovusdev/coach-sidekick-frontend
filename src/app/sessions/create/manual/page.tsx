@@ -7,66 +7,63 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { ArrowLeft, Upload, Calendar, User } from 'lucide-react'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { ArrowLeft, Upload } from 'lucide-react'
 import { ManualSessionService } from '@/services/manual-session-service'
-import { ClientService } from '@/services/client-service'
+import { useClients } from '@/hooks/queries/use-clients'
 import { LoadingState } from '@/components/ui/loading-state'
 import { toast } from '@/hooks/use-toast'
 
 function CreateManualSessionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [clients, setClients] = useState<any[]>([])
-  const [loadingClients, setLoadingClients] = useState(true)
+
+  // Use TanStack Query hook - data is cached and shared across components!
+  const { data: clientsData, isLoading: loadingClients } = useClients()
+  const clients = clientsData?.clients || []
+
   const [creating, setCreating] = useState(false)
-  
+
   // Get client ID from URL query parameter
   const prefilledClientId = searchParams.get('clientId')
-  
+
   const [formData, setFormData] = useState({
     client_id: '',
     session_date: new Date().toISOString().split('T')[0],
-    notes: ''
+    notes: '',
   })
 
   useEffect(() => {
-    loadClients()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const loadClients = async () => {
-    try {
-      const response = await ClientService.listClients()
-      setClients(response.clients)
-      
-      // If we have a pre-filled client ID, set it
-      if (prefilledClientId) {
-        setFormData(prev => ({
-          ...prev,
-          client_id: prefilledClientId
-        }))
-      }
-    } catch (error) {
-      console.error('Failed to load clients:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load clients',
-        variant: 'destructive'
-      })
-    } finally {
-      setLoadingClients(false)
+    // If we have a pre-filled client ID, set it
+    if (prefilledClientId) {
+      setFormData(prev => ({
+        ...prev,
+        client_id: prefilledClientId,
+      }))
     }
-  }
+  }, [prefilledClientId])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.client_id) {
       toast({
         title: 'Error',
         description: 'Please select a client',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -76,14 +73,14 @@ function CreateManualSessionContent() {
       const session = await ManualSessionService.createManualSession({
         client_id: formData.client_id,
         session_date: formData.session_date,
-        notes: formData.notes
+        notes: formData.notes,
       })
-      
+
       toast({
         title: 'Success',
-        description: 'Session created successfully'
+        description: 'Session created successfully',
       })
-      
+
       // Redirect to session details page
       router.push(`/sessions/${session.id}`)
     } catch (error) {
@@ -91,7 +88,7 @@ function CreateManualSessionContent() {
       toast({
         title: 'Error',
         description: 'Failed to create session',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setCreating(false)
@@ -100,64 +97,65 @@ function CreateManualSessionContent() {
 
   if (loadingClients) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
-        <LoadingState 
-          message="Loading..." 
-          variant="gradient"
-          className="min-h-screen"
-        />
+      <div className="min-h-screen bg-gray-50">
+        <LoadingState message="Loading clients..." className="min-h-screen" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => router.back()}
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Create Manual Session
-              </h1>
-            </div>
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.back()}
+              className="mr-4 text-gray-600 hover:text-gray-900"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-xl font-semibold text-gray-900">
+              Add Past Session
+            </h1>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>New Manual Session</CardTitle>
-            <CardDescription>
-              Create a session for uploading recorded audio or video files
+        <Card className="border-gray-200">
+          <CardHeader className="border-b border-gray-200">
+            <CardTitle className="text-lg">Session Details</CardTitle>
+            <CardDescription className="text-gray-600">
+              Create a session to upload and analyze recorded audio or video
+              files
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               {/* Client Selection */}
               <div className="space-y-2">
-                <Label htmlFor="client">
-                  <User className="inline-block w-4 h-4 mr-2" />
-                  Client *
+                <Label
+                  htmlFor="client"
+                  className="text-base font-medium text-gray-900"
+                >
+                  Client <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={formData.client_id}
-                  onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                  onValueChange={value =>
+                    setFormData({ ...formData, client_id: value })
+                  }
                 >
-                  <SelectTrigger id="client">
+                  <SelectTrigger id="client" className="border-gray-200">
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
-                    {clients.map((client) => (
+                    {clients.map(client => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
                       </SelectItem>
@@ -168,51 +166,66 @@ function CreateManualSessionContent() {
 
               {/* Session Date */}
               <div className="space-y-2">
-                <Label htmlFor="date">
-                  <Calendar className="inline-block w-4 h-4 mr-2" />
+                <Label
+                  htmlFor="date"
+                  className="text-base font-medium text-gray-900"
+                >
                   Session Date
                 </Label>
                 <Input
                   id="date"
                   type="date"
                   value={formData.session_date}
-                  onChange={(e) => setFormData({ ...formData, session_date: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, session_date: e.target.value })
+                  }
+                  className="border-gray-200"
                 />
               </div>
 
               {/* Notes */}
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
+                <Label
+                  htmlFor="notes"
+                  className="text-base font-medium text-gray-900"
+                >
+                  Notes{' '}
+                  <span className="text-gray-500 font-normal">(Optional)</span>
+                </Label>
                 <Textarea
                   id="notes"
                   placeholder="Add any notes about this session..."
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={e =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
                   rows={4}
+                  className="border-gray-200"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end space-x-4">
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={creating}
+                  className="border-gray-300 hover:bg-gray-50"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={creating || !formData.client_id}
-                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="bg-gray-900 hover:bg-gray-800 text-white"
                 >
                   {creating ? (
                     <>Creating...</>
                   ) : (
                     <>
                       <Upload className="w-4 h-4 mr-2" />
-                      Create & Upload File
+                      Create Session
                     </>
                   )}
                 </Button>

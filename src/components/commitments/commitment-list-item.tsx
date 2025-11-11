@@ -75,7 +75,7 @@ export function CommitmentListItem({
                 {commitment.extracted_from_transcript && (
                   <Badge
                     variant="secondary"
-                    className="bg-purple-100 text-purple-700"
+                    className="bg-gray-100 text-gray-700"
                   >
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI Extracted

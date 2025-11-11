@@ -15,7 +15,15 @@ import {
   Users,
   Eye,
   Sparkles,
+  Trash2,
+  MoreVertical,
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 interface ClientHeaderProps {
   client: any
@@ -28,6 +36,7 @@ interface ClientHeaderProps {
   onInvite: () => void
   onUpload: () => void
   onEdit: () => void
+  onDelete: () => void
 }
 
 export default function ClientHeader({
@@ -41,6 +50,7 @@ export default function ClientHeader({
   onInvite,
   onUpload,
   onEdit,
+  onDelete,
 }: ClientHeaderProps) {
   return (
     <div className="border-b border-gray-200 bg-white shadow-sm">
@@ -81,7 +91,6 @@ export default function ClientHeader({
                 )}
               </div>
 
-              {/* Meta Performance Vision */}
               {client.meta_performance_vision && (
                 <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-500 rounded-r-lg">
                   <div className="flex items-start gap-2">
@@ -165,7 +174,7 @@ export default function ClientHeader({
                   <Button
                     variant="outline"
                     onClick={onInvite}
-                    className="border-purple-300 hover:bg-purple-50 text-purple-700"
+                    className="border-gray-300 hover:bg-gray-50"
                   >
                     <Send className="h-4 w-4 mr-2" />
                     Invite to Portal
@@ -186,6 +195,26 @@ export default function ClientHeader({
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="border-gray-300 hover:bg-gray-50"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={onDelete}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Client
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </>
             )}
             {isViewer && (

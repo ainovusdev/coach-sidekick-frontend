@@ -193,7 +193,7 @@ export function CommitmentCard({
               {commitment.extracted_from_transcript && (
                 <Badge
                   variant="outline"
-                  className="bg-purple-500/10 text-purple-600"
+                  className="bg-gray-500/10 text-gray-600"
                 >
                   AI Extracted
                 </Badge>

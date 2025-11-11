@@ -12,7 +12,10 @@ interface MeetingFormSimpleProps {
   loading: boolean
 }
 
-export function MeetingFormSimple({ onSubmit, loading }: MeetingFormSimpleProps) {
+export function MeetingFormSimple({
+  onSubmit,
+  loading,
+}: MeetingFormSimpleProps) {
   const [meetingUrl, setMeetingUrl] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
@@ -57,21 +60,23 @@ export function MeetingFormSimple({ onSubmit, loading }: MeetingFormSimpleProps)
       </div>
 
       <div className="relative">
-        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-400" />
+        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           type="url"
           value={meetingUrl}
           onChange={e => setMeetingUrl(e.target.value)}
-          placeholder="Paste meeting URL"
-          className="pl-10 border-neutral-200 focus:border-neutral-400 focus:ring-0"
+          placeholder="Paste meeting URL (Zoom, Meet, or Teams)"
+          className="pl-10"
           disabled={loading}
         />
       </div>
 
       <Button
         type="submit"
-        disabled={loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())}
-        className="w-full bg-neutral-900 hover:bg-neutral-800 text-white"
+        disabled={
+          loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())
+        }
+        className="w-full bg-gray-900 hover:bg-gray-800 text-white"
       >
         {loading ? (
           <>
@@ -83,7 +88,7 @@ export function MeetingFormSimple({ onSubmit, loading }: MeetingFormSimpleProps)
         )}
       </Button>
 
-      <p className="text-xs text-center text-neutral-400">
+      <p className="text-xs text-center text-gray-500">
         Works with Zoom, Google Meet, and Teams
       </p>
     </form>

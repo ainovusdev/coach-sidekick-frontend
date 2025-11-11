@@ -17,7 +17,26 @@ import { ClientPersonaModern } from './components/client-persona-modern'
 import { ClientModals } from './components/client-modals'
 import { useClientData } from './hooks/use-client-data'
 import { useClientModals } from './hooks/use-client-modals'
-import { User, MessageSquare, Target, ArrowLeft } from 'lucide-react'
+import {
+  User,
+  MessageSquare,
+  Target,
+  ArrowLeft,
+  AlertTriangle,
+  Loader2,
+  Trash2,
+} from 'lucide-react'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { ClientService } from '@/services/client-service'
 
 export default function ClientDetailPage({
   params,
@@ -34,12 +53,30 @@ export default function ClientDetailPage({
     userId!,
   )
   const modalState = useClientModals()
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     params.then(({ clientId }) => {
       setClientId(clientId)
     })
   }, [params])
+
+  const handleDelete = async () => {
+    if (!client?.id) return
+
+    setIsDeleting(true)
+    try {
+      await ClientService.deleteClient(client.id)
+      // Keep dialog open during navigation
+      router.push('/clients')
+      // Dialog will close when component unmounts
+    } catch (error) {
+      console.error('Error deleting client:', error)
+      setShowDeleteDialog(false)
+      setIsDeleting(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -96,6 +133,7 @@ export default function ClientDetailPage({
             onInvite={() => modalState.setIsInviteModalOpen(true)}
             onUpload={() => modalState.setIsManualSessionModalOpen(true)}
             onEdit={() => modalState.setIsEditModalOpen(true)}
+            onDelete={() => setShowDeleteDialog(true)}
           />
 
           {/* Client Persona Display */}
@@ -179,6 +217,66 @@ export default function ClientDetailPage({
           setEditingCommitment={modalState.setEditingCommitment}
           onRefresh={refetch}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          open={showDeleteDialog}
+          onOpenChange={open => {
+            // Prevent closing while deleting
+            if (!isDeleting) {
+              setShowDeleteDialog(open)
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle>Delete Client</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="space-y-3">
+                <p>
+                  Are you sure you want to delete{' '}
+                  <strong>{client?.name}</strong>?
+                </p>
+                <p className="text-sm text-red-600 font-medium">
+                  This action cannot be undone. This will permanently delete:
+                </p>
+                <ul className="text-sm text-gray-700 space-y-1 ml-4">
+                  <li>• All coaching sessions and transcripts</li>
+                  <li>• Session insights and analysis</li>
+                  <li>• Client persona and knowledge base</li>
+                  <li>• Sprints, commitments, and tasks</li>
+                  <li>• Portal invitations and access</li>
+                </ul>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeleting}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDelete}
+                disabled={isDeleting}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Client
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </PageLayout>
     </ProtectedRoute>
   )

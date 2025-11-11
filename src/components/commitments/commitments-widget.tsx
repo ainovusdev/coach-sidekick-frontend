@@ -206,7 +206,7 @@ export function CommitmentsWidget({
                           commitment.type === 'action' &&
                             'bg-blue-100 text-blue-700',
                           commitment.type === 'habit' &&
-                            'bg-purple-100 text-purple-700',
+                            'bg-gray-100 text-gray-700',
                           commitment.type === 'milestone' &&
                             'bg-green-100 text-green-700',
                         )}

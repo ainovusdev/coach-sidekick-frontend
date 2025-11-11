@@ -28,41 +28,21 @@ export default function RecentClients({
 
   if (clientsLoading) {
     return (
-      <div className="space-y-6">
-        {/* Loading Skeleton for My Clients */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[1, 2, 3].map(i => (
-                <div
-                  key={i}
-                  className="h-16 bg-gray-100 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Loading Skeleton for Assigned Clients */}
-        <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader className="pb-4">
-            <div className="h-6 w-40 bg-gray-100 rounded animate-pulse" />
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {[1, 2].map(i => (
-                <div
-                  key={i}
-                  className="h-16 bg-gray-100 rounded-lg animate-pulse"
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-white border border-gray-200 h-full w-full">
+        <CardHeader className="pb-4 border-b border-gray-200">
+          <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
+        </CardHeader>
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div
+                key={i}
+                className="h-20 bg-gray-100 rounded-lg animate-pulse w-full"
+              />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     )
   }
 
@@ -86,10 +66,10 @@ export default function RecentClients({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col w-full">
       {/* My Clients Section */}
       {myClients.length > 0 && (
-        <Card className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200">
+        <Card className="border border-gray-200 flex flex-col h-full w-full">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -119,15 +99,14 @@ export default function RecentClients({
               </Button>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex-1">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {myClients.slice(0, 6).map(client => (
                 <ClientCard
                   key={client.id}
                   name={client.name}
-                  notes={client.notes}
+                  email={client.email}
                   onClick={() => router.push(`/clients/${client.id}`)}
-                  className="bg-white hover:bg-gray-50 border-gray-300 hover:border-gray-900 hover:shadow-md transition-all"
                   isMyClient={client.is_my_client}
                   coachName={client.coach_name}
                 />
@@ -151,21 +130,21 @@ export default function RecentClients({
 
       {/* Assigned Clients Section */}
       {assignedClients.length > 0 && (
-        <Card className="bg-gradient-to-br from-white to-blue-50/30 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-200">
-          <CardHeader className="pb-4">
+        <Card className="border border-gray-200">
+          <CardHeader className="pb-4 border-b border-gray-200">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg shadow-sm">
+                <div className="p-2 bg-gray-900 rounded-lg">
                   <UserCheck className="h-5 w-5 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                     Assigned Clients
-                    <Badge className="bg-blue-600 text-white">
+                    <Badge className="bg-gray-900 text-white">
                       {assignedClients.length}
                     </Badge>
                   </h3>
-                  <p className="text-sm text-blue-600">
+                  <p className="text-sm text-gray-500">
                     Clients shared with you by other coaches
                   </p>
                 </div>
@@ -174,7 +153,7 @@ export default function RecentClients({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/clients')}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                className="text-gray-600 hover:text-gray-900"
               >
                 View All
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -187,9 +166,8 @@ export default function RecentClients({
                 <ClientCard
                   key={client.id}
                   name={client.name}
-                  notes={client.notes}
+                  email={client.email}
                   onClick={() => router.push(`/clients/${client.id}`)}
-                  className="bg-white hover:bg-blue-50 border-blue-200 hover:border-blue-400 hover:shadow-md transition-all"
                   isMyClient={client.is_my_client}
                   coachName={client.coach_name}
                 />
@@ -201,7 +179,7 @@ export default function RecentClients({
                   variant="outline"
                   size="sm"
                   onClick={() => router.push('/clients')}
-                  className="border-blue-300 text-blue-600 hover:bg-blue-50 hover:border-blue-500"
+                  className="border-gray-300 hover:bg-gray-50"
                 >
                   View {assignedClients.length - 6} More Assigned Clients
                 </Button>
