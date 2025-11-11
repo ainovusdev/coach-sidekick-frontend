@@ -1,6 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo } from 'react'
+import { useAdminUsers } from '@/hooks/queries/use-admin-users'
+import { useAccessMatrix } from '@/hooks/queries/use-admin-access'
+import { useAuditLog } from '@/hooks/queries/use-admin-audit-log'
 import {
   Card,
   CardContent,
@@ -13,7 +16,6 @@ import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { adminService } from '@/services/admin-service'
 import {
   Users,
   Shield,
@@ -92,124 +94,135 @@ function StatCard({
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalClients: 0,
-    assignedClients: 0,
-    roleDistribution: {
+
+  // React Query hooks - automatic caching and deduplication!
+  const { data: users = [], isLoading: usersLoading } = useAdminUsers({
+    limit: 1000,
+  })
+  const { data: accessMatrix = [], isLoading: accessLoading } = useAccessMatrix(
+    { limit: 100 },
+  )
+  const { data: auditLogs = [], isLoading: auditLoading } = useAuditLog({
+    limit: 50,
+  })
+
+  const loading = usersLoading || accessLoading || auditLoading
+
+  // Calculate stats with memoization
+  const stats = useMemo(() => {
+    const totalUsers = users.length
+    const activeUsers = users.filter(u => u.is_active).length
+
+    // Calculate role distribution
+    const roleDistribution = {
       super_admin: 0,
       admin: 0,
       coach: 0,
       viewer: 0,
-    },
-  })
-  const [loading, setLoading] = useState(true)
-  const [recentActivity, setRecentActivity] = useState<any[]>([])
-  const [systemHealth] = useState({
+    }
+
+    users.forEach(user => {
+      user.roles.forEach(role => {
+        if (role in roleDistribution) {
+          roleDistribution[role as keyof typeof roleDistribution]++
+        }
+      })
+    })
+
+    const totalClients = accessMatrix.length
+    const assignedClients = accessMatrix.filter(
+      c => c.assigned_users.length > 0,
+    ).length
+
+    return {
+      totalUsers,
+      activeUsers,
+      totalClients,
+      assignedClients,
+      roleDistribution,
+    }
+  }, [users, accessMatrix])
+
+  // Transform audit logs to activity feed
+  const recentActivity = useMemo(() => {
+    return auditLogs.slice(0, 20).map((log: any, index: number) => ({
+      id: log.id || index,
+      type: log.action || 'unknown',
+      action: getActivityDescription(log.action, log.resource_type),
+      user: log.user_email || 'System',
+      time: formatTimeAgo(log.created_at),
+      status: 'success',
+      resourceType: log.resource_type,
+    }))
+  }, [auditLogs])
+
+  // System health - this could be fetched from a health check endpoint
+  const systemHealth = {
     api: 'operational',
     database: 'operational',
     auth: 'operational',
-  })
+  }
 
-  useEffect(() => {
-    fetchDashboardData()
-  }, [])
-
-  const fetchDashboardData = async () => {
-    try {
-      setLoading(true)
-
-      // Fetch users
-      const users = await adminService.getUsers({ limit: 1000 })
-
-      // Calculate stats
-      const totalUsers = users.length
-      const activeUsers = users.filter(u => u.is_active).length
-
-      // Calculate role distribution
-      const roleDistribution = {
-        super_admin: 0,
-        admin: 0,
-        coach: 0,
-        viewer: 0,
-      }
-
-      users.forEach(user => {
-        user.roles.forEach(role => {
-          if (role in roleDistribution) {
-            roleDistribution[role as keyof typeof roleDistribution]++
-          }
-        })
-      })
-
-      // Fetch client access data
-      const accessMatrix = await adminService.getAccessMatrix({ limit: 100 })
-      const totalClients = accessMatrix.length
-      const assignedClients = accessMatrix.filter(
-        c => c.assigned_users.length > 0,
-      ).length
-
-      setStats({
-        totalUsers,
-        activeUsers,
-        totalClients,
-        assignedClients,
-        roleDistribution,
-      })
-
-      // Mock recent activity (in production, this would come from audit logs)
-      setRecentActivity([
-        {
-          id: 1,
-          type: 'user_created',
-          action: 'New user registered',
-          user: 'john.doe@example.com',
-          time: '2 minutes ago',
-          status: 'success',
-        },
-        {
-          id: 2,
-          type: 'role_assigned',
-          action: 'Coach role assigned',
-          user: 'jane.smith@example.com',
-          time: '5 minutes ago',
-          status: 'success',
-        },
-        {
-          id: 3,
-          type: 'access_granted',
-          action: 'Client access granted',
-          user: 'mike.wilson@example.com',
-          time: '10 minutes ago',
-          status: 'success',
-        },
-        {
-          id: 4,
-          type: 'user_deactivated',
-          action: 'User account deactivated',
-          user: 'old.user@example.com',
-          time: '1 hour ago',
-          status: 'warning',
-        },
-      ])
-    } catch (error) {
-      console.error('Failed to fetch dashboard data:', error)
-    } finally {
-      setLoading(false)
+  function getActivityDescription(action: string, resourceType: string) {
+    const actionMap: Record<string, string> = {
+      create: 'Created',
+      update: 'Updated',
+      delete: 'Deleted',
+      view: 'Viewed',
+      grant: 'Granted',
+      revoke: 'Revoked',
     }
+
+    const resourceMap: Record<string, string> = {
+      user: 'user',
+      client: 'client',
+      session: 'session',
+      role: 'role',
+      access: 'access',
+    }
+
+    return `${actionMap[action] || action} ${resourceMap[resourceType] || resourceType}`
+  }
+
+  function formatTimeAgo(dateString: string) {
+    if (!dateString) return 'Just now'
+
+    const date = new Date(dateString)
+    const now = new Date()
+    const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+
+    const intervals = [
+      { label: 'year', seconds: 31536000 },
+      { label: 'month', seconds: 2592000 },
+      { label: 'day', seconds: 86400 },
+      { label: 'hour', seconds: 3600 },
+      { label: 'minute', seconds: 60 },
+    ]
+
+    for (const interval of intervals) {
+      const count = Math.floor(seconds / interval.seconds)
+      if (count >= 1) {
+        return `${count} ${interval.label}${count > 1 ? 's' : ''} ago`
+      }
+    }
+
+    return 'Just now'
   }
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'user_created':
+      case 'create':
         return <UserPlus className="h-4 w-4" />
-      case 'role_assigned':
-        return <Shield className="h-4 w-4" />
-      case 'access_granted':
-        return <LockKeyhole className="h-4 w-4" />
-      case 'user_deactivated':
+      case 'update':
+        return <Activity className="h-4 w-4" />
+      case 'delete':
         return <AlertCircle className="h-4 w-4" />
+      case 'grant':
+        return <LockKeyhole className="h-4 w-4" />
+      case 'revoke':
+        return <AlertCircle className="h-4 w-4" />
+      case 'view':
+        return <Activity className="h-4 w-4" />
       default:
         return <Activity className="h-4 w-4" />
     }
@@ -306,7 +319,6 @@ export default function AdminDashboard() {
           value={stats.totalUsers}
           description={`${stats.activeUsers} active users`}
           icon={<Users className="h-5 w-5 text-blue-600" />}
-          trend={{ value: 12, isPositive: true }}
           onClick={() => router.push('/admin/users')}
         />
         <StatCard
@@ -314,15 +326,13 @@ export default function AdminDashboard() {
           value={stats.totalClients}
           description={`${stats.assignedClients} assigned`}
           icon={<UserCheck className="h-5 w-5 text-green-600" />}
-          trend={{ value: 8, isPositive: true }}
           onClick={() => router.push('/admin/client-access')}
         />
         <StatCard
           title="Active Coaches"
           value={stats.roleDistribution.coach}
-          description="Coaching sessions"
+          description="Coaching users"
           icon={<TrendingUp className="h-5 w-5 text-purple-600" />}
-          trend={{ value: 5, isPositive: true }}
           onClick={() => router.push('/admin/roles')}
         />
         <StatCard
@@ -441,12 +451,7 @@ export default function AdminDashboard() {
               <TabsContent value="users" className="space-y-4 mt-4">
                 {recentActivity
                   .filter(a =>
-                    [
-                      'user_created',
-                      'role_assigned',
-                      'access_granted',
-                      'user_deactivated',
-                    ].includes(a.type),
+                    ['user', 'role', 'access'].includes(a.resourceType),
                   )
                   .map(activity => (
                     <div
@@ -474,10 +479,43 @@ export default function AdminDashboard() {
                     </div>
                   ))}
               </TabsContent>
-              <TabsContent value="system" className="mt-4">
-                <div className="text-center py-8 text-gray-500 text-sm">
-                  No system events in the last 24 hours
-                </div>
+              <TabsContent value="system" className="space-y-4 mt-4">
+                {recentActivity
+                  .filter(a => ['session', 'client'].includes(a.resourceType))
+                  .slice(0, 10).length > 0 ? (
+                  recentActivity
+                    .filter(a => ['session', 'client'].includes(a.resourceType))
+                    .slice(0, 10)
+                    .map(activity => (
+                      <div
+                        key={activity.id}
+                        className="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        <div
+                          className={`h-10 w-10 rounded-full flex items-center justify-center flex-shrink-0 border ${getActivityColor(activity.status)}`}
+                        >
+                          {getActivityIcon(activity.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium text-gray-900">
+                              {activity.action}
+                            </p>
+                            <span className="text-xs text-gray-500">
+                              {activity.time}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {activity.user}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No system events in the last 24 hours
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </CardContent>

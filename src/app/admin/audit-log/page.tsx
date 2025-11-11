@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+import { useAuditLog } from '@/hooks/queries/use-admin-audit-log'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -28,7 +29,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { 
+import {
   FileText,
   Download,
   Search,
@@ -43,24 +44,12 @@ import {
   AlertCircle,
   CheckCircle,
   XCircle,
-  Monitor
+  Monitor,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
 import { usePermissions } from '@/contexts/permission-context'
 
-interface AuditLogEntry {
-  id: string
-  user_id: string
-  user_email: string
-  user_name: string
-  resource_type: string
-  resource_id: string | null
-  action: string
-  details: any
-  ip_address: string | null
-  user_agent: string | null
-  timestamp: string
-}
+import { AuditLogEntry } from '@/services/admin-service'
 
 const RESOURCE_TYPES = [
   { value: 'all', label: 'All Resources' },
@@ -87,119 +76,137 @@ const ACTION_TYPES = [
 ]
 
 export default function AuditLogPage() {
-  const [logs, setLogs] = useState<AuditLogEntry[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [resourceFilter, setResourceFilter] = useState('all')
   const [actionFilter, setActionFilter] = useState('all')
   const [dateFilter, setDateFilter] = useState('7days')
   const [selectedLog, setSelectedLog] = useState<AuditLogEntry | null>(null)
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
-  const [stats, setStats] = useState({
-    totalActions: 0,
-    uniqueUsers: 0,
-    viewActions: 0,
-    editActions: 0,
-  })
-  
+
   const { toast } = useToast()
   const _permissions = usePermissions()
 
-  useEffect(() => {
-    fetchAuditLogs()
-  }, [resourceFilter, actionFilter, dateFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Calculate date range based on filter
+  const dateRange = useMemo(() => {
+    const now = new Date()
+    let startDate: Date | null = null
 
-  const fetchAuditLogs = async () => {
-    try {
-      setLoading(true)
-      
-      // TODO: Fetch actual audit logs from API
-      // For now, create mock data
-      const mockLogs: AuditLogEntry[] = [
-        {
-          id: '1',
-          user_id: 'user1',
-          user_email: 'admin@example.com',
-          user_name: 'Admin User',
-          resource_type: 'client',
-          resource_id: 'client123',
-          action: 'view',
-          details: { client_name: 'John Doe' },
-          ip_address: '192.168.1.1',
-          user_agent: 'Mozilla/5.0...',
-          timestamp: new Date().toISOString(),
-        },
-        {
-          id: '2',
-          user_id: 'user2',
-          user_email: 'coach@example.com',
-          user_name: 'Coach User',
-          resource_type: 'transcript',
-          resource_id: 'transcript456',
-          action: 'view',
-          details: { session_id: 'session789' },
-          ip_address: '192.168.1.2',
-          user_agent: 'Chrome/120.0...',
-          timestamp: new Date(Date.now() - 3600000).toISOString(),
-        },
-        {
-          id: '3',
-          user_id: 'user1',
-          user_email: 'admin@example.com',
-          user_name: 'Admin User',
-          resource_type: 'coach_access',
-          resource_id: 'access789',
-          action: 'grant',
-          details: { 
-            coach_id: 'coach123',
-            admin_id: 'admin456',
-            coach_name: 'John Coach',
-            admin_name: 'Jane Admin'
-          },
-          ip_address: '192.168.1.1',
-          user_agent: 'Mozilla/5.0...',
-          timestamp: new Date(Date.now() - 7200000).toISOString(),
-        },
-      ]
-      
-      setLogs(mockLogs)
-      
-      // Calculate stats
-      const uniqueUsers = new Set(mockLogs.map(l => l.user_id)).size
-      const viewActions = mockLogs.filter(l => l.action === 'view').length
-      const editActions = mockLogs.filter(l => l.action === 'edit').length
-      
-      setStats({
-        totalActions: mockLogs.length,
-        uniqueUsers,
-        viewActions,
-        editActions,
-      })
-      
-    } catch (error) {
-      console.error('Failed to fetch audit logs:', error)
+    switch (dateFilter) {
+      case '24hours':
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000)
+        break
+      case '7days':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+        break
+      case '30days':
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+        break
+      case 'all':
+        startDate = null
+        break
+    }
+
+    return {
+      start_date: startDate?.toISOString(),
+      end_date: startDate ? now.toISOString() : undefined,
+    }
+  }, [dateFilter])
+
+  // React Query hook - fetch real audit logs!
+  const {
+    data: logs = [],
+    isLoading: loading,
+    error,
+  } = useAuditLog({
+    limit: 500,
+    resource_type: resourceFilter === 'all' ? undefined : resourceFilter,
+    action: actionFilter === 'all' ? undefined : actionFilter,
+    start_date: dateRange.start_date,
+    end_date: dateRange.end_date,
+  })
+
+  // Show error toast if query fails - use useEffect to avoid infinite loop
+  useEffect(() => {
+    if (error) {
       toast({
         title: 'Error',
         description: 'Failed to load audit logs',
-        variant: 'destructive'
+        variant: 'destructive',
       })
-    } finally {
-      setLoading(false)
     }
-  }
+  }, [error, toast])
+
+  // Calculate stats with memoization
+  const stats = useMemo(() => {
+    const uniqueUsers = new Set(logs.map(l => l.user_id)).size
+    const viewActions = logs.filter(l => l.action === 'view').length
+    const editActions = logs.filter(
+      l =>
+        l.action === 'edit' || l.action === 'create' || l.action === 'delete',
+    ).length
+
+    return {
+      totalActions: logs.length,
+      uniqueUsers,
+      viewActions,
+      editActions,
+    }
+  }, [logs])
 
   const handleExport = async () => {
     try {
-      // TODO: Implement export functionality
+      // Convert logs to CSV
+      const headers = [
+        'Timestamp',
+        'User Name',
+        'User Email',
+        'Action',
+        'Resource Type',
+        'Resource ID',
+        'IP Address',
+        'User Agent',
+      ]
+
+      const csvRows = [
+        headers.join(','),
+        ...filteredLogs.map(log =>
+          [
+            new Date(log.created_at).toLocaleString(),
+            `"${log.user_name || ''}"`,
+            log.user_email,
+            log.action,
+            log.resource_type,
+            log.resource_id || '',
+            log.ip_address || '',
+            `"${log.user_agent || ''}"`,
+          ].join(','),
+        ),
+      ]
+
+      const csvContent = csvRows.join('\n')
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+
+      link.setAttribute('href', url)
+      link.setAttribute(
+        'download',
+        `audit-logs-${new Date().toISOString().split('T')[0]}.csv`,
+      )
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+
       toast({
-        title: 'Export Started',
-        description: 'Audit log export has been initiated',
+        title: 'Export Complete',
+        description: `Exported ${filteredLogs.length} audit log entries`,
       })
     } catch {
       toast({
         title: 'Error',
         description: 'Failed to export audit logs',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     }
   }
@@ -255,12 +262,12 @@ export default function AuditLogPage() {
     }
   }
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp)
+  const formatTimestamp = (createdAt: string) => {
+    const date = new Date(createdAt)
     const now = new Date()
     const diff = now.getTime() - date.getTime()
     const hours = Math.floor(diff / 3600000)
-    
+
     if (hours < 1) {
       const minutes = Math.floor(diff / 60000)
       return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`
@@ -271,22 +278,25 @@ export default function AuditLogPage() {
         month: 'short',
         day: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
       })
     }
   }
 
-  const filteredLogs = logs.filter(log => {
-    const matchesSearch = searchQuery === '' || 
-      log.user_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.user_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      log.action.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    const matchesResource = resourceFilter === 'all' || log.resource_type === resourceFilter
-    const matchesAction = actionFilter === 'all' || log.action === actionFilter
-    
-    return matchesSearch && matchesResource && matchesAction
-  })
+  // Client-side search filtering (resource and action filters are server-side)
+  const filteredLogs = useMemo(() => {
+    return logs.filter(log => {
+      if (searchQuery === '') return true
+
+      const searchLower = searchQuery.toLowerCase()
+      return (
+        log.user_email?.toLowerCase().includes(searchLower) ||
+        log.user_name?.toLowerCase().includes(searchLower) ||
+        log.action?.toLowerCase().includes(searchLower) ||
+        log.resource_type?.toLowerCase().includes(searchLower)
+      )
+    })
+  }, [logs, searchQuery])
 
   return (
     <div className="space-y-6">
@@ -296,7 +306,9 @@ export default function AuditLogPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             Audit Log
           </h1>
-          <p className="text-gray-500 mt-2">Track all system access and modifications</p>
+          <p className="text-gray-500 mt-2">
+            Track all system access and modifications
+          </p>
         </div>
         <Button onClick={handleExport}>
           <Download className="h-4 w-4 mr-2" />
@@ -309,7 +321,9 @@ export default function AuditLogPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">Total Actions</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Total Actions
+              </CardTitle>
               <Activity className="h-4 w-4 text-blue-500" />
             </div>
           </CardHeader>
@@ -321,7 +335,9 @@ export default function AuditLogPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">Active Users</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Active Users
+              </CardTitle>
               <User className="h-4 w-4 text-green-500" />
             </div>
           </CardHeader>
@@ -333,7 +349,9 @@ export default function AuditLogPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">View Actions</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                View Actions
+              </CardTitle>
               <Eye className="h-4 w-4 text-purple-500" />
             </div>
           </CardHeader>
@@ -345,7 +363,9 @@ export default function AuditLogPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">Modifications</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-600">
+                Modifications
+              </CardTitle>
               <Edit className="h-4 w-4 text-orange-500" />
             </div>
           </CardHeader>
@@ -365,7 +385,7 @@ export default function AuditLogPage() {
               <Input
                 placeholder="Search by user or action..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -428,7 +448,9 @@ export default function AuditLogPage() {
             <div className="text-center py-12">
               <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500">No audit logs found</p>
-              <p className="text-sm text-gray-400 mt-1">Try adjusting your filters</p>
+              <p className="text-sm text-gray-400 mt-1">
+                Try adjusting your filters
+              </p>
             </div>
           ) : (
             <Table>
@@ -443,30 +465,39 @@ export default function AuditLogPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredLogs.map((log) => (
+                {filteredLogs.map(log => (
                   <TableRow key={log.id} className="hover:bg-gray-50">
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-gray-400" />
-                        <span className="text-sm">{formatTimestamp(log.timestamp)}</span>
+                        <span className="text-sm">
+                          {formatTimestamp(log.created_at)}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div>
                         <p className="font-medium text-sm">{log.user_name}</p>
-                        <p className="text-xs text-gray-500">{log.user_email}</p>
+                        <p className="text-xs text-gray-500">
+                          {log.user_email}
+                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getResourceIcon(log.resource_type)}
-                        <span className="text-sm capitalize">{log.resource_type}</span>
+                        <span className="text-sm capitalize">
+                          {log.resource_type}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {getActionIcon(log.action)}
-                        <Badge variant={getActionBadgeVariant(log.action)} className="capitalize">
+                        <Badge
+                          variant={getActionBadgeVariant(log.action)}
+                          className="capitalize"
+                        >
                           {log.action}
                         </Badge>
                       </div>
@@ -510,54 +541,80 @@ export default function AuditLogPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">User</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    User
+                  </label>
                   <p className="text-sm font-medium">{selectedLog.user_name}</p>
-                  <p className="text-xs text-gray-500">{selectedLog.user_email}</p>
+                  <p className="text-xs text-gray-500">
+                    {selectedLog.user_email}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Timestamp</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    Timestamp
+                  </label>
                   <p className="text-sm">
-                    {new Date(selectedLog.timestamp).toLocaleString('en-US', {
+                    {new Date(selectedLog.created_at).toLocaleString('en-US', {
                       dateStyle: 'medium',
-                      timeStyle: 'medium'
+                      timeStyle: 'medium',
                     })}
                   </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Resource</label>
-                  <p className="text-sm capitalize">{selectedLog.resource_type}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    Resource
+                  </label>
+                  <p className="text-sm capitalize">
+                    {selectedLog.resource_type}
+                  </p>
                   {selectedLog.resource_id && (
-                    <p className="text-xs text-gray-500 font-mono">{selectedLog.resource_id}</p>
+                    <p className="text-xs text-gray-500 font-mono">
+                      {selectedLog.resource_id}
+                    </p>
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Action</label>
-                  <Badge variant={getActionBadgeVariant(selectedLog.action)} className="capitalize mt-1">
+                  <label className="text-sm font-medium text-gray-500">
+                    Action
+                  </label>
+                  <Badge
+                    variant={getActionBadgeVariant(selectedLog.action)}
+                    className="capitalize mt-1"
+                  >
                     {selectedLog.action}
                   </Badge>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">IP Address</label>
-                  <p className="text-sm font-mono">{selectedLog.ip_address || 'Unknown'}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    IP Address
+                  </label>
+                  <p className="text-sm font-mono">
+                    {selectedLog.ip_address || 'Unknown'}
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">User Agent</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    User Agent
+                  </label>
                   <p className="text-xs text-gray-600 truncate">
                     {selectedLog.user_agent || 'Unknown'}
                   </p>
                 </div>
               </div>
-              
-              {selectedLog.details && Object.keys(selectedLog.details).length > 0 && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Additional Details</label>
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
-                    <pre className="text-xs text-gray-700 whitespace-pre-wrap">
-                      {JSON.stringify(selectedLog.details, null, 2)}
-                    </pre>
+
+              {selectedLog.details &&
+                Object.keys(selectedLog.details).length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">
+                      Additional Details
+                    </label>
+                    <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                      <pre className="text-xs text-gray-700 whitespace-pre-wrap">
+                        {JSON.stringify(selectedLog.details, null, 2)}
+                      </pre>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
             </div>
           )}
         </DialogContent>

@@ -1,7 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { adminService, User } from '@/services/admin-service'
+import { useState, useEffect, useMemo } from 'react'
+import { useAdminUsers } from '@/hooks/queries/use-admin-users'
+import { useAvailableRoles } from '@/hooks/queries/use-admin-roles'
+import {
+  useAddRole,
+  useRemoveRole,
+} from '@/hooks/mutations/use-admin-role-mutations'
 import {
   Card,
   CardContent,
@@ -22,7 +27,6 @@ import {
   UserCheck,
   Info,
 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
 
 interface RoleInfo {
   name: string
@@ -61,73 +65,38 @@ const roleInfoMap: Record<string, RoleInfo> = {
 }
 
 export default function RolesPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
-  const [availableRoles, setAvailableRoles] = useState<{
-    roles: string[]
-    descriptions: Record<string, string>
-  }>({ roles: [], descriptions: {} })
   const [selectedRole, setSelectedRole] = useState<string | null>(null)
-  const [roleUsers, setRoleUsers] = useState<User[]>([])
-  const { toast } = useToast()
 
-  useEffect(() => {
-    fetchData()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // React Query hooks - automatic caching!
+  const { data: users = [], isLoading: loading } = useAdminUsers({
+    limit: 1000,
+  })
+  const { data: availableRolesData } = useAvailableRoles()
+  const availableRoles = availableRolesData || { roles: [], descriptions: {} }
 
+  // Mutation hooks
+  const { mutate: addRole } = useAddRole()
+  const { mutate: removeRole } = useRemoveRole()
+
+  // Select first role by default
   useEffect(() => {
-    if (selectedRole) {
-      const filtered = users.filter(user => user.roles.includes(selectedRole))
-      setRoleUsers(filtered)
+    if (availableRoles.roles.length > 0 && !selectedRole) {
+      setSelectedRole(availableRoles.roles[0])
     }
+  }, [availableRoles.roles, selectedRole])
+
+  // Filter users by selected role with memoization
+  const roleUsers = useMemo(() => {
+    if (!selectedRole) return []
+    return users.filter(user => user.roles.includes(selectedRole))
   }, [selectedRole, users])
 
-  const fetchData = async () => {
-    try {
-      setLoading(true)
-      const [usersData, rolesData] = await Promise.all([
-        adminService.getUsers({ limit: 1000 }),
-        adminService.getAvailableRoles(),
-      ])
-      setUsers(usersData)
-      setAvailableRoles(rolesData)
-
-      // Select first role by default
-      if (rolesData.roles.length > 0) {
-        setSelectedRole(rolesData.roles[0])
-      }
-    } catch (error) {
-      console.error('Failed to fetch data:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch role data',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
+  const handleAddRole = (userId: string, role: string) => {
+    addRole({ userId, role })
   }
 
-  const handleAddRole = async (userId: string, role: string) => {
-    try {
-      await adminService.addRole(userId, role)
-      toast({
-        title: 'Success',
-        description: `Role "${roleInfoMap[role]?.name}" added successfully`,
-      })
-      await fetchData()
-    } catch (e) {
-      console.log(e)
-      toast({
-        title: 'Error',
-        description: 'Failed to add role',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleRemoveRole = async (userId: string, role: string) => {
+  const handleRemoveRole = (userId: string, role: string) => {
     if (
       !confirm(
         `Are you sure you want to remove the "${roleInfoMap[role]?.name}" role from this user?`,
@@ -136,22 +105,7 @@ export default function RolesPage() {
       return
     }
 
-    try {
-      await adminService.removeRole(userId, role)
-      toast({
-        title: 'Success',
-        description: `Role "${roleInfoMap[role]?.name}" removed successfully`,
-      })
-      await fetchData()
-    } catch (e) {
-      console.log(e)
-
-      toast({
-        title: 'Error',
-        description: 'Failed to remove role',
-        variant: 'destructive',
-      })
-    }
+    removeRole({ userId, role })
   }
 
   const filteredUsers = users.filter(
@@ -194,6 +148,11 @@ export default function RolesPage() {
             const info = roleInfoMap[role]
             const count = getRoleStats(role)
             const isSelected = selectedRole === role
+
+            // Skip rendering if role info is not defined
+            if (!info) {
+              return null
+            }
 
             return (
               <Card
@@ -443,4 +402,3 @@ function PermissionItem({ label }: { label: string }) {
     </div>
   )
 }
-
