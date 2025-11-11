@@ -13,7 +13,7 @@ import {
   ChevronRight,
   Settings,
   FileText,
-  LockKeyhole,
+  Network,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -31,15 +31,9 @@ const menuItems = [
     requiredRole: ['admin', 'super_admin'],
   },
   {
-    title: 'Coach Access',
-    href: '/admin/coach-access',
-    icon: UserCheck,
-    requiredRole: ['super_admin'],
-  },
-  {
-    title: 'Client Access',
-    href: '/admin/client-access',
-    icon: LockKeyhole,
+    title: 'Access Management',
+    href: '/admin/access',
+    icon: Network,
     requiredRole: ['admin', 'super_admin'],
   },
   {

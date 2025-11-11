@@ -34,6 +34,7 @@ export interface ClientAccessMatrix {
     full_name: string | null
     roles: string[]
     access_level: string
+    is_owner?: boolean
   }[]
 }
 

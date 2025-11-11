@@ -326,7 +326,7 @@ export default function AdminDashboard() {
           value={stats.totalClients}
           description={`${stats.assignedClients} assigned`}
           icon={<UserCheck className="h-5 w-5 text-green-600" />}
-          onClick={() => router.push('/admin/client-access')}
+          onClick={() => router.push('/admin/access')}
         />
         <StatCard
           title="Active Coaches"
