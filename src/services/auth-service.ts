@@ -1,8 +1,5 @@
 import axiosInstance from '@/lib/axios-config'
 
-const _API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-
 export interface TokenResponse {
   access_token: string
   token_type: string

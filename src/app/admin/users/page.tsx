@@ -64,6 +64,7 @@ import {
   AlertCircle,
   RotateCcw, // NEW: Restore icon
   Archive, // NEW: Deleted users icon
+  Loader2,
 } from 'lucide-react'
 
 export default function UsersPage() {
@@ -105,7 +106,7 @@ export default function UsersPage() {
   const { mutate: updateUser, isPending: isUpdating } = useUpdateUser()
   const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser()
   const { mutate: restoreUser, isPending: isRestoring } = useRestoreUser()
-  const { mutate: assignRoles } = useAssignRoles()
+  const { mutate: assignRoles, isPending: isAssigningRoles } = useAssignRoles()
 
   // Handler functions - now much simpler!
   const handleSearch = (query: string) => {
@@ -760,6 +761,7 @@ export default function UsersPage() {
               Cancel
             </Button>
             <Button onClick={handleCreateUser} disabled={isCreating}>
+              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isCreating ? 'Creating...' : 'Create User'}
             </Button>
           </DialogFooter>
@@ -831,6 +833,7 @@ export default function UsersPage() {
               Cancel
             </Button>
             <Button onClick={handleUpdateUser} disabled={isUpdating}>
+              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isUpdating ? 'Updating...' : 'Update User'}
             </Button>
           </DialogFooter>
@@ -902,10 +905,16 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsRoleDialogOpen(false)}
+              disabled={isAssigningRoles}
             >
               Cancel
             </Button>
-            <Button onClick={handleUpdateRoles}>Update Roles</Button>
+            <Button onClick={handleUpdateRoles} disabled={isAssigningRoles}>
+              {isAssigningRoles && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {isAssigningRoles ? 'Updating...' : 'Update Roles'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -941,6 +950,7 @@ export default function UsersPage() {
               onClick={handleDeleteUser}
               disabled={isDeleting}
             >
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isDeleting ? 'Deleting...' : 'Delete User'}
             </Button>
           </DialogFooter>
@@ -974,6 +984,7 @@ export default function UsersPage() {
               onClick={handleRestoreUser}
               disabled={isRestoring}
             >
+              {isRestoring && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               {isRestoring ? 'Restoring...' : 'Restore User'}
             </Button>
           </DialogFooter>

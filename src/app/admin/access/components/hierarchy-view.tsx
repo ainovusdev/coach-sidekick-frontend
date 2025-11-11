@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import {
   Card,
   CardContent,
@@ -9,9 +9,32 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Shield, UserCheck, User, Network, Building } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  Shield,
+  UserCheck,
+  User,
+  Network,
+  Building,
+  ChevronDown,
+  ChevronRight,
+  Search,
+  MoreVertical,
+  Eye,
+  Link2,
+  Filter,
+  X,
+} from 'lucide-react'
 import { ClientAccessMatrix, User as UserType } from '@/services/admin-service'
+import { useRouter } from 'next/navigation'
 
 interface HierarchyNode {
   type: 'admin' | 'coach' | 'client'
@@ -39,6 +62,13 @@ export default function HierarchyView({
   isLoading,
   isFetching,
 }: HierarchyViewProps) {
+  const router = useRouter()
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<
+    'all' | 'admin' | 'coach' | 'client'
+  >('all')
+
   // Build hierarchy function with useCallback
   const buildHierarchy = useCallback(
     (
@@ -95,9 +125,8 @@ export default function HierarchyView({
               }
             })
 
-            if (coachNode.children.length > 0) {
-              adminNode.children.push(coachNode)
-            }
+            // Always show coaches under super admin, even without clients
+            adminNode.children.push(coachNode)
           })
         } else {
           // Regular admins see coaches assigned to them via CoachAccess
@@ -138,9 +167,8 @@ export default function HierarchyView({
               }
             })
 
-            if (coachNode.children.length > 0) {
-              adminNode.children.push(coachNode)
-            }
+            // Always show assigned coaches under admin, even without clients
+            adminNode.children.push(coachNode)
           })
 
           // Also add any direct client access grants (not via coach)
@@ -215,9 +243,8 @@ export default function HierarchyView({
           }
         })
 
-        if (coachNode.children.length > 0) {
-          hierarchy.push(coachNode)
-        }
+        // Always show coaches, even if they have no clients yet
+        hierarchy.push(coachNode)
       })
 
       return hierarchy
@@ -225,11 +252,112 @@ export default function HierarchyView({
     [],
   )
 
-  // Build hierarchy with memoization - only recalculate when data changes
+  // Build hierarchy with memoization
   const hierarchyData = useMemo(() => {
     if (accessMatrix.length === 0 || users.length === 0) return []
     return buildHierarchy(accessMatrix, users, coachAccessList)
   }, [accessMatrix, users, coachAccessList, buildHierarchy])
+
+  // Filter and search hierarchy
+  const filteredHierarchy = useMemo(() => {
+    if (!searchQuery && typeFilter === 'all') return hierarchyData
+
+    const filterNode = (node: HierarchyNode): HierarchyNode | null => {
+      // Check if current node matches search
+      const matchesSearch =
+        !searchQuery ||
+        node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.email?.toLowerCase().includes(searchQuery.toLowerCase())
+
+      // Check if current node matches type filter
+      const matchesType = typeFilter === 'all' || node.type === typeFilter
+
+      // Recursively filter children
+      const filteredChildren = node.children
+        .map(child => filterNode(child))
+        .filter((child): child is HierarchyNode => child !== null)
+
+      // Include node if it matches or has matching children
+      if ((matchesSearch && matchesType) || filteredChildren.length > 0) {
+        return {
+          ...node,
+          children: filteredChildren,
+        }
+      }
+
+      return null
+    }
+
+    return hierarchyData
+      .map(node => filterNode(node))
+      .filter((node): node is HierarchyNode => node !== null)
+  }, [hierarchyData, searchQuery, typeFilter])
+
+  // Auto-expand nodes when searching/filtering to show matches
+  useMemo(() => {
+    if (!searchQuery && typeFilter === 'all') return
+
+    // Collect all node IDs that should be expanded to show matches
+    const nodesToExpand = new Set<string>()
+
+    const collectExpandableNodes = (
+      node: HierarchyNode,
+      ancestors: string[] = [],
+    ) => {
+      const matchesSearch =
+        !searchQuery ||
+        node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.email?.toLowerCase().includes(searchQuery.toLowerCase())
+
+      const matchesType = typeFilter === 'all' || node.type === typeFilter
+
+      // If this node matches, expand all ancestors AND the node itself (to show its children)
+      if (matchesSearch && matchesType) {
+        ancestors.forEach(ancestorId => nodesToExpand.add(ancestorId))
+        // Also expand this matching node if it has children
+        if (node.children.length > 0) {
+          nodesToExpand.add(node.id)
+        }
+      }
+
+      // Recursively check children
+      node.children.forEach(child => {
+        collectExpandableNodes(child, [...ancestors, node.id])
+      })
+    }
+
+    filteredHierarchy.forEach(node => collectExpandableNodes(node))
+    setExpandedNodes(nodesToExpand)
+  }, [searchQuery, typeFilter, filteredHierarchy])
+
+  // Toggle node expansion
+  const toggleNode = (nodeId: string) => {
+    setExpandedNodes(prev => {
+      const next = new Set(prev)
+      if (next.has(nodeId)) {
+        next.delete(nodeId)
+      } else {
+        next.add(nodeId)
+      }
+      return next
+    })
+  }
+
+  // Expand all nodes
+  const expandAll = () => {
+    const allNodeIds = new Set<string>()
+    const collectIds = (node: HierarchyNode) => {
+      allNodeIds.add(node.id)
+      node.children.forEach(collectIds)
+    }
+    hierarchyData.forEach(collectIds)
+    setExpandedNodes(allNodeIds)
+  }
+
+  // Collapse all nodes
+  const collapseAll = () => {
+    setExpandedNodes(new Set())
+  }
 
   const getNodeIcon = (type: string) => {
     switch (type) {
@@ -257,15 +385,68 @@ export default function HierarchyView({
     }
   }
 
+  // Quick actions handler
+  const handleViewDetails = (node: HierarchyNode) => {
+    if (node.type === 'admin' || node.type === 'coach') {
+      router.push(`/admin/users?user=${node.id}`)
+    } else if (node.type === 'client') {
+      router.push(`/clients/${node.id}`)
+    }
+  }
+
+  const handleManageAccess = (node: HierarchyNode) => {
+    if (node.type === 'coach') {
+      // Switch to coach delegation tab
+      router.push('/admin/access?tab=coach-delegation')
+    } else if (node.type === 'client') {
+      // Switch to client access tab
+      router.push('/admin/access?tab=client-access')
+    }
+  }
+
   const renderHierarchyNode = (node: HierarchyNode, level: number = 0) => {
     const isSuper = node.roles?.includes('super_admin')
+    const hasChildren = node.children.length > 0
+    const isExpanded = expandedNodes.has(node.id)
+    const nodeKey = `${node.type}-${node.id}`
+
+    // Highlight if matches search
+    const matchesSearch =
+      searchQuery &&
+      (node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        node.email?.toLowerCase().includes(searchQuery.toLowerCase()))
 
     return (
-      <div key={node.id} className={`${level > 0 ? 'ml-8' : ''}`}>
-        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+      <div key={nodeKey} className={`${level > 0 ? 'ml-8' : ''}`}>
+        <div
+          className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+            matchesSearch
+              ? 'bg-yellow-50 border-2 border-yellow-300'
+              : 'hover:bg-muted/50 border-2 border-transparent'
+          }`}
+        >
+          {/* Expand/Collapse button */}
+          {hasChildren && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => toggleNode(node.id)}
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </Button>
+          )}
+
+          {/* Icon */}
           <div className={`p-2 rounded-lg ${getNodeColor(node.type)}`}>
             {getNodeIcon(node.type)}
           </div>
+
+          {/* Node Info */}
           <div className="flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="font-medium">{node.name}</span>
@@ -290,12 +471,7 @@ export default function HierarchyView({
                 </Badge>
               )}
               {node.access_level && !node.is_owner && (
-                <Badge
-                  variant="outline"
-                  className={
-                    node.access_level === 'full' ? 'text-xs' : 'text-xs'
-                  }
-                >
+                <Badge variant="outline" className="text-xs">
                   {node.access_level === 'full' ? 'Full Access' : 'Read Only'}
                 </Badge>
               )}
@@ -306,14 +482,56 @@ export default function HierarchyView({
               </p>
             )}
           </div>
-          {node.children.length > 0 && (
+
+          {/* Children count */}
+          {hasChildren && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Network className="h-3 w-3" />
               <span>{node.children.length}</span>
             </div>
           )}
+
+          {/* Quick Actions Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleViewDetails(node)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View Details
+              </DropdownMenuItem>
+              {(node.type === 'coach' || node.type === 'client') && (
+                <DropdownMenuItem onClick={() => handleManageAccess(node)}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Manage Access
+                </DropdownMenuItem>
+              )}
+              {hasChildren && (
+                <>
+                  <DropdownMenuItem onClick={() => toggleNode(node.id)}>
+                    {isExpanded ? (
+                      <>
+                        <ChevronRight className="h-4 w-4 mr-2" />
+                        Collapse
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-2" />
+                        Expand
+                      </>
+                    )}
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        {node.children.length > 0 && (
+
+        {/* Children (only show if expanded) */}
+        {hasChildren && isExpanded && (
           <div className="ml-4 border-l-2 border-border pl-4 mt-2">
             {node.children.map(child => renderHierarchyNode(child, level + 1))}
           </div>
@@ -358,19 +576,95 @@ export default function HierarchyView({
             </Badge>
           )}
         </div>
+
+        {/* Search and Filter Controls */}
+        <div className="flex items-center gap-2 mt-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name or email..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-10 pr-10"
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
+                onClick={() => setSearchQuery('')}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+
+          {/* Type Filter */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Filter className="h-4 w-4" />
+                {typeFilter === 'all'
+                  ? 'All Types'
+                  : typeFilter.charAt(0).toUpperCase() + typeFilter.slice(1)}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setTypeFilter('all')}>
+                All Types
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTypeFilter('admin')}>
+                <Shield className="h-4 w-4 mr-2" />
+                Admins
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTypeFilter('coach')}>
+                <UserCheck className="h-4 w-4 mr-2" />
+                Coaches
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTypeFilter('client')}>
+                <User className="h-4 w-4 mr-2" />
+                Clients
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Expand/Collapse All */}
+          <div className="flex gap-1">
+            <Button variant="outline" size="sm" onClick={expandAll}>
+              Expand All
+            </Button>
+            <Button variant="outline" size="sm" onClick={collapseAll}>
+              Collapse All
+            </Button>
+          </div>
+        </div>
       </CardHeader>
       <CardContent>
-        {hierarchyData.length === 0 ? (
+        {filteredHierarchy.length === 0 ? (
           <div className="text-center py-12">
             <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-50" />
-            <p className="text-muted-foreground">No hierarchy data available</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Access relationships will appear here once configured
+            <p className="text-muted-foreground">
+              {searchQuery || typeFilter !== 'all'
+                ? 'No matches found'
+                : 'No hierarchy data available'}
             </p>
+            {(searchQuery || typeFilter !== 'all') && (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => {
+                  setSearchQuery('')
+                  setTypeFilter('all')
+                }}
+                className="mt-2"
+              >
+                Clear filters
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-2">
-            {hierarchyData.map(node => renderHierarchyNode(node))}
+            {filteredHierarchy.map(node => renderHierarchyNode(node))}
           </div>
         )}
       </CardContent>
