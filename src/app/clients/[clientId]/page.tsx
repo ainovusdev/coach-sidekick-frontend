@@ -9,22 +9,24 @@ import PageLayout from '@/components/layout/page-layout'
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import ClientHeader from './components/client-header'
-import ClientStats from './components/client-stats'
-import { SessionsTab } from './components/sessions-tab'
+import { Button } from '@/components/ui/button'
+import { OverviewTab } from './components/overview-tab'
+import { SessionsChatTab } from './components/sessions-chat-tab'
 import { SprintsTab } from './components/sprints-tab'
-import { ClientPersonaModern } from './components/client-persona-modern'
 import { ClientModals } from './components/client-modals'
+import { EmptyStateWelcome } from './components/empty-state-welcome'
 import { useClientData } from './hooks/use-client-data'
 import { useClientModals } from './hooks/use-client-modals'
 import {
   User,
+  LayoutDashboard,
   MessageSquare,
-  Target,
   ArrowLeft,
   AlertTriangle,
   Loader2,
   Trash2,
+  Mic,
+  Upload,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -109,95 +111,158 @@ export default function ClientDetailPage({
 
   const stats = client.client_session_stats?.[0]
   const totalSessions = sessions?.length || 0
-  const completedSessions =
-    sessions?.filter(s => s.status === 'completed').length || 0
   const avgDuration = stats?.total_duration_minutes
     ? Math.round(stats.total_duration_minutes / (stats.total_sessions || 1))
     : 0
 
+  // Check if client has no sessions
+  const hasNoSessions = totalSessions === 0
+
   return (
     <ProtectedRoute loadingMessage="Loading client details...">
       <PageLayout>
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-          {/* Header with Back Button and Client Profile */}
-          <ClientHeader
-            client={client}
-            isViewer={isViewer}
-            totalSessions={totalSessions}
-            avgDuration={avgDuration}
-            showPersona={modalState.showPersona}
-            onBack={() => router.push('/clients')}
-            onTogglePersona={() =>
-              modalState.setShowPersona(!modalState.showPersona)
-            }
-            onInvite={() => modalState.setIsInviteModalOpen(true)}
-            onUpload={() => modalState.setIsManualSessionModalOpen(true)}
-            onEdit={() => modalState.setIsEditModalOpen(true)}
-            onDelete={() => setShowDeleteDialog(true)}
-          />
-
-          {/* Client Persona Display */}
-          {modalState.showPersona && (
-            <div className="bg-gradient-to-b from-white to-gray-50 border-b border-gray-200">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <ClientPersonaModern clientId={client.id} />
-              </div>
+        <div className="min-h-screen bg-white">
+          {/* Simple Back Link */}
+          <div className="border-b border-gray-200 bg-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/clients')}
+                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Clients
+              </Button>
             </div>
-          )}
-
-          {/* Stats Overview */}
-          <ClientStats
-            stats={stats}
-            avgDuration={avgDuration}
-            completedSessions={completedSessions}
-          />
-
-          {/* Main Content Area with Tabs */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Tabs defaultValue="sessions" className="space-y-6">
-              <TabsList className="bg-gray-50 p-1 rounded-lg">
-                <TabsTrigger
-                  value="sessions"
-                  className="data-[state=active]:bg-white"
-                >
-                  <MessageSquare className="h-4 w-4 mr-2" />
-                  Sessions
-                </TabsTrigger>
-                <TabsTrigger
-                  value="sprints"
-                  className="data-[state=active]:bg-white"
-                >
-                  <Target className="h-4 w-4 mr-2" />
-                  Sprints & Outcomes
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="sessions" className="space-y-4">
-                <SessionsTab
-                  sessions={sessions}
-                  client={client}
-                  isViewer={isViewer}
-                  onAddSession={() =>
-                    modalState.setIsManualSessionModalOpen(true)
-                  }
-                />
-              </TabsContent>
-
-              <TabsContent value="sprints" className="space-y-6">
-                <SprintsTab
-                  client={client}
-                  selectedTargetId={modalState.selectedTargetId}
-                  onRefresh={refetch}
-                  onCreateSprint={() => modalState.setIsSprintModalOpen(true)}
-                  onTargetClick={modalState.setSelectedTargetId}
-                  onEditCommitment={commitment => {
-                    modalState.setEditingCommitment(commitment)
-                    modalState.setShowCommitmentForm(true)
-                  }}
-                />
-              </TabsContent>
-            </Tabs>
           </div>
+
+          {/* Conditional Rendering: Empty State or Full Interface */}
+          {hasNoSessions && !isViewer ? (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+              <EmptyStateWelcome
+                client={client}
+                onStartSession={() =>
+                  modalState.setIsStartSessionModalOpen(true)
+                }
+                onAddPastSession={() =>
+                  modalState.setIsManualSessionModalOpen(true)
+                }
+                onSetGoals={() => modalState.setIsGoalModalOpen(true)}
+              />
+            </div>
+          ) : (
+            <>
+              {/* Main Content Area with Tabs */}
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <Tabs defaultValue="overview" className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
+                      <TabsTrigger
+                        value="overview"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                      >
+                        <LayoutDashboard className="h-4 w-4 mr-2" />
+                        Overview
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="sessions"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-2" />
+                        Sessions & Chat
+                      </TabsTrigger>
+                      {/* <TabsTrigger
+                        value="goals"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                      >
+                        <Target className="h-4 w-4 mr-2" />
+                        Goals & Progress
+                      </TabsTrigger> */}
+                    </TabsList>
+
+                    {!isViewer && (
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() =>
+                            modalState.setIsStartSessionModalOpen(true)
+                          }
+                          className="bg-primary hover:bg-primary/90 text-white"
+                        >
+                          <Mic className="h-4 w-4 mr-2" />
+                          Start Live Session
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            modalState.setIsManualSessionModalOpen(true)
+                          }
+                          variant="outline"
+                          className="border-gray-300 hover:bg-gray-50"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Add Past Session
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  <TabsContent value="overview" className="space-y-4">
+                    <OverviewTab
+                      client={client}
+                      sessions={sessions}
+                      stats={stats}
+                      totalSessions={totalSessions}
+                      avgDuration={avgDuration}
+                      onEditClient={() => modalState.setIsEditModalOpen(true)}
+                      onInviteClient={() =>
+                        modalState.setIsInviteModalOpen(true)
+                      }
+                      onDeleteClient={() => setShowDeleteDialog(true)}
+                      onCreateSprint={() =>
+                        modalState.setIsSprintModalOpen(true)
+                      }
+                      onEndSprint={sprint => {
+                        modalState.setEndingSprint(sprint)
+                        modalState.setIsEndSprintModalOpen(true)
+                      }}
+                      onEditCommitment={commitment => {
+                        modalState.setEditingCommitment(commitment)
+                        modalState.setShowCommitmentForm(true)
+                      }}
+                      isViewer={isViewer}
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="sessions" className="space-y-4">
+                    <SessionsChatTab
+                      sessions={sessions}
+                      client={client}
+                      isViewer={isViewer}
+                      onAddSession={() =>
+                        modalState.setIsManualSessionModalOpen(true)
+                      }
+                    />
+                  </TabsContent>
+
+                  <TabsContent value="goals" className="space-y-6">
+                    <SprintsTab
+                      client={client}
+                      selectedTargetId={modalState.selectedTargetId}
+                      onRefresh={refetch}
+                      onCreateSprint={() =>
+                        modalState.setIsSprintModalOpen(true)
+                      }
+                      onTargetClick={modalState.setSelectedTargetId}
+                      onEditCommitment={commitment => {
+                        modalState.setEditingCommitment(commitment)
+                        modalState.setShowCommitmentForm(true)
+                      }}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Modals */}
@@ -211,6 +276,14 @@ export default function ClientDetailPage({
           setIsInviteModalOpen={modalState.setIsInviteModalOpen}
           isSprintModalOpen={modalState.isSprintModalOpen}
           setIsSprintModalOpen={modalState.setIsSprintModalOpen}
+          isStartSessionModalOpen={modalState.isStartSessionModalOpen}
+          setIsStartSessionModalOpen={modalState.setIsStartSessionModalOpen}
+          isGoalModalOpen={modalState.isGoalModalOpen}
+          setIsGoalModalOpen={modalState.setIsGoalModalOpen}
+          isEndSprintModalOpen={modalState.isEndSprintModalOpen}
+          setIsEndSprintModalOpen={modalState.setIsEndSprintModalOpen}
+          endingSprint={modalState.endingSprint}
+          setEndingSprint={modalState.setEndingSprint}
           showCommitmentForm={modalState.showCommitmentForm}
           setShowCommitmentForm={modalState.setShowCommitmentForm}
           editingCommitment={modalState.editingCommitment}

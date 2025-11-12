@@ -5,36 +5,23 @@ import { getClientInitials, formatDate } from '../utils/client-utils'
 import {
   ArrowLeft,
   Edit,
-  Upload,
   Calendar,
   Clock,
   Activity,
-  Brain,
-  Send,
   UserCheck,
   Users,
   Eye,
   Sparkles,
   Trash2,
-  MoreVertical,
+  Send,
 } from 'lucide-react'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 
 interface ClientHeaderProps {
   client: any
   isViewer: boolean
   totalSessions: number
   avgDuration: number
-  showPersona: boolean
   onBack: () => void
-  onTogglePersona: () => void
-  onInvite: () => void
-  onUpload: () => void
   onEdit: () => void
   onDelete: () => void
 }
@@ -44,11 +31,7 @@ export default function ClientHeader({
   isViewer,
   totalSessions,
   avgDuration,
-  showPersona,
   onBack,
-  onTogglePersona,
-  onInvite,
-  onUpload,
   onEdit,
   onDelete,
 }: ClientHeaderProps) {
@@ -159,62 +142,24 @@ export default function ClientHeader({
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={onTogglePersona}
-              className="border-gray-300 hover:bg-gray-50"
-            >
-              <Brain className="h-4 w-4 mr-2" />
-              {showPersona ? 'Hide' : 'View'} Persona
-            </Button>
             {!isViewer && (
               <>
-                {/* Only show invite button if client doesn't have portal access yet */}
-                {client.invitation_status !== 'accepted' && !client.user_id && (
-                  <Button
-                    variant="outline"
-                    onClick={onInvite}
-                    className="border-gray-300 hover:bg-gray-50"
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Invite to Portal
-                  </Button>
-                )}
-                <Button
-                  variant="outline"
-                  onClick={onUpload}
-                  className="border-gray-300 hover:bg-gray-50"
-                >
-                  <Upload className="h-4 w-4 mr-2" />
-                  Upload
-                </Button>
                 <Button
                   onClick={onEdit}
-                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                  variant="outline"
+                  className="border-gray-300 hover:bg-gray-50"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
                 </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="border-gray-300 hover:bg-gray-50"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={onDelete}
-                      className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Client
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <Button
+                  variant="outline"
+                  onClick={onDelete}
+                  className="border-red-300 text-red-600 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
               </>
             )}
             {isViewer && (

@@ -17,7 +17,6 @@ import {
   Brain,
   Zap,
   Database,
-  Headphones,
   Keyboard,
   MicOff,
   Volume2,
@@ -364,7 +363,7 @@ export function ClientChatUnified({
               {/* Realtime Voice Button */}
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger asChild>
+                  {/* <TooltipTrigger asChild>
                     <Button
                       size="sm"
                       variant="outline"
@@ -374,7 +373,7 @@ export function ClientChatUnified({
                       <Headphones className="h-3.5 w-3.5 mr-1.5" />
                       <span className="text-sm font-medium">Voice Chat</span>
                     </Button>
-                  </TooltipTrigger>
+                  </TooltipTrigger> */}
                   <TooltipContent>
                     <p>Open realtime voice chat (~300ms latency)</p>
                   </TooltipContent>

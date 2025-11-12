@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Card, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GoalsList } from '@/components/goals/goals-list'
 import { SprintTargetsManager } from '@/components/sprints/sprint-targets-manager'
@@ -75,16 +75,14 @@ export function SprintsTab({
                 )}
               </div>
             </CardHeader>
-            <CardContent>
-              <CommitmentsWidget
-                clientId={client.id}
-                limit={10}
-                showHeader={false}
-                viewAllLink={`/clients/${client.id}?tab=commitments`}
-                targetId={selectedTargetId}
-                onEdit={onEditCommitment}
-              />
-            </CardContent>
+            <CommitmentsWidget
+              clientId={client.id}
+              limit={10}
+              showHeader={false}
+              viewAllLink={`/clients/${client.id}?tab=commitments`}
+              targetId={selectedTargetId}
+              onEdit={onEditCommitment}
+            />
           </Card>
         </div>
       </div>

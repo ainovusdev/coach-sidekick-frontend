@@ -60,8 +60,9 @@ export function CommitmentsWidget({
     refetch,
   } = useCommitments({
     client_id: clientId,
-    status: 'active',
-    include_drafts: false,
+    // Remove status filter to show all commitments (active, draft, etc.)
+    // status: 'active',
+    include_drafts: true, // Include draft commitments
   })
 
   const error = queryError ? 'Failed to load commitments' : null

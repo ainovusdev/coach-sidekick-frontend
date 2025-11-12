@@ -30,11 +30,15 @@ import { toast } from '@/hooks/use-toast'
 interface NotesListProps {
   sessionId: string
   isClientPortal?: boolean
+  compact?: boolean
+  maxNotes?: number
 }
 
 export function NotesList({
   sessionId,
   isClientPortal = false,
+  compact = false,
+  maxNotes,
 }: NotesListProps) {
   const [notes, setNotes] = useState<SessionNote[]>([])
   const [loading, setLoading] = useState(true)
@@ -175,6 +179,65 @@ export function NotesList({
   }
 
   const tabs = getTabs()
+
+  // Apply maxNotes limit
+  const displayedNotes = maxNotes
+    ? filteredNotes.slice(0, maxNotes)
+    : filteredNotes
+
+  // Compact mode render
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          </div>
+        ) : displayedNotes.length > 0 ? (
+          displayedNotes.map(note => (
+            <NoteCard
+              key={note.id}
+              note={note}
+              onEdit={handleEditNote}
+              onDelete={note => setNoteToDelete(note)}
+              isClientPortal={isClientPortal}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <FileText className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+            <p className="text-sm text-gray-500">No notes yet</p>
+          </div>
+        )}
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog
+          open={!!noteToDelete}
+          onOpenChange={open => !open && setNoteToDelete(null)}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Note?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete this
+                note.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteNote}
+                disabled={deleting}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-4">

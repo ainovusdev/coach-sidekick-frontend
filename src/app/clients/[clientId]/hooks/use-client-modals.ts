@@ -6,10 +6,14 @@ export function useClientModals() {
     useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
+  const [isStartSessionModalOpen, setIsStartSessionModalOpen] = useState(false)
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
+  const [isEndSprintModalOpen, setIsEndSprintModalOpen] = useState(false)
   const [showPersona, setShowPersona] = useState(false)
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
   const [editingCommitment, setEditingCommitment] = useState<any>(null)
   const [showCommitmentForm, setShowCommitmentForm] = useState(false)
+  const [endingSprint, setEndingSprint] = useState<any>(null)
 
   return {
     isEditModalOpen,
@@ -20,6 +24,12 @@ export function useClientModals() {
     setIsInviteModalOpen,
     isSprintModalOpen,
     setIsSprintModalOpen,
+    isStartSessionModalOpen,
+    setIsStartSessionModalOpen,
+    isGoalModalOpen,
+    setIsGoalModalOpen,
+    isEndSprintModalOpen,
+    setIsEndSprintModalOpen,
     showPersona,
     setShowPersona,
     selectedTargetId,
@@ -28,5 +38,7 @@ export function useClientModals() {
     setEditingCommitment,
     showCommitmentForm,
     setShowCommitmentForm,
+    endingSprint,
+    setEndingSprint,
   }
 }

@@ -108,11 +108,11 @@ export function EnhancedDraftReview({
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-600" />
+            <Sparkles className="h-5 w-5 text-gray-600" />
             AI Extraction Results
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-purple-50">
+            <Badge variant="outline" className="bg-gray-50">
               {totalExtracted} items found
             </Badge>
           </div>
@@ -136,15 +136,15 @@ export function EnhancedDraftReview({
           {/* All Tab */}
           <TabsContent value="all" className="space-y-6">
             {/* Summary & Action */}
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-3 flex-1">
-                  <Sparkles className="h-5 w-5 text-purple-600 mt-0.5" />
+                  <Sparkles className="h-5 w-5 text-gray-600 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-purple-900 mb-1">
+                    <h4 className="font-semibold text-gray-900 mb-1">
                       Extraction Complete
                     </h4>
-                    <p className="text-sm text-purple-800">
+                    <p className="text-sm text-gray-800">
                       Found {draftGoals.length} outcomes, {draftTargets.length}{' '}
                       desired wins, {draftCommitments.length} commitments.
                       Review and confirm to save.
@@ -155,7 +155,7 @@ export function EnhancedDraftReview({
                   onClick={handleConfirmAll}
                   disabled={confirming}
                   size="lg"
-                  className="bg-purple-600 hover:bg-purple-700 text-white flex-shrink-0"
+                  className="bg-gray-900 hover:bg-gray-800 text-white flex-shrink-0"
                 >
                   {confirming ? (
                     <>
@@ -176,7 +176,7 @@ export function EnhancedDraftReview({
             {draftGoals.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-purple-600" />
+                  <Trophy className="h-4 w-4 text-gray-600" />
                   <h3 className="font-semibold text-gray-900">
                     New Outcomes ({draftGoals.length})
                   </h3>
@@ -376,11 +376,11 @@ export function EnhancedDraftReview({
                           </div>
                           <Badge variant="outline">{goal.category}</Badge>
                           {goal.transcript_context && (
-                            <div className="bg-purple-50 border border-purple-200 rounded p-3">
-                              <p className="text-xs font-medium text-purple-900 mb-1">
+                            <div className="bg-gray-50 border border-gray-200 rounded p-3">
+                              <p className="text-xs font-medium text-gray-900 mb-1">
                                 From transcript:
                               </p>
-                              <p className="text-sm italic text-purple-800">
+                              <p className="text-sm italic text-gray-800">
                                 &quot;{goal.transcript_context}&quot;
                               </p>
                             </div>
@@ -528,7 +528,7 @@ export function EnhancedDraftReview({
             onClick={handleConfirmAll}
             disabled={confirming}
             size="lg"
-            className="bg-purple-600 hover:bg-purple-700 text-white px-8"
+            className="bg-gray-900 hover:bg-gray-800 text-white px-8"
           >
             {confirming ? (
               <>

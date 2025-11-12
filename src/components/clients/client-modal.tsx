@@ -13,27 +13,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  User,
-  FileText,
-  Loader2,
-  X,
-  Mail,
-  Send,
-  Trash2,
-  AlertTriangle,
-} from 'lucide-react'
+import { User, Loader2, X, Mail, Send } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog'
 
 interface ClientModalProps {
   isOpen: boolean
@@ -56,14 +37,11 @@ export default function ClientModal({
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    notes: '',
     meta_performance_vision: '',
     inviteToPortal: false,
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   // Reset form when modal opens or client changes
   useEffect(() => {
@@ -71,7 +49,6 @@ export default function ClientModal({
       setFormData({
         name: client?.name || '',
         email: client?.email || '',
-        notes: client?.notes || '',
         meta_performance_vision: client?.meta_performance_vision || '',
         inviteToPortal: false,
       })
@@ -114,7 +91,7 @@ export default function ClientModal({
       const clientData = {
         name: formData.name.trim(),
         email: formData.email.trim() || undefined,
-        notes: formData.notes.trim() || undefined,
+        notes: '', // Always send empty notes
         meta_performance_vision:
           formData.meta_performance_vision.trim() || undefined,
       }
@@ -192,32 +169,6 @@ export default function ClientModal({
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
-    }
-  }
-
-  const handleDelete = async () => {
-    if (!client?.id) return
-
-    setIsDeleting(true)
-    try {
-      await ClientService.deleteClient(client.id)
-
-      // Call onSuccess callback if provided
-      if (onSuccess) {
-        onSuccess()
-      }
-
-      // Close the main modal
-      onClose()
-
-      // Navigate back to clients page
-      router.push('/clients')
-      // Dialog will close when component unmounts
-    } catch (error) {
-      console.error('Error deleting client:', error)
-      setErrors({ submit: 'Failed to delete client. Please try again.' })
-      setShowDeleteDialog(false)
-      setIsDeleting(false)
     }
   }
 
@@ -346,35 +297,6 @@ export default function ClientModal({
             </div>
           )}
 
-          {/* Notes Field */}
-          <div className="space-y-2">
-            <label
-              htmlFor="notes"
-              className="block text-base font-medium text-gray-900"
-            >
-              Notes{' '}
-              <span className="text-gray-500 font-normal">(Optional)</span>
-            </label>
-            <div className="relative">
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={e => handleFieldChange('notes', e.target.value)}
-                className="pl-11 min-h-[120px] resize-y"
-                placeholder="Add background information, outcomes, or any relevant notes..."
-                disabled={isLoading}
-              />
-              <div className="absolute left-3 top-3">
-                <div className="p-1 bg-gray-100 rounded">
-                  <FileText className="h-3.5 w-3.5 text-gray-600" />
-                </div>
-              </div>
-              <div className="absolute bottom-3 right-3 text-xs text-gray-400">
-                {formData.notes.length}/500
-              </div>
-            </div>
-          </div>
-
           {/* Meta Performance Vision */}
           <div>
             <label
@@ -412,22 +334,6 @@ export default function ClientModal({
 
           {/* Form Actions */}
           <div className="pt-4 border-t border-gray-100">
-            {/* Delete Button for Edit Mode */}
-            {mode === 'edit' && client && (
-              <div className="mb-4">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
-                  disabled={isLoading || isDeleting}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Client
-                </Button>
-              </div>
-            )}
-
             {/* Main Actions */}
             <div className="flex gap-3">
               <Button
@@ -458,57 +364,6 @@ export default function ClientModal({
           </div>
         </form>
       </DialogContent>
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog
-        open={showDeleteDialog}
-        onOpenChange={open => {
-          // Prevent closing while deleting
-          if (!isDeleting) {
-            setShowDeleteDialog(open)
-          }
-        }}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-              </div>
-              <AlertDialogTitle>Delete Client</AlertDialogTitle>
-            </div>
-            <AlertDialogDescription className="space-y-3">
-              <p>
-                Are you sure you want to delete <strong>{client?.name}</strong>?
-              </p>
-              <p className="text-sm text-red-600 font-medium">
-                This action cannot be undone. All associated sessions, notes,
-                and coaching history will be permanently deleted.
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Client
-                </>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </Dialog>
   )
 }
