@@ -11,6 +11,7 @@ export interface SprintBase {
   description?: string
   start_date: string // ISO date string
   end_date: string // ISO date string
+  goal_id?: string | null // Optional link to a goal
 }
 
 export interface SprintCreate extends SprintBase {
@@ -24,6 +25,7 @@ export interface SprintUpdate {
   start_date?: string
   end_date?: string
   status?: SprintStatus
+  goal_id?: string | null
 }
 
 export interface Sprint extends SprintBase {

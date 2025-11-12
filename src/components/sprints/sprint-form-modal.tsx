@@ -20,11 +20,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { SprintService } from '@/services/sprint-service'
 import { SprintCreate } from '@/types/sprint'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { toast } from 'sonner'
 import { addWeeks, format } from 'date-fns'
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon, Target } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { queryKeys } from '@/lib/query-client'
 
@@ -32,9 +41,6 @@ interface SprintFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   clientId: string
-  hasActiveSprint?: boolean
-  activeSprintTitle?: string
-  onEndCurrentSprint?: () => void
   onSuccess?: () => void
 }
 
@@ -42,20 +48,43 @@ export function SprintFormModal({
   open,
   onOpenChange,
   clientId,
-  hasActiveSprint = false,
-  activeSprintTitle = '',
-  onEndCurrentSprint,
   onSuccess,
 }: SprintFormModalProps) {
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(addWeeks(new Date(), 6))
+  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     status: 'active' as const, // Always default to active
+    goal_id: null as string | null,
   })
+
+  // Fetch active goals for the client
+  const {
+    data: goals = [],
+    isLoading: goalsLoading,
+    refetch: refetchGoals,
+  } = useGoals(clientId)
+
+  const handleGoalSelect = (value: string) => {
+    if (value === 'create-new') {
+      setIsGoalModalOpen(true)
+    } else {
+      setFormData({
+        ...formData,
+        goal_id: value === 'none' ? null : value,
+      })
+    }
+  }
+
+  const handleGoalCreated = () => {
+    // Refetch goals to get the new goal
+    refetchGoals()
+    setIsGoalModalOpen(false)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,6 +108,7 @@ export function SprintFormModal({
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         status: formData.status,
+        goal_id: formData.goal_id || undefined,
       }
 
       await SprintService.createSprint(sprintData)
@@ -97,6 +127,7 @@ export function SprintFormModal({
         title: '',
         description: '',
         status: 'active',
+        goal_id: null,
       })
       setStartDate(new Date())
       setEndDate(addWeeks(new Date(), 6))
@@ -119,56 +150,10 @@ export function SprintFormModal({
         <DialogHeader>
           <DialogTitle>Create New Sprint</DialogTitle>
           <DialogDescription>
-            Create a 6-8 week sprint to organize outcomes and desired wins
+            Create a 6-8 week sprint to organize outcomes and desired wins. You
+            can run multiple sprints concurrently.
           </DialogDescription>
         </DialogHeader>
-
-        {/* Warning if active sprint exists */}
-        {hasActiveSprint && (
-          <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-              <div className="p-1 bg-orange-100 rounded">
-                <svg
-                  className="h-5 w-5 text-orange-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                  />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-semibold text-orange-900 mb-1">
-                  Active Sprint Exists
-                </h4>
-                <p className="text-sm text-orange-800 mb-3">
-                  You have an active sprint:{' '}
-                  <strong>{activeSprintTitle}</strong>
-                </p>
-                <p className="text-sm text-orange-700 mb-3">
-                  You must end the current sprint before creating a new one.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    onEndCurrentSprint?.()
-                    onOpenChange(false)
-                  }}
-                  className="border-orange-300 text-orange-700 hover:bg-orange-100"
-                >
-                  End Current Sprint
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
@@ -182,7 +167,6 @@ export function SprintFormModal({
                   setFormData({ ...formData, title: e.target.value })
                 }
                 required
-                disabled={hasActiveSprint}
               />
             </div>
 
@@ -196,8 +180,68 @@ export function SprintFormModal({
                   setFormData({ ...formData, description: e.target.value })
                 }
                 rows={3}
-                disabled={hasActiveSprint}
               />
+            </div>
+
+            {/* Goal Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="goal">
+                <span className="flex items-center gap-2">
+                  <Target className="h-4 w-4 text-gray-600" />
+                  Link to Goal (Optional)
+                </span>
+              </Label>
+              <Select
+                value={formData.goal_id || 'none'}
+                onValueChange={handleGoalSelect}
+              >
+                <SelectTrigger id="goal" disabled={goalsLoading}>
+                  <SelectValue placeholder="Select a goal to link..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">
+                    <span className="text-gray-500">No goal</span>
+                  </SelectItem>
+                  {goals
+                    .filter((g: any) => g.status === 'active')
+                    .map((goal: any) => (
+                      <SelectItem key={goal.id} value={goal.id}>
+                        <div className="flex flex-col">
+                          <span className="font-medium">{goal.title}</span>
+                          {goal.target_date && (
+                            <span className="text-xs text-gray-500">
+                              Due:{' '}
+                              {format(
+                                new Date(goal.target_date),
+                                'MMM d, yyyy',
+                              )}
+                            </span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  {goals.filter((g: any) => g.status === 'active').length ===
+                    0 && (
+                    <SelectItem value="no-goals" disabled>
+                      <span className="text-gray-400 text-sm">
+                        No active goals found
+                      </span>
+                    </SelectItem>
+                  )}
+                  <SelectItem
+                    value="create-new"
+                    className="border-t border-gray-200 mt-1 pt-2"
+                  >
+                    <span className="text-primary font-medium">
+                      + Create New Goal
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Link this sprint to a specific goal to track progress toward
+                that outcome
+              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -207,7 +251,6 @@ export function SprintFormModal({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      disabled={hasActiveSprint}
                       className={cn(
                         'w-full justify-start text-left font-normal',
                         !startDate && 'text-muted-foreground',
@@ -238,7 +281,6 @@ export function SprintFormModal({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      disabled={hasActiveSprint}
                       className={cn(
                         'w-full justify-start text-left font-normal',
                         !endDate && 'text-muted-foreground',
@@ -275,12 +317,20 @@ export function SprintFormModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading || hasActiveSprint}>
+            <Button type="submit" disabled={loading}>
               {loading ? 'Creating...' : 'Create Sprint'}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
+
+      {/* Goal Creation Modal */}
+      <GoalFormModal
+        open={isGoalModalOpen}
+        onOpenChange={setIsGoalModalOpen}
+        clientId={clientId}
+        onSuccess={handleGoalCreated}
+      />
     </Dialog>
   )
 }

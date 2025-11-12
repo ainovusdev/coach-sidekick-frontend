@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { OverviewTab } from './components/overview-tab'
 import { SessionsChatTab } from './components/sessions-chat-tab'
-import { SprintsTab } from './components/sprints-tab'
+import { GoalsProgressTab } from './components/goals-progress-tab'
 import { ClientModals } from './components/client-modals'
 import { EmptyStateWelcome } from './components/empty-state-welcome'
 import { useClientData } from './hooks/use-client-data'
@@ -27,6 +27,7 @@ import {
   Trash2,
   Mic,
   Upload,
+  Target,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -172,13 +173,13 @@ export default function ClientDetailPage({
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Sessions & Chat
                       </TabsTrigger>
-                      {/* <TabsTrigger
+                      <TabsTrigger
                         value="goals"
                         className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Goals & Progress
-                      </TabsTrigger> */}
+                      </TabsTrigger>
                     </TabsList>
 
                     {!isViewer && (
@@ -245,15 +246,23 @@ export default function ClientDetailPage({
                   </TabsContent>
 
                   <TabsContent value="goals" className="space-y-6">
-                    <SprintsTab
-                      client={client}
-                      selectedTargetId={modalState.selectedTargetId}
-                      onRefresh={refetch}
-                      onCreateSprint={() =>
-                        modalState.setIsSprintModalOpen(true)
-                      }
-                      onTargetClick={modalState.setSelectedTargetId}
-                      onEditCommitment={commitment => {
+                    <GoalsProgressTab
+                      clientId={client.id}
+                      onCreateGoal={() => {
+                        modalState.setEditingGoal(null)
+                        modalState.setIsGoalModalOpen(true)
+                      }}
+                      onCreateOutcome={() => {
+                        modalState.setIsOutcomeModalOpen(true)
+                      }}
+                      onEditGoal={goal => {
+                        modalState.setEditingGoal(goal)
+                        modalState.setIsGoalModalOpen(true)
+                      }}
+                      onArchiveGoal={goal => {
+                        console.log('Archive goal:', goal)
+                      }}
+                      onCommitmentClick={commitment => {
                         modalState.setEditingCommitment(commitment)
                         modalState.setShowCommitmentForm(true)
                       }}
@@ -280,10 +289,14 @@ export default function ClientDetailPage({
           setIsStartSessionModalOpen={modalState.setIsStartSessionModalOpen}
           isGoalModalOpen={modalState.isGoalModalOpen}
           setIsGoalModalOpen={modalState.setIsGoalModalOpen}
+          isOutcomeModalOpen={modalState.isOutcomeModalOpen}
+          setIsOutcomeModalOpen={modalState.setIsOutcomeModalOpen}
           isEndSprintModalOpen={modalState.isEndSprintModalOpen}
           setIsEndSprintModalOpen={modalState.setIsEndSprintModalOpen}
           endingSprint={modalState.endingSprint}
           setEndingSprint={modalState.setEndingSprint}
+          editingGoal={modalState.editingGoal}
+          setEditingGoal={modalState.setEditingGoal}
           showCommitmentForm={modalState.showCommitmentForm}
           setShowCommitmentForm={modalState.setShowCommitmentForm}
           editingCommitment={modalState.editingCommitment}

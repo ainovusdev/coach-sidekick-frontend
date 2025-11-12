@@ -13,16 +13,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { TargetService } from '@/services/target-service'
 import { TargetCreate } from '@/types/sprint'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
 interface TargetFormModalProps {
   open: boolean
@@ -68,7 +63,12 @@ export function TargetFormModal({
     }
 
     if (!formData.goal_id) {
-      toast.error('Please select an outcome for this desired win')
+      toast.error('Please select a goal for this outcome')
+      return
+    }
+
+    if (!sprintId) {
+      toast.error('Please create a sprint first before adding outcomes')
       return
     }
 
@@ -83,14 +83,17 @@ export function TargetFormModal({
       }
 
       await TargetService.createTarget(targetData)
-      toast.success('Desired Win Created', {
-        description: 'The desired win has been added to the sprint',
+      toast.success('Outcome Created', {
+        description: 'The outcome has been added successfully',
       })
 
       onOpenChange(false)
       onSuccess?.()
     } catch (error) {
-      console.error('Failed to create target:', error)
+      console.error('Failed to create outcome:', error)
+      toast.error('Failed to create outcome', {
+        description: 'Please check your inputs and try again',
+      })
     } finally {
       setLoading(false)
     }
@@ -100,38 +103,51 @@ export function TargetFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Desired Win</DialogTitle>
+          <DialogTitle>Create New Outcome</DialogTitle>
           <DialogDescription>
-            Add a short-term desired win to this sprint
+            Add a short-term outcome to track progress toward a goal
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="goal_id">Link to Outcome *</Label>
-              <Select
+            <div className="space-y-3">
+              <Label>Link to Goal *</Label>
+              <RadioGroup
                 value={formData.goal_id}
                 onValueChange={value =>
                   setFormData({ ...formData, goal_id: value })
                 }
-                required
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an outcome" />
-                </SelectTrigger>
-                <SelectContent>
+                <div className="space-y-2">
                   {goals.map(goal => (
-                    <SelectItem key={goal.id} value={goal.id}>
-                      {goal.title}
-                    </SelectItem>
+                    <div
+                      key={goal.id}
+                      className={cn(
+                        'flex items-center space-x-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors',
+                        formData.goal_id === goal.id
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200',
+                      )}
+                      onClick={() =>
+                        setFormData({ ...formData, goal_id: goal.id })
+                      }
+                    >
+                      <RadioGroupItem value={goal.id} id={goal.id} />
+                      <Label
+                        htmlFor={goal.id}
+                        className="flex-1 cursor-pointer font-medium"
+                      >
+                        {goal.title}
+                      </Label>
+                    </div>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </RadioGroup>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="title">Desired Win Title *</Label>
+              <Label htmlFor="title">Outcome Title *</Label>
               <Input
                 id="title"
                 placeholder="e.g., Complete 3 weekly 1-on-1s"
@@ -167,7 +183,7 @@ export function TargetFormModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Desired Win'}
+              {loading ? 'Creating...' : 'Create Outcome'}
             </Button>
           </DialogFooter>
         </form>

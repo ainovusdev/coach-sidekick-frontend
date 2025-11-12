@@ -27,6 +27,8 @@ import {
   CommitmentPriority,
 } from '@/types/commitment'
 import { TargetService } from '@/services/target-service'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useSprints } from '@/hooks/queries/use-sprints'
 import { Badge } from '@/components/ui/badge'
 import {
   DropdownMenu,
@@ -36,7 +38,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Link2, Plus, X, ChevronDown } from 'lucide-react'
+import {
+  Link2,
+  Plus,
+  X,
+  ChevronDown,
+  Target as TargetIcon,
+  Calendar as CalendarIcon,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CommitmentFormProps {
@@ -84,6 +93,15 @@ export function CommitmentForm({
     start_date: undefined,
     target_date: undefined,
     measurement_criteria: '',
+    goal_id: null,
+    sprint_id: null,
+  })
+
+  // Fetch goals and sprints for linking
+  const { data: goals = [] } = useGoals(defaultClientId)
+  const { data: sprints = [] } = useSprints({
+    client_id: defaultClientId,
+    status: 'active',
   })
 
   // Load available targets when form opens
@@ -128,6 +146,8 @@ export function CommitmentForm({
           start_date: commitment.start_date,
           target_date: commitment.target_date,
           measurement_criteria: commitment.measurement_criteria || '',
+          goal_id: commitment.goal_id || null,
+          sprint_id: commitment.sprint_id || null,
         })
       } else {
         setFormData({
@@ -140,6 +160,8 @@ export function CommitmentForm({
           start_date: undefined,
           target_date: undefined,
           measurement_criteria: '',
+          goal_id: null,
+          sprint_id: null,
         })
       }
     }
@@ -213,6 +235,71 @@ export function CommitmentForm({
                 placeholder="Add more context about this commitment..."
                 rows={3}
               />
+            </div>
+
+            {/* Goal and Sprint Linking */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Link to Goal */}
+              <div className="space-y-2">
+                <Label htmlFor="goal">
+                  <span className="flex items-center gap-2 text-sm">
+                    <TargetIcon className="h-3.5 w-3.5 text-gray-600" />
+                    Link to Goal
+                  </span>
+                </Label>
+                <Select
+                  value={formData.goal_id || 'none'}
+                  onValueChange={value =>
+                    updateField('goal_id', value === 'none' ? null : value)
+                  }
+                >
+                  <SelectTrigger id="goal" className="text-sm">
+                    <SelectValue placeholder="Select goal..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      <span className="text-gray-500">No goal</span>
+                    </SelectItem>
+                    {goals
+                      .filter((g: any) => g.status === 'active')
+                      .map((goal: any) => (
+                        <SelectItem key={goal.id} value={goal.id}>
+                          <span className="text-sm">{goal.title}</span>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Link to Sprint */}
+              <div className="space-y-2">
+                <Label htmlFor="sprint">
+                  <span className="flex items-center gap-2 text-sm">
+                    <CalendarIcon className="h-3.5 w-3.5 text-gray-600" />
+                    Link to Sprint
+                  </span>
+                </Label>
+                <Select
+                  value={formData.sprint_id || 'none'}
+                  onValueChange={value =>
+                    updateField('sprint_id', value === 'none' ? null : value)
+                  }
+                >
+                  <SelectTrigger id="sprint" className="text-sm">
+                    <SelectValue placeholder="Select sprint..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">
+                      <span className="text-gray-500">No sprint</span>
+                    </SelectItem>
+                    {sprints.map((sprint: any) => (
+                      <SelectItem key={sprint.id} value={sprint.id}>
+                        <span className="text-sm">{sprint.title}</span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             {/* Link to Desired Wins (Targets) */}

@@ -86,14 +86,15 @@ export function CommitmentKanbanCard({
           </p>
         )}
 
-        {/* Linked Goal */}
+        {/* Linked Outcome - show if linked via targets */}
         {commitment.target_links && commitment.target_links.length > 0 && (
-          <div className="flex items-center gap-1">
-            <Target className="h-3 w-3 text-primary" />
-            <span className="text-xs text-primary font-medium line-clamp-1">
-              {commitment.target_links[0].target?.goal?.title || 'Goal'}
-            </span>
-          </div>
+          <Badge
+            variant="outline"
+            className="bg-blue-50 border-blue-200 text-blue-700 text-xs w-fit"
+          >
+            <Target className="h-3 w-3 mr-1" />
+            {commitment.target_links[0].target?.title || 'Outcome'}
+          </Badge>
         )}
 
         {/* Footer: Date and Priority */}

@@ -2,13 +2,15 @@ import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { ClientInvitationModal } from '@/components/clients/client-invitation-modal'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
+import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import { EndSprintModal } from './end-sprint-modal'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
 import { StartSessionModal } from './start-session-modal'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { CommitmentService } from '@/services/commitment-service'
-import { useSprints } from '@/hooks/queries/use-sprints'
 import { useCommitments } from '@/hooks/queries/use-commitments'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useSprints } from '@/hooks/queries/use-sprints'
 
 interface ClientModalsProps {
   client: any
@@ -24,10 +26,14 @@ interface ClientModalsProps {
   setIsStartSessionModalOpen: (open: boolean) => void
   isGoalModalOpen: boolean
   setIsGoalModalOpen: (open: boolean) => void
+  isOutcomeModalOpen: boolean
+  setIsOutcomeModalOpen: (open: boolean) => void
   isEndSprintModalOpen: boolean
   setIsEndSprintModalOpen: (open: boolean) => void
   endingSprint: any
   setEndingSprint: (sprint: any) => void
+  editingGoal: any
+  setEditingGoal: (goal: any) => void
   showCommitmentForm: boolean
   setShowCommitmentForm: (open: boolean) => void
   editingCommitment: any
@@ -49,6 +55,8 @@ export function ClientModals({
   setIsStartSessionModalOpen,
   isGoalModalOpen,
   setIsGoalModalOpen,
+  isOutcomeModalOpen,
+  setIsOutcomeModalOpen,
   isEndSprintModalOpen,
   setIsEndSprintModalOpen,
   endingSprint,
@@ -59,16 +67,12 @@ export function ClientModals({
   setEditingCommitment,
   onRefresh,
 }: ClientModalsProps) {
-  // Check for active sprints
-  const { data: activeSprints } = useSprints({
+  // Fetch goals and sprints for outcome modal
+  const { data: goals = [] } = useGoals(client.id)
+  const { data: sprints = [] } = useSprints({
     client_id: client.id,
     status: 'active',
   })
-
-  const sprintsArray = activeSprints || []
-  const hasActiveSprint = sprintsArray.length > 0
-  const currentSprint = sprintsArray[0] // Get the first active sprint
-
   // Get unfinished commitments for the sprint being ended
   const { data: commitmentsData } = useCommitments({
     client_id: client.id,
@@ -116,14 +120,6 @@ export function ClientModals({
         open={isSprintModalOpen}
         onOpenChange={setIsSprintModalOpen}
         clientId={client.id}
-        hasActiveSprint={hasActiveSprint}
-        activeSprintTitle={currentSprint?.title || ''}
-        onEndCurrentSprint={() => {
-          if (currentSprint) {
-            setEndingSprint(currentSprint)
-            setIsEndSprintModalOpen(true)
-          }
-        }}
         onSuccess={onRefresh}
       />
 
@@ -149,6 +145,14 @@ export function ClientModals({
         open={isGoalModalOpen}
         onOpenChange={setIsGoalModalOpen}
         clientId={client.id}
+        onSuccess={onRefresh}
+      />
+
+      <TargetFormModal
+        open={isOutcomeModalOpen}
+        onOpenChange={setIsOutcomeModalOpen}
+        sprintId={sprints[0]?.id || ''}
+        goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
         onSuccess={onRefresh}
       />
 
