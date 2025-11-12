@@ -1,7 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { adminService, User } from '@/services/admin-service'
+import { useState, useMemo } from 'react'
+import { User } from '@/services/admin-service'
+import { useAdminUsers } from '@/hooks/queries/use-admin-users'
+import { useAvailableRoles } from '@/hooks/queries/use-admin-roles'
+import {
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  useRestoreUser,
+  useAssignRoles,
+} from '@/hooks/mutations/use-admin-user-mutations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -55,25 +64,24 @@ import {
   AlertCircle,
   RotateCcw, // NEW: Restore icon
   Archive, // NEW: Deleted users icon
+  Loader2,
 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  // Filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRole, setSelectedRole] = useState<string>('all')
-  const [showDeleted, setShowDeleted] = useState(false) // NEW: Toggle for deleted users
+  const [showDeleted, setShowDeleted] = useState(false)
+
+  // Dialog state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false) // NEW: Restore dialog
+  const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [availableRoles, setAvailableRoles] = useState<string[]>([])
-  const { toast } = useToast()
 
-  // Form states
+  // Form state
   const [formData, setFormData] = useState({
     email: '',
     full_name: '',
@@ -82,184 +90,112 @@ export default function UsersPage() {
     is_active: true,
   })
 
-  useEffect(() => {
-    fetchUsers()
-    fetchAvailableRoles()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // React Query hooks - automatic caching and deduplication!
+  const { data: users = [], isLoading: loading } = useAdminUsers({
+    limit: 100, // Start with pagination
+    search: searchQuery || undefined,
+    role_filter: selectedRole === 'all' ? undefined : selectedRole,
+    include_deleted: showDeleted,
+  })
 
-  const fetchUsers = async (
-    search?: string,
-    roleFilter?: string,
-    includeDeleted?: boolean,
-  ) => {
-    try {
-      setLoading(true)
-      const params: any = { limit: 1000 }
-      if (search) params.search = search
-      if (roleFilter && roleFilter !== 'all') params.role_filter = roleFilter
-      if (includeDeleted) params.include_deleted = true // NEW: Include deleted users
+  const { data: availableRolesData } = useAvailableRoles()
+  const availableRoles = availableRolesData?.roles || []
 
-      const data = await adminService.getUsers(params)
-      setUsers(data)
-    } catch (error) {
-      console.error('Failed to fetch users:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch users',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  // Mutation hooks with automatic cache invalidation
+  const { mutate: createUser, isPending: isCreating } = useCreateUser()
+  const { mutate: updateUser, isPending: isUpdating } = useUpdateUser()
+  const { mutate: deleteUser, isPending: isDeleting } = useDeleteUser()
+  const { mutate: restoreUser, isPending: isRestoring } = useRestoreUser()
+  const { mutate: assignRoles, isPending: isAssigningRoles } = useAssignRoles()
 
-  const fetchAvailableRoles = async () => {
-    try {
-      const data = await adminService.getAvailableRoles()
-      setAvailableRoles(data.roles)
-    } catch (error) {
-      console.error('Failed to fetch roles:', error)
-    }
-  }
-
+  // Handler functions - now much simpler!
   const handleSearch = (query: string) => {
     setSearchQuery(query)
-    fetchUsers(query, selectedRole, showDeleted)
   }
 
   const handleRoleFilter = (role: string) => {
     setSelectedRole(role)
-    fetchUsers(searchQuery, role, showDeleted)
   }
 
-  // NEW: Handle toggle for showing deleted users
   const handleToggleDeleted = (checked: boolean) => {
     setShowDeleted(checked)
-    fetchUsers(searchQuery, selectedRole, checked)
   }
 
-  const handleCreateUser = async () => {
-    try {
-      await adminService.createUser(formData)
-      toast({
-        title: 'Success',
-        description: 'User created successfully',
-      })
-      setIsCreateDialogOpen(false)
-      resetForm()
-      fetchUsers()
-    } catch (error: any) {
-      console.error('Failed to create user:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to create user',
-        variant: 'destructive',
-      })
-    }
+  const handleCreateUser = () => {
+    createUser(formData, {
+      onSuccess: () => {
+        setIsCreateDialogOpen(false)
+        resetForm()
+      },
+    })
   }
 
-  const handleUpdateUser = async () => {
+  const handleUpdateUser = () => {
     if (!selectedUser) return
 
-    try {
-      await adminService.updateUser(selectedUser.id, {
-        email: formData.email,
-        full_name: formData.full_name,
-        is_active: formData.is_active,
-        password: formData.password || undefined,
-      })
-
-      // Update roles separately
-      await adminService.assignRoles(selectedUser.id, formData.roles)
-
-      toast({
-        title: 'Success',
-        description: 'User updated successfully',
-      })
-      setIsEditDialogOpen(false)
-      resetForm()
-      fetchUsers()
-    } catch (error: any) {
-      console.log(error)
-
-      toast({
-        title: 'Error',
-        description: 'Failed to update user',
-        variant: 'destructive',
-      })
-    }
+    // First update user details
+    updateUser(
+      {
+        userId: selectedUser.id,
+        data: {
+          email: formData.email,
+          full_name: formData.full_name,
+          is_active: formData.is_active,
+          password: formData.password || undefined,
+        },
+      },
+      {
+        onSuccess: () => {
+          // Then update roles
+          assignRoles(
+            { userId: selectedUser.id, roles: formData.roles },
+            {
+              onSuccess: () => {
+                setIsEditDialogOpen(false)
+                resetForm()
+              },
+            },
+          )
+        },
+      },
+    )
   }
 
-  const handleUpdateRoles = async () => {
+  const handleUpdateRoles = () => {
     if (!selectedUser) return
 
-    try {
-      await adminService.assignRoles(selectedUser.id, formData.roles)
-      toast({
-        title: 'Success',
-        description: 'Roles updated successfully',
-      })
-      setIsRoleDialogOpen(false)
-      fetchUsers()
-    } catch (error: any) {
-      console.log(error)
-
-      toast({
-        title: 'Error',
-        description: 'Failed to update roles',
-        variant: 'destructive',
-      })
-    }
+    assignRoles(
+      { userId: selectedUser.id, roles: formData.roles },
+      {
+        onSuccess: () => {
+          setIsRoleDialogOpen(false)
+        },
+      },
+    )
   }
 
-  const handleDeleteUser = async () => {
+  const handleDeleteUser = () => {
     if (!selectedUser) return
 
-    try {
-      await adminService.deleteUser(selectedUser.id)
-      toast({
-        title: 'Success',
-        description: 'User deleted successfully',
-      })
-      setIsDeleteDialogOpen(false)
-      setSelectedUser(null)
-      fetchUsers(searchQuery, selectedRole, showDeleted)
-    } catch (error: any) {
-      console.log(error)
-
-      toast({
-        title: 'Error',
-        description: 'Failed to delete user',
-        variant: 'destructive',
-      })
-    }
+    deleteUser(selectedUser.id, {
+      onSuccess: () => {
+        setIsDeleteDialogOpen(false)
+        setSelectedUser(null)
+      },
+    })
   }
 
-  // NEW: Handle restore user
-  const handleRestoreUser = async () => {
+  const handleRestoreUser = () => {
     if (!selectedUser) return
 
-    try {
-      await adminService.restoreUser(selectedUser.id)
-      toast({
-        title: 'Success',
-        description: 'User restored successfully',
-      })
-      setIsRestoreDialogOpen(false)
-      setSelectedUser(null)
-      fetchUsers(searchQuery, selectedRole, showDeleted)
-    } catch (error: any) {
-      console.log(error)
-
-      toast({
-        title: 'Error',
-        description: 'Failed to restore user',
-        variant: 'destructive',
-      })
-    }
+    restoreUser(selectedUser.id, {
+      onSuccess: () => {
+        setIsRestoreDialogOpen(false)
+        setSelectedUser(null)
+      },
+    })
   }
 
-  // NEW: Open restore dialog
   const openRestoreDialog = (user: User) => {
     setSelectedUser(user)
     setIsRestoreDialogOpen(true)
@@ -333,17 +269,20 @@ export default function UsersPage() {
     return email.slice(0, 2).toUpperCase()
   }
 
-  // Calculate statistics
-  const stats = {
-    total: users.filter(u => !u.deleted_at).length, // NEW: Exclude deleted from total
-    active: users.filter(u => u.is_active && !u.deleted_at).length,
-    inactive: users.filter(u => !u.is_active && !u.deleted_at).length,
-    deleted: users.filter(u => u.deleted_at).length, // NEW: Count deleted users
-    admins: users.filter(
-      u => u.roles.includes('admin') || u.roles.includes('super_admin'),
-    ).length,
-    coaches: users.filter(u => u.roles.includes('coach')).length,
-  }
+  // Calculate statistics with memoization
+  const stats = useMemo(
+    () => ({
+      total: users.filter(u => !u.deleted_at).length,
+      active: users.filter(u => u.is_active && !u.deleted_at).length,
+      inactive: users.filter(u => !u.is_active && !u.deleted_at).length,
+      deleted: users.filter(u => u.deleted_at).length,
+      admins: users.filter(
+        u => u.roles.includes('admin') || u.roles.includes('super_admin'),
+      ).length,
+      coaches: users.filter(u => u.roles.includes('coach')).length,
+    }),
+    [users],
+  )
 
   return (
     <div className="space-y-6">
@@ -817,10 +756,14 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsCreateDialogOpen(false)}
+              disabled={isCreating}
             >
               Cancel
             </Button>
-            <Button onClick={handleCreateUser}>Create User</Button>
+            <Button onClick={handleCreateUser} disabled={isCreating}>
+              {isCreating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isCreating ? 'Creating...' : 'Create User'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -885,10 +828,14 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsEditDialogOpen(false)}
+              disabled={isUpdating}
             >
               Cancel
             </Button>
-            <Button onClick={handleUpdateUser}>Update User</Button>
+            <Button onClick={handleUpdateUser} disabled={isUpdating}>
+              {isUpdating && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isUpdating ? 'Updating...' : 'Update User'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -958,10 +905,16 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsRoleDialogOpen(false)}
+              disabled={isAssigningRoles}
             >
               Cancel
             </Button>
-            <Button onClick={handleUpdateRoles}>Update Roles</Button>
+            <Button onClick={handleUpdateRoles} disabled={isAssigningRoles}>
+              {isAssigningRoles && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {isAssigningRoles ? 'Updating...' : 'Update Roles'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -988,11 +941,17 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsDeleteDialogOpen(false)}
+              disabled={isDeleting}
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteUser}>
-              Delete User
+            <Button
+              variant="destructive"
+              onClick={handleDeleteUser}
+              disabled={isDeleting}
+            >
+              {isDeleting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isDeleting ? 'Deleting...' : 'Delete User'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1016,14 +975,17 @@ export default function UsersPage() {
             <Button
               variant="outline"
               onClick={() => setIsRestoreDialogOpen(false)}
+              disabled={isRestoring}
             >
               Cancel
             </Button>
             <Button
               className="bg-green-600 hover:bg-green-700"
               onClick={handleRestoreUser}
+              disabled={isRestoring}
             >
-              Restore User
+              {isRestoring && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {isRestoring ? 'Restoring...' : 'Restore User'}
             </Button>
           </DialogFooter>
         </DialogContent>

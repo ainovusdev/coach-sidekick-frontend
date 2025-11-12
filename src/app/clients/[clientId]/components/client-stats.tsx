@@ -1,69 +1,94 @@
 import { Card, CardContent } from '@/components/ui/card'
-import { Calendar, Clock, Activity } from 'lucide-react'
-import { ClientSessionStats } from '@/types/meeting'
+import { MessageSquare, Clock, TrendingUp, Activity } from 'lucide-react'
 
 interface ClientStatsProps {
-  stats: ClientSessionStats
+  stats: any
+  avgDuration: number
+  completedSessions: number
 }
 
-export default function ClientStats({ stats }: ClientStatsProps) {
+export default function ClientStats({
+  stats,
+  avgDuration,
+  completedSessions,
+}: ClientStatsProps) {
+  if (!stats) return null
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-      <Card className="border-neutral-200">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-neutral-100 rounded-lg">
-              <Calendar className="h-4 w-4 text-neutral-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-neutral-900">
-                {stats.total_sessions}
-              </p>
-              <p className="text-xs text-neutral-500">
-                Total Sessions
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="border-neutral-200">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-neutral-100 rounded-lg">
-              <Clock className="h-4 w-4 text-neutral-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-semibold text-neutral-900">
-                {stats.total_duration_minutes}
-              </p>
-              <p className="text-xs text-neutral-500">
-                Total Minutes
-              </p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {stats.average_overall_score && (
-        <Card className="border-neutral-200">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-neutral-100 rounded-lg">
-                <Activity className="h-4 w-4 text-neutral-600" />
-              </div>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-gray-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-2xl font-semibold text-neutral-900">
-                  {stats.average_overall_score.toFixed(1)}
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  Total Sessions
                 </p>
-                <p className="text-xs text-neutral-500">
-                  Average Score
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_sessions}
                 </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-gray-600" />
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
+
+        <Card className="border-gray-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  Total Time
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total_duration_minutes}m
+                </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <Clock className="h-5 w-5 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  Avg Duration
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {avgDuration}m
+                </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-gray-200 hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500 uppercase tracking-wider">
+                  Completed
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {completedSessions}
+                </p>
+              </div>
+              <div className="p-3 bg-gray-100 rounded-lg">
+                <Activity className="h-5 w-5 text-gray-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

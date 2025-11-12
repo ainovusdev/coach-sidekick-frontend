@@ -1,7 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { adminService, ClientAccessMatrix, User as UserType } from '@/services/admin-service'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { ClientAccessMatrix, User as UserType } from '@/services/admin-service'
+import { useAccessMatrix } from '@/hooks/queries/use-admin-access'
+import { useAdminUsers } from '@/hooks/queries/use-admin-users'
+import { useCoachAccessList } from '@/hooks/queries/use-admin-coach-access'
+import {
+  useGrantClientAccess,
+  useBulkAssignClients,
+  useRevokeClientAccess,
+} from '@/hooks/mutations/use-admin-access-mutations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -12,12 +20,14 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -37,9 +47,9 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
-import { 
-  Search, 
-  Plus, 
+import {
+  Search,
+  Plus,
   Users,
   UserPlus,
   UserMinus,
@@ -49,9 +59,8 @@ import {
   Network,
   Building,
   User,
-  UserCheck
+  UserCheck,
 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
 import { useSearchParams } from 'next/navigation'
 
 interface HierarchyNode {
@@ -65,238 +74,264 @@ interface HierarchyNode {
 }
 
 export default function ClientAccessPage() {
-  const [accessMatrix, setAccessMatrix] = useState<ClientAccessMatrix[]>([])
-  const [users, setUsers] = useState<UserType[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [viewMode, setViewMode] = useState<'hierarchy' | 'list'>('hierarchy')
   const [isGrantAccessDialogOpen, setIsGrantAccessDialogOpen] = useState(false)
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false)
-  const [selectedClient, setSelectedClient] = useState<ClientAccessMatrix | null>(null)
-  const [hierarchyData, setHierarchyData] = useState<HierarchyNode[]>([])
-  const { toast } = useToast()
+  const [selectedClient, setSelectedClient] =
+    useState<ClientAccessMatrix | null>(null)
   const searchParams = useSearchParams()
   const userFilter = searchParams.get('user')
-  
+
   // Form states
   const [grantAccessForm, setGrantAccessForm] = useState({
     client_id: '',
     user_id: '',
-    access_level: 'full' as 'full' | 'readonly'
+    access_level: 'full' as 'full' | 'readonly',
   })
-  
+
   const [bulkAssignForm, setBulkAssignForm] = useState({
     user_id: '',
     client_ids: [] as string[],
-    access_level: 'full' as 'full' | 'readonly'
+    access_level: 'full' as 'full' | 'readonly',
   })
 
+  // React Query hooks - automatic caching!
+  const { data: accessMatrix = [], isLoading: accessLoading } = useAccessMatrix(
+    {
+      limit: 100,
+    },
+  )
+  const { data: users = [], isLoading: usersLoading } = useAdminUsers({
+    limit: 1000,
+  })
+  const { data: coachAccessList = [], isLoading: coachAccessLoading } =
+    useCoachAccessList()
+
+  const loading = accessLoading || usersLoading || coachAccessLoading
+
+  // Mutation hooks
+  const { mutate: grantAccess } = useGrantClientAccess()
+  const { mutate: bulkAssign } = useBulkAssignClients()
+  const { mutate: revokeAccess } = useRevokeClientAccess()
+
+  // Handle user filter from URL
   useEffect(() => {
-    fetchAccessMatrix()
-    fetchUsers()
-    
-    // If user filter is present, open bulk assign dialog
     if (userFilter) {
       setBulkAssignForm(prev => ({ ...prev, user_id: userFilter }))
       setIsBulkAssignDialogOpen(true)
     }
-  }, [userFilter]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userFilter])
 
-  useEffect(() => {
-    if (accessMatrix.length > 0 && users.length > 0) {
-      const hierarchy = buildHierarchy()
-      setHierarchyData(hierarchy)
-    }
-  }, [accessMatrix, users]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Build hierarchy function with useCallback
 
-  const fetchAccessMatrix = async () => {
-    try {
-      setLoading(true)
-      const data = await adminService.getAccessMatrix({ limit: 100 })
-      setAccessMatrix(data)
-    } catch (error) {
-      console.error('Failed to fetch access matrix:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to fetch client access data',
-        variant: 'destructive'
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  const buildHierarchy = useCallback(
+    (
+      matrix: ClientAccessMatrix[],
+      usersList: UserType[],
+      coachAccessData: any[],
+    ): HierarchyNode[] => {
+      const hierarchy: HierarchyNode[] = []
+      const admins = usersList.filter(
+        u => u.roles.includes('admin') || u.roles.includes('super_admin'),
+      )
+      const coaches = usersList.filter(u => u.roles.includes('coach'))
 
-  const fetchUsers = async () => {
-    try {
-      const data = await adminService.getUsers({ limit: 1000 })
-      setUsers(data)
-    } catch (error) {
-      console.error('Failed to fetch users:', error)
-    }
-  }
+      // Build admin -> coach -> client hierarchy
+      admins.forEach(admin => {
+        const adminNode: HierarchyNode = {
+          type: 'admin',
+          id: admin.id,
+          name: admin.full_name || admin.email,
+          email: admin.email,
+          roles: admin.roles,
+          children: [],
+        }
 
-  const buildHierarchy = (): HierarchyNode[] => {
-    const hierarchy: HierarchyNode[] = []
-    const admins = users.filter(u => u.roles.includes('admin') || u.roles.includes('super_admin'))
-    const coaches = users.filter(u => u.roles.includes('coach'))
-    
-    // Build admin -> coach -> client hierarchy
-    admins.forEach(admin => {
-      const adminNode: HierarchyNode = {
-        type: 'admin',
-        id: admin.id,
-        name: admin.full_name || admin.email,
-        email: admin.email,
-        roles: admin.roles,
-        children: []
-      }
-      
-      // For super admins, show all coaches and clients
-      if (admin.roles.includes('super_admin')) {
-        coaches.forEach(coach => {
-          const coachNode: HierarchyNode = {
-            type: 'coach',
-            id: coach.id,
-            name: coach.full_name || coach.email,
-            email: coach.email,
-            roles: coach.roles,
-            children: []
-          }
-          
-          // Add clients under coach
-          accessMatrix.forEach(client => {
-            const coachHasAccess = client.assigned_users.some(u => u.user_id === coach.id)
-            if (coachHasAccess) {
-              const accessInfo = client.assigned_users.find(u => u.user_id === coach.id)
-              coachNode.children.push({
-                type: 'client',
-                id: client.client_id,
-                name: client.client_name,
-                access_level: accessInfo?.access_level,
-                children: []
-              })
+        // For super admins, show all coaches and clients
+        if (admin.roles.includes('super_admin')) {
+          coaches.forEach(coach => {
+            const coachNode: HierarchyNode = {
+              type: 'coach',
+              id: coach.id,
+              name: coach.full_name || coach.email,
+              email: coach.email,
+              roles: coach.roles,
+              children: [],
+            }
+
+            // Add clients under coach
+            matrix.forEach(client => {
+              const coachHasAccess = client.assigned_users.some(
+                u => u.user_id === coach.id,
+              )
+              if (coachHasAccess) {
+                const accessInfo = client.assigned_users.find(
+                  u => u.user_id === coach.id,
+                )
+                coachNode.children.push({
+                  type: 'client',
+                  id: client.client_id,
+                  name: client.client_name,
+                  access_level: accessInfo?.access_level,
+                  children: [],
+                })
+              }
+            })
+
+            if (coachNode.children.length > 0) {
+              adminNode.children.push(coachNode)
             }
           })
-          
-          if (coachNode.children.length > 0) {
-            adminNode.children.push(coachNode)
-          }
-        })
-      } else {
-        // Regular admins see their assigned coaches/clients
+        } else {
+          // Regular admins see coaches assigned to them via CoachAccess
+          const assignedCoachIds = coachAccessData
+            .filter(ca => ca.admin_user_id === admin.id)
+            .map(ca => ca.coach_user_id)
+
+          assignedCoachIds.forEach(coachId => {
+            const coach = coaches.find(c => c.id === coachId)
+            if (!coach) return
+
+            const coachNode: HierarchyNode = {
+              type: 'coach',
+              id: coach.id,
+              name: coach.full_name || coach.email,
+              email: coach.email,
+              roles: coach.roles,
+              children: [],
+            }
+
+            // Add all clients that this coach has access to
+            matrix.forEach(client => {
+              const coachHasAccess = client.assigned_users.some(
+                u => u.user_id === coach.id,
+              )
+              if (coachHasAccess) {
+                const accessInfo = client.assigned_users.find(
+                  u => u.user_id === coach.id,
+                )
+                coachNode.children.push({
+                  type: 'client',
+                  id: client.client_id,
+                  name: client.client_name,
+                  access_level: accessInfo?.access_level,
+                  children: [],
+                })
+              }
+            })
+
+            if (coachNode.children.length > 0) {
+              adminNode.children.push(coachNode)
+            }
+          })
+
+          // Also add any direct client access grants (not via coach)
+          matrix.forEach(client => {
+            const adminHasDirectAccess = client.assigned_users.some(
+              u => u.user_id === admin.id,
+            )
+            if (adminHasDirectAccess) {
+              // Check if this client is already under a coach node
+              const alreadyInHierarchy = adminNode.children.some(coachNode =>
+                coachNode.children.some(
+                  clientNode => clientNode.id === client.client_id,
+                ),
+              )
+
+              if (!alreadyInHierarchy) {
+                const accessInfo = client.assigned_users.find(
+                  u => u.user_id === admin.id,
+                )
+                adminNode.children.push({
+                  type: 'client',
+                  id: client.client_id,
+                  name: client.client_name,
+                  access_level: accessInfo?.access_level,
+                  children: [],
+                })
+              }
+            }
+          })
+        }
+
+        if (adminNode.children.length > 0) {
+          hierarchy.push(adminNode)
+        }
+      })
+
+      // Add coaches with their clients
+      coaches.forEach(coach => {
+        const coachNode: HierarchyNode = {
+          type: 'coach',
+          id: coach.id,
+          name: coach.full_name || coach.email,
+          email: coach.email,
+          roles: coach.roles,
+          children: [],
+        }
+
         accessMatrix.forEach(client => {
-          const adminHasAccess = client.assigned_users.some(u => u.user_id === admin.id)
-          if (adminHasAccess) {
-            const accessInfo = client.assigned_users.find(u => u.user_id === admin.id)
-            adminNode.children.push({
+          const coachHasAccess = client.assigned_users.some(
+            u => u.user_id === coach.id,
+          )
+          if (coachHasAccess) {
+            const accessInfo = client.assigned_users.find(
+              u => u.user_id === coach.id,
+            )
+            coachNode.children.push({
               type: 'client',
               id: client.client_id,
               name: client.client_name,
               access_level: accessInfo?.access_level,
-              children: []
+              children: [],
             })
           }
         })
-      }
-      
-      if (adminNode.children.length > 0) {
-        hierarchy.push(adminNode)
-      }
-    })
-    
-    // Add coaches with their clients
-    coaches.forEach(coach => {
-      const coachNode: HierarchyNode = {
-        type: 'coach',
-        id: coach.id,
-        name: coach.full_name || coach.email,
-        email: coach.email,
-        roles: coach.roles,
-        children: []
-      }
-      
-      accessMatrix.forEach(client => {
-        const coachHasAccess = client.assigned_users.some(u => u.user_id === coach.id)
-        if (coachHasAccess) {
-          const accessInfo = client.assigned_users.find(u => u.user_id === coach.id)
-          coachNode.children.push({
-            type: 'client',
-            id: client.client_id,
-            name: client.client_name,
-            access_level: accessInfo?.access_level,
-            children: []
-          })
+
+        // Only add if not already in hierarchy under an admin
+        const existsInHierarchy = hierarchy.some(admin =>
+          admin.children.some(c => c.id === coach.id),
+        )
+
+        if (coachNode.children.length > 0 && !existsInHierarchy) {
+          hierarchy.push(coachNode)
         }
       })
-      
-      // Only add if not already in hierarchy under an admin
-      const existsInHierarchy = hierarchy.some(admin =>
-        admin.children.some(c => c.id === coach.id)
-      )
-      
-      if (coachNode.children.length > 0 && !existsInHierarchy) {
-        hierarchy.push(coachNode)
-      }
+
+      return hierarchy
+    },
+    [],
+  )
+
+  // Build hierarchy with memoization - only recalculate when data changes
+  const hierarchyData = useMemo(() => {
+    if (accessMatrix.length === 0 || users.length === 0) return []
+    return buildHierarchy(accessMatrix, users, coachAccessList)
+  }, [accessMatrix, users, coachAccessList, buildHierarchy])
+
+  const handleGrantAccess = () => {
+    grantAccess(grantAccessForm, {
+      onSuccess: () => {
+        setIsGrantAccessDialogOpen(false)
+        resetGrantAccessForm()
+      },
     })
-    
-    return hierarchy
   }
 
-  const handleGrantAccess = async () => {
-    try {
-      await adminService.grantClientAccess(grantAccessForm)
-      toast({
-        title: 'Success',
-        description: 'Access granted successfully'
-      })
-      setIsGrantAccessDialogOpen(false)
-      fetchAccessMatrix()
-      resetGrantAccessForm()
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to grant access',
-        variant: 'destructive'
-      })
-    }
+  const handleBulkAssign = () => {
+    bulkAssign(bulkAssignForm, {
+      onSuccess: () => {
+        setIsBulkAssignDialogOpen(false)
+        resetBulkAssignForm()
+      },
+    })
   }
 
-  const handleBulkAssign = async () => {
-    try {
-      const result = await adminService.bulkAssignClients(bulkAssignForm)
-      toast({
-        title: 'Success',
-        description: `${result.assigned_count} clients assigned successfully`
-      })
-      setIsBulkAssignDialogOpen(false)
-      fetchAccessMatrix()
-      resetBulkAssignForm()
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to assign clients',
-        variant: 'destructive'
-      })
-    }
-  }
-
-  const handleRevokeAccess = async (clientId: string, userId: string) => {
+  const handleRevokeAccess = (clientId: string, userId: string) => {
     if (!confirm('Are you sure you want to revoke this access?')) return
-    
-    try {
-      await adminService.revokeClientAccess(clientId, userId)
-      toast({
-        title: 'Success',
-        description: 'Access revoked successfully'
-      })
-      fetchAccessMatrix()
-    } catch {
-      toast({
-        title: 'Error',
-        description: 'Failed to revoke access',
-        variant: 'destructive'
-      })
-    }
+
+    revokeAccess({ clientId, userId })
   }
 
   const openGrantAccessDialog = (client?: ClientAccessMatrix) => {
@@ -311,7 +346,7 @@ export default function ClientAccessPage() {
     setGrantAccessForm({
       client_id: '',
       user_id: '',
-      access_level: 'full'
+      access_level: 'full',
     })
     setSelectedClient(null)
   }
@@ -320,17 +355,19 @@ export default function ClientAccessPage() {
     setBulkAssignForm({
       user_id: '',
       client_ids: [],
-      access_level: 'full'
+      access_level: 'full',
     })
   }
 
-  const filteredMatrix = accessMatrix.filter(client =>
-    searchQuery === '' ||
-    client.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.assigned_users.some(user =>
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  const filteredMatrix = accessMatrix.filter(
+    client =>
+      searchQuery === '' ||
+      client.client_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      client.assigned_users.some(
+        user =>
+          user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.full_name?.toLowerCase().includes(searchQuery.toLowerCase()),
+      ),
   )
 
   const getRoleBadgeColor = (role: string) => {
@@ -349,9 +386,10 @@ export default function ClientAccessPage() {
   }
 
   const formatRoleName = (role: string) => {
-    return role.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ')
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
   }
 
   const getNodeIcon = (type: string) => {
@@ -382,7 +420,7 @@ export default function ClientAccessPage() {
 
   const renderHierarchyNode = (node: HierarchyNode, level: number = 0) => {
     const isSuper = node.roles?.includes('super_admin')
-    
+
     return (
       <div key={node.id} className={`${level > 0 ? 'ml-8' : ''}`}>
         <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
@@ -406,13 +444,13 @@ export default function ClientAccessPage() {
                 </Badge>
               )}
               {node.access_level && (
-                <Badge 
-                  variant="outline" 
+                <Badge
+                  variant="outline"
                   className={cn(
                     'text-xs',
-                    node.access_level === 'full' 
+                    node.access_level === 'full'
                       ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                      : 'bg-yellow-50 text-yellow-700 border-yellow-200',
                   )}
                 >
                   {node.access_level === 'full' ? 'Full Access' : 'Read Only'}
@@ -448,7 +486,10 @@ export default function ClientAccessPage() {
           <p className="text-gray-500 mt-2">Manage client access assignments</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setIsBulkAssignDialogOpen(true)}>
+          <Button
+            variant="outline"
+            onClick={() => setIsBulkAssignDialogOpen(true)}
+          >
             <Users className="h-4 w-4 mr-2" />
             Bulk Assign
           </Button>
@@ -463,7 +504,10 @@ export default function ClientAccessPage() {
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as 'hierarchy' | 'list')}>
+            <Tabs
+              value={viewMode}
+              onValueChange={v => setViewMode(v as 'hierarchy' | 'list')}
+            >
               <TabsList>
                 <TabsTrigger value="hierarchy">
                   <Network className="h-4 w-4 mr-2" />
@@ -480,7 +524,7 @@ export default function ClientAccessPage() {
               <Input
                 placeholder="Search..."
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -517,9 +561,8 @@ export default function ClientAccessPage() {
             )}
           </CardContent>
         </Card>
-      ) : (
-        // List View (existing table)
-        loading ? (
+      ) : // List View (existing table)
+      loading ? (
         <div className="border rounded-lg">
           <Table>
             <TableHeader>
@@ -532,9 +575,15 @@ export default function ClientAccessPage() {
             <TableBody>
               {[...Array(5)].map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-48" /></TableCell>
-                  <TableCell><Skeleton className="h-4 w-20 ml-auto" /></TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-32" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-48" />
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-20 ml-auto" />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -551,7 +600,7 @@ export default function ClientAccessPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMatrix.map((client) => (
+              {filteredMatrix.map(client => (
                 <TableRow key={client.client_id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
@@ -559,8 +608,12 @@ export default function ClientAccessPage() {
                         <Users className="h-5 w-5 text-gray-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">{client.client_name}</p>
-                        <p className="text-xs text-gray-500">ID: {client.client_id}</p>
+                        <p className="font-medium text-gray-900">
+                          {client.client_name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          ID: {client.client_id}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
@@ -568,14 +621,19 @@ export default function ClientAccessPage() {
                     {client.assigned_users.length > 0 ? (
                       <div className="space-y-2">
                         {client.assigned_users.map(user => (
-                          <div key={user.user_id} className="flex items-center justify-between">
+                          <div
+                            key={user.user_id}
+                            className="flex items-center justify-between"
+                          >
                             <div className="flex items-center gap-2">
                               <div>
                                 <p className="text-sm font-medium text-gray-900">
                                   {user.email}
                                 </p>
                                 {user.full_name && (
-                                  <p className="text-xs text-gray-500">{user.full_name}</p>
+                                  <p className="text-xs text-gray-500">
+                                    {user.full_name}
+                                  </p>
                                 )}
                               </div>
                               <div className="flex gap-1">
@@ -583,19 +641,22 @@ export default function ClientAccessPage() {
                                   <Badge
                                     key={role}
                                     variant="outline"
-                                    className={cn('text-xs', getRoleBadgeColor(role))}
+                                    className={cn(
+                                      'text-xs',
+                                      getRoleBadgeColor(role),
+                                    )}
                                   >
                                     {formatRoleName(role)}
                                   </Badge>
                                 ))}
                               </div>
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className={cn(
                                   'text-xs',
-                                  user.access_level === 'full' 
+                                  user.access_level === 'full'
                                     ? 'bg-green-50 text-green-700 border-green-200'
-                                    : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                    : 'bg-yellow-50 text-yellow-700 border-yellow-200',
                                 )}
                               >
                                 {user.access_level === 'full' ? (
@@ -603,13 +664,20 @@ export default function ClientAccessPage() {
                                 ) : (
                                   <Eye className="h-3 w-3 mr-1" />
                                 )}
-                                {user.access_level === 'full' ? 'Full Access' : 'Read Only'}
+                                {user.access_level === 'full'
+                                  ? 'Full Access'
+                                  : 'Read Only'}
                               </Badge>
                             </div>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleRevokeAccess(client.client_id, user.user_id)}
+                              onClick={() =>
+                                handleRevokeAccess(
+                                  client.client_id,
+                                  user.user_id,
+                                )
+                              }
                             >
                               <UserMinus className="h-4 w-4 text-red-600" />
                             </Button>
@@ -635,10 +703,13 @@ export default function ClientAccessPage() {
             </TableBody>
           </Table>
         </div>
-      ))}
+      )}
 
       {/* Grant Access Dialog */}
-      <Dialog open={isGrantAccessDialogOpen} onOpenChange={setIsGrantAccessDialogOpen}>
+      <Dialog
+        open={isGrantAccessDialogOpen}
+        onOpenChange={setIsGrantAccessDialogOpen}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Grant Client Access</DialogTitle>
@@ -652,12 +723,14 @@ export default function ClientAccessPage() {
               {selectedClient ? (
                 <div className="mt-2 p-2 bg-gray-50 rounded">
                   <p className="font-medium">{selectedClient.client_name}</p>
-                  <p className="text-xs text-gray-500">ID: {selectedClient.client_id}</p>
+                  <p className="text-xs text-gray-500">
+                    ID: {selectedClient.client_id}
+                  </p>
                 </div>
               ) : (
                 <Select
                   value={grantAccessForm.client_id}
-                  onValueChange={(value) => 
+                  onValueChange={value =>
                     setGrantAccessForm(prev => ({ ...prev, client_id: value }))
                   }
                 >
@@ -666,7 +739,10 @@ export default function ClientAccessPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {accessMatrix.map(client => (
-                      <SelectItem key={client.client_id} value={client.client_id}>
+                      <SelectItem
+                        key={client.client_id}
+                        value={client.client_id}
+                      >
                         {client.client_name}
                       </SelectItem>
                     ))}
@@ -678,7 +754,7 @@ export default function ClientAccessPage() {
               <Label htmlFor="user">User</Label>
               <Select
                 value={grantAccessForm.user_id}
-                onValueChange={(value) => 
+                onValueChange={value =>
                   setGrantAccessForm(prev => ({ ...prev, user_id: value }))
                 }
               >
@@ -698,7 +774,7 @@ export default function ClientAccessPage() {
               <Label htmlFor="access_level">Access Level</Label>
               <Select
                 value={grantAccessForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') => 
+                onValueChange={(value: 'full' | 'readonly') =>
                   setGrantAccessForm(prev => ({ ...prev, access_level: value }))
                 }
               >
@@ -723,21 +799,25 @@ export default function ClientAccessPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsGrantAccessDialogOpen(false)
-              resetGrantAccessForm()
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsGrantAccessDialogOpen(false)
+                resetGrantAccessForm()
+              }}
+            >
               Cancel
             </Button>
-            <Button onClick={handleGrantAccess}>
-              Grant Access
-            </Button>
+            <Button onClick={handleGrantAccess}>Grant Access</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Bulk Assign Dialog */}
-      <Dialog open={isBulkAssignDialogOpen} onOpenChange={setIsBulkAssignDialogOpen}>
+      <Dialog
+        open={isBulkAssignDialogOpen}
+        onOpenChange={setIsBulkAssignDialogOpen}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Bulk Assign Clients</DialogTitle>
@@ -750,7 +830,7 @@ export default function ClientAccessPage() {
               <Label htmlFor="bulk-user">User</Label>
               <Select
                 value={bulkAssignForm.user_id}
-                onValueChange={(value) => 
+                onValueChange={value =>
                   setBulkAssignForm(prev => ({ ...prev, user_id: value }))
                 }
               >
@@ -770,7 +850,7 @@ export default function ClientAccessPage() {
               <Label htmlFor="bulk-access_level">Access Level</Label>
               <Select
                 value={bulkAssignForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') => 
+                onValueChange={(value: 'full' | 'readonly') =>
                   setBulkAssignForm(prev => ({ ...prev, access_level: value }))
                 }
               >
@@ -798,26 +878,36 @@ export default function ClientAccessPage() {
               <div className="mt-2 border rounded-lg max-h-60 overflow-y-auto">
                 <div className="p-2 space-y-2">
                   {accessMatrix.map(client => (
-                    <div key={client.client_id} className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded">
+                    <div
+                      key={client.client_id}
+                      className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded"
+                    >
                       <Checkbox
                         id={`client-${client.client_id}`}
-                        checked={bulkAssignForm.client_ids.includes(client.client_id)}
-                        onCheckedChange={(checked) => {
+                        checked={bulkAssignForm.client_ids.includes(
+                          client.client_id,
+                        )}
+                        onCheckedChange={checked => {
                           if (checked) {
-                            setBulkAssignForm(prev => ({ 
-                              ...prev, 
-                              client_ids: [...prev.client_ids, client.client_id] 
+                            setBulkAssignForm(prev => ({
+                              ...prev,
+                              client_ids: [
+                                ...prev.client_ids,
+                                client.client_id,
+                              ],
                             }))
                           } else {
-                            setBulkAssignForm(prev => ({ 
-                              ...prev, 
-                              client_ids: prev.client_ids.filter(id => id !== client.client_id) 
+                            setBulkAssignForm(prev => ({
+                              ...prev,
+                              client_ids: prev.client_ids.filter(
+                                id => id !== client.client_id,
+                              ),
                             }))
                           }
                         }}
                       />
-                      <Label 
-                        htmlFor={`client-${client.client_id}`} 
+                      <Label
+                        htmlFor={`client-${client.client_id}`}
                         className="text-sm font-normal flex-1 cursor-pointer"
                       >
                         {client.client_name}
@@ -837,15 +927,21 @@ export default function ClientAccessPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsBulkAssignDialogOpen(false)
-              resetBulkAssignForm()
-            }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsBulkAssignDialogOpen(false)
+                resetBulkAssignForm()
+              }}
+            >
               Cancel
             </Button>
-            <Button 
+            <Button
               onClick={handleBulkAssign}
-              disabled={bulkAssignForm.client_ids.length === 0 || !bulkAssignForm.user_id}
+              disabled={
+                bulkAssignForm.client_ids.length === 0 ||
+                !bulkAssignForm.user_id
+              }
             >
               Assign {bulkAssignForm.client_ids.length} Clients
             </Button>

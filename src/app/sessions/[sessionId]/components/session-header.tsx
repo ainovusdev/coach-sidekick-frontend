@@ -34,14 +34,14 @@ export default function SessionHeader({
   const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
 
   return (
-    <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
           <Button
             variant="ghost"
             size="sm"
             onClick={onBack}
-            className="hover:bg-gray-100 transition-colors -ml-2 sm:ml-0"
+            className="hover:bg-gray-50 transition-colors -ml-2 sm:ml-0"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back
@@ -57,7 +57,7 @@ export default function SessionHeader({
               <Badge
                 className={`${getStatusColor(
                   session.status,
-                )} px-3 py-1 text-xs font-semibold shadow-sm`}
+                )} px-3 py-1 text-xs font-semibold`}
               >
                 <Activity className="w-3 h-3 mr-1" />
                 {session.status.replace('_', ' ').toUpperCase()}
@@ -67,31 +67,31 @@ export default function SessionHeader({
                   variant="outline"
                   size="sm"
                   onClick={onDelete}
-                  className="ml-auto border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300"
+                  className="ml-auto border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Session
                 </Button>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-              <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
-                <Calendar className="h-4 w-4 text-gray-600" />
-                <span className="font-medium">
+            <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
+              <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <span className="font-medium text-gray-700">
                   {format(new Date(session.created_at), 'PPP')}
                 </span>
               </div>
               {session.meeting_url && (
-                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
-                  <ExternalLink className="h-4 w-4 text-gray-600" />
-                  <span className="font-medium truncate max-w-xs">
+                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
+                  <ExternalLink className="h-4 w-4 text-gray-500" />
+                  <span className="font-medium text-gray-700 truncate max-w-xs">
                     {session.meeting_url.replace(/^https?:\/\//, '')}
                   </span>
                 </div>
               )}
               {session.session_type === 'manual' && (
-                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1.5">
-                  <span className="font-medium text-gray-600">
+                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
+                  <span className="font-medium text-gray-700">
                     Manual Upload Session
                   </span>
                 </div>

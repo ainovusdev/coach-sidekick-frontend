@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
-import { CalendarIcon, User, Upload, Loader2 } from 'lucide-react'
+import { CalendarIcon, Upload, Loader2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -14,12 +14,22 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { ManualSessionService } from '@/services/manual-session-service'
-import { ClientService } from '@/services/client-service'
+import { useClients } from '@/hooks/queries/use-clients'
 import { toast } from '@/hooks/use-toast'
 
 interface ManualSessionModalProps {
@@ -28,63 +38,43 @@ interface ManualSessionModalProps {
   preselectedClientId?: string
 }
 
-export function ManualSessionModal({ 
-  isOpen, 
-  onClose, 
-  preselectedClientId 
+export function ManualSessionModal({
+  isOpen,
+  onClose,
+  preselectedClientId,
 }: ManualSessionModalProps) {
   const router = useRouter()
-  const [clients, setClients] = useState<any[]>([])
-  const [loadingClients, setLoadingClients] = useState(true)
+
+  // Use TanStack Query hook - data is cached and shared across components!
+  const { data: clientsData, isLoading: loadingClients } = useClients()
+  const clients = clientsData?.clients || []
+
   const [creating, setCreating] = useState(false)
-  
+
   const [formData, setFormData] = useState({
     client_id: preselectedClientId || '',
-    notes: ''
+    notes: '',
   })
   const [sessionDate, setSessionDate] = useState<Date | undefined>(new Date())
-
-  useEffect(() => {
-    if (isOpen) {
-      loadClients()
-    }
-  }, [isOpen])
 
   useEffect(() => {
     // Update form when preselectedClientId changes
     if (preselectedClientId) {
       setFormData(prev => ({
         ...prev,
-        client_id: preselectedClientId
+        client_id: preselectedClientId,
       }))
     }
   }, [preselectedClientId])
 
-  const loadClients = async () => {
-    try {
-      setLoadingClients(true)
-      const response = await ClientService.listClients()
-      setClients(response.clients)
-    } catch (error) {
-      console.error('Failed to load clients:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load clients',
-        variant: 'destructive'
-      })
-    } finally {
-      setLoadingClients(false)
-    }
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (!formData.client_id) {
       toast({
         title: 'Error',
         description: 'Please select a client',
-        variant: 'destructive'
+        variant: 'destructive',
       })
       return
     }
@@ -93,15 +83,17 @@ export function ManualSessionModal({
     try {
       const session = await ManualSessionService.createManualSession({
         client_id: formData.client_id,
-        session_date: sessionDate ? format(sessionDate, 'yyyy-MM-dd') : new Date().toISOString().split('T')[0],
-        notes: formData.notes
+        session_date: sessionDate
+          ? format(sessionDate, 'yyyy-MM-dd')
+          : new Date().toISOString().split('T')[0],
+        notes: formData.notes,
       })
-      
+
       toast({
         title: 'Success',
-        description: 'Session created successfully'
+        description: 'Session created successfully',
       })
-      
+
       // Close modal and redirect to session details page
       onClose()
       router.push(`/sessions/${session.id}`)
@@ -110,7 +102,7 @@ export function ManualSessionModal({
       toast({
         title: 'Error',
         description: 'Failed to create session',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setCreating(false)
@@ -121,7 +113,7 @@ export function ManualSessionModal({
     // Reset form
     setFormData({
       client_id: preselectedClientId || '',
-      notes: ''
+      notes: '',
     })
     setSessionDate(new Date())
     onClose()
@@ -131,18 +123,20 @@ export function ManualSessionModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create Manual Session</DialogTitle>
-          <DialogDescription>
-            Create a session for uploading recorded audio or video files
+          <DialogTitle className="text-xl">Add Past Session</DialogTitle>
+          <DialogDescription className="text-gray-600">
+            Create a session to upload and analyze recorded audio or video files
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
           {/* Client Selection */}
           <div className="space-y-2">
-            <Label htmlFor="client">
-              <User className="inline-block w-4 h-4 mr-2" />
-              Client *
+            <Label
+              htmlFor="client"
+              className="text-base font-medium text-gray-900"
+            >
+              Client <span className="text-red-500">*</span>
             </Label>
             {loadingClients ? (
               <div className="flex items-center justify-center p-3 border rounded-md">
@@ -151,13 +145,15 @@ export function ManualSessionModal({
             ) : (
               <Select
                 value={formData.client_id}
-                onValueChange={(value) => setFormData({ ...formData, client_id: value })}
+                onValueChange={value =>
+                  setFormData({ ...formData, client_id: value })
+                }
               >
                 <SelectTrigger id="client">
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
-                  {clients.map((client) => (
+                  {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
                     </SelectItem>
@@ -169,8 +165,10 @@ export function ManualSessionModal({
 
           {/* Session Date */}
           <div className="space-y-2">
-            <Label htmlFor="date">
-              <CalendarIcon className="inline-block w-4 h-4 mr-2" />
+            <Label
+              htmlFor="date"
+              className="text-base font-medium text-gray-900"
+            >
               Session Date
             </Label>
             <Popover>
@@ -178,12 +176,16 @@ export function ManualSessionModal({
                 <Button
                   variant="outline"
                   className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !sessionDate && "text-muted-foreground"
+                    'w-full justify-start text-left font-normal border-gray-200',
+                    !sessionDate && 'text-gray-400',
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {sessionDate ? format(sessionDate, "PPP") : <span>Pick a date</span>}
+                  {sessionDate ? (
+                    format(sessionDate, 'PPP')
+                  ) : (
+                    <span>Pick a date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -199,30 +201,40 @@ export function ManualSessionModal({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes (Optional)</Label>
+            <Label
+              htmlFor="notes"
+              className="text-base font-medium text-gray-900"
+            >
+              Notes{' '}
+              <span className="text-gray-500 font-normal">(Optional)</span>
+            </Label>
             <Textarea
               id="notes"
               placeholder="Add any notes about this session..."
               value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+              onChange={e =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
               rows={3}
+              className="border-gray-200"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={creating}
+              className="border-gray-300 hover:bg-gray-50"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={creating || !formData.client_id || loadingClients}
-              className="bg-black hover:bg-gray-800 text-white"
+              className="bg-gray-900 hover:bg-gray-800 text-white"
             >
               {creating ? (
                 <>
@@ -232,7 +244,7 @@ export function ManualSessionModal({
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  Create & Upload File
+                  Create Session
                 </>
               )}
             </Button>

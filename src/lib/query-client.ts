@@ -155,6 +155,69 @@ export const queryKeys = {
     current: () => ['user', 'current'] as const,
     preferences: () => ['user', 'preferences'] as const,
   },
+
+  // Admin keys
+  admin: {
+    // User management keys
+    users: {
+      all: ['admin', 'users'] as const,
+      lists: () => [...queryKeys.admin.users.all, 'list'] as const,
+      list: (params?: {
+        skip?: number
+        limit?: number
+        search?: string
+        role_filter?: string
+        include_deleted?: boolean
+      }) => [...queryKeys.admin.users.lists(), { params }] as const,
+      detail: (id: string) =>
+        [...queryKeys.admin.users.all, 'detail', id] as const,
+    },
+
+    // Role management keys
+    roles: {
+      all: ['admin', 'roles'] as const,
+      available: () => [...queryKeys.admin.roles.all, 'available'] as const,
+      user: (userId: string) =>
+        [...queryKeys.admin.roles.all, 'user', userId] as const,
+    },
+
+    // Access matrix keys
+    access: {
+      all: ['admin', 'access'] as const,
+      matrix: (params?: { skip?: number; limit?: number }) =>
+        [...queryKeys.admin.access.all, 'matrix', { params }] as const,
+      user: (userId: string) =>
+        [...queryKeys.admin.access.all, 'user', userId] as const,
+      client: (clientId: string) =>
+        [...queryKeys.admin.access.all, 'client', clientId] as const,
+    },
+
+    // Coach access keys
+    coachAccess: {
+      all: ['admin', 'coach-access'] as const,
+      list: () => [...queryKeys.admin.coachAccess.all, 'list'] as const,
+      byRole: (role: string) =>
+        [...queryKeys.admin.coachAccess.all, 'role', role] as const,
+    },
+
+    // Audit log keys
+    auditLog: {
+      all: ['admin', 'audit-log'] as const,
+      list: (params?: {
+        limit?: number
+        resource_type?: string
+        user_id?: string
+        action?: string
+        start_date?: string
+        end_date?: string
+      }) => [...queryKeys.admin.auditLog.all, { params }] as const,
+    },
+
+    // Dashboard keys (composite data)
+    dashboard: {
+      stats: () => ['admin', 'dashboard', 'stats'] as const,
+    },
+  },
 } as const
 
 /**
@@ -194,5 +257,52 @@ export const invalidateQueries = {
 
   afterTaskUpdate: async (queryClient: QueryClient) => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+  },
+}
+
+/**
+ * Invalidation helpers for admin mutations
+ */
+export const invalidateAdminQueries = {
+  afterUserUpdate: async (queryClient: QueryClient, userId?: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.dashboard.stats(),
+      }),
+      userId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.admin.users.detail(userId),
+        }),
+    ])
+  },
+
+  afterRoleUpdate: async (queryClient: QueryClient) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.roles.all }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.dashboard.stats(),
+      }),
+    ])
+  },
+
+  afterAccessUpdate: async (queryClient: QueryClient) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.access.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.dashboard.stats(),
+      }),
+    ])
+  },
+
+  afterCoachAccessUpdate: async (queryClient: QueryClient) => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.coachAccess.all,
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.access.all }),
+    ])
   },
 }

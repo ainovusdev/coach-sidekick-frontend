@@ -48,19 +48,6 @@ export default function ClientList() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [sortBy, setSortBy] = useState<'name' | 'recent' | 'sessions'>('recent')
 
-  // Create client mutation with optimistic updates
-  const createMutation = useMutation({
-    mutationFn: (clientData: Partial<Client>) =>
-      ClientService.createClient({
-        name: clientData.name || '',
-        notes: clientData.notes,
-      }),
-    onSuccess: () => {
-      // Invalidate and refetch clients list
-      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
-    },
-  })
-
   // Update client mutation with optimistic updates
   const updateMutation = useMutation({
     mutationFn: ({
@@ -75,10 +62,6 @@ export default function ClientList() {
       queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
     },
   })
-
-  const handleCreateClient = async (clientData: Partial<Client>) => {
-    await createMutation.mutateAsync(clientData)
-  }
 
   const handleEditClient = async (clientData: Partial<Client>) => {
     if (!selectedClient) return
@@ -821,7 +804,10 @@ export default function ClientList() {
       <ClientModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreateClient}
+        onSuccess={() => {
+          // Refetch clients list after creation
+          queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+        }}
         mode="create"
       />
 

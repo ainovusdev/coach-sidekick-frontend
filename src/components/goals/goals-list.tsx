@@ -85,8 +85,8 @@ export function GoalsList({
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      career: 'bg-purple-100 text-purple-800',
-      personal: 'bg-pink-100 text-pink-800',
+      career: 'bg-gray-100 text-gray-800',
+      personal: 'bg-gray-200 text-gray-900',
       health: 'bg-green-100 text-green-800',
       financial: 'bg-yellow-100 text-yellow-800',
       relationship: 'bg-red-100 text-red-800',
@@ -144,7 +144,7 @@ export function GoalsList({
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3 flex-1">
-                      <div className="p-2 bg-purple-100 rounded-lg mt-0.5">
+                      <div className="p-2 bg-gray-100 rounded-lg mt-0.5">
                         {getStatusIcon(goal.status)}
                       </div>
                       <div className="flex-1">

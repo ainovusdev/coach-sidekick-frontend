@@ -172,8 +172,8 @@ export function SprintTargetsManager({
                     <AccordionTrigger className="hover:no-underline">
                       <div className="flex items-center justify-between w-full pr-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2 bg-purple-100 rounded-lg">
-                            <TargetIcon className="h-5 w-5 text-purple-600" />
+                          <div className="p-2 bg-gray-100 rounded-lg">
+                            <TargetIcon className="h-5 w-5 text-gray-600" />
                           </div>
                           <div className="text-left">
                             <h3 className="font-semibold text-gray-900">
@@ -200,7 +200,7 @@ export function SprintTargetsManager({
                             className={cn(
                               'border-2 transition-all cursor-pointer',
                               selectedTargetId === target.id
-                                ? 'border-purple-400 bg-purple-50 shadow-md'
+                                ? 'border-gray-400 bg-gray-50 shadow-md'
                                 : 'border-gray-200 hover:border-gray-300 hover:shadow-sm',
                             )}
                           >
@@ -218,7 +218,7 @@ export function SprintTargetsManager({
                                     </h4>
                                   </div>
                                   {/* Show linked outcome */}
-                                  <div className="flex items-center gap-1 text-xs text-purple-700 ml-6 mb-1">
+                                  <div className="flex items-center gap-1 text-xs text-gray-700 ml-6 mb-1">
                                     <Trophy className="h-3 w-3" />
                                     <span>Outcome: {goalTitle}</span>
                                   </div>

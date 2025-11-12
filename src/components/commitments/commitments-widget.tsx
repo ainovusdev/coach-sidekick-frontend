@@ -60,8 +60,9 @@ export function CommitmentsWidget({
     refetch,
   } = useCommitments({
     client_id: clientId,
-    status: 'active',
-    include_drafts: false,
+    // Remove status filter to show all commitments (active, draft, etc.)
+    // status: 'active',
+    include_drafts: true, // Include draft commitments
   })
 
   const error = queryError ? 'Failed to load commitments' : null
@@ -206,7 +207,7 @@ export function CommitmentsWidget({
                           commitment.type === 'action' &&
                             'bg-blue-100 text-blue-700',
                           commitment.type === 'habit' &&
-                            'bg-purple-100 text-purple-700',
+                            'bg-gray-100 text-gray-700',
                           commitment.type === 'milestone' &&
                             'bg-green-100 text-green-700',
                         )}

@@ -34,7 +34,22 @@ export interface ClientAccessMatrix {
     full_name: string | null
     roles: string[]
     access_level: string
+    is_owner?: boolean
   }[]
+}
+
+export interface AuditLogEntry {
+  id: string
+  user_id: string
+  user_email: string
+  user_name?: string | null
+  resource_type: string
+  resource_id: string | null
+  action: string
+  details?: any
+  ip_address?: string | null
+  user_agent?: string | null
+  created_at: string
 }
 
 class AdminService {
@@ -225,7 +240,10 @@ class AdminService {
     limit?: number
     resource_type?: string
     user_id?: string
-  }): Promise<any[]> {
+    action?: string
+    start_date?: string
+    end_date?: string
+  }): Promise<AuditLogEntry[]> {
     const response = await axiosInstance.get('/access/audit-log', { params })
     return response.data
   }
