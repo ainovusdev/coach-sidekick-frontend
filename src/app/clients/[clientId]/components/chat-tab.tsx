@@ -39,11 +39,5 @@ export function ChatTab({ clientId, clientName, isViewer }: ChatTabProps) {
     )
   }
 
-  return (
-    <Card className="border-gray-200 shadow-sm h-full">
-      <CardContent className="p-0 h-full">
-        <ClientChatUnified clientId={clientId} clientName={clientName} />
-      </CardContent>
-    </Card>
-  )
+  return <ClientChatUnified clientId={clientId} clientName={clientName} />
 }

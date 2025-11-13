@@ -20,22 +20,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { SprintService } from '@/services/sprint-service'
+import { TargetService } from '@/services/target-service'
 import { SprintCreate } from '@/types/sprint'
-import { useGoals } from '@/hooks/queries/use-goals'
-import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { toast } from 'sonner'
 import { addWeeks, format } from 'date-fns'
-import { CalendarIcon, Target } from 'lucide-react'
+import { CalendarIcon, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { queryKeys } from '@/lib/query-client'
+import { useTargets } from '@/hooks/queries/use-targets'
+import { useGoals } from '@/hooks/queries/use-goals'
 
 interface SprintFormModalProps {
   open: boolean
@@ -54,37 +48,21 @@ export function SprintFormModal({
   const [loading, setLoading] = useState(false)
   const [startDate, setStartDate] = useState<Date>(new Date())
   const [endDate, setEndDate] = useState<Date>(addWeeks(new Date(), 6))
-  const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
+  const [selectedOutcomeIds, setSelectedOutcomeIds] = useState<string[]>([])
   const [formData, setFormData] = useState({
     title: '',
     description: '',
     status: 'active' as const, // Always default to active
-    goal_id: null as string | null,
   })
 
-  // Fetch active goals for the client
-  const {
-    data: goals = [],
-    isLoading: goalsLoading,
-    refetch: refetchGoals,
-  } = useGoals(clientId)
+  // Fetch goals and targets for the client
+  const { data: goals = [] } = useGoals(clientId)
+  const { data: allTargets = [] } = useTargets()
 
-  const handleGoalSelect = (value: string) => {
-    if (value === 'create-new') {
-      setIsGoalModalOpen(true)
-    } else {
-      setFormData({
-        ...formData,
-        goal_id: value === 'none' ? null : value,
-      })
-    }
-  }
-
-  const handleGoalCreated = () => {
-    // Refetch goals to get the new goal
-    refetchGoals()
-    setIsGoalModalOpen(false)
-  }
+  // Filter targets that belong to this client (via goals)
+  const clientTargets = allTargets.filter((t: any) =>
+    t.goal_ids?.some((gid: string) => goals.some((g: any) => g.id === gid)),
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -100,6 +78,10 @@ export function SprintFormModal({
     }
 
     setLoading(true)
+
+    // Optimistic ID for new sprint
+    const optimisticId = `temp-${Date.now()}`
+
     try {
       const sprintData: SprintCreate = {
         client_id: clientId,
@@ -108,16 +90,26 @@ export function SprintFormModal({
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         status: formData.status,
-        goal_id: formData.goal_id || undefined,
       }
 
-      await SprintService.createSprint(sprintData)
+      // Optimistic update - add sprint immediately
+      const optimisticSprint = {
+        id: optimisticId,
+        ...sprintData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress_percentage: 0,
+      }
 
-      // Invalidate sprint queries to refresh data across all components
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.sprints.all,
-      })
+      queryClient.setQueryData(
+        queryKeys.sprints.list({ client_id: clientId }),
+        (old: any[] = []) => {
+          return [...old, optimisticSprint]
+        },
+      )
 
+      // Close modal and show immediately
+      onOpenChange(false)
       toast.success('Sprint Created', {
         description: 'The sprint has been created successfully',
       })
@@ -127,18 +119,68 @@ export function SprintFormModal({
         title: '',
         description: '',
         status: 'active',
-        goal_id: null,
       })
       setStartDate(new Date())
       setEndDate(addWeeks(new Date(), 6))
+      setSelectedOutcomeIds([])
 
-      onOpenChange(false)
+      // Actual API call
+      const createdSprint = await SprintService.createSprint(sprintData)
+
+      // Link selected outcomes to the sprint
+      if (selectedOutcomeIds.length > 0) {
+        for (const outcomeId of selectedOutcomeIds) {
+          try {
+            // Get the current outcome
+            const outcome = clientTargets.find((t: any) => t.id === outcomeId)
+            if (outcome) {
+              // Update outcome to include this sprint
+              const updatedSprintIds = [
+                ...(outcome.sprint_ids || []),
+                createdSprint.id,
+              ]
+              await TargetService.updateTarget(outcomeId, {
+                sprint_ids: updatedSprintIds,
+              })
+            }
+          } catch (linkError) {
+            console.error(`Failed to link outcome ${outcomeId}:`, linkError)
+            // Continue with other outcomes even if one fails
+          }
+        }
+      }
+
+      // Invalidate sprint queries to get real data from server
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.sprints.all,
+      })
+
+      // Also invalidate targets since we updated their sprint links
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.targets.all,
+      })
 
       // Trigger success callback for any additional refresh needs
       onSuccess?.()
     } catch (error) {
       console.error('Failed to create sprint:', error)
-      toast.error('Failed to create sprint')
+
+      // Rollback optimistic update on error
+      queryClient.setQueryData(
+        queryKeys.sprints.list({ client_id: clientId }),
+        (old: any[] = []) => {
+          return old.filter(s => s.id !== optimisticId)
+        },
+      )
+
+      toast.error('Failed to create sprint', {
+        description: 'Please try again',
+      })
+
+      // Invalidate to sync with server state
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.sprints.all,
+      })
     } finally {
       setLoading(false)
     }
@@ -181,67 +223,6 @@ export function SprintFormModal({
                 }
                 rows={3}
               />
-            </div>
-
-            {/* Goal Selector */}
-            <div className="space-y-2">
-              <Label htmlFor="goal">
-                <span className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-gray-600" />
-                  Link to Goal (Optional)
-                </span>
-              </Label>
-              <Select
-                value={formData.goal_id || 'none'}
-                onValueChange={handleGoalSelect}
-              >
-                <SelectTrigger id="goal" disabled={goalsLoading}>
-                  <SelectValue placeholder="Select a goal to link..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">
-                    <span className="text-gray-500">No goal</span>
-                  </SelectItem>
-                  {goals
-                    .filter((g: any) => g.status === 'active')
-                    .map((goal: any) => (
-                      <SelectItem key={goal.id} value={goal.id}>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{goal.title}</span>
-                          {goal.target_date && (
-                            <span className="text-xs text-gray-500">
-                              Due:{' '}
-                              {format(
-                                new Date(goal.target_date),
-                                'MMM d, yyyy',
-                              )}
-                            </span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  {goals.filter((g: any) => g.status === 'active').length ===
-                    0 && (
-                    <SelectItem value="no-goals" disabled>
-                      <span className="text-gray-400 text-sm">
-                        No active goals found
-                      </span>
-                    </SelectItem>
-                  )}
-                  <SelectItem
-                    value="create-new"
-                    className="border-t border-gray-200 mt-1 pt-2"
-                  >
-                    <span className="text-primary font-medium">
-                      + Create New Goal
-                    </span>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-gray-500">
-                Link this sprint to a specific goal to track progress toward
-                that outcome
-              </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -306,6 +287,76 @@ export function SprintFormModal({
                 </Popover>
               </div>
             </div>
+
+            {/* Outcome Selection */}
+            <div className="space-y-3">
+              <Label>Link Outcomes (optional)</Label>
+              {clientTargets.length > 0 ? (
+                <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
+                  {clientTargets.map((outcome: any) => {
+                    const isSelected = selectedOutcomeIds.includes(outcome.id)
+                    const goalTitle = outcome.goal_titles?.[0] || 'Unknown Goal'
+
+                    return (
+                      <div
+                        key={outcome.id}
+                        className={cn(
+                          'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
+                          isSelected
+                            ? 'bg-primary/5 border-primary'
+                            : 'bg-white border-gray-200 hover:border-gray-300',
+                        )}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedOutcomeIds(prev =>
+                              prev.filter(id => id !== outcome.id),
+                            )
+                          } else {
+                            setSelectedOutcomeIds(prev => [...prev, outcome.id])
+                          }
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            'w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5',
+                            isSelected
+                              ? 'bg-primary border-primary'
+                              : 'border-gray-300',
+                          )}
+                        >
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-white" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-medium text-sm text-gray-900">
+                            {outcome.title}
+                          </div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            Goal: {goalTitle}
+                          </div>
+                          {outcome.description && (
+                            <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                              {outcome.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500 p-4 border rounded-lg bg-gray-50">
+                  No outcomes available. Create outcomes first to link them to
+                  this sprint.
+                </div>
+              )}
+              {selectedOutcomeIds.length > 0 && (
+                <div className="text-xs text-gray-600">
+                  {selectedOutcomeIds.length} outcome(s) selected
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -323,14 +374,6 @@ export function SprintFormModal({
           </DialogFooter>
         </form>
       </DialogContent>
-
-      {/* Goal Creation Modal */}
-      <GoalFormModal
-        open={isGoalModalOpen}
-        onOpenChange={setIsGoalModalOpen}
-        clientId={clientId}
-        onSuccess={handleGoalCreated}
-      />
     </Dialog>
   )
 }

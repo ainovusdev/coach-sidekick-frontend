@@ -11,7 +11,6 @@ export interface SprintBase {
   description?: string
   start_date: string // ISO date string
   end_date: string // ISO date string
-  goal_id?: string | null // Optional link to a goal
 }
 
 export interface SprintCreate extends SprintBase {
@@ -25,7 +24,6 @@ export interface SprintUpdate {
   start_date?: string
   end_date?: string
   status?: SprintStatus
-  goal_id?: string | null
 }
 
 export interface Sprint extends SprintBase {
@@ -56,8 +54,8 @@ export interface TargetBase {
 }
 
 export interface TargetCreate extends TargetBase {
-  goal_id: string
-  sprint_id: string
+  goal_ids: string[] // Many-to-many with goals
+  sprint_ids: string[] // Many-to-many with sprints
   status?: TargetStatus
 }
 
@@ -67,12 +65,14 @@ export interface TargetUpdate {
   status?: TargetStatus
   progress_percentage?: number
   order_index?: number
+  goal_ids?: string[] // Update linked goals
+  sprint_ids?: string[] // Update linked sprints
 }
 
 export interface Target extends TargetBase {
   id: string
-  goal_id: string
-  sprint_id: string
+  goal_ids: string[] // All linked goals (many-to-many)
+  sprint_ids: string[] // All linked sprints (many-to-many)
   status: TargetStatus
   progress_percentage: number
   order_index: number
@@ -83,7 +83,7 @@ export interface Target extends TargetBase {
   // Computed fields
   commitment_count?: number
   completed_commitment_count?: number
-  goal_title?: string
+  goal_titles?: string[] // Titles of all linked goals
 }
 
 // Commitment-Target Link

@@ -71,6 +71,8 @@ export interface Commitment extends CommitmentBase {
   updates?: CommitmentUpdateEntry[]
   milestones?: Milestone[]
   linked_target_ids?: string[] // IDs of linked targets/desired wins
+  target_links?: Array<{ target_id: string }> // Junction table links to targets
+  metadata?: Record<string, any> // Flexible metadata field
 }
 
 // Commitment progress update

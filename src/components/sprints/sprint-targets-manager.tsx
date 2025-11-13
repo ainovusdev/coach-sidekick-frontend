@@ -54,6 +54,7 @@ export function SprintTargetsManager({
       loadCurrentSprint()
       loadGoals()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clientId])
 
   const loadGoals = async () => {
@@ -73,11 +74,11 @@ export function SprintTargetsManager({
       if (data) {
         setSprint(data)
 
-        // Group targets by goal
+        // Group targets by goal (using first goal for display grouping)
         if (data.targets) {
           const grouped = data.targets.reduce(
             (acc, target) => {
-              const goalId = target.goal_id
+              const goalId = target.goal_ids?.[0] || 'no-goal'
               if (!acc[goalId]) {
                 acc[goalId] = []
               }
@@ -162,7 +163,7 @@ export function SprintTargetsManager({
           ) : (
             <Accordion type="multiple" className="w-full">
               {Object.entries(groupedTargets).map(([goalId, targets]) => {
-                const goalTitle = targets[0]?.goal_title || 'Outcome'
+                const goalTitle = targets[0]?.goal_titles?.[0] || 'Outcome'
                 const goalProgress =
                   targets.reduce((sum, t) => sum + t.progress_percentage, 0) /
                   targets.length

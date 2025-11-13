@@ -13,16 +13,18 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Check } from 'lucide-react'
 import { TargetService } from '@/services/target-service'
 import { TargetCreate } from '@/types/sprint'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 
 interface TargetFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  sprintId: string
+  sprintId?: string
   goals: Array<{ id: string; title: string }>
   onSuccess?: () => void
 }
@@ -34,11 +36,12 @@ export function TargetFormModal({
   goals,
   onSuccess,
 }: TargetFormModalProps) {
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
+  const [selectedGoalIds, setSelectedGoalIds] = useState<string[]>([])
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    goal_id: '',
     status: 'active' as const,
   })
 
@@ -48,9 +51,9 @@ export function TargetFormModal({
       setFormData({
         title: '',
         description: '',
-        goal_id: goals[0]?.id || '',
         status: 'active',
       })
+      setSelectedGoalIds([])
     }
   }, [open, goals])
 
@@ -58,41 +61,78 @@ export function TargetFormModal({
     e.preventDefault()
 
     if (!formData.title.trim()) {
-      toast.error('Desired Win title is required')
+      toast.error('Outcome title is required')
       return
     }
 
-    if (!formData.goal_id) {
-      toast.error('Please select a goal for this outcome')
-      return
-    }
-
-    if (!sprintId) {
-      toast.error('Please create a sprint first before adding outcomes')
+    if (selectedGoalIds.length === 0) {
+      toast.error('Please select at least one goal for this outcome')
       return
     }
 
     setLoading(true)
+
+    // Optimistic ID for new outcome
+    const optimisticId = `temp-${Date.now()}`
+
     try {
       const targetData: TargetCreate = {
-        goal_id: formData.goal_id,
-        sprint_id: sprintId,
+        goal_ids: selectedGoalIds,
+        sprint_ids: sprintId ? [sprintId] : [],
         title: formData.title,
         description: formData.description || undefined,
         status: formData.status,
       }
 
-      await TargetService.createTarget(targetData)
-      toast.success('Outcome Created', {
-        description: 'The outcome has been added successfully',
+      // Optimistic update - add outcome immediately
+      const optimisticOutcome = {
+        id: optimisticId,
+        ...targetData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        progress_percentage: 0,
+        order_index: 0,
+        commitment_count: 0,
+        completed_commitment_count: 0,
+        goal_titles: goals
+          .filter(g => selectedGoalIds.includes(g.id))
+          .map(g => g.title),
+      }
+
+      queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
+        return [...old, optimisticOutcome]
       })
 
+      // Close modal and show immediately
       onOpenChange(false)
+      toast.success('Outcome Created', {
+        description: `The outcome has been linked to ${selectedGoalIds.length} goal(s)`,
+      })
+
+      // Actual API call
+      await TargetService.createTarget(targetData)
+
+      // Invalidate to get the real data from server
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.targets.all,
+      })
+
       onSuccess?.()
     } catch (error) {
       console.error('Failed to create outcome:', error)
+
+      // Rollback optimistic update on error
+      queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
+        return old.filter(t => t.id !== optimisticId)
+      })
+
       toast.error('Failed to create outcome', {
         description: 'Please check your inputs and try again',
+      })
+
+      // Invalidate to sync with server state
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.targets.all,
       })
     } finally {
       setLoading(false)
@@ -112,38 +152,58 @@ export function TargetFormModal({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-3">
-              <Label>Link to Goal *</Label>
-              <RadioGroup
-                value={formData.goal_id}
-                onValueChange={value =>
-                  setFormData({ ...formData, goal_id: value })
-                }
-              >
-                <div className="space-y-2">
-                  {goals.map(goal => (
-                    <div
-                      key={goal.id}
-                      className={cn(
-                        'flex items-center space-x-3 border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors',
-                        formData.goal_id === goal.id
-                          ? 'border-primary bg-primary/5'
-                          : 'border-gray-200',
-                      )}
-                      onClick={() =>
-                        setFormData({ ...formData, goal_id: goal.id })
-                      }
-                    >
-                      <RadioGroupItem value={goal.id} id={goal.id} />
-                      <Label
-                        htmlFor={goal.id}
-                        className="flex-1 cursor-pointer font-medium"
+              <Label>Link to Goals * (select one or more)</Label>
+              {goals.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {goals.map(goal => {
+                    const isSelected = selectedGoalIds.includes(goal.id)
+                    return (
+                      <div
+                        key={goal.id}
+                        className={cn(
+                          'flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors',
+                          isSelected
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white border-gray-300 hover:border-gray-400',
+                        )}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedGoalIds(prev =>
+                              prev.filter(id => id !== goal.id),
+                            )
+                          } else {
+                            setSelectedGoalIds(prev => [...prev, goal.id])
+                          }
+                        }}
                       >
-                        {goal.title}
-                      </Label>
-                    </div>
-                  ))}
+                        <div
+                          className={cn(
+                            'w-4 h-4 rounded border-2 flex items-center justify-center',
+                            isSelected
+                              ? 'bg-white border-white'
+                              : 'bg-white border-gray-300',
+                          )}
+                        >
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-primary" />
+                          )}
+                        </div>
+                        <span className="text-sm font-medium">
+                          {goal.title}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-              </RadioGroup>
+              ) : (
+                <div className="text-sm text-gray-500">No active goals</div>
+              )}
+              {selectedGoalIds.length > 0 && (
+                <p className="text-xs text-gray-600">
+                  {selectedGoalIds.length} goal
+                  {selectedGoalIds.length !== 1 ? 's' : ''} selected
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
