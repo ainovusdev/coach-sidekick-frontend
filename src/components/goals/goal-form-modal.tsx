@@ -13,16 +13,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { GoalService, GoalCreate, Goal } from '@/services/goal-service'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
+import { cn } from '@/lib/utils'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 
 interface GoalFormModalProps {
   open: boolean
@@ -41,6 +38,7 @@ export function GoalFormModal({
   mode = 'create',
   onSuccess,
 }: GoalFormModalProps) {
+  const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -73,11 +71,15 @@ export function GoalFormModal({
     e.preventDefault()
 
     if (!formData.title.trim()) {
-      toast.error('Outcome title is required')
+      toast.error('Goal title is required')
       return
     }
 
     setLoading(true)
+
+    // Optimistic ID for new goal
+    const optimisticId = `temp-${Date.now()}`
+
     try {
       if (mode === 'edit' && goal) {
         // Update existing goal
@@ -88,9 +90,19 @@ export function GoalFormModal({
           status: formData.status,
         }
 
+        // Optimistic update
+        queryClient.setQueryData(
+          queryKeys.goals.list({ client_id: clientId }),
+          (old: any[] = []) => {
+            return old.map(g =>
+              g.id === goal.id ? { ...g, ...updateData } : g,
+            )
+          },
+        )
+
         await GoalService.updateGoal(goal.id, updateData)
-        toast.success('Outcome Updated', {
-          description: 'The outcome has been updated successfully',
+        toast.success('Goal Updated', {
+          description: 'The goal has been updated successfully',
         })
       } else {
         // Create new goal
@@ -102,16 +114,61 @@ export function GoalFormModal({
           status: formData.status,
         }
 
+        // Optimistic update - add goal immediately
+        const optimisticGoal = {
+          id: optimisticId,
+          ...goalData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          created_by: '',
+          progress: 0,
+          target_date: null,
+        }
+
+        queryClient.setQueryData(
+          queryKeys.goals.list({ client_id: clientId }),
+          (old: any[] = []) => {
+            return [...old, optimisticGoal]
+          },
+        )
+
+        // Close modal and show immediately
+        onOpenChange(false)
+        toast.success('Goal Created', {
+          description: 'The goal has been created successfully',
+        })
+
+        // Actual API call
         await GoalService.createGoal(goalData)
-        toast.success('Outcome Created', {
-          description: 'The outcome has been created successfully',
+
+        // Invalidate to get the real data from server
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.goals.all,
         })
       }
 
-      onOpenChange(false)
       onSuccess?.()
     } catch (error) {
       console.error(`Failed to ${mode} goal:`, error)
+
+      // Rollback optimistic update on error
+      if (mode === 'create') {
+        queryClient.setQueryData(
+          queryKeys.goals.list({ client_id: clientId }),
+          (old: any[] = []) => {
+            return old.filter(g => g.id !== optimisticId)
+          },
+        )
+      }
+
+      toast.error(`Failed to ${mode} goal`, {
+        description: 'Please try again',
+      })
+
+      // Invalidate to sync with server state
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.goals.all,
+      })
     } finally {
       setLoading(false)
     }
@@ -122,11 +179,11 @@ export function GoalFormModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Outcome' : 'Create New Outcome'}
+            {mode === 'edit' ? 'Edit Goal' : 'Create New Goal'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'edit'
-              ? 'Update the outcome details'
+              ? 'Update the goal details'
               : 'Create a long-term outcome for your client to work towards'}
           </DialogDescription>
         </DialogHeader>
@@ -134,7 +191,7 @@ export function GoalFormModal({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Outcome Title *</Label>
+              <Label htmlFor="title">Goal Title *</Label>
               <Input
                 id="title"
                 placeholder="e.g., Become an Effective Leader"
@@ -150,7 +207,7 @@ export function GoalFormModal({
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="What does success look like for this outcome?"
+                placeholder="What does success look like for this goal?"
                 value={formData.description}
                 onChange={e =>
                   setFormData({ ...formData, description: e.target.value })
@@ -159,47 +216,46 @@ export function GoalFormModal({
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={value =>
-                    setFormData({ ...formData, category: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="career">Career</SelectItem>
-                    <SelectItem value="personal">Personal</SelectItem>
-                    <SelectItem value="health">Health</SelectItem>
-                    <SelectItem value="financial">Financial</SelectItem>
-                    <SelectItem value="relationship">Relationship</SelectItem>
-                    <SelectItem value="education">Education</SelectItem>
-                    <SelectItem value="general">General</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={value =>
-                    setFormData({ ...formData, status: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="paused">Paused</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-3">
+              <Label>Category</Label>
+              <RadioGroup
+                value={formData.category}
+                onValueChange={value =>
+                  setFormData({ ...formData, category: value })
+                }
+              >
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'career', label: 'Career' },
+                    { value: 'personal', label: 'Personal' },
+                    { value: 'health', label: 'Health' },
+                    { value: 'financial', label: 'Financial' },
+                    { value: 'education', label: 'Education' },
+                    { value: 'general', label: 'General' },
+                  ].map(option => (
+                    <div
+                      key={option.value}
+                      className={cn(
+                        'flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors',
+                        formData.category === option.value
+                          ? 'border-primary bg-primary/5'
+                          : 'border-gray-200 hover:border-gray-300',
+                      )}
+                      onClick={() =>
+                        setFormData({ ...formData, category: option.value })
+                      }
+                    >
+                      <RadioGroupItem value={option.value} id={option.value} />
+                      <Label
+                        htmlFor={option.value}
+                        className="flex-1 cursor-pointer font-medium text-sm"
+                      >
+                        {option.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </RadioGroup>
             </div>
           </div>
 
@@ -218,8 +274,8 @@ export function GoalFormModal({
                   ? 'Updating...'
                   : 'Creating...'
                 : mode === 'edit'
-                  ? 'Update Outcome'
-                  : 'Create Outcome'}
+                  ? 'Update Goal'
+                  : 'Create Goal'}
             </Button>
           </DialogFooter>
         </form>

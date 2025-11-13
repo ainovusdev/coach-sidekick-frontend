@@ -12,11 +12,17 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { OverviewTab } from './components/overview-tab'
 import { SessionsChatTab } from './components/sessions-chat-tab'
-import { SprintsTab } from './components/sprints-tab'
+import { GoalsTreeView } from './components/goals-tree-view'
 import { ClientModals } from './components/client-modals'
 import { EmptyStateWelcome } from './components/empty-state-welcome'
 import { useClientData } from './hooks/use-client-data'
 import { useClientModals } from './hooks/use-client-modals'
+import { GoalService } from '@/services/goal-service'
+import { TargetService } from '@/services/target-service'
+import { SprintService } from '@/services/sprint-service'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
+import { toast } from 'sonner'
 import {
   User,
   LayoutDashboard,
@@ -26,7 +32,7 @@ import {
   Loader2,
   Trash2,
   Mic,
-  Upload,
+  // Target,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -55,8 +61,18 @@ export default function ClientDetailPage({
     userId!,
   )
   const modalState = useClientModals()
+  const queryClient = useQueryClient()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteGoalDialog, setShowDeleteGoalDialog] = useState(false)
+  const [goalToDelete, setGoalToDelete] = useState<any>(null)
+  const [isDeletingGoal, setIsDeletingGoal] = useState(false)
+  const [showDeleteOutcomeDialog, setShowDeleteOutcomeDialog] = useState(false)
+  const [outcomeToDelete, setOutcomeToDelete] = useState<any>(null)
+  const [isDeletingOutcome, setIsDeletingOutcome] = useState(false)
+  const [showDeleteSprintDialog, setShowDeleteSprintDialog] = useState(false)
+  const [sprintToDelete, setSprintToDelete] = useState<any>(null)
+  const [isDeletingSprint, setIsDeletingSprint] = useState(false)
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -77,6 +93,88 @@ export default function ClientDetailPage({
       console.error('Error deleting client:', error)
       setShowDeleteDialog(false)
       setIsDeleting(false)
+    }
+  }
+
+  const handleDeleteGoal = async () => {
+    if (!goalToDelete?.id) return
+
+    setIsDeletingGoal(true)
+    try {
+      await GoalService.deleteGoal(goalToDelete.id)
+
+      // Invalidate goals query to refresh tree view
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.goals.all,
+      })
+
+      toast.success('Goal Deleted', {
+        description: `"${goalToDelete.title}" has been deleted successfully`,
+      })
+
+      setShowDeleteGoalDialog(false)
+      setGoalToDelete(null)
+    } catch (error) {
+      console.error('Error deleting goal:', error)
+      toast.error('Failed to delete goal', {
+        description: 'Please try again later',
+      })
+    } finally {
+      setIsDeletingGoal(false)
+    }
+  }
+
+  const handleDeleteOutcome = async () => {
+    if (!outcomeToDelete?.id) return
+
+    setIsDeletingOutcome(true)
+    try {
+      await TargetService.deleteTarget(outcomeToDelete.id)
+
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.targets.all,
+      })
+
+      toast.success('Outcome Deleted', {
+        description: `"${outcomeToDelete.title}" has been deleted successfully`,
+      })
+
+      setShowDeleteOutcomeDialog(false)
+      setOutcomeToDelete(null)
+    } catch (error) {
+      console.error('Error deleting outcome:', error)
+      toast.error('Failed to delete outcome', {
+        description: 'Please try again later',
+      })
+    } finally {
+      setIsDeletingOutcome(false)
+    }
+  }
+
+  const handleDeleteSprint = async () => {
+    if (!sprintToDelete?.id) return
+
+    setIsDeletingSprint(true)
+    try {
+      await SprintService.deleteSprint(sprintToDelete.id)
+
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sprints.all,
+      })
+
+      toast.success('Sprint Deleted', {
+        description: `"${sprintToDelete.title}" has been deleted successfully`,
+      })
+
+      setShowDeleteSprintDialog(false)
+      setSprintToDelete(null)
+    } catch (error) {
+      console.error('Error deleting sprint:', error)
+      toast.error('Failed to delete sprint', {
+        description: 'Please try again later',
+      })
+    } finally {
+      setIsDeletingSprint(false)
     }
   }
 
@@ -192,16 +290,6 @@ export default function ClientDetailPage({
                           <Mic className="h-4 w-4 mr-2" />
                           Start Live Session
                         </Button>
-                        <Button
-                          onClick={() =>
-                            modalState.setIsManualSessionModalOpen(true)
-                          }
-                          variant="outline"
-                          className="border-gray-300 hover:bg-gray-50"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          Add Past Session
-                        </Button>
                       </div>
                     )}
                   </div>
@@ -218,12 +306,9 @@ export default function ClientDetailPage({
                         modalState.setIsInviteModalOpen(true)
                       }
                       onDeleteClient={() => setShowDeleteDialog(true)}
-                      onCreateSprint={() =>
-                        modalState.setIsSprintModalOpen(true)
-                      }
-                      onEndSprint={sprint => {
-                        modalState.setEndingSprint(sprint)
-                        modalState.setIsEndSprintModalOpen(true)
+                      onCreateCommitment={() => {
+                        modalState.setEditingCommitment(null)
+                        modalState.setShowCommitmentForm(true)
                       }}
                       onEditCommitment={commitment => {
                         modalState.setEditingCommitment(commitment)
@@ -245,17 +330,55 @@ export default function ClientDetailPage({
                   </TabsContent>
 
                   <TabsContent value="goals" className="space-y-6">
-                    <SprintsTab
-                      client={client}
-                      selectedTargetId={modalState.selectedTargetId}
-                      onRefresh={refetch}
+                    {/* Tree View Only */}
+                    <GoalsTreeView
+                      clientId={client.id}
+                      onCreateNew={() =>
+                        modalState.setIsUnifiedCreateModalOpen(true)
+                      }
+                      onCreateGoal={() => modalState.setIsGoalModalOpen(true)}
                       onCreateSprint={() =>
                         modalState.setIsSprintModalOpen(true)
                       }
-                      onTargetClick={modalState.setSelectedTargetId}
-                      onEditCommitment={commitment => {
+                      onCreateOutcome={() =>
+                        modalState.setIsOutcomeModalOpen(true)
+                      }
+                      onCreateCommitment={() => {
+                        modalState.setEditingCommitment(null)
+                        modalState.setShowCommitmentForm(true)
+                      }}
+                      onCommitmentClick={commitment => {
                         modalState.setEditingCommitment(commitment)
                         modalState.setShowCommitmentForm(true)
+                      }}
+                      onEditGoal={goal => {
+                        modalState.setEditingGoal(goal)
+                        modalState.setIsGoalModalOpen(true)
+                      }}
+                      onDeleteGoal={goal => {
+                        setGoalToDelete(goal)
+                        setShowDeleteGoalDialog(true)
+                      }}
+                      onEditOutcome={_outcome => {
+                        // TODO: Add edit mode support to TargetFormModal
+                        toast.info('Edit Outcome', {
+                          description:
+                            'Edit functionality coming soon. For now, you can delete and recreate.',
+                        })
+                      }}
+                      onDeleteOutcome={outcome => {
+                        setOutcomeToDelete(outcome)
+                        setShowDeleteOutcomeDialog(true)
+                      }}
+                      onEditSprint={_sprint => {
+                        toast.info('Edit Sprint', {
+                          description:
+                            'Edit functionality coming soon. For now, you can delete and recreate.',
+                        })
+                      }}
+                      onDeleteSprint={sprint => {
+                        setSprintToDelete(sprint)
+                        setShowDeleteSprintDialog(true)
                       }}
                     />
                   </TabsContent>
@@ -280,10 +403,16 @@ export default function ClientDetailPage({
           setIsStartSessionModalOpen={modalState.setIsStartSessionModalOpen}
           isGoalModalOpen={modalState.isGoalModalOpen}
           setIsGoalModalOpen={modalState.setIsGoalModalOpen}
+          isOutcomeModalOpen={modalState.isOutcomeModalOpen}
+          setIsOutcomeModalOpen={modalState.setIsOutcomeModalOpen}
+          isUnifiedCreateModalOpen={modalState.isUnifiedCreateModalOpen}
+          setIsUnifiedCreateModalOpen={modalState.setIsUnifiedCreateModalOpen}
           isEndSprintModalOpen={modalState.isEndSprintModalOpen}
           setIsEndSprintModalOpen={modalState.setIsEndSprintModalOpen}
           endingSprint={modalState.endingSprint}
           setEndingSprint={modalState.setEndingSprint}
+          editingGoal={modalState.editingGoal}
+          setEditingGoal={modalState.setEditingGoal}
           showCommitmentForm={modalState.showCommitmentForm}
           setShowCommitmentForm={modalState.setShowCommitmentForm}
           editingCommitment={modalState.editingCommitment}
@@ -344,6 +473,198 @@ export default function ClientDetailPage({
                   <>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Client
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Goal Confirmation Dialog */}
+        <AlertDialog
+          open={showDeleteGoalDialog}
+          onOpenChange={open => {
+            if (!isDeletingGoal) {
+              setShowDeleteGoalDialog(open)
+              if (!open) setGoalToDelete(null)
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle>Delete Goal</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="space-y-3">
+                <p>
+                  Are you sure you want to delete the goal{' '}
+                  <span className="font-semibold text-gray-900">
+                    &quot;{goalToDelete?.title}&quot;
+                  </span>
+                  ?
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Deleting this goal will unlink it
+                    from any associated outcomes. The outcomes themselves will
+                    remain and stay linked to their sprints and commitments.
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600">
+                  This action cannot be undone.
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingGoal}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={e => {
+                  e.preventDefault()
+                  handleDeleteGoal()
+                }}
+                disabled={isDeletingGoal}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeletingGoal ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Goal
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Outcome Confirmation Dialog */}
+        <AlertDialog
+          open={showDeleteOutcomeDialog}
+          onOpenChange={open => {
+            if (!isDeletingOutcome) {
+              setShowDeleteOutcomeDialog(open)
+              if (!open) setOutcomeToDelete(null)
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle>Delete Outcome</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="space-y-3">
+                <p>
+                  Are you sure you want to delete the outcome{' '}
+                  <span className="font-semibold text-gray-900">
+                    &quot;{outcomeToDelete?.title}&quot;
+                  </span>
+                  ?
+                </p>
+                <p className="text-sm text-gray-600">
+                  This action cannot be undone. This will also delete all
+                  associated commitments for this outcome.
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingOutcome}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={e => {
+                  e.preventDefault()
+                  handleDeleteOutcome()
+                }}
+                disabled={isDeletingOutcome}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeletingOutcome ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Outcome
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Delete Sprint Confirmation Dialog */}
+        <AlertDialog
+          open={showDeleteSprintDialog}
+          onOpenChange={open => {
+            if (!isDeletingSprint) {
+              setShowDeleteSprintDialog(open)
+              if (!open) setSprintToDelete(null)
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle>Delete Sprint</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription className="space-y-3">
+                <p>
+                  Are you sure you want to delete the sprint{' '}
+                  <span className="font-semibold text-gray-900">
+                    &quot;{sprintToDelete?.title}&quot;
+                  </span>
+                  ?
+                </p>
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <p className="text-sm text-blue-800">
+                    <strong>Note:</strong> Deleting this sprint will unlink it
+                    from any associated outcomes. The outcomes themselves will
+                    remain.
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600">
+                  This action cannot be undone.
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isDeletingSprint}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={e => {
+                  e.preventDefault()
+                  handleDeleteSprint()
+                }}
+                disabled={isDeletingSprint}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                {isDeletingSprint ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Sprint
                   </>
                 )}
               </AlertDialogAction>

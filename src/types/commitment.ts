@@ -21,14 +21,15 @@ export interface CommitmentBase {
   start_date?: string // ISO date string
   target_date?: string // ISO date string
   measurement_criteria?: string
-  linked_goal_id?: string
+  goal_id?: string | null // Direct link to goal
+  sprint_id?: string | null // Direct link to sprint
 }
 
 // Create commitment request
 export interface CommitmentCreate extends CommitmentBase {
   client_id: string
   session_id?: string
-  target_ids?: string[] // Target IDs to link to
+  target_ids?: string[] // Target IDs to link to (legacy)
 }
 
 // Update commitment request
@@ -40,6 +41,8 @@ export interface CommitmentUpdate {
   target_date?: string
   progress_percentage?: number
   measurement_criteria?: string
+  goal_id?: string | null
+  sprint_id?: string | null
 }
 
 // Full commitment response from backend
@@ -68,6 +71,8 @@ export interface Commitment extends CommitmentBase {
   updates?: CommitmentUpdateEntry[]
   milestones?: Milestone[]
   linked_target_ids?: string[] // IDs of linked targets/desired wins
+  target_links?: Array<{ target_id: string }> // Junction table links to targets
+  metadata?: Record<string, any> // Flexible metadata field
 }
 
 // Commitment progress update

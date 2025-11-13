@@ -2,13 +2,19 @@ import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { ClientInvitationModal } from '@/components/clients/client-invitation-modal'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
+import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import { EndSprintModal } from './end-sprint-modal'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
 import { StartSessionModal } from './start-session-modal'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
+import { UnifiedCreationModal } from './unified-creation-modal'
 import { CommitmentService } from '@/services/commitment-service'
-import { useSprints } from '@/hooks/queries/use-sprints'
 import { useCommitments } from '@/hooks/queries/use-commitments'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useSprints } from '@/hooks/queries/use-sprints'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
+import { toast } from 'sonner'
 
 interface ClientModalsProps {
   client: any
@@ -24,10 +30,16 @@ interface ClientModalsProps {
   setIsStartSessionModalOpen: (open: boolean) => void
   isGoalModalOpen: boolean
   setIsGoalModalOpen: (open: boolean) => void
+  isOutcomeModalOpen: boolean
+  setIsOutcomeModalOpen: (open: boolean) => void
+  isUnifiedCreateModalOpen: boolean
+  setIsUnifiedCreateModalOpen: (open: boolean) => void
   isEndSprintModalOpen: boolean
   setIsEndSprintModalOpen: (open: boolean) => void
   endingSprint: any
   setEndingSprint: (sprint: any) => void
+  editingGoal: any
+  setEditingGoal: (goal: any) => void
   showCommitmentForm: boolean
   setShowCommitmentForm: (open: boolean) => void
   editingCommitment: any
@@ -49,26 +61,30 @@ export function ClientModals({
   setIsStartSessionModalOpen,
   isGoalModalOpen,
   setIsGoalModalOpen,
+  isOutcomeModalOpen,
+  setIsOutcomeModalOpen,
+  isUnifiedCreateModalOpen,
+  setIsUnifiedCreateModalOpen,
   isEndSprintModalOpen,
   setIsEndSprintModalOpen,
   endingSprint,
   setEndingSprint,
+  editingGoal,
+  setEditingGoal,
   showCommitmentForm,
   setShowCommitmentForm,
   editingCommitment,
   setEditingCommitment,
   onRefresh,
 }: ClientModalsProps) {
-  // Check for active sprints
-  const { data: activeSprints } = useSprints({
+  const queryClient = useQueryClient()
+
+  // Fetch goals and sprints for outcome modal
+  const { data: goals = [] } = useGoals(client.id)
+  const { data: sprints = [] } = useSprints({
     client_id: client.id,
     status: 'active',
   })
-
-  const sprintsArray = activeSprints || []
-  const hasActiveSprint = sprintsArray.length > 0
-  const currentSprint = sprintsArray[0] // Get the first active sprint
-
   // Get unfinished commitments for the sprint being ended
   const { data: commitmentsData } = useCommitments({
     client_id: client.id,
@@ -116,14 +132,6 @@ export function ClientModals({
         open={isSprintModalOpen}
         onOpenChange={setIsSprintModalOpen}
         clientId={client.id}
-        hasActiveSprint={hasActiveSprint}
-        activeSprintTitle={currentSprint?.title || ''}
-        onEndCurrentSprint={() => {
-          if (currentSprint) {
-            setEndingSprint(currentSprint)
-            setIsEndSprintModalOpen(true)
-          }
-        }}
         onSuccess={onRefresh}
       />
 
@@ -147,9 +155,59 @@ export function ClientModals({
 
       <GoalFormModal
         open={isGoalModalOpen}
-        onOpenChange={setIsGoalModalOpen}
+        onOpenChange={open => {
+          setIsGoalModalOpen(open)
+          if (!open) setEditingGoal(null)
+        }}
         clientId={client.id}
-        onSuccess={onRefresh}
+        goal={editingGoal}
+        mode={editingGoal ? 'edit' : 'create'}
+        onSuccess={() => {
+          // Invalidate goals query to refresh the tree view
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.goals.all,
+          })
+          setEditingGoal(null)
+          onRefresh()
+        }}
+      />
+
+      <TargetFormModal
+        open={isOutcomeModalOpen}
+        onOpenChange={setIsOutcomeModalOpen}
+        sprintId={sprints[0]?.id}
+        goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
+        onSuccess={() => {
+          // Invalidate targets query to refresh the tree view
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.targets.all,
+          })
+          onRefresh()
+        }}
+      />
+
+      <UnifiedCreationModal
+        open={isUnifiedCreateModalOpen}
+        onOpenChange={setIsUnifiedCreateModalOpen}
+        clientId={client.id}
+        goals={goals}
+        sprints={sprints}
+        onSuccess={() => {
+          // Invalidate all queries to refresh everything
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.goals.all,
+          })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.targets.all,
+          })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.commitments.all,
+          })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.sprints.all,
+          })
+          onRefresh()
+        }}
       />
 
       <CommitmentForm
@@ -159,14 +217,95 @@ export function ClientModals({
           if (!open) setEditingCommitment(null)
         }}
         onSubmit={async data => {
-          if (editingCommitment) {
-            await CommitmentService.updateCommitment(editingCommitment.id, data)
-          } else {
-            await CommitmentService.createCommitment(data)
+          const optimisticId = `temp-${Date.now()}`
+
+          try {
+            if (editingCommitment) {
+              // Update existing commitment
+              await CommitmentService.updateCommitment(
+                editingCommitment.id,
+                data,
+              )
+              toast.success('Commitment Updated')
+            } else {
+              // Create new commitment with optimistic update
+              const optimisticCommitment = {
+                id: optimisticId,
+                ...data,
+                status: 'active',
+                progress_percentage: 0,
+                extracted_from_transcript: false,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                updates: [],
+                milestones: [],
+                linked_target_ids: data.target_ids || [],
+                target_links:
+                  data.target_ids?.map((tid: string) => ({
+                    target_id: tid,
+                    commitment_id: optimisticId,
+                    created_at: new Date().toISOString(),
+                  })) || [],
+              }
+
+              // Add to cache immediately
+              queryClient.setQueryData(
+                queryKeys.commitments.list({ client_id: client.id }),
+                (old: any) => {
+                  if (!old?.commitments) return old
+                  return {
+                    ...old,
+                    commitments: [...old.commitments, optimisticCommitment],
+                  }
+                },
+              )
+
+              // Close form and show toast immediately
+              setShowCommitmentForm(false)
+              setEditingCommitment(null)
+              toast.success('Commitment Created')
+
+              // Actual API call in background
+              await CommitmentService.createCommitment(data)
+
+              // Invalidate to get real data from server
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.commitments.all,
+              })
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.targets.all,
+              })
+
+              onRefresh()
+            }
+          } catch (error) {
+            console.error('Failed to save commitment:', error)
+
+            // Rollback optimistic update on error
+            if (!editingCommitment) {
+              queryClient.setQueryData(
+                queryKeys.commitments.list({ client_id: client.id }),
+                (old: any) => {
+                  if (!old?.commitments) return old
+                  return {
+                    ...old,
+                    commitments: old.commitments.filter(
+                      (c: any) => c.id !== optimisticId,
+                    ),
+                  }
+                },
+              )
+            }
+
+            toast.error('Failed to save commitment', {
+              description: 'Please try again',
+            })
+
+            // Invalidate to sync with server
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.commitments.all,
+            })
           }
-          setShowCommitmentForm(false)
-          setEditingCommitment(null)
-          onRefresh()
         }}
         commitment={editingCommitment}
         clientId={client.id}

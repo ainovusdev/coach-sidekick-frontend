@@ -10,11 +10,13 @@ import { cn } from '@/lib/utils'
 interface CommitmentKanbanCardProps {
   commitment: any
   onClick?: () => void
+  targets?: any[] // Available targets to lookup titles
 }
 
 export function CommitmentKanbanCard({
   commitment,
   onClick,
+  targets = [],
 }: CommitmentKanbanCardProps) {
   const [isDragging, setIsDragging] = useState(false)
 
@@ -86,14 +88,19 @@ export function CommitmentKanbanCard({
           </p>
         )}
 
-        {/* Linked Goal */}
+        {/* Linked Outcome - show if linked via targets */}
         {commitment.target_links && commitment.target_links.length > 0 && (
-          <div className="flex items-center gap-1">
-            <Target className="h-3 w-3 text-primary" />
-            <span className="text-xs text-primary font-medium line-clamp-1">
-              {commitment.target_links[0].target?.goal?.title || 'Goal'}
-            </span>
-          </div>
+          <Badge
+            variant="outline"
+            className="bg-gray-50 border-gray-200 text-gray-700 text-xs w-fit"
+          >
+            <Target className="h-3 w-3 mr-1" />
+            {(() => {
+              const targetId = commitment.target_links[0].target_id
+              const target = targets.find((t: any) => t.id === targetId)
+              return target?.title || 'Outcome'
+            })()}
+          </Badge>
         )}
 
         {/* Footer: Date and Priority */}

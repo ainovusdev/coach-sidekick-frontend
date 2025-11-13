@@ -15,6 +15,7 @@ import type { CommitmentStatus } from '@/types/commitment'
 interface SprintKanbanBoardProps {
   commitments: any[]
   clientId: string
+  targets?: any[] // Available targets for looking up titles
   onCommitmentClick?: (commitment: any) => void
   onCommitmentUpdate?: () => void
 }
@@ -24,6 +25,7 @@ interface KanbanColumnProps {
   icon: React.ReactNode
   commitments: any[]
   columnStatus: string
+  targets?: any[]
   onCommitmentClick?: (commitment: any) => void
   onDrop?: (commitmentId: string, newStatus: string) => void
   emptyMessage: string
@@ -36,6 +38,7 @@ function KanbanColumn({
   icon,
   commitments,
   columnStatus,
+  targets,
   onCommitmentClick,
   onDrop,
   emptyMessage,
@@ -92,6 +95,7 @@ function KanbanColumn({
                 <CommitmentKanbanCard
                   key={commitment.id}
                   commitment={commitment}
+                  targets={targets}
                   onClick={() => onCommitmentClick?.(commitment)}
                 />
               ))
@@ -110,6 +114,7 @@ function KanbanColumn({
 export function SprintKanbanBoard({
   commitments,
   clientId,
+  targets = [],
   onCommitmentClick,
   onCommitmentUpdate,
 }: SprintKanbanBoardProps) {
@@ -177,6 +182,7 @@ export function SprintKanbanBoard({
         icon={<Circle className="h-4 w-4" />}
         commitments={committedCommitments}
         columnStatus="active"
+        targets={targets}
         onCommitmentClick={onCommitmentClick}
         onDrop={handleDrop}
         emptyMessage="No committed items"
@@ -190,6 +196,7 @@ export function SprintKanbanBoard({
         icon={<PlayCircle className="h-4 w-4" />}
         commitments={inProgressCommitments}
         columnStatus="in_progress"
+        targets={targets}
         onCommitmentClick={onCommitmentClick}
         onDrop={handleDrop}
         emptyMessage="No items in progress"
@@ -203,6 +210,7 @@ export function SprintKanbanBoard({
         icon={<CheckCircle2 className="h-4 w-4" />}
         commitments={doneCommitments}
         columnStatus="completed"
+        targets={targets}
         onCommitmentClick={onCommitmentClick}
         onDrop={handleDrop}
         emptyMessage="No completed commitments"

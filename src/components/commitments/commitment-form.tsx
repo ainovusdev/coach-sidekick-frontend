@@ -26,17 +26,10 @@ import {
   CommitmentType,
   CommitmentPriority,
 } from '@/types/commitment'
-import { TargetService } from '@/services/target-service'
-import { Badge } from '@/components/ui/badge'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import { Link2, Plus, X, ChevronDown } from 'lucide-react'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useSprints } from '@/hooks/queries/use-sprints'
+import { useTargets } from '@/hooks/queries/use-targets'
+import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CommitmentFormProps {
@@ -71,7 +64,6 @@ export function CommitmentForm({
   sessionId: defaultSessionId,
 }: CommitmentFormProps) {
   const [loading, setLoading] = useState(false)
-  const [availableTargets, setAvailableTargets] = useState<any[]>([])
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [showAdvanced, setShowAdvanced] = useState(false)
   const [formData, setFormData] = useState<CommitmentCreate>({
@@ -86,29 +78,23 @@ export function CommitmentForm({
     measurement_criteria: '',
   })
 
-  // Load available targets when form opens
-  useEffect(() => {
-    const loadTargets = async () => {
-      if (!open || !defaultClientId) return
+  // Fetch goals, sprints, and targets (outcomes) for linking
+  const { data: goals = [] } = useGoals(defaultClientId)
+  const { data: sprints = [] } = useSprints({
+    client_id: defaultClientId,
+    status: 'active',
+  })
+  const { data: allTargets = [] } = useTargets()
 
-      try {
-        // Get all active targets (will be filtered by current sprint)
-        const targets = await TargetService.listTargets({
-          status: 'active',
-        })
-        setAvailableTargets(targets || [])
-      } catch (error) {
-        console.error('Failed to load targets:', error)
-      }
-    }
-
-    loadTargets()
-  }, [open, defaultClientId])
+  // Filter targets by client's goals (check goal_ids array)
+  const clientTargets = allTargets.filter((t: any) =>
+    goals.some((g: any) => t.goal_ids?.includes(g.id)),
+  )
 
   // Load linked targets for existing commitment
   useEffect(() => {
-    if (open && commitment?.linked_target_ids) {
-      setSelectedTargetIds(commitment.linked_target_ids)
+    if (open && commitment) {
+      setSelectedTargetIds(commitment.linked_target_ids || [])
     } else if (open) {
       setSelectedTargetIds([])
     }
@@ -128,6 +114,8 @@ export function CommitmentForm({
           start_date: commitment.start_date,
           target_date: commitment.target_date,
           measurement_criteria: commitment.measurement_criteria || '',
+          goal_id: commitment.goal_id || null,
+          sprint_id: commitment.sprint_id || null,
         })
       } else {
         setFormData({
@@ -140,6 +128,8 @@ export function CommitmentForm({
           start_date: undefined,
           target_date: undefined,
           measurement_criteria: '',
+          goal_id: null,
+          sprint_id: null,
         })
       }
     }
@@ -150,13 +140,13 @@ export function CommitmentForm({
     setLoading(true)
 
     try {
-      // Include selected targets in submission
-      const dataWithTargets = {
+      // Include selected targets (outcomes) only
+      const dataWithLinks = {
         ...formData,
         target_ids:
           selectedTargetIds.length > 0 ? selectedTargetIds : undefined,
       }
-      await onSubmit(dataWithTargets)
+      await onSubmit(dataWithLinks)
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to save commitment:', error)
@@ -215,118 +205,85 @@ export function CommitmentForm({
               />
             </div>
 
-            {/* Link to Desired Wins (Targets) */}
+            {/* Link to Outcomes (Checkbox Buttons) */}
             <div className="space-y-2">
-              <Label>Link to Desired Wins</Label>
-              <p className="text-xs text-muted-foreground mb-2">
-                Connect this commitment to sprint desired wins
-              </p>
+              <Label className="text-sm font-semibold">Link to Outcomes</Label>
+              {clientTargets.length > 0 ? (
+                <div className="flex flex-wrap gap-2 max-h-[200px] overflow-y-auto">
+                  {clientTargets.map((target: any) => {
+                    const isSelected = selectedTargetIds.includes(target.id)
+                    // Get first goal and sprint (targets can have multiple)
+                    const goalInfo =
+                      target.goal_ids?.length > 0
+                        ? goals.find((g: any) => g.id === target.goal_ids[0])
+                        : null
+                    const sprintInfo =
+                      target.sprint_ids?.length > 0
+                        ? sprints.find(
+                            (s: any) => s.id === target.sprint_ids[0],
+                          )
+                        : null
 
-              {/* Selected Targets */}
-              {selectedTargetIds.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {selectedTargetIds.map(targetId => {
-                    const target = availableTargets.find(t => t.id === targetId)
                     return (
-                      <Badge
-                        key={targetId}
-                        variant="secondary"
-                        className="bg-blue-100 text-blue-700 border-blue-200 flex items-center gap-1 pr-1"
-                      >
-                        <Link2 className="h-3 w-3" />
-                        <span className="text-xs">
-                          {target?.title || 'Desired Win'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() =>
+                      <div
+                        key={target.id}
+                        className={cn(
+                          'flex items-start gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors min-w-[200px]',
+                          isSelected
+                            ? 'bg-primary text-white border-primary'
+                            : 'bg-white border-gray-300 hover:border-gray-400 hover:bg-gray-50',
+                        )}
+                        onClick={() => {
+                          if (isSelected) {
                             setSelectedTargetIds(prev =>
-                              prev.filter(id => id !== targetId),
+                              prev.filter(id => id !== target.id),
                             )
+                          } else {
+                            setSelectedTargetIds(prev => [...prev, target.id])
                           }
-                          className="ml-1 hover:bg-blue-200 rounded p-0.5"
+                        }}
+                      >
+                        <div
+                          className={cn(
+                            'w-4 h-4 rounded border-2 flex items-center justify-center mt-0.5',
+                            isSelected
+                              ? 'bg-white border-white'
+                              : 'bg-white border-gray-300',
+                          )}
                         >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </Badge>
+                          {isSelected && (
+                            <Check className="h-3 w-3 text-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium truncate">
+                            {target.title}
+                          </div>
+                          <div
+                            className={cn(
+                              'text-xs mt-0.5',
+                              isSelected ? 'opacity-90' : 'text-gray-600',
+                            )}
+                          >
+                            {goalInfo && <div>Goal: {goalInfo.title}</div>}
+                            {sprintInfo && (
+                              <div>Sprint: {sprintInfo.title}</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     )
                   })}
                 </div>
+              ) : (
+                <div className="text-center py-6 text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                  No outcomes available. Create outcomes first.
+                </div>
               )}
-
-              {/* Add Target Dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    {selectedTargetIds.length > 0
-                      ? 'Add More Desired Wins'
-                      : 'Link to Desired Wins'}
-                    <ChevronDown className="h-4 w-4 ml-auto" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-full">
-                  {availableTargets.length > 0 ? (
-                    <>
-                      <DropdownMenuLabel className="text-xs">
-                        Available Desired Wins
-                      </DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      {availableTargets.map(target => (
-                        <DropdownMenuItem
-                          key={target.id}
-                          onClick={() => {
-                            if (!selectedTargetIds.includes(target.id)) {
-                              setSelectedTargetIds(prev => [...prev, target.id])
-                            }
-                          }}
-                          disabled={selectedTargetIds.includes(target.id)}
-                          className={cn(
-                            'text-sm',
-                            selectedTargetIds.includes(target.id) &&
-                              'opacity-50 cursor-not-allowed',
-                          )}
-                        >
-                          <div className="flex items-center gap-2 w-full">
-                            <div
-                              className={cn(
-                                'h-2 w-2 rounded-full',
-                                target.status === 'completed'
-                                  ? 'bg-green-500'
-                                  : 'bg-gray-400',
-                              )}
-                            />
-                            <span className="flex-1 truncate">
-                              {target.title}
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              {target.progress_percentage}%
-                            </span>
-                            {selectedTargetIds.includes(target.id) && (
-                              <span className="text-xs text-gray-400">
-                                Linked
-                              </span>
-                            )}
-                          </div>
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  ) : (
-                    <div className="p-3 text-xs text-gray-500 text-center">
-                      No active desired wins available
-                    </div>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              {selectedTargetIds.length === 0 && (
-                <p className="text-xs text-gray-500">
-                  No desired wins linked yet
+              {selectedTargetIds.length > 0 && (
+                <p className="text-xs text-gray-600">
+                  {selectedTargetIds.length} outcome
+                  {selectedTargetIds.length !== 1 ? 's' : ''} selected
                 </p>
               )}
             </div>
