@@ -14,6 +14,7 @@ import {
   Settings,
   FileText,
   Network,
+  FolderKanban,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -29,6 +30,12 @@ const menuItems = [
     href: '/admin/users',
     icon: Users,
     requiredRole: ['admin', 'super_admin'],
+  },
+  {
+    title: 'Programs',
+    href: '/admin/programs',
+    icon: FolderKanban,
+    requiredRole: ['super_admin'],
   },
   {
     title: 'Access Management',

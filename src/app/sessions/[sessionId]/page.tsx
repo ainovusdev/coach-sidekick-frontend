@@ -125,6 +125,9 @@ export default function SessionDetailsPage({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
+  // Email state
+  const [sendingEmail, setSendingEmail] = useState(false)
+
   // UI state
   const [showQuickNote, setShowQuickNote] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
@@ -340,6 +343,27 @@ export default function SessionDetailsPage({
     }
   }
 
+  // Send summary email handler
+  const handleSendSummaryEmail = async () => {
+    if (!sessionData?.session?.id) return
+
+    setSendingEmail(true)
+    try {
+      const result = await SessionService.sendSummaryEmail(
+        sessionData.session.id,
+      )
+      toast({
+        title: 'Email Sent Successfully',
+        description: `Session summary sent to ${result.sent_to}`,
+      })
+    } catch (error) {
+      // ApiClient already shows error toast, just log it
+      console.error('Failed to send email:', error)
+    } finally {
+      setSendingEmail(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -417,6 +441,8 @@ export default function SessionDetailsPage({
               sessionData.session.title = newTitle
             }
           }}
+          onSendEmail={!isViewer ? handleSendSummaryEmail : undefined}
+          sendingEmail={sendingEmail}
         />
 
         {/* Main Content */}
