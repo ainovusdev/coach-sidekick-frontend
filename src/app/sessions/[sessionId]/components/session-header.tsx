@@ -7,6 +7,8 @@ import {
   ExternalLink,
   Activity,
   Trash2,
+  Mail,
+  Loader2,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { getStatusColor } from '../utils/session-utils'
@@ -19,10 +21,14 @@ interface SessionHeaderProps {
     meeting_url: string | null
     session_type?: string
     title?: string | null
+    summary?: string | null
+    client_id?: string | null
   }
   onBack: () => void
   onDelete?: () => void
   onTitleUpdate?: (newTitle: string) => void
+  onSendEmail?: () => void
+  sendingEmail?: boolean
 }
 
 export default function SessionHeader({
@@ -30,6 +36,8 @@ export default function SessionHeader({
   onBack,
   onDelete,
   onTitleUpdate,
+  onSendEmail,
+  sendingEmail = false,
 }: SessionHeaderProps) {
   const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
 
@@ -62,17 +70,40 @@ export default function SessionHeader({
                 <Activity className="w-3 h-3 mr-1" />
                 {session.status.replace('_', ' ').toUpperCase()}
               </Badge>
-              {onDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={onDelete}
-                  className="ml-auto border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Session
-                </Button>
-              )}
+              <div className="flex gap-2 ml-auto">
+                {onSendEmail && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onSendEmail}
+                    disabled={sendingEmail}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send Summary Email
+                      </>
+                    )}
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onDelete}
+                    className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Session
+                  </Button>
+                )}
+              </div>
             </div>
             <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
               <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">

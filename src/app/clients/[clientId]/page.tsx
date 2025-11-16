@@ -32,7 +32,7 @@ import {
   Loader2,
   Trash2,
   Mic,
-  // Target,
+  Target,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -270,13 +270,13 @@ export default function ClientDetailPage({
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Sessions & Chat
                       </TabsTrigger>
-                      {/* <TabsTrigger
+                      <TabsTrigger
                         value="goals"
                         className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Goals & Progress
-                      </TabsTrigger> */}
+                      </TabsTrigger>
                     </TabsList>
 
                     {!isViewer && (

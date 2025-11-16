@@ -165,4 +165,22 @@ export class SessionService {
   }> {
     return await ApiClient.delete(`${BACKEND_URL}/sessions/${sessionId}`)
   }
+
+  static async sendSummaryEmail(
+    sessionId: string,
+    nextSessionDate?: string,
+  ): Promise<{
+    success: boolean
+    message: string
+    sent_to: string
+    sent_at: string
+  }> {
+    return await ApiClient.post(
+      `${BACKEND_URL}/sessions/${sessionId}/send-summary-email`,
+      {
+        session_id: sessionId,
+        next_session_date: nextSessionDate,
+      },
+    )
+  }
 }

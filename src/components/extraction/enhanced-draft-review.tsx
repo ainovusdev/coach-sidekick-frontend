@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Target, Sparkles, Trophy, Loader2, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { CommitmentTargetSelector } from './commitment-target-selector'
 
 interface DraftGoal {
   id: string
@@ -47,7 +46,6 @@ interface EnhancedDraftReviewProps {
   draftGoals: DraftGoal[]
   draftTargets: DraftTarget[]
   draftCommitments: DraftCommitment[]
-  currentSprintId?: string | null
   onConfirmAll: () => Promise<void>
   onRefresh?: () => void
 }
@@ -56,7 +54,6 @@ export function EnhancedDraftReview({
   draftGoals,
   draftTargets,
   draftCommitments,
-  currentSprintId,
   onConfirmAll,
   onRefresh,
 }: EnhancedDraftReviewProps) {
@@ -311,21 +308,6 @@ export function EnhancedDraftReview({
                             <div className="flex items-center gap-2 mb-2">
                               <Badge variant="outline">{commitment.type}</Badge>
                             </div>
-                            <CommitmentTargetSelector
-                              linkedTargetIds={
-                                commitment.link_to_target_ids || []
-                              }
-                              suggestedTargetIndices={
-                                commitment.suggested_target_indices || []
-                              }
-                              extractedTargets={draftTargets}
-                              currentSprintId={currentSprintId || null}
-                              onChange={(targetIds, indices) => {
-                                // Update the commitment directly (mutations are ok for draft data)
-                                commitment.link_to_target_ids = targetIds
-                                commitment.suggested_target_indices = indices
-                              }}
-                            />
                           </div>
 
                           {commitment.transcript_context && (
@@ -486,21 +468,6 @@ export function EnhancedDraftReview({
                             <div className="flex items-center gap-2 mb-2">
                               <Badge variant="outline">{commitment.type}</Badge>
                             </div>
-                            <CommitmentTargetSelector
-                              linkedTargetIds={
-                                commitment.link_to_target_ids || []
-                              }
-                              suggestedTargetIndices={
-                                commitment.suggested_target_indices || []
-                              }
-                              extractedTargets={draftTargets}
-                              currentSprintId={currentSprintId || null}
-                              onChange={(targetIds, indices) => {
-                                // Update the commitment directly (mutations are ok for draft data)
-                                commitment.link_to_target_ids = targetIds
-                                commitment.suggested_target_indices = indices
-                              }}
-                            />
                           </div>
                           {commitment.transcript_context && (
                             <div className="bg-green-50 border border-green-200 rounded p-3">

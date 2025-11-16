@@ -156,6 +156,18 @@ export const queryKeys = {
     preferences: () => ['user', 'preferences'] as const,
   },
 
+  // Program keys
+  programs: {
+    all: ['programs'] as const,
+    lists: () => [...queryKeys.programs.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.programs.lists(), { filters }] as const,
+    details: () => [...queryKeys.programs.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.programs.details(), id] as const,
+    dashboard: (id: string) =>
+      [...queryKeys.programs.detail(id), 'dashboard'] as const,
+  },
+
   // Admin keys
   admin: {
     // User management keys
@@ -257,6 +269,20 @@ export const invalidateQueries = {
 
   afterTaskUpdate: async (queryClient: QueryClient) => {
     await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+  },
+
+  afterProgramUpdate: async (queryClient: QueryClient, programId?: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all }),
+      programId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.programs.detail(programId),
+        }),
+      programId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.programs.dashboard(programId),
+        }),
+    ])
   },
 }
 
