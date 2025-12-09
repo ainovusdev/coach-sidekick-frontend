@@ -127,11 +127,11 @@ export function GoalsList({
           {goals.length === 0 ? (
             <div className="text-center py-8">
               <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No goals set yet</p>
+              <p className="text-gray-600 mb-4">No vision set yet</p>
               {showCreateButton && (
                 <Button variant="outline" onClick={handleCreateClick}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create First Goal
+                  Create First Vision
                 </Button>
               )}
             </div>

@@ -196,7 +196,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
         </Card>
       )}
 
-      {/* Goals & Aspirations */}
+      {/* Vision & Aspirations */}
       {(persona.goals.primary_goals.length > 0 ||
         persona.goals.short_term_goals.length > 0 ||
         persona.goals.long_term_goals.length > 0) && (
@@ -204,7 +204,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
           <CardHeader className="bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
             <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
               <Target className="h-5 w-5 text-gray-600" />
-              Goals & Aspirations
+              Vision & Aspirations
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6 space-y-4">
@@ -212,7 +212,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2 flex items-center gap-1">
                   <Sparkles className="h-3.5 w-3.5" />
-                  Primary Goals
+                  Primary Vision
                 </h4>
                 <div className="flex flex-wrap gap-2">
                   {persona.goals.primary_goals.map((goal, index) => (

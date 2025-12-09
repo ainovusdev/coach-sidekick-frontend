@@ -79,7 +79,7 @@ export function EmptyStateWelcome({
             </div>
           </Card>
 
-          {/* Set Goals */}
+          {/* Set Vision */}
           <Card className="p-6 hover:shadow-md transition-all border-gray-200 hover:border-black">
             <div className="text-center space-y-4">
               <div className="mx-auto w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center">
@@ -87,7 +87,7 @@ export function EmptyStateWelcome({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-black mb-2">
-                  Set Goals
+                  Set Vision
                 </h3>
                 <p className="text-sm text-gray-600 mb-4">
                   Define outcomes to track progress over time
@@ -98,7 +98,7 @@ export function EmptyStateWelcome({
                 variant="outline"
                 className="w-full border-gray-300 hover:bg-gray-50 hover:border-black"
               >
-                Create Goals
+                Create Vision
               </Button>
             </div>
           </Card>
@@ -108,7 +108,7 @@ export function EmptyStateWelcome({
         <div className="mt-8 p-5 bg-gray-50 border border-gray-200 rounded-lg">
           <p className="text-sm text-gray-600 text-center">
             <strong className="text-black">Tip:</strong> Start with a live
-            session to experience AI-assisted coaching, or set goals first to
+            session to experience AI-assisted coaching, or set a vision first to
             establish a clear direction.
           </p>
         </div>

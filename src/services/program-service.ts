@@ -10,6 +10,7 @@ import {
   ProgramActionItems,
   ProgramCalendar,
   ThemeAnalysis,
+  ProgramOutcomes,
 } from '@/types/program'
 
 const BACKEND_URL =
@@ -111,6 +112,16 @@ export class ProgramService {
   ): Promise<ThemeAnalysis> {
     return await ApiClient.get(
       `${BACKEND_URL}/programs/${programId}/theme-analysis?days=${days}`,
+    )
+  }
+
+  static async getProgramOutcomes(
+    programId: string,
+    statusFilter?: 'active' | 'completed' | 'deferred' | 'abandoned',
+  ): Promise<ProgramOutcomes> {
+    const queryParams = statusFilter ? `?status_filter=${statusFilter}` : ''
+    return await ApiClient.get(
+      `${BACKEND_URL}/programs/${programId}/outcomes${queryParams}`,
     )
   }
 }

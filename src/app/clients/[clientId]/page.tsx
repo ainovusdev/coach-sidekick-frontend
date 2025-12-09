@@ -178,6 +178,48 @@ export default function ClientDetailPage({
     }
   }
 
+  const handleCompleteOutcome = async (outcome: any) => {
+    if (!outcome?.id) return
+
+    try {
+      await TargetService.updateTarget(outcome.id, { status: 'completed' })
+
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.targets.all,
+      })
+
+      toast.success('Outcome Completed', {
+        description: `"${outcome.title}" has been marked as complete`,
+      })
+    } catch (error) {
+      console.error('Error completing outcome:', error)
+      toast.error('Failed to complete outcome', {
+        description: 'Please try again later',
+      })
+    }
+  }
+
+  const handleCompleteSprint = async (sprint: any) => {
+    if (!sprint?.id) return
+
+    try {
+      await SprintService.updateSprint(sprint.id, { status: 'completed' })
+
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sprints.all,
+      })
+
+      toast.success('Sprint Completed', {
+        description: `"${sprint.title}" has been marked as complete`,
+      })
+    } catch (error) {
+      console.error('Error completing sprint:', error)
+      toast.error('Failed to complete sprint', {
+        description: 'Please try again later',
+      })
+    }
+  }
+
   if (loading) {
     return (
       <PageLayout>
@@ -370,6 +412,7 @@ export default function ClientDetailPage({
                         setOutcomeToDelete(outcome)
                         setShowDeleteOutcomeDialog(true)
                       }}
+                      onCompleteOutcome={handleCompleteOutcome}
                       onEditSprint={_sprint => {
                         toast.info('Edit Sprint', {
                           description:
@@ -380,6 +423,7 @@ export default function ClientDetailPage({
                         setSprintToDelete(sprint)
                         setShowDeleteSprintDialog(true)
                       }}
+                      onCompleteSprint={handleCompleteSprint}
                     />
                   </TabsContent>
                 </Tabs>
