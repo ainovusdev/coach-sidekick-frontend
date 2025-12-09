@@ -142,3 +142,30 @@ export interface ThemeAnalysis {
   emerging_themes: string[]
   theme_correlations: Record<string, string[]>
 }
+
+// Outcomes Types
+export interface ProgramOutcomeSummary {
+  id: string
+  title: string
+  description: string | null
+  status: 'active' | 'completed' | 'deferred' | 'abandoned'
+  progress_percentage: number
+  client_id: string
+  client_name: string
+  vision_titles: string[]
+  commitment_count: number
+  completed_commitment_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface ProgramOutcomes {
+  program_id: string
+  program_name: string
+  total_outcomes: number
+  active_outcomes: number
+  completed_outcomes: number
+  outcomes_by_client: Record<string, ProgramOutcomeSummary[]>
+  outcomes: ProgramOutcomeSummary[]
+  overall_progress: number
+}

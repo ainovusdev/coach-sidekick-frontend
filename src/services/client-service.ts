@@ -1,6 +1,5 @@
 import { ApiClient } from '@/lib/api-client'
 import { Client } from '@/types/meeting'
-import authService from '@/services/auth-service'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -17,14 +16,35 @@ export interface ClientUpdateDto {
   meta_performance_vision?: string
 }
 
-// Backend response format
+// Backend response format - matches what the API actually returns
 interface BackendClient {
   id: string
   name: string
+  email?: string
+  phone?: string
   notes?: string
+  tags?: string[]
   meta_performance_vision?: string
   created_at: string
   updated_at: string
+  has_portal_access?: boolean
+  linked_user_email?: string
+  coach_id?: string
+  is_my_client?: boolean
+  coach_name?: string
+  invitation_status?: 'not_invited' | 'invited' | 'accepted'
+  invitation_sent_at?: string
+  client_session_stats?: Array<{
+    client_id: string
+    total_sessions: number
+    total_duration_minutes: number
+    last_session_date?: string
+    average_engagement_score?: number
+    average_overall_score?: number
+    improvement_trends: Record<string, any>
+    coaching_focus_areas: string[]
+    updated_at: string
+  }>
 }
 
 interface BackendClientListResponse {
@@ -42,16 +62,22 @@ export interface ClientListResponse {
 }
 
 // Transform backend client to UI client format
+// Preserve ALL fields from backend to avoid data loss
 function transformClient(backendClient: BackendClient): Client {
-  const userId = authService.getUserIdFromToken() || ''
   return {
     id: backendClient.id,
-    coach_id: userId,
+    coach_id: backendClient.coach_id || '',
     name: backendClient.name,
+    email: backendClient.email,
     notes: backendClient.notes,
     meta_performance_vision: backendClient.meta_performance_vision,
     created_at: backendClient.created_at,
     updated_at: backendClient.updated_at,
+    is_my_client: backendClient.is_my_client,
+    coach_name: backendClient.coach_name,
+    client_session_stats: backendClient.client_session_stats,
+    invitation_status: backendClient.invitation_status,
+    invitation_sent_at: backendClient.invitation_sent_at,
   }
 }
 

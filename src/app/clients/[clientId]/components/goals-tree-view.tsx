@@ -23,6 +23,7 @@ import {
   Edit2,
   Trash2,
   MoreVertical,
+  CheckCircle2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -44,8 +45,10 @@ interface GoalsTreeViewProps {
   onDeleteGoal?: (goal: any) => void
   onEditOutcome?: (outcome: any) => void
   onDeleteOutcome?: (outcome: any) => void
+  onCompleteOutcome?: (outcome: any) => void
   onEditSprint?: (sprint: any) => void
   onDeleteSprint?: (sprint: any) => void
+  onCompleteSprint?: (sprint: any) => void
 }
 
 interface TreeNodeProps {
@@ -58,6 +61,7 @@ interface TreeNodeProps {
   onClick?: () => void
   onEdit?: () => void
   onDelete?: () => void
+  onComplete?: () => void
   children?: React.ReactNode
 }
 
@@ -71,6 +75,7 @@ function TreeNode({
   onClick,
   onEdit,
   onDelete,
+  onComplete,
   children,
 }: TreeNodeProps) {
   const hasChildren = !!children
@@ -149,7 +154,7 @@ function TreeNode({
         )}
 
         {/* Actions Menu */}
-        {(onEdit || onDelete) && (
+        {(onEdit || onDelete || onComplete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
               <button className="flex-shrink-0 p-1 hover:bg-gray-200 rounded">
@@ -157,6 +162,18 @@ function TreeNode({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              {onComplete && data.status !== 'completed' && (
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.stopPropagation()
+                    onComplete()
+                  }}
+                  className="text-green-600 focus:text-green-600"
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Mark Complete
+                </DropdownMenuItem>
+              )}
               {onEdit && (
                 <DropdownMenuItem
                   onClick={e => {
@@ -167,7 +184,7 @@ function TreeNode({
                   <Edit2 className="h-4 w-4 mr-2" />
                   Edit{' '}
                   {type === 'goal'
-                    ? 'Goal'
+                    ? 'Vision'
                     : type === 'outcome'
                       ? 'Outcome'
                       : 'Sprint'}
@@ -184,7 +201,7 @@ function TreeNode({
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete{' '}
                   {type === 'goal'
-                    ? 'Goal'
+                    ? 'Vision'
                     : type === 'outcome'
                       ? 'Outcome'
                       : 'Sprint'}
@@ -213,8 +230,10 @@ export function GoalsTreeView({
   onDeleteGoal,
   onEditOutcome,
   onDeleteOutcome,
+  onCompleteOutcome,
   onEditSprint,
   onDeleteSprint,
+  onCompleteSprint,
 }: GoalsTreeViewProps) {
   const queryClient = useQueryClient()
   const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
@@ -354,14 +373,14 @@ export function GoalsTreeView({
               <Target className="h-8 w-8 text-gray-600" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Goals Yet
+              No Vision Yet
             </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Create your first goal to get started with the tree view.
+              Create your first vision to get started with the tree view.
             </p>
             <Button onClick={onCreateNew} size="lg">
               <Plus className="h-4 w-4 mr-2" />
-              Create Your First Goal
+              Create Your First Vision
             </Button>
           </div>
         </CardContent>
@@ -373,7 +392,7 @@ export function GoalsTreeView({
     if (!selectedNodeId) return 'All commitments'
     if (selectedNodeType === 'goal') {
       const goal = goals.find((g: any) => g.id === selectedNodeId)
-      return `Commitments for: ${goal?.title}`
+      return `Commitments for vision: ${goal?.title}`
     }
     if (selectedNodeType === 'outcome') {
       const outcome = clientTargets.find((t: any) => t.id === selectedNodeId)
@@ -391,7 +410,7 @@ export function GoalsTreeView({
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900">
-          Goals & Progress (Tree View)
+          Vision & Progress (Tree View)
         </h3>
         <Button variant="outline" size="sm" onClick={onCreateNew}>
           <Plus className="h-4 w-4 mr-2" />
@@ -406,15 +425,15 @@ export function GoalsTreeView({
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
               <div className="p-3 space-y-6">
-                {/* Goals Section */}
+                {/* Vision Section */}
                 <div className="pb-4 border-b border-gray-200">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
-                    <span>GOALS</span>
+                    <span>VISION</span>
                     {onCreateGoal && (
                       <button
                         onClick={onCreateGoal}
                         className="p-1 hover:bg-gray-200 rounded transition-colors"
-                        title="Add new goal"
+                        title="Add new vision"
                       >
                         <Plus className="h-3.5 w-3.5 text-gray-600 cursor-pointer" />
                       </button>
@@ -458,6 +477,7 @@ export function GoalsTreeView({
                               }
                               onEdit={() => onEditOutcome?.(outcome)}
                               onDelete={() => onDeleteOutcome?.(outcome)}
+                              onComplete={() => onCompleteOutcome?.(outcome)}
                             />
                           ))}
                         </TreeNode>
@@ -495,6 +515,7 @@ export function GoalsTreeView({
                         onClick={() => handleNodeClick(outcome.id, 'outcome')}
                         onEdit={() => onEditOutcome?.(outcome)}
                         onDelete={() => onDeleteOutcome?.(outcome)}
+                        onComplete={() => onCompleteOutcome?.(outcome)}
                       />
                     ))}
                   </div>
@@ -537,6 +558,7 @@ export function GoalsTreeView({
                             onClick={() => handleNodeClick(sprint.id, 'sprint')}
                             onEdit={() => onEditSprint?.(sprint)}
                             onDelete={() => onDeleteSprint?.(sprint)}
+                            onComplete={() => onCompleteSprint?.(sprint)}
                           >
                             {sprintOutcomes.map((outcome: any) => (
                               <TreeNode
@@ -554,6 +576,7 @@ export function GoalsTreeView({
                                 }
                                 onEdit={() => onEditOutcome?.(outcome)}
                                 onDelete={() => onDeleteOutcome?.(outcome)}
+                                onComplete={() => onCompleteOutcome?.(outcome)}
                               />
                             ))}
                           </TreeNode>

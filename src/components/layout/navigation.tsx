@@ -5,7 +5,14 @@ import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
-import { BarChart3, UserCheck, History, Sparkles, Shield } from 'lucide-react'
+import {
+  BarChart3,
+  UserCheck,
+  History,
+  Sparkles,
+  Shield,
+  BookOpen,
+} from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 
@@ -38,6 +45,12 @@ export default function Navigation() {
       label: 'Sessions',
       icon: History,
       permission: { resource: 'sessions', action: 'view' },
+    },
+    {
+      path: '/knowledge',
+      label: 'Knowledge',
+      icon: BookOpen,
+      permission: null, // Available to all authenticated users
     },
   ]
 

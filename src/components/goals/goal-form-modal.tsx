@@ -71,7 +71,7 @@ export function GoalFormModal({
     e.preventDefault()
 
     if (!formData.title.trim()) {
-      toast.error('Goal title is required')
+      toast.error('Vision title is required')
       return
     }
 
@@ -101,8 +101,8 @@ export function GoalFormModal({
         )
 
         await GoalService.updateGoal(goal.id, updateData)
-        toast.success('Goal Updated', {
-          description: 'The goal has been updated successfully',
+        toast.success('Vision Updated', {
+          description: 'The vision has been updated successfully',
         })
       } else {
         // Create new goal
@@ -134,8 +134,8 @@ export function GoalFormModal({
 
         // Close modal and show immediately
         onOpenChange(false)
-        toast.success('Goal Created', {
-          description: 'The goal has been created successfully',
+        toast.success('Vision Created', {
+          description: 'The vision has been created successfully',
         })
 
         // Actual API call
@@ -161,7 +161,7 @@ export function GoalFormModal({
         )
       }
 
-      toast.error(`Failed to ${mode} goal`, {
+      toast.error(`Failed to ${mode} vision`, {
         description: 'Please try again',
       })
 
@@ -179,19 +179,19 @@ export function GoalFormModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Goal' : 'Create New Goal'}
+            {mode === 'edit' ? 'Edit Vision' : 'Create New Vision'}
           </DialogTitle>
           <DialogDescription>
             {mode === 'edit'
-              ? 'Update the goal details'
-              : 'Create a long-term outcome for your client to work towards'}
+              ? 'Update the vision details'
+              : 'Create a long-term vision for your client to work towards'}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Goal Title *</Label>
+              <Label htmlFor="title">Vision Title *</Label>
               <Input
                 id="title"
                 placeholder="e.g., Become an Effective Leader"
@@ -207,7 +207,7 @@ export function GoalFormModal({
               <Label htmlFor="description">Description</Label>
               <Textarea
                 id="description"
-                placeholder="What does success look like for this goal?"
+                placeholder="What does success look like for this vision?"
                 value={formData.description}
                 onChange={e =>
                   setFormData({ ...formData, description: e.target.value })
@@ -274,8 +274,8 @@ export function GoalFormModal({
                   ? 'Updating...'
                   : 'Creating...'
                 : mode === 'edit'
-                  ? 'Update Goal'
-                  : 'Create Goal'}
+                  ? 'Update Vision'
+                  : 'Create Vision'}
             </Button>
           </DialogFooter>
         </form>

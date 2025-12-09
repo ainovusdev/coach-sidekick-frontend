@@ -15,6 +15,7 @@ import {
   ProgramActionItems,
   ProgramCalendar,
   ThemeAnalysis,
+  ProgramOutcomes,
 } from '@/types/program'
 import { queryKeys, invalidateQueries, queryClient } from '@/lib/query-client'
 import { toast } from 'sonner'
@@ -278,6 +279,30 @@ export function useProgramThemeAnalysis(
     queryFn: () => ProgramService.getProgramThemeAnalysis(programId!, days),
     enabled: !!programId,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  })
+}
+
+/**
+ * Hook to fetch program outcomes
+ */
+export function useProgramOutcomes(
+  programId: string | undefined,
+  statusFilter?: 'active' | 'completed' | 'deferred' | 'abandoned',
+  options?: Omit<
+    UseQueryOptions<ProgramOutcomes>,
+    'queryKey' | 'queryFn' | 'enabled'
+  >,
+) {
+  return useQuery({
+    queryKey: [
+      ...queryKeys.programs.detail(programId!),
+      'outcomes',
+      statusFilter,
+    ],
+    queryFn: () => ProgramService.getProgramOutcomes(programId!, statusFilter),
+    enabled: !!programId,
+    staleTime: 2 * 60 * 1000, // 2 minutes
     ...options,
   })
 }
