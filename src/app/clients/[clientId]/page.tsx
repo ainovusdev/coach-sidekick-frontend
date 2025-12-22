@@ -33,6 +33,7 @@ import {
   Trash2,
   Mic,
   Target,
+  Trophy,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -45,6 +46,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { ClientService } from '@/services/client-service'
+import { ClientWinsTimeline } from '@/components/wins/client-wins-timeline'
 
 export default function ClientDetailPage({
   params,
@@ -319,6 +321,13 @@ export default function ClientDetailPage({
                         <Target className="h-4 w-4 mr-2" />
                         Goals & Progress
                       </TabsTrigger>
+                      <TabsTrigger
+                        value="wins"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                      >
+                        <Trophy className="h-4 w-4 mr-2" />
+                        Wins
+                      </TabsTrigger>
                     </TabsList>
 
                     {!isViewer && (
@@ -425,6 +434,10 @@ export default function ClientDetailPage({
                       }}
                       onCompleteSprint={handleCompleteSprint}
                     />
+                  </TabsContent>
+
+                  <TabsContent value="wins" className="space-y-6">
+                    <ClientWinsTimeline clientId={client.id} />
                   </TabsContent>
                 </Tabs>
               </div>
