@@ -9,6 +9,7 @@ import { ProgramActionItems } from '@/components/programs/program-action-items'
 import { ProgramCalendar } from '@/components/programs/program-calendar'
 import { ProgramThemeAnalysis } from '@/components/programs/program-theme-analysis'
 import { ProgramOutcomes } from '@/components/programs/program-outcomes'
+import { ProgramWins } from '@/components/programs/program-wins'
 import {
   Card,
   CardContent,
@@ -35,6 +36,7 @@ import {
   CalendarDays,
   Sparkles,
   Target,
+  Trophy,
 } from 'lucide-react'
 import { ClientSessionSummary } from '@/types/program'
 import { formatDistanceToNow, differenceInDays } from 'date-fns'
@@ -345,6 +347,13 @@ export default function ProgramDashboardPage({
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Outcomes</span>
             </TabsTrigger>
+            <TabsTrigger
+              value="wins"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+            >
+              <Trophy className="h-4 w-4" />
+              <span className="hidden sm:inline">Wins</span>
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -492,6 +501,11 @@ export default function ProgramDashboardPage({
         {/* Outcomes Tab */}
         <TabsContent value="outcomes">
           <ProgramOutcomes programId={programId} />
+        </TabsContent>
+
+        {/* Wins Tab */}
+        <TabsContent value="wins">
+          <ProgramWins programId={programId} />
         </TabsContent>
       </Tabs>
     </>

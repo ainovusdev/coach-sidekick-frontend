@@ -21,6 +21,7 @@ import {
   StickyNote,
   LayoutGrid,
   Plus,
+  Trophy,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
@@ -48,6 +49,7 @@ import { CommitmentForm } from '@/components/commitments/commitment-form'
 import { CommitmentListItem } from '@/components/commitments/commitment-list-item'
 import { toast } from '@/hooks/use-toast'
 import { NotesList } from '@/components/session-notes'
+import { SessionWins } from '@/components/wins/session-wins'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
@@ -540,6 +542,13 @@ export default function SessionDetailsPage({
                         Notes
                       </TabsTrigger>
                     )}
+                    <TabsTrigger
+                      value="wins"
+                      className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                    >
+                      <Trophy className="h-4 w-4 mr-2" />
+                      Wins
+                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
@@ -861,6 +870,15 @@ export default function SessionDetailsPage({
                 {/* Notes Tab */}
                 {!isViewer && activeTab === 'notes' && (
                   <NotesList sessionId={sessionData.session.id} />
+                )}
+
+                {/* Wins Tab */}
+                {activeTab === 'wins' && clientId && (
+                  <SessionWins
+                    sessionId={sessionData.session.id}
+                    clientId={clientId}
+                    isViewer={isViewer}
+                  />
                 )}
               </div>
             </div>
