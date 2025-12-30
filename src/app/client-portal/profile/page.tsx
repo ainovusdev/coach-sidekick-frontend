@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import {
   Card,
@@ -26,8 +26,9 @@ import {
   Shield,
   Eye,
   EyeOff,
-  CheckCircle,
 } from 'lucide-react'
+import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
+import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
 interface ProfileData {
   id: string
@@ -63,6 +64,12 @@ export default function ClientProfilePage() {
     new_password: '',
     confirm_password: '',
   })
+
+  // Password strength validation
+  const passwordValidation = useMemo(
+    () => checkPasswordStrength(formData.new_password),
+    [formData.new_password],
+  )
 
   useEffect(() => {
     fetchProfileData()
@@ -136,14 +143,14 @@ export default function ClientProfilePage() {
 
       // Only include password if changing
       if (formData.new_password) {
-        if (formData.new_password !== formData.confirm_password) {
-          toast.error('Passwords do not match')
+        if (!passwordValidation.isValid) {
+          toast.error('Please meet all password requirements')
           setSaving(false)
           return
         }
 
-        if (formData.new_password.length < 8) {
-          toast.error('Password must be at least 8 characters')
+        if (formData.new_password !== formData.confirm_password) {
+          toast.error('Passwords do not match')
           setSaving(false)
           return
         }
@@ -424,9 +431,18 @@ export default function ClientProfilePage() {
                       }))
                     }
                     className="pl-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-                    placeholder="Enter new password (min 8 characters)"
+                    placeholder="Create a strong password"
                   />
                 </div>
+                {formData.new_password && (
+                  <div className="mt-2">
+                    <PasswordStrengthIndicator
+                      strength={passwordValidation.strength}
+                      score={passwordValidation.score}
+                      showRequirements={true}
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -460,28 +476,6 @@ export default function ClientProfilePage() {
                     )}
                   </button>
                 </div>
-              </div>
-
-              <div className="bg-gray-100 border border-gray-300 rounded-lg p-3">
-                <p className="text-xs text-gray-600">
-                  <strong className="text-gray-700">
-                    Password requirements:
-                  </strong>
-                </p>
-                <ul className="text-xs text-gray-500 mt-2 space-y-1">
-                  <li className="flex items-center">
-                    <CheckCircle
-                      className={`h-3 w-3 mr-2 ${formData.new_password.length >= 8 ? 'text-green-500' : 'text-gray-600'}`}
-                    />
-                    At least 8 characters
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle
-                      className={`h-3 w-3 mr-2 ${formData.new_password === formData.confirm_password && formData.new_password ? 'text-green-500' : 'text-gray-600'}`}
-                    />
-                    Passwords match
-                  </li>
-                </ul>
               </div>
             </CardContent>
           </Card>

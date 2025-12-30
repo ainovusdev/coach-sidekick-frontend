@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +25,8 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { ForgotPasswordRequest } from './forgot-password-request'
+import { PasswordStrengthIndicator } from './password-strength-indicator'
+import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
 export function AuthForm() {
   const { signIn, signUp } = useAuth()
@@ -41,12 +43,19 @@ export function AuthForm() {
     confirmPassword: '',
   })
 
+  // Password strength validation for signup
+  const passwordValidation = useMemo(
+    () => checkPasswordStrength(formData.password),
+    [formData.password],
+  )
+
   const validateEmail = (email: string) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
-  const validatePassword = (password: string) => {
-    return password.length >= 6
+  // For sign in, we just check if password exists (backend validates)
+  const validateSignInPassword = (password: string) => {
+    return password.length >= 1
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,8 +75,8 @@ export function AuthForm() {
       return
     }
 
-    if (!validatePassword(formData.password)) {
-      setError('Password must be at least 6 characters long')
+    if (!validateSignInPassword(formData.password)) {
+      setError('Please enter your password')
       setLoading(false)
       return
     }
@@ -93,8 +102,8 @@ export function AuthForm() {
       return
     }
 
-    if (!validatePassword(formData.password)) {
-      setError('Password must be at least 6 characters long')
+    if (!passwordValidation.isValid) {
+      setError('Please meet all password requirements')
       setLoading(false)
       return
     }
@@ -338,7 +347,7 @@ export function AuthForm() {
                           id="signup-password"
                           name="password"
                           type={showPassword ? 'text' : 'password'}
-                          placeholder="At least 6 characters"
+                          placeholder="Create a strong password"
                           value={formData.password}
                           onChange={handleInputChange}
                           className="pl-10 pr-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
@@ -356,10 +365,13 @@ export function AuthForm() {
                           )}
                         </button>
                       </div>
-                      <p className="text-xs text-gray-500">
-                        Use 6 or more characters with a mix of letters, numbers
-                        & symbols
-                      </p>
+                      {formData.password && (
+                        <PasswordStrengthIndicator
+                          strength={passwordValidation.strength}
+                          score={passwordValidation.score}
+                          showRequirements={true}
+                        />
+                      )}
                     </div>
 
                     <div className="space-y-2">

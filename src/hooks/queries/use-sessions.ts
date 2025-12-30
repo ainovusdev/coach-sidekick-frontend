@@ -27,6 +27,7 @@ export function useSessions(
     page?: number
     per_page?: number
     client_id?: string
+    coach_id?: string
     status?: string
   },
   options?: Omit<UseQueryOptions<SessionListResponse>, 'queryKey' | 'queryFn'>,

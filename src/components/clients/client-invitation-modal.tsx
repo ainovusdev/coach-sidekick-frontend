@@ -211,7 +211,7 @@ export function ClientInvitationModal({
                   <ul className="list-disc list-inside mt-2 space-y-1">
                     <li>Create a secure password for their account</li>
                     <li>Access their coaching session history</li>
-                    <li>View session insights and action items</li>
+                    <li>View session insights and commitments</li>
                     <li>Track their progress over time</li>
                   </ul>
                 </AlertDescription>

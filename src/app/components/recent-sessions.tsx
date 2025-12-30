@@ -2,17 +2,13 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 import {
   MessageSquare,
   ArrowRight,
-  Clock,
   AlertCircle,
-  FileText,
   Lock,
-  Calendar,
   Video,
-  Activity,
 } from 'lucide-react'
 import { usePermissions } from '@/contexts/permission-context'
 
@@ -65,7 +61,7 @@ export default function RecentSessions({
     }
   }
 
-  const getPlatformIcon = (url: string | null | undefined) => {
+  const _getPlatformIcon = (url: string | null | undefined) => {
     if (!url) return <Video className="h-4 w-4" />
     if (url.includes('zoom.us')) {
       return (
@@ -91,7 +87,7 @@ export default function RecentSessions({
     return <Video className="h-4 w-4" />
   }
 
-  const getPlatformName = (url: string | null | undefined) => {
+  const _getPlatformName = (url: string | null | undefined) => {
     if (!url) return 'Meeting'
     if (url.includes('zoom.us')) return 'Zoom'
     if (url.includes('meet.google.com')) return 'Google Meet'
@@ -109,100 +105,102 @@ export default function RecentSessions({
         : null)
     const clientName =
       session.client_name || session.metadata?.client_name || null
+    const coachName = session.coach_name || null
     const meetingSummary = summary?.meeting_summary || session.summary
+    const formattedDate = format(createdAt, 'MMM d')
+    const isLive =
+      session.status === 'in_progress' || session.status === 'recording'
+    const isCompleted = session.status === 'completed'
+
+    // Build session title
+    const getSessionTitle = () => {
+      if (coachName && clientName) {
+        return `Session between ${coachName} and ${clientName}`
+      } else if (clientName) {
+        return `Session with ${clientName}`
+      } else {
+        return `Session`
+      }
+    }
 
     return (
       <div
-        className="bg-white border border-gray-200 rounded-lg p-4 hover:border-gray-900 hover:shadow-sm transition-all duration-200 cursor-pointer"
+        className="group relative bg-white rounded-xl border border-gray-200 hover:border-gray-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
         onClick={() => onViewDetails && onViewDetails(session.id)}
       >
-        <div className="flex items-start gap-4">
-          {/* Left Icon Section */}
-          <div className="flex-shrink-0">
-            <div className="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
-              {session.status === 'completed' ? (
-                <FileText className="h-5 w-5 text-gray-700" />
-              ) : session.status === 'recording' ||
-                session.status === 'in_progress' ? (
-                <Activity className="h-5 w-5 text-gray-900 animate-pulse" />
-              ) : (
-                <MessageSquare className="h-5 w-5 text-gray-500" />
-              )}
-            </div>
-          </div>
+        {/* Accent bar */}
+        <div
+          className={`absolute left-0 top-0 bottom-0 w-1 ${
+            isLive
+              ? 'bg-emerald-500'
+              : isCompleted
+                ? 'bg-gray-900'
+                : 'bg-gray-300'
+          }`}
+        />
 
-          {/* Main Content */}
-          <div className="flex-1 min-w-0">
-            {/* Header Row */}
-            <div className="flex items-start justify-between mb-2">
-              <div className="flex-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <h3 className="font-semibold text-gray-900 text-base">
-                    {clientName || 'Session'}
-                  </h3>
-                  {getStatusBadge(session.status)}
-                </div>
+        <div className="p-5 pl-6">
+          {/* Top row: Title + Badge + Date */}
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="font-semibold text-gray-900 truncate">
+                  {getSessionTitle()}
+                </h3>
+                {getStatusBadge(session.status)}
+              </div>
 
-                {/* Metadata */}
-                <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                  <div className="flex items-center gap-1">
-                    {getPlatformIcon(session.meeting_url)}
-                    <span>{getPlatformName(session.meeting_url)}</span>
-                  </div>
-                  {durationMinutes && (
-                    <>
-                      <span>•</span>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        <span>{durationMinutes} min</span>
-                      </div>
-                    </>
-                  )}
-                  <span>•</span>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>
-                      {formatDistanceToNow(createdAt, { addSuffix: true })}
-                    </span>
-                  </div>
-                </div>
+              {/* Date and metadata row */}
+              <div className="flex items-center gap-3 text-sm text-gray-500">
+                <span className="font-medium text-gray-700">
+                  {formattedDate}
+                </span>
+                <span className="text-gray-300">•</span>
+                <span>{format(createdAt, 'EEEE')}</span>
+                {durationMinutes && (
+                  <>
+                    <span className="text-gray-300">•</span>
+                    <span>{durationMinutes} min</span>
+                  </>
+                )}
+                <span className="text-gray-300">•</span>
+                <span className="text-gray-400">
+                  {formatDistanceToNow(createdAt, { addSuffix: true })}
+                </span>
               </div>
             </div>
 
-            {/* Summary Content */}
-            {isViewer ? (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2 text-sm text-gray-500">
-                  <Lock className="h-3.5 w-3.5" />
-                  <span className="italic">
-                    Content restricted for viewer role
-                  </span>
-                </div>
-              </div>
-            ) : meetingSummary ? (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-700 line-clamp-2 leading-relaxed">
-                  {meetingSummary}
-                </p>
-              </div>
-            ) : session.status === 'completed' ? (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <p className="text-sm text-gray-500 italic">
-                  Processing summary...
-                </p>
-              </div>
-            ) : session.status === 'in_progress' ||
-              session.status === 'recording' ? (
-              <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <div className="flex items-center gap-2">
-                  <div className="h-2 w-2 bg-gray-900 rounded-full animate-pulse" />
-                  <p className="text-sm text-gray-900 font-medium">
-                    Live recording in progress
-                  </p>
-                </div>
-              </div>
-            ) : null}
+            {/* Arrow indicator */}
+            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <ArrowRight className="h-5 w-5 text-gray-400" />
+            </div>
           </div>
+
+          {/* Summary Content */}
+          {isViewer ? (
+            <div className="flex items-center gap-2 text-sm text-gray-400 mt-3">
+              <Lock className="h-4 w-4" />
+              <span className="italic">Content restricted</span>
+            </div>
+          ) : meetingSummary ? (
+            <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed mt-3">
+              {meetingSummary}
+            </p>
+          ) : isCompleted ? (
+            <p className="text-sm text-gray-400 italic mt-3">
+              Processing summary...
+            </p>
+          ) : isLive ? (
+            <div className="flex items-center gap-2 mt-3">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              <p className="text-sm text-emerald-600 font-medium">
+                Live recording in progress
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
     )

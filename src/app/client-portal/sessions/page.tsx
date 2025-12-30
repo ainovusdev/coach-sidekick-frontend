@@ -8,28 +8,28 @@ import { Input } from '@/components/ui/input'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Badge } from '@/components/ui/badge'
 import {
-  Calendar,
   Clock,
   FileText,
   Search,
   ChevronLeft,
   ChevronRight,
-  CheckCircle2,
   TrendingUp,
+  ArrowRight,
+  MessageSquare,
 } from 'lucide-react'
+import { format, formatDistanceToNow } from 'date-fns'
 
 interface Session {
   id: string
   session_date: string
   duration_minutes: number
-  status: string
   summary?: string
+  key_topics: string[]
+  action_items: string[]
   sentiment_score?: number
   engagement_level?: string
   tasks_assigned: number
   materials_shared: number
-  key_topics: string[]
-  action_items: string[]
 }
 
 export default function ClientSessionsPage() {
@@ -46,7 +46,6 @@ export default function ClientSessionsPage() {
 
   const fetchSessions = async () => {
     try {
-      // FIXED: Use unified auth_token, not old client_auth_token
       const token = localStorage.getItem('auth_token')
       if (!token) {
         console.error('No auth token found')
@@ -89,26 +88,18 @@ export default function ClientSessionsPage() {
     try {
       const date = new Date(dateString)
       if (isNaN(date.getTime())) return 'Invalid date'
-      return date.toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
+      return format(date, 'EEEE, MMMM d, yyyy')
     } catch {
       return 'Invalid date'
     }
   }
 
-  const _formatTime = (dateString: string) => {
+  const getRelativeTime = (dateString: string) => {
     if (!dateString) return ''
     try {
       const date = new Date(dateString)
       if (isNaN(date.getTime())) return ''
-      return date.toLocaleTimeString('en-US', {
-        hour: 'numeric',
-        minute: '2-digit',
-      })
+      return formatDistanceToNow(date, { addSuffix: true })
     } catch {
       return ''
     }
@@ -127,6 +118,17 @@ export default function ClientSessionsPage() {
     )
   })
 
+  // Calculate stats
+  const totalSessions = sessions.length
+  const totalDuration = sessions.reduce(
+    (sum, s) => sum + (s.duration_minutes || 0),
+    0,
+  )
+  const totalTasks = sessions.reduce(
+    (sum, s) => sum + (s.tasks_assigned || 0),
+    0,
+  )
+
   if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -141,11 +143,8 @@ export default function ClientSessionsPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-red-500">Error: {error}</p>
-          <Button
-            onClick={fetchSessions}
-            className="mt-4 bg-white text-black hover:bg-zinc-200"
-          >
+          <p className="text-red-500 mb-4">Error: {error}</p>
+          <Button onClick={fetchSessions} variant="outline">
             Retry
           </Button>
         </div>
@@ -154,159 +153,189 @@ export default function ClientSessionsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Your Sessions</h1>
-        <p className="text-gray-600 mt-2">
-          Review your coaching sessions and track your progress
-        </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Header with Stats */}
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Your Sessions</h1>
+          <p className="text-gray-500 mt-1">
+            Review your coaching sessions and track your progress
+          </p>
+        </div>
+
+        {/* Inline Stats */}
+        <div className="flex items-center gap-6 md:gap-8">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-900">{totalSessions}</p>
+            <p className="text-xs text-gray-500">Sessions</p>
+          </div>
+          <div className="h-8 w-px bg-gray-200" />
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-900">
+              {Math.round(totalDuration / 60)}
+            </p>
+            <p className="text-xs text-gray-500">Hours</p>
+          </div>
+          <div className="h-8 w-px bg-gray-200" />
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
+            <p className="text-xs text-gray-500">Tasks</p>
+          </div>
+        </div>
       </div>
 
       {/* Search Bar */}
-      <Card className="mb-6 bg-white border-gray-200">
-        <CardContent className="py-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
-            <Input
-              type="text"
-              placeholder="Search sessions by date, topic, or summary..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              className="pl-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <div className="relative mb-6">
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          type="text"
+          placeholder="Search by date, topic, or summary..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          className="pl-10 h-11 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
+        />
+      </div>
 
       {/* Sessions List */}
       {filteredSessions.length === 0 ? (
-        <Card className="bg-white border-gray-200">
-          <CardContent className="text-center py-12">
+        <Card className="border-gray-200">
+          <CardContent className="py-16 text-center">
+            <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             {searchTerm ? (
-              <p className="text-gray-500">
-                No sessions found matching &quot;{searchTerm}&quot;
-              </p>
+              <>
+                <h3 className="font-medium text-gray-900 mb-2">
+                  No sessions found
+                </h3>
+                <p className="text-sm text-gray-500">
+                  No sessions matching &quot;{searchTerm}&quot;
+                </p>
+              </>
             ) : (
-              <p className="text-gray-500">
-                No sessions yet. Your sessions will appear here after your
-                coaching calls.
-              </p>
+              <>
+                <h3 className="font-medium text-gray-900 mb-2">
+                  No sessions yet
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Your coaching sessions will appear here after your first call.
+                </p>
+              </>
             )}
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {filteredSessions.map(session => (
             <Link
               key={session.id}
               href={`/client-portal/sessions/${session.id}`}
-              className="block"
+              className="block group"
             >
-              <Card className="bg-white border-2 border-gray-200 hover:border-gray-400 transition-all shadow-sm hover:shadow-md group">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between gap-6">
-                    <div className="flex-1 min-w-0">
-                      {/* Header with Date and Status */}
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 text-gray-900">
-                            <Calendar className="h-4 w-4 text-gray-700" />
-                            <span className="font-semibold text-base">
-                              {formatDate(session.session_date)}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2 text-gray-600">
-                            <Clock className="h-4 w-4" />
-                            <span className="text-sm">
-                              {session.duration_minutes || 0} min
-                            </span>
-                          </div>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="border-gray-300 text-gray-700 capitalize px-3 py-1"
-                        >
-                          {session.status}
-                        </Badge>
-                      </div>
+              <div className="flex items-stretch border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all overflow-hidden">
+                {/* Date Column */}
+                <div className="w-24 md:w-32 flex-shrink-0 bg-gray-50 p-4 flex flex-col items-center justify-center border-r border-gray-100">
+                  <span className="text-2xl font-bold text-gray-900">
+                    {session.session_date
+                      ? format(new Date(session.session_date), 'd')
+                      : '-'}
+                  </span>
+                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                    {session.session_date
+                      ? format(new Date(session.session_date), 'MMM yyyy')
+                      : ''}
+                  </span>
+                </div>
 
-                      {/* Summary */}
-                      {session.summary ? (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
-                            {session.summary}
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="mb-4">
-                          <p className="text-sm text-gray-500 italic">
-                            No summary available yet
-                          </p>
-                        </div>
-                      )}
-
-                      {/* Key Topics */}
-                      {session.key_topics && session.key_topics.length > 0 && (
-                        <div className="mb-4">
-                          <div className="flex flex-wrap gap-2">
-                            {session.key_topics
-                              .slice(0, 4)
-                              .map((topic, index) => (
-                                <Badge
-                                  key={index}
-                                  variant="secondary"
-                                  className="bg-gray-100 text-gray-900 border border-gray-300 text-xs"
-                                >
-                                  {topic}
-                                </Badge>
-                              ))}
-                            {session.key_topics.length > 4 && (
-                              <Badge
-                                variant="secondary"
-                                className="bg-gray-100 text-gray-600 border border-gray-300 text-xs"
-                              >
-                                +{session.key_topics.length - 4} more
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Session Stats */}
-                      <div className="flex items-center gap-6 text-sm text-gray-600">
-                        {session.tasks_assigned > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>{session.tasks_assigned} tasks</span>
-                          </div>
-                        )}
-                        {session.materials_shared > 0 && (
-                          <div className="flex items-center gap-1.5">
-                            <FileText className="h-4 w-4" />
-                            <span>{session.materials_shared} materials</span>
-                          </div>
-                        )}
-                        {session.engagement_level && (
-                          <div className="flex items-center gap-1.5">
-                            <TrendingUp className="h-4 w-4" />
-                            <span className="capitalize">
-                              {session.engagement_level} engagement
-                            </span>
-                          </div>
-                        )}
-                      </div>
+                {/* Content */}
+                <div className="flex-1 p-4 md:p-5 min-w-0">
+                  {/* Top Row */}
+                  <div className="flex items-start justify-between gap-4 mb-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <span className="text-sm font-medium text-gray-900">
+                        {session.session_date
+                          ? format(new Date(session.session_date), 'EEEE')
+                          : 'Session'}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {getRelativeTime(session.session_date)}
+                      </span>
                     </div>
-
-                    {/* Arrow Icon */}
-                    <div className="flex items-center">
-                      <div className="h-10 w-10 rounded-full bg-gray-100 group-hover:bg-gray-900 flex items-center justify-center transition-colors">
-                        <ChevronRight className="h-5 w-5 text-gray-700 group-hover:text-white transition-colors" />
-                      </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Badge
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-600 text-xs"
+                      >
+                        <Clock className="h-3 w-3 mr-1" />
+                        {session.duration_minutes || 0} min
+                      </Badge>
+                      {session.engagement_level && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-100 text-gray-600 text-xs capitalize"
+                        >
+                          {session.engagement_level}
+                        </Badge>
+                      )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  {/* Summary */}
+                  {session.summary ? (
+                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                      {session.summary}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-gray-400 italic mb-3">
+                      No summary available
+                    </p>
+                  )}
+
+                  {/* Bottom Row - Topics and Stats */}
+                  <div className="flex items-center justify-between gap-4">
+                    {/* Key Topics */}
+                    <div className="flex items-center gap-2 flex-wrap min-w-0">
+                      {session.key_topics && session.key_topics.length > 0 ? (
+                        <>
+                          {session.key_topics.slice(0, 3).map((topic, idx) => (
+                            <span
+                              key={idx}
+                              className="inline-flex px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                            >
+                              {topic}
+                            </span>
+                          ))}
+                          {session.key_topics.length > 3 && (
+                            <span className="text-xs text-gray-400">
+                              +{session.key_topics.length - 3}
+                            </span>
+                          )}
+                        </>
+                      ) : null}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                      {session.tasks_assigned > 0 && (
+                        <span className="flex items-center gap-1">
+                          <FileText className="h-3.5 w-3.5" />
+                          {session.tasks_assigned} tasks
+                        </span>
+                      )}
+                      {session.action_items &&
+                        session.action_items.length > 0 && (
+                          <span className="flex items-center gap-1">
+                            <TrendingUp className="h-3.5 w-3.5" />
+                            {session.action_items.length} actions
+                          </span>
+                        )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Arrow */}
+                <div className="flex items-center px-4 bg-gray-50 border-l border-gray-100 group-hover:bg-gray-100 transition-colors">
+                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                </div>
+              </div>
             </Link>
           ))}
         </div>
@@ -314,27 +343,27 @@ export default function ClientSessionsPage() {
 
       {/* Pagination */}
       {sessions.length > 0 && (
-        <div className="flex items-center justify-between mt-8">
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            className="text-gray-600 hover:text-gray-900"
           >
-            <ChevronLeft className="mr-2 h-4 w-4" />
+            <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
           </Button>
 
-          <span className="text-sm text-gray-600">Page {currentPage}</span>
+          <span className="text-sm text-gray-500">Page {currentPage}</span>
 
           <Button
-            variant="outline"
+            variant="ghost"
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={filteredSessions.length < itemsPerPage}
-            className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+            className="text-gray-600 hover:text-gray-900"
           >
             Next
-            <ChevronRight className="ml-2 h-4 w-4" />
+            <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>
       )}

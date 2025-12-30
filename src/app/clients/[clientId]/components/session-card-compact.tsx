@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow, format } from 'date-fns'
 import { Badge } from '@/components/ui/badge'
 import {
   Clock,
@@ -7,7 +7,7 @@ import {
   AlertCircle,
   FileText,
   Calendar,
-  Activity
+  Activity,
 } from 'lucide-react'
 
 interface SessionCardCompactProps {
@@ -15,10 +15,15 @@ interface SessionCardCompactProps {
   showClient?: boolean
 }
 
-export function SessionCardCompact({ session, showClient = true }: SessionCardCompactProps) {
+export function SessionCardCompact({
+  session,
+  showClient = true,
+}: SessionCardCompactProps) {
   const summary = session.meeting_summaries?.[0]
   const createdAt = new Date(session.created_at)
-  const durationMinutes = summary?.duration_minutes || (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
+  const durationMinutes =
+    summary?.duration_minutes ||
+    (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -38,14 +43,30 @@ export function SessionCardCompact({ session, showClient = true }: SessionCardCo
     const statusText = status.replace('_', ' ')
     switch (status) {
       case 'completed':
-        return <Badge className="bg-gray-900 text-white border-gray-900 text-xs">{statusText}</Badge>
+        return (
+          <Badge className="bg-gray-900 text-white border-gray-900 text-xs">
+            {statusText}
+          </Badge>
+        )
       case 'in_progress':
       case 'recording':
-        return <Badge className="bg-gray-800 text-white border-gray-800 text-xs animate-pulse">{statusText}</Badge>
+        return (
+          <Badge className="bg-gray-800 text-white border-gray-800 text-xs animate-pulse">
+            {statusText}
+          </Badge>
+        )
       case 'error':
-        return <Badge className="bg-gray-700 text-white border-gray-700 text-xs">{statusText}</Badge>
+        return (
+          <Badge className="bg-gray-700 text-white border-gray-700 text-xs">
+            {statusText}
+          </Badge>
+        )
       default:
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">{statusText}</Badge>
+        return (
+          <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
+            {statusText}
+          </Badge>
+        )
     }
   }
 
@@ -57,8 +78,11 @@ export function SessionCardCompact({ session, showClient = true }: SessionCardCo
     return 'Meeting'
   }
 
-  const clientName = session.client_name || session.metadata?.client_name || null
+  const clientName =
+    session.client_name || session.metadata?.client_name || null
   const meetingSummary = summary?.meeting_summary || session.summary
+  const platformName = getPlatformName(session.meeting_url)
+  const formattedDate = format(createdAt, 'MMM d, yyyy')
 
   return (
     <div className="space-y-3">
@@ -69,7 +93,7 @@ export function SessionCardCompact({ session, showClient = true }: SessionCardCo
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gray-900">
-                {getPlatformName(session.meeting_url)}
+                {platformName} - {formattedDate}
               </span>
               {showClient && clientName && (
                 <>
@@ -81,7 +105,10 @@ export function SessionCardCompact({ session, showClient = true }: SessionCardCo
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <Calendar className="h-3 w-3" />
-                <span>{formatDistanceToNow(createdAt, { addSuffix: true })}</span>
+                <span>
+                  {format(createdAt, 'EEEE')} •{' '}
+                  {formatDistanceToNow(createdAt, { addSuffix: true })}
+                </span>
               </div>
               {durationMinutes && (
                 <>

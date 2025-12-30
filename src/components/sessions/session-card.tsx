@@ -15,10 +15,12 @@ import {
   Pencil,
   Check,
   X,
+  SquarePen,
 } from 'lucide-react'
 import { MeetingSession } from '@/hooks/use-meeting-history'
 import { usePermissions, PermissionGate } from '@/contexts/permission-context'
 import { SessionService } from '@/services/session-service'
+import { EditSessionModal } from '@/components/sessions/edit-session-modal'
 import { toast } from 'sonner'
 
 interface SessionCardProps {
@@ -47,8 +49,24 @@ export function SessionCard({
   const [editedTitle, setEditedTitle] = useState(session.title || '')
   const [isSavingTitle, setIsSavingTitle] = useState(false)
 
-  // Generate default title
-  const defaultTitle = `Session - ${format(createdAt, 'PPP')}`
+  // Edit modal state
+  const [showEditModal, setShowEditModal] = useState(false)
+
+  // Get platform name for title
+  const platformName = (() => {
+    const url = session.meeting_url
+    if (!url) return 'Meeting'
+    if (url.includes('zoom.us')) return 'Zoom'
+    if (url.includes('meet.google.com')) return 'Google Meet'
+    if (url.includes('teams.microsoft.com')) return 'Teams'
+    return 'Meeting'
+  })()
+
+  // Format date for display (e.g., "Dec 22, 2025")
+  const formattedDate = format(createdAt, 'MMM d, yyyy')
+
+  // Generate default title: Platform - Date
+  const defaultTitle = `${platformName} - ${formattedDate}`
   const displayTitle = session.title || defaultTitle
 
   const getStatusIcon = (status: string) => {
@@ -273,39 +291,74 @@ export function SessionCard({
           </div>
         )}
 
-        {/* Footer with time and action */}
+        {/* Footer with date, time and action */}
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-          <span className="text-xs text-gray-500 font-medium">
-            {formatDistanceToNow(createdAt, { addSuffix: true })}
-          </span>
-          {onViewDetails && (
-            <PermissionGate
-              resource="sessions"
-              action="view"
-              fallback={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled
-                  className="text-xs text-gray-400 font-medium cursor-not-allowed"
-                >
-                  <Lock className="h-3 w-3 mr-1" />
-                  Restricted
-                </Button>
-              }
-            >
+          <div className="flex flex-col">
+            <span className="text-xs text-gray-700 font-medium">
+              {format(createdAt, 'EEEE, MMM d, yyyy')}
+            </span>
+            <span className="text-xs text-gray-400">
+              {formatDistanceToNow(createdAt, { addSuffix: true })}
+            </span>
+          </div>
+          <div className="flex items-center gap-1">
+            {!isViewer && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onViewDetails(session.id)}
+                onClick={() => setShowEditModal(true)}
                 className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
               >
-                <Eye className="h-3 w-3 mr-1" />
-                View Details
+                <SquarePen className="h-3 w-3 mr-1" />
+                Edit
               </Button>
-            </PermissionGate>
-          )}
+            )}
+            {onViewDetails && (
+              <PermissionGate
+                resource="sessions"
+                action="view"
+                fallback={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    disabled
+                    className="text-xs text-gray-400 font-medium cursor-not-allowed"
+                  >
+                    <Lock className="h-3 w-3 mr-1" />
+                    Restricted
+                  </Button>
+                }
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onViewDetails(session.id)}
+                  className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
+                >
+                  <Eye className="h-3 w-3 mr-1" />
+                  View Details
+                </Button>
+              </PermissionGate>
+            )}
+          </div>
         </div>
+
+        {/* Edit Session Modal */}
+        <EditSessionModal
+          open={showEditModal}
+          onOpenChange={setShowEditModal}
+          session={{
+            id: session.id,
+            title: session.title,
+            summary: session.summary,
+          }}
+          onSuccess={() => {
+            // Trigger callback if title was updated
+            if (onTitleUpdated && session.title) {
+              onTitleUpdated(session.id, session.title)
+            }
+          }}
+        />
       </CardContent>
     </Card>
   )

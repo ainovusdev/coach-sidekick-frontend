@@ -25,6 +25,7 @@ export default function SessionsHistoryPage() {
     clients,
     coaches,
     loadingClients,
+    loadingCoaches,
     historyLoading,
     historyError,
     filteredSessions,
@@ -91,6 +92,7 @@ export default function SessionsHistoryPage() {
             clients={clients}
             coaches={coaches}
             loadingClients={loadingClients}
+            loadingCoaches={loadingCoaches}
             selectedClientId={selectedClientId}
             selectedClient={selectedClient}
             selectedCoachId={selectedCoachId}

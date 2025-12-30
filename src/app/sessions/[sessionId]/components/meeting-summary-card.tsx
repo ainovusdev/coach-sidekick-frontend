@@ -27,7 +27,8 @@ export default function MeetingSummaryCard({
   generatingSummary,
   onGenerateSummary,
 }: MeetingSummaryCardProps) {
-  const canGenerateSummary = sessionStatus === 'completed' || sessionStatus === 'call_ended'
+  const canGenerateSummary =
+    sessionStatus === 'completed' || sessionStatus === 'call_ended'
 
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200">
@@ -37,9 +38,7 @@ export default function MeetingSummaryCard({
             <div className="p-2 bg-gray-900 rounded-lg text-white">
               <Trophy className="h-5 w-5" />
             </div>
-            <span className="text-gray-900 font-bold">
-              Meeting Summary
-            </span>
+            <span className="text-gray-900 font-bold">Meeting Summary</span>
           </CardTitle>
           {canGenerateSummary && (
             <Button
@@ -83,7 +82,8 @@ export default function MeetingSummaryCard({
               No summary available yet
             </p>
             <p className="text-sm text-gray-400">
-              Click &quot;Generate Summary&quot; to create insights for this session
+              Click &quot;Generate Summary&quot; to create insights for this
+              session
             </p>
           </div>
         ) : (
@@ -172,9 +172,7 @@ export default function MeetingSummaryCard({
                           className="text-sm text-gray-700 flex items-start gap-3 bg-amber-50/50 rounded-lg p-2.5 border border-amber-100"
                         >
                           <ChevronRight className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                          <span className="leading-relaxed">
-                            {insight}
-                          </span>
+                          <span className="leading-relaxed">{insight}</span>
                         </li>
                       ),
                     )}
@@ -187,20 +185,22 @@ export default function MeetingSummaryCard({
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
-                    Action Items
+                    Commitments
                   </h4>
                   <ul className="space-y-2">
-                    {meetingSummary.action_items.map((item: string, index: number) => (
-                      <li
-                        key={index}
-                        className="text-sm text-gray-700 flex items-start gap-3 bg-green-50/50 rounded-lg p-2.5 border border-green-100 hover:border-green-200 transition-colors duration-200"
-                      >
-                        <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <CheckCircle2 className="h-3 w-3 text-white" />
-                        </div>
-                        <span className="leading-relaxed">{item}</span>
-                      </li>
-                    ))}
+                    {meetingSummary.action_items.map(
+                      (item: string, index: number) => (
+                        <li
+                          key={index}
+                          className="text-sm text-gray-700 flex items-start gap-3 bg-green-50/50 rounded-lg p-2.5 border border-green-100 hover:border-green-200 transition-colors duration-200"
+                        >
+                          <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <CheckCircle2 className="h-3 w-3 text-white" />
+                          </div>
+                          <span className="leading-relaxed">{item}</span>
+                        </li>
+                      ),
+                    )}
                   </ul>
                 </div>
               )}

@@ -148,7 +148,7 @@ export function SessionOverviewTab({
           </Card>
         )}
 
-        {/* Action Items */}
+        {/* Commitments */}
         {topActionItems.length > 0 && (
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="pb-4">
@@ -156,7 +156,7 @@ export function SessionOverviewTab({
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-black" />
                   <h3 className="text-base font-semibold text-black">
-                    Action Items
+                    Commitments
                   </h3>
                 </div>
                 <Button

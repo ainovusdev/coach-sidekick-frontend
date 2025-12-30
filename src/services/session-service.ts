@@ -46,6 +46,8 @@ interface BackendSession {
   personal_ai_uploaded: boolean
   created_at: string
   updated_at: string
+  coach_name?: string
+  client_name?: string
 }
 
 // Transform backend session to UI format
@@ -54,6 +56,9 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
   duration_seconds?: number
   key_topics?: string[]
   action_items?: string[]
+  coach_id?: string
+  coach_name?: string
+  client_name?: string
 } {
   return {
     id: backendSession.id,
@@ -68,6 +73,9 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     duration_seconds: backendSession.duration_seconds,
     key_topics: backendSession.key_topics,
     action_items: backendSession.action_items,
+    coach_id: backendSession.coach_id,
+    coach_name: backendSession.coach_name,
+    client_name: backendSession.client_name,
   }
 }
 
@@ -76,6 +84,7 @@ export class SessionService {
     page?: number
     per_page?: number
     client_id?: string
+    coach_id?: string
     status?: string
   }): Promise<SessionListResponse> {
     const queryParams = new URLSearchParams()
@@ -83,6 +92,7 @@ export class SessionService {
     if (params?.per_page)
       queryParams.append('per_page', params.per_page.toString())
     if (params?.client_id) queryParams.append('client_id', params.client_id)
+    if (params?.coach_id) queryParams.append('coach_id', params.coach_id)
     if (params?.status) queryParams.append('status', params.status)
 
     const response = await ApiClient.get(

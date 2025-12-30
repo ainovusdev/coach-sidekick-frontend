@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,162 +17,128 @@ import {
   ChevronDown,
   Search,
   Check,
+  UserCheck,
+  Send,
+  Clock,
 } from 'lucide-react'
-
-interface Client {
-  id: string
-  name: string
-  email?: string
-}
+import { StatusFilter } from '../hooks/use-clients-data'
 
 interface Coach {
   id: string
   name: string
 }
 
-interface SessionsFiltersProps {
-  clients: Client[]
+interface ClientsFiltersProps {
+  // Status filter
+  statusFilter: StatusFilter
+  onStatusFilter: (status: StatusFilter) => void
+
+  // Coach filter
   coaches: Coach[]
-  loadingClients: boolean
-  loadingCoaches?: boolean
-  selectedClientId: string | null
-  selectedClient: Client | undefined
+  loadingCoaches: boolean
   selectedCoachId: string | null
   selectedCoach: Coach | undefined
-  hasActiveFilters: boolean
-  onClientFilter: (clientId: string | null) => void
   onCoachFilter: (coachId: string | null) => void
+
+  // General
+  hasActiveFilters: boolean
   onClearFilters: () => void
 }
 
-export default function SessionsFilters({
-  clients,
+const STATUS_OPTIONS: {
+  value: StatusFilter
+  label: string
+  icon: React.ReactNode
+}[] = [
+  { value: 'all', label: 'All Clients', icon: <Users className="h-3 w-3" /> },
+  {
+    value: 'active',
+    label: 'Active (7 days)',
+    icon: <Clock className="h-3 w-3" />,
+  },
+  { value: 'invited', label: 'Invited', icon: <Send className="h-3 w-3" /> },
+  {
+    value: 'not_invited',
+    label: 'Not Invited',
+    icon: <User className="h-3 w-3" />,
+  },
+]
+
+export default function ClientsFilters({
+  statusFilter,
+  onStatusFilter,
   coaches,
-  loadingClients,
-  loadingCoaches: _loadingCoaches = false,
-  selectedClientId,
-  selectedClient,
+  loadingCoaches,
   selectedCoachId,
   selectedCoach,
-  hasActiveFilters,
-  onClientFilter,
   onCoachFilter,
+  hasActiveFilters,
   onClearFilters,
-}: SessionsFiltersProps) {
-  const [clientSearch, setClientSearch] = useState('')
+}: ClientsFiltersProps) {
   const [coachSearch, setCoachSearch] = useState('')
-  const [clientPopoverOpen, setClientPopoverOpen] = useState(false)
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false)
   const [coachPopoverOpen, setCoachPopoverOpen] = useState(false)
-
-  // Filter clients based on search
-  const filteredClients = clients.filter(client =>
-    client.name.toLowerCase().includes(clientSearch.toLowerCase()),
-  )
 
   // Filter coaches based on search
   const filteredCoaches = coaches.filter(coach =>
     coach.name.toLowerCase().includes(coachSearch.toLowerCase()),
   )
 
+  // Get current status label
+  const currentStatusLabel =
+    STATUS_OPTIONS.find(opt => opt.value === statusFilter)?.label ||
+    'All Clients'
+
   return (
     <div className="mb-6 space-y-4">
       {/* Filters Row - Side by Side */}
       <div className="flex items-center gap-6 flex-wrap">
-        {/* Client Filter */}
+        {/* Status Filter */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <Filter className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Client:</span>
+            <span className="text-sm font-medium text-slate-700">Status:</span>
           </div>
 
-          {!loadingClients && (
-            <Popover
-              open={clientPopoverOpen}
-              onOpenChange={setClientPopoverOpen}
-            >
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="min-w-[200px] justify-between text-xs"
-                >
-                  <div className="flex items-center gap-2">
-                    <User className="h-3 w-3" />
-                    {selectedClient ? selectedClient.name : 'All Clients'}
-                  </div>
-                  <ChevronDown className="h-3 w-3 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[280px] p-0" align="start">
-                <div className="p-2 border-b">
-                  <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
-                    <Input
-                      placeholder="Search clients..."
-                      value={clientSearch}
-                      onChange={e => setClientSearch(e.target.value)}
-                      className="pl-7 h-8 text-xs"
-                    />
-                  </div>
+          <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[160px] justify-between text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <UserCheck className="h-3 w-3" />
+                  {currentStatusLabel}
                 </div>
-                <ScrollArea className="h-[300px]">
-                  <div className="p-1">
-                    {/* All Clients Option */}
-                    <button
-                      onClick={() => {
-                        onClientFilter(null)
-                        setClientPopoverOpen(false)
-                        setClientSearch('')
-                      }}
-                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
-                        selectedClientId === null
-                          ? 'bg-slate-100 font-medium'
-                          : ''
-                      }`}
-                    >
-                      <Users className="h-3 w-3" />
-                      <span className="flex-1 text-left">All Clients</span>
-                      {selectedClientId === null && (
-                        <Check className="h-3 w-3 text-slate-600" />
-                      )}
-                    </button>
-
-                    {/* Client List */}
-                    {filteredClients.map(client => (
-                      <button
-                        key={client.id}
-                        onClick={() => {
-                          onClientFilter(client.id)
-                          setClientPopoverOpen(false)
-                          setClientSearch('')
-                        }}
-                        className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
-                          selectedClientId === client.id
-                            ? 'bg-slate-100 font-medium'
-                            : ''
-                        }`}
-                      >
-                        <User className="h-3 w-3" />
-                        <span className="flex-1 text-left">{client.name}</span>
-                        {selectedClientId === client.id && (
-                          <Check className="h-3 w-3 text-slate-600" />
-                        )}
-                      </button>
-                    ))}
-
-                    {filteredClients.length === 0 && (
-                      <div className="px-2 py-4 text-xs text-slate-500 text-center">
-                        No clients found
-                      </div>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0" align="start">
+              <div className="p-1">
+                {STATUS_OPTIONS.map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      onStatusFilter(option.value)
+                      setStatusPopoverOpen(false)
+                    }}
+                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                      statusFilter === option.value
+                        ? 'bg-slate-100 font-medium'
+                        : ''
+                    }`}
+                  >
+                    {option.icon}
+                    <span className="flex-1 text-left">{option.label}</span>
+                    {statusFilter === option.value && (
+                      <Check className="h-3 w-3 text-slate-600" />
                     )}
-                  </div>
-                </ScrollArea>
-                <div className="p-2 border-t text-xs text-slate-500 text-center">
-                  {clients.length} clients total
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
+                  </button>
+                ))}
+              </div>
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Coach Filter */}
@@ -186,6 +154,7 @@ export default function SessionsFilters({
                 variant="outline"
                 size="sm"
                 className="min-w-[200px] justify-between text-xs"
+                disabled={loadingCoaches}
               >
                 <div className="flex items-center gap-2">
                   <Users className="h-3 w-3" />
@@ -265,7 +234,7 @@ export default function SessionsFilters({
           </Popover>
         </div>
 
-        {/* Clear All Filters - inline */}
+        {/* Clear All Filters */}
         {hasActiveFilters && (
           <Button
             variant="ghost"
@@ -280,13 +249,13 @@ export default function SessionsFilters({
       </div>
 
       {/* Active Filters Display */}
-      {(selectedClient || selectedCoach) && (
-        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
-          {selectedClient && (
+      {hasActiveFilters && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+          {statusFilter !== 'all' && (
             <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-blue-600" />
+              <UserCheck className="h-4 w-4 text-blue-600" />
               <span className="text-sm font-medium text-blue-900">
-                Client: {selectedClient.name}
+                Status: {currentStatusLabel}
               </span>
             </div>
           )}
