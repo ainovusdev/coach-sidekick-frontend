@@ -37,25 +37,37 @@ interface MeetingHistoryResponse {
   }
 }
 
+interface MeetingHistoryFilters {
+  client_id?: string | null
+  coach_id?: string | null
+  page?: number
+}
+
 /**
- * Hook to fetch meeting/session history with pagination
+ * Hook to fetch meeting/session history with pagination and filtering
  * Now powered by TanStack Query for automatic caching
  *
  * Benefits:
  * - Sessions cached and shown instantly if recently visited
  * - Automatic background refresh
  * - No duplicate requests across components
+ * - Server-side filtering by client and coach
  */
-export function useMeetingHistory(limit: number = 10) {
-  // Use TanStack Query for sessions data
+export function useMeetingHistory(
+  limit: number = 10,
+  filters?: MeetingHistoryFilters,
+) {
+  // Use TanStack Query for sessions data with filters
   const {
     data: sessionsData,
     isLoading: loading,
     error: queryError,
     refetch,
   } = useSessions({
-    page: 1,
+    page: filters?.page || 1,
     per_page: limit,
+    ...(filters?.client_id && { client_id: filters.client_id }),
+    ...(filters?.coach_id && { coach_id: filters.coach_id }),
   })
 
   // Transform sessions data to expected format
@@ -70,7 +82,11 @@ export function useMeetingHistory(limit: number = 10) {
         status: session.status,
         created_at: session.created_at,
         updated_at: session.updated_at,
-        metadata: session.client_id ? { client_id: session.client_id } : {},
+        metadata: {
+          ...(session.client_id && { client_id: session.client_id }),
+          ...(session.coach_id && { coach_id: session.coach_id }),
+          ...(session.coach_name && { coach_name: session.coach_name }),
+        },
         meeting_summaries: session.summary
           ? {
               duration_minutes: session.duration_seconds

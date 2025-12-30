@@ -5,14 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
-import {
-  BarChart3,
-  UserCheck,
-  History,
-  Sparkles,
-  Shield,
-  BookOpen,
-} from 'lucide-react'
+import { BarChart3, UserCheck, History, Sparkles, Shield } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 
@@ -46,12 +39,13 @@ export default function Navigation() {
       icon: History,
       permission: { resource: 'sessions', action: 'view' },
     },
-    {
-      path: '/knowledge',
-      label: 'Knowledge',
-      icon: BookOpen,
-      permission: null, // Available to all authenticated users
-    },
+    // Knowledge hidden for now
+    // {
+    //   path: '/knowledge',
+    //   label: 'Knowledge',
+    //   icon: BookOpen,
+    //   permission: null,
+    // },
   ]
 
   // NEW: Hide coach/admin nav items for client-only users
@@ -103,7 +97,7 @@ export default function Navigation() {
                 <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full">
                   <Sparkles className="w-3 h-3 text-gray-600" />
                   <span className="text-xs font-medium text-gray-600">
-                    Novus GLobal Powered AI
+                    Novus Global Powered AI
                   </span>
                 </div>
               </div>
@@ -122,11 +116,11 @@ export default function Navigation() {
                       onClick={() => router.push(item.path)}
                       className={`
                         flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
-                        transition-all duration-200
+                        transition-all duration-200 cursor-pointer
                         ${
                           isActive
                             ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm'
                         }
                       `}
                     >

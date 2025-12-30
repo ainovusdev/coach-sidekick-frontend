@@ -1,31 +1,39 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import Navigation from '@/components/layout/navigation'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
-import { 
-  User, 
-  Mail, 
-  Shield, 
-  Calendar, 
-  Edit2, 
-  Save, 
+import {
+  User,
+  Mail,
+  Shield,
+  Calendar,
+  Edit2,
+  Save,
   X,
   UserCheck,
   Users,
   Eye,
-  LockKeyhole
+  LockKeyhole,
 } from 'lucide-react'
 import axios from '@/lib/axios-config'
+import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
+import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
 interface UserProfile {
   id: string
@@ -52,8 +60,14 @@ export default function ProfilePage() {
     full_name: '',
     current_password: '',
     new_password: '',
-    confirm_password: ''
+    confirm_password: '',
   })
+
+  // Password strength validation
+  const passwordValidation = useMemo(
+    () => checkPasswordStrength(formData.new_password),
+    [formData.new_password],
+  )
 
   const fetchProfile = async () => {
     try {
@@ -62,14 +76,14 @@ export default function ProfilePage() {
       setProfile(response.data)
       setFormData(prev => ({
         ...prev,
-        full_name: response.data.full_name || ''
+        full_name: response.data.full_name || '',
       }))
     } catch (error) {
       console.error('Failed to fetch profile:', error)
       toast({
         title: 'Error',
         description: 'Failed to load profile',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     } finally {
       setLoading(false)
@@ -83,20 +97,35 @@ export default function ProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user])
 
-
   const handleUpdateProfile = async () => {
     try {
       const updateData: any = {
-        full_name: formData.full_name
+        full_name: formData.full_name,
       }
 
       // Only include password if changing it
       if (formData.new_password) {
+        if (!passwordValidation.isValid) {
+          toast({
+            title: 'Error',
+            description: 'Please meet all password requirements',
+            variant: 'destructive',
+          })
+          return
+        }
         if (formData.new_password !== formData.confirm_password) {
           toast({
             title: 'Error',
             description: 'Passwords do not match',
-            variant: 'destructive'
+            variant: 'destructive',
+          })
+          return
+        }
+        if (!formData.current_password) {
+          toast({
+            title: 'Error',
+            description: 'Current password is required to change password',
+            variant: 'destructive',
           })
           return
         }
@@ -109,21 +138,21 @@ export default function ProfilePage() {
       setIsEditing(false)
       toast({
         title: 'Success',
-        description: 'Profile updated successfully'
+        description: 'Profile updated successfully',
       })
-      
+
       // Clear password fields
       setFormData(prev => ({
         ...prev,
         current_password: '',
         new_password: '',
-        confirm_password: ''
+        confirm_password: '',
       }))
     } catch (error: any) {
       toast({
         title: 'Error',
         description: error.response?.data?.detail || 'Failed to update profile',
-        variant: 'destructive'
+        variant: 'destructive',
       })
     }
   }
@@ -134,7 +163,7 @@ export default function ProfilePage() {
       full_name: profile?.full_name || '',
       current_password: '',
       new_password: '',
-      confirm_password: ''
+      confirm_password: '',
     })
   }
 
@@ -168,9 +197,10 @@ export default function ProfilePage() {
   }
 
   const formatRoleName = (role: string) => {
-    return role.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ')
+    return role
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ')
   }
 
   if (loading) {
@@ -200,7 +230,9 @@ export default function ProfilePage() {
       <div className="container max-w-4xl mx-auto py-8 px-4">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">My Profile</h1>
-          <p className="text-gray-500 mt-2">Manage your account information and preferences</p>
+          <p className="text-gray-500 mt-2">
+            Manage your account information and preferences
+          </p>
         </div>
 
         <div className="grid gap-6">
@@ -210,7 +242,9 @@ export default function ProfilePage() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>Basic Information</CardTitle>
-                  <CardDescription>Your personal details and account settings</CardDescription>
+                  <CardDescription>
+                    Your personal details and account settings
+                  </CardDescription>
                 </div>
                 {!isEditing ? (
                   <Button
@@ -231,10 +265,7 @@ export default function ProfilePage() {
                       <X className="h-4 w-4 mr-2" />
                       Cancel
                     </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleUpdateProfile}
-                    >
+                    <Button size="sm" onClick={handleUpdateProfile}>
                       <Save className="h-4 w-4 mr-2" />
                       Save
                     </Button>
@@ -263,7 +294,12 @@ export default function ProfilePage() {
                     <Input
                       id="full_name"
                       value={formData.full_name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                      onChange={e =>
+                        setFormData(prev => ({
+                          ...prev,
+                          full_name: e.target.value,
+                        }))
+                      }
                       disabled={!isEditing}
                       placeholder="Enter your full name"
                     />
@@ -274,16 +310,27 @@ export default function ProfilePage() {
               {isEditing && (
                 <>
                   <div className="border-t pt-4">
-                    <h3 className="text-sm font-medium text-gray-900 mb-3">Change Password</h3>
-                    <p className="text-xs text-gray-500 mb-4">Leave blank to keep current password</p>
+                    <h3 className="text-sm font-medium text-gray-900 mb-3">
+                      Change Password
+                    </h3>
+                    <p className="text-xs text-gray-500 mb-4">
+                      Leave blank to keep current password
+                    </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <Label htmlFor="current_password">Current Password</Label>
+                        <Label htmlFor="current_password">
+                          Current Password
+                        </Label>
                         <Input
                           id="current_password"
                           type="password"
                           value={formData.current_password}
-                          onChange={(e) => setFormData(prev => ({ ...prev, current_password: e.target.value }))}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              current_password: e.target.value,
+                            }))
+                          }
                           placeholder="••••••••"
                         />
                       </div>
@@ -293,21 +340,42 @@ export default function ProfilePage() {
                           id="new_password"
                           type="password"
                           value={formData.new_password}
-                          onChange={(e) => setFormData(prev => ({ ...prev, new_password: e.target.value }))}
-                          placeholder="••••••••"
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              new_password: e.target.value,
+                            }))
+                          }
+                          placeholder="Create a strong password"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="confirm_password">Confirm Password</Label>
+                        <Label htmlFor="confirm_password">
+                          Confirm Password
+                        </Label>
                         <Input
                           id="confirm_password"
                           type="password"
                           value={formData.confirm_password}
-                          onChange={(e) => setFormData(prev => ({ ...prev, confirm_password: e.target.value }))}
+                          onChange={e =>
+                            setFormData(prev => ({
+                              ...prev,
+                              confirm_password: e.target.value,
+                            }))
+                          }
                           placeholder="••••••••"
                         />
                       </div>
                     </div>
+                    {formData.new_password && (
+                      <div className="mt-4">
+                        <PasswordStrengthIndicator
+                          strength={passwordValidation.strength}
+                          score={passwordValidation.score}
+                          showRequirements={true}
+                        />
+                      </div>
+                    )}
                   </div>
                 </>
               )}
@@ -318,12 +386,18 @@ export default function ProfilePage() {
                     <Label>Account Status</Label>
                     <div className="mt-1">
                       {profile?.is_active ? (
-                        <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-green-50 text-green-700 border-green-200"
+                        >
                           <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
                           Active
                         </Badge>
                       ) : (
-                        <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                        <Badge
+                          variant="outline"
+                          className="bg-red-50 text-red-700 border-red-200"
+                        >
                           <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
                           Inactive
                         </Badge>
@@ -335,11 +409,16 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-2 mt-1">
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700">
-                        {profile?.created_at ? new Date(profile.created_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric'
-                        }) : '-'}
+                        {profile?.created_at
+                          ? new Date(profile.created_at).toLocaleDateString(
+                              'en-US',
+                              {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              },
+                            )
+                          : '-'}
                       </span>
                     </div>
                   </div>
@@ -352,7 +431,9 @@ export default function ProfilePage() {
           <Card>
             <CardHeader>
               <CardTitle>Roles & Permissions</CardTitle>
-              <CardDescription>Your assigned roles and access levels</CardDescription>
+              <CardDescription>
+                Your assigned roles and access levels
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -366,7 +447,10 @@ export default function ProfilePage() {
                           <Badge
                             key={role}
                             variant="outline"
-                            className={cn('flex items-center gap-1', getRoleBadgeColor(role))}
+                            className={cn(
+                              'flex items-center gap-1',
+                              getRoleBadgeColor(role),
+                            )}
                           >
                             <Icon className="h-3 w-3" />
                             {formatRoleName(role)}
@@ -374,44 +458,57 @@ export default function ProfilePage() {
                         )
                       })
                     ) : (
-                      <span className="text-sm text-gray-500">No roles assigned</span>
+                      <span className="text-sm text-gray-500">
+                        No roles assigned
+                      </span>
                     )}
                   </div>
                 </div>
 
                 {/* Show client access for coaches and viewers */}
-                {(hasRole('coach') || hasRole('viewer')) && profile?.client_access && profile.client_access.length > 0 && (
-                  <div className="border-t pt-4">
-                    <Label>Client Access</Label>
-                    <div className="mt-2 space-y-2">
-                      {profile.client_access.map(access => (
-                        <div key={access.client_id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
-                              <Users className="h-4 w-4 text-gray-600" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-medium text-gray-900">{access.client_name}</p>
-                              <p className="text-xs text-gray-500">ID: {access.client_id}</p>
-                            </div>
-                          </div>
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              'text-xs',
-                              access.access_level === 'full' 
-                                ? 'bg-green-50 text-green-700 border-green-200'
-                                : 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                            )}
+                {(hasRole('coach') || hasRole('viewer')) &&
+                  profile?.client_access &&
+                  profile.client_access.length > 0 && (
+                    <div className="border-t pt-4">
+                      <Label>Client Access</Label>
+                      <div className="mt-2 space-y-2">
+                        {profile.client_access.map(access => (
+                          <div
+                            key={access.client_id}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                           >
-                            <LockKeyhole className="h-3 w-3 mr-1" />
-                            {access.access_level === 'full' ? 'Full Access' : 'Read Only'}
-                          </Badge>
-                        </div>
-                      ))}
+                            <div className="flex items-center gap-3">
+                              <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                <Users className="h-4 w-4 text-gray-600" />
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {access.client_name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  ID: {access.client_id}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge
+                              variant="outline"
+                              className={cn(
+                                'text-xs',
+                                access.access_level === 'full'
+                                  ? 'bg-green-50 text-green-700 border-green-200'
+                                  : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                              )}
+                            >
+                              <LockKeyhole className="h-3 w-3 mr-1" />
+                              {access.access_level === 'full'
+                                ? 'Full Access'
+                                : 'Read Only'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </CardContent>
           </Card>

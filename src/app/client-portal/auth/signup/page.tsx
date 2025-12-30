@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -15,7 +15,9 @@ import {
 } from '@/components/ui/card'
 import { ApiClient } from '@/lib/api-client'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import authService from '@/services/auth-service' // NEW
+import authService from '@/services/auth-service'
+import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
+import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
 interface InvitationInfo {
   valid: boolean
@@ -41,6 +43,12 @@ function ClientSignupContent() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isValidating, setIsValidating] = useState(true)
+
+  // Password strength validation
+  const passwordValidation = useMemo(
+    () => checkPasswordStrength(password),
+    [password],
+  )
 
   useEffect(() => {
     if (token) {
@@ -71,15 +79,16 @@ function ClientSignupContent() {
     e.preventDefault()
     setError('')
 
-    // NEW: For existing users, password is optional
+    // For existing users, password is optional
     if (password || !invitationInfo?.existing_user) {
       if (password !== confirmPassword) {
         setError('Passwords do not match')
         return
       }
 
-      if (password && password.length < 8) {
-        setError('Password must be at least 8 characters')
+      // Enforce strong password requirements
+      if (password && !passwordValidation.isValid) {
+        setError('Please meet all password requirements')
         return
       }
     }
@@ -210,16 +219,24 @@ function ClientSignupContent() {
                 placeholder={
                   invitationInfo.existing_user
                     ? 'Leave blank to keep current password'
-                    : 'At least 8 characters'
+                    : 'Create a strong password'
                 }
                 required={!invitationInfo.existing_user}
-                minLength={8}
               />
-              <p className="text-xs text-muted-foreground mt-1">
-                {invitationInfo.existing_user
-                  ? 'Leave blank to keep your current password'
-                  : 'Must be at least 8 characters'}
-              </p>
+              {password && (
+                <div className="mt-2">
+                  <PasswordStrengthIndicator
+                    strength={passwordValidation.strength}
+                    score={passwordValidation.score}
+                    showRequirements={true}
+                  />
+                </div>
+              )}
+              {!password && invitationInfo.existing_user && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Leave blank to keep your current password
+                </p>
+              )}
             </div>
 
             <div>
