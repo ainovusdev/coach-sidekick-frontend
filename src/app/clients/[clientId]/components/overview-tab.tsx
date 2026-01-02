@@ -114,7 +114,7 @@ export function OverviewTab({
                 Commitments ({totalCommitments})
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Track all commitments across goals and sprints
+                Track all commitments across outcomes and sprints
               </p>
             </div>
             {!isViewer && onCreateCommitment && (

@@ -153,9 +153,8 @@ class CoachingAnalysisService {
 
       if (clientId) {
         try {
-          historicalContext = await personalAIHistoryService.getRelevantContext(
-            clientId,
-          )
+          historicalContext =
+            await personalAIHistoryService.getRelevantContext(clientId)
         } catch (error) {
           console.warn(
             `Failed to get historical context for client ${clientId}:`,
@@ -173,7 +172,7 @@ class CoachingAnalysisService {
       )
 
       const response = await openai.chat.completions.create({
-        model: 'gpt-4o',
+        model: 'gpt-4.1',
         messages: [
           {
             role: 'system',
@@ -660,7 +659,12 @@ Format each suggestion clearly and make them practical for real-time use.`
     userCoachingPreference?: string | null,
   ): Promise<CoachingAnalysis> {
     // This is an alias for the main analysis method which now includes historical context
-    return this.analyzeConversation(botId, transcript, lastAnalyzedIndex, userCoachingPreference)
+    return this.analyzeConversation(
+      botId,
+      transcript,
+      lastAnalyzedIndex,
+      userCoachingPreference,
+    )
   }
 }
 

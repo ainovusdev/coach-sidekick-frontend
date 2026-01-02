@@ -230,11 +230,11 @@ export function CurrentSprintWidget({
           className="w-full"
           onClick={e => {
             e.stopPropagation()
-            // Navigate to client sprint view
+            // Navigate to commitments view for client portal
             const isClientPortal =
               window.location.pathname.includes('/client-portal')
             if (isClientPortal) {
-              router.push(`/client-portal/sprints/${sprint.id}`)
+              router.push('/client-portal/my-commitments')
             } else {
               // For coaches, navigate to a sprint details modal or trigger tab switch
               if (window.location.pathname.includes('/clients/')) {

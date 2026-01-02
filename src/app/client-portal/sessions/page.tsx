@@ -179,7 +179,7 @@ export default function ClientSessionsPage() {
           <div className="h-8 w-px bg-gray-200" />
           <div className="text-center">
             <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
-            <p className="text-xs text-gray-500">Tasks</p>
+            <p className="text-xs text-gray-500">Commitments</p>
           </div>
         </div>
       </div>
@@ -317,7 +317,7 @@ export default function ClientSessionsPage() {
                       {session.tasks_assigned > 0 && (
                         <span className="flex items-center gap-1">
                           <FileText className="h-3.5 w-3.5" />
-                          {session.tasks_assigned} tasks
+                          {session.tasks_assigned} commitments
                         </span>
                       )}
                       {session.action_items &&

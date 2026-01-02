@@ -265,7 +265,7 @@ export function CommitmentForm({
                               isSelected ? 'opacity-90' : 'text-gray-600',
                             )}
                           >
-                            {goalInfo && <div>Goal: {goalInfo.title}</div>}
+                            {goalInfo && <div>Vision: {goalInfo.title}</div>}
                             {sprintInfo && (
                               <div>Sprint: {sprintInfo.title}</div>
                             )}

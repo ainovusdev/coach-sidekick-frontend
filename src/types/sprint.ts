@@ -16,6 +16,7 @@ export interface SprintBase {
 export interface SprintCreate extends SprintBase {
   client_id: string
   status?: SprintStatus
+  target_ids: string[] // Required - at least one outcome must be linked
 }
 
 export interface SprintUpdate {

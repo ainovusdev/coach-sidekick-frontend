@@ -21,7 +21,6 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { SprintService } from '@/services/sprint-service'
-import { TargetService } from '@/services/target-service'
 import { SprintCreate } from '@/types/sprint'
 import { toast } from 'sonner'
 import { addWeeks, format } from 'date-fns'
@@ -77,6 +76,14 @@ export function SprintFormModal({
       return
     }
 
+    if (selectedOutcomeIds.length === 0) {
+      toast.error('At least one outcome is required', {
+        description:
+          'Please select or create an outcome before creating a sprint',
+      })
+      return
+    }
+
     setLoading(true)
 
     // Optimistic ID for new sprint
@@ -90,6 +97,7 @@ export function SprintFormModal({
         start_date: format(startDate, 'yyyy-MM-dd'),
         end_date: format(endDate, 'yyyy-MM-dd'),
         status: formData.status,
+        target_ids: selectedOutcomeIds, // Required - linked outcomes
       }
 
       // Optimistic update - add sprint immediately
@@ -124,31 +132,8 @@ export function SprintFormModal({
       setEndDate(addWeeks(new Date(), 6))
       setSelectedOutcomeIds([])
 
-      // Actual API call
-      const createdSprint = await SprintService.createSprint(sprintData)
-
-      // Link selected outcomes to the sprint
-      if (selectedOutcomeIds.length > 0) {
-        for (const outcomeId of selectedOutcomeIds) {
-          try {
-            // Get the current outcome
-            const outcome = clientTargets.find((t: any) => t.id === outcomeId)
-            if (outcome) {
-              // Update outcome to include this sprint
-              const updatedSprintIds = [
-                ...(outcome.sprint_ids || []),
-                createdSprint.id,
-              ]
-              await TargetService.updateTarget(outcomeId, {
-                sprint_ids: updatedSprintIds,
-              })
-            }
-          } catch (linkError) {
-            console.error(`Failed to link outcome ${outcomeId}:`, linkError)
-            // Continue with other outcomes even if one fails
-          }
-        }
-      }
+      // Create sprint with linked outcomes (handled atomically by backend)
+      await SprintService.createSprint(sprintData)
 
       // Invalidate sprint queries to get real data from server
       await queryClient.invalidateQueries({
@@ -288,9 +273,9 @@ export function SprintFormModal({
               </div>
             </div>
 
-            {/* Outcome Selection */}
+            {/* Outcome Selection - Required */}
             <div className="space-y-3">
-              <Label>Link Outcomes (optional)</Label>
+              <Label>Link Outcomes * (select at least one)</Label>
               {clientTargets.length > 0 ? (
                 <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
                   {clientTargets.map((outcome: any) => {
@@ -346,9 +331,10 @@ export function SprintFormModal({
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500 p-4 border rounded-lg bg-gray-50">
-                  No outcomes available. Create outcomes first to link them to
-                  this sprint.
+                <div className="text-sm text-amber-700 p-4 border border-amber-200 rounded-lg bg-amber-50">
+                  <strong>No outcomes available.</strong> You must create at
+                  least one outcome before creating a sprint. Go to the Outcomes
+                  section to create one first.
                 </div>
               )}
               {selectedOutcomeIds.length > 0 && (
@@ -368,7 +354,13 @@ export function SprintFormModal({
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button
+              type="submit"
+              disabled={loading || clientTargets.length === 0}
+              title={
+                clientTargets.length === 0 ? 'Create outcomes first' : undefined
+              }
+            >
               {loading ? 'Creating...' : 'Create Sprint'}
             </Button>
           </DialogFooter>

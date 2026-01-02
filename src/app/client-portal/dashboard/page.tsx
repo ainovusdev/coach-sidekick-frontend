@@ -5,7 +5,6 @@ import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
@@ -16,7 +15,6 @@ import {
   FileText,
   Flame,
   ChevronRight,
-  BarChart3,
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
@@ -182,7 +180,7 @@ export default function ClientDashboard() {
             <p className="text-2xl font-bold text-gray-900">
               {dashboardData.stats?.active_goals || 0}
             </p>
-            <p className="text-xs text-gray-500">Goals</p>
+            <p className="text-xs text-gray-500">Outcomes</p>
           </div>
           <div className="h-8 w-px bg-gray-200" />
           <div className="text-center">
@@ -319,46 +317,6 @@ export default function ClientDashboard() {
             clientId={dashboardData.client_info?.id}
             limit={5}
           />
-
-          {/* Progress Overview */}
-          <Card className="border-gray-200">
-            <CardHeader>
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-gray-600" />
-                Progress Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <span className="text-gray-600">Tasks Completed</span>
-                  <span className="font-medium text-gray-900">
-                    {dashboardData.stats?.completed_tasks || 0} /{' '}
-                    {(dashboardData.stats?.completed_tasks || 0) +
-                      (dashboardData.stats?.pending_tasks || 0)}
-                  </span>
-                </div>
-                <Progress value={completionRate} className="h-2" />
-              </div>
-
-              <div className="pt-3 border-t border-gray-100">
-                <div className="grid grid-cols-2 gap-4 text-center">
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {dashboardData.stats?.pending_tasks || 0}
-                    </div>
-                    <div className="text-xs text-gray-500">In Progress</div>
-                  </div>
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      {dashboardData.stats?.completed_tasks || 0}
-                    </div>
-                    <div className="text-xs text-gray-500">Completed</div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
 

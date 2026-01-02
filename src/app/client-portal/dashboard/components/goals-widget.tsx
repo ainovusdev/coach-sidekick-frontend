@@ -68,8 +68,8 @@ export function GoalsWidget({ goals }: GoalsWidgetProps) {
           <div className="text-center py-8">
             <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
             <p className="text-gray-500">
-              No outcomes set yet. Your coach will help you establish goals in
-              your next session.
+              No outcomes set yet. Your coach will help you establish outcomes
+              in your next session.
             </p>
           </div>
         </CardContent>
