@@ -61,6 +61,20 @@ export interface ClientListResponse {
   per_page: number
 }
 
+// Simple client for dropdowns/dashboard (lightweight)
+export interface SimpleClient {
+  id: string
+  name: string
+  email?: string
+  is_my_client?: boolean
+  coach_name?: string
+}
+
+export interface SimpleClientListResponse {
+  clients: SimpleClient[]
+  total: number
+}
+
 // Transform backend client to UI client format
 // Preserve ALL fields from backend to avoid data loss
 function transformClient(backendClient: BackendClient): Client {
@@ -82,9 +96,29 @@ function transformClient(backendClient: BackendClient): Client {
 }
 
 export class ClientService {
+  /**
+   * Lightweight client list for dropdowns and dashboard.
+   * Only fetches id, name, email - much faster than full list.
+   */
+  static async listClientsSimple(
+    search?: string,
+  ): Promise<SimpleClientListResponse> {
+    const params = new URLSearchParams()
+    if (search) params.append('search', search)
+    const queryString = params.toString()
+    const url = `${BACKEND_URL}/clients/simple${queryString ? `?${queryString}` : ''}`
+
+    return await ApiClient.get(url)
+  }
+
+  /**
+   * Full client list with all details (session stats, invitation status, etc.)
+   * Use only on dedicated clients page where all data is needed.
+   * Fetches all clients (up to 100) to avoid pagination issues.
+   */
   static async listClients(): Promise<ClientListResponse> {
     const response: BackendClientListResponse = await ApiClient.get(
-      `${BACKEND_URL}/clients/`,
+      `${BACKEND_URL}/clients/?per_page=100`,
     )
 
     return {

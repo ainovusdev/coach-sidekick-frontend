@@ -39,6 +39,40 @@ export function useCommitments(
 }
 
 /**
+ * Hook to fetch commitments assigned to the current coach
+ *
+ * Features:
+ * - Fetches only commitments where assigned_to_id matches the current user
+ * - Excludes completed commitments by default
+ * - Cached for 3 minutes
+ *
+ * @param includeCompleted - Whether to include completed commitments (default: false)
+ * @param options - Additional react-query options
+ *
+ * @example
+ * const { data } = useMyCommitments()
+ * const myCommitments = data?.commitments ?? []
+ */
+export function useMyCommitments(
+  includeCompleted?: boolean,
+  options?: Omit<
+    UseQueryOptions<CommitmentListResponse>,
+    'queryKey' | 'queryFn'
+  >,
+) {
+  return useQuery({
+    queryKey: [
+      ...queryKeys.commitments.all,
+      'my-commitments',
+      { includeCompleted },
+    ],
+    queryFn: () => CommitmentService.getMyCommitments(includeCompleted),
+    staleTime: 3 * 60 * 1000, // 3 minutes
+    ...options,
+  })
+}
+
+/**
  * Hook to fetch a single commitment by ID
  *
  * @param commitmentId - The commitment ID to fetch

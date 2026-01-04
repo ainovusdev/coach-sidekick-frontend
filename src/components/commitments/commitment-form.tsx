@@ -29,7 +29,8 @@ import {
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useTargets } from '@/hooks/queries/use-targets'
-import { Check } from 'lucide-react'
+import { useAuth } from '@/contexts/auth-context'
+import { Check, User, Briefcase } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CommitmentFormProps {
@@ -66,6 +67,8 @@ export function CommitmentForm({
   const [loading, setLoading] = useState(false)
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [assigneeType, setAssigneeType] = useState<'client' | 'coach'>('client')
+  const { user } = useAuth()
   const [formData, setFormData] = useState<CommitmentCreate>({
     client_id: defaultClientId || '',
     session_id: defaultSessionId,
@@ -76,6 +79,7 @@ export function CommitmentForm({
     start_date: undefined,
     target_date: undefined,
     measurement_criteria: '',
+    assigned_to_id: undefined,
   })
 
   // Fetch goals, sprints, and targets (outcomes) for linking
@@ -116,7 +120,10 @@ export function CommitmentForm({
           measurement_criteria: commitment.measurement_criteria || '',
           goal_id: commitment.goal_id || null,
           sprint_id: commitment.sprint_id || null,
+          assigned_to_id: commitment.assigned_to_id,
         })
+        // Set assignee type based on existing commitment
+        setAssigneeType(commitment.assigned_to_id ? 'coach' : 'client')
       } else {
         setFormData({
           client_id: defaultClientId || '',
@@ -130,7 +137,9 @@ export function CommitmentForm({
           measurement_criteria: '',
           goal_id: null,
           sprint_id: null,
+          assigned_to_id: undefined,
         })
+        setAssigneeType('client')
       }
     }
   }, [open, commitment, defaultClientId, defaultSessionId])
@@ -191,6 +200,42 @@ export function CommitmentForm({
                 required
                 maxLength={200}
               />
+            </div>
+
+            {/* Assign To */}
+            <div className="space-y-2">
+              <Label>Assign To</Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={assigneeType === 'client' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setAssigneeType('client')
+                    updateField('assigned_to_id', undefined)
+                  }}
+                  className="flex-1"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  Client Task
+                </Button>
+                <Button
+                  type="button"
+                  variant={assigneeType === 'coach' ? 'default' : 'outline'}
+                  onClick={() => {
+                    setAssigneeType('coach')
+                    updateField('assigned_to_id', user?.id)
+                  }}
+                  className="flex-1"
+                >
+                  <Briefcase className="h-4 w-4 mr-2" />
+                  My Task (Coach)
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {assigneeType === 'client'
+                  ? 'This commitment is for your client to complete'
+                  : 'This is your own action item related to this client'}
+              </p>
             </div>
 
             {/* Description */}

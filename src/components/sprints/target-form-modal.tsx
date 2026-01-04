@@ -25,7 +25,8 @@ interface TargetFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   sprintId?: string
-  goals: Array<{ id: string; title: string }>
+  goals?: Array<{ id: string; title: string }>
+  clientId?: string
   onSuccess?: () => void
 }
 
@@ -33,7 +34,8 @@ export function TargetFormModal({
   open,
   onOpenChange,
   sprintId,
-  goals,
+  goals = [],
+  clientId: _clientId,
   onSuccess,
 }: TargetFormModalProps) {
   const queryClient = useQueryClient()

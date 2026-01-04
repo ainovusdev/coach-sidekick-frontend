@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
 import { CoachRoute } from '@/components/auth/coach-route'
 import { usePermissions } from '@/contexts/permission-context'
+import { useAuth } from '@/contexts/auth-context'
 import { useDashboardData } from './hooks/use-dashboard-data'
 import RecentClients from './components/recent-clients'
 import RecentSessions from './components/recent-sessions'
 import StartRecording from './components/start-recording'
 import SystemStatus from './components/system-status'
+import { MyCommitments } from './components/my-commitments'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { Eye, Plus, PlayCircle, FileText } from 'lucide-react'
@@ -20,10 +22,14 @@ import { Button } from '@/components/ui/button'
 export default function CoachDashboard() {
   const router = useRouter()
   const permissions = usePermissions()
+  const { user } = useAuth()
   const canCreateMeeting = permissions.canCreateMeeting()
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
+
+  // Get first name for personalized greeting
+  const firstName = user?.full_name?.split(' ')[0] || 'there'
 
   const {
     meetingHistory,
@@ -58,23 +64,28 @@ export default function CoachDashboard() {
     return (
       <CoachRoute>
         <PageLayout>
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Header */}
-            <div className="mb-8">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Personalized Welcome Header */}
+            <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Dashboard
+                Welcome, {firstName}!
               </h1>
-              <p className="text-gray-600">
-                Get started by creating your first client.
+              <p className="text-gray-600 text-lg">
+                Let&apos;s set up your coaching workspace in just 2 steps.
               </p>
             </div>
 
-            {/* Getting Started Section */}
+            {/* Getting Started Card */}
             <Card className="border-gray-200 mb-6">
               <CardHeader className="border-b border-gray-200">
-                <CardTitle className="text-xl text-gray-900">
-                  Getting Started
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl text-gray-900">
+                    Getting Started
+                  </CardTitle>
+                  <Badge variant="outline" className="text-gray-600">
+                    2 steps
+                  </Badge>
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-6">
@@ -85,11 +96,11 @@ export default function CoachDashboard() {
                     </div>
                     <div className="flex-1">
                       <h3 className="text-base font-semibold text-gray-900 mb-1">
-                        Create a Client
+                        Create Your First Client
                       </h3>
                       <p className="text-sm text-gray-600 mb-3">
-                        Add a client to start tracking their coaching journey
-                        and sessions.
+                        Add a client to organize their coaching journey, track
+                        sessions, and monitor progress.
                       </p>
                       <Button
                         onClick={() => setIsClientModalOpen(true)}
@@ -103,56 +114,46 @@ export default function CoachDashboard() {
 
                   <div className="border-t border-gray-200" />
 
-                  {/* Step 2: Start Session */}
-                  <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-600 text-sm font-semibold flex-shrink-0">
+                  {/* Step 2: Start Session (Disabled until client is created) */}
+                  <div className="flex items-start gap-4 opacity-50">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 text-gray-400 text-sm font-semibold flex-shrink-0">
                       2
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 mb-1">
-                        Start a Session
+                      <h3 className="text-base font-semibold text-gray-500 mb-1">
+                        Record a Session
                       </h3>
-                      <p className="text-sm text-gray-600 mb-3">
-                        Join a live meeting or upload a past session transcript
-                        for analysis.
+                      <p className="text-sm text-gray-400 mb-3">
+                        Join a live meeting or upload a past session to get
+                        AI-powered insights.
                       </p>
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2">
                         <Button
                           variant="outline"
                           disabled
-                          className="text-gray-400"
+                          className="text-gray-400 border-gray-200"
                         >
                           <PlayCircle className="h-4 w-4 mr-2" />
                           Start Live Session
                         </Button>
                         <Button
                           variant="outline"
-                          onClick={() => setIsManualSessionModalOpen(true)}
+                          disabled
+                          className="text-gray-400 border-gray-200"
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Add Past Session
                         </Button>
                       </div>
+                      {/* Explanation for disabled step */}
+                      <p className="text-xs text-gray-400 mt-2">
+                        Complete Step 1 first to unlock this step
+                      </p>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* Empty States */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <RecentClients
-                clients={clients}
-                clientsLoading={clientsLoading}
-              />
-              <RecentSessions
-                meetingHistory={meetingHistory}
-                historyLoading={historyLoading}
-                historyError={historyError}
-                totalSessions={totalSessions}
-                onRefetch={refetch}
-              />
-            </div>
           </div>
 
           {/* Client Modal */}
@@ -251,6 +252,9 @@ export default function CoachDashboard() {
               </div>
             )}
           </div>
+
+          {/* My Commitments Section (Coach Action Items) */}
+          <MyCommitments />
 
           {/* Bottom Section: Recent Sessions (Full Width) */}
           <RecentSessions

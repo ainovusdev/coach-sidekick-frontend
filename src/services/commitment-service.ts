@@ -22,6 +22,31 @@ const BACKEND_URL =
 
 export class CommitmentService {
   /**
+   * Get commitments assigned to the current coach
+   */
+  static async getMyCommitments(
+    includeCompleted?: boolean,
+  ): Promise<CommitmentListResponse> {
+    const params = new URLSearchParams()
+    if (includeCompleted) params.append('include_completed', 'true')
+
+    const queryString = params.toString()
+    const url = `${BACKEND_URL}/commitments/my-commitments${queryString ? `?${queryString}` : ''}`
+
+    const response = await ApiClient.get(url)
+
+    // Backend returns array directly, wrap it in expected format
+    if (Array.isArray(response)) {
+      return {
+        commitments: response,
+        total: response.length,
+      }
+    }
+
+    return response
+  }
+
+  /**
    * List commitments with optional filters
    */
   static async listCommitments(
@@ -35,6 +60,10 @@ export class CommitmentService {
     if (filters?.session_id) params.append('session_id', filters.session_id)
     if (filters?.include_drafts !== undefined)
       params.append('include_drafts', String(filters.include_drafts))
+    if (filters?.assigned_to_id)
+      params.append('assigned_to_id', filters.assigned_to_id)
+    if (filters?.assigned_to_type)
+      params.append('assigned_to_type', filters.assigned_to_type)
 
     const queryString = params.toString()
     const url = `${BACKEND_URL}/commitments/${queryString ? `?${queryString}` : ''}`
