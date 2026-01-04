@@ -5,7 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Loader2, Link } from 'lucide-react'
 import ClientSelector from '@/components/clients/client-selector'
+import ClientModal from '@/components/clients/client-modal'
 import { Client } from '@/types/meeting'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 
 interface MeetingFormSimpleProps {
   onSubmit: (meetingUrl: string, clientId?: string) => void | Promise<void>
@@ -18,6 +21,8 @@ export function MeetingFormSimple({
 }: MeetingFormSimpleProps) {
   const [meetingUrl, setMeetingUrl] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [isClientModalOpen, setIsClientModalOpen] = useState(false)
+  const queryClient = useQueryClient()
 
   const validateUrl = (url: string) => {
     const zoomRegex = /^https:\/\/.*zoom\.us\/j\/\d+/
@@ -49,48 +54,61 @@ export function MeetingFormSimple({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <ClientSelector
-          selectedClientId={selectedClient?.id}
-          onClientSelect={setSelectedClient}
-          placeholder="Select client (optional)"
-          allowNone={true}
-        />
-      </div>
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <ClientSelector
+            selectedClientId={selectedClient?.id}
+            onClientSelect={setSelectedClient}
+            placeholder="Select client (optional)"
+            allowNone={true}
+            onAddClient={() => setIsClientModalOpen(true)}
+          />
+        </div>
 
-      <div className="relative">
-        <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          type="url"
-          value={meetingUrl}
-          onChange={e => setMeetingUrl(e.target.value)}
-          placeholder="Paste meeting URL (Zoom, Meet, or Teams)"
-          className="pl-10"
-          disabled={loading}
-        />
-      </div>
+        <div className="relative">
+          <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            type="url"
+            value={meetingUrl}
+            onChange={e => setMeetingUrl(e.target.value)}
+            placeholder="Paste meeting URL (Zoom, Meet, or Teams)"
+            className="pl-10"
+            disabled={loading}
+          />
+        </div>
 
-      <Button
-        type="submit"
-        disabled={
-          loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())
-        }
-        className="w-full bg-gray-900 hover:bg-gray-800 text-white"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Starting...
-          </>
-        ) : (
-          'Start Recording'
-        )}
-      </Button>
+        <Button
+          type="submit"
+          disabled={
+            loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())
+          }
+          className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Starting...
+            </>
+          ) : (
+            'Start Recording'
+          )}
+        </Button>
 
-      <p className="text-xs text-center text-gray-500">
-        Works with Zoom, Google Meet, and Teams
-      </p>
-    </form>
+        <p className="text-xs text-center text-gray-500">
+          Works with Zoom, Google Meet, and Teams
+        </p>
+      </form>
+
+      <ClientModal
+        isOpen={isClientModalOpen}
+        onClose={() => setIsClientModalOpen(false)}
+        onClientCreated={newClient => {
+          setSelectedClient(newClient)
+          queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+        }}
+        mode="create"
+      />
+    </>
   )
 }

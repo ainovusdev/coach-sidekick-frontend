@@ -303,6 +303,44 @@ class AdminService {
     const response = await axiosInstance.get(`/access/users-by-role/${role}`)
     return response.data
   }
+
+  // Coach Invitation Management
+  async sendCoachInvitation(email: string): Promise<CoachInvitation> {
+    const response = await axiosInstance.post('/admin/coach-invitations', {
+      email,
+    })
+    return response.data
+  }
+
+  async getCoachInvitations(): Promise<CoachInvitation[]> {
+    const response = await axiosInstance.get('/admin/coach-invitations')
+    return response.data
+  }
+
+  async revokeCoachInvitation(invitationId: string): Promise<void> {
+    await axiosInstance.delete(`/admin/coach-invitations/${invitationId}`)
+  }
+
+  async resendCoachInvitation(invitationId: string): Promise<{
+    message: string
+    expires_at: string
+  }> {
+    const response = await axiosInstance.post(
+      `/admin/coach-invitations/${invitationId}/resend`,
+    )
+    return response.data
+  }
+}
+
+// Coach Invitation Types
+export interface CoachInvitation {
+  id: string
+  email: string
+  invited_by_name: string | null
+  expires_at: string
+  created_at: string
+  accepted_at: string | null
+  status: 'pending' | 'accepted' | 'expired'
 }
 
 export const adminService = AdminService.getInstance()

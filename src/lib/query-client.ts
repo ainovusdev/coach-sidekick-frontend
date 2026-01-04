@@ -54,6 +54,7 @@ export const queryKeys = {
     lists: () => [...queryKeys.clients.all, 'list'] as const,
     list: (filters?: Record<string, any>) =>
       [...queryKeys.clients.lists(), { filters }] as const,
+    simple: () => [...queryKeys.clients.all, 'simple'] as const, // Lightweight list for dropdowns
     details: () => [...queryKeys.clients.all, 'detail'] as const,
     detail: (id: string) => [...queryKeys.clients.details(), id] as const,
     sessions: (id: string) =>

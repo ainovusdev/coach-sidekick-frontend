@@ -5,14 +5,16 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client } from '@/types/meeting'
-import { useClients, useClient } from '@/hooks/queries/use-clients'
-import { FileText } from 'lucide-react'
+import { useClientsSimple, useClient } from '@/hooks/queries/use-clients'
+import { SimpleClient } from '@/services/client-service'
+import { Plus } from 'lucide-react'
 
 interface ClientSelectorProps {
   selectedClientId?: string
   onClientSelect: (client: Client | null) => void
   placeholder?: string
   allowNone?: boolean
+  onAddClient?: () => void
 }
 
 export default function ClientSelector({
@@ -20,14 +22,15 @@ export default function ClientSelector({
   onClientSelect,
   placeholder = 'Search and select a client...',
   allowNone = true,
+  onAddClient,
 }: ClientSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
 
-  // Use TanStack Query for clients - automatic caching!
-  const { data: clientsData, isLoading: loading } = useClients()
-  const clients = clientsData?.clients ?? []
+  // Use lightweight clients query for fast loading
+  const { data: clientsData, isLoading: loading } = useClientsSimple()
+  const clients: SimpleClient[] = clientsData?.clients ?? []
 
   // Fetch selected client if provided (uses cache if available)
   const { data: fetchedSelectedClient } = useClient(
@@ -46,7 +49,7 @@ export default function ClientSelector({
     return clients.filter(
       client =>
         client.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.notes?.toLowerCase().includes(searchTerm.toLowerCase()),
+        client.email?.toLowerCase().includes(searchTerm.toLowerCase()),
     )
   }, [clients, searchTerm])
 
@@ -134,6 +137,22 @@ export default function ClientSelector({
             </div>
           )}
 
+          {/* Add Client Option */}
+          {onAddClient && (
+            <div
+              className="px-3 py-2.5 hover:bg-neutral-50 cursor-pointer flex items-center gap-2 border-b border-neutral-100"
+              onClick={() => {
+                setIsOpen(false)
+                onAddClient()
+              }}
+            >
+              <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
+                <Plus className="h-4 w-4 text-white" />
+              </div>
+              <span className="font-medium text-gray-900">Add new client</span>
+            </div>
+          )}
+
           <div className="py-1">
             {allowNone && !selectedClient && (
               <div
@@ -159,7 +178,7 @@ export default function ClientSelector({
                 <div
                   key={client.id}
                   className="px-3 py-2 hover:bg-neutral-50 cursor-pointer flex items-center gap-3"
-                  onClick={() => handleClientSelect(client)}
+                  onClick={() => handleClientSelect(client as Client)}
                 >
                   <Avatar className="h-8 w-8 bg-neutral-100 border border-neutral-200">
                     <AvatarFallback className="bg-white text-neutral-700 text-sm">
@@ -172,10 +191,9 @@ export default function ClientSelector({
                         {client.name}
                       </span>
                     </div>
-                    {client.notes && (
-                      <div className="text-sm text-neutral-500 truncate flex items-center gap-1">
-                        <FileText className="h-3 w-3" />
-                        {client.notes}
+                    {client.email && (
+                      <div className="text-sm text-neutral-500 truncate">
+                        {client.email}
                       </div>
                     )}
                   </div>

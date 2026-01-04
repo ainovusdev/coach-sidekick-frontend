@@ -1,16 +1,46 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
-import { ClientService, ClientListResponse } from '@/services/client-service'
+import {
+  ClientService,
+  ClientListResponse,
+  SimpleClientListResponse,
+} from '@/services/client-service'
 import { SessionService, SessionListResponse } from '@/services/session-service'
 import { Client } from '@/types/meeting'
 import { queryKeys } from '@/lib/query-client'
 
 /**
- * Hook to fetch all clients list
+ * Hook to fetch lightweight client list for dropdowns and dashboard
  *
  * Features:
+ * - Only fetches id, name, email - much faster than full list
  * - Cached for 5 minutes
- * - Automatic deduplication (multiple components using this = 1 request)
- * - Stale-while-revalidate: shows cached data immediately, fetches fresh in background
+ * - Use this for client selectors, dropdowns, and anywhere you just need basic client info
+ *
+ * @example
+ * const { data, isLoading } = useClientsSimple()
+ * const clients = data?.clients ?? []
+ */
+export function useClientsSimple(
+  options?: Omit<
+    UseQueryOptions<SimpleClientListResponse>,
+    'queryKey' | 'queryFn'
+  >,
+) {
+  return useQuery({
+    queryKey: queryKeys.clients.simple(),
+    queryFn: () => ClientService.listClientsSimple(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    ...options,
+  })
+}
+
+/**
+ * Hook to fetch full clients list with all details
+ *
+ * Features:
+ * - Includes session stats, invitation status, portal access, etc.
+ * - Cached for 5 minutes
+ * - Use only on dedicated clients page where all data is needed
  *
  * @example
  * const { data, isLoading, error } = useClients()

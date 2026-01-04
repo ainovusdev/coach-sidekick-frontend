@@ -1,8 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useDebounceCallback } from '@/hooks/use-debounce'
 import { MeetingService } from '@/services/meeting-service'
-import { useClients } from '@/hooks/queries/use-clients'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
+import { ClientService } from '@/services/client-service'
+import { queryKeys } from '@/lib/query-client'
 
 /**
  * Dashboard data hook - now using TanStack Query for clients
@@ -10,8 +13,12 @@ import { useClients } from '@/hooks/queries/use-clients'
  * - Clients data cached and deduplicated
  * - Instant loading if data already in cache
  * - Automatic background refresh
+ * - Uses lightweight client list (no session stats) for faster loading
+ * - Prefetches full client list for /clients page
  */
 export function useDashboardData() {
+  const queryClient = useQueryClient()
+
   const {
     data: meetingHistory,
     loading: historyLoading,
@@ -22,9 +29,22 @@ export function useDashboardData() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Use TanStack Query for clients (automatic caching)
-  const { data: clientsData, isLoading: clientsLoading } = useClients()
+  // Use lightweight clients query for fast dashboard loading
+  const { data: clientsData, isLoading: clientsLoading } = useClientsSimple()
   const clients = clientsData?.clients || []
+
+  // Prefetch full clients list in background for /clients page
+  useEffect(() => {
+    // Small delay to prioritize dashboard loading first
+    const timer = setTimeout(() => {
+      queryClient.prefetchQuery({
+        queryKey: queryKeys.clients.list(),
+        queryFn: () => ClientService.listClients(),
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      })
+    }, 1000)
+    return () => clearTimeout(timer)
+  }, [queryClient])
 
   const handleCreateBotImpl = async (meetingUrl: string, clientId?: string) => {
     // Prevent multiple submissions
