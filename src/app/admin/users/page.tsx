@@ -62,10 +62,12 @@ import {
   Mail,
   Calendar,
   AlertCircle,
-  RotateCcw, // NEW: Restore icon
-  Archive, // NEW: Deleted users icon
+  RotateCcw,
+  Archive,
   Loader2,
+  Send,
 } from 'lucide-react'
+import { CoachInvitationModal } from '@/components/admin/coach-invitation-modal'
 
 export default function UsersPage() {
   // Filter state
@@ -79,6 +81,7 @@ export default function UsersPage() {
   const [isRoleDialogOpen, setIsRoleDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isRestoreDialogOpen, setIsRestoreDialogOpen] = useState(false)
+  const [isCoachInviteModalOpen, setIsCoachInviteModalOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
 
   // Form state
@@ -301,6 +304,13 @@ export default function UsersPage() {
             <Button variant="outline" size="sm">
               <Download className="h-4 w-4 mr-2" />
               Export
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsCoachInviteModalOpen(true)}
+            >
+              <Send className="h-4 w-4 mr-2" />
+              Invite Coach
             </Button>
             <Button onClick={() => setIsCreateDialogOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
@@ -990,6 +1000,12 @@ export default function UsersPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Coach Invitation Modal */}
+      <CoachInvitationModal
+        isOpen={isCoachInviteModalOpen}
+        onClose={() => setIsCoachInviteModalOpen(false)}
+      />
     </div>
   )
 }

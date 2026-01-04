@@ -10,7 +10,7 @@ import {
   useAddClientsToProgram,
   useRemoveClientFromProgram,
 } from '@/hooks/queries/use-programs'
-import { useClients } from '@/hooks/queries/use-clients'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { Program, ProgramCreate, ProgramUpdate } from '@/types/program'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -64,7 +64,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
     },
   })
 
-  const { data: clientsData } = useClients()
+  const { data: clientsData } = useClientsSimple()
   const clients = clientsData?.clients ?? []
 
   // Fetch program dashboard to get current clients in edit mode

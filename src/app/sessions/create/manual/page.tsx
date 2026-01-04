@@ -23,7 +23,7 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft, Upload } from 'lucide-react'
 import { ManualSessionService } from '@/services/manual-session-service'
-import { useClients } from '@/hooks/queries/use-clients'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { LoadingState } from '@/components/ui/loading-state'
 import { toast } from '@/hooks/use-toast'
 
@@ -31,8 +31,8 @@ function CreateManualSessionContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  // Use TanStack Query hook - data is cached and shared across components!
-  const { data: clientsData, isLoading: loadingClients } = useClients()
+  // Use lightweight clients query for fast loading
+  const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
 
   const [creating, setCreating] = useState(false)

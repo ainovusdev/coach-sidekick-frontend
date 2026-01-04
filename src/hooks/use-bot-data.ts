@@ -87,14 +87,9 @@ export function useBotData(botId: string): UseBotDataReturn {
         }
         setBot(normalizedBot)
 
-        // Only ensure session if bot is in active recording state
-        // and not for completed/ended meetings
-        if (
-          botInfo.status === 'in_call_recording' ||
-          botInfo.status === 'in_call_not_recording'
-        ) {
-          await ensureSession(normalizedBot)
-        }
+        // Always try to get/create session for any bot
+        // This ensures notes and commitments work for both live and completed sessions
+        await ensureSession(normalizedBot)
       }
 
       if (transcriptData && transcriptData.transcripts) {

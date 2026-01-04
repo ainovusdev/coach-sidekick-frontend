@@ -29,7 +29,7 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { ManualSessionService } from '@/services/manual-session-service'
-import { useClients } from '@/hooks/queries/use-clients'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { toast } from '@/hooks/use-toast'
 
 interface ManualSessionModalProps {
@@ -45,8 +45,8 @@ export function ManualSessionModal({
 }: ManualSessionModalProps) {
   const router = useRouter()
 
-  // Use TanStack Query hook - data is cached and shared across components!
-  const { data: clientsData, isLoading: loadingClients } = useClients()
+  // Use lightweight clients query for fast loading
+  const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
 
   const [creating, setCreating] = useState(false)
