@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { ClientProfileSection } from './client-profile-section'
 import { LastSessionInsightsCard } from './last-session-insights-card'
 import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
@@ -10,7 +11,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus } from 'lucide-react'
+import { Plus, User, Briefcase, Users } from 'lucide-react'
 
 interface OverviewTabProps {
   client: any
@@ -44,6 +45,11 @@ export function OverviewTab({
 
   const queryClient = useQueryClient()
 
+  // Filter state for commitments
+  const [commitmentFilter, setCommitmentFilter] = useState<
+    'all' | 'client' | 'coach'
+  >('all')
+
   // Fetch commitments, goals, and targets for stats and kanban
   const { data: commitmentsData } = useCommitments({
     client_id: client.id,
@@ -57,7 +63,19 @@ export function OverviewTab({
     goalsData?.some((g: any) => t.goal_ids?.includes(g.id)),
   )
 
-  // Calculate stats
+  // Filter commitments based on selection
+  const filteredCommitments = useMemo(() => {
+    const all = commitmentsData?.commitments || []
+    if (commitmentFilter === 'client') {
+      return all.filter((c: any) => !c.is_coach_commitment)
+    }
+    if (commitmentFilter === 'coach') {
+      return all.filter((c: any) => c.is_coach_commitment)
+    }
+    return all
+  }, [commitmentsData?.commitments, commitmentFilter])
+
+  // Calculate stats (always from all commitments, not filtered)
   const totalCommitments = commitmentsData?.commitments?.length || 0
   const completedCommitments =
     commitmentsData?.commitments?.filter((c: any) => c.status === 'completed')
@@ -114,22 +132,57 @@ export function OverviewTab({
                 Commitments ({totalCommitments})
               </CardTitle>
               <p className="text-sm text-gray-600 mt-1">
-                Track all commitments across goals and sprints
+                Track all commitments across outcomes and sprints
               </p>
             </div>
-            {!isViewer && onCreateCommitment && (
-              <Button onClick={onCreateCommitment} variant="outline" size="sm">
-                <Plus className="h-4 w-4 mr-2" />
-                New Commitment
-              </Button>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Filter Buttons */}
+              <div className="flex items-center border rounded-lg overflow-hidden">
+                <Button
+                  variant={commitmentFilter === 'all' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCommitmentFilter('all')}
+                  className="rounded-none border-0"
+                >
+                  <Users className="h-3 w-3 mr-1" />
+                  All
+                </Button>
+                <Button
+                  variant={commitmentFilter === 'client' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCommitmentFilter('client')}
+                  className="rounded-none border-0"
+                >
+                  <User className="h-3 w-3 mr-1" />
+                  Client
+                </Button>
+                <Button
+                  variant={commitmentFilter === 'coach' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setCommitmentFilter('coach')}
+                  className="rounded-none border-0"
+                >
+                  <Briefcase className="h-3 w-3 mr-1" />
+                  My Tasks
+                </Button>
+              </div>
+              {!isViewer && onCreateCommitment && (
+                <Button
+                  onClick={onCreateCommitment}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Commitment
+                </Button>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          {commitmentsData?.commitments &&
-          commitmentsData.commitments.length > 0 ? (
+          {filteredCommitments.length > 0 ? (
             <SprintKanbanBoard
-              commitments={commitmentsData.commitments}
+              commitments={filteredCommitments}
               clientId={client.id}
               targets={clientTargets}
               onCommitmentClick={onEditCommitment}

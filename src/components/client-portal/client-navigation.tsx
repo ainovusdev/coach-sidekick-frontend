@@ -16,7 +16,6 @@ import {
   LayoutDashboard,
   History,
   Target,
-  Rocket,
   User,
   LogOut,
   Sparkles,
@@ -35,7 +34,6 @@ const navItems = [
   },
   { path: '/client-portal/sessions', label: 'Sessions', icon: History },
   { path: '/client-portal/my-commitments', label: 'Commitments', icon: Target },
-  { path: '/client-portal/sprints', label: 'Sprints', icon: Rocket },
   { path: '/client-portal/persona', label: 'My Profile', icon: User },
 ]
 

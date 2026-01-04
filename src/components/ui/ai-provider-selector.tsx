@@ -34,24 +34,24 @@ const providers: AIProviderInfo[] = [
     id: 'openai',
     name: 'OpenAI',
     icon: <Brain className="h-4 w-4" />,
-    description: 'GPT-4 models with strong reasoning',
-    models: ['gpt-4o-mini', 'gpt-4-turbo'],
-    badge: 'Default'
+    description: 'GPT-4.1 models with strong reasoning',
+    models: ['gpt-4.1-mini', 'gpt-4.1'],
+    badge: 'Default',
   },
   {
     id: 'gemini',
     name: 'Google Gemini',
     icon: <Sparkles className="h-4 w-4" />,
-    description: 'Google\'s multimodal AI model',
-    models: ['gemini-pro', 'gemini-pro-vision']
+    description: "Google's multimodal AI model",
+    models: ['gemini-2.0-flash', 'gemini-2.0-pro'],
   },
   {
     id: 'claude',
     name: 'Claude',
     icon: <Zap className="h-4 w-4" />,
-    description: 'Anthropic\'s helpful assistant',
-    models: ['claude-3-haiku', 'claude-3-sonnet']
-  }
+    description: "Anthropic's helpful assistant",
+    models: ['claude-3-5-haiku', 'claude-sonnet-4-5'],
+  },
 ]
 
 interface AIProviderSelectorProps {
@@ -61,17 +61,16 @@ interface AIProviderSelectorProps {
   className?: string
 }
 
-export function AIProviderSelector({ 
-  value, 
-  onChange, 
+export function AIProviderSelector({
+  value,
+  onChange,
   variant = 'dropdown',
-  className 
+  className,
 }: AIProviderSelectorProps) {
-  
   if (variant === 'dropdown') {
     return (
       <div className={className}>
-        <Select value={value} onValueChange={(v) => onChange(v as AIProvider)}>
+        <Select value={value} onValueChange={v => onChange(v as AIProvider)}>
           <SelectTrigger className="w-full bg-white border-gray-200">
             <SelectValue>
               {(() => {
@@ -86,12 +85,14 @@ export function AIProviderSelector({
                       </Badge>
                     )}
                   </div>
-                ) : 'Select AI Model'
+                ) : (
+                  'Select AI Model'
+                )
               })()}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {providers.map((provider) => (
+            {providers.map(provider => (
               <SelectItem key={provider.id} value={provider.id}>
                 <div className="flex items-center gap-2">
                   {provider.icon}
@@ -116,13 +117,13 @@ export function AIProviderSelector({
       </div>
     )
   }
-  
+
   // Radio variant
   return (
     <div className={className}>
-      <RadioGroup value={value} onValueChange={(v) => onChange(v as AIProvider)}>
+      <RadioGroup value={value} onValueChange={v => onChange(v as AIProvider)}>
         <div className="space-y-2">
-          {providers.map((provider) => (
+          {providers.map(provider => (
             <div key={provider.id} className="flex items-start space-x-2">
               <RadioGroupItem value={provider.id} id={provider.id} />
               <Label htmlFor={provider.id} className="flex-1 cursor-pointer">

@@ -313,7 +313,7 @@ export default function MyCommitmentsPage() {
               No Commitments Yet
             </h3>
             <p className="text-gray-600 text-center max-w-md mb-6">
-              Create your first commitment to start tracking your goals and
+              Create your first commitment to start tracking your outcomes and
               progress
             </p>
             <Button onClick={openCreateModal}>
@@ -329,6 +329,7 @@ export default function MyCommitmentsPage() {
           onEdit={openEditModal}
           onDelete={confirmDelete}
           onStatusChange={loadCommitments}
+          setCommitments={setCommitments}
         />
       ) : (
         <Tabs defaultValue="active" className="space-y-4">

@@ -68,7 +68,7 @@ export function DashboardTab({
               <p>
                 <span className="font-medium text-gray-900">Tip:</span> Add a
                 Meta Performance Vision to help guide coaching focus and track
-                long-term goals.
+                long-term outcomes.
               </p>
             </div>
           </CardContent>

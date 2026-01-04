@@ -80,13 +80,13 @@ export function DesiredWinsWidget({
             My Desired Wins
           </CardTitle>
           {targets.length > 0 && (
-            <Link href="/client-portal/sprints">
+            <Link href="/client-portal/my-commitments">
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
               >
-                View Sprint
+                View Commitments
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
@@ -159,13 +159,13 @@ export function DesiredWinsWidget({
 
             {targets.length >= limit && (
               <div className="pt-2">
-                <Link href="/client-portal/sprints">
+                <Link href="/client-portal/my-commitments">
                   <Button
                     variant="outline"
                     size="sm"
                     className="w-full border-gray-300 text-gray-700 hover:bg-gray-100"
                   >
-                    View All Desired Wins
+                    View All Commitments
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </Link>

@@ -237,9 +237,6 @@ export function GoalsTreeView({
 }: GoalsTreeViewProps) {
   const queryClient = useQueryClient()
   const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
-  const [expandedSprintIds, setExpandedSprintIds] = useState<Set<string>>(
-    new Set(),
-  )
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeType, setSelectedNodeType] = useState<
     'goal' | 'outcome' | 'sprint' | null
@@ -323,18 +320,6 @@ export function GoalsTreeView({
         next.delete(goalId)
       } else {
         next.add(goalId)
-      }
-      return next
-    })
-  }
-
-  const toggleSprint = (sprintId: string) => {
-    setExpandedSprintIds(prev => {
-      const next = new Set(prev)
-      if (next.has(sprintId)) {
-        next.delete(sprintId)
-      } else {
-        next.add(sprintId)
       }
       return next
     })
@@ -486,7 +471,7 @@ export function GoalsTreeView({
                   </div>
                 </div>
 
-                {/* Outcomes Section */}
+                {/* Outcomes Section - with Sprint Badges */}
                 <div className="pb-4 border-b">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
                     <span>OUTCOMES</span>
@@ -500,31 +485,70 @@ export function GoalsTreeView({
                       </button>
                     )}
                   </div>
-                  <div className="space-y-1 ">
-                    {clientTargets.map((outcome: any) => (
-                      <TreeNode
-                        key={outcome.id}
-                        type="outcome"
-                        data={outcome}
-                        level={0}
-                        isSelected={
-                          selectedNodeId === outcome.id &&
-                          selectedNodeType === 'outcome'
-                        }
-                        isExpanded={false}
-                        onClick={() => handleNodeClick(outcome.id, 'outcome')}
-                        onEdit={() => onEditOutcome?.(outcome)}
-                        onDelete={() => onDeleteOutcome?.(outcome)}
-                        onComplete={() => onCompleteOutcome?.(outcome)}
-                      />
-                    ))}
+                  <div className="space-y-1">
+                    {clientTargets.map((outcome: any) => {
+                      // Get sprints linked to this outcome
+                      const linkedSprints = allSprints.filter((s: any) =>
+                        outcome.sprint_ids?.includes(s.id),
+                      )
+
+                      return (
+                        <div key={outcome.id}>
+                          <TreeNode
+                            type="outcome"
+                            data={outcome}
+                            level={0}
+                            isSelected={
+                              selectedNodeId === outcome.id &&
+                              selectedNodeType === 'outcome'
+                            }
+                            isExpanded={false}
+                            onClick={() =>
+                              handleNodeClick(outcome.id, 'outcome')
+                            }
+                            onEdit={() => onEditOutcome?.(outcome)}
+                            onDelete={() => onDeleteOutcome?.(outcome)}
+                            onComplete={() => onCompleteOutcome?.(outcome)}
+                          />
+                          {/* Sprint badges below the outcome */}
+                          {linkedSprints.length > 0 && (
+                            <div className="flex flex-wrap gap-1 pl-9 pb-1">
+                              {linkedSprints.map((sprint: any) => (
+                                <Badge
+                                  key={sprint.id}
+                                  variant={
+                                    sprint.status === 'active'
+                                      ? 'default'
+                                      : 'secondary'
+                                  }
+                                  className={cn(
+                                    'text-[10px] px-1.5 py-0 cursor-pointer hover:opacity-80',
+                                    sprint.status === 'active' &&
+                                      'bg-blue-100 text-blue-800',
+                                  )}
+                                  onClick={() =>
+                                    handleNodeClick(sprint.id, 'sprint')
+                                  }
+                                >
+                                  <Calendar className="h-2.5 w-2.5 mr-0.5" />
+                                  {sprint.title}
+                                  {sprint.status === 'active' && (
+                                    <span className="ml-0.5 w-1 h-1 rounded-full bg-green-500" />
+                                  )}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
-                {/* Sprints Section */}
-                <div className="pb-4 border-b border-gray-200">
+                {/* Sprint Timeline - Simplified */}
+                <div className="pb-4">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
-                    <span>SPRINTS</span>
+                    <span>SPRINT TIMELINE</span>
                     {onCreateSprint && (
                       <button
                         onClick={onCreateSprint}
@@ -536,52 +560,90 @@ export function GoalsTreeView({
                     )}
                   </div>
                   <div className="space-y-1">
-                    {allSprints
-                      .filter((s: any) => s.status === 'active')
-                      .map((sprint: any) => {
-                        const sprintOutcomes = clientTargets.filter((t: any) =>
-                          t.sprint_ids?.includes(sprint.id),
-                        )
+                    {allSprints.map((sprint: any) => {
+                      const outcomeCount = clientTargets.filter((t: any) =>
+                        t.sprint_ids?.includes(sprint.id),
+                      ).length
 
-                        return (
-                          <TreeNode
-                            key={sprint.id}
-                            type="sprint"
-                            data={sprint}
-                            level={0}
-                            isSelected={
-                              selectedNodeId === sprint.id &&
-                              selectedNodeType === 'sprint'
-                            }
-                            isExpanded={expandedSprintIds.has(sprint.id)}
-                            onToggle={() => toggleSprint(sprint.id)}
-                            onClick={() => handleNodeClick(sprint.id, 'sprint')}
-                            onEdit={() => onEditSprint?.(sprint)}
-                            onDelete={() => onDeleteSprint?.(sprint)}
-                            onComplete={() => onCompleteSprint?.(sprint)}
-                          >
-                            {sprintOutcomes.map((outcome: any) => (
-                              <TreeNode
-                                key={outcome.id}
-                                type="outcome"
-                                data={outcome}
-                                level={1}
-                                isSelected={
-                                  selectedNodeId === outcome.id &&
-                                  selectedNodeType === 'outcome'
-                                }
-                                isExpanded={false}
-                                onClick={() =>
-                                  handleNodeClick(outcome.id, 'outcome')
-                                }
-                                onEdit={() => onEditOutcome?.(outcome)}
-                                onDelete={() => onDeleteOutcome?.(outcome)}
-                                onComplete={() => onCompleteOutcome?.(outcome)}
-                              />
-                            ))}
-                          </TreeNode>
-                        )
-                      })}
+                      return (
+                        <div
+                          key={sprint.id}
+                          className={cn(
+                            'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors',
+                            selectedNodeId === sprint.id &&
+                              selectedNodeType === 'sprint' &&
+                              'bg-primary/10 border border-primary/20',
+                          )}
+                          onClick={() => handleNodeClick(sprint.id, 'sprint')}
+                        >
+                          <Calendar
+                            className={cn(
+                              'h-4 w-4',
+                              sprint.status === 'active'
+                                ? 'text-green-600'
+                                : 'text-gray-400',
+                            )}
+                          />
+                          <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+                            {sprint.title}
+                          </span>
+                          <Badge variant="secondary" className="text-[10px]">
+                            {outcomeCount} outcome
+                            {outcomeCount !== 1 ? 's' : ''}
+                          </Badge>
+                          {sprint.status === 'active' && (
+                            <div
+                              className="w-2 h-2 rounded-full bg-green-500"
+                              title="Active"
+                            />
+                          )}
+                          {/* Actions */}
+                          <DropdownMenu>
+                            <DropdownMenuTrigger
+                              asChild
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <button className="flex-shrink-0 p-1 hover:bg-gray-200 rounded">
+                                <MoreVertical className="h-4 w-4 text-gray-600" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {sprint.status !== 'completed' && (
+                                <DropdownMenuItem
+                                  onClick={e => {
+                                    e.stopPropagation()
+                                    onCompleteSprint?.(sprint)
+                                  }}
+                                  className="text-green-600 focus:text-green-600"
+                                >
+                                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                                  Mark Complete
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  onEditSprint?.(sprint)
+                                }}
+                              >
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit Sprint
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={e => {
+                                  e.stopPropagation()
+                                  onDeleteSprint?.(sprint)
+                                }}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete Sprint
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
               </div>

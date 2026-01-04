@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Progress } from '@/components/ui/progress'
 import {
   ArrowLeft,
   Clock,
@@ -22,7 +21,6 @@ import {
   User,
   ChevronDown,
   ChevronUp,
-  BarChart3,
   Zap,
   Hash,
   Quote,
@@ -187,21 +185,6 @@ export default function ClientSessionDetailPage() {
   const completedTasks =
     sessionData.tasks?.filter(t => t.status === 'completed').length || 0
   const totalTasks = sessionData.tasks?.length || 0
-
-  // Get sentiment display
-  const getSentimentDisplay = () => {
-    if (sessionData.insights?.sentiment?.overall) {
-      return sessionData.insights.sentiment.overall
-    }
-    if (sessionData.analysis?.sentiment) {
-      return typeof sessionData.analysis.sentiment === 'string'
-        ? sessionData.analysis.sentiment
-        : 'Analyzed'
-    }
-    return null
-  }
-
-  const sentimentDisplay = getSentimentDisplay()
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -574,104 +557,13 @@ export default function ClientSessionDetailPage() {
             </div>
           )}
 
-          {/* Session Metrics */}
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center gap-2">
-              <BarChart3 className="h-4 w-4 text-gray-500" />
-              <h3 className="font-semibold text-gray-900">Session Metrics</h3>
-            </div>
-            <div className="p-5 space-y-4">
-              {/* Sentiment */}
-              {sentimentDisplay && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-500">Sentiment</span>
-                    <span className="text-sm font-medium text-gray-900 capitalize">
-                      {sentimentDisplay}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Engagement */}
-              {(sessionData.insights?.sentiment?.engagement ||
-                sessionData.analysis?.engagement) && (
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-sm text-gray-500">Engagement</span>
-                    <span className="text-sm font-medium text-gray-900 capitalize">
-                      {sessionData.insights?.sentiment?.engagement ||
-                        sessionData.analysis?.engagement}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Task Progress */}
-              {totalTasks > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-500">
-                      Tasks Progress
-                    </span>
-                    <span className="text-sm font-medium text-gray-900">
-                      {completedTasks}/{totalTasks}
-                    </span>
-                  </div>
-                  <Progress
-                    value={(completedTasks / totalTasks) * 100}
-                    className="h-2"
-                  />
-                </div>
-              )}
-
-              {/* Coaching Scores */}
-              {sessionData.analysis?.coaching_scores && (
-                <div className="pt-3 border-t border-gray-100">
-                  <p className="text-xs text-gray-500 mb-3">Coaching Scores</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {Object.entries(sessionData.analysis.coaching_scores)
-                      .slice(0, 4)
-                      .map(([key, value]) => {
-                        if (key === 'overall') return null
-                        return (
-                          <div
-                            key={key}
-                            className="text-center p-2 bg-gray-50 rounded-lg"
-                          >
-                            <p className="text-lg font-bold text-gray-900">
-                              {String(value)}
-                            </p>
-                            <p className="text-xs text-gray-500 capitalize">
-                              {key.replace(/_/g, ' ')}
-                            </p>
-                          </div>
-                        )
-                      })}
-                  </div>
-                </div>
-              )}
-
-              {/* Empty Metrics State */}
-              {!sentimentDisplay &&
-                !sessionData.analysis?.engagement &&
-                totalTasks === 0 && (
-                  <div className="text-center py-4">
-                    <p className="text-sm text-gray-500">
-                      Metrics will appear after analysis
-                    </p>
-                  </div>
-                )}
-            </div>
-          </div>
-
           {/* Tasks Quick View */}
           {hasTasks && (
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Target className="h-4 w-4 text-gray-500" />
-                  <h3 className="font-semibold text-gray-900">Tasks</h3>
+                  <h3 className="font-semibold text-gray-900">Commitments</h3>
                 </div>
                 <Badge
                   variant="secondary"
@@ -717,7 +609,7 @@ export default function ClientSessionDetailPage() {
                 {sessionData.tasks.length > 4 && (
                   <div className="px-5 py-3 text-center">
                     <span className="text-xs text-gray-500">
-                      +{sessionData.tasks.length - 4} more tasks
+                      +{sessionData.tasks.length - 4} more commitments
                     </span>
                   </div>
                 )}

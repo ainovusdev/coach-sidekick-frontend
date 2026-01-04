@@ -35,6 +35,7 @@ interface ClientCommitmentBoardProps {
   onEdit?: (commitment: Commitment) => void
   onDelete?: (commitment: Commitment) => void
   onStatusChange?: () => void
+  setCommitments?: React.Dispatch<React.SetStateAction<Commitment[]>>
 }
 
 interface KanbanColumnProps {
@@ -293,6 +294,7 @@ export function ClientCommitmentBoard({
   onEdit,
   onDelete,
   onStatusChange,
+  setCommitments,
 }: ClientCommitmentBoardProps) {
   const handleDrop = async (commitmentId: string, newStatus: string) => {
     const statusLabels: Record<string, string> = {
@@ -301,16 +303,47 @@ export function ClientCommitmentBoard({
       completed: 'Done',
     }
 
+    // Find the commitment being moved
+    const commitment = commitments.find(c => c.id === commitmentId)
+    if (!commitment || commitment.status === newStatus) return
+
+    // Store previous state for rollback
+    const previousCommitments = [...commitments]
+
+    // Optimistic update: Update UI immediately
+    if (setCommitments) {
+      setCommitments(prev =>
+        prev.map(c =>
+          c.id === commitmentId
+            ? {
+                ...c,
+                status: newStatus as Commitment['status'],
+                progress_percentage:
+                  newStatus === 'completed' ? 100 : c.progress_percentage,
+              }
+            : c,
+        ),
+      )
+    }
+
+    // Show immediate feedback
+    toast.success(`Moved to ${statusLabels[newStatus]}`)
+
+    // Update in background
     try {
       await ClientCommitmentService.updateCommitment(commitmentId, {
         status: newStatus as any,
         progress_percentage: newStatus === 'completed' ? 100 : undefined,
       })
-      toast.success(`Moved to ${statusLabels[newStatus]}`)
+      // Success - data is already updated optimistically
       onStatusChange?.()
     } catch (error) {
       console.error('Error updating commitment:', error)
-      toast.error('Failed to update commitment')
+      // Rollback on error
+      if (setCommitments) {
+        setCommitments(previousCommitments)
+      }
+      toast.error('Failed to update commitment - changes reverted')
     }
   }
 

@@ -2,12 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ClientPersona,
   clientDashboardAPI,
@@ -17,16 +15,17 @@ import {
   Target,
   Brain,
   Heart,
-  Shield,
   Sparkles,
-  TrendingUp,
   AlertTriangle,
   Trophy,
   MessageCircle,
   BookOpen,
   Lightbulb,
+  Briefcase,
+  MapPin,
+  Users,
+  Shield,
   ChevronRight,
-  Info,
 } from 'lucide-react'
 import { format } from 'date-fns'
 
@@ -70,14 +69,9 @@ export default function ClientPersonaPage() {
   }
 
   const getConfidenceLabel = (score: number) => {
-    if (score >= 0.8)
-      return { label: 'High Confidence', color: 'text-green-600 bg-green-50' }
-    if (score >= 0.5)
-      return {
-        label: 'Moderate Confidence',
-        color: 'text-yellow-600 bg-yellow-50',
-      }
-    return { label: 'Building Profile', color: 'text-blue-600 bg-blue-50' }
+    if (score >= 0.8) return 'High'
+    if (score >= 0.5) return 'Moderate'
+    return 'Building'
   }
 
   if (isLoading) {
@@ -90,14 +84,16 @@ export default function ClientPersonaPage() {
 
   if (noPersona || !persona) {
     return (
-      <div className="max-w-2xl mx-auto">
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <Brain className="h-16 w-16 text-gray-300 mb-6" />
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">
+      <div className="max-w-2xl mx-auto px-4 py-12">
+        <Card className="border-gray-200">
+          <CardContent className="flex flex-col items-center justify-center py-16 px-8">
+            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-6">
+              <Brain className="h-8 w-8 text-gray-400" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-900 mb-3 text-center">
               Your Coaching Persona is Being Developed
             </h2>
-            <p className="text-center text-gray-600 max-w-md mb-6">
+            <p className="text-center text-gray-600 max-w-md mb-8">
               {error ||
                 'Your personalized coaching profile will be available after a few sessions with your coach. This helps us provide better, more tailored coaching suggestions.'}
             </p>
@@ -112,426 +108,447 @@ export default function ClientPersonaPage() {
 
   const confidence = getConfidenceLabel(persona.metadata.confidence_score)
 
+  // Check if sections have data
+  const hasBasicInfo =
+    persona.basic_info.age_range ||
+    persona.basic_info.occupation ||
+    persona.basic_info.location ||
+    persona.basic_info.family_situation
+  const hasPrimaryGoals = persona.goals.primary.length > 0
+  const hasShortTermGoals = persona.goals.short_term.length > 0
+  const hasLongTermGoals = persona.goals.long_term.length > 0
+  const hasStrengths = persona.development.strengths.length > 0
+  const hasGrowthAreas = persona.development.growth_areas.length > 0
+  const hasChallenges = persona.challenges.main_challenges.length > 0
+  const hasObstacles =
+    persona.challenges.obstacles.length > 0 ||
+    persona.challenges.fears.length > 0
+  const hasTraits = persona.personality.traits.length > 0
+  const hasValues = persona.personality.values.length > 0
+  const hasStyles =
+    persona.personality.communication_style ||
+    persona.personality.learning_style
+  const hasAchievements = persona.development.achievements.length > 0
+  const hasThemes = persona.development.recurring_themes.length > 0
+
   return (
-    <div className="space-y-6">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-          <Brain className="h-8 w-8 text-purple-600" />
-          Your Coaching Persona
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          Your personalized coaching profile based on your sessions and
-          interactions
-        </p>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-2">
+        <div>
+          <p className="text-gray-500 text-sm font-medium mb-1">
+            AI-Generated Profile
+          </p>
+          <h1 className="text-3xl font-bold text-gray-900">
+            Your Coaching Persona
+          </h1>
+          <p className="text-gray-500 mt-1">
+            Based on your coaching journey and sessions
+          </p>
+        </div>
+
+        <div className="flex items-center gap-6 md:gap-8">
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-900">
+              {persona.metadata.sessions_analyzed}
+            </p>
+            <p className="text-xs text-gray-500">Sessions</p>
+          </div>
+          <div className="h-8 w-px bg-gray-200" />
+          <div className="text-center">
+            <p className="text-2xl font-bold text-gray-900">{confidence}</p>
+            <p className="text-xs text-gray-500">Confidence</p>
+          </div>
+          <div className="h-8 w-px bg-gray-200" />
+          <div className="text-center">
+            <p className="text-sm text-gray-900">
+              {persona.metadata.last_updated
+                ? format(new Date(persona.metadata.last_updated), 'MMM d')
+                : '-'}
+            </p>
+            <p className="text-xs text-gray-500">Updated</p>
+          </div>
+        </div>
       </div>
 
-      {/* Metadata Card */}
-      <Card className="bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Badge className={confidence.color}>{confidence.label}</Badge>
-                <Badge variant="secondary">
-                  {persona.metadata.sessions_analyzed} sessions analyzed
-                </Badge>
-              </div>
-              <Progress
-                value={persona.metadata.confidence_score * 100}
-                className="w-64"
-              />
-              <p className="text-xs text-gray-600">
-                Last updated:{' '}
-                {persona.metadata.last_updated
-                  ? format(
-                      new Date(persona.metadata.last_updated),
-                      'MMMM d, yyyy',
-                    )
-                  : 'Never'}
-              </p>
+      {/* Basic Info */}
+      {hasBasicInfo && (
+        <div className="flex flex-wrap gap-3">
+          {persona.basic_info.occupation && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
+              <Briefcase className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-700">
+                {persona.basic_info.occupation}
+              </span>
             </div>
-            <div className="text-right">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Info className="h-4 w-4" />
-                <span>AI-Generated Profile</span>
-              </div>
+          )}
+          {persona.basic_info.location && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
+              <MapPin className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-700">
+                {persona.basic_info.location}
+              </span>
             </div>
+          )}
+          {persona.basic_info.age_range && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
+              <User className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-700">
+                {persona.basic_info.age_range}
+              </span>
+            </div>
+          )}
+          {persona.basic_info.family_situation && (
+            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
+              <Users className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-700">
+                {persona.basic_info.family_situation}
+              </span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Goals & Vision Section */}
+      {(hasPrimaryGoals || hasShortTermGoals || hasLongTermGoals) && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="h-5 w-5 text-gray-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Goals & Vision
+            </h2>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Main Content Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="goals">Outcomes & Aspirations</TabsTrigger>
-          <TabsTrigger value="personality">Personality</TabsTrigger>
-          <TabsTrigger value="development">Development</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="overview" className="space-y-4">
-          {/* Basic Info */}
-          {(persona.basic_info.age_range ||
-            persona.basic_info.occupation ||
-            persona.basic_info.location ||
-            persona.basic_info.family_situation) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Basic Information
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  {persona.basic_info.age_range && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Age Range
-                      </p>
-                      <p className="text-sm">{persona.basic_info.age_range}</p>
-                    </div>
-                  )}
-                  {persona.basic_info.occupation && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Occupation
-                      </p>
-                      <p className="text-sm">{persona.basic_info.occupation}</p>
-                    </div>
-                  )}
-                  {persona.basic_info.location && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Location
-                      </p>
-                      <p className="text-sm">{persona.basic_info.location}</p>
-                    </div>
-                  )}
-                  {persona.basic_info.family_situation && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">
-                        Family Situation
-                      </p>
-                      <p className="text-sm">
-                        {persona.basic_info.family_situation}
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Main Challenges */}
-          {persona.challenges.main_challenges.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <AlertTriangle className="h-5 w-5 text-orange-600" />
-                  Current Challenges
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {persona.challenges.main_challenges.map((challenge, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 text-orange-400 mt-0.5" />
-                      <p className="text-sm">{challenge}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Strengths */}
-          {persona.development.strengths.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="h-5 w-5 text-green-600" />
-                  Your Strengths
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {persona.development.strengths.map((strength, idx) => (
-                    <Badge key={idx} className="bg-green-100 text-green-800">
-                      {strength}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        <TabsContent value="goals" className="space-y-4">
-          {/* Primary Goals */}
-          {persona.goals.primary.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-purple-600" />
-                  Primary Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {persona.goals.primary.map((goal, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <div className="h-6 w-6 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                        <span className="text-xs font-semibold text-purple-600">
-                          {idx + 1}
-                        </span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {hasPrimaryGoals && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <h3 className="font-medium text-gray-900 mb-3">
+                    Primary Goals
+                  </h3>
+                  <div className="space-y-3">
+                    {persona.goals.primary.map((goal, idx) => (
+                      <div key={idx} className="flex items-start gap-3">
+                        <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-gray-600">
+                            {idx + 1}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600">{goal}</p>
                       </div>
-                      <p className="text-sm">{goal}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Short-term Goals */}
-          {persona.goals.short_term.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-blue-600" />
-                  Short-term Goals
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {persona.goals.short_term.map((goal, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 text-blue-400 mt-0.5" />
-                      <p className="text-sm">{goal}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Long-term Goals */}
-          {persona.goals.long_term.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-600" />
-                  Long-term Vision
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {persona.goals.long_term.map((goal, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 text-yellow-400 mt-0.5" />
-                      <p className="text-sm">{goal}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Obstacles & Fears */}
-          {(persona.challenges.obstacles.length > 0 ||
-            persona.challenges.fears.length > 0) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5 text-red-600" />
-                  Obstacles & Concerns
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {persona.challenges.obstacles.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">
-                      Obstacles
-                    </p>
-                    <div className="space-y-1">
-                      {persona.challenges.obstacles.map((obstacle, idx) => (
-                        <p key={idx} className="text-sm text-gray-700">
-                          • {obstacle}
-                        </p>
-                      ))}
-                    </div>
+                    ))}
                   </div>
-                )}
-                {persona.challenges.fears.length > 0 && (
-                  <div>
-                    <p className="text-sm font-medium text-gray-600 mb-2">
-                      Concerns
-                    </p>
-                    <div className="space-y-1">
-                      {persona.challenges.fears.map((fear, idx) => (
-                        <p key={idx} className="text-sm text-gray-700">
-                          • {fear}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+                </CardContent>
+              </Card>
+            )}
 
-        <TabsContent value="personality" className="space-y-4">
-          {/* Communication & Learning Styles */}
-          {(persona.personality.communication_style ||
-            persona.personality.learning_style) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5 text-indigo-600" />
-                  Communication & Learning
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-6">
-                  {persona.personality.communication_style && (
-                    <div>
-                      <p className="text-sm font-medium text-gray-600 mb-2">
-                        Communication Style
-                      </p>
-                      <Badge className="bg-indigo-100 text-indigo-800">
-                        {persona.personality.communication_style}
+            {hasShortTermGoals && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <h3 className="font-medium text-gray-900 mb-3">Short-term</h3>
+                  <div className="space-y-2">
+                    {persona.goals.short_term.map((goal, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600">{goal}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasLongTermGoals && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <h3 className="font-medium text-gray-900 mb-3">
+                    Long-term Vision
+                  </h3>
+                  <div className="space-y-2">
+                    {persona.goals.long_term.map((goal, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600">{goal}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Strengths & Growth */}
+      {(hasStrengths || hasGrowthAreas) && (
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {hasStrengths && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="h-5 w-5 text-gray-600" />
+                    <h3 className="font-medium text-gray-900">
+                      Your Strengths
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {persona.development.strengths.map((strength, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-700"
+                      >
+                        {strength}
                       </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasGrowthAreas && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lightbulb className="h-5 w-5 text-gray-600" />
+                    <h3 className="font-medium text-gray-900">
+                      Growth Opportunities
+                    </h3>
+                  </div>
+                  <div className="space-y-2">
+                    {persona.development.growth_areas.map((area, idx) => (
+                      <div key={idx} className="flex items-start gap-2">
+                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600">{area}</p>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Challenges & Obstacles */}
+      {(hasChallenges || hasObstacles) && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="h-5 w-5 text-gray-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Challenges to Overcome
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {hasChallenges && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <h3 className="font-medium text-gray-900 mb-3">
+                    Current Challenges
+                  </h3>
+                  <div className="space-y-2">
+                    {persona.challenges.main_challenges.map(
+                      (challenge, idx) => (
+                        <div key={idx} className="flex items-start gap-2">
+                          <div className="h-1.5 w-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
+                          <p className="text-sm text-gray-600">{challenge}</p>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasObstacles && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  {persona.challenges.obstacles.length > 0 && (
+                    <div
+                      className={
+                        persona.challenges.fears.length > 0 ? 'mb-4' : ''
+                      }
+                    >
+                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gray-500" />
+                        Obstacles
+                      </h3>
+                      <div className="space-y-2">
+                        {persona.challenges.obstacles.map((obstacle, idx) => (
+                          <p key={idx} className="text-sm text-gray-600 pl-6">
+                            {obstacle}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  {persona.personality.learning_style && (
+                  {persona.challenges.fears.length > 0 && (
                     <div>
-                      <p className="text-sm font-medium text-gray-600 mb-2">
-                        Learning Style
-                      </p>
-                      <Badge className="bg-blue-100 text-blue-800">
-                        {persona.personality.learning_style}
-                      </Badge>
+                      <h3 className="font-medium text-gray-900 mb-3">
+                        Concerns
+                      </h3>
+                      <div className="space-y-2">
+                        {persona.challenges.fears.map((fear, idx) => (
+                          <p key={idx} className="text-sm text-gray-600 pl-6">
+                            {fear}
+                          </p>
+                        ))}
+                      </div>
                     </div>
                   )}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
 
-          {/* Personality Traits */}
-          {persona.personality.traits.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-purple-600" />
-                  Personality Traits
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {persona.personality.traits.map((trait, idx) => (
-                    <Badge key={idx} variant="secondary">
-                      {trait}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+      {/* Personality & Communication */}
+      {(hasTraits || hasValues || hasStyles) && (
+        <section>
+          <div className="flex items-center gap-2 mb-4">
+            <Brain className="h-5 w-5 text-gray-600" />
+            <h2 className="text-lg font-semibold text-gray-900">
+              Personality & Style
+            </h2>
+          </div>
 
-          {/* Values */}
-          {persona.personality.values.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Heart className="h-5 w-5 text-pink-600" />
-                  Core Values
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-3">
-                  {persona.personality.values.map((value, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
-                      <Heart className="h-3 w-3 text-pink-400" />
-                      <p className="text-sm">{value}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {hasStyles && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageCircle className="h-4 w-4 text-gray-500" />
+                    <h3 className="font-medium text-gray-900">Style</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {persona.personality.communication_style && (
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                          Communication
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-100 text-gray-700"
+                        >
+                          {persona.personality.communication_style}
+                        </Badge>
+                      </div>
+                    )}
+                    {persona.personality.learning_style && (
+                      <div>
+                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                          Learning
+                        </p>
+                        <Badge
+                          variant="secondary"
+                          className="bg-gray-100 text-gray-700"
+                        >
+                          {persona.personality.learning_style}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-        <TabsContent value="development" className="space-y-4">
-          {/* Growth Areas */}
-          {persona.development.growth_areas.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-yellow-600" />
-                  Growth Opportunities
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  {persona.development.growth_areas.map((area, idx) => (
-                    <div key={idx} className="flex items-start gap-2">
-                      <ChevronRight className="h-4 w-4 text-yellow-400 mt-0.5" />
-                      <p className="text-sm">{area}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {hasTraits && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <h3 className="font-medium text-gray-900 mb-3">Traits</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {persona.personality.traits.map((trait, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-700"
+                      >
+                        {trait}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Recurring Themes */}
-          {persona.development.recurring_themes.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
-                  Recurring Themes
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-wrap gap-2">
-                  {persona.development.recurring_themes.map((theme, idx) => (
-                    <Badge key={idx} className="bg-blue-100 text-blue-800">
-                      {theme}
-                    </Badge>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+            {hasValues && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Heart className="h-4 w-4 text-gray-500" />
+                    <h3 className="font-medium text-gray-900">Core Values</h3>
+                  </div>
+                  <div className="space-y-2">
+                    {persona.personality.values.map((value, idx) => (
+                      <div key={idx} className="flex items-center gap-2">
+                        <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+                        <span className="text-sm text-gray-600">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
 
-          {/* Achievements */}
-          {persona.development.achievements.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-yellow-600" />
-                  Achievements & Breakthroughs
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {persona.development.achievements.map((achievement, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <Trophy className="h-4 w-4 text-yellow-500 mt-0.5" />
-                      <p className="text-sm">{achievement}</p>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+      {/* Achievements & Themes */}
+      {(hasAchievements || hasThemes) && (
+        <section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {hasAchievements && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Trophy className="h-5 w-5 text-gray-600" />
+                    <h3 className="font-medium text-gray-900">
+                      Achievements & Breakthroughs
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {persona.development.achievements.map(
+                      (achievement, idx) => (
+                        <div key={idx} className="flex items-start gap-3">
+                          <Trophy className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-gray-600">{achievement}</p>
+                        </div>
+                      ),
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {hasThemes && (
+              <Card className="border-gray-200">
+                <CardContent className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <BookOpen className="h-5 w-5 text-gray-600" />
+                    <h3 className="font-medium text-gray-900">
+                      Recurring Themes
+                    </h3>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {persona.development.recurring_themes.map((theme, idx) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="bg-gray-100 text-gray-700"
+                      >
+                        {theme}
+                      </Badge>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

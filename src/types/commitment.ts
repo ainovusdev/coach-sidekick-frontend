@@ -29,6 +29,7 @@ export interface CommitmentBase {
 export interface CommitmentCreate extends CommitmentBase {
   client_id: string
   session_id?: string
+  assigned_to_id?: string // User ID of assignee. undefined = client, set = coach
   target_ids?: string[] // Target IDs to link to (legacy)
 }
 
@@ -43,6 +44,7 @@ export interface CommitmentUpdate {
   measurement_criteria?: string
   goal_id?: string | null
   sprint_id?: string | null
+  assigned_to_id?: string | null // User ID of assignee. null = client, set = coach
 }
 
 // Full commitment response from backend
@@ -59,6 +61,11 @@ export interface Commitment extends CommitmentBase {
   completed_date?: string
   created_at: string
   updated_at: string
+
+  // Assignment fields
+  assigned_to_id?: string
+  assigned_to_name?: string
+  is_coach_commitment?: boolean
 
   // Computed fields
   client_name?: string
@@ -138,6 +145,8 @@ export interface CommitmentFilters {
   type?: CommitmentType
   include_drafts?: boolean
   session_id?: string
+  assigned_to_id?: string
+  assigned_to_type?: 'coach' | 'client'
 }
 
 // Commitment list response

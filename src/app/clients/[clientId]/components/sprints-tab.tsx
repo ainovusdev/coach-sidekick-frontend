@@ -1,7 +1,7 @@
 import { Card, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { GoalsList } from '@/components/goals/goals-list'
-import { SprintTargetsManager } from '@/components/sprints/sprint-targets-manager'
+import { OutcomeCentricView } from '@/components/sprints/outcome-centric-view'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
 import { Activity } from 'lucide-react'
@@ -25,28 +25,26 @@ export function SprintsTab({
 }: SprintsTabProps) {
   return (
     <div className="space-y-6">
-      {/* 1. Outcomes at Top */}
+      {/* 1. Goals/Visions at Top */}
       <GoalsList
         clientId={client.id}
         onRefresh={onRefresh}
         showCreateButton={true}
       />
 
-      {/* 2. Two Column Layout: Desired Wins (Left) + Commitments (Right) */}
+      {/* 2. Two Column Layout: Outcomes (Left) + Commitments (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Desired Wins */}
+        {/* Left: Outcome-Centric View - Outcomes grouped by goals with sprint badges */}
         <div>
-          <SprintTargetsManager
+          <OutcomeCentricView
             clientId={client.id}
-            onRefresh={onRefresh}
-            onTargetClick={targetId => {
-              onTargetClick(selectedTargetId === targetId ? null : targetId)
-            }}
-            selectedTargetId={selectedTargetId}
+            selectedOutcomeId={selectedTargetId}
+            onOutcomeClick={onTargetClick}
+            onCreateSprint={onCreateSprint}
           />
         </div>
 
-        {/* Right: Sprint Commitments */}
+        {/* Right: Commitments */}
         <div>
           <Card className="border-gray-200 shadow-sm">
             <CardHeader>
@@ -54,14 +52,12 @@ export function SprintsTab({
                 <div>
                   <div className="flex items-center gap-2">
                     <Activity className="h-5 w-5" />
-                    <h3 className="font-semibold text-gray-900">
-                      Sprint Commitments
-                    </h3>
+                    <h3 className="font-semibold text-gray-900">Commitments</h3>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">
                     {selectedTargetId
-                      ? 'Filtered by selected desired win'
-                      : 'All active commitments for current sprint'}
+                      ? 'Filtered by selected outcome'
+                      : 'All active commitments'}
                   </p>
                 </div>
                 {selectedTargetId && (
@@ -87,7 +83,7 @@ export function SprintsTab({
         </div>
       </div>
 
-      {/* 3. Current Sprint Overview (Bottom, Full Width) */}
+      {/* 3. Sprint Overview (Bottom, Full Width) */}
       <CurrentSprintWidget
         clientId={client.id}
         onRefresh={onRefresh}

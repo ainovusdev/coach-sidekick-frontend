@@ -4,7 +4,13 @@ import { useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
-import { Brain, AlertCircle } from 'lucide-react'
+import {
+  Sparkles,
+  AlertCircle,
+  Lightbulb,
+  ArrowRight,
+  Clock,
+} from 'lucide-react'
 
 interface CoachingSuggestion {
   id: string
@@ -54,7 +60,7 @@ export function CoachingPanel({
   >([])
   const [loading] = useState(false)
   const [error] = useState<string | null>(null)
-  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
+  const [_lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [waitingForSuggestions, setWaitingForSuggestions] = useState(true)
   const { isConnected } = useWebSocket()
 
@@ -147,219 +153,243 @@ export function CoachingPanel({
     )
   }
 
+  // Helper to get priority styles
+  const getPriorityStyles = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return {
+          bg: 'bg-gradient-to-r from-red-50 to-white',
+          border: 'border-l-red-500',
+          dot: 'bg-red-500',
+          badge: 'bg-red-100 text-red-700',
+        }
+      case 'medium':
+        return {
+          bg: 'bg-gradient-to-r from-amber-50 to-white',
+          border: 'border-l-amber-500',
+          dot: 'bg-amber-500',
+          badge: 'bg-amber-100 text-amber-700',
+        }
+      case 'low':
+        return {
+          bg: 'bg-gradient-to-r from-emerald-50 to-white',
+          border: 'border-l-emerald-500',
+          dot: 'bg-emerald-500',
+          badge: 'bg-emerald-100 text-emerald-700',
+        }
+      default:
+        return {
+          bg: 'bg-gradient-to-r from-gray-50 to-white',
+          border: 'border-l-gray-400',
+          dot: 'bg-gray-400',
+          badge: 'bg-gray-100 text-gray-700',
+        }
+    }
+  }
+
   return (
     <div className={`${className} flex flex-col h-full`}>
-      <Card className="h-full flex flex-col bg-white">
-        <CardHeader
-          className={
-            simplified
-              ? 'pb-3 flex-shrink-0 bg-gray-50 border-b'
-              : 'pb-3 flex-shrink-0'
-          }
-        >
+      <Card className="h-full flex flex-col bg-white border-0 shadow-sm">
+        {/* Header */}
+        <CardHeader className="pb-3 flex-shrink-0 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Brain
-                className={
-                  simplified
-                    ? 'h-4 w-4 text-gray-600'
-                    : 'h-5 w-5 text-purple-600'
-                }
-              />
-              <span className={simplified ? 'text-sm' : ''}>
+            <CardTitle className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg">
+                <Sparkles className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-sm font-semibold text-gray-900">
                 Coaching Suggestions
               </span>
             </CardTitle>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-500">
-                {isConnected ? '🟢 Live' : '🔴 Offline'}
-              </span>
+              {isConnected ? (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                  Live
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                  Offline
+                </span>
+              )}
             </div>
           </div>
-          {!simplified && lastUpdate && (
-            <p className="text-xs text-gray-500">
-              Last updated: {lastUpdate.toLocaleTimeString()}
-            </p>
-          )}
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col overflow-hidden">
+        <CardContent className="flex-1 flex flex-col overflow-hidden p-0">
           <div className="h-full flex flex-col">
-            <div className="flex-1 overflow-y-auto pt-4">
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pr-2">
-                {/* AI Suggestions - Single Column */}
-                <div className="space-y-3 col-span-2">
-                  {loading && (
-                    <div className="text-center py-4 text-gray-500">
-                      <div className="animate-spin h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full mx-auto mb-2"></div>
-                      Analyzing...
-                    </div>
-                  )}
+            <div className="flex-1 overflow-y-auto p-4">
+              {/* Loading State */}
+              {loading && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-3 border-violet-200 rounded-full" />
+                    <div className="absolute inset-0 w-12 h-12 border-3 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                  <p className="mt-4 text-sm font-medium text-gray-600">
+                    Analyzing conversation...
+                  </p>
+                </div>
+              )}
 
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-                      {error}
+              {/* Error State */}
+              {error && (
+                <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium text-red-800">
+                        Analysis Error
+                      </p>
+                      <p className="text-sm text-red-600 mt-1">{error}</p>
                     </div>
-                  )}
+                  </div>
+                </div>
+              )}
 
-                  {suggestions.length === 0 &&
-                    personalAISuggestions.length === 0 &&
-                    !loading &&
-                    !error && (
-                      <div className="text-center py-8 text-gray-500">
-                        <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                        <p>
-                          {waitingForSuggestions
-                            ? 'Analyzing conversation...'
-                            : 'No suggestions yet.'}
-                        </p>
-                        <p className="text-xs mt-1">
-                          {waitingForSuggestions
-                            ? 'Suggestions will appear every 30-60 seconds based on conversation dynamics'
-                            : 'Continue the conversation to receive more suggestions'}
-                        </p>
-                        {!isConnected && (
-                          <p className="text-xs mt-2 text-orange-500">
-                            ⚠️ WebSocket disconnected. Reconnecting...
-                          </p>
-                        )}
+              {/* Empty State */}
+              {suggestions.length === 0 &&
+                personalAISuggestions.length === 0 &&
+                !loading &&
+                !error && (
+                  <div className="flex flex-col items-center justify-center py-10 px-4">
+                    <div className="w-16 h-16 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center mb-4">
+                      <Lightbulb className="h-8 w-8 text-violet-500" />
+                    </div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                      {waitingForSuggestions
+                        ? 'Listening to your session...'
+                        : 'Ready for insights'}
+                    </h3>
+                    <p className="text-xs text-gray-500 text-center max-w-[200px]">
+                      {waitingForSuggestions
+                        ? 'AI-powered suggestions will appear as the conversation unfolds'
+                        : 'Continue the conversation to receive coaching suggestions'}
+                    </p>
+                    {waitingForSuggestions && (
+                      <div className="flex items-center gap-1.5 mt-4 text-xs text-violet-600 bg-violet-50 px-3 py-1.5 rounded-full">
+                        <Clock className="h-3 w-3" />
+                        Updates every 30-60s
                       </div>
                     )}
+                    {!isConnected && (
+                      <div className="flex items-center gap-1.5 mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
+                        <AlertCircle className="h-3 w-3" />
+                        Reconnecting...
+                      </div>
+                    )}
+                  </div>
+                )}
 
-                  {/* Combined suggestions */}
+              {/* Suggestions List */}
+              {(suggestions.length > 0 || personalAISuggestions.length > 0) && (
+                <div className="space-y-3">
                   {[...suggestions, ...personalAISuggestions].map(
                     (suggestion, index) => {
-                      const urgencyColors: Record<string, string> = {
-                        high: 'border-l-red-500',
-                        medium: 'border-l-yellow-500',
-                        low: 'border-l-green-500',
-                      }
                       const priority =
                         'priority' in suggestion
                           ? suggestion.priority
                           : 'medium'
-                      const borderColor =
-                        urgencyColors[priority] || 'border-l-purple-500'
+                      const styles = getPriorityStyles(priority)
 
-                      if (simplified) {
-                        return (
-                          <div
-                            key={suggestion.id || `suggestion-${index}`}
-                            className={`border-l-4 ${borderColor} bg-gray-50 rounded-lg p-3 hover:bg-gray-100 transition-colors`}
-                          >
-                            <div className="flex items-start gap-2">
+                      return (
+                        <div
+                          key={suggestion.id || `suggestion-${index}`}
+                          className={`group relative border-l-4 ${styles.border} ${styles.bg} rounded-xl p-4 hover:shadow-md transition-all duration-200`}
+                        >
+                          {/* Suggestion Content */}
+                          <div className="flex items-start gap-3">
+                            {/* Emoji or Icon */}
+                            <div className="flex-shrink-0 mt-0.5">
                               {'go_live_emoji' in suggestion &&
-                                suggestion.go_live_emoji && (
-                                  <span className="text-base">
-                                    {suggestion.go_live_emoji}
-                                  </span>
-                                )}
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900">
-                                  {suggestion.suggestion ||
-                                    ('content' in suggestion
-                                      ? (suggestion as any).content
-                                      : '')}
-                                </p>
+                              suggestion.go_live_emoji ? (
+                                <span className="text-xl">
+                                  {suggestion.go_live_emoji}
+                                </span>
+                              ) : (
+                                <div
+                                  className={`w-8 h-8 rounded-lg ${styles.badge} flex items-center justify-center`}
+                                >
+                                  <Lightbulb className="h-4 w-4" />
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Text Content */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 leading-snug">
+                                {suggestion.suggestion ||
+                                  ('content' in suggestion
+                                    ? (suggestion as any).content
+                                    : '')}
+                              </p>
+
+                              {/* Tags Row */}
+                              <div className="flex flex-wrap items-center gap-2 mt-2">
                                 {'go_live_value' in suggestion &&
                                   suggestion.go_live_value && (
-                                    <span className="text-xs text-gray-500 mt-1 inline-block">
+                                    <span
+                                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${styles.badge}`}
+                                    >
                                       {suggestion.go_live_value}
-                                      {'timing' in suggestion &&
-                                        suggestion.timing &&
-                                        suggestion.timing !== 'now' &&
-                                        ` • ${suggestion.timing.replace('_', ' ')}`}
+                                    </span>
+                                  )}
+                                {'timing' in suggestion &&
+                                  suggestion.timing &&
+                                  suggestion.timing !== 'now' && (
+                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
+                                      <Clock className="h-3 w-3" />
+                                      {suggestion.timing.replace(/_/g, ' ')}
                                     </span>
                                   )}
                               </div>
+
+                              {/* Rationale (for non-simplified view) */}
+                              {!simplified &&
+                                'rationale' in suggestion &&
+                                suggestion.rationale && (
+                                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                                    {suggestion.rationale}
+                                  </p>
+                                )}
+                            </div>
+
+                            {/* Action Arrow */}
+                            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <ArrowRight className="h-4 w-4 text-gray-400" />
                             </div>
                           </div>
-                        )
-                      }
 
-                      return (
-                        <Card
-                          key={suggestion.id || `suggestion-${index}`}
-                          className={`border-l-4 ${borderColor} hover:shadow-md transition-shadow`}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-1">
-                                  {'go_live_emoji' in suggestion &&
-                                    suggestion.go_live_emoji && (
-                                      <span className="text-lg">
-                                        {suggestion.go_live_emoji}
-                                      </span>
-                                    )}
-                                  {'go_live_value' in suggestion &&
-                                    suggestion.go_live_value && (
-                                      <span className="text-xs font-medium text-gray-600 uppercase">
-                                        {suggestion.go_live_value}
-                                      </span>
-                                    )}
-                                  {'timing' in suggestion &&
-                                    suggestion.timing &&
-                                    suggestion.timing !== 'now' && (
-                                      <span className="text-xs text-gray-500">
-                                        • {suggestion.timing.replace('_', ' ')}
-                                      </span>
-                                    )}
-                                </div>
-                                <p className="text-sm font-medium text-gray-900">
-                                  {suggestion.suggestion ||
-                                    ('content' in suggestion
-                                      ? (suggestion as any).content
-                                      : '')}
-                                </p>
-                                {'rationale' in suggestion &&
-                                  suggestion.rationale && (
-                                    <p className="text-xs text-gray-500 mt-1">
-                                      {suggestion.rationale}
-                                    </p>
-                                  )}
-                                {suggestion.confidence && (
-                                  <div className="flex items-center gap-2 mt-2">
-                                    <div className="flex items-center gap-1">
-                                      <span className="text-xs text-gray-400">
-                                        Confidence:
-                                      </span>
-                                      <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                        <div
-                                          className="h-full bg-purple-500 rounded-full"
-                                          style={{
-                                            width: `${suggestion.confidence * 100}%`,
-                                          }}
-                                        />
-                                      </div>
-                                    </div>
-                                    {'context_confidence' in suggestion &&
-                                      suggestion.context_confidence && (
-                                        <div className="flex items-center gap-1">
-                                          <span className="text-xs text-gray-400">
-                                            Context:
-                                          </span>
-                                          <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                            <div
-                                              className="h-full bg-blue-500 rounded-full"
-                                              style={{
-                                                width: `${suggestion.context_confidence * 100}%`,
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-                                      )}
+                          {/* Confidence Bar (for non-simplified view) */}
+                          {!simplified && suggestion.confidence && (
+                            <div className="mt-3 pt-3 border-t border-gray-100">
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2 flex-1">
+                                  <span className="text-xs text-gray-400 w-16">
+                                    Confidence
+                                  </span>
+                                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-500"
+                                      style={{
+                                        width: `${suggestion.confidence * 100}%`,
+                                      }}
+                                    />
                                   </div>
-                                )}
+                                  <span className="text-xs font-medium text-gray-600 w-8">
+                                    {Math.round(suggestion.confidence * 100)}%
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </CardContent>
-                        </Card>
+                          )}
+                        </div>
                       )
                     },
                   )}
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </CardContent>

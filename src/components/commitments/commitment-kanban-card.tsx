@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Target, Calendar, AlertCircle } from 'lucide-react'
+import { Target, Calendar, AlertCircle, Briefcase } from 'lucide-react'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
 
@@ -71,6 +71,17 @@ export function CommitmentKanbanCard({
       onClick={onClick}
     >
       <CardContent className="p-4 space-y-3">
+        {/* Coach Task Badge */}
+        {commitment.is_coach_commitment && (
+          <Badge
+            variant="outline"
+            className="bg-blue-50 border-blue-200 text-blue-700 text-xs w-fit"
+          >
+            <Briefcase className="h-3 w-3 mr-1" />
+            Coach Task
+          </Badge>
+        )}
+
         {/* Title */}
         <h4
           className={cn(

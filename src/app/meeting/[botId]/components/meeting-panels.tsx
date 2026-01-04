@@ -5,13 +5,13 @@ import { ClientProfileCard } from '@/components/meeting/client-profile-card'
 import { SimilarSessionsCard } from '@/components/meeting/similar-sessions-card'
 import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
-import { QuickNote } from '@/components/session-notes/quick-note' // NEW: Import QuickNote
-import { QuickCommitment } from '@/components/commitments/quick-commitment' // NEW: Import QuickCommitment
-import { RecentCommitmentsCard } from '@/components/meeting/recent-commitments-card' // NEW: Import RecentCommitmentsCard
+import { QuickNote } from '@/components/session-notes/quick-note'
+import { QuickCommitment } from '@/components/commitments/quick-commitment'
+import { RecentCommitmentsCard } from '@/components/meeting/recent-commitments-card'
 import { TranscriptEntry } from '@/types/meeting'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
-import { MessageSquare } from 'lucide-react'
+import { MessageSquare, FileText, Target } from 'lucide-react'
 import { MeetingContextService } from '@/services/meeting-context-service'
 
 interface MeetingPanelsProps {
@@ -125,17 +125,57 @@ export default function MeetingPanels({
       {/* Right Column - Quick Notes & Context (3/10) */}
       <div className="lg:col-span-3 h-full overflow-hidden">
         <div className="h-full overflow-y-auto space-y-3 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {/* NEW: Quick Notes - Always show at top */}
-          {sessionId && (
+          {/* Quick Notes - Show when session exists */}
+          {sessionId ? (
             <QuickNote sessionId={sessionId} noteType="coach_private" />
+          ) : (
+            <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <FileText className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Quick Notes
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Session loading...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
-          {/* NEW: Quick Commitments - Show after quick notes */}
-          {sessionId && clientId && (
+          {/* Quick Commitments - Show when session and client exist */}
+          {sessionId && clientId ? (
             <QuickCommitment sessionId={sessionId} clientId={clientId} />
-          )}
+          ) : sessionId && !clientId ? (
+            <Card className="bg-white rounded-xl shadow-sm border border-amber-100">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-amber-50 rounded-lg">
+                    <Target className="h-4 w-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Quick Commitments
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      No client selected for this session
+                    </p>
+                    <p className="text-xs text-amber-600 mt-1">
+                      Select a client when starting a session to capture
+                      commitments
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
-          {/* NEW: Recent Commitments - Show active commitments */}
+          {/* Recent Commitments - Show when client exists */}
           {clientId && (
             <RecentCommitmentsCard clientId={clientId} compact={true} />
           )}

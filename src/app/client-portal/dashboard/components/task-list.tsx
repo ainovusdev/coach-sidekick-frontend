@@ -115,8 +115,8 @@ export function TaskList({
         <CardContent className="flex flex-col items-center justify-center py-12">
           <CheckCircle2 className="h-12 w-12 text-gray-300 mb-4" />
           <p className="text-gray-500 text-center">
-            No tasks assigned yet. Your coach will assign tasks during your
-            sessions.
+            No commitments assigned yet. Your coach will assign commitments
+            during your sessions.
           </p>
         </CardContent>
       </Card>
