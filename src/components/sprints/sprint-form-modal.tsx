@@ -280,7 +280,8 @@ export function SprintFormModal({
                 <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
                   {clientTargets.map((outcome: any) => {
                     const isSelected = selectedOutcomeIds.includes(outcome.id)
-                    const goalTitle = outcome.goal_titles?.[0] || 'Unknown Goal'
+                    const goalTitle =
+                      outcome.goal_titles?.[0] || 'Unknown Vision'
 
                     return (
                       <div
@@ -318,7 +319,7 @@ export function SprintFormModal({
                             {outcome.title}
                           </div>
                           <div className="text-xs text-gray-500 mt-0.5">
-                            Goal: {goalTitle}
+                            Vision: {goalTitle}
                           </div>
                           {outcome.description && (
                             <div className="text-xs text-gray-600 mt-1 line-clamp-2">

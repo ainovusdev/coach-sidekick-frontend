@@ -24,6 +24,8 @@ import {
   Trash2,
   MoreVertical,
   CheckCircle2,
+  User,
+  Briefcase,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -241,6 +243,9 @@ export function GoalsTreeView({
   const [selectedNodeType, setSelectedNodeType] = useState<
     'goal' | 'outcome' | 'sprint' | null
   >(null)
+  const [assigneeFilter, setAssigneeFilter] = useState<
+    'all' | 'client' | 'coach'
+  >('all')
 
   // Fetch all data
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
@@ -266,52 +271,64 @@ export function GoalsTreeView({
     )
   }, [allTargets, goals])
 
-  // Filter commitments based on selected node
+  // Filter commitments based on selected node and assignee
   const filteredCommitments = useMemo(() => {
-    if (!selectedNodeId || !selectedNodeType) {
-      return allCommitments // Show all if nothing selected
-    }
+    let filtered = allCommitments
 
-    if (selectedNodeType === 'goal') {
-      // Show commitments for this goal (via outcomes ONLY)
-      // Get all outcomes that are linked to this goal (check goal_ids array)
-      const goalTargetIds = clientTargets
-        .filter((t: any) => t.goal_ids?.includes(selectedNodeId))
-        .map((t: any) => t.id)
+    // First filter by selected node
+    if (selectedNodeId && selectedNodeType) {
+      if (selectedNodeType === 'goal') {
+        // Show commitments for this goal (via outcomes ONLY)
+        // Get all outcomes that are linked to this goal (check goal_ids array)
+        const goalTargetIds = clientTargets
+          .filter((t: any) => t.goal_ids?.includes(selectedNodeId))
+          .map((t: any) => t.id)
 
-      return allCommitments.filter((c: any) => {
-        const linkedViaOutcome = c.target_links?.some((link: any) =>
-          goalTargetIds.includes(link.target_id),
+        filtered = filtered.filter((c: any) => {
+          const linkedViaOutcome = c.target_links?.some((link: any) =>
+            goalTargetIds.includes(link.target_id),
+          )
+          const isUnlinked = !c.target_links || c.target_links.length === 0
+          return linkedViaOutcome || isUnlinked
+        })
+      } else if (selectedNodeType === 'outcome') {
+        // Show commitments for this outcome
+        filtered = filtered.filter((c: any) =>
+          c.target_links?.some(
+            (link: any) => link.target_id === selectedNodeId,
+          ),
         )
-        const isUnlinked = !c.target_links || c.target_links.length === 0
-        return linkedViaOutcome || isUnlinked
-      })
+      } else if (selectedNodeType === 'sprint') {
+        // Show commitments for this sprint (via outcomes ONLY)
+        // Get all outcomes that are linked to this sprint (check sprint_ids array)
+        const sprintTargetIds = clientTargets
+          .filter((t: any) => t.sprint_ids?.includes(selectedNodeId))
+          .map((t: any) => t.id)
+
+        filtered = filtered.filter((c: any) => {
+          const linkedViaOutcome = c.target_links?.some((link: any) =>
+            sprintTargetIds.includes(link.target_id),
+          )
+          return linkedViaOutcome
+        })
+      }
     }
 
-    if (selectedNodeType === 'outcome') {
-      // Show commitments for this outcome
-      return allCommitments.filter((c: any) =>
-        c.target_links?.some((link: any) => link.target_id === selectedNodeId),
-      )
+    // Then filter by assignee
+    if (assigneeFilter === 'coach') {
+      filtered = filtered.filter((c: any) => c.is_coach_commitment === true)
+    } else if (assigneeFilter === 'client') {
+      filtered = filtered.filter((c: any) => !c.is_coach_commitment)
     }
 
-    if (selectedNodeType === 'sprint') {
-      // Show commitments for this sprint (via outcomes ONLY)
-      // Get all outcomes that are linked to this sprint (check sprint_ids array)
-      const sprintTargetIds = clientTargets
-        .filter((t: any) => t.sprint_ids?.includes(selectedNodeId))
-        .map((t: any) => t.id)
-
-      return allCommitments.filter((c: any) => {
-        const linkedViaOutcome = c.target_links?.some((link: any) =>
-          sprintTargetIds.includes(link.target_id),
-        )
-        return linkedViaOutcome
-      })
-    }
-
-    return allCommitments
-  }, [allCommitments, selectedNodeId, selectedNodeType, clientTargets])
+    return filtered
+  }, [
+    allCommitments,
+    selectedNodeId,
+    selectedNodeType,
+    clientTargets,
+    assigneeFilter,
+  ])
 
   const toggleGoal = (goalId: string) => {
     setExpandedGoalIds(prev => {
@@ -677,6 +694,51 @@ export function GoalsTreeView({
                     Clear Filter
                   </Button>
                 )}
+              </div>
+              {/* Assignee Filter Buttons */}
+              <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100">
+                <span className="text-xs text-gray-500 mr-2">Show:</span>
+                <Button
+                  variant={assigneeFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAssigneeFilter('all')}
+                  className={cn(
+                    'h-7 text-xs px-3',
+                    assigneeFilter === 'all'
+                      ? 'bg-gray-900 text-white'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                  )}
+                >
+                  All
+                </Button>
+                <Button
+                  variant={assigneeFilter === 'client' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAssigneeFilter('client')}
+                  className={cn(
+                    'h-7 text-xs px-3',
+                    assigneeFilter === 'client'
+                      ? 'bg-slate-600 text-white'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                  )}
+                >
+                  <User className="h-3 w-3 mr-1" />
+                  Client
+                </Button>
+                <Button
+                  variant={assigneeFilter === 'coach' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAssigneeFilter('coach')}
+                  className={cn(
+                    'h-7 text-xs px-3',
+                    assigneeFilter === 'coach'
+                      ? 'bg-amber-600 text-white'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                  )}
+                >
+                  <Briefcase className="h-3 w-3 mr-1" />
+                  Coach
+                </Button>
               </div>
             </CardHeader>
             <CardContent>

@@ -102,7 +102,7 @@ const FIELD_CATEGORIES: Record<string, string> = {
 
 const CATEGORY_ICONS: Record<string, any> = {
   Demographics: User,
-  Goals: Target,
+  Vision: Target,
   Challenges: AlertCircle,
   Personality: Brain,
   Patterns: TrendingUp,

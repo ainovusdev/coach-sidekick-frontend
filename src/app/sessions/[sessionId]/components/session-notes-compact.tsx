@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { StickyNote, FileText, Loader2, ArrowRight } from 'lucide-react'
 import { SessionNotesService } from '@/services/session-notes-service'
 import { SessionNote } from '@/types/session-note'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 
 interface SessionNotesCompactProps {
   sessionId: string
@@ -133,11 +133,7 @@ export function SessionNotesCompact({
                 )}
 
                 <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>
-                    {formatDistanceToNow(new Date(note.created_at), {
-                      addSuffix: true,
-                    })}
-                  </span>
+                  <span>{formatRelativeTime(note.created_at)}</span>
                 </div>
               </div>
             ))}

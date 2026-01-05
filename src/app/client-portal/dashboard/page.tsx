@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
-import { CurrentSprintWidget } from '@/components/client/current-sprint-widget'
 import {
   Clock,
   TrendingUp,
@@ -306,9 +305,6 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
           )}
-
-          {/* Current Sprint Widget */}
-          <CurrentSprintWidget clientId={dashboardData.client_info?.id} />
         </div>
 
         {/* Right Column - Commitments */}

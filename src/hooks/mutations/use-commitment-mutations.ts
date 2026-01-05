@@ -7,6 +7,7 @@ import {
 } from '@/types/commitment'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
+import { nowUTC } from '@/lib/date-utils'
 
 /**
  * Hook to create a new commitment with optimistic updates
@@ -26,19 +27,67 @@ export function useCreateCommitment() {
     mutationFn: (data: CommitmentCreate) =>
       CommitmentService.createCommitment(data),
 
-    onSuccess: data => {
-      // Invalidate all commitment queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+    onMutate: async newCommitment => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: queryKeys.commitments.all })
 
+      // Create optimistic commitment with temporary ID
+      const timestamp = nowUTC()
+      const optimisticCommitment = {
+        id: `temp-${Date.now()}`,
+        ...newCommitment,
+        status: 'active' as const,
+        progress_percentage: 0,
+        extracted_from_transcript: false,
+        created_at: timestamp,
+        updated_at: timestamp,
+        is_coach_commitment: !!newCommitment.assigned_to_id,
+      }
+
+      // Get all commitment list queries and update them
+      const allQueries = queryClient.getQueriesData<any>({
+        queryKey: queryKeys.commitments.all,
+      })
+
+      // Store previous data for rollback
+      const previousQueries = allQueries.map(([key, data]) => ({ key, data }))
+
+      // Update each matching query
+      allQueries.forEach(([queryKey, data]) => {
+        if (data?.commitments && Array.isArray(data.commitments)) {
+          queryClient.setQueryData(queryKey, {
+            ...data,
+            commitments: [optimisticCommitment, ...data.commitments],
+            total: (data.total || 0) + 1,
+          })
+        }
+      })
+
+      return { optimisticCommitment, previousQueries }
+    },
+
+    onError: (err, _newCommitment, context) => {
+      // Rollback on error - restore previous data
+      if (context?.previousQueries) {
+        context.previousQueries.forEach(({ key, data }) => {
+          queryClient.setQueryData(key, data)
+        })
+      }
+
+      toast.error('Failed to create commitment', {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+
+    onSuccess: data => {
       toast.success('Commitment created', {
         description: data.title,
       })
     },
 
-    onError: err => {
-      toast.error('Failed to create commitment', {
-        description: err instanceof Error ? err.message : 'Please try again',
-      })
+    onSettled: () => {
+      // Refetch to get the real data from server
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
     },
   })
 }

@@ -42,9 +42,24 @@ export function MyCommitments() {
     )
   }
 
-  // Don't show section if no coach commitments
+  // Show empty state if no coach commitments
   if (activeCommitments.length === 0) {
-    return null
+    return (
+      <Card className="border-gray-200 mb-6">
+        <CardHeader className="pb-3 border-b border-gray-200">
+          <CardTitle className="text-base font-semibold flex items-center gap-2">
+            <CheckSquare className="h-5 w-5 text-amber-600" />
+            My Tasks
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 text-center">
+          <p className="text-sm text-gray-500">No tasks assigned to you yet.</p>
+          <p className="text-xs text-gray-400 mt-1">
+            Create a commitment and assign it to yourself from any client page.
+          </p>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
@@ -52,10 +67,13 @@ export function MyCommitments() {
       <CardHeader className="pb-3 border-b border-gray-200">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base font-semibold flex items-center gap-2">
-            <CheckSquare className="h-5 w-5 text-gray-600" />
-            My Commitments
+            <CheckSquare className="h-5 w-5 text-amber-600" />
+            My Tasks
           </CardTitle>
-          <Badge variant="outline" className="text-gray-600">
+          <Badge
+            variant="outline"
+            className="bg-amber-50 border-amber-200 text-amber-700"
+          >
             {activeCommitments.length}
           </Badge>
         </div>

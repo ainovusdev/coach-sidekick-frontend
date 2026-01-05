@@ -68,7 +68,7 @@ export function TargetFormModal({
     }
 
     if (selectedGoalIds.length === 0) {
-      toast.error('Please select at least one goal for this outcome')
+      toast.error('Please select at least one vision for this outcome')
       return
     }
 
@@ -108,7 +108,7 @@ export function TargetFormModal({
       // Close modal and show immediately
       onOpenChange(false)
       toast.success('Outcome Created', {
-        description: `The outcome has been linked to ${selectedGoalIds.length} goal(s)`,
+        description: `The outcome has been linked to ${selectedGoalIds.length} vision(s)`,
       })
 
       // Actual API call
@@ -145,16 +145,16 @@ export function TargetFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Outcome</DialogTitle>
+          <DialogTitle>Add a contract outcome</DialogTitle>
           <DialogDescription>
-            Add a short-term outcome to track progress toward a goal
+            Add a short-term outcome to track progress toward a vision
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-3">
-              <Label>Link to Goals * (select one or more)</Label>
+              <Label>Link to Vision * (select one or more)</Label>
               {goals.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {goals.map(goal => {
@@ -198,11 +198,11 @@ export function TargetFormModal({
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No active goals</div>
+                <div className="text-sm text-gray-500">No active visions</div>
               )}
               {selectedGoalIds.length > 0 && (
                 <p className="text-xs text-gray-600">
-                  {selectedGoalIds.length} goal
+                  {selectedGoalIds.length} vision
                   {selectedGoalIds.length !== 1 ? 's' : ''} selected
                 </p>
               )}
