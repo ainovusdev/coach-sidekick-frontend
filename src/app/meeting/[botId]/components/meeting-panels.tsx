@@ -84,8 +84,8 @@ export default function MeetingPanels({
   })
 
   return (
-    <div className="h-full grid grid-cols-1 lg:grid-cols-10 gap-4 overflow-hidden">
-      {/* Left Column - Transcript (3/10) */}
+    <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
+      {/* Left Column - Transcript (3/12) */}
       <div className="lg:col-span-3 h-full overflow-hidden">
         <Card className="h-full flex flex-col bg-white shadow-sm">
           <CardHeader className="pb-3 border-b bg-gray-50 flex-shrink-0">
@@ -113,23 +113,93 @@ export default function MeetingPanels({
         </Card>
       </div>
 
-      {/* Center Column - Coaching Suggestions (4/10) */}
-      <div className="lg:col-span-4 h-full overflow-hidden">
-        <CoachingPanel
-          botId={botId}
-          className="h-full shadow-sm"
-          simplified={true}
-        />
+      {/* Middle Column - Coaching Suggestions + Context Cards (6/12) */}
+      <div className="lg:col-span-6 h-full overflow-hidden flex flex-col gap-3">
+        {/* Top Section - Coaching Suggestions */}
+        <div className="flex-shrink-0 h-[50%] min-h-[280px]">
+          <CoachingPanel
+            botId={botId}
+            className="h-full shadow-sm"
+            simplified={true}
+          />
+        </div>
+
+        {/* Bottom Section - Context Cards (scrollable) */}
+        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
+            {contextLoading ? (
+              <>
+                {/* Loading states for context cards */}
+                <Card className="h-auto animate-pulse">
+                  <CardHeader className="pb-2 py-2">
+                    <div className="h-4 bg-gray-200 rounded w-24"></div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card className="h-auto animate-pulse">
+                  <CardHeader className="pb-2 py-2">
+                    <div className="h-4 bg-gray-200 rounded w-32"></div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-full"></div>
+                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                {/* Client Profile */}
+                <ClientProfileCard
+                  profile={fullContext?.client_profile}
+                  insights={fullContext?.insights}
+                  compact={true}
+                />
+
+                {/* Similar Sessions */}
+                <SimilarSessionsCard
+                  sessions={fullContext?.similar_sessions || []}
+                  summaries={fullContext?.session_summaries}
+                  compact={true}
+                />
+
+                {/* Analysis Conversations */}
+                <AnalysisConversationsCard
+                  conversations={fullContext?.analysis_conversations}
+                  loading={contextLoading}
+                  compact={true}
+                />
+
+                {/* Pattern Insights */}
+                <PatternInsightsCard
+                  currentPatterns={patterns}
+                  patternHistory={fullContext?.pattern_history}
+                  recurringThemes={fullContext?.recurring_themes}
+                  insights={fullContext?.insights}
+                  compact={true}
+                />
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Right Column - Quick Notes & Context (3/10) */}
-      <div className="lg:col-span-3 h-full overflow-hidden">
-        <div className="h-full overflow-y-auto space-y-3 px-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          {/* Quick Notes - Show when session exists */}
+      {/* Right Column - Notes (top) & Commitments (bottom) (3/12) */}
+      <div className="lg:col-span-3 h-full overflow-hidden flex flex-col gap-3">
+        {/* Top Section - Quick Notes */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           {sessionId ? (
-            <QuickNote sessionId={sessionId} noteType="coach_private" />
+            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <QuickNote sessionId={sessionId} noteType="coach_private" />
+            </div>
           ) : (
-            <Card className="bg-white rounded-xl shadow-sm border border-gray-100">
+            <Card className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-gray-100 rounded-lg">
@@ -147,12 +217,20 @@ export default function MeetingPanels({
               </CardContent>
             </Card>
           )}
+        </div>
 
-          {/* Quick Commitments - Show when session and client exist */}
+        {/* Bottom Section - Quick Commitments */}
+        <div className="flex-1 min-h-0 overflow-hidden">
           {sessionId && clientId ? (
-            <QuickCommitment sessionId={sessionId} clientId={clientId} />
+            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              <QuickCommitment sessionId={sessionId} clientId={clientId} />
+              {/* Recent Commitments below */}
+              <div className="mt-3">
+                <RecentCommitmentsCard clientId={clientId} compact={true} />
+              </div>
+            </div>
           ) : sessionId && !clientId ? (
-            <Card className="bg-white rounded-xl shadow-sm border border-amber-100">
+            <Card className="bg-white rounded-xl shadow-sm border border-amber-100 h-full">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
                   <div className="p-2 bg-amber-50 rounded-lg">
@@ -174,71 +252,6 @@ export default function MeetingPanels({
               </CardContent>
             </Card>
           ) : null}
-
-          {/* Recent Commitments - Show when client exists */}
-          {clientId && (
-            <RecentCommitmentsCard clientId={clientId} compact={true} />
-          )}
-
-          {contextLoading ? (
-            <>
-              {/* Loading states for context cards */}
-              <Card className="h-auto animate-pulse">
-                <CardHeader className="pb-2 py-2">
-                  <div className="h-4 bg-gray-200 rounded w-24"></div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="h-auto animate-pulse">
-                <CardHeader className="pb-2 py-2">
-                  <div className="h-4 bg-gray-200 rounded w-32"></div>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <div className="space-y-2">
-                    <div className="h-3 bg-gray-200 rounded w-full"></div>
-                    <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          ) : (
-            <>
-              {/* Client Profile */}
-              <ClientProfileCard
-                profile={fullContext?.client_profile}
-                insights={fullContext?.insights}
-                compact={true}
-              />
-
-              {/* Similar Sessions */}
-              <SimilarSessionsCard
-                sessions={fullContext?.similar_sessions || []}
-                summaries={fullContext?.session_summaries}
-                compact={true}
-              />
-
-              {/* Analysis Conversations */}
-              <AnalysisConversationsCard
-                conversations={fullContext?.analysis_conversations}
-                loading={contextLoading}
-                compact={true}
-              />
-
-              {/* Pattern Insights */}
-              <PatternInsightsCard
-                currentPatterns={patterns}
-                patternHistory={fullContext?.pattern_history}
-                recurringThemes={fullContext?.recurring_themes}
-                insights={fullContext?.insights}
-                compact={true}
-              />
-            </>
-          )}
         </div>
       </div>
     </div>

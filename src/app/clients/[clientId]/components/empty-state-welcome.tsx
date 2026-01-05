@@ -83,7 +83,9 @@ export function EmptyStateWelcome({
               <Target className="h-5 w-5 text-gray-600" />
             </div>
             <div className="text-left">
-              <h4 className="text-sm font-medium text-gray-900">Set a Goal</h4>
+              <h4 className="text-sm font-medium text-gray-900">
+                Set a meta performance vision
+              </h4>
               <p className="text-xs text-gray-500">
                 Define outcomes to track progress
               </p>

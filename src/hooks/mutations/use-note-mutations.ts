@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { SessionNotesService } from '@/services/session-notes-service'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
+import { nowUTC } from '@/lib/date-utils'
 
 export interface NoteCreate {
   note_type: 'coach_private' | 'shared'
@@ -40,11 +41,12 @@ export function useCreateNote(sessionId: string) {
       )
 
       // Optimistically update with temporary ID
+      const timestamp = nowUTC()
       const optimisticNote = {
         id: `temp-${Date.now()}`,
         ...newNote,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
+        created_at: timestamp,
+        updated_at: timestamp,
         is_pinned: false,
         transcript_timestamp: null,
         transcript_entry_id: null,
@@ -94,7 +96,7 @@ export function useCreateNote(sessionId: string) {
 }
 
 /**
- * Hook to update an existing note
+ * Hook to update an existing note with optimistic updates
  */
 export function useUpdateNote(sessionId: string) {
   const queryClient = useQueryClient()
@@ -108,16 +110,55 @@ export function useUpdateNote(sessionId: string) {
       data: Partial<NoteCreate>
     }) => SessionNotesService.updateNote(noteId, data),
 
-    onSuccess: () => {
-      queryClient.invalidateQueries({
+    onMutate: async ({ noteId, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({
         queryKey: queryKeys.sessions.notes(sessionId),
       })
+
+      // Snapshot previous value
+      const previousNotes = queryClient.getQueryData(
+        queryKeys.sessions.notes(sessionId),
+      )
+
+      // Optimistically update the note in the list
+      queryClient.setQueryData(
+        queryKeys.sessions.notes(sessionId),
+        (old: any) => {
+          if (!Array.isArray(old)) return old
+          return old.map((note: any) =>
+            note.id === noteId
+              ? { ...note, ...data, updated_at: nowUTC() }
+              : note,
+          )
+        },
+      )
+
+      return { previousNotes, noteId }
+    },
+
+    onError: (err, _variables, context) => {
+      // Rollback on error
+      if (context?.previousNotes) {
+        queryClient.setQueryData(
+          queryKeys.sessions.notes(sessionId),
+          context.previousNotes,
+        )
+      }
+
+      toast.error('Failed to update note', {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+
+    onSuccess: () => {
       toast.success('Note updated')
     },
 
-    onError: err => {
-      toast.error('Failed to update note', {
-        description: err instanceof Error ? err.message : 'Please try again',
+    onSettled: () => {
+      // Refetch to get the real data from server
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.notes(sessionId),
       })
     },
   })

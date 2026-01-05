@@ -110,7 +110,7 @@ export default function ClientDetailPage({
         queryKey: queryKeys.goals.all,
       })
 
-      toast.success('Goal Deleted', {
+      toast.success('Vision Deleted', {
         description: `"${goalToDelete.title}" has been deleted successfully`,
       })
 
@@ -118,7 +118,7 @@ export default function ClientDetailPage({
       setGoalToDelete(null)
     } catch (error) {
       console.error('Error deleting goal:', error)
-      toast.error('Failed to delete goal', {
+      toast.error('Failed to delete vision', {
         description: 'Please try again later',
       })
     } finally {
@@ -319,7 +319,7 @@ export default function ClientDetailPage({
                         className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
                       >
                         <Target className="h-4 w-4 mr-2" />
-                        Goals & Progress
+                        Vision & Progress
                       </TabsTrigger>
                       <TabsTrigger
                         value="wins"
@@ -537,7 +537,7 @@ export default function ClientDetailPage({
           </AlertDialogContent>
         </AlertDialog>
 
-        {/* Delete Goal Confirmation Dialog */}
+        {/* Delete Vision Confirmation Dialog */}
         <AlertDialog
           open={showDeleteGoalDialog}
           onOpenChange={open => {
@@ -553,11 +553,11 @@ export default function ClientDetailPage({
                 <div className="p-2 bg-red-100 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
-                <AlertDialogTitle>Delete Goal</AlertDialogTitle>
+                <AlertDialogTitle>Delete Vision</AlertDialogTitle>
               </div>
               <AlertDialogDescription className="space-y-3">
                 <p>
-                  Are you sure you want to delete the goal{' '}
+                  Are you sure you want to delete the vision{' '}
                   <span className="font-semibold text-gray-900">
                     &quot;{goalToDelete?.title}&quot;
                   </span>
@@ -565,7 +565,7 @@ export default function ClientDetailPage({
                 </p>
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                   <p className="text-sm text-blue-800">
-                    <strong>Note:</strong> Deleting this goal will unlink it
+                    <strong>Note:</strong> Deleting this vision will unlink it
                     from any associated outcomes. The outcomes themselves will
                     remain and stay linked to their sprints and commitments.
                   </p>
@@ -595,7 +595,7 @@ export default function ClientDetailPage({
                 ) : (
                   <>
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Delete Goal
+                    Delete Vision
                   </>
                 )}
               </AlertDialogAction>

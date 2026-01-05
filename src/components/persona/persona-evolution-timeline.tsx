@@ -80,7 +80,7 @@ const CATEGORY_COLORS: Record<
     text: 'text-blue-700',
     border: 'border-blue-200',
   },
-  Goals: {
+  Vision: {
     bg: 'bg-purple-50',
     text: 'text-purple-700',
     border: 'border-purple-200',

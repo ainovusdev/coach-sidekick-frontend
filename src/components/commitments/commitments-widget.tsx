@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
-import { formatDistanceToNow, isPast, parseISO } from 'date-fns'
+import { formatRelativeTime, isPastDate } from '@/lib/date-utils'
 
 interface CommitmentsWidgetProps {
   clientId?: string
@@ -94,8 +94,7 @@ export function CommitmentsWidget({
   const getDeadlineStatus = (commitment: Commitment) => {
     if (!commitment.target_date) return null
 
-    const targetDate = parseISO(commitment.target_date)
-    const isOverdue = isPast(targetDate)
+    const isOverdue = isPastDate(commitment.target_date)
 
     if (isOverdue) {
       return {
@@ -105,7 +104,7 @@ export function CommitmentsWidget({
     }
 
     return {
-      text: `Due ${formatDistanceToNow(targetDate, { addSuffix: true })}`,
+      text: `Due ${formatRelativeTime(commitment.target_date)}`,
       className: 'text-zinc-400',
     }
   }

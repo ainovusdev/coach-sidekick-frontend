@@ -191,10 +191,10 @@ export function CoachingPanel({
     <div className={`${className} flex flex-col h-full`}>
       <Card className="h-full flex flex-col bg-white border-0 shadow-sm">
         {/* Header */}
-        <CardHeader className="pb-3 flex-shrink-0 border-b border-gray-100">
+        <CardHeader className="pb-3 flex-shrink-0 border-b border-gray-100 bg-gray-50">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg">
+              <div className="p-1.5 bg-gray-900 rounded-lg">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
               <span className="text-sm font-semibold text-gray-900">
@@ -203,8 +203,8 @@ export function CoachingPanel({
             </CardTitle>
             <div className="flex items-center gap-2">
               {isConnected ? (
-                <span className="flex items-center gap-1.5 text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">
-                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <span className="flex items-center gap-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 px-2 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 bg-gray-900 rounded-full animate-pulse" />
                   Live
                 </span>
               ) : (
@@ -224,8 +224,8 @@ export function CoachingPanel({
               {loading && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="relative">
-                    <div className="w-12 h-12 border-3 border-violet-200 rounded-full" />
-                    <div className="absolute inset-0 w-12 h-12 border-3 border-violet-600 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-12 h-12 border-3 border-gray-200 rounded-full" />
+                    <div className="absolute inset-0 w-12 h-12 border-3 border-gray-900 border-t-transparent rounded-full animate-spin" />
                   </div>
                   <p className="mt-4 text-sm font-medium text-gray-600">
                     Analyzing conversation...
@@ -254,8 +254,8 @@ export function CoachingPanel({
                 !loading &&
                 !error && (
                   <div className="flex flex-col items-center justify-center py-10 px-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-violet-100 to-purple-100 rounded-2xl flex items-center justify-center mb-4">
-                      <Lightbulb className="h-8 w-8 text-violet-500" />
+                    <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mb-4">
+                      <Lightbulb className="h-8 w-8 text-gray-400" />
                     </div>
                     <h3 className="text-sm font-semibold text-gray-900 mb-1">
                       {waitingForSuggestions
@@ -268,13 +268,13 @@ export function CoachingPanel({
                         : 'Continue the conversation to receive coaching suggestions'}
                     </p>
                     {waitingForSuggestions && (
-                      <div className="flex items-center gap-1.5 mt-4 text-xs text-violet-600 bg-violet-50 px-3 py-1.5 rounded-full">
+                      <div className="flex items-center gap-1.5 mt-4 text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
                         <Clock className="h-3 w-3" />
                         Updates every 30-60s
                       </div>
                     )}
                     {!isConnected && (
-                      <div className="flex items-center gap-1.5 mt-3 text-xs text-amber-600 bg-amber-50 px-3 py-1.5 rounded-full">
+                      <div className="flex items-center gap-1.5 mt-3 text-xs text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full">
                         <AlertCircle className="h-3 w-3" />
                         Reconnecting...
                       </div>
@@ -371,7 +371,7 @@ export function CoachingPanel({
                                   </span>
                                   <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                                     <div
-                                      className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-500"
+                                      className="h-full bg-gray-900 rounded-full transition-all duration-500"
                                       style={{
                                         width: `${suggestion.confidence * 100}%`,
                                       }}

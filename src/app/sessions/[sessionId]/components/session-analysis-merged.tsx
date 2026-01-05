@@ -48,7 +48,7 @@ const coachingMetrics = [
   { key: 'designing_actions', label: 'Designing Actions', icon: Target },
   {
     key: 'planning_goal_setting',
-    label: 'Planning & Goal Setting',
+    label: 'Planning & Vision Setting',
     icon: Target,
   },
   { key: 'managing_progress', label: 'Managing Progress', icon: TrendingUp },

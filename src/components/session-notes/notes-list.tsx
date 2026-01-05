@@ -31,7 +31,7 @@ import {
   MessageSquare,
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 
 interface NotesListProps {
   sessionId: string
@@ -329,11 +329,7 @@ export function NotesList({
               <div className="flex items-center gap-2 text-xs text-gray-500">
                 <span>{config.shortLabel}</span>
                 <span>•</span>
-                <span>
-                  {formatDistanceToNow(new Date(note.created_at), {
-                    addSuffix: true,
-                  })}
-                </span>
+                <span>{formatRelativeTime(note.created_at)}</span>
               </div>
             </div>
           </div>
@@ -367,10 +363,7 @@ export function NotesList({
         {/* Footer with timestamp */}
         {note.updated_at !== note.created_at && (
           <p className="text-xs text-gray-400 mt-3">
-            Edited{' '}
-            {formatDistanceToNow(new Date(note.updated_at), {
-              addSuffix: true,
-            })}
+            Edited {formatRelativeTime(note.updated_at)}
           </p>
         )}
       </div>

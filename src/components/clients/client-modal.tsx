@@ -141,9 +141,17 @@ export default function ClientModal({
       }
 
       onClose()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error submitting client form:', error)
-      setErrors({ submit: 'Failed to save client. Please try again.' })
+      // Check for duplicate email error from backend
+      const errorMessage = error?.message || error?.detail || ''
+      if (errorMessage.toLowerCase().includes('email already exists')) {
+        setErrors({
+          email: 'A client with this email already exists in the system',
+        })
+      } else {
+        setErrors({ submit: 'Failed to save client. Please try again.' })
+      }
     } finally {
       setIsLoading(false)
     }

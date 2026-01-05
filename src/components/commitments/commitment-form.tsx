@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import { format } from 'date-fns'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +22,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { Calendar } from '@/components/ui/calendar'
+import {
   Commitment,
   CommitmentCreate,
   CommitmentType,
@@ -30,7 +37,7 @@ import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useAuth } from '@/contexts/auth-context'
-import { Check, User, Briefcase } from 'lucide-react'
+import { Check, User, Briefcase, CalendarIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface CommitmentFormProps {
@@ -333,6 +340,47 @@ export function CommitmentForm({
               )}
             </div>
 
+            {/* Due Date - Always visible */}
+            <div className="space-y-2">
+              <Label>Due Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      'w-full justify-start text-left font-normal',
+                      !formData.target_date && 'text-muted-foreground',
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.target_date ? (
+                      format(new Date(formData.target_date), 'PPP')
+                    ) : (
+                      <span>Pick a due date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={
+                      formData.target_date
+                        ? new Date(formData.target_date)
+                        : undefined
+                    }
+                    onSelect={date =>
+                      updateField(
+                        'target_date',
+                        date ? format(date, 'yyyy-MM-dd') : undefined,
+                      )
+                    }
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             {/* Show More Details Toggle */}
             <Button
               type="button"
@@ -392,31 +440,45 @@ export function CommitmentForm({
                   </div>
                 </div>
 
-                {/* Dates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date</Label>
-                    <Input
-                      id="start_date"
-                      type="date"
-                      value={formData.start_date || ''}
-                      onChange={e =>
-                        updateField('start_date', e.target.value || undefined)
-                      }
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="target_date">Target Date</Label>
-                    <Input
-                      id="target_date"
-                      type="date"
-                      value={formData.target_date || ''}
-                      onChange={e =>
-                        updateField('target_date', e.target.value || undefined)
-                      }
-                    />
-                  </div>
+                {/* Start Date */}
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className={cn(
+                          'w-full justify-start text-left font-normal',
+                          !formData.start_date && 'text-muted-foreground',
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.start_date ? (
+                          format(new Date(formData.start_date), 'PPP')
+                        ) : (
+                          <span>Pick a start date</span>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={
+                          formData.start_date
+                            ? new Date(formData.start_date)
+                            : undefined
+                        }
+                        onSelect={date =>
+                          updateField(
+                            'start_date',
+                            date ? format(date, 'yyyy-MM-dd') : undefined,
+                          )
+                        }
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 {/* Measurement Criteria */}

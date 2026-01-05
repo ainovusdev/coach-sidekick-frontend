@@ -209,14 +209,12 @@ export default function ClientPersonaPage() {
         </div>
       )}
 
-      {/* Goals & Vision Section */}
+      {/* Vision Section */}
       {(hasPrimaryGoals || hasShortTermGoals || hasLongTermGoals) && (
         <section>
           <div className="flex items-center gap-2 mb-4">
             <Target className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
-              Goals & Vision
-            </h2>
+            <h2 className="text-lg font-semibold text-gray-900">Vision</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -224,7 +222,7 @@ export default function ClientPersonaPage() {
               <Card className="border-gray-200">
                 <CardContent className="p-5">
                   <h3 className="font-medium text-gray-900 mb-3">
-                    Primary Goals
+                    Primary Vision
                   </h3>
                   <div className="space-y-3">
                     {persona.goals.primary.map((goal, idx) => (

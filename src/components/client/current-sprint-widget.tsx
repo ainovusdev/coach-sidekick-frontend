@@ -253,7 +253,7 @@ export function CurrentSprintWidget({
           <ChevronRight className="h-4 w-4 ml-2" />
         </Button>
 
-        {/* Goals Preview */}
+        {/* Vision Preview */}
         {sprint.targets && sprint.targets.length > 0 && (
           <div className="pt-3 border-t border-gray-100">
             <p className="text-xs font-semibold text-gray-600 mb-2">
