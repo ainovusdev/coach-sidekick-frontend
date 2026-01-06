@@ -21,9 +21,9 @@ export function RecentCommitmentsCard({
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const fetchCommitments = async () => {
+    const fetchCommitments = async (showLoading = false) => {
       try {
-        setLoading(true)
+        if (showLoading) setLoading(true)
         const response = await CommitmentService.listCommitments({
           client_id: clientId,
           status: 'active',
@@ -33,12 +33,18 @@ export function RecentCommitmentsCard({
       } catch (error) {
         console.error('Failed to fetch commitments:', error)
       } finally {
-        setLoading(false)
+        if (showLoading) setLoading(false)
       }
     }
 
     if (clientId) {
-      fetchCommitments()
+      // Initial fetch with loading state
+      fetchCommitments(true)
+
+      // Poll every 10 seconds for updates (client may add commitments)
+      const interval = setInterval(() => fetchCommitments(false), 10000)
+
+      return () => clearInterval(interval)
     }
   }, [clientId])
 

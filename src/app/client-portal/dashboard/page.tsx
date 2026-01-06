@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
+import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
 import {
   Clock,
   TrendingUp,
@@ -203,6 +204,11 @@ export default function ClientDashboard() {
             </>
           )}
         </div>
+      </div>
+
+      {/* Active Sessions Banner */}
+      <div className="mb-6">
+        <ActiveSessionsCard />
       </div>
 
       {/* Main Content Grid */}

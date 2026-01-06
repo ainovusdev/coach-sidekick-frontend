@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { BotStatus } from '@/components/meeting/bot-status'
 import { WebSocketStatus } from '@/components/meeting/websocket-status'
+import { ClientMeetingLink } from '@/components/meeting/client-meeting-link'
 import { Bot } from '@/types/meeting'
 import { ArrowLeft, ExternalLink, Users, MessageSquare } from 'lucide-react'
 
@@ -9,6 +10,9 @@ interface MeetingHeaderProps {
   bot: Bot | null
   transcriptLength: number
   isStoppingBot: boolean
+  sessionId?: string | null
+  clientId?: string | null
+  clientName?: string | null
   onStopBot: () => void
   onNavigateBack: () => void
 }
@@ -17,6 +21,9 @@ export default function MeetingHeader({
   bot,
   transcriptLength,
   isStoppingBot,
+  sessionId,
+  clientId,
+  clientName,
   onStopBot,
   onNavigateBack,
 }: MeetingHeaderProps) {
@@ -62,6 +69,18 @@ export default function MeetingHeader({
                   <span>{transcriptLength} entries</span>
                 </div>
               </div>
+
+              {/* Client Meeting Link - inline with actions */}
+              {sessionId && (
+                <>
+                  <div className="h-6 w-px bg-gray-300" />
+                  <ClientMeetingLink
+                    sessionId={sessionId}
+                    clientId={clientId ?? null}
+                    clientName={clientName}
+                  />
+                </>
+              )}
 
               <div className="h-6 w-px bg-gray-300" />
 
