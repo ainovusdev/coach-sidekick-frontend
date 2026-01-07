@@ -45,11 +45,17 @@ export function SessionCommitmentsList({
   const [editDate, setEditDate] = useState<Date | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  const { data, isLoading } = useCommitments({
-    session_id: sessionId,
-    client_id: clientId,
-    include_drafts: true,
-  })
+  const { data, isLoading } = useCommitments(
+    {
+      session_id: sessionId,
+      client_id: clientId,
+      include_drafts: true,
+    },
+    {
+      // Poll every 10 seconds to pick up commitments created by the client
+      refetchInterval: 10000,
+    },
+  )
   const updateCommitment = useUpdateCommitment()
   const discardCommitment = useDiscardCommitment()
 

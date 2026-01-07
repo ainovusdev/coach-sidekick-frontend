@@ -25,6 +25,7 @@ export default function MeetingPage() {
     meetingState,
     sessionId,
     clientId,
+    clientName,
     stopBot,
     isStoppingBot,
   } = useMeetingData({ botId })
@@ -75,6 +76,9 @@ export default function MeetingPage() {
           bot={bot}
           transcriptLength={transcript.length}
           isStoppingBot={isStoppingBot}
+          sessionId={sessionId}
+          clientId={clientId}
+          clientName={clientName}
           onStopBot={handleStopBot}
           onNavigateBack={() => router.push('/')}
         />

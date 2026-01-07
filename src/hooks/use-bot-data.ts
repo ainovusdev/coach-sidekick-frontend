@@ -12,6 +12,7 @@ interface UseBotDataReturn {
   error: string | null
   sessionId: string | null
   clientId: string | null
+  clientName: string | null
   refetch: () => Promise<void>
 }
 
@@ -25,6 +26,7 @@ export function useBotData(botId: string): UseBotDataReturn {
   const [error, setError] = useState<string | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [clientId, setClientId] = useState<string | null>(null)
+  const [clientName, setClientName] = useState<string | null>(null)
   const { isConnected } = useWebSocket()
 
   const ensureSession = useCallback(async (botData: Bot) => {
@@ -38,6 +40,7 @@ export function useBotData(botId: string): UseBotDataReturn {
           console.log('Session already exists for bot:', botData.id)
           setSessionId(existingSession.id)
           setClientId(existingSession.client_id || null)
+          setClientName(existingSession.client?.name || null)
           return existingSession.id
         }
       } catch (error) {
@@ -58,6 +61,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       console.log('Created new session for bot:', botData.id)
       setSessionId(newSession.id)
       setClientId(newSession.client_id || null)
+      setClientName(newSession.client?.name || null)
       return newSession.id
     } catch (error) {
       console.warn('Failed to ensure session exists:', error)
@@ -243,6 +247,7 @@ export function useBotData(botId: string): UseBotDataReturn {
     error,
     sessionId,
     clientId,
+    clientName,
     refetch: fetchBotData,
   }
 }
