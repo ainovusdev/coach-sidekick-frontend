@@ -7,6 +7,7 @@ export type NoteType =
   | 'coach_private'
   | 'shared'
   | 'client_reflection'
+  | 'client_private'
   | 'pre_session'
   | 'post_session'
 
@@ -48,7 +49,7 @@ export interface NoteTemplate extends NoteTemplateBase {
 
 // Base session note interface
 export interface SessionNoteBase {
-  title: string
+  title?: string | null // Optional for client notes
   content: string
   note_type: NoteType
 }
@@ -71,7 +72,8 @@ export interface SessionNoteUpdate {
 export interface SessionNote extends SessionNoteBase {
   id: string
   session_id: string
-  created_by_id: string
+  created_by_id?: string | null // Nullable for guest-created notes
+  guest_author_id?: string | null // For notes created via live meeting
   template_id?: string
   is_visible_to_client: boolean
   note_metadata: Record<string, any>
@@ -98,6 +100,7 @@ export const NOTE_TYPE_LABELS: Record<NoteType, string> = {
   coach_private: 'Coach Private',
   shared: 'Shared Notes',
   client_reflection: 'Client Reflections',
+  client_private: 'Client Note',
   pre_session: 'Pre-Session',
   post_session: 'Post-Session',
 }
@@ -121,6 +124,11 @@ export const NOTE_TYPE_COLORS: Record<
     bg: 'bg-green-50',
     text: 'text-green-700',
     border: 'border-green-200',
+  },
+  client_private: {
+    bg: 'bg-teal-50',
+    text: 'text-teal-700',
+    border: 'border-teal-200',
   },
   pre_session: {
     bg: 'bg-orange-50',

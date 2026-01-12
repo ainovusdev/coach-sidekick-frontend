@@ -52,8 +52,8 @@ export function SessionCommitmentsList({
       include_drafts: true,
     },
     {
-      // Poll every 10 seconds to pick up commitments created by the client
-      refetchInterval: 10000,
+      // Poll every 30 seconds to pick up commitments created by the client
+      refetchInterval: 30000,
     },
   )
   const updateCommitment = useUpdateCommitment()

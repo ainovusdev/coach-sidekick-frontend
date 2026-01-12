@@ -68,6 +68,12 @@ const NOTE_TYPE_CONFIG: Record<
     icon: User,
     description: 'Your personal notes',
   },
+  client_private: {
+    label: 'Client Note',
+    shortLabel: 'Client',
+    icon: User,
+    description: 'Notes from client during session',
+  },
   pre_session: {
     label: 'Pre-Session',
     shortLabel: 'Pre',
@@ -191,7 +197,7 @@ export function NotesList({
   // Handle edit note
   const startEditing = (note: SessionNote) => {
     setEditingNote(note)
-    setEditTitle(note.title)
+    setEditTitle(note.title || '')
     setEditContent(note.content)
   }
 

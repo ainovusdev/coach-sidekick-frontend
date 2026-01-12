@@ -45,6 +45,8 @@ export function SessionNotesCompact({
         return 'Shared'
       case 'client_reflection':
         return 'Reflection'
+      case 'client_private':
+        return 'Client Note'
       default:
         return type
     }
@@ -58,6 +60,8 @@ export function SessionNotesCompact({
         return 'bg-blue-50 text-blue-700 border-blue-200'
       case 'client_reflection':
         return 'bg-purple-50 text-purple-700 border-purple-200'
+      case 'client_private':
+        return 'bg-green-50 text-green-700 border-green-200'
       default:
         return 'bg-gray-100 text-gray-700'
     }

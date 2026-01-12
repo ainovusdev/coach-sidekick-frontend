@@ -56,8 +56,8 @@ export function ClientCommitmentPanel({
     // Initial fetch with loading state
     fetchCommitments(true)
 
-    // Poll every 10 seconds for updates (coach may add commitments)
-    const interval = setInterval(() => fetchCommitments(false), 10000)
+    // Poll every 30 seconds for updates (coach may add commitments)
+    const interval = setInterval(() => fetchCommitments(false), 30000)
 
     return () => clearInterval(interval)
   }, [meetingToken, guestToken])

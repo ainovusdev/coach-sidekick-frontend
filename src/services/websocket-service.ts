@@ -36,17 +36,36 @@ class WebSocketService {
   private heartbeatTimer: NodeJS.Timeout | null = null
   private joinedRooms: Set<string> = new Set()
   private messageQueue: WebSocketEvent[] = []
+  private intentionalDisconnect: boolean = false
+  private lastPongTime: number = Date.now()
 
   constructor(config: WebSocketServiceConfig = {}) {
     this.url = config.url || this.buildWebSocketUrl()
-    this.reconnectInterval = config.reconnectInterval || 5000
-    this.maxReconnectAttempts = config.maxReconnectAttempts || 10
-    this.heartbeatInterval = config.heartbeatInterval || 30000
+    this.reconnectInterval = config.reconnectInterval || 1000 // Start at 1s for faster initial reconnect
+    this.maxReconnectAttempts = config.maxReconnectAttempts || 15 // More attempts for long meetings
+    this.heartbeatInterval = config.heartbeatInterval || 25000 // Slightly less than server's 30s timeout
+
+    // Setup visibility change handler for tab switching
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', this.handleVisibilityChange)
+    }
+
     // Only log in development
     if (process.env.NODE_ENV === 'development') {
       console.log(
         '[WebSocketService] Initialized (connection will be attempted when needed)',
       )
+    }
+  }
+
+  private handleVisibilityChange = (): void => {
+    if (document.visibilityState === 'visible') {
+      // Tab became visible - check connection and reconnect if needed
+      if (this.currentStatus !== 'connected' && !this.intentionalDisconnect) {
+        console.log('[WebSocket] Tab visible - checking connection...')
+        this.reconnectAttempts = 0 // Reset attempts when user returns
+        this.connect()
+      }
     }
   }
 
@@ -78,9 +97,12 @@ class WebSocketService {
       return
     }
 
+    // Reset intentional disconnect flag when connecting
+    this.intentionalDisconnect = false
     this.updateStatus('connecting')
 
     try {
+      // Always get fresh token for reconnection (handles token expiry)
       const token = authService.getToken()
       if (!token) {
         console.error('[WebSocket] No auth token available')
@@ -133,7 +155,8 @@ class WebSocketService {
         console.log('[WebSocket] Received:', message.type, message.data)
 
         // Handle system messages
-        if (message.type === 'pong') {
+        if (message.type === 'pong' || message.type === 'PONG') {
+          this.lastPongTime = Date.now()
           return // Heartbeat response
         }
 
@@ -150,33 +173,28 @@ class WebSocketService {
     }
 
     this.ws.onerror = () => {
-      // Silently handle connection errors - this is expected when WebSocket is not available
-      // Only log if we're in development mode and it's not a connection error
-      if (
-        process.env.NODE_ENV === 'development' &&
-        this.currentStatus === 'connected'
-      ) {
-        console.warn(
-          '[WebSocket] Connection error (this is normal if WebSocket server is not running)',
-        )
+      // Log error in development
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[WebSocket] Connection error occurred')
       }
       this.updateStatus('error')
+      // Schedule reconnect on error (if not intentional disconnect)
+      if (!this.intentionalDisconnect) {
+        this.scheduleReconnect()
+      }
     }
 
     this.ws.onclose = event => {
-      // Only log disconnection in development and if we were previously connected
-      if (
-        process.env.NODE_ENV === 'development' &&
-        this.currentStatus === 'connected'
-      ) {
-        console.log('[WebSocket] Disconnected:', event.code, event.reason)
-      }
+      console.log('[WebSocket] Disconnected:', event.code, event.reason)
       this.updateStatus('disconnected')
       this.stopHeartbeat()
 
-      // Don't reconnect if it's a connection failure (never connected)
-      // Only reconnect if we were previously connected and lost connection
-      if (event.code !== 1000 && this.currentStatus === 'connected') {
+      // Reconnect if not an intentional disconnect
+      const isIntentionalClose =
+        event.code === 1000 && event.reason === 'Client disconnect'
+
+      if (!this.intentionalDisconnect && !isIntentionalClose) {
+        console.log('[WebSocket] Unexpected disconnect - scheduling reconnect')
         this.scheduleReconnect()
       }
     }
@@ -190,8 +208,16 @@ class WebSocketService {
   }
 
   private scheduleReconnect(): void {
+    // Don't reconnect if intentionally disconnected
+    if (this.intentionalDisconnect) {
+      console.log('[WebSocket] Intentional disconnect - not reconnecting')
+      return
+    }
+
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('[WebSocket] Max reconnection attempts reached')
+      // Emit an event so UI can show reconnect button
+      this.emit('max_reconnect_attempts', { attempts: this.reconnectAttempts })
       return
     }
 
@@ -200,13 +226,19 @@ class WebSocketService {
     }
 
     this.reconnectAttempts++
-    const delay = Math.min(
-      this.reconnectInterval * this.reconnectAttempts,
+
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 32s (capped at 30s)
+    // With jitter to prevent thundering herd
+    const exponentialDelay = Math.min(
+      this.reconnectInterval * Math.pow(2, this.reconnectAttempts - 1),
       30000,
     )
+    // Add random jitter (0-1000ms) to prevent synchronized reconnects
+    const jitter = Math.random() * 1000
+    const delay = exponentialDelay + jitter
 
     console.log(
-      `[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`,
+      `[WebSocket] Reconnecting in ${Math.round(delay)}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
     )
 
     this.reconnectTimer = setTimeout(() => {
@@ -244,7 +276,10 @@ class WebSocketService {
   }
 
   disconnect(): void {
-    console.log('[WebSocket] Disconnecting')
+    console.log('[WebSocket] Disconnecting (intentional)')
+
+    // Mark as intentional disconnect to prevent auto-reconnect
+    this.intentionalDisconnect = true
 
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer)
@@ -267,10 +302,35 @@ class WebSocketService {
 
     this.updateStatus('disconnected')
     this.messageQueue = []
-    // Clear joined rooms on disconnect to start fresh
+
+    // Only clear joined rooms on intentional disconnect
+    // This preserves rooms for auto-reconnect scenarios
     if (this.joinedRooms) {
       this.joinedRooms.clear()
     }
+
+    // Reset reconnect attempts for next connection
+    this.reconnectAttempts = 0
+  }
+
+  /**
+   * Force reconnect - useful when user manually triggers reconnection
+   */
+  forceReconnect(): void {
+    console.log('[WebSocket] Force reconnecting...')
+    this.intentionalDisconnect = false
+    this.reconnectAttempts = 0
+
+    // Close existing connection if any
+    if (this.ws) {
+      if (this.ws.readyState === WebSocket.OPEN) {
+        this.ws.close(1000, 'Force reconnect')
+      }
+      this.ws = null
+    }
+
+    // Connect immediately
+    this.connect()
   }
 
   send(type: string, data: any): void {
