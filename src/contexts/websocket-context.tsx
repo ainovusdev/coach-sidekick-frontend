@@ -20,6 +20,7 @@ interface WebSocketContextType {
   isConnected: boolean
   connect: () => void
   disconnect: () => void
+  forceReconnect: () => void
   send: (type: string, data: any) => void
   joinRoom: (room: string) => void
   leaveRoom: (room: string) => void
@@ -70,6 +71,10 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     websocketService.disconnect()
   }, [])
 
+  const forceReconnect = useCallback(() => {
+    websocketService.forceReconnect()
+  }, [])
+
   const send = useCallback((type: string, data: any) => {
     websocketService.send(type, data)
   }, [])
@@ -91,6 +96,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     isConnected: status === 'connected',
     connect,
     disconnect,
+    forceReconnect,
     send,
     joinRoom,
     leaveRoom,
