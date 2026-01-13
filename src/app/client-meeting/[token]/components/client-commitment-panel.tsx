@@ -22,11 +22,13 @@ import {
 interface ClientCommitmentPanelProps {
   meetingToken: string
   guestToken: string | null
+  refreshKey?: number
 }
 
 export function ClientCommitmentPanel({
   meetingToken,
   guestToken,
+  refreshKey,
 }: ClientCommitmentPanelProps) {
   const [commitments, setCommitments] = useState<ClientCommitment[]>([])
   const [newTitle, setNewTitle] = useState('')
@@ -60,7 +62,7 @@ export function ClientCommitmentPanel({
     const interval = setInterval(() => fetchCommitments(false), 30000)
 
     return () => clearInterval(interval)
-  }, [meetingToken, guestToken])
+  }, [meetingToken, guestToken, refreshKey])
 
   const handleCreateCommitment = async () => {
     if (!newTitle.trim() || !guestToken) return

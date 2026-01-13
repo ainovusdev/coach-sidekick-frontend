@@ -44,6 +44,10 @@ export default function ClientMeetingPage() {
   const [notesCount, setNotesCount] = useState(0)
   const [commitmentsCount, setCommitmentsCount] = useState(0)
 
+  // Refresh key to trigger manual refresh of data
+  const [refreshKey, setRefreshKey] = useState(0)
+  const handleRefresh = () => setRefreshKey(k => k + 1)
+
   // Fetch counts when meeting ends
   useEffect(() => {
     if (isEnded && guestToken) {
@@ -119,6 +123,7 @@ export default function ClientMeetingPage() {
         clientName={sessionInfo.client_name}
         durationSeconds={durationSeconds}
         isEnded={isEnded}
+        onRefresh={handleRefresh}
       />
 
       {/* Main Content */}
@@ -130,6 +135,7 @@ export default function ClientMeetingPage() {
               <ClientNotesPanel
                 meetingToken={meetingToken}
                 guestToken={guestToken}
+                refreshKey={refreshKey}
               />
             </div>
 
@@ -139,11 +145,13 @@ export default function ClientMeetingPage() {
                 <ClientCommitmentPanel
                   meetingToken={meetingToken}
                   guestToken={guestToken}
+                  refreshKey={refreshKey}
                 />
               </div>
               <PastCommitmentsPanel
                 meetingToken={meetingToken}
                 guestToken={guestToken}
+                refreshKey={refreshKey}
               />
             </div>
           </div>

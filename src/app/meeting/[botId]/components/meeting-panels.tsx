@@ -39,13 +39,21 @@ export default function MeetingPanels({
     const fetchContext = async () => {
       try {
         setContextLoading(true)
-        const context = await MeetingContextService.getMeetingContext(botId)
+        // Pass clientId directly if available, otherwise fetch from session
+        const context = clientId
+          ? await MeetingContextService.getMeetingContextWithClientId(
+              botId,
+              clientId,
+            )
+          : await MeetingContextService.getMeetingContext(botId)
         if (context) {
           console.log('Meeting context fetched:', context)
           setFullContext(context)
           if (context.patterns) {
             setPatterns(context.patterns)
           }
+        } else {
+          console.log('No meeting context available (clientId:', clientId, ')')
         }
       } catch (error) {
         console.error('Failed to fetch meeting context:', error)
@@ -61,7 +69,7 @@ export default function MeetingPanels({
     const intervalId = setInterval(fetchContext, 30000)
 
     return () => clearInterval(intervalId)
-  }, [botId])
+  }, [botId, clientId])
 
   // Handle WebSocket updates for context (as fallback or real-time updates)
   useCoachingWebSocket(botId, {

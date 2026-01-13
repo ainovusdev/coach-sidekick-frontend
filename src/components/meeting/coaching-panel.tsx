@@ -4,13 +4,7 @@ import { useState, useCallback } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import { useWebSocket } from '@/contexts/websocket-context'
-import {
-  Sparkles,
-  AlertCircle,
-  Lightbulb,
-  ArrowRight,
-  Clock,
-} from 'lucide-react'
+import { Sparkles, AlertCircle, Lightbulb, Clock } from 'lucide-react'
 
 interface CoachingSuggestion {
   id: string
@@ -153,36 +147,28 @@ export function CoachingPanel({
     )
   }
 
-  // Helper to get priority styles
+  // Helper to get priority styles - subtle colored dots only
   const getPriorityStyles = (priority: string) => {
     switch (priority) {
       case 'high':
         return {
-          bg: 'bg-gradient-to-r from-red-50 to-white',
-          border: 'border-l-red-500',
           dot: 'bg-red-500',
-          badge: 'bg-red-100 text-red-700',
+          badge: 'bg-gray-100 text-gray-600',
         }
       case 'medium':
         return {
-          bg: 'bg-gradient-to-r from-amber-50 to-white',
-          border: 'border-l-amber-500',
           dot: 'bg-amber-500',
-          badge: 'bg-amber-100 text-amber-700',
+          badge: 'bg-gray-100 text-gray-600',
         }
       case 'low':
         return {
-          bg: 'bg-gradient-to-r from-emerald-50 to-white',
-          border: 'border-l-emerald-500',
           dot: 'bg-emerald-500',
-          badge: 'bg-emerald-100 text-emerald-700',
+          badge: 'bg-gray-100 text-gray-600',
         }
       default:
         return {
-          bg: 'bg-gradient-to-r from-gray-50 to-white',
-          border: 'border-l-gray-400',
           dot: 'bg-gray-400',
-          badge: 'bg-gray-100 text-gray-700',
+          badge: 'bg-gray-100 text-gray-600',
         }
     }
   }
@@ -296,29 +282,27 @@ export function CoachingPanel({
                       return (
                         <div
                           key={suggestion.id || `suggestion-${index}`}
-                          className={`group relative border-l-4 ${styles.border} ${styles.bg} rounded-xl p-4 hover:shadow-md transition-all duration-200`}
+                          className="group relative bg-white border border-gray-100 rounded-lg p-3 hover:border-gray-200 hover:shadow-sm transition-all duration-200"
                         >
                           {/* Suggestion Content */}
                           <div className="flex items-start gap-3">
-                            {/* Emoji or Icon */}
-                            <div className="flex-shrink-0 mt-0.5">
+                            {/* Priority Dot + Emoji/Icon */}
+                            <div className="flex-shrink-0 flex items-center gap-2 mt-1">
+                              <div
+                                className={`w-2 h-2 rounded-full ${styles.dot}`}
+                                title={`${priority} priority`}
+                              />
                               {'go_live_emoji' in suggestion &&
                               suggestion.go_live_emoji ? (
-                                <span className="text-xl">
+                                <span className="text-base">
                                   {suggestion.go_live_emoji}
                                 </span>
-                              ) : (
-                                <div
-                                  className={`w-8 h-8 rounded-lg ${styles.badge} flex items-center justify-center`}
-                                >
-                                  <Lightbulb className="h-4 w-4" />
-                                </div>
-                              )}
+                              ) : null}
                             </div>
 
                             {/* Text Content */}
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 leading-snug">
+                              <p className="text-sm text-gray-800 leading-relaxed">
                                 {suggestion.suggestion ||
                                   ('content' in suggestion
                                     ? (suggestion as any).content
@@ -326,61 +310,60 @@ export function CoachingPanel({
                               </p>
 
                               {/* Tags Row */}
-                              <div className="flex flex-wrap items-center gap-2 mt-2">
-                                {'go_live_value' in suggestion &&
-                                  suggestion.go_live_value && (
-                                    <span
-                                      className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${styles.badge}`}
-                                    >
-                                      {suggestion.go_live_value}
-                                    </span>
-                                  )}
-                                {'timing' in suggestion &&
+                              {(('go_live_value' in suggestion &&
+                                suggestion.go_live_value) ||
+                                ('timing' in suggestion &&
                                   suggestion.timing &&
-                                  suggestion.timing !== 'now' && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-gray-100 text-gray-600">
-                                      <Clock className="h-3 w-3" />
-                                      {suggestion.timing.replace(/_/g, ' ')}
-                                    </span>
-                                  )}
-                              </div>
+                                  suggestion.timing !== 'now')) && (
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  {'go_live_value' in suggestion &&
+                                    suggestion.go_live_value && (
+                                      <span
+                                        className={`inline-flex items-center px-2 py-0.5 rounded text-xs ${styles.badge}`}
+                                      >
+                                        {suggestion.go_live_value}
+                                      </span>
+                                    )}
+                                  {'timing' in suggestion &&
+                                    suggestion.timing &&
+                                    suggestion.timing !== 'now' && (
+                                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs bg-gray-50 text-gray-500">
+                                        <Clock className="h-3 w-3" />
+                                        {suggestion.timing.replace(/_/g, ' ')}
+                                      </span>
+                                    )}
+                                </div>
+                              )}
 
                               {/* Rationale (for non-simplified view) */}
                               {!simplified &&
                                 'rationale' in suggestion &&
                                 suggestion.rationale && (
-                                  <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                                  <p className="text-xs text-gray-400 mt-2 leading-relaxed">
                                     {suggestion.rationale}
                                   </p>
                                 )}
-                            </div>
-
-                            {/* Action Arrow */}
-                            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <ArrowRight className="h-4 w-4 text-gray-400" />
                             </div>
                           </div>
 
                           {/* Confidence Bar (for non-simplified view) */}
                           {!simplified && suggestion.confidence && (
-                            <div className="mt-3 pt-3 border-t border-gray-100">
-                              <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <span className="text-xs text-gray-400 w-16">
-                                    Confidence
-                                  </span>
-                                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                    <div
-                                      className="h-full bg-gray-900 rounded-full transition-all duration-500"
-                                      style={{
-                                        width: `${suggestion.confidence * 100}%`,
-                                      }}
-                                    />
-                                  </div>
-                                  <span className="text-xs font-medium text-gray-600 w-8">
-                                    {Math.round(suggestion.confidence * 100)}%
-                                  </span>
+                            <div className="mt-2 pt-2 border-t border-gray-50">
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs text-gray-400">
+                                  Confidence
+                                </span>
+                                <div className="flex-1 h-1 bg-gray-100 rounded-full overflow-hidden">
+                                  <div
+                                    className="h-full bg-gray-400 rounded-full transition-all duration-500"
+                                    style={{
+                                      width: `${suggestion.confidence * 100}%`,
+                                    }}
+                                  />
                                 </div>
+                                <span className="text-xs text-gray-400">
+                                  {Math.round(suggestion.confidence * 100)}%
+                                </span>
                               </div>
                             </div>
                           )}

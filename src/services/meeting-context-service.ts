@@ -94,6 +94,56 @@ export interface MeetingContext {
 
 export class MeetingContextService {
   /**
+   * Get full context for a meeting session when clientId is already known
+   * This avoids re-fetching the session just to get clientId
+   */
+  static async getMeetingContextWithClientId(
+    botId: string,
+    clientId: string,
+  ): Promise<MeetingContext | null> {
+    try {
+      // Get session ID from bot ID (we still need this for some queries)
+      const session = await ApiClient.get(
+        `${BACKEND_URL}/sessions/by-bot/${botId}`,
+      )
+
+      const sessionId = session?.id
+
+      // Fetch client profile/persona
+      const clientProfile = await this.getClientProfile(clientId)
+
+      // Fetch similar sessions (needs sessionId to exclude current)
+      const similarSessions = sessionId
+        ? await this.getSimilarSessions(clientId, sessionId)
+        : { sessions: [], summaries: [] }
+
+      // Fetch patterns and insights
+      const patterns = sessionId
+        ? await this.getPatterns(clientId, sessionId)
+        : { current: [], history: [], themes: [], insights: {} }
+
+      // Fetch analysis conversations
+      const analysisConversations = sessionId
+        ? await this.getAnalysisConversations(sessionId)
+        : []
+
+      return {
+        client_profile: clientProfile || undefined,
+        similar_sessions: similarSessions.sessions,
+        session_summaries: similarSessions.summaries,
+        pattern_history: patterns.history,
+        recurring_themes: patterns.themes,
+        patterns: patterns.current,
+        analysis_conversations: analysisConversations,
+        insights: patterns.insights,
+      }
+    } catch (error) {
+      console.error('Failed to fetch meeting context with clientId:', error)
+      return null
+    }
+  }
+
+  /**
    * Get full context for a meeting session
    */
   static async getMeetingContext(

@@ -18,11 +18,13 @@ import { LiveMeetingService, ClientNote } from '@/services/live-meeting-service'
 interface ClientNotesPanelProps {
   meetingToken: string
   guestToken: string | null
+  refreshKey?: number
 }
 
 export function ClientNotesPanel({
   meetingToken,
   guestToken,
+  refreshKey,
 }: ClientNotesPanelProps) {
   const [notes, setNotes] = useState<ClientNote[]>([])
   const [newNote, setNewNote] = useState('')
@@ -31,24 +33,30 @@ export function ClientNotesPanel({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
 
-  // Fetch notes
+  // Fetch notes with polling
   useEffect(() => {
     if (!guestToken) return
 
-    const fetchNotes = async () => {
-      setIsLoading(true)
+    const fetchNotes = async (showLoading = false) => {
+      if (showLoading) setIsLoading(true)
       try {
         const data = await LiveMeetingService.getNotes(meetingToken, guestToken)
         setNotes(data)
       } catch (err) {
         console.error('Failed to fetch notes:', err)
       } finally {
-        setIsLoading(false)
+        if (showLoading) setIsLoading(false)
       }
     }
 
-    fetchNotes()
-  }, [meetingToken, guestToken])
+    // Initial fetch with loading state
+    fetchNotes(true)
+
+    // Poll every 30 seconds for updates
+    const interval = setInterval(() => fetchNotes(false), 30000)
+
+    return () => clearInterval(interval)
+  }, [meetingToken, guestToken, refreshKey])
 
   const handleSaveNote = async () => {
     if (!newNote.trim() || !guestToken) return
