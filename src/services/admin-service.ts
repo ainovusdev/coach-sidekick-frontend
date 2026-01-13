@@ -1,4 +1,33 @@
 import axiosInstance from '@/lib/axios-config'
+import type {
+  AdminClient,
+  AdminClientListResponse,
+  AdminClientStats,
+  AdminClientUpdate,
+  BulkAssignCoachRequest,
+  BulkAssignProgramRequest,
+  CSVImportRequest,
+  CSVImportResponse,
+} from '@/types/admin-client'
+
+// Re-export admin client types
+export type {
+  AdminClient,
+  AdminClientListResponse,
+  AdminClientStats,
+  AdminClientUpdate,
+  BulkAssignCoachRequest,
+  BulkAssignProgramRequest,
+  CSVImportRequest,
+  CSVImportResponse,
+} from '@/types/admin-client'
+
+// Bulk operation response type
+export interface BulkOperationResponse {
+  success_count: number
+  failed_count: number
+  errors: string[]
+}
 
 // Types
 export interface User {
@@ -301,6 +330,78 @@ class AdminService {
     }[]
   > {
     const response = await axiosInstance.get(`/access/users-by-role/${role}`)
+    return response.data
+  }
+
+  // Admin Client Management
+  async getAdminClients(params?: {
+    skip?: number
+    limit?: number
+    search?: string
+    coach_id?: string
+    program_id?: string
+    tags?: string
+  }): Promise<AdminClientListResponse> {
+    const response = await axiosInstance.get('/admin/clients', { params })
+    return response.data
+  }
+
+  async getAdminClient(clientId: string): Promise<AdminClient> {
+    const response = await axiosInstance.get(`/admin/clients/${clientId}`)
+    return response.data
+  }
+
+  async getAdminClientStats(): Promise<AdminClientStats> {
+    const response = await axiosInstance.get('/admin/clients/stats')
+    return response.data
+  }
+
+  async updateAdminClient(
+    clientId: string,
+    data: AdminClientUpdate,
+  ): Promise<AdminClient> {
+    const response = await axiosInstance.put(`/admin/clients/${clientId}`, data)
+    return response.data
+  }
+
+  async deleteAdminClient(clientId: string): Promise<void> {
+    await axiosInstance.delete(`/admin/clients/${clientId}`)
+  }
+
+  async bulkAssignCoach(
+    data: BulkAssignCoachRequest,
+  ): Promise<BulkOperationResponse> {
+    const response = await axiosInstance.post(
+      '/admin/clients/bulk-assign-coach',
+      data,
+    )
+    return response.data
+  }
+
+  async bulkAssignProgram(
+    data: BulkAssignProgramRequest,
+  ): Promise<BulkOperationResponse> {
+    const response = await axiosInstance.post(
+      '/admin/clients/bulk-assign-program',
+      data,
+    )
+    return response.data
+  }
+
+  async importClientsCSV(data: CSVImportRequest): Promise<CSVImportResponse> {
+    const response = await axiosInstance.post('/admin/clients/import', data)
+    return response.data
+  }
+
+  async exportClientsCSV(params?: {
+    search?: string
+    coach_id?: string
+    program_id?: string
+  }): Promise<Blob> {
+    const response = await axiosInstance.get('/admin/clients/export', {
+      params,
+      responseType: 'blob',
+    })
     return response.data
   }
 

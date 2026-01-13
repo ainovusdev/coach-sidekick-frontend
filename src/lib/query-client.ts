@@ -230,6 +230,23 @@ export const queryKeys = {
     dashboard: {
       stats: () => ['admin', 'dashboard', 'stats'] as const,
     },
+
+    // Admin client management keys
+    clients: {
+      all: ['admin', 'clients'] as const,
+      lists: () => [...queryKeys.admin.clients.all, 'list'] as const,
+      list: (params?: {
+        skip?: number
+        limit?: number
+        search?: string
+        coach_id?: string
+        program_id?: string
+        tags?: string
+      }) => [...queryKeys.admin.clients.lists(), { params }] as const,
+      detail: (id: string) =>
+        [...queryKeys.admin.clients.all, 'detail', id] as const,
+      stats: () => [...queryKeys.admin.clients.all, 'stats'] as const,
+    },
   },
 } as const
 
@@ -330,6 +347,23 @@ export const invalidateAdminQueries = {
         queryKey: queryKeys.admin.coachAccess.all,
       }),
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.access.all }),
+    ])
+  },
+
+  afterAdminClientUpdate: async (
+    queryClient: QueryClient,
+    clientId?: string,
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.clients.all }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.dashboard.stats(),
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all }),
+      clientId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.admin.clients.detail(clientId),
+        }),
     ])
   },
 }

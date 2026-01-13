@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
   Users,
+  Users2,
   UserCheck,
   Shield,
   ChevronLeft,
@@ -36,6 +37,12 @@ const menuItems = [
     title: 'Programs',
     href: '/admin/programs',
     icon: FolderKanban,
+    requiredRole: ['super_admin'],
+  },
+  {
+    title: 'Clients',
+    href: '/admin/clients',
+    icon: Users2,
     requiredRole: ['super_admin'],
   },
   {

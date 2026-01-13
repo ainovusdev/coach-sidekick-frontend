@@ -246,16 +246,27 @@ export default function ProgramDashboardPage({
               </div>
             </div>
 
-            {/* Edit Button */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push(`/admin/programs/${programId}/edit`)}
-              className="shrink-0"
-            >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  router.push(`/admin/clients?program_id=${programId}`)
+                }
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Manage Clients
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => router.push(`/admin/programs/${programId}/edit`)}
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
           </div>
         </div>
       </div>
