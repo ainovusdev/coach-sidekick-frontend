@@ -53,7 +53,18 @@ export function ClientProfileCard({
   insights,
   compact = false,
 }: ClientProfileCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false)
+  // Check if profile has meaningful data
+  const hasData =
+    profile &&
+    ((profile.primary_goals?.length ?? 0) > 0 ||
+      (profile.main_challenges?.length ?? 0) > 0 ||
+      (profile.strengths?.length ?? 0) > 0 ||
+      profile.communication_style ||
+      profile.learning_style ||
+      (profile.sessions_analyzed ?? 0) > 0)
+
+  // Auto-expand if there's meaningful data
+  const [isExpanded, setIsExpanded] = useState(hasData)
 
   if (!profile) {
     return (
@@ -84,6 +95,17 @@ export function ClientProfileCard({
       </Card>
     )
   }
+
+  // Get a quick summary for the collapsed preview
+  const getProfileSummary = () => {
+    const items: string[] = []
+    if (profile.communication_style) items.push(profile.communication_style)
+    if (profile.primary_goals?.[0]) items.push(profile.primary_goals[0])
+    if (profile.main_challenges?.[0]) items.push(profile.main_challenges[0])
+    return items.slice(0, 2)
+  }
+
+  const summaryItems = getProfileSummary()
 
   const getJourneyProgress = () => {
     const sessions = profile.sessions_analyzed || 0
@@ -118,7 +140,7 @@ export function ClientProfileCard({
               }
             />
             Client Profile
-            {profile.sessions_analyzed && (
+            {(profile.sessions_analyzed ?? 0) > 0 && (
               <Badge variant="outline" className="text-xs">
                 {profile.sessions_analyzed} sessions
               </Badge>
@@ -132,9 +154,40 @@ export function ClientProfileCard({
             )}
           </div>
         </div>
+        {/* Collapsed preview */}
+        {!isExpanded && summaryItems.length > 0 && (
+          <div className="mt-1.5 flex flex-wrap gap-1">
+            {summaryItems.map((item, i) => (
+              <span
+                key={i}
+                className="text-xs text-gray-500 truncate max-w-[150px]"
+              >
+                {i > 0 && ' • '}
+                {item}
+              </span>
+            ))}
+          </div>
+        )}
+        {!isExpanded && !hasData && (
+          <p className="mt-1.5 text-xs text-gray-400">
+            Profile building in progress...
+          </p>
+        )}
       </CardHeader>
       {isExpanded && (
         <CardContent className={compact ? 'space-y-2 pt-0' : 'space-y-4'}>
+          {/* Empty state when no meaningful data */}
+          {!hasData && (
+            <div className="text-center py-3">
+              <p className="text-xs text-gray-500">
+                Client profile is being built from session transcripts.
+              </p>
+              <p className="text-xs text-gray-400 mt-1">
+                More details will appear after sessions are analyzed.
+              </p>
+            </div>
+          )}
+
           {/* Journey Progress */}
           {insights?.client_journey && !compact && (
             <div className="space-y-2">

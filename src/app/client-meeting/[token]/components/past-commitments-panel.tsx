@@ -8,7 +8,6 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   History,
   ChevronDown,
@@ -26,11 +25,13 @@ import {
 interface PastCommitmentsPanelProps {
   meetingToken: string
   guestToken: string | null
+  refreshKey?: number
 }
 
 export function PastCommitmentsPanel({
   meetingToken,
   guestToken,
+  refreshKey,
 }: PastCommitmentsPanelProps) {
   const [pastCommitments, setPastCommitments] = useState<PastCommitmentGroup[]>(
     [],
@@ -58,7 +59,7 @@ export function PastCommitmentsPanel({
     }
 
     fetchPastCommitments()
-  }, [meetingToken, guestToken])
+  }, [meetingToken, guestToken, refreshKey])
 
   const totalCount = pastCommitments.reduce(
     (sum, group) => sum + group.commitments.length,
@@ -125,7 +126,7 @@ export function PastCommitmentsPanel({
               <p className="text-xs">No past commitments</p>
             </div>
           ) : (
-            <ScrollArea className="max-h-[300px]">
+            <div className="max-h-[300px] overflow-y-auto">
               <div className="p-3 space-y-4">
                 {pastCommitments.map((group, groupIndex) => (
                   <div key={groupIndex}>
@@ -176,7 +177,7 @@ export function PastCommitmentsPanel({
                   </div>
                 ))}
               </div>
-            </ScrollArea>
+            </div>
           )}
         </CardContent>
       )}

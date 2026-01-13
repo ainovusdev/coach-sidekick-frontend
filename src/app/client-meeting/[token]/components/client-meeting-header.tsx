@@ -4,7 +4,8 @@
  */
 
 import { Badge } from '@/components/ui/badge'
-import { Clock, User, Circle } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Clock, User, Circle, RefreshCw } from 'lucide-react'
 import { formatDuration } from '../hooks/use-meeting-status'
 
 interface ClientMeetingHeaderProps {
@@ -12,6 +13,7 @@ interface ClientMeetingHeaderProps {
   clientName: string | null
   durationSeconds: number
   isEnded: boolean
+  onRefresh?: () => void
 }
 
 export function ClientMeetingHeader({
@@ -19,6 +21,7 @@ export function ClientMeetingHeader({
   clientName,
   durationSeconds,
   isEnded,
+  onRefresh,
 }: ClientMeetingHeaderProps) {
   return (
     <div className="bg-white border-b border-gray-200 shadow-sm">
@@ -54,6 +57,19 @@ export function ClientMeetingHeader({
             </div>
 
             <div className="h-5 w-px bg-gray-300" />
+
+            {/* Refresh Button */}
+            {onRefresh && !isEnded && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRefresh}
+                className="text-gray-600 hover:text-gray-900"
+                title="Refresh data"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            )}
 
             {/* Status Badge */}
             {isEnded ? (
