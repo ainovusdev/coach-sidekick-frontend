@@ -50,7 +50,7 @@ export function PastCommitmentsPanel({
           meetingToken,
           guestToken,
         )
-        setPastCommitments(data)
+        setPastCommitments(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Failed to fetch past commitments:', err)
       } finally {
@@ -61,10 +61,14 @@ export function PastCommitmentsPanel({
     fetchPastCommitments()
   }, [meetingToken, guestToken, refreshKey])
 
-  const totalCount = pastCommitments.reduce(
-    (sum, group) => sum + group.commitments.length,
-    0,
-  )
+  const totalCount = Array.isArray(pastCommitments)
+    ? pastCommitments.reduce(
+        (sum, group) =>
+          sum +
+          (Array.isArray(group?.commitments) ? group.commitments.length : 0),
+        0,
+      )
+    : 0
 
   const getStatusIcon = (status: string) => {
     return status === 'completed' ? (
@@ -120,7 +124,7 @@ export function PastCommitmentsPanel({
             <div className="text-center py-4 text-gray-500 text-sm">
               Loading...
             </div>
-          ) : pastCommitments.length === 0 ? (
+          ) : !pastCommitments || pastCommitments.length === 0 ? (
             <div className="text-center py-6 text-gray-500">
               <History className="h-6 w-6 mx-auto mb-2 text-gray-300" />
               <p className="text-xs">No past commitments</p>
@@ -140,7 +144,7 @@ export function PastCommitmentsPanel({
 
                     {/* Commitments in this group */}
                     <div className="space-y-2 pl-3 border-l-2 border-gray-100">
-                      {group.commitments.map(commitment => (
+                      {(group?.commitments || []).map(commitment => (
                         <div
                           key={commitment.id}
                           className="flex items-start gap-2"

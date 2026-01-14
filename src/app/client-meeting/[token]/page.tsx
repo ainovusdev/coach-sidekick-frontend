@@ -57,8 +57,10 @@ export default function ClientMeetingPage() {
             LiveMeetingService.getNotes(meetingToken, guestToken),
             LiveMeetingService.getCommitments(meetingToken, guestToken),
           ])
-          setNotesCount(notes.length)
-          setCommitmentsCount(commitments.length)
+          setNotesCount(Array.isArray(notes) ? notes.length : 0)
+          setCommitmentsCount(
+            Array.isArray(commitments) ? commitments.length : 0,
+          )
         } catch {
           // Ignore errors, counts are not critical
         }
