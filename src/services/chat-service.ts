@@ -103,42 +103,4 @@ class ChatService {
   }
 }
 
-class RealtimeService {
-  private getAuthHeaders() {
-    const token = localStorage.getItem('auth_token')
-    if (!token) {
-      throw new Error('No authentication token found')
-    }
-    return {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    }
-  }
-
-  async checkRealtimeStatus(): Promise<{
-    available: boolean
-    model: string
-    features: any
-    voices: string[]
-    pricing: any
-  }> {
-    try {
-      const response = await axios.get(`${API_URL}/realtime/status`, {
-        headers: this.getAuthHeaders(),
-      })
-      return response.data
-    } catch (error) {
-      console.error('Failed to check realtime status:', error)
-      return {
-        available: false,
-        model: 'gpt-4o-realtime',
-        features: {},
-        voices: [],
-        pricing: {},
-      }
-    }
-  }
-}
-
 export const chatService = new ChatService()
-export const realtimeService = new RealtimeService()
