@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react'
 import { formatRelativeTime } from '@/lib/date-utils'
-import { Textarea } from '@/components/ui/textarea'
+import {
+  RichTextEditor,
+  htmlToPlainText,
+} from '@/components/ui/rich-text-editor'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -15,7 +18,6 @@ import {
   Loader2,
   Lock,
   Users,
-  Zap,
   Pencil,
   Trash2,
   X,
@@ -62,11 +64,17 @@ export function QuickNote({
   const { data: notes = [], isLoading: notesLoading } =
     useSessionNotes(sessionId)
 
+  // Check if content has actual text (not just empty HTML tags)
+  const hasContent = (html: string) => {
+    const plainText = htmlToPlainText(html)
+    return plainText.trim().length > 0
+  }
+
   const handleSave = () => {
-    if (!content.trim()) return
+    if (!hasContent(content)) return
 
     // Fire and forget - clear form immediately for optimistic UX
-    const noteContent = content.trim()
+    const noteContent = content
     const noteType = selectedType
     setContent('')
 
@@ -90,11 +98,11 @@ export function QuickNote({
   }
 
   const handleSaveEdit = async (noteId: string) => {
-    if (!editContent.trim() || updateNote.isPending) return
+    if (!hasContent(editContent) || updateNote.isPending) return
 
     await updateNote.mutateAsync({
       noteId,
-      data: { content: editContent.trim() },
+      data: { content: editContent },
     })
 
     setEditingNoteId(null)
@@ -113,25 +121,22 @@ export function QuickNote({
   )
 
   return (
-    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden">
+    <div className="border border-gray-200 rounded-xl bg-white overflow-hidden h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Zap className="h-4 w-4 text-gray-600" />
-          <span className="text-sm font-semibold text-gray-900">
-            Quick Note
-          </span>
-          <span className="text-xs text-gray-500">(Live Session)</span>
+          <FileText className="h-4 w-4 text-gray-700" />
+          <span className="text-sm font-semibold text-gray-900">Notes</span>
         </div>
 
         {/* Note type toggle */}
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-0.5">
+        <div className="flex items-center gap-0.5 bg-gray-100 rounded-md p-0.5">
           <button
             onClick={() => setSelectedType('coach_private')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'coach_private'
                 ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <Lock className="h-3 w-3" />
@@ -139,10 +144,10 @@ export function QuickNote({
           </button>
           <button
             onClick={() => setSelectedType('shared')}
-            className={`flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
+            className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'shared'
                 ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
+                : 'text-gray-500 hover:text-gray-700'
             }`}
           >
             <Users className="h-3 w-3" />
@@ -151,32 +156,21 @@ export function QuickNote({
         </div>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <Textarea
-          placeholder="Capture important moments during the session..."
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          onKeyDown={e => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-              e.preventDefault()
-              handleSave()
-            }
-          }}
-          className="min-h-[100px] resize-none border-gray-200 focus:border-gray-400 text-sm bg-white placeholder:text-gray-400"
-        />
+      {/* Editor - 50% height */}
+      <div className="h-1/2 p-4 flex flex-col min-h-0">
+        <div className="flex-1 min-h-0">
+          <RichTextEditor
+            content={content}
+            onChange={setContent}
+            placeholder="Capture important moments during the session..."
+            className="h-full"
+          />
+        </div>
 
-        <div className="flex items-center justify-between mt-3">
-          <p className="text-xs text-gray-500">
-            Press{' '}
-            <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-xs font-mono">
-              ⌘ Enter
-            </kbd>{' '}
-            to save
-          </p>
+        <div className="flex items-center justify-end mt-3 flex-shrink-0">
           <Button
             onClick={handleSave}
-            disabled={!content.trim()}
+            disabled={!hasContent(content)}
             size="sm"
             className="bg-gray-900 hover:bg-gray-800"
           >
@@ -186,10 +180,10 @@ export function QuickNote({
         </div>
       </div>
 
-      {/* Session Notes List */}
+      {/* Session Notes List - 50% height */}
       {sortedNotes.length > 0 && (
-        <div className="border-t border-gray-100">
-          <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
+        <div className="h-1/2 border-t border-gray-100 flex flex-col min-h-0">
+          <div className="px-4 py-2 bg-gray-50 flex items-center justify-between flex-shrink-0">
             <span className="text-xs font-medium text-gray-600">
               Session Notes
             </span>
@@ -197,7 +191,7 @@ export function QuickNote({
               {sortedNotes.length}
             </Badge>
           </div>
-          <div className="max-h-[200px] overflow-y-auto">
+          <div className="flex-1 overflow-y-auto">
             {sortedNotes.map(note => (
               <div
                 key={note.id}
@@ -206,11 +200,10 @@ export function QuickNote({
                 {editingNoteId === note.id ? (
                   // Edit mode
                   <div className="space-y-2">
-                    <Textarea
-                      value={editContent}
-                      onChange={e => setEditContent(e.target.value)}
-                      className="min-h-[80px] resize-none border-gray-200 text-sm"
-                      autoFocus
+                    <RichTextEditor
+                      content={editContent}
+                      onChange={setEditContent}
+                      minHeight="80px"
                     />
                     <div className="flex items-center justify-end gap-2">
                       <Button
@@ -225,7 +218,9 @@ export function QuickNote({
                       <Button
                         size="sm"
                         onClick={() => handleSaveEdit(note.id)}
-                        disabled={!editContent.trim() || updateNote.isPending}
+                        disabled={
+                          !hasContent(editContent) || updateNote.isPending
+                        }
                         className="h-7 text-xs bg-gray-900 hover:bg-gray-800"
                       >
                         {updateNote.isPending ? (
@@ -241,9 +236,10 @@ export function QuickNote({
                   // View mode
                   <div>
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-sm text-gray-700 line-clamp-3 flex-1">
-                        {note.content}
-                      </p>
+                      <div
+                        className="text-sm text-gray-700 line-clamp-3 flex-1 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
+                        dangerouslySetInnerHTML={{ __html: note.content }}
+                      />
                       <div className="flex items-center gap-1 flex-shrink-0">
                         <button
                           onClick={() => handleStartEdit(note)}
@@ -327,9 +323,9 @@ export function QuickNote({
         </div>
       )}
 
-      {/* Empty state for notes (only show after loading) */}
+      {/* Empty state for notes (only show after loading) - 50% height */}
       {!notesLoading && sortedNotes.length === 0 && (
-        <div className="border-t border-gray-100 px-4 py-4">
+        <div className="h-1/2 border-t border-gray-100 px-4 py-4 flex items-center justify-center">
           <div className="text-center">
             <FileText className="h-6 w-6 text-gray-300 mx-auto mb-1" />
             <p className="text-xs text-gray-400">No notes captured yet</p>

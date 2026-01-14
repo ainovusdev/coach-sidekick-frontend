@@ -102,7 +102,10 @@ export class ApiClient {
     timeout: number = this.DEFAULT_TIMEOUT,
   ): Promise<Response> {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), timeout)
+    const timeoutId = setTimeout(
+      () => controller.abort(new Error('Request timeout')),
+      timeout,
+    )
 
     // make sure url doesn't have ? at the end
     const endpointWithoutTrailingQuestionMark = url.endsWith('?')

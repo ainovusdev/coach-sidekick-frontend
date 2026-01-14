@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { TranscriptViewer } from '@/components/meeting/transcript-viewer'
 import { CoachingPanel } from '@/components/meeting/coaching-panel'
 import { ClientProfileCard } from '@/components/meeting/client-profile-card'
@@ -7,39 +7,58 @@ import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { QuickNote } from '@/components/session-notes/quick-note'
 import { QuickCommitment } from '@/components/commitments/quick-commitment'
-import { RecentCommitmentsCard } from '@/components/meeting/recent-commitments-card'
 import { TranscriptEntry } from '@/types/meeting'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
-import { MessageSquare, FileText, Target } from 'lucide-react'
+import {
+  FileText,
+  Target,
+  User,
+  History,
+  TrendingUp,
+  MessageSquareText,
+  MessageSquare,
+  PanelRightClose,
+  PanelRightOpen,
+  Info,
+} from 'lucide-react'
 import { MeetingContextService } from '@/services/meeting-context-service'
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@/components/ui/accordion'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
   botId: string
-  sessionId?: string // NEW: Add session ID for notes
-  clientId?: string // NEW: Add client ID for commitments
+  sessionId?: string
+  clientId?: string
 }
+
+type SidebarTab = 'transcript' | 'context'
 
 export default function MeetingPanels({
   transcript,
   botId,
-  sessionId, // NEW
-  clientId, // NEW
+  sessionId,
+  clientId,
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
   const [contextLoading, setContextLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarTab, setSidebarTab] = useState<SidebarTab>('transcript')
 
-  // Get recent transcript entries
   const recentTranscript = transcript
 
-  // Fetch meeting context on mount and periodically
   useEffect(() => {
     const fetchContext = async () => {
       try {
         setContextLoading(true)
-        // Pass clientId directly if available, otherwise fetch from session
         const context = clientId
           ? await MeetingContextService.getMeetingContextWithClientId(
               botId,
@@ -47,13 +66,10 @@ export default function MeetingPanels({
             )
           : await MeetingContextService.getMeetingContext(botId)
         if (context) {
-          console.log('Meeting context fetched:', context)
           setFullContext(context)
           if (context.patterns) {
             setPatterns(context.patterns)
           }
-        } else {
-          console.log('No meeting context available (clientId:', clientId, ')')
         }
       } catch (error) {
         console.error('Failed to fetch meeting context:', error)
@@ -62,24 +78,15 @@ export default function MeetingPanels({
       }
     }
 
-    // Fetch immediately
     fetchContext()
-
-    // Refresh context every 30 seconds
     const intervalId = setInterval(fetchContext, 30000)
-
     return () => clearInterval(intervalId)
   }, [botId, clientId])
 
-  // Handle WebSocket updates for context (as fallback or real-time updates)
   useCoachingWebSocket(botId, {
     onMessage: message => {
       if (message.type === 'suggestions_update') {
         if (message.data.full_context) {
-          console.log(
-            'Context update from WebSocket:',
-            message.data.full_context,
-          )
           setFullContext(message.data.full_context)
         }
       }
@@ -92,39 +99,11 @@ export default function MeetingPanels({
   })
 
   return (
-    <div className="h-full grid grid-cols-1 lg:grid-cols-12 gap-4 overflow-hidden">
-      {/* Left Column - Transcript (3/12) */}
-      <div className="lg:col-span-3 h-full overflow-hidden">
-        <Card className="h-full flex flex-col bg-white shadow-sm">
-          <CardHeader className="pb-3 border-b bg-gray-50 flex-shrink-0">
-            <CardTitle className="flex items-center gap-2 text-sm">
-              <MessageSquare className="h-4 w-4 text-gray-600" />
-              Recent Conversation
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-grow min-h-0 relative">
-            <div className="absolute inset-0 overflow-y-auto px-4 py-3 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <TranscriptViewer
-                transcript={recentTranscript}
-                compact={true}
-                autoScroll={true}
-              />
-            </div>
-          </CardContent>
-          {transcript.length > 0 && (
-            <div className="flex-shrink-0 text-center py-2 px-4 border-t bg-gray-50">
-              <span className="text-xs text-gray-500 font-medium">
-                {transcript.length} entries
-              </span>
-            </div>
-          )}
-        </Card>
-      </div>
-
-      {/* Middle Column - Coaching Suggestions + Context Cards (6/12) */}
-      <div className="lg:col-span-6 h-full overflow-hidden flex flex-col gap-3">
-        {/* Top Section - Coaching Suggestions */}
-        <div className="flex-shrink-0 h-[50%] min-h-[280px]">
+    <div className="h-full flex overflow-hidden">
+      {/* Main Content Area */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 overflow-hidden p-1">
+        {/* Left Column - Coaching Suggestions (4/12 = 33%) */}
+        <div className="lg:col-span-4 h-full overflow-hidden">
           <CoachingPanel
             botId={botId}
             className="h-full shadow-sm"
@@ -132,80 +111,10 @@ export default function MeetingPanels({
           />
         </div>
 
-        {/* Bottom Section - Context Cards (scrollable) */}
-        <div className="flex-1 min-h-0 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <div className="grid grid-cols-1 xl:grid-cols-2 gap-3">
-            {contextLoading ? (
-              <>
-                {/* Loading states for context cards */}
-                <Card className="h-auto animate-pulse">
-                  <CardHeader className="pb-2 py-2">
-                    <div className="h-4 bg-gray-200 rounded w-24"></div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card className="h-auto animate-pulse">
-                  <CardHeader className="pb-2 py-2">
-                    <div className="h-4 bg-gray-200 rounded w-32"></div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="h-3 bg-gray-200 rounded w-full"></div>
-                      <div className="h-3 bg-gray-200 rounded w-5/6"></div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <>
-                {/* Client Profile */}
-                <ClientProfileCard
-                  profile={fullContext?.client_profile}
-                  insights={fullContext?.insights}
-                  compact={true}
-                />
-
-                {/* Similar Sessions */}
-                <SimilarSessionsCard
-                  sessions={fullContext?.similar_sessions || []}
-                  summaries={fullContext?.session_summaries}
-                  compact={true}
-                />
-
-                {/* Analysis Conversations */}
-                <AnalysisConversationsCard
-                  conversations={fullContext?.analysis_conversations}
-                  loading={contextLoading}
-                  compact={true}
-                />
-
-                {/* Pattern Insights */}
-                <PatternInsightsCard
-                  currentPatterns={patterns}
-                  patternHistory={fullContext?.pattern_history}
-                  recurringThemes={fullContext?.recurring_themes}
-                  insights={fullContext?.insights}
-                  compact={true}
-                />
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {/* Right Column - Notes (top) & Commitments (bottom) (3/12) */}
-      <div className="lg:col-span-3 h-full overflow-hidden flex flex-col gap-3">
-        {/* Top Section - Quick Notes */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        {/* Middle Column - Notes (5/12 = 42%) */}
+        <div className="lg:col-span-5 h-full overflow-hidden">
           {sessionId ? (
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <QuickNote sessionId={sessionId} noteType="coach_private" />
-            </div>
+            <QuickNote sessionId={sessionId} noteType="coach_private" />
           ) : (
             <Card className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
               <CardContent className="p-4">
@@ -214,9 +123,7 @@ export default function MeetingPanels({
                     <FileText className="h-4 w-4 text-gray-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">
-                      Quick Notes
-                    </h4>
+                    <h4 className="text-sm font-medium text-gray-700">Notes</h4>
                     <p className="text-xs text-gray-500 mt-1">
                       Session loading...
                     </p>
@@ -227,16 +134,10 @@ export default function MeetingPanels({
           )}
         </div>
 
-        {/* Bottom Section - Quick Commitments */}
-        <div className="flex-1 min-h-0 overflow-hidden">
+        {/* Right Column - Commitments (3/12 = 25%) */}
+        <div className="lg:col-span-3 h-full overflow-hidden">
           {sessionId && clientId ? (
-            <div className="h-full overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-              <QuickCommitment sessionId={sessionId} clientId={clientId} />
-              {/* Recent Commitments below */}
-              <div className="mt-3">
-                <RecentCommitmentsCard clientId={clientId} compact={true} />
-              </div>
-            </div>
+            <QuickCommitment sessionId={sessionId} clientId={clientId} />
           ) : sessionId && !clientId ? (
             <Card className="bg-white rounded-xl shadow-sm border border-amber-100 h-full">
               <CardContent className="p-4">
@@ -246,20 +147,232 @@ export default function MeetingPanels({
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-700">
-                      Quick Commitments
+                      Commitments
                     </h4>
                     <p className="text-xs text-gray-500 mt-1">
-                      No client selected for this session
-                    </p>
-                    <p className="text-xs text-amber-600 mt-1">
-                      Select a client when starting a session to capture
-                      commitments
+                      No client selected
                     </p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ) : null}
+          ) : (
+            <Card className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 bg-gray-100 rounded-lg">
+                    <Target className="h-4 w-4 text-gray-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-700">
+                      Commitments
+                    </h4>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Session loading...
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+
+      {/* Sidebar Toggle Button */}
+      <div className="flex-shrink-0 flex items-start pt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSidebarOpen(!sidebarOpen)}
+          className={cn(
+            'h-auto py-3 px-2 border-gray-200 bg-white hover:bg-gray-50 rounded-l-lg rounded-r-none border-r-0',
+            sidebarOpen && 'bg-gray-100',
+          )}
+        >
+          <div className="flex flex-col items-center gap-2">
+            {sidebarOpen ? (
+              <PanelRightClose className="h-4 w-4 text-gray-600" />
+            ) : (
+              <PanelRightOpen className="h-4 w-4 text-gray-600" />
+            )}
+            <div className="flex flex-col items-center gap-1">
+              <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
+              <Info className="h-3.5 w-3.5 text-gray-500" />
+            </div>
+          </div>
+        </Button>
+      </div>
+
+      {/* Collapsible Sidebar */}
+      <div
+        className={cn(
+          'flex-shrink-0 border-l border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden',
+          sidebarOpen ? 'w-80' : 'w-0',
+        )}
+      >
+        <div className="w-80 h-full flex flex-col">
+          {/* Sidebar Tabs */}
+          <div className="flex-shrink-0 border-b border-gray-100">
+            <div className="flex">
+              <button
+                onClick={() => setSidebarTab('transcript')}
+                className={cn(
+                  'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
+                  sidebarTab === 'transcript'
+                    ? 'text-gray-900 border-gray-900'
+                    : 'text-gray-500 border-transparent hover:text-gray-700',
+                )}
+              >
+                <MessageSquare className="h-3.5 w-3.5" />
+                Transcript
+                {transcript.length > 0 && (
+                  <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                    {transcript.length}
+                  </span>
+                )}
+              </button>
+              <button
+                onClick={() => setSidebarTab('context')}
+                className={cn(
+                  'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
+                  sidebarTab === 'context'
+                    ? 'text-gray-900 border-gray-900'
+                    : 'text-gray-500 border-transparent hover:text-gray-700',
+                )}
+              >
+                <Info className="h-3.5 w-3.5" />
+                Context
+              </button>
+            </div>
+          </div>
+
+          {/* Sidebar Content */}
+          <div className="flex-1 overflow-hidden">
+            {sidebarTab === 'transcript' ? (
+              <TranscriptViewer
+                transcript={recentTranscript}
+                mode="sidebar"
+                autoScroll={true}
+              />
+            ) : (
+              <div className="h-full overflow-y-auto">
+                <Accordion
+                  type="multiple"
+                  defaultValue={['profile']}
+                  className="divide-y divide-gray-100"
+                >
+                  {/* Client Profile */}
+                  <AccordionItem value="profile" className="border-none">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                      <div className="flex items-center gap-2">
+                        <User className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="font-medium text-gray-700">
+                          Client Profile
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      {contextLoading ? (
+                        <div className="animate-pulse space-y-2">
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                        </div>
+                      ) : (
+                        <ClientProfileCard
+                          profile={fullContext?.client_profile}
+                          insights={fullContext?.insights}
+                          compact={true}
+                        />
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Similar Sessions */}
+                  <AccordionItem value="similar" className="border-none">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                      <div className="flex items-center gap-2">
+                        <History className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="font-medium text-gray-700">
+                          Similar Sessions
+                        </span>
+                        {(fullContext?.similar_sessions?.length || 0) > 0 && (
+                          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                            {fullContext?.similar_sessions?.length}
+                          </span>
+                        )}
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      {contextLoading ? (
+                        <div className="animate-pulse space-y-2">
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                        </div>
+                      ) : (
+                        <SimilarSessionsCard
+                          sessions={fullContext?.similar_sessions || []}
+                          summaries={fullContext?.session_summaries}
+                          compact={true}
+                        />
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Pattern Insights */}
+                  <AccordionItem value="patterns" className="border-none">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="font-medium text-gray-700">
+                          Pattern Insights
+                        </span>
+                        {patterns.length > 0 && (
+                          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                            {patterns.length}
+                          </span>
+                        )}
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      {contextLoading ? (
+                        <div className="animate-pulse space-y-2">
+                          <div className="h-3 bg-gray-200 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                        </div>
+                      ) : (
+                        <PatternInsightsCard
+                          currentPatterns={patterns}
+                          patternHistory={fullContext?.pattern_history}
+                          recurringThemes={fullContext?.recurring_themes}
+                          insights={fullContext?.insights}
+                          compact={true}
+                        />
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+
+                  {/* Analysis Conversations */}
+                  <AccordionItem value="analysis" className="border-none">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                      <div className="flex items-center gap-2">
+                        <MessageSquareText className="h-3.5 w-3.5 text-gray-500" />
+                        <span className="font-medium text-gray-700">
+                          Analysis
+                        </span>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent className="px-4 pb-3">
+                      <AnalysisConversationsCard
+                        conversations={fullContext?.analysis_conversations}
+                        loading={contextLoading}
+                        compact={true}
+                      />
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
