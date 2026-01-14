@@ -47,7 +47,7 @@ export function ClientCommitmentPanel({
           meetingToken,
           guestToken,
         )
-        setCommitments(data)
+        setCommitments(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Failed to fetch commitments:', err)
       } finally {
@@ -203,7 +203,7 @@ export function ClientCommitmentPanel({
             <div className="text-center py-4 text-gray-500">
               Loading commitments...
             </div>
-          ) : commitments.length === 0 ? (
+          ) : !commitments || commitments.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <Target className="h-8 w-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">No commitments yet</p>

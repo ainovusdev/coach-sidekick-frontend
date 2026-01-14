@@ -41,7 +41,7 @@ export function ClientNotesPanel({
       if (showLoading) setIsLoading(true)
       try {
         const data = await LiveMeetingService.getNotes(meetingToken, guestToken)
-        setNotes(data)
+        setNotes(Array.isArray(data) ? data : [])
       } catch (err) {
         console.error('Failed to fetch notes:', err)
       } finally {
@@ -168,7 +168,7 @@ export function ClientNotesPanel({
             <div className="text-center py-4 text-gray-500">
               Loading notes...
             </div>
-          ) : notes.length === 0 ? (
+          ) : !notes || notes.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               <FileText className="h-8 w-8 mx-auto mb-2 text-gray-300" />
               <p className="text-sm">No notes yet</p>
