@@ -78,6 +78,11 @@ OPENAI_API_KEY=
 - **Path Aliases**: Use `@/` for imports from `src/` directory
 - **Types**: Defined in `src/types/` with interfaces for core entities (`Bot`, `TranscriptEntry`)
 
+## Git Conventions
+
+- **Do NOT include Claude as a co-author in commit messages** - Omit the `Co-Authored-By: Claude` line from all commits
+- Write clear, concise commit messages that describe the "why" rather than just the "what"
+
 ## Key Services & Stores
 
 - `transcriptStore` - In-memory session management with batch saving logic

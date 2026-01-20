@@ -193,4 +193,32 @@ export class SessionService {
       },
     )
   }
+
+  static async processStaleSessions(params?: {
+    age_hours?: number
+    dry_run?: boolean
+  }): Promise<ProcessStaleSessionsResponse> {
+    return await ApiClient.post(`${BACKEND_URL}/sessions/process-stale`, {
+      age_hours: params?.age_hours ?? 4,
+      dry_run: params?.dry_run ?? false,
+    })
+  }
+}
+
+// Stale session processing types
+export interface StaleSessionDetail {
+  session_id: string
+  bot_id?: string
+  created_at: string
+  recall_status?: string
+  action: string
+  reason: string
+}
+
+export interface ProcessStaleSessionsResponse {
+  total_stale_found: number
+  processed: number
+  skipped: number
+  errors: number
+  details: StaleSessionDetail[]
 }
