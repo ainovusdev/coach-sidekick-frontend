@@ -11,15 +11,19 @@ import {
   Calendar,
   Trash2,
   MoreVertical,
+  Sparkles,
+  Loader2,
 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { formatDate, formatTime } from '../utils/client-utils'
 import { SessionService } from '@/services/session-service'
+import { AnalysisService } from '@/services/analysis-service'
 import { toast } from '@/hooks/use-toast'
 
 interface SessionSummary {
@@ -46,6 +50,7 @@ interface SessionCardProps {
 export default function SessionCard({ session, onDelete }: SessionCardProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [reanalyzing, setReanalyzing] = useState(false)
 
   const meetingSummary = session.meeting_summaries?.[0]
   const duration = session.duration_seconds
@@ -74,6 +79,33 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
     } finally {
       setDeleting(false)
       setShowDeleteDialog(false)
+    }
+  }
+
+  const handleReanalyze = async () => {
+    setReanalyzing(true)
+    try {
+      await AnalysisService.triggerAnalysis(session.id, true)
+      toast({
+        title: 'Analysis Complete',
+        description: 'Session has been reanalyzed successfully.',
+      })
+      if (onDelete) {
+        // Reuse onDelete callback to refresh the list
+        onDelete()
+      }
+    } catch (error) {
+      console.error('Failed to reanalyze session:', error)
+      toast({
+        title: 'Reanalysis Failed',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Failed to reanalyze session',
+        variant: 'destructive',
+      })
+    } finally {
+      setReanalyzing(false)
     }
   }
 
@@ -210,6 +242,26 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={e => {
+                  e.preventDefault()
+                  handleReanalyze()
+                }}
+                disabled={reanalyzing}
+              >
+                {reanalyzing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Reanalyzing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Reanalyze Session
+                  </>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem
                 className="text-red-600 focus:text-red-700"
                 onClick={e => {

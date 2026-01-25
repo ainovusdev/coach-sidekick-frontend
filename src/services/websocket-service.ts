@@ -102,7 +102,15 @@ class WebSocketService {
     this.updateStatus('connecting')
 
     try {
-      // Always get fresh token for reconnection (handles token expiry)
+      // Check if token is valid (not expired) before attempting connection
+      if (!authService.isAuthenticated()) {
+        console.warn(
+          '[WebSocket] Token expired or invalid - skipping connection',
+        )
+        this.updateStatus('disconnected')
+        return
+      }
+
       const token = authService.getToken()
       if (!token) {
         console.error('[WebSocket] No auth token available')

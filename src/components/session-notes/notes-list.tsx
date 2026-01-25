@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -100,11 +99,9 @@ export function NotesList({
   const [noteToDelete, setNoteToDelete] = useState<SessionNote | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [editingNote, setEditingNote] = useState<SessionNote | null>(null)
-  const [editTitle, setEditTitle] = useState('')
   const [editContent, setEditContent] = useState('')
   const [saving, setSaving] = useState(false)
   const [showCreateForm, setShowCreateForm] = useState(false)
-  const [newNoteTitle, setNewNoteTitle] = useState('')
   const [newNoteContent, setNewNoteContent] = useState('')
   const [newNoteType, setNewNoteType] = useState<NoteType>(
     isClientPortal ? 'client_reflection' : 'coach_private',
@@ -197,13 +194,11 @@ export function NotesList({
   // Handle edit note
   const startEditing = (note: SessionNote) => {
     setEditingNote(note)
-    setEditTitle(note.title || '')
     setEditContent(note.content)
   }
 
   const cancelEditing = () => {
     setEditingNote(null)
-    setEditTitle('')
     setEditContent('')
   }
 
@@ -213,7 +208,6 @@ export function NotesList({
     setSaving(true)
     try {
       await SessionNotesService.updateNote(editingNote.id, {
-        title: editTitle,
         content: editContent,
       })
       toast({
@@ -236,12 +230,16 @@ export function NotesList({
 
   // Handle create note
   const handleCreateNote = async () => {
-    if (!newNoteTitle.trim() || !newNoteContent.trim()) return
+    if (!newNoteContent.trim()) return
 
     setCreating(true)
     try {
+      // Auto-generate title from content or use timestamp
+      const autoTitle =
+        newNoteContent.trim().substring(0, 50) ||
+        `Note - ${new Date().toLocaleTimeString()}`
       await SessionNotesService.createNote(sessionId, {
-        title: newNoteTitle.trim(),
+        title: autoTitle,
         content: newNoteContent.trim(),
         note_type: newNoteType,
       })
@@ -251,7 +249,6 @@ export function NotesList({
       })
       await fetchNotes()
       setShowCreateForm(false)
-      setNewNoteTitle('')
       setNewNoteContent('')
     } catch (error) {
       console.error('Failed to create note:', error)
@@ -277,17 +274,12 @@ export function NotesList({
           key={note.id}
           className="border border-gray-300 rounded-xl p-4 bg-gray-50"
         >
-          <Input
-            value={editTitle}
-            onChange={e => setEditTitle(e.target.value)}
-            placeholder="Note title"
-            className="mb-3 border-gray-200 bg-white"
-          />
           <Textarea
             value={editContent}
             onChange={e => setEditContent(e.target.value)}
             placeholder="Note content"
             className="min-h-[120px] mb-3 border-gray-200 bg-white resize-none"
+            autoFocus
           />
           <div className="flex items-center justify-end gap-2">
             <Button
@@ -302,7 +294,7 @@ export function NotesList({
             <Button
               size="sm"
               onClick={saveEdit}
-              disabled={saving || !editTitle.trim() || !editContent.trim()}
+              disabled={saving || !editContent.trim()}
               className="bg-gray-900 hover:bg-gray-800"
             >
               {saving ? (
@@ -322,21 +314,24 @@ export function NotesList({
         key={note.id}
         className="group border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all bg-white"
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <Icon className="h-4 w-4 text-gray-600" />
+        {/* Header with type badge and actions */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <Icon className="h-3.5 w-3.5 text-gray-600" />
             </div>
-            <div className="min-w-0">
-              <h4 className="font-medium text-gray-900 truncate">
-                {note.title}
-              </h4>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
-                <span>{config.shortLabel}</span>
-                <span>•</span>
-                <span>{formatRelativeTime(note.created_at)}</span>
-              </div>
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <span className="font-medium text-gray-700">
+                {config.shortLabel}
+              </span>
+              <span>•</span>
+              <span>{formatRelativeTime(note.created_at)}</span>
+              {note.updated_at !== note.created_at && (
+                <>
+                  <span>•</span>
+                  <span className="text-gray-400">edited</span>
+                </>
+              )}
             </div>
           </div>
 
@@ -362,16 +357,9 @@ export function NotesList({
         </div>
 
         {/* Content */}
-        <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
           {note.content}
         </p>
-
-        {/* Footer with timestamp */}
-        {note.updated_at !== note.created_at && (
-          <p className="text-xs text-gray-400 mt-3">
-            Edited {formatRelativeTime(note.updated_at)}
-          </p>
-        )}
       </div>
     )
   }
@@ -477,78 +465,69 @@ export function NotesList({
       {/* Create note form */}
       {showCreateForm && (
         <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
-          <div className="flex items-center gap-2 mb-3">
-            <StickyNote className="h-4 w-4 text-gray-600" />
-            <span className="text-sm font-medium text-gray-900">New Note</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <StickyNote className="h-4 w-4 text-gray-600" />
+              <span className="text-sm font-medium text-gray-900">
+                New Note
+              </span>
+            </div>
+            {/* Note type selector - compact */}
+            <div className="flex items-center gap-1">
+              {availableTypes.map(type => {
+                const config = NOTE_TYPE_CONFIG[type]
+                const TypeIcon = config.icon
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setNewNoteType(type)}
+                    title={config.description}
+                    className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors ${
+                      newNoteType === type
+                        ? 'bg-gray-900 text-white'
+                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                    }`}
+                  >
+                    <TypeIcon className="h-3 w-3" />
+                    {config.shortLabel}
+                  </button>
+                )
+              })}
+            </div>
           </div>
 
-          {/* Note type selector */}
-          <div className="flex items-center gap-2 mb-3 flex-wrap">
-            {availableTypes.map(type => {
-              const config = NOTE_TYPE_CONFIG[type]
-              const Icon = config.icon
-              return (
-                <button
-                  key={type}
-                  onClick={() => setNewNoteType(type)}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
-                    newNoteType === type
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
-                  }`}
-                >
-                  <Icon className="h-3 w-3" />
-                  {config.shortLabel}
-                </button>
-              )
-            })}
-          </div>
-
-          <Input
-            value={newNoteTitle}
-            onChange={e => setNewNoteTitle(e.target.value)}
-            placeholder="Note title"
-            className="mb-3 border-gray-200 bg-white"
-          />
           <Textarea
             value={newNoteContent}
             onChange={e => setNewNoteContent(e.target.value)}
-            placeholder="Write your note..."
+            placeholder="Capture your thoughts, observations, or action items..."
             className="min-h-[120px] mb-3 border-gray-200 bg-white resize-none"
+            autoFocus
           />
-          <div className="flex items-center justify-between">
-            <p className="text-xs text-gray-500">
-              {NOTE_TYPE_CONFIG[newNoteType].description}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowCreateForm(false)
-                  setNewNoteTitle('')
-                  setNewNoteContent('')
-                }}
-                disabled={creating}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleCreateNote}
-                disabled={
-                  creating || !newNoteTitle.trim() || !newNoteContent.trim()
-                }
-                className="bg-gray-900 hover:bg-gray-800"
-              >
-                {creating ? (
-                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-                ) : (
-                  <Check className="h-4 w-4 mr-1" />
-                )}
-                Save Note
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setShowCreateForm(false)
+                setNewNoteContent('')
+              }}
+              disabled={creating}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleCreateNote}
+              disabled={creating || !newNoteContent.trim()}
+              className="bg-gray-900 hover:bg-gray-800"
+            >
+              {creating ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Check className="h-4 w-4 mr-1" />
+              )}
+              Save Note
+            </Button>
           </div>
         </div>
       )}
