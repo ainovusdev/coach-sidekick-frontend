@@ -1,25 +1,47 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import {
   Lightbulb,
   TrendingUp,
   MessageSquare,
   ArrowRight,
   CheckCircle2,
+  FileText,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import type { SessionInsights } from '@/services/analysis-service'
 import type { Commitment } from '@/types/commitment'
 import { SessionCommitmentsList } from './session-commitments-list'
 import { SessionNotesCompact } from './session-notes-compact'
+import { SessionWins } from '@/components/wins/session-wins'
+import TranscriptViewer from './transcript-viewer'
+
+interface TranscriptEntry {
+  id: string
+  speaker: string
+  text: string
+  timestamp: string
+  confidence: number | null
+  created_at: string
+  is_partial?: boolean
+}
 
 interface SessionOverviewTabProps {
   insights?: SessionInsights
   commitments?: Commitment[]
   sessionId: string
   clientId?: string
-  onViewCommitments: () => void
+  transcript?: TranscriptEntry[]
+  isViewer?: boolean
   onViewAnalysis: () => void
   onViewNotes: () => void
   onRefreshCommitments?: () => void
@@ -30,11 +52,14 @@ export function SessionOverviewTab({
   commitments,
   sessionId,
   clientId,
-  onViewCommitments,
+  transcript,
+  isViewer = false,
   onViewAnalysis,
   onViewNotes,
   onRefreshCommitments,
 }: SessionOverviewTabProps) {
+  const [transcriptOpen, setTranscriptOpen] = useState(false)
+
   // Top 3 insights only
   const topInsights = insights?.insights?.slice(0, 3) || []
   const topActionItems = insights?.action_items?.slice(0, 3) || []
@@ -88,19 +113,29 @@ export function SessionOverviewTab({
         </div>
       )}
 
-      {/* Commitments and Notes Side by Side */}
+      {/* Commitments and Wins Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Commitments */}
-        <SessionCommitmentsList
-          sessionId={sessionId}
-          commitments={commitments || []}
-          onViewAll={onViewCommitments}
-          onUpdate={onRefreshCommitments || (() => {})}
-        />
+        {!isViewer && (
+          <SessionCommitmentsList
+            sessionId={sessionId}
+            commitments={commitments || []}
+            onUpdate={onRefreshCommitments || (() => {})}
+          />
+        )}
 
-        {/* Right: Notes */}
-        <SessionNotesCompact sessionId={sessionId} onViewAll={onViewNotes} />
+        {/* Right: Wins */}
+        {clientId && (
+          <SessionWins
+            sessionId={sessionId}
+            clientId={clientId}
+            isViewer={isViewer}
+          />
+        )}
       </div>
+
+      {/* Notes Section */}
+      <SessionNotesCompact sessionId={sessionId} onViewAll={onViewNotes} />
 
       {/* Insights and Action Items Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -148,7 +183,7 @@ export function SessionOverviewTab({
           </Card>
         )}
 
-        {/* Commitments */}
+        {/* Action Items from Analysis */}
         {topActionItems.length > 0 && (
           <Card className="border-gray-200 shadow-sm">
             <CardHeader className="pb-4">
@@ -156,7 +191,7 @@ export function SessionOverviewTab({
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-5 w-5 text-black" />
                   <h3 className="text-base font-semibold text-black">
-                    Commitments
+                    Suggested Actions
                   </h3>
                 </div>
                 <Button
@@ -216,6 +251,53 @@ export function SessionOverviewTab({
             </CardContent>
           </Card>
         )}
+
+      {/* Collapsible Transcript Section */}
+      {transcript && transcript.length > 0 && !isViewer && (
+        <Collapsible open={transcriptOpen} onOpenChange={setTranscriptOpen}>
+          <Card className="border-gray-200 shadow-sm">
+            <CollapsibleTrigger asChild>
+              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-gray-600" />
+                    <h3 className="text-base font-semibold text-black">
+                      Session Transcript
+                    </h3>
+                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+                      {transcript.length} messages
+                    </span>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="hover:bg-gray-100"
+                  >
+                    {transcriptOpen ? (
+                      <>
+                        <ChevronUp className="h-4 w-4 mr-1" />
+                        Collapse
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-4 w-4 mr-1" />
+                        Expand
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardHeader>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <CardContent className="pt-0">
+                <div className="border-t border-gray-100 pt-4">
+                  <TranscriptViewer transcript={transcript} />
+                </div>
+              </CardContent>
+            </CollapsibleContent>
+          </Card>
+        </Collapsible>
+      )}
 
       {/* Empty State */}
       {!insights && (

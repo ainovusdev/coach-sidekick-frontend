@@ -37,7 +37,7 @@ export default function ClientMeetingPage() {
 
   const { isEnded, durationSeconds } = useMeetingStatus(
     meetingToken,
-    sessionInfo?.started_at ?? null,
+    sessionInfo?.duration_seconds ?? null,
   )
 
   // Track notes and commitments count for the ended overlay
@@ -118,7 +118,7 @@ export default function ClientMeetingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
       {/* Header */}
       <ClientMeetingHeader
         coachName={sessionInfo.coach_name}
@@ -130,7 +130,7 @@ export default function ClientMeetingPage() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 h-full">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 h-full">
             {/* Left Column - Notes */}
             <div className="lg:col-span-8 h-full min-h-[400px] lg:min-h-0">

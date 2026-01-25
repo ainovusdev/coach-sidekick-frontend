@@ -273,7 +273,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 interface SessionCommitmentsListProps {
   sessionId: string
   commitments: any[]
-  onViewAll: () => void
+  onViewAll?: () => void
   onUpdate: () => void
 }
 
@@ -299,7 +299,7 @@ export function SessionCommitmentsList({
               </p>
             </div>
           </div>
-          {commitments.length > 0 && (
+          {commitments.length > 0 && onViewAll && (
             <Button
               variant="ghost"
               size="sm"

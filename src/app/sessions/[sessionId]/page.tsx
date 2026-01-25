@@ -16,19 +16,14 @@ import {
   Brain,
   FileText,
   Sparkles,
-  Eye,
-  Target,
   StickyNote,
   LayoutGrid,
   Plus,
-  Trophy,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
-import { Badge } from '@/components/ui/badge'
 import { MediaUploader } from '@/components/sessions/media-uploader'
 import SessionHeader from './components/session-header'
-import TranscriptViewer from './components/transcript-viewer'
 import { SessionHeroCard } from './components/session-hero-card'
 import { SessionOverviewTab } from './components/session-overview-tab'
 import { SessionAnalysisMerged } from './components/session-analysis-merged'
@@ -39,17 +34,10 @@ import {
 } from '@/services/analysis-service'
 import { SessionService } from '@/services/session-service'
 import { CommitmentService } from '@/services/commitment-service'
-import {
-  EnhancedExtractionService,
-  ExtractionResult,
-} from '@/services/enhanced-extraction-service'
-import { DraftCommitmentsReview } from '@/components/commitments/draft-commitments-review'
-import { EnhancedDraftReview } from '@/components/extraction/enhanced-draft-review'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
-import { CommitmentListItem } from '@/components/commitments/commitment-list-item'
 import { toast } from '@/hooks/use-toast'
 import { NotesList } from '@/components/session-notes'
-import { SessionWins } from '@/components/wins/session-wins'
+import { AutoExtractionModal } from '@/components/extraction/auto-extraction-modal'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
@@ -86,13 +74,13 @@ export default function SessionDetailsPage({
 
   console.log('Extracted clientId:', clientId)
 
-  // Fetch ALL commitments for the client (not just from this session)
+  // Fetch commitments for this specific session only
   const { data: commitmentsData } = useCommitments(
     {
-      client_id: clientId || undefined,
+      session_id: resolvedParams.sessionId,
       include_drafts: true,
     },
-    { enabled: !!clientId },
+    { enabled: !!resolvedParams.sessionId },
   )
 
   console.log('Commitments query data:', commitmentsData)
@@ -112,16 +100,7 @@ export default function SessionDetailsPage({
   const [analysisProgress, setAnalysisProgress] = useState(0)
 
   // Commitments state (now from TanStack Query cache)
-  const allCommitments = commitmentsData?.commitments ?? []
-  const draftCommitments = allCommitments.filter(c => c.status === 'draft')
-  // const activeCommitments = allCommitments.filter(c => c.status === 'active')
-  const [extractingCommitments, setExtractingCommitments] = useState(false)
   const [showCreateCommitment, setShowCreateCommitment] = useState(false)
-
-  // Enhanced extraction state
-  const [extractionResult, setExtractionResult] =
-    useState<ExtractionResult | null>(null)
-  const [useEnhancedExtraction] = useState(true)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -133,6 +112,8 @@ export default function SessionDetailsPage({
   // UI state
   const [showQuickNote, setShowQuickNote] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
+  const [showExtractionModal, setShowExtractionModal] = useState(false)
+  const [extractionShown, setExtractionShown] = useState(false)
 
   // Auto-trigger analysis
   React.useEffect(() => {
@@ -214,112 +195,18 @@ export default function SessionDetailsPage({
         description:
           'Session insights and coaching metrics have been generated successfully.',
       })
+
+      // Show extraction modal after analysis completes (if not already shown and has clientId)
+      if (!extractionShown && clientId && !isViewer) {
+        setShowExtractionModal(true)
+        setExtractionShown(true)
+      }
     } catch (error) {
       // ApiClient already shows error toast, just log it
       console.error('Analysis failed:', error)
     } finally {
       setAnalyzing(false)
       setTimeout(() => setAnalysisProgress(0), 1000)
-    }
-  }
-
-  // Extract commitments from session transcript (or enhanced extraction)
-  const extractCommitments = async () => {
-    if (!sessionData?.session?.id) return
-
-    setExtractingCommitments(true)
-    try {
-      if (useEnhancedExtraction) {
-        // Enhanced extraction: goals + targets + commitments
-        const result = await EnhancedExtractionService.extractFromSession(
-          sessionData.session.id,
-        )
-        console.log('Enhanced extraction result:', result)
-        setExtractionResult(result)
-        toast({
-          title: 'Extraction Complete',
-          description: `Found ${result.total_created} items: ${result.draft_goals.length} outcomes, ${result.draft_targets.length} desired wins, ${result.draft_commitments.length} commitments`,
-        })
-      } else {
-        // Old method: commitments only
-        const extracted = await CommitmentService.extractFromSession(
-          sessionData.session.id,
-        )
-        console.log('Extracted commitments:', extracted)
-        toast({
-          title: 'Commitments Extracted',
-          description: `Found ${extracted.length} potential commitments from the session.`,
-        })
-        refreshCommitments()
-      }
-    } catch (error) {
-      // ApiClient already shows error toast, just log it
-      console.error('Failed to extract:', error)
-    } finally {
-      setExtractingCommitments(false)
-    }
-  }
-
-  // Handle bulk confirmation of all extracted entities
-  const handleConfirmAll = async () => {
-    console.log('=== CONFIRM ALL CALLED ===')
-    console.log('extractionResult:', extractionResult)
-    console.log('sessionData:', sessionData?.session)
-
-    if (!extractionResult || !sessionData?.session) {
-      console.log('Early return: missing extraction result or session')
-      return
-    }
-
-    // Get client_id from nested client object
-    const clientId =
-      sessionData.session.client_id || sessionData.session.client?.id
-
-    if (!clientId) {
-      console.log('Early return: missing client_id')
-      toast({
-        title: 'Error',
-        description: 'Session must have a client to confirm extraction',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    console.log('=== PROCEEDING WITH CONFIRMATION ===')
-    console.log('Using client_id:', clientId)
-
-    try {
-      // Use new confirmation endpoint that creates records
-      const confirmRequest = {
-        session_id: sessionData.session.id,
-        client_id: clientId,
-        goals: extractionResult.draft_goals,
-        targets: extractionResult.draft_targets,
-        commitments: extractionResult.draft_commitments,
-        current_sprint_id: extractionResult.current_sprint_id,
-      }
-
-      console.log(
-        'Sending confirmation request:',
-        JSON.stringify(confirmRequest, null, 2),
-      )
-
-      const result =
-        await EnhancedExtractionService.confirmExtraction(confirmRequest)
-
-      console.log('Confirmation result:', result)
-
-      toast({
-        title: 'Extraction Confirmed',
-        description: `Created ${extractionResult.total_created} items successfully.`,
-      })
-
-      // Clear extraction result and reload both draft and active commitments
-      setExtractionResult(null)
-      refreshCommitments()
-    } catch (error) {
-      console.error('Failed to confirm all:', error)
-      // Error is already shown by ApiClient, just log it
     }
   }
 
@@ -436,7 +323,14 @@ export default function SessionDetailsPage({
         {/* Header */}
         <SessionHeader
           session={session}
-          onBack={() => router.back()}
+          onBack={() => {
+            // Navigate to client profile if client exists, otherwise go back
+            if (clientId) {
+              router.push(`/clients/${clientId}`)
+            } else {
+              router.push('/sessions')
+            }
+          }}
           onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
           onTitleUpdate={newTitle => {
             if (sessionData?.session) {
@@ -510,28 +404,12 @@ export default function SessionDetailsPage({
                       <LayoutGrid className="h-4 w-4 mr-2" />
                       Overview
                     </TabsTrigger>
-                    {!isViewer && (
-                      <TabsTrigger
-                        value="commitments"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                      >
-                        <Target className="h-4 w-4 mr-2" />
-                        Commitments
-                      </TabsTrigger>
-                    )}
                     <TabsTrigger
                       value="analysis"
                       className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
                     >
                       <Brain className="h-4 w-4 mr-2" />
                       Analysis
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="transcript"
-                      className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                    >
-                      <FileText className="h-4 w-4 mr-2" />
-                      Transcript
                     </TabsTrigger>
                     {!isViewer && (
                       <TabsTrigger
@@ -542,13 +420,6 @@ export default function SessionDetailsPage({
                         Notes
                       </TabsTrigger>
                     )}
-                    <TabsTrigger
-                      value="wins"
-                      className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                    >
-                      <Trophy className="h-4 w-4 mr-2" />
-                      Wins
-                    </TabsTrigger>
                   </TabsList>
                 </Tabs>
 
@@ -631,124 +502,12 @@ export default function SessionDetailsPage({
                     commitments={commitmentsData?.commitments || []}
                     sessionId={sessionData.session.id}
                     clientId={clientId}
-                    onViewCommitments={() => setActiveTab('commitments')}
+                    transcript={transcript}
+                    isViewer={isViewer}
                     onViewAnalysis={() => setActiveTab('analysis')}
                     onViewNotes={() => setActiveTab('notes')}
                     onRefreshCommitments={refreshCommitments}
                   />
-                )}
-
-                {/* Commitments Tab */}
-                {!isViewer && activeTab === 'commitments' && (
-                  <Card className="border-gray-200 shadow-sm">
-                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Target className="h-5 w-5 text-black" />
-                          <div>
-                            <h3 className="text-lg font-semibold text-black">
-                              Client Commitments
-                            </h3>
-                            <p className="text-xs text-gray-500">
-                              All commitments for this client
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={extractCommitments}
-                            disabled={extractingCommitments || !analysisData}
-                            variant="outline"
-                            size="sm"
-                            className="border-gray-300 hover:bg-gray-50 hover:border-black"
-                          >
-                            {extractingCommitments ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Extracting...
-                              </>
-                            ) : (
-                              <>
-                                <Sparkles className="h-4 w-4 mr-2" />
-                                Extract from AI
-                              </>
-                            )}
-                          </Button>
-                          <Button
-                            onClick={() => setShowCreateCommitment(true)}
-                            size="sm"
-                            className="bg-black hover:bg-gray-800"
-                          >
-                            + Create
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="p-6 space-y-6">
-                      {/* Extraction Review */}
-                      {extractionResult && (
-                        <EnhancedDraftReview
-                          draftGoals={extractionResult.draft_goals}
-                          draftTargets={extractionResult.draft_targets}
-                          draftCommitments={extractionResult.draft_commitments}
-                          onConfirmAll={handleConfirmAll}
-                          onRefresh={() => {
-                            setExtractionResult(null)
-                            refreshCommitments()
-                          }}
-                        />
-                      )}
-
-                      {/* Draft Commitments */}
-                      {!extractionResult && draftCommitments.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-black mb-3">
-                            Draft Commitments
-                          </h4>
-                          <DraftCommitmentsReview
-                            sessionId={sessionData.session.id}
-                            drafts={draftCommitments}
-                            loading={false}
-                            onRefresh={refreshCommitments}
-                          />
-                        </div>
-                      )}
-
-                      {/* All Commitments */}
-                      {allCommitments.length > 0 && (
-                        <div>
-                          <h4 className="text-sm font-semibold text-black mb-3 flex items-center gap-2">
-                            <span>All Commitments</span>
-                            <Badge variant="secondary" className="bg-gray-100">
-                              {allCommitments.length}
-                            </Badge>
-                          </h4>
-                          <div className="space-y-3">
-                            {allCommitments.map(commitment => (
-                              <CommitmentListItem
-                                key={commitment.id}
-                                commitment={commitment}
-                                onUpdate={refreshCommitments}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Empty state */}
-                      {!extractionResult && allCommitments.length === 0 && (
-                        <div className="text-center py-12">
-                          <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                          <p className="text-gray-600 mb-2">
-                            No commitments yet
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            Extract commitments from AI or create manually
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </Card>
                 )}
 
                 {/* Analysis Tab (Merged Insights + Performance) */}
@@ -823,62 +582,9 @@ export default function SessionDetailsPage({
                     </Card>
                   ))}
 
-                {/* Transcript Tab */}
-                {activeTab === 'transcript' &&
-                  (transcript && transcript.length > 0 && !isViewer ? (
-                    <Card className="border-gray-200 shadow-sm">
-                      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex items-center gap-2">
-                          <FileText className="h-5 w-5 text-black" />
-                          <h3 className="text-lg font-semibold text-black">
-                            Session Transcript
-                          </h3>
-                          <Badge
-                            variant="secondary"
-                            className="ml-auto bg-gray-100"
-                          >
-                            {transcript.length} messages
-                          </Badge>
-                        </div>
-                      </div>
-                      <div className="p-6">
-                        <TranscriptViewer transcript={transcript} />
-                      </div>
-                    </Card>
-                  ) : isViewer && transcriptsExist ? (
-                    <Card className="border-gray-200 shadow-sm">
-                      <CardContent className="py-12 text-center">
-                        <Eye className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-black mb-2">
-                          Transcript Not Available
-                        </h3>
-                        <p className="text-gray-500">
-                          Transcripts are not accessible with viewer
-                          permissions.
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ) : (
-                    <Card className="border-gray-200 shadow-sm">
-                      <CardContent className="py-12 text-center">
-                        <FileText className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                        <p className="text-gray-500">No transcript available</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-
                 {/* Notes Tab */}
                 {!isViewer && activeTab === 'notes' && (
                   <NotesList sessionId={sessionData.session.id} />
-                )}
-
-                {/* Wins Tab */}
-                {activeTab === 'wins' && clientId && (
-                  <SessionWins
-                    sessionId={sessionData.session.id}
-                    clientId={clientId}
-                    isViewer={isViewer}
-                  />
                 )}
               </div>
             </div>
@@ -917,6 +623,17 @@ export default function SessionDetailsPage({
           onConfirm={handleDeleteSession}
           variant="destructive"
         />
+
+        {/* Auto-Extraction Modal - Shows after analysis completes */}
+        {clientId && (
+          <AutoExtractionModal
+            open={showExtractionModal}
+            onOpenChange={setShowExtractionModal}
+            sessionId={sessionData?.session?.id || ''}
+            clientId={clientId}
+            onComplete={refreshCommitments}
+          />
+        )}
       </div>
     </ProtectedRoute>
   )

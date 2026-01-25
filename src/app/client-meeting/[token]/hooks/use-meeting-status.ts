@@ -1,6 +1,7 @@
 /**
  * Meeting Status Hook
  * Polls for session status to detect when meeting ends
+ * Uses backend-calculated duration_seconds for accuracy
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -20,38 +21,34 @@ const POLL_INTERVAL = 10000 // 10 seconds
 
 export function useMeetingStatus(
   meetingToken: string,
-  startedAt: string | null,
+  initialDurationSeconds: number | null,
 ): UseMeetingStatusReturn {
   const [status, setStatus] = useState<SessionStatus | null>(null)
   const [isEnded, setIsEnded] = useState(false)
-  const [durationSeconds, setDurationSeconds] = useState(0)
+  const [durationSeconds, setDurationSeconds] = useState(
+    initialDurationSeconds ?? 0,
+  )
   const [isPolling, setIsPolling] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
+  // Track the last known server duration to sync with
+  const lastServerDurationRef = useRef<number>(initialDurationSeconds ?? 0)
 
-  // Update duration every second
+  // Update duration every second (incrementing locally between polls)
   useEffect(() => {
-    if (!startedAt || isEnded) return
+    if (isEnded) return
 
-    const updateDuration = () => {
-      const startTime = new Date(startedAt).getTime()
-      const now = Date.now()
-      const seconds = Math.floor((now - startTime) / 1000)
-      setDurationSeconds(seconds)
-    }
-
-    // Initial update
-    updateDuration()
-
-    // Update every second
-    timerRef.current = setInterval(updateDuration, 1000)
+    // Increment timer every second
+    timerRef.current = setInterval(() => {
+      setDurationSeconds(prev => prev + 1)
+    }, 1000)
 
     return () => {
       if (timerRef.current) {
         clearInterval(timerRef.current)
       }
     }
-  }, [startedAt, isEnded])
+  }, [isEnded])
 
   // Poll for status
   const fetchStatus = useCallback(async () => {
@@ -60,6 +57,15 @@ export function useMeetingStatus(
     try {
       const data = await LiveMeetingService.getSessionStatus(meetingToken)
       setStatus(data)
+
+      // Sync duration from server to correct any drift
+      if (
+        data.duration_seconds !== null &&
+        data.duration_seconds !== undefined
+      ) {
+        setDurationSeconds(data.duration_seconds)
+        lastServerDurationRef.current = data.duration_seconds
+      }
 
       if (data.is_ended) {
         setIsEnded(true)

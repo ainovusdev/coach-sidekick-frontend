@@ -1,6 +1,7 @@
 /**
  * Client Commitment Panel
  * Allows clients to create and view commitments during the session
+ * Features always-visible date picker for easy date selection
  */
 
 'use client'
@@ -11,8 +12,17 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Badge } from '@/components/ui/badge'
-import { Target, Plus, CheckCircle2, Circle, Calendar } from 'lucide-react'
-import { format } from 'date-fns'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Target,
+  Plus,
+  CheckCircle2,
+  Circle,
+  Calendar as CalendarIcon,
+  Loader2,
+  X,
+} from 'lucide-react'
+import { format, addDays, addWeeks } from 'date-fns'
 import { toast } from 'sonner'
 import {
   LiveMeetingService,
@@ -32,6 +42,9 @@ export function ClientCommitmentPanel({
 }: ClientCommitmentPanelProps) {
   const [commitments, setCommitments] = useState<ClientCommitment[]>([])
   const [newTitle, setNewTitle] = useState('')
+  const [targetDate, setTargetDate] = useState<Date | undefined>(
+    addWeeks(new Date(), 1),
+  )
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
@@ -76,10 +89,12 @@ export function ClientCommitmentPanel({
           title: newTitle.trim(),
           priority: 'medium',
           type: 'action',
+          target_date: targetDate?.toISOString(),
         },
       )
       setCommitments([commitment, ...commitments])
       setNewTitle('')
+      setTargetDate(addWeeks(new Date(), 1)) // Reset to default
       setShowForm(false)
       toast.success('Commitment added')
     } catch (err) {
@@ -142,72 +157,168 @@ export function ClientCommitmentPanel({
     }
   }
 
+  // Quick date options
+  const quickDates = [
+    { label: 'Tomorrow', date: addDays(new Date(), 1) },
+    { label: 'In 3 days', date: addDays(new Date(), 3) },
+    { label: 'In 1 week', date: addWeeks(new Date(), 1) },
+    { label: 'In 2 weeks', date: addWeeks(new Date(), 2) },
+  ]
+
   return (
-    <Card className="border-gray-200 h-full flex flex-col">
-      <CardHeader className="border-b border-gray-100 py-3 flex-shrink-0">
+    <Card className="border-gray-200 h-full flex flex-col shadow-sm">
+      <CardHeader className="border-b border-gray-100 py-4 flex-shrink-0 bg-white">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Target className="h-5 w-5 text-gray-600" />
-            My Commitments
+            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <Target className="h-4 w-4 text-emerald-600" />
+            </div>
+            <div>
+              <span>Commitments</span>
+              {commitments.length > 0 && (
+                <span className="text-xs font-normal text-gray-500 ml-2">
+                  ({commitments.length})
+                </span>
+              )}
+            </div>
           </CardTitle>
           {!showForm && (
             <Button
               size="sm"
-              variant="ghost"
+              variant="outline"
               onClick={() => setShowForm(true)}
               disabled={!guestToken}
+              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
             >
-              <Plus className="h-4 w-4" />
+              <Plus className="h-4 w-4 mr-1" />
+              Add
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-4 overflow-hidden">
-        {/* New Commitment Form */}
+      <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
+        {/* New Commitment Form - With Embedded Calendar */}
         {showForm && (
-          <div className="flex-shrink-0 mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50/50">
-            <Input
-              placeholder="What do you commit to?"
-              value={newTitle}
-              onChange={e => setNewTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              className="border-gray-200 mb-2"
-              autoFocus
-            />
-            <div className="flex gap-2 justify-end">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => {
-                  setShowForm(false)
-                  setNewTitle('')
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleCreateCommitment}
-                disabled={!newTitle.trim() || isSaving}
-              >
-                {isSaving ? 'Adding...' : 'Add'}
-              </Button>
+          <div className="flex-shrink-0 p-4 bg-gradient-to-b from-emerald-50/50 to-white border-b border-gray-100">
+            <div className="space-y-4">
+              {/* Commitment Title Input */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  What do you commit to?
+                </label>
+                <Input
+                  placeholder="e.g., Complete the weekly report"
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  className="border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
+                  autoFocus
+                />
+              </div>
+
+              {/* Quick Date Options */}
+              <div>
+                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                  Due Date
+                </label>
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {quickDates.map(option => (
+                    <Button
+                      key={option.label}
+                      type="button"
+                      size="sm"
+                      variant={
+                        targetDate?.toDateString() ===
+                        option.date.toDateString()
+                          ? 'default'
+                          : 'outline'
+                      }
+                      onClick={() => setTargetDate(option.date)}
+                      className={
+                        targetDate?.toDateString() ===
+                        option.date.toDateString()
+                          ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                          : 'border-gray-200 text-gray-600 hover:border-emerald-300'
+                      }
+                    >
+                      {option.label}
+                    </Button>
+                  ))}
+                </div>
+
+                {/* Always-Visible Calendar */}
+                <div className="bg-white rounded-lg border border-gray-200 p-2">
+                  <Calendar
+                    mode="single"
+                    selected={targetDate}
+                    onSelect={setTargetDate}
+                    disabled={date => date < new Date()}
+                    className="mx-auto"
+                  />
+                </div>
+
+                {targetDate && (
+                  <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                    <CalendarIcon className="h-3 w-3" />
+                    Due: {format(targetDate, 'EEEE, MMMM d, yyyy')}
+                  </p>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 justify-end pt-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    setShowForm(false)
+                    setNewTitle('')
+                    setTargetDate(addWeeks(new Date(), 1))
+                  }}
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleCreateCommitment}
+                  disabled={!newTitle.trim() || isSaving}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Commitment
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
         )}
 
         {/* Commitments List */}
-        <ScrollArea className="flex-1">
+        <ScrollArea className="flex-1 p-4">
           {isLoading ? (
-            <div className="text-center py-4 text-gray-500">
-              Loading commitments...
+            <div className="text-center py-8 text-gray-500">
+              <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 mb-2" />
+              <p className="text-sm">Loading commitments...</p>
             </div>
           ) : !commitments || commitments.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <Target className="h-8 w-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">No commitments yet</p>
-              <p className="text-xs text-gray-400 mt-1">
+            <div className="text-center py-8">
+              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Target className="h-6 w-6 text-gray-400" />
+              </div>
+              <h3 className="font-medium text-gray-700 mb-1">
+                No commitments yet
+              </h3>
+              <p className="text-sm text-gray-500 max-w-[200px] mx-auto">
                 Add commitments to track your progress
               </p>
             </div>
@@ -216,10 +327,10 @@ export function ClientCommitmentPanel({
               {commitments.map(commitment => (
                 <div
                   key={commitment.id}
-                  className={`p-3 rounded-lg border ${
+                  className={`p-3 rounded-xl border transition-all duration-200 ${
                     commitment.status === 'completed'
-                      ? 'border-green-200 bg-green-50/30'
-                      : 'border-gray-200 bg-white'
+                      ? 'border-green-200 bg-green-50/50'
+                      : 'border-gray-200 bg-white hover:border-gray-300'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -230,7 +341,7 @@ export function ClientCommitmentPanel({
                       {commitment.status === 'completed' ? (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : (
-                        <Circle className="h-5 w-5 text-gray-300 hover:text-gray-400" />
+                        <Circle className="h-5 w-5 text-gray-300 hover:text-emerald-400 transition-colors" />
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
@@ -243,7 +354,7 @@ export function ClientCommitmentPanel({
                       >
                         {commitment.title}
                       </p>
-                      <div className="mt-1.5 flex items-center gap-2">
+                      <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                         <Badge
                           variant="secondary"
                           className={`text-xs ${getPriorityColor(commitment.priority)}`}
@@ -252,7 +363,7 @@ export function ClientCommitmentPanel({
                         </Badge>
                         {commitment.target_date && (
                           <span className="text-xs text-gray-400 flex items-center gap-1">
-                            <Calendar className="h-3 w-3" />
+                            <CalendarIcon className="h-3 w-3" />
                             {format(new Date(commitment.target_date), 'MMM d')}
                           </span>
                         )}
