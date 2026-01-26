@@ -357,9 +357,10 @@ export function NotesList({
         </div>
 
         {/* Content */}
-        <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-          {note.content}
-        </p>
+        <div
+          className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1"
+          dangerouslySetInnerHTML={{ __html: note.content }}
+        />
       </div>
     )
   }

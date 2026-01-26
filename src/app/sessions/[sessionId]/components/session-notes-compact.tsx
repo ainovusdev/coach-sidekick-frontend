@@ -131,9 +131,10 @@ export function SessionNotesCompact({
                 </div>
 
                 {note.content && (
-                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
-                    {note.content}
-                  </p>
+                  <div
+                    className="text-sm text-gray-600 line-clamp-2 mb-3 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0"
+                    dangerouslySetInnerHTML={{ __html: note.content }}
+                  />
                 )}
 
                 <div className="flex items-center gap-2 text-xs text-gray-500">
