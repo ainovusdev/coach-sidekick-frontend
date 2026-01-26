@@ -147,19 +147,17 @@ export function ClientNotesPanel({
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
-        {/* Editor - top half */}
-        <div className="h-1/2 p-4 flex flex-col min-h-0 border-b border-gray-100">
-          <div className="flex-1 min-h-0">
-            <RichTextEditor
-              content={newNote}
-              onChange={setNewNote}
-              placeholder="Capture your thoughts, insights, or action items..."
-              className="h-full"
-              disabled={!guestToken}
-            />
-          </div>
+        {/* Editor */}
+        <div className="flex-shrink-0 p-4 border-b border-gray-100">
+          <RichTextEditor
+            content={newNote}
+            onChange={setNewNote}
+            placeholder="Capture your thoughts, insights, or action items..."
+            disabled={!guestToken}
+            minHeight="150px"
+          />
 
-          <div className="flex items-center justify-end mt-3 flex-shrink-0">
+          <div className="flex items-center justify-end mt-3">
             <Button
               onClick={handleSaveNote}
               disabled={!hasContent(newNote) || isSaving || !guestToken}
@@ -181,16 +179,16 @@ export function ClientNotesPanel({
           </div>
         </div>
 
-        {/* Notes List - bottom half */}
+        {/* Notes List */}
         {isLoading ? (
-          <div className="h-1/2 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 mb-2" />
               <p className="text-sm text-gray-500">Loading your notes...</p>
             </div>
           </div>
         ) : notes.length > 0 ? (
-          <div className="h-1/2 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
             <div className="px-4 py-2 bg-gray-50 flex items-center justify-between flex-shrink-0">
               <span className="text-xs font-medium text-gray-600">
                 Your Notes
@@ -269,7 +267,7 @@ export function ClientNotesPanel({
             </div>
           </div>
         ) : (
-          <div className="h-1/2 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
               <FileText className="h-6 w-6 text-gray-300 mx-auto mb-1" />
               <p className="text-xs text-gray-400">No notes captured yet</p>
