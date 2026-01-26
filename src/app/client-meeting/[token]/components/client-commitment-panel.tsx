@@ -89,7 +89,9 @@ export function ClientCommitmentPanel({
           title: newTitle.trim(),
           priority: 'medium',
           type: 'action',
-          target_date: targetDate?.toISOString(),
+          target_date: targetDate
+            ? format(targetDate, 'yyyy-MM-dd')
+            : undefined,
         },
       )
       setCommitments([commitment, ...commitments])
