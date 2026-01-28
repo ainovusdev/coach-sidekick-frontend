@@ -14,7 +14,15 @@ import {
   RichTextEditor,
   htmlToPlainText,
 } from '@/components/ui/rich-text-editor'
-import { Pencil, Trash2, Check, X, FileText, Loader2 } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  FileText,
+  Loader2,
+  Lightbulb,
+} from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { toast } from 'sonner'
 import { LiveMeetingService, ClientNote } from '@/services/live-meeting-service'
@@ -132,37 +140,59 @@ export function ClientNotesPanel({
 
   return (
     <Card className="border-gray-200 h-full flex flex-col shadow-sm">
-      <CardHeader className="border-b border-gray-100 py-3 flex-shrink-0 bg-white">
+      <CardHeader className="border-b border-gray-100 py-4 flex-shrink-0 bg-white">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <FileText className="h-4 w-4 text-gray-700" />
-            <span>Session Notes</span>
-            {notes.length > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {notes.length}
-              </Badge>
-            )}
+          <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <FileText className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <span>Session Notes</span>
+              {notes.length > 0 && (
+                <span className="text-xs font-normal text-gray-500 ml-2">
+                  ({notes.length})
+                </span>
+              )}
+            </div>
           </CardTitle>
         </div>
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {/* Editor */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-100">
+        <div className="flex-shrink-0 p-4 border-b border-gray-100 bg-gradient-to-b from-blue-50/50 to-white">
+          {/* Tips section */}
+          <div className="mb-3 flex items-start gap-2 p-2.5 bg-blue-50 rounded-lg border border-blue-100">
+            <Lightbulb className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700">
+              Capture key insights, questions, or action items from this
+              session. Use formatting for better organization.
+            </p>
+          </div>
+
           <RichTextEditor
             content={newNote}
             onChange={setNewNote}
-            placeholder="Capture your thoughts, insights, or action items..."
+            placeholder="What insights are you taking away from this session?"
             disabled={!guestToken}
             minHeight="150px"
+            onKeyDown={e => {
+              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                e.preventDefault()
+                handleSaveNote()
+              }
+            }}
           />
 
-          <div className="flex items-center justify-end mt-3">
+          <div className="flex items-center justify-between mt-3">
+            <span className="text-xs text-gray-400">
+              {hasContent(newNote) ? 'Press Cmd+Enter to save' : ''}
+            </span>
             <Button
               onClick={handleSaveNote}
               disabled={!hasContent(newNote) || isSaving || !guestToken}
               size="sm"
-              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               {isSaving ? (
                 <>
@@ -267,10 +297,15 @@ export function ClientNotesPanel({
             </div>
           </div>
         ) : (
-          <div className="flex-1 flex items-center justify-center">
+          <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">
-              <FileText className="h-6 w-6 text-gray-300 mx-auto mb-1" />
-              <p className="text-xs text-gray-400">No notes captured yet</p>
+              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <FileText className="h-6 w-6 text-gray-400" />
+              </div>
+              <h3 className="font-medium text-gray-700 mb-1">No notes yet</h3>
+              <p className="text-sm text-gray-500 max-w-[200px] mx-auto">
+                Use the editor above to capture your thoughts and insights
+              </p>
             </div>
           </div>
         )}

@@ -2,6 +2,15 @@ import { useEffect } from 'react'
 import { useWebSocket } from '@/contexts/websocket-context'
 import { TranscriptEntry, Bot } from '@/types/meeting'
 
+interface SessionCompletedData {
+  sessionId: string
+  botId: string
+  summary?: {
+    transcript_count?: number
+  }
+  timestamp: string
+}
+
 interface BotWebSocketEvents {
   onTranscriptNew?: (entry: TranscriptEntry) => void
   onTranscriptUpdate?: (data: {
@@ -9,6 +18,7 @@ interface BotWebSocketEvents {
     updates: Partial<TranscriptEntry>
   }) => void
   onBotStatus?: (data: { status: string; timestamp: string }) => void
+  onSessionCompleted?: (data: SessionCompletedData) => void
   onError?: (error: { code: string; message: string }) => void
 }
 
@@ -113,4 +123,19 @@ export function useBotWebSocket(
     const unsubscribe = on('error', handler)
     return unsubscribe
   }, [botId, events.onError, on]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Subscribe to session:completed events
+  useEffect(() => {
+    if (!events.onSessionCompleted) return
+
+    const handler = (data: SessionCompletedData) => {
+      if (data.botId === botId) {
+        console.log('[useBotWebSocket] Session completed event received:', data)
+        events.onSessionCompleted?.(data)
+      }
+    }
+
+    const unsubscribe = on('session:completed', handler)
+    return unsubscribe
+  }, [botId, events.onSessionCompleted, on]) // eslint-disable-line react-hooks/exhaustive-deps
 }

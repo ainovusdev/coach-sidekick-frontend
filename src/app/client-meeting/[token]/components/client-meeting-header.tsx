@@ -31,14 +31,16 @@ export function ClientMeetingHeader({
           <div className="flex items-center gap-6">
             {/* Brand Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <div className="hidden sm:block">
+              <div>
                 <h1 className="text-lg font-bold text-white tracking-tight">
                   Coach Sidekick
                 </h1>
-                <p className="text-xs text-gray-400">Live Session</p>
+                <p className="text-xs text-gray-400 hidden sm:block">
+                  Live Session
+                </p>
               </div>
             </div>
 

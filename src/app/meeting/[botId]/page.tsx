@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { Toast, useToast } from '@/components/ui/toast'
@@ -15,6 +16,7 @@ export default function MeetingPage() {
   const router = useRouter()
   const botId = params.botId as string
   const { toast, showToast, closeToast } = useToast()
+  const hasShownCompletionToast = useRef(false)
 
   const {
     bot,
@@ -26,7 +28,31 @@ export default function MeetingPage() {
     clientName,
     stopBot,
     isStoppingBot,
+    isSessionCompleted,
+    completedSessionId,
   } = useMeetingData({ botId })
+
+  // Auto-redirect when session is completed (call ended naturally)
+  // Use replace() instead of push() so the meeting page is not in the history stack
+  // This allows the back button on session details to go to client profile, not meeting page
+  useEffect(() => {
+    if (isSessionCompleted && !hasShownCompletionToast.current) {
+      hasShownCompletionToast.current = true
+      const redirectSessionId = completedSessionId || sessionId
+
+      showToast('Session completed! Redirecting to summary...', 'success')
+
+      const timer = setTimeout(() => {
+        if (redirectSessionId) {
+          router.replace(`/sessions/${redirectSessionId}`)
+        } else {
+          router.replace('/')
+        }
+      }, 2000)
+
+      return () => clearTimeout(timer)
+    }
+  }, [isSessionCompleted, completedSessionId, sessionId, router, showToast])
 
   const handleStopBot = async () => {
     if (!bot) return
@@ -40,10 +66,11 @@ export default function MeetingPage() {
         )
         setTimeout(() => {
           // Navigate to session details page if sessionId exists, otherwise go to dashboard
+          // Use replace() so the meeting page is not in the history stack
           if (sessionId) {
-            router.push(`/sessions/${sessionId}`)
+            router.replace(`/sessions/${sessionId}`)
           } else {
-            router.push('/')
+            router.replace('/')
           }
         }, 2000)
       } else {

@@ -377,6 +377,7 @@ export default function ClientDetailPage({
                       onAddSession={() =>
                         modalState.setIsManualSessionModalOpen(true)
                       }
+                      onRefresh={refetch}
                     />
                   </TabsContent>
 

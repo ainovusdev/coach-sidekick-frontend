@@ -20,7 +20,10 @@ import {
   MessageSquare,
   PanelRightClose,
   PanelRightOpen,
+  PanelLeftClose,
+  PanelLeftOpen,
   Info,
+  Sparkles,
 } from 'lucide-react'
 import { MeetingContextService } from '@/services/meeting-context-service'
 import {
@@ -52,6 +55,7 @@ export default function MeetingPanels({
   const [contextLoading, setContextLoading] = useState(true)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('transcript')
+  const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true)
 
   const recentTranscript = transcript
 
@@ -100,18 +104,47 @@ export default function MeetingPanels({
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* Main Content Area */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-4 min-h-0 overflow-hidden p-1">
-        {/* Left Column - Coaching Suggestions (4/12 = 33%) */}
-        <div className="lg:col-span-4 h-full overflow-hidden">
+      {/* AI Suggestions Toggle Button */}
+      <div className="flex-shrink-0 flex items-start pt-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
+          className={cn(
+            'h-auto py-3 px-2 border-gray-200 bg-white hover:bg-gray-50 rounded-r-lg rounded-l-none border-l-0',
+            aiSuggestionsOpen && 'bg-gray-100',
+          )}
+        >
+          <div className="flex flex-col items-center gap-2">
+            {aiSuggestionsOpen ? (
+              <PanelLeftClose className="h-4 w-4 text-gray-600" />
+            ) : (
+              <PanelLeftOpen className="h-4 w-4 text-gray-600" />
+            )}
+            <Sparkles className="h-3.5 w-3.5 text-gray-500" />
+          </div>
+        </Button>
+      </div>
+
+      {/* Collapsible AI Suggestions Panel */}
+      <div
+        className={cn(
+          'flex-shrink-0 border-r border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden',
+          aiSuggestionsOpen ? 'w-80 lg:w-96' : 'w-0',
+        )}
+      >
+        <div className="w-80 lg:w-96 h-full">
           <CoachingPanel
             botId={botId}
             className="h-full shadow-sm"
             simplified={true}
           />
         </div>
+      </div>
 
-        {/* Middle Column - Notes (5/12 = 42%) */}
+      {/* Main Content Area */}
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-0 overflow-hidden p-1">
+        {/* Left Column - Notes (5/8) */}
         <div className="lg:col-span-5 h-full overflow-hidden">
           {sessionId ? (
             <QuickNote sessionId={sessionId} noteType="coach_private" />
@@ -134,7 +167,7 @@ export default function MeetingPanels({
           )}
         </div>
 
-        {/* Right Column - Commitments (3/12 = 25%) */}
+        {/* Right Column - Commitments (3/8) */}
         <div className="lg:col-span-3 h-full overflow-hidden">
           {sessionId && clientId ? (
             <QuickCommitment sessionId={sessionId} clientId={clientId} />

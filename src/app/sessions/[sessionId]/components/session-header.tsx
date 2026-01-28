@@ -14,6 +14,7 @@ import {
   Mail,
   Loader2,
   Pencil,
+  Download,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { getStatusColor } from '../utils/session-utils'
@@ -34,6 +35,7 @@ interface SessionHeaderProps {
   onTitleUpdate?: (newTitle: string) => void
   onSendEmail?: () => void
   sendingEmail?: boolean
+  onDownloadTranscript?: () => void
 }
 
 export default function SessionHeader({
@@ -43,6 +45,7 @@ export default function SessionHeader({
   onTitleUpdate,
   onSendEmail,
   sendingEmail = false,
+  onDownloadTranscript,
 }: SessionHeaderProps) {
   const [showEditModal, setShowEditModal] = useState(false)
   const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
@@ -108,6 +111,17 @@ export default function SessionHeader({
                           Send Summary Email
                         </>
                       )}
+                    </Button>
+                  )}
+                  {onDownloadTranscript && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onDownloadTranscript}
+                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Transcript
                     </Button>
                   )}
                   {onDelete && (

@@ -1,5 +1,7 @@
 import { formatDistanceToNow, format } from 'date-fns'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Clock,
   CheckCircle2,
@@ -8,18 +10,49 @@ import {
   FileText,
   Calendar,
   Activity,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react'
+import { AnalysisService } from '@/services/analysis-service'
+import { toast } from 'sonner'
 
 interface SessionCardCompactProps {
   session: any
   showClient?: boolean
+  showReanalyze?: boolean
+  onReanalyzeComplete?: () => void
 }
 
 export function SessionCardCompact({
   session,
   showClient = true,
+  showReanalyze = false,
+  onReanalyzeComplete,
 }: SessionCardCompactProps) {
+  const [isReanalyzing, setIsReanalyzing] = useState(false)
   const summary = session.meeting_summaries?.[0]
+
+  const handleReanalyze = async (e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent navigation to session details
+
+    if (isReanalyzing) return
+
+    setIsReanalyzing(true)
+    try {
+      await AnalysisService.triggerAnalysis(session.id, true)
+      toast.success('Session reanalysis started', {
+        description: 'The analysis will be updated shortly.',
+      })
+      onReanalyzeComplete?.()
+    } catch (error) {
+      console.error('Failed to trigger reanalysis:', error)
+      toast.error('Failed to start reanalysis', {
+        description: 'Please try again later.',
+      })
+    } finally {
+      setIsReanalyzing(false)
+    }
+  }
   const createdAt = new Date(session.created_at)
   const durationMinutes =
     summary?.duration_minutes ||
@@ -122,7 +155,25 @@ export function SessionCardCompact({
             </div>
           </div>
         </div>
-        {getStatusBadge(session.status)}
+        <div className="flex items-center gap-2">
+          {showReanalyze && session.status === 'completed' && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={handleReanalyze}
+              disabled={isReanalyzing}
+              className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              title="Reanalyze session"
+            >
+              {isReanalyzing ? (
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="h-3.5 w-3.5" />
+              )}
+            </Button>
+          )}
+          {getStatusBadge(session.status)}
+        </div>
       </div>
 
       {/* Summary Section */}

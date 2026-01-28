@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { format, isPast } from 'date-fns'
+import { format, isPast, addDays, addWeeks } from 'date-fns'
 import { formatRelativeTime } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -27,6 +27,8 @@ import {
   TrendingUp,
   CheckCircle2,
   Circle,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import {
   useCreateCommitment,
@@ -56,6 +58,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const [editTitle, setEditTitle] = useState('')
   const [editDate, setEditDate] = useState<Date | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
 
   // All active commitments for the client
   const [allActiveCommitments, setAllActiveCommitments] = useState<
@@ -505,44 +508,105 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             maxLength={200}
           />
 
-          <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
+          {/* Due Date Section */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-xs font-medium text-gray-600">
+                Due Date
+              </label>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowCalendar(!showCalendar)}
+                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+              >
+                {showCalendar ? (
+                  <>
+                    <ChevronUp className="h-3 w-3 mr-1" />
+                    Hide calendar
+                  </>
+                ) : (
+                  <>
+                    <ChevronDown className="h-3 w-3 mr-1" />
+                    Show calendar
+                  </>
+                )}
+              </Button>
+            </div>
+
+            {/* Quick date buttons */}
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {[
+                { label: 'Tomorrow', date: addDays(new Date(), 1) },
+                { label: '3 days', date: addDays(new Date(), 3) },
+                { label: '1 week', date: addWeeks(new Date(), 1) },
+                { label: '2 weeks', date: addWeeks(new Date(), 2) },
+              ].map(option => (
                 <Button
-                  variant="outline"
+                  key={option.label}
+                  type="button"
+                  size="sm"
+                  variant={
+                    targetDate?.toDateString() === option.date.toDateString()
+                      ? 'default'
+                      : 'outline'
+                  }
+                  onClick={() => setTargetDate(option.date)}
                   className={cn(
-                    'flex-1 justify-start text-left font-normal h-9 border-gray-200',
-                    !targetDate && 'text-muted-foreground',
+                    'h-7 text-xs',
+                    targetDate?.toDateString() === option.date.toDateString()
+                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                      : 'border-gray-200 text-gray-600 hover:border-blue-300',
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {targetDate ? (
-                    format(targetDate, 'MMM d, yyyy')
-                  ) : (
-                    <span>Due date (optional)</span>
-                  )}
+                  {option.label}
                 </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              ))}
+              {targetDate && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setTargetDate(undefined)}
+                  className="h-7 text-xs text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Clear
+                </Button>
+              )}
+            </div>
+
+            {/* Inline Calendar - visible by default */}
+            {showCalendar && (
+              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
                 <Calendar
                   mode="single"
                   selected={targetDate}
                   onSelect={setTargetDate}
-                  initialFocus
+                  disabled={date => date < new Date()}
+                  className="mx-auto"
                 />
-              </PopoverContent>
-            </Popover>
+              </div>
+            )}
 
-            <Button
-              onClick={handleSave}
-              disabled={!title.trim()}
-              size="sm"
-              className="bg-blue-600 hover:bg-blue-700 h-9 px-4"
-            >
-              <Check className="h-4 w-4 mr-1" />
-              Add
-            </Button>
+            {targetDate && (
+              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                <CalendarIcon className="h-3 w-3" />
+                Due: {format(targetDate, 'EEEE, MMMM d, yyyy')}
+              </p>
+            )}
           </div>
+
+          {/* Add Button */}
+          <Button
+            onClick={handleSave}
+            disabled={!title.trim()}
+            className="w-full bg-blue-600 hover:bg-blue-700 h-9"
+          >
+            <Check className="h-4 w-4 mr-1" />
+            Add Commitment
+          </Button>
         </div>
       </CardContent>
 

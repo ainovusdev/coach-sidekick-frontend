@@ -18,6 +18,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import {
   Sparkles,
   Target,
@@ -27,12 +33,16 @@ import {
   Pencil,
   Loader2,
   ChevronRight,
+  CheckCheck,
+  XCircle,
+  CalendarIcon,
 } from 'lucide-react'
 import { toast } from '@/hooks/use-toast'
 import { WinsService } from '@/services/wins-service'
 import { CommitmentService } from '@/services/commitment-service'
 import type { ExtractedWin } from '@/types/win'
 import type { ExtractedCommitment } from '@/types/commitment'
+import { format, addWeeks } from 'date-fns'
 
 interface AutoExtractionModalProps {
   open: boolean
@@ -51,6 +61,7 @@ interface SuggestionItem {
   description?: string
   confidence?: number
   status: 'pending' | 'accepted' | 'rejected' | 'editing'
+  target_date?: Date // For commitments
 }
 
 export function AutoExtractionModal({
@@ -66,6 +77,9 @@ export function AutoExtractionModal({
   const [editingItem, setEditingItem] = useState<string | null>(null)
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [editTargetDate, setEditTargetDate] = useState<Date | undefined>(
+    undefined,
+  )
   const [step, setStep] = useState<'loading' | 'review' | 'complete'>('loading')
 
   // Extract suggestions when modal opens
@@ -108,6 +122,8 @@ export function AutoExtractionModal({
       )
         ? commitmentsResult
         : []
+      // Default target date is 2 weeks from now
+      const defaultTargetDate = addWeeks(new Date(), 2)
       extractedCommitments.slice(0, 2).forEach((commitment, idx) => {
         allSuggestions.push({
           id: `commitment-${idx}`,
@@ -116,6 +132,7 @@ export function AutoExtractionModal({
           description: commitment.description,
           confidence: commitment.confidence,
           status: 'pending',
+          target_date: defaultTargetDate,
         })
       })
 
@@ -146,10 +163,33 @@ export function AutoExtractionModal({
     )
   }
 
+  const handleAcceptAll = () => {
+    setSuggestions(prev =>
+      prev.map(s =>
+        s.status === 'pending' ? { ...s, status: 'accepted' } : s,
+      ),
+    )
+  }
+
+  const handleRejectAll = () => {
+    setSuggestions(prev =>
+      prev.map(s =>
+        s.status === 'pending' ? { ...s, status: 'rejected' } : s,
+      ),
+    )
+  }
+
+  const handleUpdateTargetDate = (id: string, date: Date | undefined) => {
+    setSuggestions(prev =>
+      prev.map(s => (s.id === id ? { ...s, target_date: date } : s)),
+    )
+  }
+
   const handleStartEdit = (item: SuggestionItem) => {
     setEditingItem(item.id)
     setEditTitle(item.title)
     setEditDescription(item.description || '')
+    setEditTargetDate(item.target_date)
   }
 
   const handleSaveEdit = (id: string) => {
@@ -162,6 +202,7 @@ export function AutoExtractionModal({
               ...s,
               title: editTitle.trim(),
               description: editDescription.trim(),
+              target_date: editTargetDate,
               status: 'accepted',
             }
           : s,
@@ -170,12 +211,14 @@ export function AutoExtractionModal({
     setEditingItem(null)
     setEditTitle('')
     setEditDescription('')
+    setEditTargetDate(undefined)
   }
 
   const handleCancelEdit = () => {
     setEditingItem(null)
     setEditTitle('')
     setEditDescription('')
+    setEditTargetDate(undefined)
   }
 
   const handleConfirmAll = async () => {
@@ -212,6 +255,9 @@ export function AutoExtractionModal({
             session_id: sessionId,
             priority: 'medium',
             type: 'action',
+            target_date: s.target_date
+              ? format(s.target_date, 'yyyy-MM-dd')
+              : undefined,
           }),
         )
 
@@ -290,6 +336,30 @@ export function AutoExtractionModal({
           {/* Review State */}
           {step === 'review' && (
             <div className="space-y-3">
+              {/* Accept All / Reject All buttons */}
+              {pendingCount > 1 && (
+                <div className="flex items-center justify-end gap-2 pb-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleRejectAll}
+                    className="text-gray-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                  >
+                    <XCircle className="h-4 w-4 mr-1" />
+                    Reject All
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAcceptAll}
+                    className="text-gray-600 hover:text-green-600 hover:border-green-200 hover:bg-green-50"
+                  >
+                    <CheckCheck className="h-4 w-4 mr-1" />
+                    Accept All
+                  </Button>
+                </div>
+              )}
+
               {suggestions.map(item => (
                 <div
                   key={item.id}
@@ -317,6 +387,39 @@ export function AutoExtractionModal({
                         placeholder="Description (optional)"
                         className="border-gray-200 resize-none min-h-[60px]"
                       />
+                      {/* Date picker for commitments */}
+                      {item.type === 'commitment' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">
+                            Due date:
+                          </span>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="justify-start text-left font-normal"
+                              >
+                                <CalendarIcon className="h-4 w-4 mr-2" />
+                                {editTargetDate
+                                  ? format(editTargetDate, 'PPP')
+                                  : 'Pick a date'}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-auto p-0"
+                              align="start"
+                            >
+                              <Calendar
+                                mode="single"
+                                selected={editTargetDate}
+                                onSelect={setEditTargetDate}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
                       <div className="flex justify-end gap-2">
                         <Button
                           size="sm"
@@ -382,6 +485,39 @@ export function AutoExtractionModal({
                             {item.description}
                           </p>
                         )}
+                        {/* Date picker for commitments */}
+                        {item.type === 'commitment' &&
+                          item.status !== 'rejected' && (
+                            <div className="flex items-center gap-2 mt-2">
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 text-xs justify-start text-left font-normal border-gray-200 hover:border-gray-300"
+                                  >
+                                    <CalendarIcon className="h-3 w-3 mr-1.5" />
+                                    {item.target_date
+                                      ? format(item.target_date, 'MMM d, yyyy')
+                                      : 'Set due date'}
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent
+                                  className="w-auto p-0"
+                                  align="start"
+                                >
+                                  <Calendar
+                                    mode="single"
+                                    selected={item.target_date}
+                                    onSelect={date =>
+                                      handleUpdateTargetDate(item.id, date)
+                                    }
+                                    initialFocus
+                                  />
+                                </PopoverContent>
+                              </Popover>
+                            </div>
+                          )}
                       </div>
 
                       {/* Actions */}
