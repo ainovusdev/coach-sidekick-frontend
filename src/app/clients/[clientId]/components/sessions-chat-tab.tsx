@@ -8,6 +8,7 @@ interface SessionsChatTabProps {
   client: any
   isViewer: boolean
   onAddSession: () => void
+  onRefresh?: () => void
 }
 
 export function SessionsChatTab({
@@ -15,6 +16,7 @@ export function SessionsChatTab({
   client,
   isViewer,
   onAddSession,
+  onRefresh,
 }: SessionsChatTabProps) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
@@ -25,6 +27,7 @@ export function SessionsChatTab({
           client={client}
           isViewer={isViewer}
           onAddSession={onAddSession}
+          onRefresh={onRefresh}
         />
       </div>
 

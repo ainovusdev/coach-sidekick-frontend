@@ -22,6 +22,7 @@ interface RichTextEditorProps {
   editorClassName?: string
   disabled?: boolean
   minHeight?: string
+  onKeyDown?: (e: React.KeyboardEvent) => void
 }
 
 interface ToolbarButtonProps {
@@ -65,6 +66,7 @@ export function RichTextEditor({
   editorClassName,
   disabled = false,
   minHeight = '120px',
+  onKeyDown,
 }: RichTextEditorProps) {
   const [isMounted, setIsMounted] = useState(false)
 
@@ -183,6 +185,7 @@ export function RichTextEditor({
         disabled && 'opacity-60 bg-gray-50',
         className,
       )}
+      onKeyDown={onKeyDown}
     >
       {/* Toolbar */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 bg-gray-50 flex-shrink-0">

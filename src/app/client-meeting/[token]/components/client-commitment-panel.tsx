@@ -1,7 +1,6 @@
 /**
  * Client Commitment Panel
  * Allows clients to create and view commitments during the session
- * Features always-visible date picker for easy date selection
  */
 
 'use client'
@@ -21,6 +20,8 @@ import {
   Calendar as CalendarIcon,
   Loader2,
   X,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react'
 import { format, addDays, addWeeks } from 'date-fns'
 import { toast } from 'sonner'
@@ -43,11 +44,12 @@ export function ClientCommitmentPanel({
   const [commitments, setCommitments] = useState<ClientCommitment[]>([])
   const [newTitle, setNewTitle] = useState('')
   const [targetDate, setTargetDate] = useState<Date | undefined>(
-    addWeeks(new Date(), 1),
+    addWeeks(new Date(), 2),
   )
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
 
   // Fetch commitments with polling
   useEffect(() => {
@@ -96,7 +98,7 @@ export function ClientCommitmentPanel({
       )
       setCommitments([commitment, ...commitments])
       setNewTitle('')
-      setTargetDate(addWeeks(new Date(), 1)) // Reset to default
+      setTargetDate(addWeeks(new Date(), 2)) // Reset to default
       setShowForm(false)
       toast.success('Commitment added')
     } catch (err) {
@@ -221,9 +223,32 @@ export function ClientCommitmentPanel({
 
               {/* Quick Date Options */}
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
-                  Due Date
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-medium text-gray-600">
+                    Due Date
+                  </label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setShowCalendar(!showCalendar)}
+                    className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    {showCalendar ? (
+                      <>
+                        <ChevronUp className="h-3 w-3 mr-1" />
+                        Hide calendar
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-3 w-3 mr-1" />
+                        Show calendar
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                {/* Quick date buttons */}
                 <div className="flex flex-wrap gap-1.5 mb-2">
                   {quickDates.map(option => (
                     <Button
@@ -249,16 +274,18 @@ export function ClientCommitmentPanel({
                   ))}
                 </div>
 
-                {/* Always-Visible Calendar */}
-                <div className="bg-white rounded-lg border border-gray-200 p-2">
-                  <Calendar
-                    mode="single"
-                    selected={targetDate}
-                    onSelect={setTargetDate}
-                    disabled={date => date < new Date()}
-                    className="mx-auto"
-                  />
-                </div>
+                {/* Inline Calendar - visible by default */}
+                {showCalendar && (
+                  <div className="mt-2 rounded-lg border border-gray-200 bg-white overflow-hidden">
+                    <Calendar
+                      mode="single"
+                      selected={targetDate}
+                      onSelect={setTargetDate}
+                      disabled={date => date < new Date()}
+                      className="mx-auto"
+                    />
+                  </div>
+                )}
 
                 {targetDate && (
                   <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
@@ -276,7 +303,7 @@ export function ClientCommitmentPanel({
                   onClick={() => {
                     setShowForm(false)
                     setNewTitle('')
-                    setTargetDate(addWeeks(new Date(), 1))
+                    setTargetDate(addWeeks(new Date(), 2))
                   }}
                 >
                   <X className="h-4 w-4 mr-1" />

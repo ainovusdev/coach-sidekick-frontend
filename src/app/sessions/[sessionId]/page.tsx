@@ -16,10 +16,11 @@ import {
   Brain,
   FileText,
   Sparkles,
-  StickyNote,
   LayoutGrid,
   Plus,
+  StickyNote,
 } from 'lucide-react'
+import { format } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { MediaUploader } from '@/components/sessions/media-uploader'
@@ -36,7 +37,6 @@ import { SessionService } from '@/services/session-service'
 import { CommitmentService } from '@/services/commitment-service'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
 import { toast } from '@/hooks/use-toast'
-import { NotesList } from '@/components/session-notes'
 import { AutoExtractionModal } from '@/components/extraction/auto-extraction-modal'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
@@ -114,6 +114,45 @@ export default function SessionDetailsPage({
   const [activeTab, setActiveTab] = useState('overview')
   const [showExtractionModal, setShowExtractionModal] = useState(false)
   const [extractionShown, setExtractionShown] = useState(false)
+  const [checkedFromMeeting, setCheckedFromMeeting] = useState(false)
+
+  // Check if we came from a meeting page (session just completed) and trigger extraction modal
+  React.useEffect(() => {
+    if (
+      checkedFromMeeting ||
+      !sessionData?.session?.id ||
+      !clientId ||
+      isViewer
+    )
+      return
+
+    setCheckedFromMeeting(true)
+
+    // Check if session was recently completed (within last 5 minutes)
+    const sessionCompletedAt =
+      sessionData.session.ended_at || sessionData.session.updated_at
+    if (sessionCompletedAt) {
+      const completedTime = new Date(sessionCompletedAt).getTime()
+      const now = Date.now()
+      const fiveMinutesAgo = now - 5 * 60 * 1000
+
+      // If session completed recently and has transcripts, show extraction modal
+      const hasTranscripts =
+        sessionData.transcript && sessionData.transcript.length > 0
+      const isRecentlyCompleted = completedTime > fiveMinutesAgo
+      const isSessionComplete = sessionData.session.status === 'completed'
+
+      if (
+        isRecentlyCompleted &&
+        hasTranscripts &&
+        isSessionComplete &&
+        !extractionShown
+      ) {
+        setShowExtractionModal(true)
+        setExtractionShown(true)
+      }
+    }
+  }, [sessionData, clientId, isViewer, checkedFromMeeting, extractionShown])
 
   // Auto-trigger analysis
   React.useEffect(() => {
@@ -232,6 +271,43 @@ export default function SessionDetailsPage({
     }
   }
 
+  // Download transcript handler
+  const handleDownloadTranscript = () => {
+    if (!sessionData?.transcript || sessionData.transcript.length === 0) return
+
+    const sessionDate = format(new Date(sessionData.session.created_at), 'PPP')
+    const fileDate = format(
+      new Date(sessionData.session.created_at),
+      'yyyy-MM-dd',
+    )
+
+    const lines: string[] = [
+      'Session Transcript',
+      `Session: ${sessionDate}`,
+      '---',
+      '',
+    ]
+
+    for (const entry of sessionData.transcript) {
+      const time = entry.timestamp
+        ? format(new Date(entry.timestamp), 'HH:mm:ss')
+        : ''
+      lines.push(`[${time}] ${entry.speaker}:`)
+      lines.push(entry.text)
+      lines.push('')
+    }
+
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `Session_${fileDate}_Transcript.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   // Send summary email handler
   const handleSendSummaryEmail = async () => {
     if (!sessionData?.session?.id) return
@@ -339,6 +415,9 @@ export default function SessionDetailsPage({
           }}
           onSendEmail={!isViewer ? handleSendSummaryEmail : undefined}
           sendingEmail={sendingEmail}
+          onDownloadTranscript={
+            !isViewer && hasTranscripts ? handleDownloadTranscript : undefined
+          }
         />
 
         {/* Main Content */}
@@ -411,15 +490,6 @@ export default function SessionDetailsPage({
                       <Brain className="h-4 w-4 mr-2" />
                       Analysis
                     </TabsTrigger>
-                    {!isViewer && (
-                      <TabsTrigger
-                        value="notes"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                      >
-                        <StickyNote className="h-4 w-4 mr-2" />
-                        Notes
-                      </TabsTrigger>
-                    )}
                   </TabsList>
                 </Tabs>
 
@@ -505,7 +575,7 @@ export default function SessionDetailsPage({
                     transcript={transcript}
                     isViewer={isViewer}
                     onViewAnalysis={() => setActiveTab('analysis')}
-                    onViewNotes={() => setActiveTab('notes')}
+                    onViewNotes={() => setShowQuickNote(true)}
                     onRefreshCommitments={refreshCommitments}
                   />
                 )}
@@ -581,11 +651,6 @@ export default function SessionDetailsPage({
                       </CardContent>
                     </Card>
                   ))}
-
-                {/* Notes Tab */}
-                {!isViewer && activeTab === 'notes' && (
-                  <NotesList sessionId={sessionData.session.id} />
-                )}
               </div>
             </div>
           )}

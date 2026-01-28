@@ -19,20 +19,17 @@ interface UseMeetingStatusReturn {
 
 const POLL_INTERVAL = 10000 // 10 seconds
 
-export function useMeetingStatus(
-  meetingToken: string,
-  initialDurationSeconds: number | null,
-): UseMeetingStatusReturn {
+export function useMeetingStatus(meetingToken: string): UseMeetingStatusReturn {
   const [status, setStatus] = useState<SessionStatus | null>(null)
   const [isEnded, setIsEnded] = useState(false)
-  const [durationSeconds, setDurationSeconds] = useState(
-    initialDurationSeconds ?? 0,
-  )
+  // Always start at 0 - let the server sync set the correct value
+  // This prevents showing stale values from session creation time
+  const [durationSeconds, setDurationSeconds] = useState(0)
   const [isPolling, setIsPolling] = useState(false)
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
   // Track the last known server duration to sync with
-  const lastServerDurationRef = useRef<number>(initialDurationSeconds ?? 0)
+  const lastServerDurationRef = useRef<number>(0)
 
   // Update duration every second (incrementing locally between polls)
   useEffect(() => {

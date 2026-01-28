@@ -11,6 +11,7 @@ interface SessionsTabProps {
   client: any
   isViewer: boolean
   onAddSession: () => void
+  onRefresh?: () => void
 }
 
 export function SessionsTab({
@@ -18,6 +19,7 @@ export function SessionsTab({
   client,
   isViewer,
   onAddSession,
+  onRefresh,
 }: SessionsTabProps) {
   const router = useRouter()
 
@@ -49,7 +51,12 @@ export function SessionsTab({
                 )}
                 onClick={() => router.push(`/sessions/${session.id}`)}
               >
-                <SessionCardCompact session={session} showClient={false} />
+                <SessionCardCompact
+                  session={session}
+                  showClient={false}
+                  showReanalyze={!isViewer}
+                  onReanalyzeComplete={onRefresh}
+                />
               </div>
             ))}
           </div>
