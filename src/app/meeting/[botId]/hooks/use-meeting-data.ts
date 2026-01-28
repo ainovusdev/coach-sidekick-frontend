@@ -36,6 +36,9 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
+  // isMeetingEnded: true when bot status is terminal (call ended) - shows "processing" UI
+  const [isMeetingEnded, setIsMeetingEnded] = useState(false)
+  // isSessionCompleted: true when session:completed event received - triggers redirect
   const [isSessionCompleted, setIsSessionCompleted] = useState(false)
   const [completedSessionId, setCompletedSessionId] = useState<string | null>(
     null,
@@ -48,23 +51,25 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
   }, [])
 
   // Handle bot status change events
-  // This provides immediate feedback when the call ends
+  // This provides immediate feedback when the call ends (shows "processing" UI)
   const handleBotStatus = useCallback((data: BotStatusData) => {
     console.log('[MeetingPage] Bot status changed:', data.status)
 
     // Check if this is a terminal status indicating the meeting ended
     if (TERMINAL_BOT_STATUSES.includes(data.status.toLowerCase())) {
       console.log(
-        '[MeetingPage] Terminal bot status detected, marking session as completed',
+        '[MeetingPage] Terminal bot status detected, meeting has ended',
       )
-      setIsSessionCompleted(true)
-      // Session ID will be set when session:completed event arrives
+      setIsMeetingEnded(true)
+      // Don't set isSessionCompleted yet - wait for session:completed event
     }
   }, [])
 
   // Handle session completed event (sent after all processing is done)
+  // This is when we should redirect - transcripts are saved and status is updated
   const handleSessionCompleted = useCallback((data: SessionCompletedData) => {
     console.log('[MeetingPage] Session completed event received:', data)
+    setIsMeetingEnded(true) // In case bot:status was missed
     setIsSessionCompleted(true)
     setCompletedSessionId(data.sessionId)
   }, [])
@@ -97,6 +102,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     clientName,
     stopBot,
     isStoppingBot,
+    isMeetingEnded,
     isSessionCompleted,
     completedSessionId,
   }

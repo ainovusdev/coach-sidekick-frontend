@@ -16,6 +16,7 @@ export default function MeetingPage() {
   const router = useRouter()
   const botId = params.botId as string
   const { toast, showToast, closeToast } = useToast()
+  const hasShownProcessingToast = useRef(false)
   const hasShownCompletionToast = useRef(false)
   const sessionIdRef = useRef<string | null>(null)
   const completedSessionIdRef = useRef<string | null>(null)
@@ -30,6 +31,7 @@ export default function MeetingPage() {
     clientName,
     stopBot,
     isStoppingBot,
+    isMeetingEnded,
     isSessionCompleted,
     completedSessionId,
   } = useMeetingData({ botId })
@@ -43,7 +45,23 @@ export default function MeetingPage() {
     completedSessionIdRef.current = completedSessionId
   }, [completedSessionId])
 
-  // Auto-redirect when session is completed (call ended naturally)
+  // Show "processing" toast when meeting ends (bot:status received)
+  useEffect(() => {
+    if (
+      isMeetingEnded &&
+      !isSessionCompleted &&
+      !hasShownProcessingToast.current
+    ) {
+      hasShownProcessingToast.current = true
+      console.log(
+        '[MeetingPage] Meeting ended, waiting for session processing...',
+      )
+      showToast('Meeting ended. Processing session...', 'success')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMeetingEnded, isSessionCompleted])
+
+  // Auto-redirect when session processing is complete (session:completed received)
   // Use replace() instead of push() so the meeting page is not in the history stack
   // This allows the back button on session details to go to client profile, not meeting page
   useEffect(() => {
@@ -51,14 +69,14 @@ export default function MeetingPage() {
       hasShownCompletionToast.current = true
 
       console.log(
-        '[MeetingPage] Session completed, sessionId:',
+        '[MeetingPage] Session processing complete, sessionId:',
         sessionId,
         'completedSessionId:',
         completedSessionId,
       )
-      showToast('Session completed! Redirecting to summary...', 'success')
+      showToast('Session saved! Redirecting to summary...', 'success')
 
-      // Set timeout for redirect - use refs to get latest values
+      // Short delay before redirect since processing is already done
       setTimeout(() => {
         const redirectSessionId =
           completedSessionIdRef.current || sessionIdRef.current
@@ -71,7 +89,7 @@ export default function MeetingPage() {
           )
           router.replace('/')
         }
-      }, 2500)
+      }, 1500)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isSessionCompleted])
