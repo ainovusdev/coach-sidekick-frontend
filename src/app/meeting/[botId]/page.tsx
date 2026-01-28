@@ -17,6 +17,8 @@ export default function MeetingPage() {
   const botId = params.botId as string
   const { toast, showToast, closeToast } = useToast()
   const hasShownCompletionToast = useRef(false)
+  const sessionIdRef = useRef<string | null>(null)
+  const completedSessionIdRef = useRef<string | null>(null)
 
   const {
     bot,
@@ -32,27 +34,47 @@ export default function MeetingPage() {
     completedSessionId,
   } = useMeetingData({ botId })
 
+  // Keep refs updated with latest values
+  useEffect(() => {
+    sessionIdRef.current = sessionId
+  }, [sessionId])
+
+  useEffect(() => {
+    completedSessionIdRef.current = completedSessionId
+  }, [completedSessionId])
+
   // Auto-redirect when session is completed (call ended naturally)
   // Use replace() instead of push() so the meeting page is not in the history stack
   // This allows the back button on session details to go to client profile, not meeting page
   useEffect(() => {
     if (isSessionCompleted && !hasShownCompletionToast.current) {
       hasShownCompletionToast.current = true
-      const redirectSessionId = completedSessionId || sessionId
 
+      console.log(
+        '[MeetingPage] Session completed, sessionId:',
+        sessionId,
+        'completedSessionId:',
+        completedSessionId,
+      )
       showToast('Session completed! Redirecting to summary...', 'success')
 
-      const timer = setTimeout(() => {
+      // Set timeout for redirect - use refs to get latest values
+      setTimeout(() => {
+        const redirectSessionId =
+          completedSessionIdRef.current || sessionIdRef.current
+        console.log('[MeetingPage] Executing redirect to:', redirectSessionId)
         if (redirectSessionId) {
           router.replace(`/sessions/${redirectSessionId}`)
         } else {
+          console.log(
+            '[MeetingPage] No session ID available, redirecting to home',
+          )
           router.replace('/')
         }
-      }, 2000)
-
-      return () => clearTimeout(timer)
+      }, 2500)
     }
-  }, [isSessionCompleted, completedSessionId, sessionId, router, showToast])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSessionCompleted])
 
   const handleStopBot = async () => {
     if (!bot) return
