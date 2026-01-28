@@ -307,13 +307,15 @@ export function AutoExtractionModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-black rounded-xl">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
             <div>
-              <DialogTitle className="text-lg">Session Insights</DialogTitle>
-              <DialogDescription className="text-sm">
+              <DialogTitle className="text-lg font-semibold">
+                Session Insights
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-500">
                 {step === 'loading' && 'Analyzing session for key takeaways...'}
                 {step === 'review' && 'Review and confirm suggested items'}
                 {step === 'complete' && 'All done!'}
@@ -326,8 +328,12 @@ export function AutoExtractionModal({
           {/* Loading State */}
           {step === 'loading' && (
             <div className="flex flex-col items-center justify-center py-12">
-              <Loader2 className="h-10 w-10 text-purple-600 animate-spin mb-4" />
-              <p className="text-sm text-gray-600">
+              <div className="relative">
+                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-gray-900 animate-spin" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mt-4">
                 Extracting commitments and wins...
               </p>
             </div>
@@ -607,29 +613,29 @@ export function AutoExtractionModal({
 
           {/* Complete State */}
           {step === 'complete' && suggestions.length === 0 && (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Sparkles className="h-6 w-6 text-gray-400" />
+            <div className="text-center py-10">
+              <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-7 w-7 text-gray-400" />
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">
+              <h3 className="font-semibold text-gray-900 mb-2">
                 No suggestions found
               </h3>
-              <p className="text-sm text-gray-500 mb-4">
+              <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
                 We couldn&apos;t find any commitments or wins to extract from
                 this session.
               </p>
-              <Button onClick={handleSkip} variant="outline">
+              <Button onClick={handleSkip} variant="outline" className="px-6">
                 Close
               </Button>
             </div>
           )}
 
           {step === 'complete' && suggestions.length > 0 && (
-            <div className="text-center py-8">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Check className="h-6 w-6 text-green-600" />
+            <div className="text-center py-10">
+              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Check className="h-7 w-7 text-green-600" />
               </div>
-              <h3 className="font-medium text-gray-900 mb-1">Items Saved</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Items Saved</h3>
               <p className="text-sm text-gray-500">
                 Your session insights have been saved successfully.
               </p>
