@@ -298,7 +298,7 @@ export function QuickNote({
                         variant="outline"
                         className={`text-xs px-1.5 py-0 h-5 ${
                           note.note_type === 'coach_private'
-                            ? 'border-purple-200 text-purple-700 bg-purple-50'
+                            ? 'border-gray-300 text-gray-700 bg-gray-50'
                             : 'border-blue-200 text-blue-700 bg-blue-50'
                         }`}
                       >

@@ -58,7 +58,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const [editTitle, setEditTitle] = useState('')
   const [editDate, setEditDate] = useState<Date | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
+  const [showCalendar, setShowCalendar] = useState(false) // Calendar hidden by default
 
   // All active commitments for the client
   const [allActiveCommitments, setAllActiveCommitments] = useState<
@@ -371,7 +371,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 className={cn(
                   'text-xs px-1.5 py-0 h-5',
                   commitment.is_coach_commitment
-                    ? 'border-purple-200 text-purple-700 bg-purple-50'
+                    ? 'border-gray-300 text-gray-700 bg-gray-50'
                     : 'border-blue-200 text-blue-700 bg-blue-50',
                 )}
               >
@@ -577,7 +577,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
               )}
             </div>
 
-            {/* Inline Calendar - visible by default */}
+            {/* Inline Calendar - hidden by default */}
             {showCalendar && (
               <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
                 <Calendar

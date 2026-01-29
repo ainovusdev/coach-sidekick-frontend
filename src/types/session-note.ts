@@ -111,9 +111,9 @@ export const NOTE_TYPE_COLORS: Record<
   { bg: string; text: string; border: string }
 > = {
   coach_private: {
-    bg: 'bg-purple-50',
-    text: 'text-purple-700',
-    border: 'border-purple-200',
+    bg: 'bg-gray-50',
+    text: 'text-gray-700',
+    border: 'border-gray-200',
   },
   shared: {
     bg: 'bg-blue-50',

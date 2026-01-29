@@ -49,7 +49,7 @@ export function ClientCommitmentPanel({
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
+  const [showCalendar, setShowCalendar] = useState(false) // Calendar hidden by default
 
   // Fetch commitments with polling
   useEffect(() => {
@@ -274,7 +274,7 @@ export function ClientCommitmentPanel({
                   ))}
                 </div>
 
-                {/* Inline Calendar - visible by default */}
+                {/* Inline Calendar - hidden by default */}
                 {showCalendar && (
                   <div className="mt-2 rounded-lg border border-gray-200 bg-white overflow-hidden">
                     <Calendar
