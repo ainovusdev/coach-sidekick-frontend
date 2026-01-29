@@ -12,7 +12,12 @@ export default function ClientMeetingLayout({
   children: React.ReactNode
 }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      storageKey="client-meeting-theme"
+    >
       <div className="min-h-screen bg-background">
         {children}
         <Toaster position="top-right" richColors />
