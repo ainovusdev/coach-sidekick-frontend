@@ -151,7 +151,7 @@ export function TranscriptViewer({
           {transcript.length === 0 ? (
             <div className="text-center py-8">
               <div className="text-gray-400 text-lg mb-2">🎤</div>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 dark:text-gray-400 text-sm">
                 Waiting for conversation...
               </p>
             </div>
@@ -161,12 +161,12 @@ export function TranscriptViewer({
                 key={index}
                 className={`p-2.5 rounded-lg transition-all duration-300 ${
                   entry.is_final
-                    ? 'bg-gray-50 border border-gray-100'
-                    : 'bg-blue-50 border border-blue-100'
+                    ? 'bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600'
+                    : 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800'
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-xs text-gray-700">
+                  <span className="font-medium text-xs text-gray-700 dark:text-gray-300">
                     {entry.speaker}
                   </span>
                   {!entry.is_final && (
@@ -184,7 +184,7 @@ export function TranscriptViewer({
                     })}
                   </span>
                 </div>
-                <p className="text-xs text-gray-700 leading-relaxed">
+                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
                   {entry.text}
                 </p>
               </div>
@@ -214,7 +214,9 @@ export function TranscriptViewer({
         </div>
         <p
           className={
-            mode === 'compact' ? 'text-gray-500 text-xs' : 'text-gray-500'
+            mode === 'compact'
+              ? 'text-gray-500 dark:text-gray-400 text-xs'
+              : 'text-gray-500 dark:text-gray-400'
           }
         >
           {mode === 'compact'
@@ -232,11 +234,13 @@ export function TranscriptViewer({
           <div
             key={index}
             className={`p-2 rounded-lg transition-all duration-300 ${
-              entry.is_final ? 'bg-gray-50' : 'bg-blue-50 opacity-80'
+              entry.is_final
+                ? 'bg-gray-50 dark:bg-gray-700'
+                : 'bg-blue-50 dark:bg-blue-900/30 opacity-80'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-xs text-gray-700">
+              <span className="font-medium text-xs text-gray-700 dark:text-gray-300">
                 {entry.speaker}
               </span>
               {!entry.is_final && (
@@ -251,7 +255,7 @@ export function TranscriptViewer({
                 })}
               </span>
             </div>
-            <p className="text-xs text-gray-700 leading-relaxed">
+            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
               {entry.text}
             </p>
           </div>
@@ -268,14 +272,14 @@ export function TranscriptViewer({
           key={index}
           className={`transition-all duration-300 ${
             entry.is_final
-              ? 'bg-white border-gray-200'
-              : 'bg-blue-50 border-blue-200 border-dashed'
+              ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
+              : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 border-dashed'
           }`}
         >
           <CardContent className="pt-4">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {entry.speaker}
                 </span>
                 <Badge
@@ -288,11 +292,13 @@ export function TranscriptViewer({
                   {Math.round(entry.confidence * 100)}% confidence
                 </Badge>
               </div>
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {new Date(entry.timestamp).toLocaleTimeString()}
               </span>
             </div>
-            <p className="text-gray-800 leading-relaxed">{entry.text}</p>
+            <p className="text-gray-800 dark:text-gray-200 leading-relaxed">
+              {entry.text}
+            </p>
           </CardContent>
         </Card>
       ))}

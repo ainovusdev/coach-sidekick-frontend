@@ -74,37 +74,37 @@ export function PastCommitmentsPanel({
     return status === 'completed' ? (
       <CheckCircle2 className="h-4 w-4 text-green-500" />
     ) : (
-      <Circle className="h-4 w-4 text-gray-300" />
+      <Circle className="h-4 w-4 text-gray-300 dark:text-gray-500" />
     )
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-700'
+        return 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
       case 'active':
-        return 'bg-blue-100 text-blue-700'
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
       case 'abandoned':
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400'
     }
   }
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-gray-200 dark:border-gray-700 dark:bg-gray-800">
       <CardHeader
-        className="border-b border-gray-100 py-3 cursor-pointer hover:bg-gray-50/50 transition-colors"
+        className="border-b border-gray-100 dark:border-gray-700 py-3 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-medium flex items-center gap-2 text-gray-600">
+          <CardTitle className="text-sm font-medium flex items-center gap-2 text-gray-600 dark:text-gray-400">
             <History className="h-4 w-4" />
             Past Commitments
             {totalCount > 0 && (
               <Badge
                 variant="secondary"
-                className="bg-gray-100 text-gray-600 text-xs"
+                className="bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs"
               >
                 {totalCount}
               </Badge>
@@ -121,12 +121,12 @@ export function PastCommitmentsPanel({
       {isExpanded && (
         <CardContent className="p-0">
           {isLoading ? (
-            <div className="text-center py-4 text-gray-500 text-sm">
+            <div className="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
               Loading...
             </div>
           ) : !pastCommitments || pastCommitments.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              <History className="h-6 w-6 mx-auto mb-2 text-gray-300" />
+            <div className="text-center py-6 text-gray-500 dark:text-gray-400">
+              <History className="h-6 w-6 mx-auto mb-2 text-gray-300 dark:text-gray-600" />
               <p className="text-xs">No past commitments</p>
             </div>
           ) : (
@@ -135,7 +135,7 @@ export function PastCommitmentsPanel({
                 {pastCommitments.map((group, groupIndex) => (
                   <div key={groupIndex}>
                     {/* Session Date Header */}
-                    <div className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                    <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {group.session_date
                         ? format(new Date(group.session_date), 'MMM d, yyyy')
@@ -143,7 +143,7 @@ export function PastCommitmentsPanel({
                     </div>
 
                     {/* Commitments in this group */}
-                    <div className="space-y-2 pl-3 border-l-2 border-gray-100">
+                    <div className="space-y-2 pl-3 border-l-2 border-gray-100 dark:border-gray-700">
                       {(group?.commitments || []).map(commitment => (
                         <div
                           key={commitment.id}
@@ -154,8 +154,8 @@ export function PastCommitmentsPanel({
                             <p
                               className={`text-xs ${
                                 commitment.status === 'completed'
-                                  ? 'text-gray-500 line-through'
-                                  : 'text-gray-700'
+                                  ? 'text-gray-500 dark:text-gray-400 line-through'
+                                  : 'text-gray-700 dark:text-gray-300'
                               }`}
                             >
                               {commitment.title}
@@ -169,7 +169,7 @@ export function PastCommitmentsPanel({
                               </Badge>
                               {commitment.progress_percentage > 0 &&
                                 commitment.progress_percentage < 100 && (
-                                  <span className="text-[10px] text-gray-400">
+                                  <span className="text-[10px] text-gray-400 dark:text-gray-500">
                                     {commitment.progress_percentage}%
                                   </span>
                                 )}

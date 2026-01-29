@@ -58,7 +58,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const [editTitle, setEditTitle] = useState('')
   const [editDate, setEditDate] = useState<Date | undefined>(undefined)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
+  const [showCalendar, setShowCalendar] = useState(false) // Calendar hidden by default
 
   // All active commitments for the client
   const [allActiveCommitments, setAllActiveCommitments] = useState<
@@ -182,13 +182,13 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-700 border-red-200'
+        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
       case 'high':
-        return 'bg-orange-100 text-orange-700 border-orange-200'
+        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
       case 'medium':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200'
+        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'
       default:
-        return 'bg-gray-100 text-gray-600 border-gray-200'
+        return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600'
     }
   }
 
@@ -204,11 +204,11 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
 
     if (editingId === commitment.id) {
       return (
-        <div className="space-y-2 p-3 bg-blue-50 rounded-lg">
+        <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
           <Input
             value={editTitle}
             onChange={e => setEditTitle(e.target.value)}
-            className="h-9 text-sm border-gray-200 bg-white"
+            className="h-9 text-sm border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
             placeholder="Commitment title"
             autoFocus
           />
@@ -252,7 +252,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
               size="sm"
               onClick={() => handleSaveEdit(commitment.id)}
               disabled={!editTitle.trim() || updateCommitment.isPending}
-              className="h-7 text-xs bg-blue-600 hover:bg-blue-700"
+              className="h-7 text-xs bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
             >
               {updateCommitment.isPending ? (
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -271,10 +271,10 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
         className={cn(
           'group p-3 rounded-lg border transition-all',
           commitment.status === 'completed'
-            ? 'bg-gray-50 border-gray-200'
+            ? 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
             : isOverdue
-              ? 'bg-red-50 border-red-200'
-              : 'bg-white border-gray-200 hover:border-blue-300 hover:shadow-sm',
+              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm',
         )}
       >
         <div className="flex items-start gap-3">
@@ -303,8 +303,8 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 className={cn(
                   'text-sm font-medium line-clamp-2',
                   commitment.status === 'completed'
-                    ? 'text-gray-500 line-through'
-                    : 'text-gray-900',
+                    ? 'text-gray-500 dark:text-gray-400 line-through'
+                    : 'text-gray-900 dark:text-white',
                 )}
               >
                 {commitment.title}
@@ -312,7 +312,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
               <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <button
                   onClick={() => handleStartEdit(commitment)}
-                  className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                   title="Edit"
                 >
                   <Pencil className="h-3.5 w-3.5" />
@@ -325,14 +325,17 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 >
                   <PopoverTrigger asChild>
                     <button
-                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                       title="Delete"
                     >
                       <Trash2 className="h-3.5 w-3.5" />
                     </button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-3" align="end">
-                    <p className="text-sm text-gray-700 mb-2">
+                  <PopoverContent
+                    className="w-auto p-3 dark:bg-gray-800 dark:border-gray-700"
+                    align="end"
+                  >
+                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
                       Delete this commitment?
                     </p>
                     <div className="flex items-center gap-2">
@@ -371,8 +374,8 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 className={cn(
                   'text-xs px-1.5 py-0 h-5',
                   commitment.is_coach_commitment
-                    ? 'border-purple-200 text-purple-700 bg-purple-50'
-                    : 'border-blue-200 text-blue-700 bg-blue-50',
+                    ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
+                    : 'border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
                 )}
               >
                 {commitment.is_coach_commitment ? (
@@ -399,7 +402,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
 
               {/* Progress */}
               {progress > 0 && commitment.status !== 'completed' && (
-                <span className="flex items-center gap-1 text-xs text-green-600">
+                <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
                   <TrendingUp className="h-3 w-3" />
                   {progress}%
                 </span>
@@ -410,7 +413,9 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 <span
                   className={cn(
                     'flex items-center gap-1 text-xs',
-                    isOverdue ? 'text-red-600 font-medium' : 'text-gray-500',
+                    isOverdue
+                      ? 'text-red-600 dark:text-red-400 font-medium'
+                      : 'text-gray-500 dark:text-gray-400',
                   )}
                 >
                   <CalendarIcon className="h-3 w-3" />
@@ -429,7 +434,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             {progress > 0 &&
               progress < 100 &&
               commitment.status !== 'completed' && (
-                <div className="mt-2 w-full bg-gray-100 rounded-full h-1.5">
+                <div className="mt-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                   <div
                     className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all"
                     style={{ width: `${progress}%` }}
@@ -448,25 +453,25 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   ).length
 
   return (
-    <Card className="bg-white rounded-xl shadow-sm border border-gray-100 flex flex-col h-full">
+    <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-gray-700" />
-          <span className="text-sm font-semibold text-gray-900">
+          <Target className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+          <span className="text-sm font-semibold text-gray-900 dark:text-white">
             Commitments
           </span>
         </div>
 
         {/* Assignee toggle */}
-        <div className="flex items-center gap-0.5 bg-gray-100 rounded-md p-0.5">
+        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5">
           <button
             onClick={() => setAssigneeType('client')}
             className={cn(
               'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
               assigneeType === 'client'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
             )}
           >
             <User className="h-3 w-3" />
@@ -477,8 +482,8 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             className={cn(
               'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
               assigneeType === 'coach'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-700',
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
             )}
           >
             <Briefcase className="h-3 w-3" />
@@ -504,14 +509,14 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 handleSave()
               }
             }}
-            className="border-gray-200 focus:border-blue-400 text-sm h-10"
+            className="border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-400 text-sm h-10"
             maxLength={200}
           />
 
           {/* Due Date Section */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-gray-600">
+              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Due Date
               </label>
               <Button
@@ -519,7 +524,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                 size="sm"
                 variant="ghost"
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                className="h-6 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               >
                 {showCalendar ? (
                   <>
@@ -557,7 +562,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
                     'h-7 text-xs',
                     targetDate?.toDateString() === option.date.toDateString()
                       ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'border-gray-200 text-gray-600 hover:border-blue-300',
+                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-600',
                   )}
                 >
                   {option.label}
@@ -577,9 +582,9 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
               )}
             </div>
 
-            {/* Inline Calendar - visible by default */}
+            {/* Inline Calendar - hidden by default */}
             {showCalendar && (
-              <div className="rounded-lg border border-gray-200 bg-white overflow-hidden">
+              <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 overflow-hidden">
                 <Calendar
                   mode="single"
                   selected={targetDate}
@@ -591,7 +596,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             )}
 
             {targetDate && (
-              <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
                 <CalendarIcon className="h-3 w-3" />
                 Due: {format(targetDate, 'EEEE, MMMM d, yyyy')}
               </p>
@@ -602,7 +607,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
           <Button
             onClick={handleSave}
             disabled={!title.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 h-9"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 h-9"
           >
             <Check className="h-4 w-4 mr-1" />
             Add Commitment
@@ -611,15 +616,15 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
       </CardContent>
 
       {/* Tabs */}
-      <div className="border-t border-gray-100 flex-shrink-0">
+      <div className="border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
         <div className="flex">
           <button
             onClick={() => setActiveTab('session')}
             className={cn(
               'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2',
               activeTab === 'session'
-                ? 'text-blue-600 border-blue-600 bg-blue-50/50'
-                : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50',
+                ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+                : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
             )}
           >
             <Clock className="h-3.5 w-3.5 inline mr-1.5" />
@@ -638,8 +643,8 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             className={cn(
               'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2',
               activeTab === 'active'
-                ? 'text-blue-600 border-blue-600 bg-blue-50/50'
-                : 'text-gray-500 border-transparent hover:text-gray-700 hover:bg-gray-50',
+                ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
+                : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
             )}
           >
             <Target className="h-3.5 w-3.5 inline mr-1.5" />
@@ -667,11 +672,11 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
             </div>
           ) : sortedSessionCommitments.length === 0 ? (
             <div className="p-6 text-center">
-              <Target className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">
+              <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 No commitments this session
               </p>
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
                 Add one above to get started
               </p>
             </div>
@@ -692,9 +697,11 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
           </div>
         ) : allActiveCommitments.length === 0 ? (
           <div className="p-6 text-center">
-            <Target className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No active commitments</p>
-            <p className="text-xs text-gray-400 mt-1">
+            <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              No active commitments
+            </p>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
               All commitments have been completed!
             </p>
           </div>

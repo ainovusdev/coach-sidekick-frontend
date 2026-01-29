@@ -49,7 +49,7 @@ export function ClientCommitmentPanel({
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [showForm, setShowForm] = useState(false)
-  const [showCalendar, setShowCalendar] = useState(true) // Calendar visible by default
+  const [showCalendar, setShowCalendar] = useState(false) // Calendar hidden by default
 
   // Fetch commitments with polling
   useEffect(() => {
@@ -137,15 +137,15 @@ export function ClientCommitmentPanel({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-700'
+        return 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
       case 'high':
-        return 'bg-orange-100 text-orange-700'
+        return 'bg-orange-100 text-orange-700 dark:bg-orange-900/50 dark:text-orange-400'
       case 'medium':
-        return 'bg-blue-100 text-blue-700'
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
       case 'low':
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
       default:
-        return 'bg-gray-100 text-gray-700'
+        return 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
     }
   }
 
@@ -170,17 +170,17 @@ export function ClientCommitmentPanel({
   ]
 
   return (
-    <Card className="border-gray-200 h-full flex flex-col shadow-sm">
-      <CardHeader className="border-b border-gray-100 py-4 flex-shrink-0 bg-white">
+    <Card className="border-gray-200 dark:border-gray-700 h-full flex flex-col shadow-sm dark:bg-gray-800">
+      <CardHeader className="border-b border-gray-100 dark:border-gray-700 py-4 flex-shrink-0 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <Target className="h-4 w-4 text-emerald-600" />
+            <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/50 rounded-lg flex items-center justify-center">
+              <Target className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
             </div>
             <div>
-              <span>Commitments</span>
+              <span className="text-gray-900 dark:text-white">Commitments</span>
               {commitments.length > 0 && (
-                <span className="text-xs font-normal text-gray-500 ml-2">
+                <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
                   ({commitments.length})
                 </span>
               )}
@@ -192,7 +192,7 @@ export function ClientCommitmentPanel({
               variant="outline"
               onClick={() => setShowForm(true)}
               disabled={!guestToken}
-              className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+              className="border-emerald-200 dark:border-emerald-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
             >
               <Plus className="h-4 w-4 mr-1" />
               Add
@@ -204,11 +204,11 @@ export function ClientCommitmentPanel({
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {/* New Commitment Form - With Embedded Calendar */}
         {showForm && (
-          <div className="flex-shrink-0 p-4 bg-gradient-to-b from-emerald-50/50 to-white border-b border-gray-100">
+          <div className="flex-shrink-0 p-4 bg-gradient-to-b from-emerald-50/50 to-white dark:from-emerald-900/20 dark:to-gray-800 border-b border-gray-100 dark:border-gray-700">
             <div className="space-y-4">
               {/* Commitment Title Input */}
               <div>
-                <label className="text-xs font-medium text-gray-600 mb-1.5 block">
+                <label className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5 block">
                   What do you commit to?
                 </label>
                 <Input
@@ -216,7 +216,7 @@ export function ClientCommitmentPanel({
                   value={newTitle}
                   onChange={e => setNewTitle(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="border-gray-200 focus:border-emerald-400 focus:ring-emerald-400/20"
+                  className="border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:border-emerald-400 focus:ring-emerald-400/20"
                   autoFocus
                 />
               </div>
@@ -224,7 +224,7 @@ export function ClientCommitmentPanel({
               {/* Quick Date Options */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-xs font-medium text-gray-600">
+                  <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                     Due Date
                   </label>
                   <Button
@@ -232,7 +232,7 @@ export function ClientCommitmentPanel({
                     size="sm"
                     variant="ghost"
                     onClick={() => setShowCalendar(!showCalendar)}
-                    className="h-6 px-2 text-xs text-gray-500 hover:text-gray-700"
+                    className="h-6 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                   >
                     {showCalendar ? (
                       <>
@@ -266,7 +266,7 @@ export function ClientCommitmentPanel({
                         targetDate?.toDateString() ===
                         option.date.toDateString()
                           ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                          : 'border-gray-200 text-gray-600 hover:border-emerald-300'
+                          : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-emerald-300 dark:hover:border-emerald-600'
                       }
                     >
                       {option.label}
@@ -274,9 +274,9 @@ export function ClientCommitmentPanel({
                   ))}
                 </div>
 
-                {/* Inline Calendar - visible by default */}
+                {/* Inline Calendar - hidden by default */}
                 {showCalendar && (
-                  <div className="mt-2 rounded-lg border border-gray-200 bg-white overflow-hidden">
+                  <div className="mt-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 overflow-hidden">
                     <Calendar
                       mode="single"
                       selected={targetDate}
@@ -288,7 +288,7 @@ export function ClientCommitmentPanel({
                 )}
 
                 {targetDate && (
-                  <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-2 flex items-center gap-1">
                     <CalendarIcon className="h-3 w-3" />
                     Due: {format(targetDate, 'EEEE, MMMM d, yyyy')}
                   </p>
@@ -335,19 +335,19 @@ export function ClientCommitmentPanel({
         {/* Commitments List */}
         <ScrollArea className="flex-1 p-4">
           {isLoading ? (
-            <div className="text-center py-8 text-gray-500">
-              <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 mb-2" />
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+              <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 dark:text-gray-500 mb-2" />
               <p className="text-sm">Loading commitments...</p>
             </div>
           ) : !commitments || commitments.length === 0 ? (
             <div className="text-center py-8">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <Target className="h-6 w-6 text-gray-400" />
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <Target className="h-6 w-6 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="font-medium text-gray-700 mb-1">
+              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
                 No commitments yet
               </h3>
-              <p className="text-sm text-gray-500 max-w-[200px] mx-auto">
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[200px] mx-auto">
                 Add commitments to track your progress
               </p>
             </div>
@@ -358,8 +358,8 @@ export function ClientCommitmentPanel({
                   key={commitment.id}
                   className={`p-3 rounded-xl border transition-all duration-200 ${
                     commitment.status === 'completed'
-                      ? 'border-green-200 bg-green-50/50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                      ? 'border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-900/20'
+                      : 'border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700/50 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}
                 >
                   <div className="flex items-start gap-3">
@@ -370,15 +370,15 @@ export function ClientCommitmentPanel({
                       {commitment.status === 'completed' ? (
                         <CheckCircle2 className="h-5 w-5 text-green-500" />
                       ) : (
-                        <Circle className="h-5 w-5 text-gray-300 hover:text-emerald-400 transition-colors" />
+                        <Circle className="h-5 w-5 text-gray-300 dark:text-gray-500 hover:text-emerald-400 transition-colors" />
                       )}
                     </button>
                     <div className="flex-1 min-w-0">
                       <p
                         className={`text-sm ${
                           commitment.status === 'completed'
-                            ? 'text-gray-500 line-through'
-                            : 'text-gray-700'
+                            ? 'text-gray-500 dark:text-gray-400 line-through'
+                            : 'text-gray-700 dark:text-gray-200'
                         }`}
                       >
                         {commitment.title}
@@ -391,7 +391,7 @@ export function ClientCommitmentPanel({
                           {commitment.priority}
                         </Badge>
                         {commitment.target_date && (
-                          <span className="text-xs text-gray-400 flex items-center gap-1">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
                             <CalendarIcon className="h-3 w-3" />
                             {format(new Date(commitment.target_date), 'MMM d')}
                           </span>

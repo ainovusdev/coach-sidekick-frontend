@@ -70,16 +70,16 @@ export default function ClientMeetingPage() {
   // Loading state
   if (isSessionLoading || isGuestLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="text-center">
           <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mx-auto mb-4">
             <Sparkles className="h-8 w-8 text-white" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Coach Sidekick
           </h2>
           <LoadingSpinner className="mx-auto mb-4" />
-          <p className="text-gray-600">Joining session...</p>
+          <p className="text-gray-600 dark:text-gray-400">Joining session...</p>
         </div>
       </div>
     )
@@ -88,18 +88,18 @@ export default function ClientMeetingPage() {
   // Error state
   if (sessionError) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
+      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-md">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg mx-auto mb-4">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-lg font-bold text-gray-900 mb-6">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
               Coach Sidekick
             </h1>
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="h-8 w-8 text-red-600"
+                className="h-8 w-8 text-red-600 dark:text-red-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -112,23 +112,27 @@ export default function ClientMeetingPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Unable to Join
             </h2>
-            <p className="text-gray-600 mb-6">{sessionError}</p>
-            <p className="text-sm text-gray-500">
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              {sessionError}
+            </p>
+            <p className="text-sm text-gray-500 dark:text-gray-500">
               The meeting link may have expired or been revoked.
             </p>
           </div>
         </div>
-        <footer className="flex-shrink-0 py-3 border-t border-gray-200 bg-white/60">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+        <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60">
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-md flex items-center justify-center">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
             <span>
               Powered by{' '}
-              <span className="font-medium text-gray-700">Coach Sidekick</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Coach Sidekick
+              </span>
             </span>
           </div>
         </footer>
@@ -141,7 +145,7 @@ export default function ClientMeetingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
       {/* Header */}
       <ClientMeetingHeader
         coachName={sessionInfo.coach_name}
@@ -184,15 +188,17 @@ export default function ClientMeetingPage() {
       </div>
 
       {/* Footer with branding */}
-      <footer className="flex-shrink-0 py-3 border-t border-gray-200 bg-white/60 backdrop-blur-sm">
+      <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
             <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-md flex items-center justify-center">
               <Sparkles className="h-3 w-3 text-white" />
             </div>
             <span>
               Powered by{' '}
-              <span className="font-medium text-gray-700">Coach Sidekick</span>
+              <span className="font-medium text-gray-700 dark:text-gray-300">
+                Coach Sidekick
+              </span>
             </span>
           </div>
         </div>

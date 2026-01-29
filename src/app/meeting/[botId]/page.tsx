@@ -131,7 +131,7 @@ export default function MeetingPage() {
   }
 
   return (
-    <div className="h-screen bg-gradient-to-b from-gray-50 to-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col overflow-hidden">
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
@@ -160,7 +160,7 @@ export default function MeetingPage() {
           </div>
         </div>
       </div>
-      <div className="flex-shrink-0 border-t bg-white/80 backdrop-blur-sm z-10">
+      <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm z-10">
         <BatchSaveStatus botId={botId} sessionId={sessionId} minimal={true} />
       </div>
     </div>

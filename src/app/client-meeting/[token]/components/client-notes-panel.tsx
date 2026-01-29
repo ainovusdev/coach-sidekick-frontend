@@ -139,17 +139,19 @@ export function ClientNotesPanel({
   }
 
   return (
-    <Card className="border-gray-200 h-full flex flex-col shadow-sm">
-      <CardHeader className="border-b border-gray-100 py-4 flex-shrink-0 bg-white">
+    <Card className="border-gray-200 dark:border-gray-700 h-full flex flex-col shadow-sm dark:bg-gray-800">
+      <CardHeader className="border-b border-gray-100 dark:border-gray-700 py-4 flex-shrink-0 bg-white dark:bg-gray-800">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <FileText className="h-4 w-4 text-blue-600" />
+            <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded-lg flex items-center justify-center">
+              <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
-              <span>Session Notes</span>
+              <span className="text-gray-900 dark:text-white">
+                Session Notes
+              </span>
               {notes.length > 0 && (
-                <span className="text-xs font-normal text-gray-500 ml-2">
+                <span className="text-xs font-normal text-gray-500 dark:text-gray-400 ml-2">
                   ({notes.length})
                 </span>
               )}
@@ -160,11 +162,11 @@ export function ClientNotesPanel({
 
       <CardContent className="flex-1 flex flex-col p-0 overflow-hidden">
         {/* Editor */}
-        <div className="flex-shrink-0 p-4 border-b border-gray-100 bg-gradient-to-b from-blue-50/50 to-white">
+        <div className="flex-shrink-0 p-4 border-b border-gray-100 dark:border-gray-700 bg-gradient-to-b from-blue-50/50 to-white dark:from-blue-900/20 dark:to-gray-800">
           {/* Tips section */}
-          <div className="mb-3 flex items-start gap-2 p-2.5 bg-blue-50 rounded-lg border border-blue-100">
-            <Lightbulb className="h-4 w-4 text-blue-500 flex-shrink-0 mt-0.5" />
-            <p className="text-xs text-blue-700">
+          <div className="mb-3 flex items-start gap-2 p-2.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-100 dark:border-blue-800">
+            <Lightbulb className="h-4 w-4 text-blue-500 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700 dark:text-blue-300">
               Capture key insights, questions, or action items from this
               session. Use formatting for better organization.
             </p>
@@ -185,7 +187,7 @@ export function ClientNotesPanel({
           />
 
           <div className="flex items-center justify-between mt-3">
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {hasContent(newNote) ? 'Press Cmd+Enter to save' : ''}
             </span>
             <Button
@@ -213,17 +215,22 @@ export function ClientNotesPanel({
         {isLoading ? (
           <div className="flex-1 flex items-center justify-center">
             <div className="text-center">
-              <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 mb-2" />
-              <p className="text-sm text-gray-500">Loading your notes...</p>
+              <Loader2 className="h-6 w-6 mx-auto animate-spin text-gray-400 dark:text-gray-500 mb-2" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Loading your notes...
+              </p>
             </div>
           </div>
         ) : notes.length > 0 ? (
           <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <div className="px-4 py-2 bg-gray-50 flex items-center justify-between flex-shrink-0">
-              <span className="text-xs font-medium text-gray-600">
+            <div className="px-4 py-2 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between flex-shrink-0">
+              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                 Your Notes
               </span>
-              <Badge variant="secondary" className="text-xs">
+              <Badge
+                variant="secondary"
+                className="text-xs dark:bg-gray-700 dark:text-gray-300"
+              >
                 {notes.length}
               </Badge>
             </div>
@@ -231,7 +238,7 @@ export function ClientNotesPanel({
               {notes.map(note => (
                 <div
                   key={note.id}
-                  className="px-4 py-3 border-b border-gray-50 last:border-b-0 hover:bg-gray-50/50"
+                  className="px-4 py-3 border-b border-gray-50 dark:border-gray-700 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/50"
                 >
                   {editingId === note.id ? (
                     <div className="space-y-2">
@@ -265,27 +272,27 @@ export function ClientNotesPanel({
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div
-                          className="text-sm text-gray-700 line-clamp-3 flex-1 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
+                          className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 flex-1 prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
                           dangerouslySetInnerHTML={{ __html: note.content }}
                         />
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => startEditing(note)}
-                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
                             title="Edit note"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </button>
                           <button
                             onClick={() => handleDeleteNote(note.id)}
-                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"
+                            className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
                             title="Delete note"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       </div>
-                      <span className="text-xs text-gray-400 mt-1.5 block">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 block">
                         {formatDistanceToNow(new Date(note.created_at), {
                           addSuffix: true,
                         })}
@@ -299,11 +306,13 @@ export function ClientNotesPanel({
         ) : (
           <div className="flex-1 flex items-center justify-center p-6">
             <div className="text-center">
-              <div className="w-12 h-12 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-3">
-                <FileText className="h-6 w-6 text-gray-400" />
+              <div className="w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <FileText className="h-6 w-6 text-gray-400 dark:text-gray-500" />
               </div>
-              <h3 className="font-medium text-gray-700 mb-1">No notes yet</h3>
-              <p className="text-sm text-gray-500 max-w-[200px] mx-auto">
+              <h3 className="font-medium text-gray-700 dark:text-gray-300 mb-1">
+                No notes yet
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[200px] mx-auto">
                 Use the editor above to capture your thoughts and insights
               </p>
             </div>

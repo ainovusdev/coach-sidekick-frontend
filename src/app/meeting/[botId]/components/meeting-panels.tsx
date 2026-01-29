@@ -111,17 +111,17 @@ export default function MeetingPanels({
           size="sm"
           onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
           className={cn(
-            'h-auto py-3 px-2 border-gray-200 bg-white hover:bg-gray-50 rounded-r-lg rounded-l-none border-l-0',
-            aiSuggestionsOpen && 'bg-gray-100',
+            'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r-lg rounded-l-none border-l-0',
+            aiSuggestionsOpen && 'bg-gray-100 dark:bg-gray-700',
           )}
         >
           <div className="flex flex-col items-center gap-2">
             {aiSuggestionsOpen ? (
-              <PanelLeftClose className="h-4 w-4 text-gray-600" />
+              <PanelLeftClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             ) : (
-              <PanelLeftOpen className="h-4 w-4 text-gray-600" />
+              <PanelLeftOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             )}
-            <Sparkles className="h-3.5 w-3.5 text-gray-500" />
+            <Sparkles className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
           </div>
         </Button>
       </div>
@@ -129,7 +129,7 @@ export default function MeetingPanels({
       {/* Collapsible AI Suggestions Panel */}
       <div
         className={cn(
-          'flex-shrink-0 border-r border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden',
+          'flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
           aiSuggestionsOpen ? 'w-80 lg:w-96' : 'w-0',
         )}
       >
@@ -149,15 +149,17 @@ export default function MeetingPanels({
           {sessionId ? (
             <QuickNote sessionId={sessionId} noteType="coach_private" />
           ) : (
-            <Card className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <FileText className="h-4 w-4 text-gray-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">Notes</h4>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Notes
+                    </h4>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Session loading...
                     </p>
                   </div>
@@ -172,17 +174,17 @@ export default function MeetingPanels({
           {sessionId && clientId ? (
             <QuickCommitment sessionId={sessionId} clientId={clientId} />
           ) : sessionId && !clientId ? (
-            <Card className="bg-white rounded-xl shadow-sm border border-amber-100 h-full">
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/50 h-full">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-amber-50 rounded-lg">
-                    <Target className="h-4 w-4 text-amber-500" />
+                  <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
+                    <Target className="h-4 w-4 text-amber-500 dark:text-amber-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Commitments
                     </h4>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       No client selected
                     </p>
                   </div>
@@ -190,17 +192,17 @@ export default function MeetingPanels({
               </CardContent>
             </Card>
           ) : (
-            <Card className="bg-white rounded-xl shadow-sm border border-gray-100 h-full">
+            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
               <CardContent className="p-4">
                 <div className="flex items-start gap-3">
-                  <div className="p-2 bg-gray-100 rounded-lg">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
                     <Target className="h-4 w-4 text-gray-400" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-700">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Commitments
                     </h4>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       Session loading...
                     </p>
                   </div>
@@ -218,19 +220,19 @@ export default function MeetingPanels({
           size="sm"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className={cn(
-            'h-auto py-3 px-2 border-gray-200 bg-white hover:bg-gray-50 rounded-l-lg rounded-r-none border-r-0',
-            sidebarOpen && 'bg-gray-100',
+            'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-l-lg rounded-r-none border-r-0',
+            sidebarOpen && 'bg-gray-100 dark:bg-gray-700',
           )}
         >
           <div className="flex flex-col items-center gap-2">
             {sidebarOpen ? (
-              <PanelRightClose className="h-4 w-4 text-gray-600" />
+              <PanelRightClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             ) : (
-              <PanelRightOpen className="h-4 w-4 text-gray-600" />
+              <PanelRightOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             )}
             <div className="flex flex-col items-center gap-1">
-              <MessageSquare className="h-3.5 w-3.5 text-gray-500" />
-              <Info className="h-3.5 w-3.5 text-gray-500" />
+              <MessageSquare className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <Info className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
             </div>
           </div>
         </Button>
@@ -239,27 +241,27 @@ export default function MeetingPanels({
       {/* Collapsible Sidebar */}
       <div
         className={cn(
-          'flex-shrink-0 border-l border-gray-200 bg-white transition-all duration-300 ease-in-out overflow-hidden',
+          'flex-shrink-0 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
           sidebarOpen ? 'w-80' : 'w-0',
         )}
       >
         <div className="w-80 h-full flex flex-col">
           {/* Sidebar Tabs */}
-          <div className="flex-shrink-0 border-b border-gray-100">
+          <div className="flex-shrink-0 border-b border-gray-100 dark:border-gray-700">
             <div className="flex">
               <button
                 onClick={() => setSidebarTab('transcript')}
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'transcript'
-                    ? 'text-gray-900 border-gray-900'
-                    : 'text-gray-500 border-transparent hover:text-gray-700',
+                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
+                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
                 )}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 Transcript
                 {transcript.length > 0 && (
-                  <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                  <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
                     {transcript.length}
                   </span>
                 )}
@@ -269,8 +271,8 @@ export default function MeetingPanels({
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'context'
-                    ? 'text-gray-900 border-gray-900'
-                    : 'text-gray-500 border-transparent hover:text-gray-700',
+                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
+                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
                 )}
               >
                 <Info className="h-3.5 w-3.5" />
@@ -292,14 +294,14 @@ export default function MeetingPanels({
                 <Accordion
                   type="multiple"
                   defaultValue={['profile']}
-                  className="divide-y divide-gray-100"
+                  className="divide-y divide-gray-100 dark:divide-gray-700"
                 >
                   {/* Client Profile */}
                   <AccordionItem value="profile" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
                       <div className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="font-medium text-gray-700">
+                        <User className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
                           Client Profile
                         </span>
                       </div>
@@ -307,8 +309,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
                         </div>
                       ) : (
                         <ClientProfileCard
@@ -322,14 +324,14 @@ export default function MeetingPanels({
 
                   {/* Similar Sessions */}
                   <AccordionItem value="similar" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
                       <div className="flex items-center gap-2">
-                        <History className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="font-medium text-gray-700">
+                        <History className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
                           Similar Sessions
                         </span>
                         {(fullContext?.similar_sessions?.length || 0) > 0 && (
-                          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                          <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
                             {fullContext?.similar_sessions?.length}
                           </span>
                         )}
@@ -338,8 +340,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 rounded w-5/6"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
                         </div>
                       ) : (
                         <SimilarSessionsCard
@@ -353,14 +355,14 @@ export default function MeetingPanels({
 
                   {/* Pattern Insights */}
                   <AccordionItem value="patterns" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="font-medium text-gray-700">
+                        <TrendingUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
                           Pattern Insights
                         </span>
                         {patterns.length > 0 && (
-                          <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded text-gray-500">
+                          <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
                             {patterns.length}
                           </span>
                         )}
@@ -369,8 +371,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 rounded w-4/5"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
+                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-4/5"></div>
                         </div>
                       ) : (
                         <PatternInsightsCard
@@ -386,10 +388,10 @@ export default function MeetingPanels({
 
                   {/* Analysis Conversations */}
                   <AccordionItem value="analysis" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
                       <div className="flex items-center gap-2">
-                        <MessageSquareText className="h-3.5 w-3.5 text-gray-500" />
-                        <span className="font-medium text-gray-700">
+                        <MessageSquareText className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                        <span className="font-medium text-gray-700 dark:text-gray-300">
                           Analysis
                         </span>
                       </div>

@@ -329,6 +329,22 @@ export default function SessionDetailsPage({
     }
   }
 
+  // Refresh video URL handler
+  const handleRefreshVideoUrl = async () => {
+    if (!sessionData?.session?.id) return
+
+    try {
+      await SessionService.refreshVideoUrl(sessionData.session.id)
+      // Invalidate session details to refetch with new video URL
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.detail(sessionData.session.id),
+      })
+    } catch (error) {
+      console.error('Failed to refresh video URL:', error)
+      throw error // Re-throw so VideoPlayer can handle the error state
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
@@ -574,9 +590,13 @@ export default function SessionDetailsPage({
                     clientId={clientId}
                     transcript={transcript}
                     isViewer={isViewer}
+                    videoUrl={session.video_url}
                     onViewAnalysis={() => setActiveTab('analysis')}
                     onViewNotes={() => setShowQuickNote(true)}
                     onRefreshCommitments={refreshCommitments}
+                    onRefreshVideoUrl={
+                      !isViewer ? handleRefreshVideoUrl : undefined
+                    }
                   />
                 )}
 
