@@ -3,9 +3,21 @@
  * Shows branding, coach name, session timer, and live status
  */
 
+'use client'
+
+import { useTheme } from 'next-themes'
+import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Clock, User, Circle, RefreshCw, Sparkles } from 'lucide-react'
+import {
+  Clock,
+  User,
+  Circle,
+  RefreshCw,
+  Sparkles,
+  Moon,
+  Sun,
+} from 'lucide-react'
 import { formatDuration } from '../hooks/use-meeting-status'
 
 interface ClientMeetingHeaderProps {
@@ -23,6 +35,17 @@ export function ClientMeetingHeader({
   isEnded,
   onRefresh,
 }: ClientMeetingHeaderProps) {
+  const { theme, setTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
   return (
     <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -77,6 +100,27 @@ export function ClientMeetingHeader({
                 {formatDuration(durationSeconds)}
               </span>
             </div>
+
+            {/* Theme Toggle */}
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleTheme}
+                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                title={
+                  theme === 'dark'
+                    ? 'Switch to light mode'
+                    : 'Switch to dark mode'
+                }
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+            )}
 
             {/* Refresh Button */}
             {onRefresh && !isEnded && (

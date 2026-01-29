@@ -4,6 +4,7 @@
  */
 
 import { Toaster } from 'sonner'
+import { ThemeProvider } from '@/components/providers/theme-provider'
 
 export default function ClientMeetingLayout({
   children,
@@ -11,9 +12,11 @@ export default function ClientMeetingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-      {children}
-      <Toaster position="top-right" richColors />
-    </div>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+      <div className="min-h-screen bg-background">
+        {children}
+        <Toaster position="top-right" richColors />
+      </div>
+    </ThemeProvider>
   )
 }
