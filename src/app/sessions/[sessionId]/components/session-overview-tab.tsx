@@ -24,6 +24,7 @@ import { SessionCommitmentsList } from './session-commitments-list'
 import { SessionNotesCompact } from './session-notes-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import TranscriptViewer from './transcript-viewer'
+import { VideoPlayer } from '@/components/sessions/video-player'
 
 interface TranscriptEntry {
   id: string
@@ -42,9 +43,11 @@ interface SessionOverviewTabProps {
   clientId?: string
   transcript?: TranscriptEntry[]
   isViewer?: boolean
+  videoUrl?: string | null
   onViewAnalysis: () => void
   onViewNotes: () => void
   onRefreshCommitments?: () => void
+  onRefreshVideoUrl?: () => Promise<void>
 }
 
 export function SessionOverviewTab({
@@ -54,9 +57,11 @@ export function SessionOverviewTab({
   clientId,
   transcript,
   isViewer = false,
+  videoUrl,
   onViewAnalysis,
   onViewNotes,
   onRefreshCommitments,
+  onRefreshVideoUrl,
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
 
@@ -111,6 +116,15 @@ export function SessionOverviewTab({
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* Session Recording */}
+      {onRefreshVideoUrl && (
+        <VideoPlayer
+          videoUrl={videoUrl}
+          sessionId={sessionId}
+          onRefresh={onRefreshVideoUrl}
+        />
       )}
 
       {/* Commitments and Wins Side by Side */}

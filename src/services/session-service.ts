@@ -203,6 +203,14 @@ export class SessionService {
       dry_run: params?.dry_run ?? false,
     })
   }
+
+  static async refreshVideoUrl(sessionId: string): Promise<{
+    success: boolean
+    video_url: string
+    fetched_at: string
+  }> {
+    return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/video-url`)
+  }
 }
 
 // Stale session processing types
