@@ -118,15 +118,6 @@ export function SessionOverviewTab({
         </div>
       )}
 
-      {/* Session Recording */}
-      {onRefreshVideoUrl && (
-        <VideoPlayer
-          videoUrl={videoUrl}
-          sessionId={sessionId}
-          onRefresh={onRefreshVideoUrl}
-        />
-      )}
-
       {/* Commitments and Wins Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Commitments */}
@@ -304,7 +295,15 @@ export function SessionOverviewTab({
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-0">
-                <div className="border-t border-gray-100 pt-4">
+                <div className="border-t border-gray-100 pt-4 space-y-6">
+                  {/* Session Recording */}
+                  {onRefreshVideoUrl && (
+                    <VideoPlayer
+                      videoUrl={videoUrl}
+                      sessionId={sessionId}
+                      onRefresh={onRefreshVideoUrl}
+                    />
+                  )}
                   <TranscriptViewer transcript={transcript} />
                 </div>
               </CardContent>
