@@ -134,7 +134,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
       case 'draft':
         return <FileEdit className="h-4 w-4 text-amber-600" />
       default:
-        return <Circle className="h-4 w-4 text-gray-600" />
+        return <Circle className="h-4 w-4 text-app-secondary" />
     }
   }
 
@@ -147,7 +147,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
       case 'draft':
         return 'text-amber-700 bg-amber-50 border-amber-200'
       default:
-        return 'text-gray-700 bg-gray-50 border-gray-200'
+        return 'text-app-primary bg-app-surface border-app-border'
     }
   }
 
@@ -183,7 +183,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 placeholder="Commitment title"
               />
             ) : (
-              <p className="text-sm font-medium flex-1 text-gray-900">
+              <p className="text-sm font-medium flex-1 text-app-primary">
                 {commitment.title}
               </p>
             )}
@@ -268,7 +268,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
           <div className="px-3 pb-3 pt-1 space-y-3 border-t border-amber-200 bg-amber-50/50">
             {/* Description */}
             <div>
-              <label className="text-xs font-semibold text-gray-700 mb-1 block">
+              <label className="text-xs font-semibold text-app-primary mb-1 block">
                 Description
               </label>
               {isEditing ? (
@@ -281,7 +281,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                   placeholder="Add description..."
                 />
               ) : (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-app-secondary">
                   {commitment.description || 'No description'}
                 </p>
               )}
@@ -290,17 +290,17 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
             {/* Transcript Context for AI-extracted */}
             {commitment.transcript_context && (
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1 block">
+                <label className="text-xs font-semibold text-app-primary mb-1 block">
                   From Transcript
                 </label>
-                <p className="text-sm text-gray-600 italic bg-white/50 p-2 rounded border border-amber-100">
+                <p className="text-sm text-app-secondary italic bg-white/50 p-2 rounded border border-amber-100">
                   &ldquo;{commitment.transcript_context}&rdquo;
                 </p>
               </div>
             )}
 
             {/* Additional Info */}
-            <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+            <div className="flex flex-wrap gap-3 text-xs text-app-secondary">
               {commitment.priority && (
                 <span>
                   Priority: <strong>{commitment.priority}</strong>
@@ -336,9 +336,9 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
   // Regular (non-draft) commitment item
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="border border-app-border rounded-lg overflow-hidden">
       {/* Header - Always Visible */}
-      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center justify-between gap-2 p-3 hover:bg-app-surface transition-colors">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Status Indicator Icon */}
           <div className="flex-shrink-0">
@@ -347,12 +347,12 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded transition-colors"
+            className="flex-shrink-0 p-0.5 hover:bg-app-border rounded transition-colors"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600" />
+              <ChevronDown className="h-4 w-4 text-app-secondary" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-app-secondary" />
             )}
           </button>
 
@@ -370,7 +370,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               className={cn(
                 'text-sm font-medium flex-1',
                 commitment.status === 'completed' &&
-                  'line-through text-gray-500',
+                  'line-through text-app-secondary',
               )}
             >
               {commitment.title}
@@ -447,10 +447,10 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-gray-100 bg-gray-50">
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-app-border bg-app-surface">
           {/* Description */}
           <div>
-            <label className="text-xs font-semibold text-gray-700 mb-1 block">
+            <label className="text-xs font-semibold text-app-primary mb-1 block">
               Description
             </label>
             {isEditing ? (
@@ -463,14 +463,14 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 placeholder="Add description..."
               />
             ) : (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-app-secondary">
                 {commitment.description || 'No description'}
               </p>
             )}
           </div>
 
           {/* Additional Info */}
-          <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+          <div className="flex flex-wrap gap-3 text-xs text-app-secondary">
             {commitment.priority && (
               <span>
                 Priority: <strong>{commitment.priority}</strong>
@@ -531,20 +531,25 @@ export function SessionCommitmentsList({
     }
   }
 
+  const draftCount = commitments.filter(c => c.status === 'draft').length
+  const confirmedCount = commitments.filter(c => c.status !== 'draft').length
+
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="border-b border-gray-100">
+    <Card className="border-app-border shadow-sm">
+      <CardHeader className="border-b border-app-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-gray-50 rounded-lg">
-              <Target className="h-5 w-5 text-gray-700" />
+            <div className="p-2 bg-app-surface rounded-lg">
+              <Target className="h-5 w-5 text-app-secondary" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-black">
+              <h2 className="text-base font-semibold text-app-primary">
                 Client Commitments
               </h2>
-              <p className="text-sm text-gray-500">
-                {commitments.length} total commitments
+              <p className="text-xs text-app-secondary">
+                {commitments.length > 0
+                  ? `${draftCount > 0 ? `${draftCount} pending · ` : ''}${confirmedCount} confirmed`
+                  : 'Track client action items'}
               </p>
             </div>
           </div>
@@ -554,7 +559,7 @@ export function SessionCommitmentsList({
               disabled={extracting}
               variant="outline"
               size="sm"
-              className="border-gray-300 hover:bg-gray-50 hover:border-black"
+              className="border-app-border"
             >
               {extracting ? (
                 <>
@@ -564,7 +569,7 @@ export function SessionCommitmentsList({
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Extract Commitments
+                  Extract
                 </>
               )}
             </Button>
@@ -573,7 +578,7 @@ export function SessionCommitmentsList({
                 variant="ghost"
                 size="sm"
                 onClick={onViewAll}
-                className="hover:bg-gray-50"
+                className="text-app-secondary"
               >
                 View All
                 <ArrowRight className="h-4 w-4 ml-1" />
@@ -583,29 +588,24 @@ export function SessionCommitmentsList({
         </div>
       </CardHeader>
 
-      <CardContent className="pt-6">
+      <CardContent className="pt-4">
         {commitments.length === 0 ? (
           <div className="text-center py-8">
-            <Target className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-600">No commitments yet</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Commitments from coaching sessions will appear here
+            <Target className="h-10 w-10 mx-auto mb-3 text-app-secondary" />
+            <p className="text-app-secondary text-sm">No commitments yet</p>
+            <p className="text-xs text-app-secondary mt-1">
+              Extract from transcript or add manually
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Draft Commitments Section */}
-            {commitments.filter(c => c.status === 'draft').length > 0 && (
+            {/* Draft Commitments */}
+            {draftCount > 0 && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-amber-100 text-amber-700"
-                  >
-                    Pending Review
-                  </Badge>
-                  <span className="text-xs text-gray-500">
-                    AI-extracted commitments need your approval
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
+                    Pending Review ({draftCount})
                   </span>
                 </div>
                 {commitments
@@ -620,12 +620,15 @@ export function SessionCommitmentsList({
               </div>
             )}
 
-            {/* Confirmed Commitments Section */}
-            {commitments.filter(c => c.status !== 'draft').length > 0 && (
+            {/* Confirmed Commitments */}
+            {confirmedCount > 0 && (
               <div className="space-y-2">
-                {commitments.filter(c => c.status === 'draft').length > 0 && (
-                  <div className="text-xs font-medium text-gray-500 mt-4 mb-2">
-                    Confirmed Commitments
+                {draftCount > 0 && (
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="w-1.5 h-1.5 bg-app-secondary rounded-full" />
+                    <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
+                      Confirmed ({confirmedCount})
+                    </span>
                   </div>
                 )}
                 {commitments

@@ -17,6 +17,7 @@ import {
   FileText,
   ChevronDown,
   ChevronUp,
+  Sparkles,
 } from 'lucide-react'
 import type { SessionInsights } from '@/services/analysis-service'
 import type { Commitment } from '@/types/commitment'
@@ -65,62 +66,59 @@ export function SessionOverviewTab({
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
 
-  // Top 3 insights only
   const topInsights = insights?.insights?.slice(0, 3) || []
   const topActionItems = insights?.action_items?.slice(0, 3) || []
 
-  console.log('SessionOverviewTab - clientId:', clientId)
-  console.log('SessionOverviewTab - commitments from props:', commitments)
-  console.log('SessionOverviewTab - commitments length:', commitments?.length)
-
   return (
     <div className="space-y-6">
-      {/* Summary Section - Modern Design */}
+      {/* Summary Section */}
       {insights?.summary && (
-        <div className="relative overflow-hidden">
-          <Card className="border-gray-200 shadow-sm bg-gradient-to-br from-white to-gray-50">
-            <CardContent className="p-8">
-              {/* Summary Text */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="p-2 bg-black rounded-lg">
-                    <MessageSquare className="h-4 w-4 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-black">
+        <Card className="border-app-border shadow-sm">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <div className="p-2 bg-app-surface rounded-lg flex-shrink-0">
+                <MessageSquare className="h-5 w-5 text-app-secondary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-base font-semibold text-app-primary">
                     Session Summary
                   </h3>
+                  <span className="w-1.5 h-1.5 bg-app-secondary rounded-full" />
+                  <span className="text-xs text-app-secondary">
+                    AI Generated
+                  </span>
                 </div>
-                <p className="text-gray-700 text-base leading-relaxed pl-12">
+                <p className="text-app-secondary leading-relaxed">
                   {insights.summary}
                 </p>
-              </div>
 
-              {/* Topics - Modern Pills */}
-              {insights.topics && insights.topics.length > 0 && (
-                <div className="pl-12">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold mb-3">
-                    Key Topics
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {insights.topics.slice(0, 8).map((topic, idx) => (
-                      <div
-                        key={idx}
-                        className="px-4 py-2 bg-white border border-gray-200 rounded-full text-sm font-medium text-black hover:border-black hover:shadow-sm transition-all"
-                      >
-                        {topic}
-                      </div>
-                    ))}
+                {/* Topics */}
+                {insights.topics && insights.topics.length > 0 && (
+                  <div className="mt-4 pt-4 border-t border-app-border">
+                    <p className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
+                      Key Topics
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {insights.topics.slice(0, 6).map((topic, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-app-surface rounded-full text-sm text-app-primary"
+                        >
+                          {topic}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* Commitments and Wins Side by Side */}
+      {/* Commitments and Wins */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: Commitments */}
         {!isViewer && (
           <SessionCommitmentsList
             sessionId={sessionId}
@@ -128,8 +126,6 @@ export function SessionOverviewTab({
             onUpdate={onRefreshCommitments || (() => {})}
           />
         )}
-
-        {/* Right: Wins */}
         {clientId && (
           <SessionWins
             sessionId={sessionId}
@@ -139,19 +135,19 @@ export function SessionOverviewTab({
         )}
       </div>
 
-      {/* Notes Section */}
+      {/* Notes */}
       <SessionNotesCompact sessionId={sessionId} onViewAll={onViewNotes} />
 
-      {/* Insights and Action Items Grid */}
+      {/* Insights and Action Items */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Key Insights */}
         {topInsights.length > 0 && (
-          <Card className="border-gray-200 shadow-sm">
-            <CardHeader className="pb-4">
+          <Card className="border-app-border shadow-sm">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Lightbulb className="h-5 w-5 text-black" />
-                  <h3 className="text-base font-semibold text-black">
+                  <Lightbulb className="h-4 w-4 text-app-secondary" />
+                  <h3 className="text-sm font-semibold text-app-primary">
                     Top Insights
                   </h3>
                 </div>
@@ -159,26 +155,23 @@ export function SessionOverviewTab({
                   variant="ghost"
                   size="sm"
                   onClick={onViewAnalysis}
-                  className="text-xs hover:bg-gray-50"
+                  className="text-xs text-app-secondary hover:text-app-primary"
                 >
-                  View All
-                  <ArrowRight className="h-3 w-3 ml-1" />
+                  View All <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+            <CardContent className="pt-0">
+              <div className="space-y-3">
                 {topInsights.map((insight, idx) => (
                   <div
                     key={idx}
-                    className="flex gap-3 p-4 bg-gray-50 rounded-lg border border-gray-100"
+                    className="flex gap-3 p-3 bg-app-surface rounded-lg"
                   >
-                    <div className="flex-shrink-0 mt-0.5">
-                      <div className="w-6 h-6 bg-black text-white rounded-full flex items-center justify-center text-xs font-bold">
-                        {idx + 1}
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <span className="flex-shrink-0 w-5 h-5 bg-app-primary text-white rounded text-xs flex items-center justify-center font-medium">
+                      {idx + 1}
+                    </span>
+                    <p className="text-sm text-app-secondary leading-relaxed">
                       {insight}
                     </p>
                   </div>
@@ -188,14 +181,14 @@ export function SessionOverviewTab({
           </Card>
         )}
 
-        {/* Action Items from Analysis */}
+        {/* Action Items */}
         {topActionItems.length > 0 && (
-          <Card className="border-gray-200 shadow-sm">
-            <CardHeader className="pb-4">
+          <Card className="border-app-border shadow-sm">
+            <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-black" />
-                  <h3 className="text-base font-semibold text-black">
+                  <CheckCircle2 className="h-4 w-4 text-app-secondary" />
+                  <h3 className="text-sm font-semibold text-app-primary">
                     Suggested Actions
                   </h3>
                 </div>
@@ -203,22 +196,21 @@ export function SessionOverviewTab({
                   variant="ghost"
                   size="sm"
                   onClick={onViewAnalysis}
-                  className="text-xs hover:bg-gray-50"
+                  className="text-xs text-app-secondary hover:text-app-primary"
                 >
-                  View All
-                  <ArrowRight className="h-3 w-3 ml-1" />
+                  View All <ArrowRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
+            <CardContent className="pt-0">
+              <div className="space-y-2">
                 {topActionItems.map((item, idx) => (
                   <div
                     key={idx}
-                    className="flex items-start gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:border-black transition-colors"
+                    className="flex items-start gap-3 p-3 border border-app-border rounded-lg hover:border-app-secondary transition-colors"
                   >
-                    <CheckCircle2 className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                    <p className="text-sm text-gray-700">{item}</p>
+                    <CheckCircle2 className="h-4 w-4 text-app-secondary mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-app-secondary">{item}</p>
                   </div>
                 ))}
               </div>
@@ -227,29 +219,29 @@ export function SessionOverviewTab({
         )}
       </div>
 
-      {/* Recommendations Preview */}
+      {/* Next Session Focus */}
       {insights?.recommendations?.next_session_focus &&
         insights.recommendations.next_session_focus.length > 0 && (
-          <Card className="border-gray-200 shadow-sm">
-            <CardHeader className="pb-4">
+          <Card className="border-app-border shadow-sm">
+            <CardHeader className="pb-3">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-black" />
-                <h3 className="text-base font-semibold text-black">
+                <TrendingUp className="h-4 w-4 text-app-secondary" />
+                <h3 className="text-sm font-semibold text-app-primary">
                   Next Session Focus
                 </h3>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                 {insights.recommendations.next_session_focus
                   .slice(0, 4)
                   .map((focus, idx) => (
                     <div
                       key={idx}
-                      className="flex gap-2 p-3 bg-white border border-gray-200 rounded-lg"
+                      className="flex gap-2 p-3 bg-app-surface rounded-lg"
                     >
-                      <ArrowRight className="h-4 w-4 text-gray-400 flex-shrink-0 mt-0.5" />
-                      <p className="text-sm text-gray-700">{focus}</p>
+                      <ArrowRight className="h-4 w-4 text-app-secondary mt-0.5 flex-shrink-0" />
+                      <p className="text-sm text-app-secondary">{focus}</p>
                     </div>
                   ))}
               </div>
@@ -257,36 +249,36 @@ export function SessionOverviewTab({
           </Card>
         )}
 
-      {/* Collapsible Transcript Section */}
+      {/* Transcript */}
       {transcript && transcript.length > 0 && !isViewer && (
         <Collapsible open={transcriptOpen} onOpenChange={setTranscriptOpen}>
-          <Card className="border-gray-200 shadow-sm">
+          <Card className="border-app-border shadow-sm">
             <CollapsibleTrigger asChild>
-              <CardHeader className="cursor-pointer hover:bg-gray-50 transition-colors">
+              <CardHeader className="cursor-pointer hover:bg-app-surface transition-colors">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <FileText className="h-5 w-5 text-gray-600" />
-                    <h3 className="text-base font-semibold text-black">
-                      Session Transcript
-                    </h3>
-                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-                      {transcript.length} messages
-                    </span>
+                  <div className="flex items-center gap-3">
+                    <FileText className="h-5 w-5 text-app-secondary" />
+                    <div>
+                      <h3 className="text-sm font-semibold text-app-primary">
+                        Session Transcript
+                      </h3>
+                      <p className="text-xs text-app-secondary">
+                        {transcript.length} messages
+                      </p>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="hover:bg-gray-100"
+                    className="text-app-secondary"
                   >
                     {transcriptOpen ? (
                       <>
-                        <ChevronUp className="h-4 w-4 mr-1" />
-                        Collapse
+                        <ChevronUp className="h-4 w-4 mr-1" /> Collapse
                       </>
                     ) : (
                       <>
-                        <ChevronDown className="h-4 w-4 mr-1" />
-                        Expand
+                        <ChevronDown className="h-4 w-4 mr-1" /> Expand
                       </>
                     )}
                   </Button>
@@ -295,8 +287,7 @@ export function SessionOverviewTab({
             </CollapsibleTrigger>
             <CollapsibleContent>
               <CardContent className="pt-0">
-                <div className="border-t border-gray-100 pt-4 space-y-6">
-                  {/* Session Recording */}
+                <div className="border-t border-app-border pt-4 space-y-6">
                   {onRefreshVideoUrl && (
                     <VideoPlayer
                       videoUrl={videoUrl}
@@ -314,16 +305,25 @@ export function SessionOverviewTab({
 
       {/* Empty State */}
       {!insights && (
-        <Card className="border-dashed border-2 border-gray-200">
+        <Card className="border-dashed border-2 border-app-border">
           <CardContent className="py-16 text-center">
-            <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-700 mb-2">
-              No Analysis Available Yet
+            <div className="w-12 h-12 bg-app-surface rounded-xl flex items-center justify-center mx-auto mb-4">
+              <Sparkles className="h-6 w-6 text-app-secondary" />
+            </div>
+            <h3 className="text-base font-semibold text-app-primary mb-2">
+              No Analysis Yet
             </h3>
-            <p className="text-gray-500 max-w-md mx-auto">
-              Generate AI analysis to see session insights, recommendations, and
-              key takeaways.
+            <p className="text-sm text-app-secondary max-w-sm mx-auto mb-4">
+              Generate AI analysis to see session insights, action items, and
+              recommendations.
             </p>
+            <Button
+              onClick={onViewAnalysis}
+              className="bg-app-primary hover:bg-app-primary/90"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate Analysis
+            </Button>
           </CardContent>
         </Card>
       )}

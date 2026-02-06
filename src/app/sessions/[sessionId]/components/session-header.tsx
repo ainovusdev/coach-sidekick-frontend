@@ -6,15 +6,22 @@ import { Badge } from '@/components/ui/badge'
 import { SessionTitleEditor } from '@/components/sessions/session-title-editor'
 import { EditSessionModal } from '@/components/sessions/edit-session-modal'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
   ArrowLeft,
   Calendar,
   ExternalLink,
-  Activity,
   Trash2,
   Mail,
   Loader2,
   Pencil,
   Download,
+  MoreHorizontal,
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { getStatusColor } from '../utils/session-utils'
@@ -38,6 +45,24 @@ interface SessionHeaderProps {
   onDownloadTranscript?: () => void
 }
 
+function getStatusDot(status: string) {
+  switch (status) {
+    case 'completed':
+      return 'bg-green-500'
+    case 'in_progress':
+    case 'active':
+      return 'bg-black animate-pulse'
+    case 'pending_upload':
+      return 'bg-amber-500'
+    case 'processing':
+      return 'bg-gray-400 animate-pulse'
+    case 'failed':
+      return 'bg-red-500'
+    default:
+      return 'bg-gray-400'
+  }
+}
+
 export default function SessionHeader({
   session,
   onBack,
@@ -50,114 +75,133 @@ export default function SessionHeader({
   const [showEditModal, setShowEditModal] = useState(false)
   const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
 
+  const hasActions = onDelete || onSendEmail || onDownloadTranscript
+
   return (
     <>
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+      <div className="bg-app-background border-b border-app-border sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5">
+          {/* Top row: Back button and actions */}
+          <div className="flex items-center justify-between mb-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={onBack}
-              className="hover:bg-gray-50 transition-colors -ml-2 sm:ml-0"
+              className="text-app-secondary hover:text-app-primary hover:bg-app-surface -ml-2"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <div className="flex-1 w-full">
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-3">
+
+            {/* Actions dropdown */}
+            {hasActions && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-app-border hover:bg-app-surface"
+                  >
+                    <MoreHorizontal className="h-4 w-4 mr-2" />
+                    Actions
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  {onDelete && (
+                    <DropdownMenuItem onClick={() => setShowEditModal(true)}>
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Session
+                    </DropdownMenuItem>
+                  )}
+                  {onSendEmail && (
+                    <DropdownMenuItem
+                      onClick={onSendEmail}
+                      disabled={sendingEmail}
+                    >
+                      {sendingEmail ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Mail className="h-4 w-4 mr-2" />
+                      )}
+                      {sendingEmail ? 'Sending...' : 'Send Summary'}
+                    </DropdownMenuItem>
+                  )}
+                  {onDownloadTranscript && (
+                    <DropdownMenuItem onClick={onDownloadTranscript}>
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Transcript
+                    </DropdownMenuItem>
+                  )}
+                  {onDelete && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={onDelete}
+                        className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Session
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          {/* Main header content */}
+          <div className="flex flex-col sm:flex-row sm:items-start gap-4">
+            <div className="flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-3 mb-3">
                 <SessionTitleEditor
                   sessionId={session.id}
                   initialTitle={session.title}
                   defaultTitle={defaultTitle}
                   onTitleUpdated={onTitleUpdate}
                 />
+
+                {/* Status badge with dot indicator */}
                 <Badge
-                  className={`${getStatusColor(
-                    session.status,
-                  )} px-3 py-1 text-xs font-semibold`}
+                  className={`${getStatusColor(session.status)} px-3 py-1 text-xs font-medium flex items-center gap-2`}
                 >
-                  <Activity className="w-3 h-3 mr-1" />
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${getStatusDot(session.status)}`}
+                  />
                   {session.status.replace('_', ' ').toUpperCase()}
                 </Badge>
-                <div className="flex gap-2 ml-auto">
-                  {onDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowEditModal(true)}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit
-                    </Button>
-                  )}
-                  {onSendEmail && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onSendEmail}
-                      disabled={sendingEmail}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
-                    >
-                      {sendingEmail ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        <>
-                          <Mail className="h-4 w-4 mr-2" />
-                          Send Summary Email
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {onDownloadTranscript && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onDownloadTranscript}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Download Transcript
-                    </Button>
-                  )}
-                  {onDelete && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={onDelete}
-                      className="border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-black"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Delete Session
-                    </Button>
-                  )}
-                </div>
               </div>
-              <div className="flex flex-wrap items-center gap-3 text-sm text-gray-600">
-                <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
-                  <Calendar className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">
-                    {format(new Date(session.created_at), 'PPP')}
+
+              {/* Metadata row */}
+              <div className="flex flex-wrap items-center gap-2 text-sm text-app-secondary">
+                <div className="flex items-center gap-2 bg-app-surface rounded-lg px-3 py-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-app-secondary" />
+                  <span>
+                    {format(new Date(session.created_at), 'PPP · h:mm a')}
                   </span>
                 </div>
+
                 {session.meeting_url && (
-                  <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
-                    <ExternalLink className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium text-gray-700 truncate max-w-xs">
-                      {session.meeting_url.replace(/^https?:\/\//, '')}
+                  <a
+                    href={session.meeting_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 bg-app-surface rounded-lg px-3 py-1.5 hover:bg-app-border/50 transition-colors"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5 text-app-secondary" />
+                    <span className="truncate max-w-[180px]">
+                      {
+                        session.meeting_url
+                          .replace(/^https?:\/\//, '')
+                          .split('/')[0]
+                      }
                     </span>
-                  </div>
+                  </a>
                 )}
+
                 {session.session_type === 'manual' && (
-                  <div className="flex items-center gap-2 bg-gray-50 rounded-full px-4 py-1.5 border border-gray-100">
-                    <span className="font-medium text-gray-700">
-                      Manual Upload Session
-                    </span>
-                  </div>
+                  <span className="bg-app-surface rounded-lg px-3 py-1.5 text-app-secondary">
+                    Manual Upload
+                  </span>
                 )}
               </div>
             </div>
@@ -165,13 +209,11 @@ export default function SessionHeader({
         </div>
       </div>
 
-      {/* Edit Session Modal */}
       <EditSessionModal
         open={showEditModal}
         onOpenChange={setShowEditModal}
         session={session}
         onSuccess={() => {
-          // Trigger title update callback if provided
           if (onTitleUpdate && session.title) {
             onTitleUpdate(session.title)
           }

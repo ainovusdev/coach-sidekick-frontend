@@ -14,7 +14,6 @@ import {
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -53,39 +52,31 @@ function WinItem({
 
   if (isPending) {
     return (
-      <div className="border border-amber-200 rounded-lg overflow-hidden bg-amber-50">
+      <div className="border border-app-border rounded-lg overflow-hidden bg-app-surface">
         <div className="flex items-center justify-between gap-2 p-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="flex-shrink-0">
-              <Trophy className="h-4 w-4 text-amber-600" />
-            </div>
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-shrink-0 p-0.5 hover:bg-amber-100 rounded transition-colors"
+              className="flex-shrink-0 p-0.5 hover:bg-app-border rounded transition-colors"
             >
               {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-amber-700" />
+                <ChevronDown className="h-3.5 w-3.5 text-app-secondary" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-amber-700" />
+                <ChevronRight className="h-3.5 w-3.5 text-app-secondary" />
               )}
             </button>
-            <p className="text-sm font-medium flex-1 text-gray-900 truncate">
+            <p className="text-sm font-medium flex-1 text-app-primary truncate">
               {win.title}
             </p>
-            <Badge
-              variant="secondary"
-              className="bg-amber-100 text-amber-700 border-amber-200 text-xs flex-shrink-0"
-            >
-              Pending
-            </Badge>
+            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse flex-shrink-0" />
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <Button
               onClick={() => onApprove(win.id)}
               size="sm"
-              variant="outline"
+              variant="ghost"
               disabled={isApproving || isDeleting}
-              className="h-7 px-2 border-green-500 text-green-600 hover:bg-green-50"
+              className="h-7 px-2 text-app-secondary hover:text-app-primary"
               title="Approve win"
             >
               {isApproving ? (
@@ -97,9 +88,9 @@ function WinItem({
             <Button
               onClick={() => onEdit(win)}
               size="sm"
-              variant="outline"
+              variant="ghost"
               disabled={isApproving || isDeleting}
-              className="h-7 px-2"
+              className="h-7 px-2 text-app-secondary hover:text-app-secondary"
               title="Edit win"
             >
               <Pencil className="h-3.5 w-3.5" />
@@ -107,9 +98,9 @@ function WinItem({
             <Button
               onClick={() => onDelete(win.id)}
               size="sm"
-              variant="outline"
+              variant="ghost"
               disabled={isApproving || isDeleting}
-              className="h-7 px-2 border-red-300 text-red-600 hover:bg-red-50"
+              className="h-7 px-2 text-app-secondary hover:text-red-600"
               title="Reject win"
             >
               {isDeleting ? (
@@ -121,8 +112,8 @@ function WinItem({
           </div>
         </div>
         {isExpanded && win.description && (
-          <div className="px-3 pb-3 pt-1 border-t border-amber-200 bg-amber-50/50">
-            <p className="text-sm text-gray-600 pl-7">{win.description}</p>
+          <div className="px-3 pb-3 pt-1 border-t border-app-border">
+            <p className="text-sm text-app-secondary pl-6">{win.description}</p>
           </div>
         )}
       </div>
@@ -131,32 +122,27 @@ function WinItem({
 
   // Approved win
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 transition-colors">
+    <div className="border border-app-border rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between gap-2 p-3 hover:bg-app-surface transition-colors">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex-shrink-0">
-            <Trophy className="h-4 w-4 text-amber-500" />
-          </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded transition-colors"
+            className="flex-shrink-0 p-0.5 hover:bg-app-border rounded transition-colors"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600" />
+              <ChevronDown className="h-3.5 w-3.5 text-app-secondary" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <ChevronRight className="h-3.5 w-3.5 text-app-secondary" />
             )}
           </button>
-          <p className="text-sm font-medium flex-1 text-gray-900 truncate">
+          <p className="text-sm font-medium flex-1 text-app-primary truncate">
             {win.title}
           </p>
           {win.is_ai_generated && (
-            <Badge
-              variant="secondary"
-              className="bg-gray-100 text-gray-500 text-xs flex-shrink-0"
-            >
-              AI
-            </Badge>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <span className="w-1 h-1 bg-app-secondary rounded-full" />
+              <span className="text-xs text-app-secondary">AI</span>
+            </div>
           )}
         </div>
         {!isViewer && (
@@ -165,7 +151,7 @@ function WinItem({
               onClick={() => onEdit(win)}
               size="sm"
               variant="ghost"
-              className="h-7 px-2 text-gray-400 hover:text-gray-600"
+              className="h-7 px-2 text-app-secondary hover:text-app-secondary"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -174,7 +160,7 @@ function WinItem({
               size="sm"
               variant="ghost"
               disabled={isDeleting}
-              className="h-7 px-2 text-gray-400 hover:text-red-600"
+              className="h-7 px-2 text-app-secondary hover:text-red-600"
             >
               {isDeleting ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -186,8 +172,8 @@ function WinItem({
         )}
       </div>
       {isExpanded && win.description && (
-        <div className="px-3 pb-3 pt-1 border-t border-gray-100 bg-gray-50">
-          <p className="text-sm text-gray-600 pl-7">{win.description}</p>
+        <div className="px-3 pb-3 pt-1 border-t border-app-border bg-app-surface">
+          <p className="text-sm text-app-secondary pl-6">{win.description}</p>
         </div>
       )}
     </div>
@@ -333,9 +319,9 @@ export function SessionWins({
 
   if (loading) {
     return (
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-app-border shadow-sm">
         <CardContent className="py-12 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+          <Loader2 className="h-8 w-8 text-app-secondary animate-spin" />
         </CardContent>
       </Card>
     )
@@ -345,61 +331,62 @@ export function SessionWins({
   const pendingWins = wins.filter(w => !w.is_approved && w.is_ai_generated)
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <div className="px-6 py-4 bg-gray-50 border-b border-gray-200">
+    <Card className="border-app-border shadow-sm">
+      <div className="px-6 py-4 border-b border-app-border">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-amber-500" />
-            <div>
-              <h3 className="text-lg font-semibold text-black">Session Wins</h3>
-              <p className="text-xs text-gray-500">
-                Achievements and breakthroughs from this session
-              </p>
-            </div>
+            <Trophy className="h-4 w-4 text-app-secondary" />
+            <h3 className="text-sm font-semibold text-app-primary">
+              Session Wins
+            </h3>
+            {wins.length > 0 && (
+              <span className="text-xs text-app-secondary">
+                ({wins.length})
+              </span>
+            )}
           </div>
           {!isViewer && (
             <div className="flex gap-2">
               <Button
                 onClick={handleExtractWins}
                 disabled={extracting}
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                className="border-gray-300 hover:bg-gray-50 hover:border-black"
+                className="text-xs text-app-secondary hover:text-app-primary"
               >
                 {extracting ? (
                   <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
                     Extracting...
                   </>
                 ) : (
                   <>
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Extract Wins
+                    <Sparkles className="h-3 w-3 mr-1.5" />
+                    Extract
                   </>
                 )}
               </Button>
               <Button
                 onClick={() => setShowCreateDialog(true)}
                 size="sm"
-                className="bg-black hover:bg-gray-800"
+                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Win
+                <Plus className="h-3 w-3 mr-1.5" />
+                Add
               </Button>
             </div>
           )}
         </div>
       </div>
 
-      <CardContent className="p-6">
+      <CardContent className="p-4">
         {wins.length === 0 ? (
           <div className="text-center py-8">
-            <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-600">No wins recorded yet</p>
-            <p className="text-sm text-gray-500 mt-1">
-              {isViewer
-                ? 'No wins have been recorded for this session.'
-                : 'Extract wins from AI analysis or add them manually'}
+            <div className="inline-flex items-center justify-center w-10 h-10 bg-app-surface rounded-lg mb-3">
+              <Trophy className="h-5 w-5 text-app-secondary" />
+            </div>
+            <p className="text-sm text-app-secondary">
+              {isViewer ? 'No wins recorded.' : 'No wins yet'}
             </p>
           </div>
         ) : (
@@ -407,30 +394,27 @@ export function SessionWins({
             {/* Pending AI-generated wins */}
             {pendingWins.length > 0 && !isViewer && (
               <div className="space-y-2">
-                <div className="flex items-center gap-2 mb-2">
-                  <Badge
-                    variant="secondary"
-                    className="bg-amber-100 text-amber-700"
-                  >
-                    Pending Review
-                  </Badge>
-                  <span className="text-xs text-gray-500">
-                    AI-extracted wins need your approval
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                  <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
+                    Pending ({pendingWins.length})
                   </span>
                 </div>
-                {pendingWins.map(win => (
-                  <WinItem
-                    key={win.id}
-                    win={win}
-                    isPending={true}
-                    isViewer={isViewer}
-                    onApprove={handleApproveWin}
-                    onEdit={openEditDialog}
-                    onDelete={handleDeleteWin}
-                    isApproving={approvingWinId === win.id}
-                    isDeleting={deletingWinId === win.id}
-                  />
-                ))}
+                <div className="space-y-2">
+                  {pendingWins.map(win => (
+                    <WinItem
+                      key={win.id}
+                      win={win}
+                      isPending={true}
+                      isViewer={isViewer}
+                      onApprove={handleApproveWin}
+                      onEdit={openEditDialog}
+                      onDelete={handleDeleteWin}
+                      isApproving={approvingWinId === win.id}
+                      isDeleting={deletingWinId === win.id}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
@@ -438,23 +422,28 @@ export function SessionWins({
             {approvedWins.length > 0 && (
               <div className="space-y-2">
                 {pendingWins.length > 0 && !isViewer && (
-                  <div className="text-xs font-medium text-gray-500 mt-4 mb-2">
-                    Approved Wins
+                  <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                    <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
+                      Confirmed ({approvedWins.length})
+                    </span>
                   </div>
                 )}
-                {approvedWins.map(win => (
-                  <WinItem
-                    key={win.id}
-                    win={win}
-                    isPending={false}
-                    isViewer={isViewer}
-                    onApprove={handleApproveWin}
-                    onEdit={openEditDialog}
-                    onDelete={handleDeleteWin}
-                    isApproving={approvingWinId === win.id}
-                    isDeleting={deletingWinId === win.id}
-                  />
-                ))}
+                <div className="space-y-2">
+                  {approvedWins.map(win => (
+                    <WinItem
+                      key={win.id}
+                      win={win}
+                      isPending={false}
+                      isViewer={isViewer}
+                      onApprove={handleApproveWin}
+                      onEdit={openEditDialog}
+                      onDelete={handleDeleteWin}
+                      isApproving={approvingWinId === win.id}
+                      isDeleting={deletingWinId === win.id}
+                    />
+                  ))}
+                </div>
               </div>
             )}
           </div>
@@ -479,7 +468,7 @@ export function SessionWins({
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
                 Title *
               </label>
               <Input
@@ -489,7 +478,7 @@ export function SessionWins({
               />
             </div>
             <div>
-              <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
                 Description
               </label>
               <Textarea
@@ -515,7 +504,7 @@ export function SessionWins({
             <Button
               onClick={editingWin ? handleUpdateWin : handleCreateWin}
               disabled={!newTitle.trim()}
-              className="bg-black hover:bg-gray-800"
+              className="bg-black hover:bg-app-primary/90"
             >
               {editingWin ? 'Update Win' : 'Add Win'}
             </Button>

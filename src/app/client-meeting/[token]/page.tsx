@@ -8,14 +8,13 @@
 import { useParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
-import { Sparkles } from 'lucide-react'
+import Image from 'next/image'
 import { useLiveMeetingData } from './hooks/use-live-meeting-data'
 import { useGuestAuth } from './hooks/use-guest-auth'
 import { useMeetingStatus } from './hooks/use-meeting-status'
 import { ClientMeetingHeader } from './components/client-meeting-header'
 import { ClientNotesPanel } from './components/client-notes-panel'
 import { ClientCommitmentPanel } from './components/client-commitment-panel'
-import { PastCommitmentsPanel } from './components/past-commitments-panel'
 import { MeetingEndedOverlay } from './components/meeting-ended-overlay'
 import { LiveMeetingService } from '@/services/live-meeting-service'
 
@@ -72,8 +71,14 @@ export default function ClientMeetingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/20 mx-auto mb-4">
-            <Sparkles className="h-8 w-8 text-white" />
+          <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4 p-2">
+            <Image
+              src="/novus-global-logo.webp"
+              alt="Logo"
+              width={48}
+              height={48}
+              className="object-contain filter brightness-0 invert"
+            />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
             Coach Sidekick
@@ -91,8 +96,14 @@ export default function ClientMeetingPage() {
       <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg mx-auto mb-4">
-              <Sparkles className="h-6 w-6 text-white" />
+            <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center shadow-lg mx-auto mb-4 p-1.5">
+              <Image
+                src="/novus-global-logo.webp"
+                alt="Logo"
+                width={36}
+                height={36}
+                className="object-contain filter brightness-0 invert"
+              />
             </div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
               Coach Sidekick
@@ -125,8 +136,14 @@ export default function ClientMeetingPage() {
         </div>
         <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-md flex items-center justify-center">
-              <Sparkles className="h-3 w-3 text-white" />
+            <div className="w-5 h-5 bg-gray-900 rounded-md flex items-center justify-center p-0.5">
+              <Image
+                src="/novus-global-logo.webp"
+                alt="Logo"
+                width={16}
+                height={16}
+                className="object-contain filter brightness-0 invert"
+              />
             </div>
             <span>
               Powered by{' '}
@@ -169,15 +186,8 @@ export default function ClientMeetingPage() {
             </div>
 
             {/* Right Column - Commitments */}
-            <div className="lg:col-span-4 flex flex-col gap-4">
-              <div className="flex-1 min-h-[300px]">
-                <ClientCommitmentPanel
-                  meetingToken={meetingToken}
-                  guestToken={guestToken}
-                  refreshKey={refreshKey}
-                />
-              </div>
-              <PastCommitmentsPanel
+            <div className="lg:col-span-4 h-full min-h-[400px] lg:min-h-0">
+              <ClientCommitmentPanel
                 meetingToken={meetingToken}
                 guestToken={guestToken}
                 refreshKey={refreshKey}
@@ -191,8 +201,14 @@ export default function ClientMeetingPage() {
       <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <div className="w-5 h-5 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-md flex items-center justify-center">
-              <Sparkles className="h-3 w-3 text-white" />
+            <div className="w-5 h-5 bg-gray-900 rounded-md flex items-center justify-center p-0.5">
+              <Image
+                src="/novus-global-logo.webp"
+                alt="Logo"
+                width={16}
+                height={16}
+                className="object-contain filter brightness-0 invert"
+              />
             </div>
             <span>
               Powered by{' '}

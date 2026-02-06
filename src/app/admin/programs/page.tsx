@@ -82,14 +82,14 @@ export default function ProgramsListPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Programs</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Sandboxes</h1>
           <p className="text-gray-600 mt-1">
-            Manage coaching programs and track client progress
+            Manage coaching sandboxes and track client progress
           </p>
         </div>
         <Button onClick={() => router.push('/admin/programs/new')}>
           <Plus className="h-4 w-4 mr-2" />
-          Create Program
+          Create Sandbox
         </Button>
       </div>
 
@@ -98,7 +98,7 @@ export default function ProgramsListPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search programs..."
+            placeholder="Search sandboxes..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -112,17 +112,17 @@ export default function ProgramsListPage() {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No programs found
+              No sandboxes found
             </h3>
             <p className="text-gray-600 text-center mb-6">
               {searchQuery
                 ? 'Try adjusting your search query'
-                : 'Get started by creating your first program'}
+                : 'Get started by creating your first sandbox'}
             </p>
             {!searchQuery && (
               <Button onClick={() => router.push('/admin/programs/new')}>
                 <Plus className="h-4 w-4 mr-2" />
-                Create Program
+                Create Sandbox
               </Button>
             )}
           </CardContent>
@@ -221,10 +221,10 @@ export default function ProgramsListPage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Program</AlertDialogTitle>
+            <AlertDialogTitle>Delete Sandbox</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete &quot;{deleteProgram?.name}&quot;?
-              This will remove all client assignments from this program. Clients
+              This will remove all client assignments from this sandbox. Clients
               and their data will not be deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -234,7 +234,7 @@ export default function ProgramsListPage() {
               onClick={handleDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete Program
+              Delete Sandbox
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

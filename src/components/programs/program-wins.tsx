@@ -104,7 +104,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                 <Trophy className="h-6 w-6 text-amber-600" />
               </div>
               <div>
-                <CardTitle className="text-xl">Program Wins</CardTitle>
+                <CardTitle className="text-xl">Sandbox Wins</CardTitle>
                 <CardDescription>
                   Achievements and breakthroughs across all clients
                 </CardDescription>

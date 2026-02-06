@@ -31,6 +31,7 @@ import { ClientCommitmentService } from '@/services/client-commitment-service'
 
 interface ClientCommitmentBoardProps {
   commitments: Commitment[]
+  outcomeMap?: Record<string, string>
   onCommitmentClick?: (commitment: Commitment) => void
   onEdit?: (commitment: Commitment) => void
   onDelete?: (commitment: Commitment) => void
@@ -43,6 +44,7 @@ interface KanbanColumnProps {
   icon: React.ReactNode
   commitments: Commitment[]
   columnStatus: string
+  outcomeMap?: Record<string, string>
   onCommitmentClick?: (commitment: Commitment) => void
   onEdit?: (commitment: Commitment) => void
   onDelete?: (commitment: Commitment) => void
@@ -54,11 +56,13 @@ interface KanbanColumnProps {
 
 function CommitmentCard({
   commitment,
+  outcomeMap,
   onClick,
   onEdit,
   onDelete,
 }: {
   commitment: Commitment
+  outcomeMap?: Record<string, string>
   onClick?: () => void
   onEdit?: () => void
   onDelete?: () => void
@@ -177,6 +181,27 @@ function CommitmentCard({
         </p>
       )}
 
+      {/* Linked outcome badges */}
+      {outcomeMap &&
+        commitment.linked_target_ids &&
+        commitment.linked_target_ids.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {commitment.linked_target_ids.map(targetId => {
+              const title = outcomeMap[targetId]
+              if (!title) return null
+              return (
+                <Badge
+                  key={targetId}
+                  variant="secondary"
+                  className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200"
+                >
+                  {title}
+                </Badge>
+              )
+            })}
+          </div>
+        )}
+
       {/* Progress bar */}
       {commitment.status !== 'completed' &&
         commitment.progress_percentage > 0 && (
@@ -213,6 +238,7 @@ function KanbanColumn({
   icon,
   commitments,
   columnStatus,
+  outcomeMap,
   onCommitmentClick,
   onEdit,
   onDelete,
@@ -271,6 +297,7 @@ function KanbanColumn({
                 <CommitmentCard
                   key={commitment.id}
                   commitment={commitment}
+                  outcomeMap={outcomeMap}
                   onClick={() => onCommitmentClick?.(commitment)}
                   onEdit={() => onEdit?.(commitment)}
                   onDelete={() => onDelete?.(commitment)}
@@ -290,6 +317,7 @@ function KanbanColumn({
 
 export function ClientCommitmentBoard({
   commitments,
+  outcomeMap,
   onCommitmentClick,
   onEdit,
   onDelete,
@@ -364,6 +392,7 @@ export function ClientCommitmentBoard({
         icon={<Circle className="h-4 w-4" />}
         commitments={todoCommitments}
         columnStatus="active"
+        outcomeMap={outcomeMap}
         onCommitmentClick={onCommitmentClick}
         onEdit={onEdit}
         onDelete={onDelete}
@@ -379,6 +408,7 @@ export function ClientCommitmentBoard({
         icon={<PlayCircle className="h-4 w-4" />}
         commitments={inProgressCommitments}
         columnStatus="in_progress"
+        outcomeMap={outcomeMap}
         onCommitmentClick={onCommitmentClick}
         onEdit={onEdit}
         onDelete={onDelete}
@@ -394,6 +424,7 @@ export function ClientCommitmentBoard({
         icon={<CheckCircle2 className="h-4 w-4" />}
         commitments={doneCommitments}
         columnStatus="completed"
+        outcomeMap={outcomeMap}
         onCommitmentClick={onCommitmentClick}
         onEdit={onEdit}
         onDelete={onDelete}

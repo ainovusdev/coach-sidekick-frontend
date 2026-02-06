@@ -91,7 +91,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
     onSuccess: () => {
       // Don't navigate yet if we need to update memberships
       if (mode === 'edit') {
-        toast.success('Program details updated')
+        toast.success('Sandbox details updated')
       } else {
         router.push('/admin/programs')
       }
@@ -170,20 +170,20 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Program Details</CardTitle>
+          <CardTitle>Sandbox Details</CardTitle>
           <CardDescription>
-            Enter the basic information for this program
+            Enter the basic information for this sandbox
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Program Name */}
           <div className="space-y-2">
             <Label htmlFor="name">
-              Program Name <span className="text-red-500">*</span>
+              Sandbox Name <span className="text-red-500">*</span>
             </Label>
             <Input
               id="name"
-              {...register('name', { required: 'Program name is required' })}
+              {...register('name', { required: 'Sandbox name is required' })}
               placeholder="e.g., Executive Leadership Cohort 2025"
             />
             {errors.name && (
@@ -197,14 +197,14 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
             <Textarea
               id="description"
               {...register('description')}
-              placeholder="Describe the purpose and goals of this program..."
+              placeholder="Describe the purpose and goals of this sandbox..."
               rows={4}
             />
           </div>
 
           {/* Color Picker */}
           <div className="space-y-2">
-            <Label>Program Color</Label>
+            <Label>Sandbox Color</Label>
             <div className="flex items-center gap-4">
               <div className="grid grid-cols-8 gap-2">
                 {DEFAULT_COLORS.map(color => (
@@ -246,15 +246,15 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
           </CardTitle>
           <CardDescription>
             {mode === 'create'
-              ? 'Select clients to include in this program'
-              : 'Add or remove clients from this program'}
+              ? 'Select clients to include in this sandbox'
+              : 'Add or remove clients from this sandbox'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {clients.length === 0 ? (
             <p className="text-sm text-gray-600">
               No clients available. Create clients first before assigning them
-              to programs.
+              to sandboxes.
             </p>
           ) : (
             <>
@@ -416,7 +416,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
               ? 'Creating...'
               : 'Saving...'
             : mode === 'create'
-              ? 'Create Program'
+              ? 'Create Sandbox'
               : 'Save Changes'}
         </Button>
       </div>

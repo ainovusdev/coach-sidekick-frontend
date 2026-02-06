@@ -3,6 +3,7 @@
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
+import PageLayout from '@/components/layout/page-layout'
 import { usePermissions } from '@/contexts/permission-context'
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
@@ -22,7 +23,6 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
-import { Progress } from '@/components/ui/progress'
 import { MediaUploader } from '@/components/sessions/media-uploader'
 import SessionHeader from './components/session-header'
 import { SessionHeroCard } from './components/session-hero-card'
@@ -347,7 +347,7 @@ export default function SessionDetailsPage({
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-app-surface">
         <LoadingState
           message="Loading session details..."
           variant="default"
@@ -359,8 +359,8 @@ export default function SessionDetailsPage({
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto bg-white rounded-lg shadow-sm p-8 border border-gray-200">
+      <div className="min-h-screen bg-app-surface flex items-center justify-center p-4">
+        <div className="text-center max-w-md mx-auto bg-white rounded-lg shadow-sm p-8 border border-app-border">
           <EmptyState
             icon={AlertCircle}
             title="Error Loading Session"
@@ -375,7 +375,7 @@ export default function SessionDetailsPage({
               onClick: () => window.location.reload(),
               variant: 'outline',
             }}
-            iconClassName="w-20 h-20 bg-gray-100"
+            iconClassName="w-20 h-20 bg-app-surface"
           />
         </div>
       </div>
@@ -384,9 +384,9 @@ export default function SessionDetailsPage({
 
   if (!sessionData) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-app-surface flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-app-primary">
             Session not found
           </h1>
           <Button onClick={() => router.back()} className="mt-4">
@@ -411,315 +411,344 @@ export default function SessionDetailsPage({
 
   return (
     <ProtectedRoute loadingMessage="Loading session details...">
-      <div className="min-h-screen bg-white">
-        {/* Header */}
-        <SessionHeader
-          session={session}
-          onBack={() => {
-            // Navigate to client profile if client exists, otherwise go back
-            if (clientId) {
-              router.push(`/clients/${clientId}`)
-            } else {
-              router.push('/sessions')
+      <PageLayout>
+        <div className="min-h-screen bg-white">
+          {/* Header */}
+          <SessionHeader
+            session={session}
+            onBack={() => {
+              // Navigate to client profile if client exists, otherwise go back
+              if (clientId) {
+                router.push(`/clients/${clientId}`)
+              } else {
+                router.push('/sessions')
+              }
+            }}
+            onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
+            onTitleUpdate={newTitle => {
+              if (sessionData?.session) {
+                sessionData.session.title = newTitle
+              }
+            }}
+            onSendEmail={!isViewer ? handleSendSummaryEmail : undefined}
+            sendingEmail={sendingEmail}
+            onDownloadTranscript={
+              !isViewer && hasTranscripts ? handleDownloadTranscript : undefined
             }
-          }}
-          onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
-          onTitleUpdate={newTitle => {
-            if (sessionData?.session) {
-              sessionData.session.title = newTitle
-            }
-          }}
-          onSendEmail={!isViewer ? handleSendSummaryEmail : undefined}
-          sendingEmail={sendingEmail}
-          onDownloadTranscript={
-            !isViewer && hasTranscripts ? handleDownloadTranscript : undefined
-          }
-        />
+          />
 
-        {/* Main Content */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          {/* Upload Required State */}
-          {needsUpload && !isViewer ? (
-            <div className="max-w-2xl mx-auto">
-              <MediaUploader
-                sessionId={session.id}
-                onUploadComplete={() => {
-                  window.location.reload()
-                }}
-              />
-            </div>
-          ) : needsUpload && isViewer ? (
-            <Card className="max-w-2xl mx-auto">
-              <CardContent className="p-8 text-center">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Upload Required
-                </h3>
-                <p className="text-gray-600">
-                  This session requires a recording upload, which is not
-                  available with viewer permissions.
-                </p>
-              </CardContent>
-            </Card>
-          ) : session.transcription_status === 'processing' ? (
-            /* Processing State */
-            <Card className="max-w-2xl mx-auto">
-              <CardContent className="flex flex-col items-center justify-center py-12">
-                <Loader2 className="w-12 h-12 text-gray-600 animate-spin mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  Processing Recording...
-                </h3>
-                <p className="text-gray-600 text-center">
-                  Your file is being transcribed. This may take a few minutes.
-                </p>
-                <Progress
-                  value={session.transcription_progress || 0}
-                  className="w-full max-w-xs mt-4"
+          {/* Main Content */}
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            {/* Upload Required State */}
+            {needsUpload && !isViewer ? (
+              <div className="max-w-2xl mx-auto">
+                <MediaUploader
+                  sessionId={session.id}
+                  onUploadComplete={() => {
+                    window.location.reload()
+                  }}
                 />
-                <p className="text-sm text-gray-500 mt-2">
-                  {session.transcription_progress || 0}% complete
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            /* Main Content with New Layout */
-            <div className="space-y-6">
-              {/* Tabs with Quick Actions on the Right */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <Tabs
-                  value={activeTab}
-                  onValueChange={setActiveTab}
-                  className="flex-1"
-                >
-                  <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
-                    <TabsTrigger
-                      value="overview"
-                      className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                    >
-                      <LayoutGrid className="h-4 w-4 mr-2" />
-                      Overview
-                    </TabsTrigger>
-                    <TabsTrigger
-                      value="analysis"
-                      className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      Analysis
-                    </TabsTrigger>
-                  </TabsList>
-                </Tabs>
-
-                {/* Quick Actions - Compact Version */}
-                {!isViewer && (
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      onClick={() => setShowCreateCommitment(true)}
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-300 hover:bg-gray-50 hover:border-black transition-colors"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Commitment
-                    </Button>
-
-                    <Button
-                      onClick={() => setShowQuickNote(!showQuickNote)}
-                      variant="outline"
-                      size="sm"
-                      className="border-gray-300 hover:bg-gray-50 hover:border-black transition-colors"
-                    >
-                      <StickyNote className="h-4 w-4 mr-2" />
-                      Note
-                    </Button>
-
-                    <Button
-                      onClick={triggerAnalysisWithProgress}
-                      disabled={analyzing || !transcriptsExist}
-                      className="bg-black hover:bg-gray-800 text-white"
-                      size="sm"
-                    >
-                      {analyzing ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-4 w-4 mr-2" />
-                          Regenerate
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                )}
               </div>
-
-              {/* Quick Note Form (collapsible) */}
-              {showQuickNote && !isViewer && (
-                <QuickNote sessionId={sessionData.session.id} />
-              )}
-
-              {/* Analyzing Progress Indicator */}
-              {analyzing && (
-                <Card className="bg-black border-black">
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <Brain className="h-8 w-8 text-white animate-pulse" />
-                      <div className="flex-1">
-                        <p className="text-white font-medium mb-2">
-                          Analyzing session...
-                        </p>
-                        <Progress value={analysisProgress} className="h-2" />
-                      </div>
-                      <span className="text-white text-sm font-medium">
-                        {analysisProgress}%
-                      </span>
+            ) : needsUpload && isViewer ? (
+              <Card className="max-w-2xl mx-auto">
+                <CardContent className="p-8 text-center">
+                  <FileText className="h-12 w-12 text-app-secondary mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-app-primary mb-2">
+                    Upload Required
+                  </h3>
+                  <p className="text-app-secondary">
+                    This session requires a recording upload, which is not
+                    available with viewer permissions.
+                  </p>
+                </CardContent>
+              </Card>
+            ) : session.transcription_status === 'processing' ? (
+              /* Processing State */
+              <Card className="max-w-2xl mx-auto border-app-border shadow-sm">
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <div className="relative mb-6">
+                    <div className="w-14 h-14 bg-app-surface rounded-xl flex items-center justify-center">
+                      <Loader2 className="w-7 h-7 text-app-secondary animate-spin" />
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Tab Content */}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-app-primary rounded-full animate-pulse" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-app-primary mb-2">
+                    Processing Recording
+                  </h3>
+                  <p className="text-app-secondary text-center mb-6 max-w-sm text-sm">
+                    Your file is being transcribed. This may take a few minutes.
+                  </p>
+                  <div className="w-full max-w-xs">
+                    <div className="h-2 bg-app-surface rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-app-primary rounded-full transition-all duration-500"
+                        style={{
+                          width: `${session.transcription_progress || 0}%`,
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-app-secondary mt-2 text-center">
+                      {session.transcription_progress || 0}% complete
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              /* Main Content with New Layout */
               <div className="space-y-6">
-                {/* Overview Tab */}
-                {activeTab === 'overview' && (
-                  <SessionOverviewTab
-                    insights={analysisData?.insights || undefined}
-                    commitments={commitmentsData?.commitments || []}
-                    sessionId={sessionData.session.id}
-                    clientId={clientId}
-                    transcript={transcript}
-                    isViewer={isViewer}
-                    videoUrl={session.video_url}
-                    onViewAnalysis={() => setActiveTab('analysis')}
-                    onViewNotes={() => setShowQuickNote(true)}
-                    onRefreshCommitments={refreshCommitments}
-                    onRefreshVideoUrl={
-                      !isViewer ? handleRefreshVideoUrl : undefined
-                    }
-                  />
+                {/* Tabs with Quick Actions on the Right */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <Tabs
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="flex-1"
+                  >
+                    <TabsList className="bg-app-surface p-1 rounded-lg">
+                      <TabsTrigger
+                        value="overview"
+                        className="data-[state=active]:bg-white data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                      >
+                        <LayoutGrid className="h-4 w-4 mr-2" />
+                        Overview
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="analysis"
+                        className="data-[state=active]:bg-white data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Analysis
+                      </TabsTrigger>
+                    </TabsList>
+                  </Tabs>
+
+                  {/* Quick Actions */}
+                  {!isViewer && (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => setShowCreateCommitment(true)}
+                        variant="outline"
+                        size="sm"
+                        className="border-app-border hover:bg-app-surface text-sm"
+                      >
+                        <Plus className="h-3.5 w-3.5 mr-1.5" />
+                        Commitment
+                      </Button>
+
+                      <Button
+                        onClick={() => setShowQuickNote(!showQuickNote)}
+                        variant="outline"
+                        size="sm"
+                        className="border-app-border hover:bg-app-surface text-sm"
+                      >
+                        <StickyNote className="h-3.5 w-3.5 mr-1.5" />
+                        Note
+                      </Button>
+
+                      <Button
+                        onClick={triggerAnalysisWithProgress}
+                        disabled={analyzing || !transcriptsExist}
+                        size="sm"
+                        className="bg-app-primary hover:bg-app-primary/90 text-white text-sm"
+                      >
+                        {analyzing ? (
+                          <>
+                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                            Regenerate
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Quick Note Form (collapsible) */}
+                {showQuickNote && !isViewer && (
+                  <QuickNote sessionId={sessionData.session.id} />
                 )}
 
-                {/* Analysis Tab (Merged Insights + Performance) */}
-                {activeTab === 'analysis' &&
-                  (loadingAnalysis ? (
-                    <Card className="border-gray-200 shadow-sm">
-                      <CardContent className="py-12 flex items-center justify-center">
-                        <Loader2 className="h-10 w-10 text-gray-600 animate-spin" />
-                      </CardContent>
-                    </Card>
-                  ) : analysisData?.insights || analysisData?.coaching ? (
-                    <>
-                      {/* Hero Card with Key Metrics */}
-                      <SessionHeroCard
-                        overallScore={
-                          analysisData.coaching?.coaching_scores?.overall ||
-                          Object.values(
-                            analysisData.coaching?.coaching_scores || {},
-                          ).reduce(
-                            (sum, score) =>
-                              sum + (typeof score === 'number' ? score : 0),
-                            0,
-                          ) / 12
-                        }
-                        sentiment={analysisData.coaching?.sentiment}
-                        wordCount={analysisData.insights?.metadata?.word_count}
-                        speakerBalance={
-                          analysisData.insights?.metadata?.speaker_balance
-                        }
-                        coachingStyle={
-                          analysisData.insights?.metadata?.coaching_style
-                        }
-                      />
+                {/* Analyzing Progress Indicator */}
+                {analyzing && (
+                  <Card className="border-app-border shadow-sm bg-app-surface">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-4">
+                        <div className="p-2 bg-app-surface rounded-lg">
+                          <Brain className="h-5 w-5 text-app-secondary animate-pulse" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm text-app-primary font-medium mb-1.5">
+                            Analyzing session...
+                          </p>
+                          <div className="h-1.5 bg-app-border rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-app-primary rounded-full transition-all duration-300"
+                              style={{ width: `${analysisProgress}%` }}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-xs text-app-secondary font-medium">
+                          {analysisProgress}%
+                        </span>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
 
-                      {/* Detailed Analysis */}
-                      <SessionAnalysisMerged
-                        insights={analysisData.insights || undefined}
-                        coaching={
-                          analysisData.coaching
-                            ? {
-                                ...analysisData.coaching,
-                                session_id: analysisData.session_id,
-                                timestamp: analysisData.timestamp,
-                              }
-                            : undefined
-                        }
-                      />
-                    </>
-                  ) : (
-                    <Card className="border-dashed border-2 border-gray-200">
-                      <CardContent className="py-16 text-center">
-                        <Brain className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                        <h3 className="text-lg font-semibold text-black mb-2">
-                          No Analysis Yet
-                        </h3>
-                        <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                          {isViewer
-                            ? 'No analysis has been generated for this session yet.'
-                            : 'Generate comprehensive AI analysis including insights and coaching performance metrics'}
-                        </p>
-                        {!isViewer && (
-                          <Button
-                            onClick={triggerAnalysisWithProgress}
-                            disabled={analyzing}
-                            className="bg-black hover:bg-gray-800"
-                          >
-                            <Sparkles className="h-4 w-4 mr-2" />
-                            Generate Analysis
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                {/* Tab Content */}
+                <div className="space-y-6">
+                  {/* Overview Tab */}
+                  {activeTab === 'overview' && (
+                    <SessionOverviewTab
+                      insights={analysisData?.insights || undefined}
+                      commitments={commitmentsData?.commitments || []}
+                      sessionId={sessionData.session.id}
+                      clientId={clientId}
+                      transcript={transcript}
+                      isViewer={isViewer}
+                      videoUrl={session.video_url}
+                      onViewAnalysis={() => setActiveTab('analysis')}
+                      onViewNotes={() => setShowQuickNote(true)}
+                      onRefreshCommitments={refreshCommitments}
+                      onRefreshVideoUrl={
+                        !isViewer ? handleRefreshVideoUrl : undefined
+                      }
+                    />
+                  )}
+
+                  {/* Analysis Tab (Merged Insights + Performance) */}
+                  {activeTab === 'analysis' &&
+                    (loadingAnalysis ? (
+                      <Card className="border-app-border shadow-sm">
+                        <CardContent className="py-12 flex flex-col items-center justify-center">
+                          <div className="w-10 h-10 bg-app-surface rounded-lg flex items-center justify-center mb-3">
+                            <Loader2 className="h-5 w-5 text-app-secondary animate-spin" />
+                          </div>
+                          <p className="text-sm text-app-secondary">
+                            Loading analysis...
+                          </p>
+                        </CardContent>
+                      </Card>
+                    ) : analysisData?.insights || analysisData?.coaching ? (
+                      <>
+                        {/* Hero Card with Key Metrics */}
+                        <SessionHeroCard
+                          overallScore={
+                            analysisData.coaching?.coaching_scores?.overall ||
+                            Object.values(
+                              analysisData.coaching?.coaching_scores || {},
+                            ).reduce(
+                              (sum, score) =>
+                                sum + (typeof score === 'number' ? score : 0),
+                              0,
+                            ) / 12
+                          }
+                          sentiment={analysisData.coaching?.sentiment}
+                          wordCount={
+                            analysisData.insights?.metadata?.word_count
+                          }
+                          speakerBalance={
+                            analysisData.insights?.metadata?.speaker_balance
+                          }
+                          coachingStyle={
+                            analysisData.insights?.metadata?.coaching_style
+                          }
+                        />
+
+                        {/* Detailed Analysis */}
+                        <SessionAnalysisMerged
+                          insights={analysisData.insights || undefined}
+                          coaching={
+                            analysisData.coaching
+                              ? {
+                                  ...analysisData.coaching,
+                                  session_id: analysisData.session_id,
+                                  timestamp: analysisData.timestamp,
+                                }
+                              : undefined
+                          }
+                        />
+                      </>
+                    ) : (
+                      <Card className="border-dashed border-2 border-app-border">
+                        <CardContent className="py-16 text-center">
+                          <div className="w-12 h-12 bg-app-surface rounded-xl flex items-center justify-center mx-auto mb-4">
+                            <Brain className="h-6 w-6 text-app-secondary" />
+                          </div>
+                          <h3 className="text-base font-semibold text-app-primary mb-2">
+                            No Analysis Yet
+                          </h3>
+                          <p className="text-sm text-app-secondary max-w-sm mx-auto mb-4">
+                            {isViewer
+                              ? 'No analysis has been generated for this session yet.'
+                              : 'Generate AI analysis to see insights and coaching metrics.'}
+                          </p>
+                          {!isViewer && (
+                            <Button
+                              onClick={triggerAnalysisWithProgress}
+                              disabled={analyzing}
+                              className="bg-app-primary hover:bg-app-primary/90"
+                            >
+                              <Sparkles className="h-4 w-4 mr-2" />
+                              Generate Analysis
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
               </div>
-            </div>
+            )}
+          </div>
+
+          {/* Create Commitment Modal */}
+          <CommitmentForm
+            open={showCreateCommitment}
+            onOpenChange={setShowCreateCommitment}
+            onSubmit={async data => {
+              try {
+                await CommitmentService.createCommitment(data)
+                toast({
+                  title: 'Commitment Created',
+                  description: 'The commitment has been created successfully.',
+                })
+                setShowCreateCommitment(false)
+                refreshCommitments()
+              } catch (error) {
+                console.error('Failed to create commitment:', error)
+              }
+            }}
+            clientId={clientId || undefined}
+            sessionId={sessionData?.session?.id}
+          />
+
+          {/* Delete Confirmation Dialog */}
+          <ConfirmationDialog
+            open={showDeleteDialog}
+            onOpenChange={setShowDeleteDialog}
+            title="Delete Session"
+            description="Are you sure you want to delete this session? This will permanently remove the session, all transcripts, analyses, and associated data. This action cannot be undone."
+            confirmText={deleting ? 'Deleting...' : 'Delete Session'}
+            cancelText="Cancel"
+            onConfirm={handleDeleteSession}
+            variant="destructive"
+          />
+
+          {/* Auto-Extraction Modal - Shows after analysis completes */}
+          {clientId && (
+            <AutoExtractionModal
+              open={showExtractionModal}
+              onOpenChange={setShowExtractionModal}
+              sessionId={sessionData?.session?.id || ''}
+              clientId={clientId}
+              onComplete={refreshCommitments}
+            />
           )}
         </div>
-
-        {/* Create Commitment Modal */}
-        <CommitmentForm
-          open={showCreateCommitment}
-          onOpenChange={setShowCreateCommitment}
-          onSubmit={async data => {
-            try {
-              await CommitmentService.createCommitment(data)
-              toast({
-                title: 'Commitment Created',
-                description: 'The commitment has been created successfully.',
-              })
-              setShowCreateCommitment(false)
-              refreshCommitments()
-            } catch (error) {
-              console.error('Failed to create commitment:', error)
-            }
-          }}
-          clientId={clientId || undefined}
-          sessionId={sessionData?.session?.id}
-        />
-
-        {/* Delete Confirmation Dialog */}
-        <ConfirmationDialog
-          open={showDeleteDialog}
-          onOpenChange={setShowDeleteDialog}
-          title="Delete Session"
-          description="Are you sure you want to delete this session? This will permanently remove the session, all transcripts, analyses, and associated data. This action cannot be undone."
-          confirmText={deleting ? 'Deleting...' : 'Delete Session'}
-          cancelText="Cancel"
-          onConfirm={handleDeleteSession}
-          variant="destructive"
-        />
-
-        {/* Auto-Extraction Modal - Shows after analysis completes */}
-        {clientId && (
-          <AutoExtractionModal
-            open={showExtractionModal}
-            onOpenChange={setShowExtractionModal}
-            sessionId={sessionData?.session?.id || ''}
-            clientId={clientId}
-            onComplete={refreshCommitments}
-          />
-        )}
-      </div>
+      </PageLayout>
     </ProtectedRoute>
   )
 }

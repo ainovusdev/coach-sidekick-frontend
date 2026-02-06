@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
+import { useClientOutcomes } from '@/hooks/queries/use-client-outcomes'
+import { Progress } from '@/components/ui/progress'
 import {
   Clock,
   TrendingUp,
@@ -15,6 +17,7 @@ import {
   FileText,
   Flame,
   ChevronRight,
+  Target,
 } from 'lucide-react'
 import { format, formatDistanceToNow } from 'date-fns'
 
@@ -56,6 +59,7 @@ export default function ClientDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const { data: outcomes } = useClientOutcomes()
 
   useEffect(() => {
     fetchDashboardData()
@@ -313,12 +317,71 @@ export default function ClientDashboard() {
           )}
         </div>
 
-        {/* Right Column - Commitments */}
+        {/* Right Column - Commitments & Outcomes */}
         <div className="space-y-6">
           <CommitmentsWidget
             clientId={dashboardData.client_info?.id}
             limit={5}
           />
+
+          {/* Outcomes Summary Widget */}
+          {outcomes &&
+            outcomes.length > 0 &&
+            (() => {
+              const activeOuts = outcomes.filter(o => o.status === 'active')
+              const completedOuts = outcomes.filter(
+                o => o.status === 'completed',
+              )
+              const avgProgress =
+                outcomes.length > 0
+                  ? Math.round(
+                      outcomes.reduce((s, o) => s + o.progress_percentage, 0) /
+                        outcomes.length,
+                    )
+                  : 0
+              return (
+                <Card className="border-gray-200">
+                  <CardHeader className="border-b border-gray-100 pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Target className="h-4 w-4 text-gray-600" />
+                        My Outcomes
+                      </CardTitle>
+                      <Link href="/client-portal/outcomes">
+                        <Button variant="ghost" size="sm" className="text-xs">
+                          View All
+                          <ArrowRight className="h-3 w-3 ml-1" />
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-4 mb-3">
+                      <div className="text-center flex-1">
+                        <p className="text-xl font-bold text-gray-900">
+                          {activeOuts.length}
+                        </p>
+                        <p className="text-xs text-gray-500">Active</p>
+                      </div>
+                      <div className="h-8 w-px bg-gray-200" />
+                      <div className="text-center flex-1">
+                        <p className="text-xl font-bold text-gray-900">
+                          {completedOuts.length}
+                        </p>
+                        <p className="text-xs text-gray-500">Completed</p>
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                        <span>Progress</span>
+                        <span className="font-medium">{avgProgress}%</span>
+                      </div>
+                      <Progress value={avgProgress} className="h-1.5" />
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })()}
         </div>
       </div>
 

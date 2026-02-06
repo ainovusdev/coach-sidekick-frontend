@@ -163,7 +163,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Program Calendar</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Sandbox Calendar</h2>
           <p className="text-gray-600 mt-1">
             Upcoming sessions and coach workload
           </p>

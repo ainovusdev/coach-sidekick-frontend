@@ -18,6 +18,7 @@ export interface ClientCommitmentCreate {
   description?: string
   type?: 'action' | 'habit' | 'milestone' | 'learning'
   target_date: string // Required
+  target_ids?: string[]
 }
 
 export interface ClientCommitmentUpdate {

@@ -1,74 +1,118 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { format, isPast, addDays, addWeeks } from 'date-fns'
-import { formatRelativeTime } from '@/lib/date-utils'
-import { Card, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
-import {
-  Check,
-  Target,
-  CalendarIcon,
-  User,
-  Briefcase,
-  Loader2,
-  Pencil,
-  Trash2,
-  X,
-  Clock,
-  TrendingUp,
-  CheckCircle2,
-  Circle,
-  ChevronDown,
-  ChevronUp,
-} from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { toast } from 'sonner'
 import {
   useCreateCommitment,
   useUpdateCommitment,
   useDiscardCommitment,
 } from '@/hooks/mutations/use-commitment-mutations'
+import { useQueryClient } from '@tanstack/react-query'
 import { useCommitments } from '@/hooks/queries/use-commitments'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useTargets } from '@/hooks/queries/use-targets'
 import { useAuth } from '@/contexts/auth-context'
-import { cn } from '@/lib/utils'
 import { CommitmentService } from '@/services/commitment-service'
 import { Commitment } from '@/types/commitment'
+import {
+  CommitmentPanel,
+  PanelCommitment,
+  PanelCommitmentGroup,
+  groupCommitmentsBySession,
+} from './commitment-panel'
 
 interface QuickCommitmentProps {
   sessionId: string
   clientId: string
 }
 
-type TabType = 'session' | 'active'
-
 export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const { user } = useAuth()
-  const [title, setTitle] = useState('')
-  const [targetDate, setTargetDate] = useState<Date | undefined>(undefined)
-  const [assigneeType, setAssigneeType] = useState<'client' | 'coach'>('client')
-  const [activeTab, setActiveTab] = useState<TabType>('session')
-  const [editingId, setEditingId] = useState<string | null>(null)
-  const [editTitle, setEditTitle] = useState('')
-  const [editDate, setEditDate] = useState<Date | undefined>(undefined)
-  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
-  const [showCalendar, setShowCalendar] = useState(false) // Calendar hidden by default
-
-  // All active commitments for the client
-  const [allActiveCommitments, setAllActiveCommitments] = useState<
-    Commitment[]
-  >([])
-  const [loadingActive, setLoadingActive] = useState(false)
-
+  const queryClient = useQueryClient()
   const createCommitment = useCreateCommitment()
   const updateCommitment = useUpdateCommitment()
   const discardCommitment = useDiscardCommitment()
+  const [isExtracting, setIsExtracting] = useState(false)
+
+  // Optimistic draft overrides: confirmed drafts shown as active, rejected drafts hidden
+  const [optimisticUpdates, setOptimisticUpdates] = useState<
+    Record<string, { title: string; target_date?: string; status: string }>
+  >({})
+  const [optimisticRemovals, setOptimisticRemovals] = useState<Set<string>>(
+    new Set(),
+  )
+
+  const handleExtract = async () => {
+    setIsExtracting(true)
+    try {
+      const extracted = await CommitmentService.extractFromSession(sessionId)
+      if (extracted.length === 0) toast.info('No commitments found yet')
+      else {
+        toast.success(`Found ${extracted.length} commitment(s)`)
+        // Immediately refetch session commitments so drafts appear
+        await queryClient.invalidateQueries({ queryKey: ['commitments'] })
+      }
+    } catch {
+      toast.error('Failed to extract commitments')
+    } finally {
+      setIsExtracting(false)
+    }
+  }
+
+  const handleConfirmDraft = useCallback(
+    async (
+      id: string,
+      data: { title: string; target_date?: string; target_ids?: string[] },
+    ) => {
+      // Optimistically show as active with edited data
+      setOptimisticUpdates(prev => ({
+        ...prev,
+        [id]: {
+          title: data.title,
+          target_date: data.target_date,
+          status: 'active',
+        },
+      }))
+      try {
+        await updateCommitment.mutateAsync({
+          commitmentId: id,
+          data: {
+            title: data.title,
+            target_date: data.target_date,
+            status: 'active',
+          },
+        })
+      } catch {
+        // Revert on failure
+        setOptimisticUpdates(prev => {
+          const next = { ...prev }
+          delete next[id]
+          return next
+        })
+        toast.error('Failed to accept commitment')
+      }
+    },
+    [updateCommitment],
+  )
+
+  const handleRejectDraft = useCallback(
+    async (id: string) => {
+      // Optimistically remove
+      setOptimisticRemovals(prev => new Set(prev).add(id))
+      try {
+        await discardCommitment.mutateAsync(id)
+      } catch {
+        // Revert on failure
+        setOptimisticRemovals(prev => {
+          const next = new Set(prev)
+          next.delete(id)
+          return next
+        })
+        toast.error('Failed to discard commitment')
+      }
+    },
+    [discardCommitment],
+  )
 
   // Session commitments
   const { data: sessionData, isLoading: loadingSession } = useCommitments(
@@ -82,15 +126,26 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     },
   )
 
-  const sessionCommitments = sessionData?.commitments ?? []
-  const sortedSessionCommitments = [...sessionCommitments].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  // Goals and targets for outcome linking
+  const { data: goals = [] } = useGoals(clientId)
+  const { data: allTargets = [] } = useTargets()
+  const clientTargets = (allTargets as any[]).filter((t: any) =>
+    (goals as any[]).some((g: any) => t.goal_ids?.includes(g.id)),
   )
+
+  // All active commitments
+  const [allActiveCommitments, setAllActiveCommitments] = useState<
+    Commitment[]
+  >([])
+  const [loadingActive, setLoadingActive] = useState(false)
+
+  // Past commitments (grouped)
+  const [pastGroups, setPastGroups] = useState<PanelCommitmentGroup[]>([])
+  const [loadingPast, setLoadingPast] = useState(false)
 
   // Fetch all active commitments
   useEffect(() => {
-    const fetchActiveCommitments = async (showLoading = false) => {
+    const fetchActive = async (showLoading = false) => {
       try {
         if (showLoading) setLoadingActive(true)
         const response = await CommitmentService.listCommitments({
@@ -106,615 +161,96 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     }
 
     if (clientId) {
-      fetchActiveCommitments(true)
-      const interval = setInterval(() => fetchActiveCommitments(false), 30000)
+      fetchActive(true)
+      const interval = setInterval(() => fetchActive(false), 30000)
       return () => clearInterval(interval)
     }
   }, [clientId])
 
-  const handleSave = () => {
-    if (!title.trim()) return
-
-    const commitmentTitle = title.trim()
-    const commitmentDate = targetDate
-      ? format(targetDate, 'yyyy-MM-dd')
-      : undefined
-    const commitmentAssignee = assigneeType === 'coach' ? user?.id : undefined
-
-    setTitle('')
-    setTargetDate(undefined)
-    setAssigneeType('client')
-
-    createCommitment.mutate({
-      client_id: clientId,
-      session_id: sessionId,
-      title: commitmentTitle,
-      target_date: commitmentDate,
-      type: 'action',
-      priority: 'medium',
-      assigned_to_id: commitmentAssignee,
-    })
-  }
-
-  const handleStartEdit = (commitment: Commitment) => {
-    setEditingId(commitment.id)
-    setEditTitle(commitment.title)
-    setEditDate(
-      commitment.target_date ? new Date(commitment.target_date) : undefined,
-    )
-  }
-
-  const handleCancelEdit = () => {
-    setEditingId(null)
-    setEditTitle('')
-    setEditDate(undefined)
-  }
-
-  const handleSaveEdit = async (commitmentId: string) => {
-    if (!editTitle.trim() || updateCommitment.isPending) return
-
-    await updateCommitment.mutateAsync({
-      commitmentId,
-      data: {
-        title: editTitle.trim(),
-        target_date: editDate ? format(editDate, 'yyyy-MM-dd') : undefined,
-      },
-    })
-
-    setEditingId(null)
-    setEditTitle('')
-    setEditDate(undefined)
-  }
-
-  const handleDelete = async (commitmentId: string) => {
-    await discardCommitment.mutateAsync(commitmentId)
-    setDeleteConfirmId(null)
-  }
-
-  const handleToggleComplete = async (commitment: Commitment) => {
-    const newStatus = commitment.status === 'completed' ? 'active' : 'completed'
-    await updateCommitment.mutateAsync({
-      commitmentId: commitment.id,
-      data: { status: newStatus },
-    })
-  }
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
-      case 'high':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
-      case 'medium':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'
-      default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600'
-    }
-  }
-
-  const renderCommitmentItem = (
-    commitment: Commitment,
-    showCompleteToggle: boolean = false,
-  ) => {
-    const isOverdue =
-      commitment.target_date &&
-      isPast(new Date(commitment.target_date)) &&
-      commitment.status !== 'completed'
-    const progress = commitment.progress_percentage || 0
-
-    if (editingId === commitment.id) {
-      return (
-        <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-          <Input
-            value={editTitle}
-            onChange={e => setEditTitle(e.target.value)}
-            className="h-9 text-sm border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
-            placeholder="Commitment title"
-            autoFocus
-          />
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  'w-full justify-start text-left font-normal h-8 text-xs border-gray-200 bg-white',
-                  !editDate && 'text-muted-foreground',
-                )}
-              >
-                <CalendarIcon className="mr-2 h-3 w-3" />
-                {editDate ? (
-                  format(editDate, 'PPP')
-                ) : (
-                  <span>Pick due date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={editDate}
-                onSelect={setEditDate}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleCancelEdit}
-              className="h-7 text-xs"
-            >
-              <X className="h-3 w-3 mr-1" />
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleSaveEdit(commitment.id)}
-              disabled={!editTitle.trim() || updateCommitment.isPending}
-              className="h-7 text-xs bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
-            >
-              {updateCommitment.isPending ? (
-                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-              ) : (
-                <Check className="h-3 w-3 mr-1" />
-              )}
-              Save
-            </Button>
-          </div>
-        </div>
-      )
+  // Fetch past (completed/abandoned) commitments
+  useEffect(() => {
+    const fetchPast = async () => {
+      try {
+        setLoadingPast(true)
+        const [completedRes, abandonedRes] = await Promise.all([
+          CommitmentService.listCommitments({
+            client_id: clientId,
+            status: 'completed',
+          }),
+          CommitmentService.listCommitments({
+            client_id: clientId,
+            status: 'abandoned',
+          }),
+        ])
+        const all = [...completedRes.commitments, ...abandonedRes.commitments]
+        setPastGroups(groupCommitmentsBySession(all as PanelCommitment[]))
+      } catch (error) {
+        console.error('Failed to fetch past commitments:', error)
+      } finally {
+        setLoadingPast(false)
+      }
     }
 
-    return (
-      <div
-        className={cn(
-          'group p-3 rounded-lg border transition-all',
-          commitment.status === 'completed'
-            ? 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
-            : isOverdue
-              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm',
-        )}
-      >
-        <div className="flex items-start gap-3">
-          {/* Completion toggle */}
-          {showCompleteToggle && (
-            <button
-              onClick={() => handleToggleComplete(commitment)}
-              className={cn(
-                'mt-0.5 flex-shrink-0 transition-colors',
-                commitment.status === 'completed'
-                  ? 'text-green-500'
-                  : 'text-gray-300 hover:text-green-500',
-              )}
-            >
-              {commitment.status === 'completed' ? (
-                <CheckCircle2 className="h-5 w-5" />
-              ) : (
-                <Circle className="h-5 w-5" />
-              )}
-            </button>
-          )}
+    if (clientId) fetchPast()
+  }, [clientId])
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <p
-                className={cn(
-                  'text-sm font-medium line-clamp-2',
-                  commitment.status === 'completed'
-                    ? 'text-gray-500 dark:text-gray-400 line-through'
-                    : 'text-gray-900 dark:text-white',
-                )}
-              >
-                {commitment.title}
-              </p>
-              <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => handleStartEdit(commitment)}
-                  className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-                  title="Edit"
-                >
-                  <Pencil className="h-3.5 w-3.5" />
-                </button>
-                <Popover
-                  open={deleteConfirmId === commitment.id}
-                  onOpenChange={open =>
-                    setDeleteConfirmId(open ? commitment.id : null)
-                  }
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
-                      title="Delete"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto p-3 dark:bg-gray-800 dark:border-gray-700"
-                    align="end"
-                  >
-                    <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-                      Delete this commitment?
-                    </p>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setDeleteConfirmId(null)}
-                        className="h-7 text-xs"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(commitment.id)}
-                        disabled={discardCommitment.isPending}
-                        className="h-7 text-xs"
-                      >
-                        {discardCommitment.isPending ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          'Delete'
-                        )}
-                      </Button>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-
-            {/* Meta info row */}
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {/* Assignee */}
-              <Badge
-                variant="outline"
-                className={cn(
-                  'text-xs px-1.5 py-0 h-5',
-                  commitment.is_coach_commitment
-                    ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
-                    : 'border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
-                )}
-              >
-                {commitment.is_coach_commitment ? (
-                  <Briefcase className="h-2.5 w-2.5 mr-1" />
-                ) : (
-                  <User className="h-2.5 w-2.5 mr-1" />
-                )}
-                {commitment.is_coach_commitment ? 'Coach' : 'Client'}
-              </Badge>
-
-              {/* Priority */}
-              {(commitment.priority === 'high' ||
-                commitment.priority === 'urgent') && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs px-1.5 py-0 h-5',
-                    getPriorityColor(commitment.priority),
-                  )}
-                >
-                  {commitment.priority}
-                </Badge>
-              )}
-
-              {/* Progress */}
-              {progress > 0 && commitment.status !== 'completed' && (
-                <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
-                  <TrendingUp className="h-3 w-3" />
-                  {progress}%
-                </span>
-              )}
-
-              {/* Due date */}
-              {commitment.target_date && (
-                <span
-                  className={cn(
-                    'flex items-center gap-1 text-xs',
-                    isOverdue
-                      ? 'text-red-600 dark:text-red-400 font-medium'
-                      : 'text-gray-500 dark:text-gray-400',
-                  )}
-                >
-                  <CalendarIcon className="h-3 w-3" />
-                  {isOverdue && 'Overdue: '}
-                  {format(new Date(commitment.target_date), 'MMM d')}
-                </span>
-              )}
-
-              {/* Time ago */}
-              <span className="text-xs text-gray-400">
-                {formatRelativeTime(commitment.created_at)}
-              </span>
-            </div>
-
-            {/* Progress bar */}
-            {progress > 0 &&
-              progress < 100 &&
-              commitment.status !== 'completed' && (
-                <div className="mt-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
-                  <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-              )}
-          </div>
-        </div>
-      </div>
+  const sessionCommitments = [...(sessionData?.commitments ?? [])]
+    .filter(c => !optimisticRemovals.has(c.id))
+    .map(c =>
+      optimisticUpdates[c.id] ? { ...c, ...optimisticUpdates[c.id] } : c,
     )
-  }
-
-  const sessionCount = sortedSessionCommitments.length
-  const activeCount = allActiveCommitments.filter(
-    c => c.status === 'active',
-  ).length
+    .sort(
+      (a, b) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    )
 
   return (
-    <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            Commitments
-          </span>
-        </div>
-
-        {/* Assignee toggle */}
-        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5">
-          <button
-            onClick={() => setAssigneeType('client')}
-            className={cn(
-              'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
-              assigneeType === 'client'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-            )}
-          >
-            <User className="h-3 w-3" />
-            Client
-          </button>
-          <button
-            onClick={() => setAssigneeType('coach')}
-            className={cn(
-              'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
-              assigneeType === 'coach'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-            )}
-          >
-            <Briefcase className="h-3 w-3" />
-            Coach
-          </button>
-        </div>
-      </div>
-
-      {/* Form */}
-      <CardContent className="p-4 flex-shrink-0">
-        <div className="space-y-3">
-          <Input
-            placeholder={
-              assigneeType === 'client'
-                ? 'What will the client commit to?'
-                : 'What will you (coach) commit to?'
-            }
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            onKeyDown={e => {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                e.preventDefault()
-                handleSave()
-              }
-            }}
-            className="border-gray-200 dark:border-gray-600 dark:bg-gray-700 focus:border-blue-400 text-sm h-10"
-            maxLength={200}
-          />
-
-          {/* Due Date Section */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                Due Date
-              </label>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setShowCalendar(!showCalendar)}
-                className="h-6 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
-              >
-                {showCalendar ? (
-                  <>
-                    <ChevronUp className="h-3 w-3 mr-1" />
-                    Hide calendar
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3 w-3 mr-1" />
-                    Show calendar
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Quick date buttons */}
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {[
-                { label: 'Tomorrow', date: addDays(new Date(), 1) },
-                { label: '3 days', date: addDays(new Date(), 3) },
-                { label: '1 week', date: addWeeks(new Date(), 1) },
-                { label: '2 weeks', date: addWeeks(new Date(), 2) },
-              ].map(option => (
-                <Button
-                  key={option.label}
-                  type="button"
-                  size="sm"
-                  variant={
-                    targetDate?.toDateString() === option.date.toDateString()
-                      ? 'default'
-                      : 'outline'
-                  }
-                  onClick={() => setTargetDate(option.date)}
-                  className={cn(
-                    'h-7 text-xs',
-                    targetDate?.toDateString() === option.date.toDateString()
-                      ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                      : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-blue-300 dark:hover:border-blue-600',
-                  )}
-                >
-                  {option.label}
-                </Button>
-              ))}
-              {targetDate && (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setTargetDate(undefined)}
-                  className="h-7 text-xs text-gray-400 hover:text-gray-600"
-                >
-                  <X className="h-3 w-3 mr-1" />
-                  Clear
-                </Button>
-              )}
-            </div>
-
-            {/* Inline Calendar - hidden by default */}
-            {showCalendar && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 overflow-hidden">
-                <Calendar
-                  mode="single"
-                  selected={targetDate}
-                  onSelect={setTargetDate}
-                  disabled={date => date < new Date()}
-                  className="mx-auto"
-                />
-              </div>
-            )}
-
-            {targetDate && (
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-2 flex items-center gap-1">
-                <CalendarIcon className="h-3 w-3" />
-                Due: {format(targetDate, 'EEEE, MMMM d, yyyy')}
-              </p>
-            )}
-          </div>
-
-          {/* Add Button */}
-          <Button
-            onClick={handleSave}
-            disabled={!title.trim()}
-            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 h-9"
-          >
-            <Check className="h-4 w-4 mr-1" />
-            Add Commitment
-          </Button>
-        </div>
-      </CardContent>
-
-      {/* Tabs */}
-      <div className="border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
-        <div className="flex">
-          <button
-            onClick={() => setActiveTab('session')}
-            className={cn(
-              'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2',
-              activeTab === 'session'
-                ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
-                : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
-            )}
-          >
-            <Clock className="h-3.5 w-3.5 inline mr-1.5" />
-            This Session
-            {sessionCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-1.5 text-xs px-1.5 py-0 h-4"
-              >
-                {sessionCount}
-              </Badge>
-            )}
-          </button>
-          <button
-            onClick={() => setActiveTab('active')}
-            className={cn(
-              'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2',
-              activeTab === 'active'
-                ? 'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20'
-                : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
-            )}
-          >
-            <Target className="h-3.5 w-3.5 inline mr-1.5" />
-            All Active
-            {activeCount > 0 && (
-              <Badge
-                variant="secondary"
-                className="ml-1.5 text-xs px-1.5 py-0 h-4"
-              >
-                {activeCount}
-              </Badge>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Commitments List */}
-      <div className="flex-1 overflow-y-auto min-h-0">
-        {activeTab === 'session' ? (
-          // Session Commitments
-          loadingSession ? (
-            <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span className="text-xs">Loading...</span>
-            </div>
-          ) : sortedSessionCommitments.length === 0 ? (
-            <div className="p-6 text-center">
-              <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No commitments this session
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                Add one above to get started
-              </p>
-            </div>
-          ) : (
-            <div className="p-3 space-y-2">
-              {sortedSessionCommitments.map(commitment => (
-                <div key={commitment.id}>
-                  {renderCommitmentItem(commitment, false)}
-                </div>
-              ))}
-            </div>
-          )
-        ) : // All Active Commitments
-        loadingActive ? (
-          <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span className="text-xs">Loading...</span>
-          </div>
-        ) : allActiveCommitments.length === 0 ? (
-          <div className="p-6 text-center">
-            <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              No active commitments
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-              All commitments have been completed!
-            </p>
-          </div>
-        ) : (
-          <div className="p-3 space-y-2">
-            {allActiveCommitments.map(commitment => (
-              <div key={commitment.id}>
-                {renderCommitmentItem(commitment, true)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </Card>
+    <CommitmentPanel
+      variant="coach"
+      sessionCommitments={sessionCommitments as PanelCommitment[]}
+      loadingSession={loadingSession}
+      activeCommitments={allActiveCommitments as PanelCommitment[]}
+      loadingActive={loadingActive}
+      pastGroups={pastGroups}
+      loadingPast={loadingPast}
+      targets={clientTargets.map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        goal_titles: t.goal_titles || [],
+      }))}
+      loadingTargets={false}
+      onCreateCommitment={data => {
+        createCommitment.mutate({
+          client_id: clientId,
+          session_id: sessionId,
+          title: data.title,
+          target_date: data.target_date,
+          type: 'action',
+          priority: 'medium',
+          assigned_to_id: data.assigned_to_id,
+          target_ids: data.target_ids,
+        })
+      }}
+      isSaving={createCommitment.isPending}
+      onToggleComplete={async commitment => {
+        const newStatus =
+          commitment.status === 'completed' ? 'active' : 'completed'
+        await updateCommitment.mutateAsync({
+          commitmentId: commitment.id,
+          data: { status: newStatus },
+        })
+      }}
+      onEditCommitment={async (id, data) => {
+        await updateCommitment.mutateAsync({ commitmentId: id, data })
+      }}
+      onDeleteCommitment={async id => {
+        await discardCommitment.mutateAsync(id)
+      }}
+      onExtract={handleExtract}
+      isExtracting={isExtracting}
+      onConfirmDraft={handleConfirmDraft}
+      onRejectDraft={handleRejectDraft}
+      currentUserId={user?.id}
+    />
   )
 }

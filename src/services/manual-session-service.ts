@@ -25,6 +25,13 @@ export interface FileUploadResponse {
   size: number
 }
 
+export interface PasteTextResponse {
+  message: string
+  session_id: string
+  text_length: number
+  file_type: string
+}
+
 export class ManualSessionService {
   static async createManualSession(
     data: ManualSessionCreateDto,
@@ -60,6 +67,15 @@ export class ManualSessionService {
     }
 
     return response.json()
+  }
+
+  static async submitPastedText(
+    sessionId: string,
+    text: string,
+  ): Promise<PasteTextResponse> {
+    return ApiClient.post(`${BACKEND_URL}/sessions/${sessionId}/paste-text`, {
+      text,
+    })
   }
 
   static async getTranscriptionStatus(

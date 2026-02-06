@@ -201,7 +201,7 @@ export function useBulkAssignProgram() {
       const action = variables.action === 'add' ? 'added to' : 'removed from'
       if (result.success_count > 0) {
         toast.success(
-          `Successfully ${action} program: ${result.success_count} client(s)`,
+          `Successfully ${action} sandbox: ${result.success_count} client(s)`,
         )
       }
       if (result.failed_count > 0) {
@@ -212,7 +212,7 @@ export function useBulkAssignProgram() {
 
     onError: (error: any) => {
       toast.error(
-        error.response?.data?.detail || 'Failed to update program membership',
+        error.response?.data?.detail || 'Failed to update sandbox membership',
       )
     },
   })

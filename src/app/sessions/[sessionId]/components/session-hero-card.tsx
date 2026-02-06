@@ -2,7 +2,7 @@
 
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { BarChart3, TrendingUp, Users, Clock } from 'lucide-react'
+import { TrendingUp, Users, Clock, Mic2, MessageSquare } from 'lucide-react'
 
 interface SessionHeroCardProps {
   overallScore?: number
@@ -17,6 +17,59 @@ interface SessionHeroCardProps {
   coachingStyle?: string
 }
 
+// Circular Progress Component - Monochromatic
+function CircularProgress({
+  value,
+  max = 10,
+  size = 120,
+  strokeWidth = 8,
+}: {
+  value: number
+  max?: number
+  size?: number
+  strokeWidth?: number
+}) {
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const percentage = (value / max) * 100
+  const offset = circumference - (percentage / 100) * circumference
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width={size} height={size} className="transform -rotate-90">
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="currentColor"
+          strokeWidth={strokeWidth}
+          fill="none"
+          className="text-app-border"
+        />
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeLinecap="round"
+          className="stroke-app-primary transition-all duration-700 ease-out"
+          style={{
+            strokeDasharray: circumference,
+            strokeDashoffset: offset,
+          }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-bold text-app-primary">
+          {value.toFixed(1)}
+        </span>
+        <span className="text-xs text-app-secondary">/ {max}</span>
+      </div>
+    </div>
+  )
+}
+
 export function SessionHeroCard({
   overallScore,
   sentiment,
@@ -25,103 +78,111 @@ export function SessionHeroCard({
   speakerBalance,
   coachingStyle,
 }: SessionHeroCardProps) {
-  const getScoreDisplay = (score: number) => {
-    if (score >= 8) return { color: 'text-black', bg: 'bg-black' }
-    if (score >= 6) return { color: 'text-gray-700', bg: 'bg-gray-700' }
-    return { color: 'text-gray-400', bg: 'bg-gray-400' }
-  }
+  const hasMetrics = overallScore !== undefined || sentiment
 
-  const scoreStyle = overallScore ? getScoreDisplay(overallScore) : null
+  if (!hasMetrics) return null
 
   return (
-    <Card className="bg-white border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-      <div className="p-8">
-        {/* Main Metrics Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          {/* Overall Score */}
+    <Card className="border-app-border shadow-sm">
+      <div className="p-6 sm:p-8">
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Hero Score */}
           {overallScore !== undefined && (
-            <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-              <BarChart3 className="h-6 w-6 text-gray-400 mb-3" />
-              <div className="text-4xl font-bold mb-1">
-                <span className={scoreStyle?.color}>
-                  {overallScore.toFixed(1)}
-                </span>
-                <span className="text-gray-300 text-2xl">/10</span>
+            <div className="flex flex-col items-center justify-center lg:pr-8 lg:border-r border-app-border">
+              <CircularProgress
+                value={overallScore}
+                size={130}
+                strokeWidth={10}
+              />
+              <div className="mt-4 text-center">
+                <p className="text-sm font-semibold text-app-primary">
+                  Overall Score
+                </p>
+                <p className="text-xs text-app-secondary">ICF Competencies</p>
               </div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                Overall Score
-              </p>
             </div>
           )}
 
-          {/* Sentiment */}
-          {sentiment && (
-            <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-              <TrendingUp className="h-6 w-6 text-gray-400 mb-3" />
-              <Badge className="mb-2 bg-black text-white hover:bg-black">
-                {sentiment.overall}
-              </Badge>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                Sentiment
-              </p>
-            </div>
-          )}
+          {/* Metrics Grid */}
+          <div className="flex-1">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {/* Sentiment */}
+              {sentiment && (
+                <div className="p-5 bg-app-surface rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp className="h-4 w-4 text-app-secondary" />
+                    <span className="text-xs font-medium text-app-secondary uppercase tracking-wider">
+                      Sentiment
+                    </span>
+                  </div>
+                  <Badge className="bg-app-primary text-white hover:bg-app-primary/90">
+                    {sentiment.overall}
+                  </Badge>
+                </div>
+              )}
 
-          {/* Engagement */}
-          {sentiment?.engagement && (
-            <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-              <Users className="h-6 w-6 text-gray-400 mb-3" />
-              <div className="text-2xl font-bold text-black mb-1">
-                {sentiment.engagement}
+              {/* Engagement */}
+              {sentiment?.engagement && (
+                <div className="p-5 bg-app-surface rounded-xl">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Users className="h-4 w-4 text-app-secondary" />
+                    <span className="text-xs font-medium text-app-secondary uppercase tracking-wider">
+                      Engagement
+                    </span>
+                  </div>
+                  <p className="text-xl font-bold text-app-primary">
+                    {sentiment.engagement}
+                  </p>
+                </div>
+              )}
+
+              {/* Duration */}
+              <div className="p-5 bg-app-surface rounded-xl">
+                <div className="flex items-center gap-2 mb-3">
+                  <Clock className="h-4 w-4 text-app-secondary" />
+                  <span className="text-xs font-medium text-app-secondary uppercase tracking-wider">
+                    {duration ? 'Duration' : 'Est. Duration'}
+                  </span>
+                </div>
+                <p className="text-xl font-bold text-app-primary">
+                  {duration ||
+                    (wordCount ? `${Math.round(wordCount / 150)}m` : 'N/A')}
+                </p>
               </div>
-              <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-                Engagement
-              </p>
             </div>
-          )}
 
-          {/* Duration or Word Count */}
-          <div className="flex flex-col items-center justify-center p-6 bg-gray-50 rounded-xl border border-gray-100">
-            <Clock className="h-6 w-6 text-gray-400 mb-3" />
-            <div className="text-2xl font-bold text-black mb-1">
-              {duration ||
-                (wordCount ? `${(wordCount / 150).toFixed(0)}m` : 'N/A')}
-            </div>
-            <p className="text-xs text-gray-500 uppercase tracking-wider font-medium">
-              {duration ? 'Duration' : 'Est. Duration'}
-            </p>
+            {/* Secondary Metrics */}
+            {(speakerBalance || coachingStyle || wordCount) && (
+              <div className="flex flex-wrap gap-2 mt-5 pt-5 border-t border-app-border">
+                {speakerBalance && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-background rounded-full border border-app-border">
+                    <Mic2 className="h-3.5 w-3.5 text-app-secondary" />
+                    <span className="text-xs text-app-secondary">Balance:</span>
+                    <span className="text-xs font-medium text-app-primary">
+                      {speakerBalance}
+                    </span>
+                  </div>
+                )}
+                {coachingStyle && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-background rounded-full border border-app-border">
+                    <span className="text-xs text-app-secondary">Style:</span>
+                    <span className="text-xs font-medium text-app-primary capitalize">
+                      {coachingStyle}
+                    </span>
+                  </div>
+                )}
+                {wordCount && (
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-background rounded-full border border-app-border">
+                    <MessageSquare className="h-3.5 w-3.5 text-app-secondary" />
+                    <span className="text-xs font-medium text-app-primary">
+                      {wordCount.toLocaleString()} words
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
-
-        {/* Secondary Metrics */}
-        {(speakerBalance || coachingStyle || wordCount) && (
-          <div className="flex flex-wrap gap-3 pt-6 border-t border-gray-100">
-            {speakerBalance && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
-                <span className="text-xs text-gray-500">Speaker Balance:</span>
-                <span className="text-sm font-medium text-black">
-                  {speakerBalance}
-                </span>
-              </div>
-            )}
-            {coachingStyle && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
-                <span className="text-xs text-gray-500">Style:</span>
-                <span className="text-sm font-medium text-black capitalize">
-                  {coachingStyle}
-                </span>
-              </div>
-            )}
-            {wordCount && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full">
-                <span className="text-xs text-gray-500">Word Count:</span>
-                <span className="text-sm font-medium text-black">
-                  {wordCount.toLocaleString()}
-                </span>
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </Card>
   )

@@ -34,7 +34,7 @@ const menuItems = [
     requiredRole: ['admin', 'super_admin'],
   },
   {
-    title: 'Programs',
+    title: 'Sandboxes',
     href: '/admin/programs',
     icon: FolderKanban,
     requiredRole: ['super_admin'],

@@ -9,15 +9,8 @@ import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Clock,
-  User,
-  Circle,
-  RefreshCw,
-  Sparkles,
-  Moon,
-  Sun,
-} from 'lucide-react'
+import { Clock, User, Circle, RefreshCw, Moon, Sun } from 'lucide-react'
+import Image from 'next/image'
 import { formatDuration } from '../hooks/use-meeting-status'
 
 interface ClientMeetingHeaderProps {
@@ -54,8 +47,14 @@ export function ClientMeetingHeader({
           <div className="flex items-center gap-6">
             {/* Brand Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg p-1.5">
+                <Image
+                  src="/novus-global-logo.webp"
+                  alt="Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                />
               </div>
               <div>
                 <h1 className="text-lg font-bold text-white tracking-tight">
@@ -147,9 +146,9 @@ export function ClientMeetingHeader({
             ) : (
               <Badge
                 variant="secondary"
-                className="bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 px-3 py-1.5"
+                className="bg-white/20 text-white border border-white/30 flex items-center gap-1.5 px-3 py-1.5"
               >
-                <Circle className="h-2 w-2 fill-emerald-500 animate-pulse" />
+                <Circle className="h-2 w-2 fill-white animate-pulse" />
                 Live
               </Badge>
             )}

@@ -126,7 +126,7 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
             Unable to Load Outcomes
           </h3>
           <p className="text-gray-600 text-center">
-            There was an error loading the program outcomes.
+            There was an error loading the sandbox outcomes.
           </p>
         </CardContent>
       </Card>
@@ -207,7 +207,7 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-700">
-              Program Progress
+              Sandbox Progress
             </span>
             <span className="text-sm font-semibold text-gray-900">
               {Math.round(outcomes.overall_progress)}%

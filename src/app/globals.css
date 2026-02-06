@@ -65,6 +65,14 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* App Theme Colors */
+  --color-app-primary: #111111;
+  --color-app-secondary: #6B7280;
+  --color-app-accent: #2563EB;
+  --color-app-background: #FFFFFF;
+  --color-app-surface: #F9FAFB;
+  --color-app-border: #E5E7EB;
 }
 
 :root {

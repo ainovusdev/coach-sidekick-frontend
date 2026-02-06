@@ -84,10 +84,10 @@ export function useCreateProgram(
     mutationFn: (data: ProgramCreate) => ProgramService.createProgram(data),
     onSuccess: () => {
       invalidateQueries.afterProgramUpdate(queryClient)
-      toast.success('Program created successfully')
+      toast.success('Sandbox created successfully')
     },
     onError: error => {
-      toast.error('Failed to create program', {
+      toast.error('Failed to create sandbox', {
         description: error.message,
       })
     },
@@ -114,10 +114,10 @@ export function useUpdateProgram(
     }) => ProgramService.updateProgram(programId, data),
     onSuccess: (data, variables) => {
       invalidateQueries.afterProgramUpdate(queryClient, variables.programId)
-      toast.success('Program updated successfully')
+      toast.success('Sandbox updated successfully')
     },
     onError: error => {
-      toast.error('Failed to update program', {
+      toast.error('Failed to update sandbox', {
         description: error.message,
       })
     },
@@ -134,10 +134,10 @@ export function useDeleteProgram(
     mutationFn: (programId: string) => ProgramService.deleteProgram(programId),
     onSuccess: () => {
       invalidateQueries.afterProgramUpdate(queryClient)
-      toast.success('Program deleted successfully')
+      toast.success('Sandbox deleted successfully')
     },
     onError: error => {
-      toast.error('Failed to delete program', {
+      toast.error('Failed to delete sandbox', {
         description: error.message,
       })
     },
@@ -159,10 +159,10 @@ export function useAddClientsToProgram(
       ProgramService.addClientsToProgram(programId, clientIds),
     onSuccess: (_data, variables) => {
       invalidateQueries.afterProgramUpdate(queryClient, variables.programId)
-      toast.success('Clients added to program successfully')
+      toast.success('Clients added to sandbox successfully')
     },
     onError: error => {
-      toast.error('Failed to add clients to program', {
+      toast.error('Failed to add clients to sandbox', {
         description: error.message,
       })
     },
@@ -184,10 +184,10 @@ export function useRemoveClientFromProgram(
       ProgramService.removeClientFromProgram(programId, clientId),
     onSuccess: (_data, variables) => {
       invalidateQueries.afterProgramUpdate(queryClient, variables.programId)
-      toast.success('Client removed from program successfully')
+      toast.success('Client removed from sandbox successfully')
     },
     onError: error => {
-      toast.error('Failed to remove client from program', {
+      toast.error('Failed to remove client from sandbox', {
         description: error.message,
       })
     },
