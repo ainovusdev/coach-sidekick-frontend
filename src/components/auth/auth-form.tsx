@@ -130,19 +130,27 @@ export function AuthForm() {
     setLoading(false)
   }
 
+  const handleTabChange = (value: string) => {
+    setActiveTab(value)
+    setError(null)
+    setSuccess(null)
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center p-4">
-      {/* Background Pattern */}
-      <div className="absolute inset-0 bg-grid-gray-100 [mask-image:linear-gradient(0deg,white,rgba(255,255,255,0.6))] pointer-events-none" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Decorative Background Elements */}
+      <div className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full bg-app-accent/5 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-app-accent/[0.07] blur-[100px] pointer-events-none" />
+      <div className="absolute top-[20%] left-[60%] w-[300px] h-[300px] rounded-full bg-app-accent/[0.03] blur-[80px] pointer-events-none" />
 
       {/* Main Content */}
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-[420px] z-10">
         {/* Logo and Branding */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center gap-3 mb-4">
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center gap-3.5 mb-3">
             <div className="relative">
-              <div className="absolute inset-0 bg-gray-900 rounded-xl blur-lg opacity-20"></div>
-              <div className="relative w-14 h-14 bg-gray-900 rounded-xl p-2 flex items-center justify-center">
+              <div className="absolute -inset-1.5 bg-app-accent/20 rounded-2xl blur-lg" />
+              <div className="relative w-14 h-14 bg-app-primary rounded-2xl p-2 flex items-center justify-center shadow-lg ring-1 ring-white/10">
                 <Image
                   src="/novus-global-logo.webp"
                   alt="Novus Global Logo"
@@ -153,12 +161,12 @@ export function AuthForm() {
               </div>
             </div>
             <div className="text-left">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-foreground tracking-tight">
                 Coach Sidekick
               </h1>
-              <div className="flex items-center gap-1 mt-0.5">
-                <Sparkles className="w-3 h-3 text-gray-600" />
-                <span className="text-xs font-medium text-gray-600">
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <Sparkles className="w-3.5 h-3.5 text-app-accent" />
+                <span className="text-xs font-medium text-muted-foreground">
                   AI-Powered Coaching Assistant
                 </span>
               </div>
@@ -170,49 +178,52 @@ export function AuthForm() {
         {showForgotPassword ? (
           <ForgotPasswordRequest onBack={() => setShowForgotPassword(false)} />
         ) : (
-          <Card className="border-gray-200 shadow-xl bg-white/95 backdrop-blur">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-center text-xl font-bold text-gray-900">
-                Welcome Back
+          <Card className="border-border/60 shadow-xl shadow-black/[0.04] dark:shadow-black/20 bg-card/80 backdrop-blur-xl">
+            <CardHeader className="pb-4 pt-6 px-6">
+              <CardTitle className="text-center text-xl font-bold text-card-foreground">
+                {activeTab === 'signin' ? 'Welcome Back' : 'Get Started'}
               </CardTitle>
-              <CardDescription className="text-center text-gray-600">
-                Sign in to your Coach Sidekick account
+              <CardDescription className="text-center">
+                {activeTab === 'signin'
+                  ? 'Sign in to your Coach Sidekick account'
+                  : 'Create your Coach Sidekick account'}
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-6 pb-6">
               <Tabs
                 value={activeTab}
-                onValueChange={setActiveTab}
+                onValueChange={handleTabChange}
                 className="w-full"
               >
-                <TabsList className="grid w-full grid-cols-2 bg-gray-100">
+                <TabsList className="grid w-full grid-cols-2 bg-muted/60 p-1 h-auto rounded-lg">
                   <TabsTrigger
                     value="signin"
-                    className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+                    className="rounded-md py-2 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-200"
                   >
                     <LogIn className="h-4 w-4 mr-2" />
                     Sign In
                   </TabsTrigger>
                   <TabsTrigger
                     value="signup"
-                    className="data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm"
+                    className="rounded-md py-2 data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm transition-all duration-200"
                   >
                     <UserPlus className="h-4 w-4 mr-2" />
                     Sign Up
                   </TabsTrigger>
                 </TabsList>
 
+                {/* Sign In Tab */}
                 <TabsContent value="signin" className="mt-6">
-                  <form onSubmit={handleSignIn} className="space-y-4">
+                  <form onSubmit={handleSignIn} className="space-y-4 mb-4">
                     <div className="space-y-2">
                       <label
                         htmlFor="email"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-foreground/80"
                       >
                         Email Address
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="email"
                           name="email"
@@ -220,7 +231,7 @@ export function AuthForm() {
                           placeholder="your@email.com"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="pl-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                           required
                         />
                       </div>
@@ -230,20 +241,20 @@ export function AuthForm() {
                       <div className="flex items-center justify-between">
                         <label
                           htmlFor="password"
-                          className="text-sm font-medium text-gray-700"
+                          className="text-sm font-medium text-foreground/80"
                         >
                           Password
                         </label>
                         <button
                           type="button"
                           onClick={() => setShowForgotPassword(true)}
-                          className="text-xs text-gray-600 hover:text-gray-900"
+                          className="text-xs font-medium text-app-accent hover:text-app-accent/80 transition-colors"
                         >
                           Forgot password?
                         </button>
                       </div>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="password"
                           name="password"
@@ -251,13 +262,13 @@ export function AuthForm() {
                           placeholder="Enter your password"
                           value={formData.password}
                           onChange={handleInputChange}
-                          className="pl-10 pr-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 pr-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -269,14 +280,14 @@ export function AuthForm() {
                     </div>
 
                     {error && (
-                      <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
                         <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{error}</span>
                       </div>
                     )}
 
                     {success && (
-                      <div className="flex items-start gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-start gap-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-900/50">
                         <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{success}</span>
                       </div>
@@ -284,7 +295,7 @@ export function AuthForm() {
 
                     <Button
                       type="submit"
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5"
+                      className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
                       disabled={loading}
                     >
                       {loading ? (
@@ -296,31 +307,21 @@ export function AuthForm() {
                         'Sign In'
                       )}
                     </Button>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-gray-200" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-white px-2 text-gray-500">
-                          Or continue with
-                        </span>
-                      </div>
-                    </div>
                   </form>
                 </TabsContent>
 
+                {/* Sign Up Tab */}
                 <TabsContent value="signup" className="mt-6">
                   <form onSubmit={handleSignUp} className="space-y-4">
                     <div className="space-y-2">
                       <label
                         htmlFor="signup-email"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-foreground/80"
                       >
                         Email Address
                       </label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="signup-email"
                           name="email"
@@ -328,7 +329,7 @@ export function AuthForm() {
                           placeholder="your@email.com"
                           value={formData.email}
                           onChange={handleInputChange}
-                          className="pl-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                           required
                         />
                       </div>
@@ -337,12 +338,12 @@ export function AuthForm() {
                     <div className="space-y-2">
                       <label
                         htmlFor="signup-password"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-foreground/80"
                       >
                         Password
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="signup-password"
                           name="password"
@@ -350,13 +351,13 @@ export function AuthForm() {
                           placeholder="Create a strong password"
                           value={formData.password}
                           onChange={handleInputChange}
-                          className="pl-10 pr-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 pr-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                           required
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                         >
                           {showPassword ? (
                             <EyeOff className="h-4 w-4" />
@@ -377,12 +378,12 @@ export function AuthForm() {
                     <div className="space-y-2">
                       <label
                         htmlFor="confirm-password"
-                        className="text-sm font-medium text-gray-700"
+                        className="text-sm font-medium text-foreground/80"
                       >
                         Confirm Password
                       </label>
                       <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+                        <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                         <Input
                           id="confirm-password"
                           name="confirmPassword"
@@ -390,21 +391,21 @@ export function AuthForm() {
                           placeholder="Confirm your password"
                           value={formData.confirmPassword}
                           onChange={handleInputChange}
-                          className="pl-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                          className="pl-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                           required
                         />
                       </div>
                     </div>
 
                     {error && (
-                      <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+                      <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
                         <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{error}</span>
                       </div>
                     )}
 
                     {success && (
-                      <div className="flex items-start gap-2 text-green-600 text-sm bg-green-50 p-3 rounded-lg border border-green-200">
+                      <div className="flex items-start gap-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-900/50">
                         <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{success}</span>
                       </div>
@@ -412,7 +413,7 @@ export function AuthForm() {
 
                     <Button
                       type="submit"
-                      className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5"
+                      className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
                       disabled={loading}
                     >
                       {loading ? (
@@ -425,13 +426,19 @@ export function AuthForm() {
                       )}
                     </Button>
 
-                    <p className="text-xs text-gray-500 text-center">
+                    <p className="text-xs text-muted-foreground text-center mt-4">
                       By signing up, you agree to our{' '}
-                      <a href="#" className="text-gray-900 hover:underline">
+                      <a
+                        href="#"
+                        className="text-app-accent hover:text-app-accent/80 hover:underline transition-colors"
+                      >
                         Terms of Service
                       </a>{' '}
                       and{' '}
-                      <a href="#" className="text-gray-900 hover:underline">
+                      <a
+                        href="#"
+                        className="text-app-accent hover:text-app-accent/80 hover:underline transition-colors"
+                      >
                         Privacy Policy
                       </a>
                     </p>
@@ -444,8 +451,8 @@ export function AuthForm() {
 
         {/* Footer */}
         <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            © 2024 Coach Sidekick. Powered by Novus Global.
+          <p className="text-xs text-muted-foreground">
+            &copy; 2026 Coach Sidekick. Powered by Novus Global.
           </p>
         </div>
       </div>

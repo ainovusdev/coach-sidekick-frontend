@@ -35,14 +35,35 @@ export class WinsService {
     const response = await ApiClient.get(
       `${BACKEND_URL}/wins/session/${sessionId}`,
     )
+
+    console.log('WinsService.getSessionWins response:', response)
+
+    // Handle case where backend returns array directly
+    if (Array.isArray(response)) {
+      return {
+        wins: response,
+        total: response.length,
+      }
+    }
+
+    // Ensure wins array exists
+    if (!response.wins) {
+      return {
+        wins: [],
+        total: 0,
+      }
+    }
+
     return response
   }
 
   /**
    * Get a single win by ID
    */
-  static async getWin(winId: string): Promise<SessionWin> {
-    const response = await ApiClient.get(`${BACKEND_URL}/wins/${winId}`)
+  static async getWin(winId: string, sessionId: string): Promise<SessionWin> {
+    const response = await ApiClient.get(
+      `${BACKEND_URL}/wins/${winId}?session_id=${sessionId}`,
+    )
     return response
   }
 
@@ -51,17 +72,23 @@ export class WinsService {
    */
   static async updateWin(
     winId: string,
+    sessionId: string,
     data: SessionWinUpdate,
   ): Promise<SessionWin> {
-    const response = await ApiClient.patch(`${BACKEND_URL}/wins/${winId}`, data)
+    const response = await ApiClient.patch(
+      `${BACKEND_URL}/wins/${winId}?session_id=${sessionId}`,
+      data,
+    )
     return response
   }
 
   /**
    * Delete a win
    */
-  static async deleteWin(winId: string): Promise<void> {
-    await ApiClient.delete(`${BACKEND_URL}/wins/${winId}`)
+  static async deleteWin(winId: string, sessionId: string): Promise<void> {
+    await ApiClient.delete(
+      `${BACKEND_URL}/wins/${winId}?session_id=${sessionId}`,
+    )
   }
 
   /**
@@ -99,9 +126,12 @@ export class WinsService {
   /**
    * Approve an AI-generated win
    */
-  static async approveWin(winId: string): Promise<SessionWin> {
+  static async approveWin(
+    winId: string,
+    sessionId: string,
+  ): Promise<SessionWin> {
     const response = await ApiClient.post(
-      `${BACKEND_URL}/wins/${winId}/approve`,
+      `${BACKEND_URL}/wins/${winId}/approve?session_id=${sessionId}`,
       {},
     )
     return response

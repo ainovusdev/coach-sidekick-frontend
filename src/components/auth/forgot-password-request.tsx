@@ -71,29 +71,32 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
 
   if (submitted) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
+      <Card className="border-green-200 dark:border-green-900/50 bg-green-50/50 dark:bg-green-950/20">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 rounded-full">
-              <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-full">
+              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
             </div>
             <div>
               <CardTitle className="text-lg">Check Your Email</CardTitle>
-              <CardDescription className="text-green-700">
+              <CardDescription className="text-green-700 dark:text-green-400">
                 Password reset instructions sent
               </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
-            If an account exists with <strong>{email}</strong>, you will receive
-            password reset instructions within a few minutes.
+          <p className="text-sm text-muted-foreground">
+            If an account exists with{' '}
+            <strong className="text-foreground">{email}</strong>, you will
+            receive password reset instructions within a few minutes.
           </p>
 
-          <div className="bg-white rounded-lg p-4 border border-green-200">
-            <h4 className="font-medium text-sm mb-2">Next steps:</h4>
-            <ol className="text-sm text-gray-600 space-y-1 list-decimal list-inside">
+          <div className="bg-card rounded-lg p-4 border border-green-200 dark:border-green-900/50">
+            <h4 className="font-medium text-sm text-foreground mb-2">
+              Next steps:
+            </h4>
+            <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
               <li>Check your email inbox</li>
               <li>Look for an email from Coach Sidekick</li>
               <li>Click the reset link in the email</li>
@@ -101,10 +104,10 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
             </ol>
           </div>
 
-          <div className="text-xs text-gray-500 space-y-1">
-            <p>• The reset link will expire in 1 hour</p>
-            <p>• Didn&apos;t receive an email? Check your spam folder</p>
-            <p>• Still having issues? Try again in a few minutes</p>
+          <div className="text-xs text-muted-foreground space-y-1">
+            <p>&bull; The reset link will expire in 1 hour</p>
+            <p>&bull; Didn&apos;t receive an email? Check your spam folder</p>
+            <p>&bull; Still having issues? Try again in a few minutes</p>
           </div>
 
           {onBack && (
@@ -119,23 +122,23 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
   }
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-border/60 shadow-xl shadow-black/[0.04] dark:shadow-black/20 bg-card/80 backdrop-blur-xl">
       <CardHeader>
         <div className="flex items-center gap-2 mb-2">
           {onBack && (
             <button
               onClick={onBack}
-              className="text-gray-600 hover:text-gray-900 transition-colors"
+              className="text-muted-foreground hover:text-foreground transition-colors"
               type="button"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
           )}
-          <CardTitle className="text-xl font-bold text-gray-900">
+          <CardTitle className="text-xl font-bold text-card-foreground">
             Forgot Password?
           </CardTitle>
         </div>
-        <CardDescription className="text-gray-600">
+        <CardDescription>
           No worries! Enter your email and we&apos;ll send you reset
           instructions.
         </CardDescription>
@@ -145,12 +148,12 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
           <div className="space-y-2">
             <label
               htmlFor="email"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-foreground/80"
             >
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-500" />
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="email"
                 name="email"
@@ -158,20 +161,20 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
                 placeholder="your@email.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                className="pl-10 border-gray-300 focus:border-gray-900 focus:ring-gray-900"
+                className="pl-10 border-input focus:border-app-accent focus:ring-app-accent/20"
                 disabled={loading}
                 required
                 autoComplete="email"
                 autoFocus
               />
             </div>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Enter the email address associated with your account
             </p>
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 text-red-600 text-sm bg-red-50 p-3 rounded-lg border border-red-200">
+            <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -179,7 +182,7 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
 
           <Button
             type="submit"
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-2.5"
+            className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
             disabled={loading || !email.trim()}
           >
             {loading ? (
@@ -197,7 +200,7 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
               <button
                 type="button"
                 onClick={onBack}
-                className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
+                className="text-sm text-app-accent hover:text-app-accent/80 hover:underline transition-colors"
               >
                 Back to sign in
               </button>

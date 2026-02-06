@@ -37,7 +37,7 @@ export function PastCommitmentsPanel({
     [],
   )
   const [isLoading, setIsLoading] = useState(false)
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
 
   // Fetch past commitments
   useEffect(() => {

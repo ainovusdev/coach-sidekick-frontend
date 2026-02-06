@@ -116,10 +116,10 @@ export default function ProgramDashboardPage({
               Unable to Load Dashboard
             </h3>
             <p className="text-gray-600 text-center mb-6">
-              There was an error loading the program dashboard.
+              There was an error loading the sandbox dashboard.
             </p>
             <Button onClick={() => router.push('/admin/programs')}>
-              Back to Programs
+              Back to Sandboxes
             </Button>
           </CardContent>
         </Card>
@@ -184,7 +184,7 @@ export default function ProgramDashboardPage({
       <div className="mb-6">
         <Button variant="ghost" onClick={() => router.back()} className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Programs
+          Back to Sandboxes
         </Button>
 
         {/* Program Title and Compact Stats Bar */}
@@ -455,7 +455,7 @@ export default function ProgramDashboardPage({
                 <p className="text-gray-600 text-center">
                   {filterStatus !== 'all'
                     ? 'Try changing the filter to see more clients'
-                    : 'Add clients to this program to see them here'}
+                    : 'Add clients to this sandbox to see them here'}
                 </p>
               </CardContent>
             </Card>
@@ -471,7 +471,7 @@ export default function ProgramDashboardPage({
           {dashboard.common_themes.length > 0 && (
             <Card>
               <CardHeader>
-                <CardTitle>Common Themes Across Program</CardTitle>
+                <CardTitle>Common Themes Across Sandbox</CardTitle>
                 <CardDescription>
                   Frequently discussed topics across all clients
                 </CardDescription>

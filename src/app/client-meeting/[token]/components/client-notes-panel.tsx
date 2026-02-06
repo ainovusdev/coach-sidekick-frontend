@@ -261,7 +261,7 @@ export function ClientNotesPanel({
                           size="sm"
                           onClick={() => handleUpdateNote(note.id)}
                           disabled={!hasContent(editContent)}
-                          className="h-7 text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                          className="h-7 text-xs bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900"
                         >
                           <Check className="h-3 w-3 mr-1" />
                           Save

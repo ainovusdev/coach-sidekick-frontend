@@ -40,14 +40,14 @@ export default function EditProgramPage({
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Program Not Found
+              Sandbox Not Found
             </h3>
             <p className="text-gray-600 text-center mb-6">
-              The program you&apos;re looking for doesn&apos;t exist or you
+              The sandbox you&apos;re looking for doesn&apos;t exist or you
               don&apos;t have permission to edit it.
             </p>
             <Button onClick={() => router.push('/admin/programs')}>
-              Back to Programs
+              Back to Sandboxes
             </Button>
           </CardContent>
         </Card>
@@ -62,7 +62,7 @@ export default function EditProgramPage({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">Edit Program</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Edit Sandbox</h1>
         <p className="text-gray-600 mt-1">
           Update the details for {program.name}
         </p>

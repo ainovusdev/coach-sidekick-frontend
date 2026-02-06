@@ -56,12 +56,23 @@ export interface ClientCommitment {
   session_id: string | null
   created_at: string
   updated_at: string
+  extracted_from_transcript: boolean
+  extraction_confidence: number | null
+  transcript_context: string | null
 }
 
 export interface PastCommitmentGroup {
   session_date: string | null
   session_id: string | null
   commitments: ClientCommitment[]
+}
+
+export interface LiveMeetingTarget {
+  id: string
+  title: string
+  description: string | null
+  status: string
+  goal_titles: string[]
 }
 
 export interface LiveMeetingTokenInfo {
@@ -286,6 +297,26 @@ export class LiveMeetingService {
     }
   }
 
+  // ============ Targets/Outcomes ============
+
+  /**
+   * Get the client's active targets (outcomes) for linking to commitments
+   */
+  static async getTargets(
+    token: string,
+    guestToken: string,
+  ): Promise<LiveMeetingTarget[]> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/targets`,
+      {
+        method: 'GET',
+        headers: getGuestHeaders(guestToken),
+      },
+    )
+
+    return handleResponse<LiveMeetingTarget[]>(response)
+  }
+
   // ============ Commitments ============
 
   /**
@@ -300,6 +331,7 @@ export class LiveMeetingService {
       target_date?: string
       priority?: string
       type?: string
+      target_ids?: string[]
     },
   ): Promise<ClientCommitment> {
     const response = await fetch(
@@ -329,7 +361,8 @@ export class LiveMeetingService {
       },
     )
 
-    return handleResponse<ClientCommitment[]>(response)
+    const result = await handleResponse<{ data: ClientCommitment[] }>(response)
+    return result.data
   }
 
   /**
@@ -346,6 +379,7 @@ export class LiveMeetingService {
       priority?: string
       progress_percentage?: number
       status?: string
+      target_ids?: string[]
     },
   ): Promise<ClientCommitment> {
     const response = await fetch(
@@ -358,6 +392,47 @@ export class LiveMeetingService {
     )
 
     return handleResponse<ClientCommitment>(response)
+  }
+
+  /**
+   * Extract commitments from session transcript using AI
+   */
+  static async extractCommitments(
+    token: string,
+    guestToken: string,
+  ): Promise<ClientCommitment[]> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/extract-commitments`,
+      {
+        method: 'POST',
+        headers: getGuestHeaders(guestToken),
+        signal: AbortSignal.timeout(120000),
+      },
+    )
+
+    return handleResponse<ClientCommitment[]>(response)
+  }
+
+  /**
+   * Delete a commitment
+   */
+  static async deleteCommitment(
+    token: string,
+    guestToken: string,
+    commitmentId: string,
+  ): Promise<void> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/commitments/${commitmentId}`,
+      {
+        method: 'DELETE',
+        headers: getGuestHeaders(guestToken),
+      },
+    )
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}))
+      throw new Error(errorData.detail || 'Failed to delete commitment')
+    }
   }
 
   /**
@@ -375,7 +450,10 @@ export class LiveMeetingService {
       },
     )
 
-    return handleResponse<PastCommitmentGroup[]>(response)
+    const result = await handleResponse<{ data: PastCommitmentGroup[] }>(
+      response,
+    )
+    return result.data
   }
 }
 

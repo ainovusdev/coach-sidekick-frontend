@@ -381,10 +381,10 @@ export default function AdminClientsPage() {
             </Select>
             <Select value={selectedProgram} onValueChange={setSelectedProgram}>
               <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Programs" />
+                <SelectValue placeholder="All Sandboxes" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Programs</SelectItem>
+                <SelectItem value="all">All Sandboxes</SelectItem>
                 {programs.map(program => (
                   <SelectItem key={program.id} value={program.id}>
                     {program.name}
@@ -445,7 +445,7 @@ export default function AdminClientsPage() {
                   onClick={() => setIsAssignProgramDialogOpen(true)}
                 >
                   <FolderPlus className="h-4 w-4 mr-2" />
-                  Manage Program
+                  Manage Sandbox
                 </Button>
               </div>
             </div>
@@ -489,7 +489,7 @@ export default function AdminClientsPage() {
                   </TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Coach</TableHead>
-                  <TableHead>Programs</TableHead>
+                  <TableHead>Sandboxes</TableHead>
                   <TableHead className="text-center">Sessions</TableHead>
                   <TableHead className="text-center">Portal</TableHead>
                   <TableHead>Last Session</TableHead>
@@ -664,10 +664,10 @@ export default function AdminClientsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Manage Program Membership</DialogTitle>
+            <DialogTitle>Manage Sandbox Membership</DialogTitle>
             <DialogDescription>
               Add or remove {selectedClients.size} selected client(s) from a
-              program
+              sandbox
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4">
@@ -677,19 +677,19 @@ export default function AdminClientsPage() {
                 onClick={() => setBulkProgramAction('add')}
                 className="flex-1"
               >
-                Add to Program
+                Add to Sandbox
               </Button>
               <Button
                 variant={bulkProgramAction === 'remove' ? 'default' : 'outline'}
                 onClick={() => setBulkProgramAction('remove')}
                 className="flex-1"
               >
-                Remove from Program
+                Remove from Sandbox
               </Button>
             </div>
             <Select value={bulkProgramId} onValueChange={setBulkProgramId}>
               <SelectTrigger>
-                <SelectValue placeholder="Select a program" />
+                <SelectValue placeholder="Select a sandbox" />
               </SelectTrigger>
               <SelectContent>
                 {programs.map(program => (
@@ -715,8 +715,8 @@ export default function AdminClientsPage() {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : null}
               {bulkProgramAction === 'add'
-                ? 'Add to Program'
-                : 'Remove from Program'}
+                ? 'Add to Sandbox'
+                : 'Remove from Sandbox'}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -15,9 +15,9 @@ export default function NewProgramPage() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900">Create New Program</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Create New Sandbox</h1>
         <p className="text-gray-600 mt-1">
-          Set up a new coaching program and assign clients
+          Set up a new coaching sandbox and assign clients
         </p>
       </div>
 

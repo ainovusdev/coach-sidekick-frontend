@@ -18,7 +18,16 @@ import {
   ClientCommitmentCreate,
   ClientCommitmentUpdate,
 } from '@/services/client-commitment-service'
-import { Calendar, Zap, RefreshCw, Trophy, BookOpen } from 'lucide-react'
+import { useClientOutcomes } from '@/hooks/queries/use-client-outcomes'
+import {
+  Calendar,
+  Zap,
+  RefreshCw,
+  Trophy,
+  BookOpen,
+  Target,
+  CheckCircle2,
+} from 'lucide-react'
 import { format, addDays } from 'date-fns'
 
 interface ClientCommitmentFormProps {
@@ -72,6 +81,8 @@ export function ClientCommitmentForm({
   commitment,
 }: ClientCommitmentFormProps) {
   const [loading, setLoading] = useState(false)
+  const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
+  const { data: outcomes } = useClientOutcomes({ status: 'active' })
   const [formData, setFormData] = useState<ClientCommitmentCreate>({
     title: '',
     description: '',
@@ -91,6 +102,7 @@ export function ClientCommitmentForm({
             commitment.target_date ||
             format(addDays(new Date(), 7), 'yyyy-MM-dd'),
         })
+        setSelectedTargetIds(commitment.linked_target_ids || [])
       } else {
         setFormData({
           title: '',
@@ -98,6 +110,7 @@ export function ClientCommitmentForm({
           type: 'action',
           target_date: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
         })
+        setSelectedTargetIds([])
       }
     }
   }, [open, commitment])
@@ -112,7 +125,12 @@ export function ClientCommitmentForm({
     setLoading(true)
 
     try {
-      await onSubmit(formData)
+      const submitData = {
+        ...formData,
+        target_ids:
+          selectedTargetIds.length > 0 ? selectedTargetIds : undefined,
+      }
+      await onSubmit(submitData)
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to save commitment:', error)
@@ -224,6 +242,48 @@ export function ClientCommitmentForm({
               </p>
             )}
           </div>
+
+          {/* Link to Outcome (optional) */}
+          {outcomes && outcomes.length > 0 && (
+            <div className="space-y-2">
+              <Label className="text-sm font-medium flex items-center gap-2">
+                <Target className="h-4 w-4 text-gray-500" />
+                Link to Outcome{' '}
+                <span className="text-gray-400">(optional)</span>
+              </Label>
+              <div className="flex flex-wrap gap-1.5">
+                {outcomes.map(outcome => {
+                  const isSelected = selectedTargetIds.includes(outcome.id)
+                  return (
+                    <button
+                      key={outcome.id}
+                      type="button"
+                      onClick={() =>
+                        setSelectedTargetIds(prev =>
+                          isSelected
+                            ? prev.filter(id => id !== outcome.id)
+                            : [...prev, outcome.id],
+                        )
+                      }
+                      className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
+                        isSelected
+                          ? 'bg-gray-900 text-white'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                      title={
+                        outcome.goal_titles.length > 0
+                          ? `Vision: ${outcome.goal_titles.join(', ')}`
+                          : undefined
+                      }
+                    >
+                      {isSelected && <CheckCircle2 className="h-3 w-3 mr-1" />}
+                      {outcome.title}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Commitment Type */}
           <div className="space-y-3">

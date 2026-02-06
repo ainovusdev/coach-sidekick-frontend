@@ -12,13 +12,13 @@ import {
   ClientCommitmentUpdate,
 } from '@/services/client-commitment-service'
 import { Commitment } from '@/types/commitment'
+import { useClientOutcomes } from '@/hooks/queries/use-client-outcomes'
 import { CommitmentProgressModal } from '@/components/commitments/commitment-progress-modal'
 import { ClientCommitmentForm } from '@/components/client-portal/client-commitment-form'
 import { ClientCommitmentBoard } from '@/components/client-portal/client-commitment-board'
 import {
   Target,
   CheckCircle,
-  Clock,
   TrendingUp,
   Plus,
   LayoutGrid,
@@ -52,6 +52,15 @@ export default function MyCommitmentsPage() {
   const [commitmentToDelete, setCommitmentToDelete] =
     useState<Commitment | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { data: allOutcomes } = useClientOutcomes()
+
+  // Build a map of outcome ID → title for badge display
+  const outcomeMap: Record<string, string> = {}
+  if (allOutcomes) {
+    for (const o of allOutcomes) {
+      outcomeMap[o.id] = o.title
+    }
+  }
 
   useEffect(() => {
     loadCommitments()
@@ -155,10 +164,18 @@ export default function MyCommitmentsPage() {
   // Stats
   const activeCommitments = commitments.filter(c => c.status === 'active')
   const completedCommitments = commitments.filter(c => c.status === 'completed')
-  const totalCommitments = commitments.length
-  const completionRate =
-    totalCommitments > 0
-      ? Math.round((completedCommitments.length / totalCommitments) * 100)
+  const atRiskCommitments = commitments.filter(
+    c =>
+      c.status === 'active' &&
+      c.target_date &&
+      new Date(c.target_date) < new Date(),
+  )
+  const avgProgress =
+    activeCommitments.length > 0
+      ? Math.round(
+          activeCommitments.reduce((sum, c) => sum + c.progress_percentage, 0) /
+            activeCommitments.length,
+        )
       : 0
 
   if (loading) {
@@ -249,14 +266,14 @@ export default function MyCommitmentsPage() {
         <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-red-100 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-red-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">
-                  {completionRate}%
+                  {atRiskCommitments.length}
                 </div>
-                <div className="text-sm text-gray-600">Success Rate</div>
+                <div className="text-sm text-gray-600">At Risk</div>
               </div>
             </div>
           </CardContent>
@@ -265,14 +282,14 @@ export default function MyCommitmentsPage() {
         <Card className="bg-white border-gray-200 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="h-5 w-5 text-yellow-600" />
+              <div className="p-2 bg-purple-100 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-purple-600" />
               </div>
               <div>
                 <div className="text-2xl font-bold text-gray-900">
-                  {totalCommitments}
+                  {avgProgress}%
                 </div>
-                <div className="text-sm text-gray-600">Total</div>
+                <div className="text-sm text-gray-600">Avg Progress</div>
               </div>
             </div>
           </CardContent>
@@ -325,6 +342,7 @@ export default function MyCommitmentsPage() {
       ) : viewMode === 'board' ? (
         <ClientCommitmentBoard
           commitments={commitments}
+          outcomeMap={outcomeMap}
           onCommitmentClick={openProgressModal}
           onEdit={openEditModal}
           onDelete={confirmDelete}

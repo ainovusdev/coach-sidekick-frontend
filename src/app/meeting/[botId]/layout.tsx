@@ -11,7 +11,12 @@ export default function MeetingLayout({
   children: React.ReactNode
 }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="light"
+      enableSystem={false}
+      storageKey="coach-meeting-theme"
+    >
       {children}
     </ThemeProvider>
   )

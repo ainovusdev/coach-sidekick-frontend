@@ -16,6 +16,7 @@ import {
   LayoutDashboard,
   History,
   Target,
+  CheckSquare,
   User,
   LogOut,
   Sparkles,
@@ -33,7 +34,12 @@ const navItems = [
     icon: LayoutDashboard,
   },
   { path: '/client-portal/sessions', label: 'Sessions', icon: History },
-  { path: '/client-portal/my-commitments', label: 'Commitments', icon: Target },
+  { path: '/client-portal/outcomes', label: 'Outcomes', icon: Target },
+  {
+    path: '/client-portal/my-commitments',
+    label: 'Commitments',
+    icon: CheckSquare,
+  },
   { path: '/client-portal/persona', label: 'My Profile', icon: User },
 ]
 
