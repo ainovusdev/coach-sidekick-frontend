@@ -23,6 +23,7 @@ import type { SessionInsights } from '@/services/analysis-service'
 import type { Commitment } from '@/types/commitment'
 import { SessionCommitmentsList } from './session-commitments-list'
 import { SessionNotesCompact } from './session-notes-compact'
+import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import TranscriptViewer from './transcript-viewer'
 import { VideoPlayer } from '@/components/sessions/video-player'
@@ -46,7 +47,6 @@ interface SessionOverviewTabProps {
   isViewer?: boolean
   videoUrl?: string | null
   onViewAnalysis: () => void
-  onViewNotes: () => void
   onRefreshCommitments?: () => void
   onRefreshVideoUrl?: () => Promise<void>
 }
@@ -60,7 +60,6 @@ export function SessionOverviewTab({
   isViewer = false,
   videoUrl,
   onViewAnalysis,
-  onViewNotes,
   onRefreshCommitments,
   onRefreshVideoUrl,
 }: SessionOverviewTabProps) {
@@ -122,6 +121,7 @@ export function SessionOverviewTab({
         {!isViewer && (
           <SessionCommitmentsList
             sessionId={sessionId}
+            clientId={clientId}
             commitments={commitments || []}
             onUpdate={onRefreshCommitments || (() => {})}
           />
@@ -135,114 +135,118 @@ export function SessionOverviewTab({
         )}
       </div>
 
-      {/* Notes */}
-      <SessionNotesCompact sessionId={sessionId} onViewAll={onViewNotes} />
-
-      {/* Insights and Action Items */}
+      {/* Notes and Resources */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Key Insights */}
-        {topInsights.length > 0 && (
-          <Card className="border-app-border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-app-secondary" />
-                  <h3 className="text-sm font-semibold text-app-primary">
-                    Top Insights
-                  </h3>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onViewAnalysis}
-                  className="text-xs text-app-secondary hover:text-app-primary"
-                >
-                  View All <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3">
-                {topInsights.map((insight, idx) => (
-                  <div
-                    key={idx}
-                    className="flex gap-3 p-3 bg-app-surface rounded-lg"
-                  >
-                    <span className="flex-shrink-0 w-5 h-5 bg-app-primary text-white rounded text-xs flex items-center justify-center font-medium">
-                      {idx + 1}
-                    </span>
-                    <p className="text-sm text-app-secondary leading-relaxed">
-                      {insight}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Action Items */}
-        {topActionItems.length > 0 && (
-          <Card className="border-app-border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-app-secondary" />
-                  <h3 className="text-sm font-semibold text-app-primary">
-                    Suggested Actions
-                  </h3>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onViewAnalysis}
-                  className="text-xs text-app-secondary hover:text-app-primary"
-                >
-                  View All <ArrowRight className="h-3 w-3 ml-1" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {topActionItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-start gap-3 p-3 border border-app-border rounded-lg hover:border-app-secondary transition-colors"
-                  >
-                    <CheckCircle2 className="h-4 w-4 text-app-secondary mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-app-secondary">{item}</p>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        <SessionNotesCompact sessionId={sessionId} isViewer={isViewer} />
+        <SessionResourcesCompact
+          sessionId={sessionId}
+          clientId={clientId}
+          isViewer={isViewer}
+        />
       </div>
+
+      {/* Insights — Bento Grid */}
+      {topInsights.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Lightbulb className="h-4 w-4 text-app-secondary" />
+              <h3 className="text-sm font-semibold text-app-primary">
+                Key Insights
+              </h3>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onViewAnalysis}
+              className="text-xs text-app-secondary hover:text-app-primary"
+            >
+              View All <ArrowRight className="h-3 w-3 ml-1" />
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {topInsights.map((insight, idx) => (
+              <Card
+                key={idx}
+                className="border-app-border shadow-sm hover:shadow-md transition-shadow group"
+              >
+                <CardContent className="p-5">
+                  <span className="text-[40px] font-bold leading-none text-app-border group-hover:text-app-secondary/20 transition-colors">
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <p className="mt-3 text-sm text-app-primary leading-relaxed">
+                    {insight}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Suggested Actions */}
+      {topActionItems.length > 0 && (
+        <Card className="border-app-border shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-4 w-4 text-app-secondary" />
+                <h3 className="text-sm font-semibold text-app-primary">
+                  Suggested Actions
+                </h3>
+                <span className="text-xs text-app-secondary">
+                  ({topActionItems.length})
+                </span>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onViewAnalysis}
+                className="text-xs text-app-secondary hover:text-app-primary"
+              >
+                View All <ArrowRight className="h-3 w-3 ml-1" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {topActionItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-start gap-2.5 p-3 rounded-lg bg-app-surface"
+                >
+                  <div className="flex-shrink-0 mt-1 w-3.5 h-3.5 rounded-full border-[1.5px] border-app-secondary/40" />
+                  <p className="text-sm text-app-primary leading-relaxed">
+                    {item}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Next Session Focus */}
       {insights?.recommendations?.next_session_focus &&
         insights.recommendations.next_session_focus.length > 0 && (
-          <Card className="border-app-border shadow-sm">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-app-secondary" />
-                <h3 className="text-sm font-semibold text-app-primary">
-                  Next Session Focus
-                </h3>
-              </div>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+          <Card className="border-app-border shadow-sm bg-app-surface">
+            <CardContent className="py-4 px-6">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+                <div className="flex items-center gap-2 mr-1">
+                  <TrendingUp className="h-3.5 w-3.5 text-app-secondary" />
+                  <span className="text-xs font-semibold text-app-secondary uppercase tracking-wider">
+                    Next Session
+                  </span>
+                </div>
                 {insights.recommendations.next_session_focus
-                  .slice(0, 4)
+                  .slice(0, 6)
                   .map((focus, idx) => (
-                    <div
+                    <span
                       key={idx}
-                      className="flex gap-2 p-3 bg-app-surface rounded-lg"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-app-border text-sm text-app-primary"
                     >
-                      <ArrowRight className="h-4 w-4 text-app-secondary mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-app-secondary">{focus}</p>
-                    </div>
+                      {focus}
+                    </span>
                   ))}
               </div>
             </CardContent>

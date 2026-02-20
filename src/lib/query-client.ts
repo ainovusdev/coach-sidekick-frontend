@@ -157,6 +157,25 @@ export const queryKeys = {
     preferences: () => ['user', 'preferences'] as const,
   },
 
+  // Resource keys (coach side)
+  resources: {
+    all: ['resources'] as const,
+    lists: () => [...queryKeys.resources.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.resources.lists(), { filters }] as const,
+    detail: (id: string) => [...queryKeys.resources.all, id] as const,
+    categories: () => [...queryKeys.resources.all, 'categories'] as const,
+  },
+
+  // Client resource keys
+  clientResources: {
+    all: ['client-resources'] as const,
+    lists: () => [...queryKeys.clientResources.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.clientResources.lists(), { filters }] as const,
+    detail: (id: string) => [...queryKeys.clientResources.all, id] as const,
+  },
+
   // Program keys
   programs: {
     all: ['programs'] as const,

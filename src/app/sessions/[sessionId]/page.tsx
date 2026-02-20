@@ -40,8 +40,9 @@ import { toast } from '@/hooks/use-toast'
 import { AutoExtractionModal } from '@/components/extraction/auto-extraction-modal'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { useQueryClient } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { WinsService } from '@/services/wins-service'
 
 export default function SessionDetailsPage({
   params,
@@ -62,17 +63,9 @@ export default function SessionDetailsPage({
   } = useSessionDetails(resolvedParams.sessionId)
   const error = queryError ? String(queryError) : null
 
-  // Debug: Log session data structure
-  console.log('Session data:', sessionData)
-  console.log('Session object:', sessionData?.session)
-  console.log('Client ID direct:', sessionData?.session?.client_id)
-  console.log('Client object:', sessionData?.session?.client)
-
   // Extract client_id from session (might be nested)
   const clientId =
     sessionData?.session?.client_id || sessionData?.session?.client?.id
-
-  console.log('Extracted clientId:', clientId)
 
   // Fetch commitments for this specific session only
   const { data: commitmentsData } = useCommitments(
@@ -83,11 +76,25 @@ export default function SessionDetailsPage({
     { enabled: !!resolvedParams.sessionId },
   )
 
-  console.log('Commitments query data:', commitmentsData)
+  // Fetch wins for this session (lightweight check for existing data)
+  const { data: winsData } = useQuery({
+    queryKey: ['wins', 'session', resolvedParams.sessionId],
+    queryFn: () => WinsService.getSessionWins(resolvedParams.sessionId),
+    enabled: !!resolvedParams.sessionId,
+    staleTime: 3 * 60 * 1000,
+  })
 
-  // Helper to refresh commitments from cache
+  // Check if extraction data already exists — skip modal if so
+  const hasExistingExtractionData =
+    (commitmentsData?.commitments?.length ?? 0) > 0 ||
+    (winsData?.wins?.length ?? 0) > 0
+
+  // Helper to refresh commitments and wins from cache
   const refreshCommitments = () => {
     queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+    queryClient.invalidateQueries({
+      queryKey: ['wins', 'session', resolvedParams.sessionId],
+    })
   }
 
   // Analysis state (unified)
@@ -122,7 +129,8 @@ export default function SessionDetailsPage({
       checkedFromMeeting ||
       !sessionData?.session?.id ||
       !clientId ||
-      isViewer
+      isViewer ||
+      hasExistingExtractionData
     )
       return
 
@@ -152,7 +160,14 @@ export default function SessionDetailsPage({
         setExtractionShown(true)
       }
     }
-  }, [sessionData, clientId, isViewer, checkedFromMeeting, extractionShown])
+  }, [
+    sessionData,
+    clientId,
+    isViewer,
+    checkedFromMeeting,
+    extractionShown,
+    hasExistingExtractionData,
+  ])
 
   // Auto-trigger analysis
   React.useEffect(() => {
@@ -235,8 +250,13 @@ export default function SessionDetailsPage({
           'Session insights and coaching metrics have been generated successfully.',
       })
 
-      // Show extraction modal after analysis completes (if not already shown and has clientId)
-      if (!extractionShown && clientId && !isViewer) {
+      // Show extraction modal after analysis completes (skip if data already exists)
+      if (
+        !extractionShown &&
+        clientId &&
+        !isViewer &&
+        !hasExistingExtractionData
+      ) {
         setShowExtractionModal(true)
         setExtractionShown(true)
       }
@@ -611,7 +631,6 @@ export default function SessionDetailsPage({
                       isViewer={isViewer}
                       videoUrl={session.video_url}
                       onViewAnalysis={() => setActiveTab('analysis')}
-                      onViewNotes={() => setShowQuickNote(true)}
                       onRefreshCommitments={refreshCommitments}
                       onRefreshVideoUrl={
                         !isViewer ? handleRefreshVideoUrl : undefined

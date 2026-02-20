@@ -3,22 +3,36 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { StickyNote, FileText, Loader2, ArrowRight } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import { StickyNote, FileText, Loader2, Plus } from 'lucide-react'
 import { SessionNotesService } from '@/services/session-notes-service'
 import { SessionNote } from '@/types/session-note'
 import { formatRelativeTime } from '@/lib/date-utils'
+import { toast } from 'sonner'
 
 interface SessionNotesCompactProps {
   sessionId: string
-  onViewAll: () => void
+  isViewer?: boolean
 }
 
 export function SessionNotesCompact({
   sessionId,
-  onViewAll,
+  isViewer = false,
 }: SessionNotesCompactProps) {
   const [notes, setNotes] = useState<SessionNote[]>([])
   const [loading, setLoading] = useState(true)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newContent, setNewContent] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     fetchNotes()
@@ -33,6 +47,28 @@ export function SessionNotesCompact({
       console.error('Failed to fetch notes:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleCreateNote = async () => {
+    if (!newContent.trim()) return
+    setIsCreating(true)
+    try {
+      await SessionNotesService.createNote(sessionId, {
+        title: newTitle.trim() || null,
+        content: newContent.trim(),
+        note_type: 'coach_private',
+      })
+      toast.success('Note added')
+      setShowCreateDialog(false)
+      setNewTitle('')
+      setNewContent('')
+      fetchNotes()
+    } catch (error) {
+      console.error('Failed to create note:', error)
+      toast.error('Failed to create note')
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -66,17 +102,18 @@ export function SessionNotesCompact({
               </span>
             )}
           </div>
-          {notes.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onViewAll}
-              className="text-xs text-app-secondary hover:text-app-primary"
-            >
-              View All
-              <ArrowRight className="h-3 w-3 ml-1" />
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {!isViewer && (
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                size="sm"
+                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1.5" />
+                Add
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -132,6 +169,73 @@ export function SessionNotesCompact({
           </div>
         )}
       </CardContent>
+
+      {/* Create Note Dialog */}
+      <Dialog
+        open={showCreateDialog}
+        onOpenChange={open => {
+          if (!open) {
+            setShowCreateDialog(false)
+            setNewTitle('')
+            setNewContent('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Note</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
+                Title
+              </label>
+              <Input
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="Note title (optional)"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
+                Content *
+              </label>
+              <Textarea
+                value={newContent}
+                onChange={e => setNewContent(e.target.value)}
+                placeholder="Write your note..."
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateDialog(false)
+                setNewTitle('')
+                setNewContent('')
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateNote}
+              disabled={!newContent.trim() || isCreating}
+              className="bg-app-primary hover:bg-app-primary/90"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Note'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

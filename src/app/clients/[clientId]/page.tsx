@@ -34,6 +34,7 @@ import {
   Mic,
   Target,
   Trophy,
+  BookOpen,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -47,6 +48,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { ClientService } from '@/services/client-service'
 import { ClientWinsTimeline } from '@/components/wins/client-wins-timeline'
+import { ClientResourcesTab } from './components/client-resources-tab'
 
 export default function ClientDetailPage({
   params,
@@ -75,6 +77,7 @@ export default function ClientDetailPage({
   const [showDeleteSprintDialog, setShowDeleteSprintDialog] = useState(false)
   const [sprintToDelete, setSprintToDelete] = useState<any>(null)
   const [isDeletingSprint, setIsDeletingSprint] = useState(false)
+  const [activeTab, setActiveTab] = useState('overview')
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -297,7 +300,11 @@ export default function ClientDetailPage({
             <>
               {/* Main Content Area with Tabs */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <Tabs defaultValue="overview" className="space-y-6">
+                <Tabs
+                  value={activeTab}
+                  onValueChange={setActiveTab}
+                  className="space-y-6"
+                >
                   <div className="flex items-center justify-between">
                     <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
                       <TabsTrigger
@@ -327,6 +334,13 @@ export default function ClientDetailPage({
                       >
                         <Trophy className="h-4 w-4 mr-2" />
                         Wins
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="resources"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                      >
+                        <BookOpen className="h-4 w-4 mr-2" />
+                        Resources
                       </TabsTrigger>
                     </TabsList>
 
@@ -365,6 +379,8 @@ export default function ClientDetailPage({
                         modalState.setEditingCommitment(commitment)
                         modalState.setShowCommitmentForm(true)
                       }}
+                      onViewResources={() => setActiveTab('resources')}
+                      onShareResource={() => setActiveTab('resources')}
                       isViewer={isViewer}
                     />
                   </TabsContent>
@@ -439,6 +455,13 @@ export default function ClientDetailPage({
 
                   <TabsContent value="wins" className="space-y-6">
                     <ClientWinsTimeline clientId={client.id} />
+                  </TabsContent>
+
+                  <TabsContent value="resources" className="space-y-6">
+                    <ClientResourcesTab
+                      clientId={client.id}
+                      clientName={client.name}
+                    />
                   </TabsContent>
                 </Tabs>
               </div>

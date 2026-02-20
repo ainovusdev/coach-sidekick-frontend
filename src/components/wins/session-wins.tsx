@@ -12,7 +12,7 @@ import {
   ChevronDown,
   ChevronRight,
 } from 'lucide-react'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -317,22 +317,12 @@ export function SessionWins({
     setNewDescription(win.description || '')
   }
 
-  if (loading) {
-    return (
-      <Card className="border-app-border shadow-sm">
-        <CardContent className="py-12 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-app-secondary animate-spin" />
-        </CardContent>
-      </Card>
-    )
-  }
-
   const approvedWins = wins.filter(w => w.is_approved)
   const pendingWins = wins.filter(w => !w.is_approved && w.is_ai_generated)
 
   return (
     <Card className="border-app-border shadow-sm">
-      <div className="px-6 py-4 border-b border-app-border">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4 text-app-secondary" />
@@ -346,7 +336,7 @@ export function SessionWins({
             )}
           </div>
           {!isViewer && (
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
               <Button
                 onClick={handleExtractWins}
                 disabled={extracting}
@@ -377,10 +367,14 @@ export function SessionWins({
             </div>
           )}
         </div>
-      </div>
+      </CardHeader>
 
-      <CardContent className="p-4">
-        {wins.length === 0 ? (
+      <CardContent className="pt-0">
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-app-secondary" />
+          </div>
+        ) : wins.length === 0 ? (
           <div className="text-center py-8">
             <div className="inline-flex items-center justify-center w-10 h-10 bg-app-surface rounded-lg mb-3">
               <Trophy className="h-5 w-5 text-app-secondary" />

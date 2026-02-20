@@ -72,7 +72,12 @@ export function StartSessionModal({
         </DialogHeader>
 
         <div className="mt-4">
-          <MeetingFormSimple onSubmit={handleStartSession} loading={loading} />
+          <MeetingFormSimple
+            onSubmit={handleStartSession}
+            loading={loading}
+            preselectedClientId={clientId}
+            preselectedClientName={clientName}
+          />
         </div>
 
         <div className="text-sm text-muted-foreground mt-2">

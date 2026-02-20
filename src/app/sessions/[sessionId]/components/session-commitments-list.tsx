@@ -12,6 +12,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import { CommitmentService } from '@/services/commitment-service'
 import type { CommitmentStatus } from '@/types/commitment'
 import { toast } from 'sonner'
@@ -31,6 +38,7 @@ import {
   Check,
   Trash2,
   FileEdit,
+  Plus,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { format } from 'date-fns'
@@ -433,14 +441,30 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               </Button>
             </>
           ) : (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => setIsEditing(true)}
-              className="h-7 px-2"
-            >
-              <Edit2 className="h-3 w-3" />
-            </Button>
+            <>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setIsEditing(true)}
+                className="h-7 px-2"
+              >
+                <Edit2 className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleDiscard}
+                disabled={isDiscarding}
+                className="h-7 px-2 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                title="Delete commitment"
+              >
+                {isDiscarding ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Trash2 className="h-3 w-3" />
+                )}
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -498,6 +522,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
 interface SessionCommitmentsListProps {
   sessionId: string
+  clientId?: string
   commitments: any[]
   onViewAll?: () => void
   onUpdate: () => void
@@ -505,11 +530,16 @@ interface SessionCommitmentsListProps {
 
 export function SessionCommitmentsList({
   sessionId,
+  clientId,
   commitments,
   onViewAll,
   onUpdate,
 }: SessionCommitmentsListProps) {
   const [extracting, setExtracting] = useState(false)
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [newTitle, setNewTitle] = useState('')
+  const [newDescription, setNewDescription] = useState('')
+  const [isCreating, setIsCreating] = useState(false)
 
   const handleExtractCommitments = async () => {
     setExtracting(true)
@@ -531,64 +561,95 @@ export function SessionCommitmentsList({
     }
   }
 
+  const handleCreateCommitment = async () => {
+    if (!newTitle.trim() || !clientId) return
+    setIsCreating(true)
+    try {
+      await CommitmentService.createCommitment({
+        title: newTitle.trim(),
+        description: newDescription.trim() || undefined,
+        client_id: clientId,
+        session_id: sessionId,
+        type: 'action',
+        priority: 'medium',
+      })
+      toast.success('Commitment added')
+      setShowCreateDialog(false)
+      setNewTitle('')
+      setNewDescription('')
+      onUpdate()
+    } catch (error) {
+      console.error('Error creating commitment:', error)
+      toast.error('Failed to create commitment')
+    } finally {
+      setIsCreating(false)
+    }
+  }
+
   const draftCount = commitments.filter(c => c.status === 'draft').length
   const confirmedCount = commitments.filter(c => c.status !== 'draft').length
 
   return (
     <Card className="border-app-border shadow-sm">
-      <CardHeader className="border-b border-app-border">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-app-surface rounded-lg">
-              <Target className="h-5 w-5 text-app-secondary" />
-            </div>
-            <div>
-              <h2 className="text-base font-semibold text-app-primary">
-                Client Commitments
-              </h2>
-              <p className="text-xs text-app-secondary">
-                {commitments.length > 0
-                  ? `${draftCount > 0 ? `${draftCount} pending · ` : ''}${confirmedCount} confirmed`
-                  : 'Track client action items'}
-              </p>
-            </div>
+          <div className="flex items-center gap-2">
+            <Target className="h-4 w-4 text-app-secondary" />
+            <h3 className="text-sm font-semibold text-app-primary">
+              Session Commitments
+            </h3>
+            {commitments.length > 0 && (
+              <span className="text-xs text-app-secondary">
+                ({commitments.length})
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-2">
             <Button
               onClick={handleExtractCommitments}
               disabled={extracting}
-              variant="outline"
+              variant="ghost"
               size="sm"
-              className="border-app-border"
+              className="text-xs text-app-secondary hover:text-app-primary"
             >
               {extracting ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  <Loader2 className="h-3 w-3 mr-1.5 animate-spin" />
                   Extracting...
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <Sparkles className="h-3 w-3 mr-1.5" />
                   Extract
                 </>
               )}
             </Button>
+            {clientId && (
+              <Button
+                onClick={() => setShowCreateDialog(true)}
+                size="sm"
+                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
+              >
+                <Plus className="h-3 w-3 mr-1.5" />
+                Add
+              </Button>
+            )}
             {commitments.length > 0 && onViewAll && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onViewAll}
-                className="text-app-secondary"
+                className="text-xs text-app-secondary hover:text-app-primary"
               >
                 View All
-                <ArrowRight className="h-4 w-4 ml-1" />
+                <ArrowRight className="h-3 w-3 ml-1" />
               </Button>
             )}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-4">
+      <CardContent className="pt-0">
         {commitments.length === 0 ? (
           <div className="text-center py-8">
             <Target className="h-10 w-10 mx-auto mb-3 text-app-secondary" />
@@ -645,6 +706,73 @@ export function SessionCommitmentsList({
           </div>
         )}
       </CardContent>
+
+      {/* Create Commitment Dialog */}
+      <Dialog
+        open={showCreateDialog}
+        onOpenChange={open => {
+          if (!open) {
+            setShowCreateDialog(false)
+            setNewTitle('')
+            setNewDescription('')
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Commitment</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
+                Title *
+              </label>
+              <Input
+                value={newTitle}
+                onChange={e => setNewTitle(e.target.value)}
+                placeholder="e.g., Complete weekly exercise plan"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium text-app-primary mb-1.5 block">
+                Description
+              </label>
+              <Textarea
+                value={newDescription}
+                onChange={e => setNewDescription(e.target.value)}
+                placeholder="Add details about this commitment..."
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCreateDialog(false)
+                setNewTitle('')
+                setNewDescription('')
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateCommitment}
+              disabled={!newTitle.trim() || isCreating}
+              className="bg-app-primary hover:bg-app-primary/90"
+            >
+              {isCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                'Add Commitment'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }
