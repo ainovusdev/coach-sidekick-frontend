@@ -40,7 +40,7 @@ import {
   History,
   Trash2,
 } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
+import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { cn } from '@/lib/utils'
 
 interface Message extends ChatMessage {
@@ -345,9 +345,7 @@ export function KnowledgeChatButton() {
                             <span className="text-sm">Thinking...</span>
                           </div>
                         ) : message.role === 'assistant' ? (
-                          <div className="prose prose-sm max-w-none">
-                            <ReactMarkdown>{message.content}</ReactMarkdown>
-                          </div>
+                          <ChatMarkdown content={message.content} />
                         ) : (
                           <p className="text-sm whitespace-pre-wrap">
                             {message.content}

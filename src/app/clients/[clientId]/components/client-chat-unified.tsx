@@ -28,8 +28,7 @@ import {
   type ChatStats,
 } from '@/services/chat-service'
 import { cn } from '@/lib/utils'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { useSimpleVoice } from '@/hooks/use-simple-voice'
 import { RealtimeVoiceModal } from './realtime-voice-modal'
 import {
@@ -553,55 +552,7 @@ export function ClientChatUnified({
                         )}
 
                         {isAssistant ? (
-                          <div className="text-sm">
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                p: ({ children }) => (
-                                  <p className="mb-2 last:mb-0 leading-relaxed">
-                                    {children}
-                                  </p>
-                                ),
-                                h3: ({ children }) => (
-                                  <h3 className="text-sm font-semibold text-gray-800 mb-1 mt-2 first:mt-0">
-                                    {children}
-                                  </h3>
-                                ),
-                                ul: ({ children }) => (
-                                  <ul className="list-disc list-inside pl-2 mb-2 space-y-0.5 text-gray-700">
-                                    {children}
-                                  </ul>
-                                ),
-                                ol: ({ children }) => (
-                                  <ol className="list-decimal list-inside pl-2 mb-2 space-y-0.5 text-gray-700">
-                                    {children}
-                                  </ol>
-                                ),
-                                li: ({ children }) => (
-                                  <li className="text-sm">{children}</li>
-                                ),
-                                code: ({ className, children }: any) => {
-                                  const inline = !className
-                                  return inline ? (
-                                    <code className="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-xs font-mono">
-                                      {children}
-                                    </code>
-                                  ) : (
-                                    <code className="block bg-gray-100 text-gray-800 p-2 rounded text-xs font-mono overflow-x-auto my-2">
-                                      {children}
-                                    </code>
-                                  )
-                                },
-                                strong: ({ children }) => (
-                                  <strong className="font-semibold text-gray-900">
-                                    {children}
-                                  </strong>
-                                ),
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
+                          <ChatMarkdown content={message.content} />
                         ) : (
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">
                             {message.content}
