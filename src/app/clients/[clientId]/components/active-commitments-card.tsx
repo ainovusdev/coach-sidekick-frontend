@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatDate } from '@/lib/date-utils'
 
 interface ActiveCommitmentsCardProps {
   clientId: string
@@ -160,12 +161,7 @@ export function ActiveCommitmentsCard({
                                 ? `Overdue by ${Math.abs(daysUntilDeadline!)} days`
                                 : isDueSoon
                                   ? `Due in ${daysUntilDeadline} days`
-                                  : new Date(
-                                      commitment.target_date,
-                                    ).toLocaleDateString('en-US', {
-                                      month: 'short',
-                                      day: 'numeric',
-                                    })}
+                                  : formatDate(commitment.target_date, 'MMM d')}
                             </span>
                           </div>
                         )}

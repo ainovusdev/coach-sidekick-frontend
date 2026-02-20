@@ -33,7 +33,7 @@ import {
   PlayCircle,
   CheckCircle2,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -265,7 +265,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               <span>
                 Due:{' '}
                 <strong>
-                  {format(new Date(commitment.target_date), 'MMM d, yyyy')}
+                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
                 </strong>
               </span>
             )}
@@ -350,10 +350,7 @@ export function LastSessionInsightsCard({
           </div>
           <div className="flex items-center gap-3 text-sm text-gray-600">
             <span>
-              {format(
-                new Date(session.started_at || session.created_at),
-                'MMM d',
-              )}
+              {formatDate(session.started_at || session.created_at, 'MMM d')}
             </span>
             <Badge
               variant={session.status === 'completed' ? 'default' : 'secondary'}

@@ -21,7 +21,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { formatDate, formatTime } from '../utils/client-utils'
+import { formatDate, formatTime } from '@/lib/date-utils'
 import { SessionService } from '@/services/session-service'
 import { AnalysisService } from '@/services/analysis-service'
 import { toast } from '@/hooks/use-toast'

@@ -26,6 +26,7 @@ import {
   useClientResource,
 } from '@/hooks/queries/use-client-resources'
 import { useTrackResourceDownload } from '@/hooks/mutations/use-resource-mutations'
+import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 import type { ClientResource, ResourceCategory } from '@/types/resource'
 
@@ -73,7 +74,7 @@ function ResourceDetailDialog({
                   resource.category}
               </Badge>
               <span className="text-xs text-gray-400">
-                {new Date(resource.created_at).toLocaleDateString()}
+                {formatDate(resource.created_at)}
               </span>
             </div>
 
@@ -200,7 +201,7 @@ function ResourceRow({
             {resource.category}
           </Badge>
           <span className="text-[11px] text-gray-400">
-            {new Date(resource.created_at).toLocaleDateString()}
+            {formatDate(resource.created_at)}
           </span>
         </div>
       </div>

@@ -68,6 +68,7 @@ import {
   Send,
 } from 'lucide-react'
 import { CoachInvitationModal } from '@/components/admin/coach-invitation-modal'
+import { formatDate } from '@/lib/date-utils'
 
 export default function UsersPage() {
   // Filter state
@@ -542,8 +543,7 @@ export default function UsersPage() {
                           )}
                           {user.deleted_at && (
                             <p className="text-xs text-red-600 mt-1">
-                              Deleted{' '}
-                              {new Date(user.deleted_at).toLocaleDateString()}
+                              Deleted {formatDate(user.deleted_at)}
                             </p>
                           )}
                         </div>
@@ -598,11 +598,7 @@ export default function UsersPage() {
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm text-gray-500">
                         <Calendar className="h-3 w-3" />
-                        {new Date(user.created_at).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric',
-                        })}
+                        {formatDate(user.created_at, 'MMM d, yyyy')}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

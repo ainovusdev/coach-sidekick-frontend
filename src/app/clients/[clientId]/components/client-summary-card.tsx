@@ -2,6 +2,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Client, ClientSessionStats } from '@/types/meeting'
 import { User, TrendingUp, Target, MessageSquare } from 'lucide-react'
+import { formatDate } from '@/lib/date-utils'
 
 interface ClientSummaryCardProps {
   client: Client
@@ -17,11 +18,7 @@ export function ClientSummaryCard({
   const focusAreas = stats?.coaching_focus_areas || []
   const avgScore = stats?.average_overall_score
   const lastSessionDate = stats?.last_session_date
-    ? new Date(stats.last_session_date).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
+    ? formatDate(stats.last_session_date, 'MMM d, yyyy')
     : null
 
   return (

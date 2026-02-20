@@ -20,6 +20,7 @@ import {
   type PersonaUpdateHistory,
 } from '@/services/persona-service'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/date-utils'
 
 interface PersonaEvolutionTimelineProps {
   clientId: string
@@ -219,10 +220,7 @@ export function PersonaEvolutionTimeline({
   const monthlyGroups = history.reduce(
     (acc, update) => {
       const date = new Date(update.created_at)
-      const monthKey = date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-      })
+      const monthKey = formatDate(update.created_at, 'MMMM yyyy')
       if (!acc[monthKey]) {
         acc[monthKey] = {
           date,
@@ -498,13 +496,10 @@ export function PersonaEvolutionTimeline({
                   Journey Started
                 </span>
                 <Badge className="bg-blue-100 text-blue-700 border-0 text-xs">
-                  {new Date(
+                  {formatDate(
                     history[history.length - 1].created_at,
-                  ).toLocaleDateString('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
-                  })}
+                    'MMMM d, yyyy',
+                  )}
                 </Badge>
               </div>
               <p className="text-sm text-blue-700 mt-1">

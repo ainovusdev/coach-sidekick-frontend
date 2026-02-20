@@ -1,7 +1,8 @@
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
-import { getClientInitials, formatDate } from '../utils/client-utils'
+import { getClientInitials } from '../utils/client-utils'
+import { formatDate } from '@/lib/date-utils'
 import {
   ArrowLeft,
   Edit,

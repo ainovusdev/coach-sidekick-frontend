@@ -11,7 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Radio, Clock } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 
 interface ActiveSession {
   session_id: string
@@ -102,12 +102,7 @@ export function ActiveSessionsCard() {
                   <Clock className="h-3.5 w-3.5" />
                   {formatDuration(session.duration_seconds)} elapsed
                 </span>
-                <span>
-                  Started{' '}
-                  {formatDistanceToNow(new Date(session.started_at), {
-                    addSuffix: true,
-                  })}
-                </span>
+                <span>Started {formatRelativeTime(session.started_at)}</span>
               </div>
             </div>
 

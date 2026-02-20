@@ -27,6 +27,7 @@ import {
   Eye,
   EyeOff,
 } from 'lucide-react'
+import { formatDate } from '@/lib/date-utils'
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
 import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
@@ -273,13 +274,7 @@ export default function ClientProfilePage() {
                   <div className="flex items-center text-sm text-gray-500">
                     <Calendar className="h-4 w-4 mr-2" />
                     Member since{' '}
-                    {new Date(profileData.created_at).toLocaleDateString(
-                      'en-US',
-                      {
-                        month: 'long',
-                        year: 'numeric',
-                      },
-                    )}
+                    {formatDate(profileData.created_at, 'MMMM yyyy')}
                   </div>
                 )}
               </div>

@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { CheckSquare, ArrowRight, AlertCircle } from 'lucide-react'
-import { formatDistanceToNow, isPast } from 'date-fns'
+import { formatRelativeTime, isPastDate } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
 
 interface UpcomingTasksWidgetProps {
@@ -53,7 +53,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
         ) : (
           <div className="space-y-2.5">
             {sortedTasks.map(task => {
-              const isOverdue = task.due_date && isPast(new Date(task.due_date))
+              const isOverdue = task.due_date && isPastDate(task.due_date)
               return (
                 <div key={task.id} className="flex items-start gap-2.5 py-1.5">
                   <div className="flex-1 min-w-0">
@@ -78,9 +78,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
                           {isOverdue && <AlertCircle className="h-3 w-3" />}
                           {isOverdue
                             ? 'Overdue'
-                            : formatDistanceToNow(new Date(task.due_date), {
-                                addSuffix: true,
-                              })}
+                            : formatRelativeTime(task.due_date)}
                         </span>
                       )}
                     </div>

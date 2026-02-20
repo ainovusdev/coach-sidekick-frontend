@@ -1,5 +1,5 @@
-import { formatDistanceToNow, format } from 'date-fns'
 import { useState } from 'react'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -53,7 +53,6 @@ export function SessionCardCompact({
       setIsReanalyzing(false)
     }
   }
-  const createdAt = new Date(session.created_at)
   const durationMinutes =
     summary?.duration_minutes ||
     (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
@@ -115,7 +114,7 @@ export function SessionCardCompact({
     session.client_name || session.metadata?.client_name || null
   const meetingSummary = summary?.meeting_summary || session.summary
   const platformName = getPlatformName(session.meeting_url)
-  const formattedDate = format(createdAt, 'MMM d, yyyy')
+  const formattedDate = formatDate(session.created_at, 'MMM d, yyyy')
 
   return (
     <div className="space-y-3">
@@ -139,8 +138,8 @@ export function SessionCardCompact({
               <div className="flex items-center gap-1 text-xs text-gray-500">
                 <Calendar className="h-3 w-3" />
                 <span>
-                  {format(createdAt, 'EEEE')} •{' '}
-                  {formatDistanceToNow(createdAt, { addSuffix: true })}
+                  {formatDate(session.created_at, 'EEEE')} •{' '}
+                  {formatRelativeTime(session.created_at)}
                 </span>
               </div>
               {durationMinutes && (

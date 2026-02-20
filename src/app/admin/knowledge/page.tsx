@@ -63,6 +63,7 @@ import {
   Cog,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
+import { formatDate } from '@/lib/date-utils'
 
 const categoryIcons: Record<KnowledgeCategory, React.ReactNode> = {
   coaching_improvement: <Lightbulb className="h-4 w-4" />,
@@ -428,9 +429,7 @@ export default function KnowledgeHubPage() {
                           {categoryMeta?.name || doc.category}
                         </span>
                         <span>{doc.word_count.toLocaleString()} words</span>
-                        <span>
-                          {new Date(doc.created_at).toLocaleDateString()}
-                        </span>
+                        <span>{formatDate(doc.created_at)}</span>
                       </div>
                       {doc.tags.length > 0 && (
                         <div className="flex gap-1 mt-2">
@@ -624,7 +623,7 @@ export default function KnowledgeHubPage() {
                 {' • '}
                 {documentDetail.word_count.toLocaleString()} words
                 {' • '}
-                {new Date(documentDetail.created_at).toLocaleDateString()}
+                {formatDate(documentDetail.created_at)}
               </DialogDescription>
             )}
           </DialogHeader>

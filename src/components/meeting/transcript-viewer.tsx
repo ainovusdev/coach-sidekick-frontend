@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { formatTime } from '@/lib/date-utils'
 
 interface TranscriptEntry {
   speaker: string
@@ -125,11 +126,7 @@ export function TranscriptViewer({
                         </Badge>
                       )}
                       <span className="text-xs text-gray-400 ml-auto">
-                        {new Date(entry.timestamp).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit',
-                        })}
+                        {formatTime(entry.timestamp)}
                       </span>
                     </div>
                     <p className="text-sm text-gray-700">{entry.text}</p>
@@ -178,10 +175,7 @@ export function TranscriptViewer({
                     </Badge>
                   )}
                   <span className="text-xs text-gray-400 ml-auto">
-                    {new Date(entry.timestamp).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatTime(entry.timestamp)}
                   </span>
                 </div>
                 <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -293,7 +287,7 @@ export function TranscriptViewer({
                 </Badge>
               </div>
               <span className="text-xs text-gray-500 dark:text-gray-400">
-                {new Date(entry.timestamp).toLocaleTimeString()}
+                {formatTime(entry.timestamp)}
               </span>
             </div>
             <p className="text-gray-800 dark:text-gray-200 leading-relaxed">

@@ -27,7 +27,7 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { NotesList } from '@/components/session-notes/notes-list'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 
 interface SessionDetail {
   session: {
@@ -215,27 +215,22 @@ export default function ClientSessionDetailPage() {
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 bg-gray-900 rounded-xl flex flex-col items-center justify-center text-white">
               <span className="text-2xl font-bold">
-                {session.started_at
-                  ? format(new Date(session.started_at), 'd')
-                  : '-'}
+                {session.started_at ? formatDate(session.started_at, 'd') : '-'}
               </span>
               <span className="text-xs uppercase tracking-wide opacity-80">
                 {session.started_at
-                  ? format(new Date(session.started_at), 'MMM')
+                  ? formatDate(session.started_at, 'MMM')
                   : ''}
               </span>
             </div>
             <div>
               <h1 className="text-xl font-bold text-gray-900">
                 {session.started_at
-                  ? format(new Date(session.started_at), 'EEEE, MMMM d, yyyy')
+                  ? formatDate(session.started_at, 'EEEE, MMMM d, yyyy')
                   : 'Session Details'}
               </h1>
               <p className="text-sm text-gray-500">
-                {session.started_at &&
-                  formatDistanceToNow(new Date(session.started_at), {
-                    addSuffix: true,
-                  })}
+                {session.started_at && formatRelativeTime(session.started_at)}
               </p>
             </div>
           </div>
@@ -435,7 +430,7 @@ export default function ClientSessionDetailPage() {
                               </span>
                               {entry.timestamp && (
                                 <span className="text-xs text-gray-400">
-                                  {format(new Date(entry.timestamp), 'h:mm a')}
+                                  {formatDate(entry.timestamp, 'h:mm a')}
                                 </span>
                               )}
                             </div>
@@ -599,7 +594,7 @@ export default function ClientSessionDetailPage() {
                         </p>
                         {task.due_date && (
                           <p className="text-xs text-gray-400 mt-0.5">
-                            Due {format(new Date(task.due_date), 'MMM d')}
+                            Due {formatDate(task.due_date, 'MMM d')}
                           </p>
                         )}
                       </div>

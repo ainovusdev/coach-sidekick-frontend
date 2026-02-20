@@ -72,6 +72,7 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import axiosInstance from '@/lib/axios-config'
+import { formatDate } from '@/lib/date-utils'
 
 interface Program {
   id: string
@@ -228,9 +229,9 @@ export default function AdminClientsPage() {
     setIsDeleteDialogOpen(true)
   }
 
-  const formatDate = (dateString: string | null) => {
+  const formatDateValue = (dateString: string | null) => {
     if (!dateString) return 'Never'
-    return new Date(dateString).toLocaleDateString()
+    return formatDate(dateString)
   }
 
   const isAllSelected =
@@ -567,7 +568,7 @@ export default function AdminClientsPage() {
                       )}
                     </TableCell>
                     <TableCell className="text-sm text-gray-500">
-                      {formatDate(client.last_session_date)}
+                      {formatDateValue(client.last_session_date)}
                     </TableCell>
                     <TableCell>
                       <DropdownMenu modal={false}>

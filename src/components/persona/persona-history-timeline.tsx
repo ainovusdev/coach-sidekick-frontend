@@ -25,6 +25,7 @@ import {
 } from '@/services/persona-service'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { formatDate, formatTime } from '@/lib/date-utils'
 
 interface PersonaHistoryTimelineProps {
   clientId: string
@@ -125,6 +126,7 @@ function formatValue(value: any): string {
 interface SessionUpdate {
   sessionId: string | null
   sessionDate: Date
+  sessionDateStr: string
   updates: PersonaUpdateHistory[]
   avgConfidence: number
 }
@@ -211,6 +213,7 @@ export function PersonaHistoryTimeline({
         acc[sessionKey] = {
           sessionId: update.session_id || null,
           sessionDate: new Date(update.created_at),
+          sessionDateStr: update.created_at,
           updates: [],
           avgConfidence: 0,
         }
@@ -284,18 +287,11 @@ export function PersonaHistoryTimeline({
                 <div className="flex items-center gap-3 text-xs text-gray-500">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
-                    {group.sessionDate.toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric',
-                    })}
+                    {formatDate(group.sessionDateStr, 'MMM d, yyyy')}
                   </span>
                   <span className="flex items-center gap-1">
                     <Clock className="h-3 w-3" />
-                    {group.sessionDate.toLocaleTimeString('en-US', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatTime(group.sessionDateStr)}
                   </span>
                   <span className="flex items-center gap-1">
                     {categories.length} categories

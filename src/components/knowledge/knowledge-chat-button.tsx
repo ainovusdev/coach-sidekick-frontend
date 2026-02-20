@@ -42,6 +42,7 @@ import {
 } from 'lucide-react'
 import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/date-utils'
 
 interface Message extends ChatMessage {
   sources?: KnowledgeSource[]
@@ -239,9 +240,7 @@ export function KnowledgeChatButton() {
                       <p className="text-xs text-gray-500">
                         {session.message_count} messages •{' '}
                         {session.last_message_at
-                          ? new Date(
-                              session.last_message_at,
-                            ).toLocaleDateString()
+                          ? formatDate(session.last_message_at)
                           : 'No messages'}
                       </p>
                     </div>

@@ -24,12 +24,8 @@ import {
   CommitmentPriority,
   CommitmentStatus,
 } from '@/types/commitment'
-import {
-  formatDistanceToNow,
-  isPast,
-  parseISO,
-  differenceInDays,
-} from 'date-fns'
+import { isPast, parseISO, differenceInDays } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 import {
   Clock,
   MoreVertical,
@@ -133,7 +129,7 @@ export function CommitmentCard({
       }
     } else {
       return {
-        text: formatDistanceToNow(targetDate, { addSuffix: true }),
+        text: formatRelativeTime(commitment.target_date),
         className: 'text-muted-foreground',
         icon: Clock,
       }

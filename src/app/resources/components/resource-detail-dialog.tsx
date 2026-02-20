@@ -27,6 +27,7 @@ import {
   Tag,
 } from 'lucide-react'
 import type { SharedResource, SharingScope } from '@/types/resource'
+import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
@@ -133,7 +134,7 @@ export function ResourceDetailDialog({
             </span>
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
-              {new Date(resource.created_at).toLocaleDateString()}
+              {formatDate(resource.created_at)}
             </span>
           </div>
 
