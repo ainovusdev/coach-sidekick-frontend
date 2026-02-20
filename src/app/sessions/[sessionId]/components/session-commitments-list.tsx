@@ -41,7 +41,7 @@ import {
   Plus,
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 
 interface CommitmentItemProps {
@@ -318,7 +318,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 <span>
                   Due:{' '}
                   <strong>
-                    {format(new Date(commitment.target_date), 'MMM d, yyyy')}
+                    {formatDate(commitment.target_date, 'MMM d, yyyy')}
                   </strong>
                 </span>
               )}
@@ -504,7 +504,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               <span>
                 Due:{' '}
                 <strong>
-                  {format(new Date(commitment.target_date), 'MMM d, yyyy')}
+                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
                 </strong>
               </span>
             )}

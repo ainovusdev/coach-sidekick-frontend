@@ -27,7 +27,7 @@ import {
   Shield,
   ChevronRight,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 
 export default function ClientPersonaPage() {
   const router = useRouter()
@@ -163,7 +163,7 @@ export default function ClientPersonaPage() {
           <div className="text-center">
             <p className="text-sm text-gray-900">
               {persona.metadata.last_updated
-                ? format(new Date(persona.metadata.last_updated), 'MMM d')
+                ? formatDate(persona.metadata.last_updated, 'MMM d')
                 : '-'}
             </p>
             <p className="text-xs text-gray-500">Updated</p>

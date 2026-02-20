@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { MessageSquare, Bot, User, Lock } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { usePermissions } from '@/contexts/permission-context'
 
 interface TranscriptEntry {
@@ -18,10 +18,12 @@ interface TranscriptViewerProps {
   transcript: TranscriptEntry[]
 }
 
-export default function TranscriptViewer({ transcript }: TranscriptViewerProps) {
+export default function TranscriptViewer({
+  transcript,
+}: TranscriptViewerProps) {
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
-  
+
   // Viewers cannot see transcript content
   if (isViewer) {
     return (
@@ -63,7 +65,7 @@ export default function TranscriptViewer({ transcript }: TranscriptViewerProps) 
       </Card>
     )
   }
-  
+
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200">
       <CardHeader className="bg-gray-50 border-b border-gray-200">
@@ -134,15 +136,11 @@ export default function TranscriptViewer({ transcript }: TranscriptViewerProps) 
                           {entry.speaker}
                         </span>
                         <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                          {format(
-                            new Date(entry.timestamp),
-                            'HH:mm:ss',
-                          )}
+                          {formatDate(entry.timestamp, 'HH:mm:ss')}
                         </span>
                         {entry.confidence && (
                           <span className="text-xs text-gray-400 bg-gray-50 px-2 py-1 rounded-full">
-                            {Math.round(entry.confidence * 100)}%
-                            confidence
+                            {Math.round(entry.confidence * 100)}% confidence
                           </span>
                         )}
                       </div>

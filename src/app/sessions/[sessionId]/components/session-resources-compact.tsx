@@ -45,6 +45,7 @@ import { CreateResourceDialog } from '@/app/resources/components/create-resource
 import { ResourceDetailDialog } from '@/app/resources/components/resource-detail-dialog'
 import type { SharedResource } from '@/types/resource'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
+import { formatDate } from '@/lib/date-utils'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
   general: FileText,
@@ -192,7 +193,7 @@ export function SessionResourcesCompact({
                         {CATEGORY_LABELS[resource.category]}
                       </Badge>
                       <span className="text-xs text-app-secondary">
-                        {new Date(resource.created_at).toLocaleDateString()}
+                        {formatDate(resource.created_at)}
                       </span>
                     </div>
                   </div>

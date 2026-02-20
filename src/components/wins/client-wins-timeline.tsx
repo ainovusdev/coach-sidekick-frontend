@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { Trophy, Loader2, Calendar, ExternalLink } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -123,10 +123,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                       </h4>
                       {sessionGroup.sessionDate && (
                         <p className="text-sm text-gray-500">
-                          {format(
-                            new Date(sessionGroup.sessionDate),
-                            'MMMM d, yyyy',
-                          )}
+                          {formatDate(sessionGroup.sessionDate, 'MMMM d, yyyy')}
                         </p>
                       )}
                     </div>

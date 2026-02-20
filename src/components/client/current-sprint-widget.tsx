@@ -16,7 +16,8 @@ import {
   CheckCircle,
   Plus,
 } from 'lucide-react'
-import { format, differenceInDays } from 'date-fns'
+import { differenceInDays } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
@@ -218,10 +219,10 @@ export function CurrentSprintWidget({
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
-            <span>{format(new Date(sprint.start_date), 'MMM d')}</span>
+            <span>{formatDate(sprint.start_date, 'MMM d')}</span>
           </div>
           <TrendingUp className="h-3 w-3" />
-          <span>{format(new Date(sprint.end_date), 'MMM d, yyyy')}</span>
+          <span>{formatDate(sprint.end_date, 'MMM d, yyyy')}</span>
         </div>
 
         {/* View Details Button */}

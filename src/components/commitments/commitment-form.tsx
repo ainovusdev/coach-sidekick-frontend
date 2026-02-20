@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import {
   Dialog,
   DialogContent,
@@ -355,7 +356,7 @@ export function CommitmentForm({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {formData.target_date ? (
-                      format(new Date(formData.target_date), 'PPP')
+                      formatDate(formData.target_date, 'PPP')
                     ) : (
                       <span>Pick a due date</span>
                     )}
@@ -455,7 +456,7 @@ export function CommitmentForm({
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {formData.start_date ? (
-                          format(new Date(formData.start_date), 'PPP')
+                          formatDate(formData.start_date, 'PPP')
                         ) : (
                           <span>Pick a start date</span>
                         )}

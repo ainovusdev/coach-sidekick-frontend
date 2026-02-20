@@ -23,7 +23,7 @@ import {
   Download,
   MoreHorizontal,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { getStatusColor } from '../utils/session-utils'
 
 interface SessionHeaderProps {
@@ -73,7 +73,7 @@ export default function SessionHeader({
   onDownloadTranscript,
 }: SessionHeaderProps) {
   const [showEditModal, setShowEditModal] = useState(false)
-  const defaultTitle = `Session - ${format(new Date(session.created_at), 'PPP')}`
+  const defaultTitle = `Session - ${formatDate(session.created_at)}`
 
   const hasActions = onDelete || onSendEmail || onDownloadTranscript
 
@@ -175,9 +175,7 @@ export default function SessionHeader({
               <div className="flex flex-wrap items-center gap-2 text-sm text-app-secondary">
                 <div className="flex items-center gap-2 bg-app-surface rounded-lg px-3 py-1.5">
                   <Calendar className="h-3.5 w-3.5 text-app-secondary" />
-                  <span>
-                    {format(new Date(session.created_at), 'PPP · h:mm a')}
-                  </span>
+                  <span>{formatDate(session.created_at, 'PPP · h:mm a')}</span>
                 </div>
 
                 {session.meeting_url && (

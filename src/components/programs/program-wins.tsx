@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import {
   Trophy,
   Loader2,
@@ -259,8 +259,8 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                                   {win.session_date && (
                                     <span className="flex items-center gap-1">
                                       <Calendar className="h-3 w-3" />
-                                      {format(
-                                        new Date(win.session_date),
+                                      {formatDate(
+                                        win.session_date,
                                         'MMM d, yyyy',
                                       )}
                                     </span>
