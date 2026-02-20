@@ -25,8 +25,7 @@ import {
   Database,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { useRealtimeChat } from '@/hooks/use-realtime-chat'
 import { chatService, type ChatStats } from '@/services/chat-service'
 import {
@@ -377,11 +376,7 @@ export function ClientChatRealtime({
                     )}
 
                     {message.role === 'assistant' ? (
-                      <div className="text-sm text-gray-800 prose prose-sm max-w-none">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {message.content}
-                        </ReactMarkdown>
-                      </div>
+                      <ChatMarkdown content={message.content} />
                     ) : (
                       <p className="text-sm">{message.content}</p>
                     )}

@@ -26,8 +26,7 @@ import {
   type ChatStats,
 } from '@/services/chat-service'
 import { cn } from '@/lib/utils'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
+import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { useSimpleVoice } from '@/hooks/use-simple-voice'
 import {
   AIProviderSelector,
@@ -308,7 +307,7 @@ export function ClientChatWidget({
                 </p>
               </div>
             </div>
-            
+
             {/* AI Provider Selector - Modern Style */}
             <Popover
               open={showProviderSettings}
@@ -320,17 +319,27 @@ export function ClientChatWidget({
                   size="sm"
                   className="h-9 px-3 bg-white hover:bg-gray-50 border-gray-200 shadow-sm"
                 >
-                  {selectedProvider === 'openai' && <Brain className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
-                  {selectedProvider === 'gemini' && <Sparkles className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
-                  {selectedProvider === 'claude' && <Zap className="h-3.5 w-3.5 mr-1.5 text-gray-600" />}
-                  <span className="text-sm font-medium capitalize text-gray-700">{selectedProvider}</span>
+                  {selectedProvider === 'openai' && (
+                    <Brain className="h-3.5 w-3.5 mr-1.5 text-gray-600" />
+                  )}
+                  {selectedProvider === 'gemini' && (
+                    <Sparkles className="h-3.5 w-3.5 mr-1.5 text-gray-600" />
+                  )}
+                  {selectedProvider === 'claude' && (
+                    <Zap className="h-3.5 w-3.5 mr-1.5 text-gray-600" />
+                  )}
+                  <span className="text-sm font-medium capitalize text-gray-700">
+                    {selectedProvider}
+                  </span>
                   <ChevronDown className="h-3 w-3 ml-1.5 text-gray-400" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80 p-4" align="end">
                 <div className="space-y-3">
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-900">AI Model</h4>
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      AI Model
+                    </h4>
                     <p className="text-xs text-gray-500 mt-1">
                       Choose which AI model to power your conversations
                     </p>
@@ -353,11 +362,15 @@ export function ClientChatWidget({
             <div className="flex items-center gap-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                <span className="text-xs font-medium text-gray-700">{stats.unique_sessions} sessions</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {stats.unique_sessions} sessions
+                </span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
                 <Database className="h-3 w-3 text-gray-500" />
-                <span className="text-xs font-medium text-gray-700">{stats.total_chunks} insights</span>
+                <span className="text-xs font-medium text-gray-700">
+                  {stats.total_chunks} insights
+                </span>
               </div>
               {stats.top_topics.length > 0 && (
                 <div className="hidden sm:flex items-center gap-1 ml-2">
@@ -373,7 +386,7 @@ export function ClientChatWidget({
                 </div>
               )}
             </div>
-            
+
             {/* Action Buttons - Refined */}
             <div className="flex items-center gap-1">
               {isVoiceSupported && (
@@ -487,55 +500,7 @@ export function ClientChatWidget({
                         )}
                       >
                         {isAssistant ? (
-                          <div className="text-sm">
-                            <ReactMarkdown
-                              remarkPlugins={[remarkGfm]}
-                              components={{
-                                p: ({ children }) => (
-                                  <p className="mb-2 last:mb-0 leading-relaxed">
-                                    {children}
-                                  </p>
-                                ),
-                                h3: ({ children }) => (
-                                  <h3 className="text-sm font-semibold text-gray-800 mb-1 mt-2 first:mt-0">
-                                    {children}
-                                  </h3>
-                                ),
-                                ul: ({ children }) => (
-                                  <ul className="list-disc list-inside pl-2 mb-2 space-y-0.5 text-gray-700">
-                                    {children}
-                                  </ul>
-                                ),
-                                ol: ({ children }) => (
-                                  <ol className="list-decimal list-inside pl-2 mb-2 space-y-0.5 text-gray-700">
-                                    {children}
-                                  </ol>
-                                ),
-                                li: ({ children }) => (
-                                  <li className="text-sm">{children}</li>
-                                ),
-                                code: ({ className, children }: any) => {
-                                  const inline = !className
-                                  return inline ? (
-                                    <code className="bg-gray-200 text-gray-800 px-1 py-0.5 rounded text-xs font-mono">
-                                      {children}
-                                    </code>
-                                  ) : (
-                                    <code className="block bg-gray-100 text-gray-800 p-2 rounded text-xs font-mono overflow-x-auto my-2">
-                                      {children}
-                                    </code>
-                                  )
-                                },
-                                strong: ({ children }) => (
-                                  <strong className="font-semibold text-gray-900">
-                                    {children}
-                                  </strong>
-                                ),
-                              }}
-                            >
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
+                          <ChatMarkdown content={message.content} />
                         ) : (
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">
                             {message.content}
