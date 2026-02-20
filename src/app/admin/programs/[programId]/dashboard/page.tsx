@@ -39,7 +39,8 @@ import {
   Trophy,
 } from 'lucide-react'
 import { ClientSessionSummary } from '@/types/program'
-import { formatDistanceToNow, differenceInDays } from 'date-fns'
+import { differenceInDays } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 import {
   Select,
   SelectContent,
@@ -671,10 +672,7 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
               >
                 <Clock className="h-3 w-3" />
                 {needsAttention && <AlertCircle className="h-3 w-3" />}
-                Last session{' '}
-                {formatDistanceToNow(new Date(client.last_session_date), {
-                  addSuffix: true,
-                })}
+                Last session {formatRelativeTime(client.last_session_date)}
                 {needsAttention && ' - needs attention'}
               </div>
               {client.last_session_summary && (

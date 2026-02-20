@@ -23,7 +23,7 @@ import {
   Loader2,
   Lightbulb,
 } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 import { toast } from 'sonner'
 import { LiveMeetingService, ClientNote } from '@/services/live-meeting-service'
 
@@ -293,9 +293,7 @@ export function ClientNotesPanel({
                         </div>
                       </div>
                       <span className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 block">
-                        {formatDistanceToNow(new Date(note.created_at), {
-                          addSuffix: true,
-                        })}
+                        {formatRelativeTime(note.created_at)}
                       </span>
                     </div>
                   )}

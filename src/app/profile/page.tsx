@@ -32,6 +32,7 @@ import {
   LockKeyhole,
 } from 'lucide-react'
 import axios from '@/lib/axios-config'
+import { formatDate } from '@/lib/date-utils'
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
 import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
@@ -410,14 +411,7 @@ export default function ProfilePage() {
                       <Calendar className="h-4 w-4 text-gray-400" />
                       <span className="text-sm text-gray-700">
                         {profile?.created_at
-                          ? new Date(profile.created_at).toLocaleDateString(
-                              'en-US',
-                              {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              },
-                            )
+                          ? formatDate(profile.created_at, 'MMMM d, yyyy')
                           : '-'}
                       </span>
                     </div>

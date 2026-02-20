@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { SprintService } from '@/services/sprint-service'
 import { toast } from 'sonner'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { AlertTriangle, Loader2 } from 'lucide-react'
 import { queryKeys } from '@/lib/query-client'
 
@@ -86,8 +86,8 @@ export function EndSprintModal({
             <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
               <p>
                 <strong>Sprint Period:</strong>{' '}
-                {format(new Date(sprint.start_date), 'MMM d, yyyy')} -{' '}
-                {format(new Date(sprint.end_date), 'MMM d, yyyy')}
+                {formatDate(sprint.start_date, 'MMM d, yyyy')} -{' '}
+                {formatDate(sprint.end_date, 'MMM d, yyyy')}
               </p>
               <p className="mt-1">
                 <strong>Duration:</strong> {sprint.duration_weeks} weeks

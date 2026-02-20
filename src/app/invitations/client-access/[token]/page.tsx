@@ -13,6 +13,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { CheckCircle, XCircle, AlertCircle, Users, Mail } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { formatDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 
 interface InvitationDetails {
@@ -325,12 +326,7 @@ export default function ClientAccessInvitationPage() {
           <p className="text-xs text-center text-gray-500">
             This invitation expires on{' '}
             {invitation?.expires_at
-              ? new Date(invitation.expires_at).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })
+              ? formatDate(invitation.expires_at, 'EEEE, MMMM d, yyyy')
               : ''}
           </p>
         </div>

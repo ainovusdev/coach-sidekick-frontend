@@ -24,7 +24,7 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
 
 interface DashboardData {
@@ -178,10 +178,7 @@ export default function ClientDashboard() {
               <span className="mx-2">·</span>
               <span>
                 Member since{' '}
-                {format(
-                  new Date(dashboardData.client_info.member_since),
-                  'MMM yyyy',
-                )}
+                {formatDate(dashboardData.client_info.member_since, 'MMM yyyy')}
               </span>
             </>
           )}
@@ -315,12 +312,10 @@ export default function ClientDashboard() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <p className="text-sm font-medium text-gray-900">
-                      {format(new Date(lastSession.date), 'EEEE, MMMM d, yyyy')}
+                      {formatDate(lastSession.date, 'EEEE, MMMM d, yyyy')}
                     </p>
                     <p className="text-xs text-gray-500 mt-0.5">
-                      {formatDistanceToNow(new Date(lastSession.date), {
-                        addSuffix: true,
-                      })}
+                      {formatRelativeTime(lastSession.date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -421,7 +416,7 @@ export default function ClientDashboard() {
                     <div className="group p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer">
                       <div className="flex items-center justify-between mb-2">
                         <p className="text-sm font-medium text-gray-900">
-                          {format(new Date(session.date), 'MMM d, yyyy')}
+                          {formatDate(session.date, 'MMM d, yyyy')}
                         </p>
                         <Badge
                           variant="secondary"

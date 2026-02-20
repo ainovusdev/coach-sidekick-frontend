@@ -13,6 +13,7 @@ import {
   UserCheck,
   MoreHorizontal,
 } from 'lucide-react'
+import { formatDate } from '@/lib/date-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -71,7 +72,7 @@ export default function ClientCard({
     if (diffDays === 1) return 'Yesterday'
     if (diffDays <= 7) return `${diffDays} days ago`
     if (diffDays <= 30) return `${Math.floor(diffDays / 7)} weeks ago`
-    return date.toLocaleDateString()
+    return formatDate(dateString)
   }
 
   return (

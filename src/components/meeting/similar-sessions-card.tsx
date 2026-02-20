@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { formatDate as formatDateUtil } from '@/lib/date-utils'
 
 interface SimilarSession {
   session_date: string
@@ -98,11 +99,10 @@ export function SimilarSessionsCard({
       if (diffDays < 7) return `${diffDays} days ago`
       if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`
 
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
-      })
+      return formatDateUtil(
+        dateString,
+        date.getFullYear() !== now.getFullYear() ? 'MMM d, yyyy' : 'MMM d',
+      )
     } catch {
       return dateString
     }
@@ -110,13 +110,7 @@ export function SimilarSessionsCard({
 
   const formatFullDate = (dateString: string) => {
     try {
-      const date = new Date(dateString)
-      return date.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'long',
-        day: 'numeric',
-        year: 'numeric',
-      })
+      return formatDateUtil(dateString, 'EEEE, MMMM d, yyyy')
     } catch {
       return dateString
     }

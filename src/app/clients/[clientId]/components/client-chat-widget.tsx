@@ -37,6 +37,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { formatDate } from '@/lib/date-utils'
 
 interface ClientChatWidgetProps {
   clientId: string
@@ -541,9 +542,9 @@ export function ClientChatWidget({
                                     >
                                       <div className="flex items-start justify-between mb-1">
                                         <span className="text-xs text-gray-600">
-                                          {new Date(
+                                          {formatDate(
                                             source.date || source.timestamp,
-                                          ).toLocaleDateString()}
+                                          )}
                                         </span>
                                         <span className="text-xs font-medium text-gray-500">
                                           {(

@@ -41,6 +41,7 @@ import {
   ArrowUpDown,
   Filter,
 } from 'lucide-react'
+import { formatDate } from '@/lib/date-utils'
 import type { ClientResource, ResourceCategory } from '@/types/resource'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 
@@ -156,7 +157,7 @@ function ResourceReadingDialog({
               </Badge>
               <SourceLabel source={resource.source} />
               <span className="text-xs text-gray-400">
-                {new Date(resource.created_at).toLocaleDateString()}
+                {formatDate(resource.created_at)}
               </span>
             </div>
 
@@ -359,7 +360,7 @@ function ResourceCard({
             </div>
 
             <div className="text-xs text-gray-400 mt-2">
-              {new Date(resource.created_at).toLocaleDateString()}
+              {formatDate(resource.created_at)}
             </div>
           </div>
         </div>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -36,7 +36,6 @@ export function SessionCard({
 }: SessionCardProps) {
   const permissions = usePermissions()
   const summary = session.meeting_summaries
-  const createdAt = new Date(session.created_at)
   const durationMinutes =
     summary?.duration_minutes ||
     (session.duration_seconds ? Math.ceil(session.duration_seconds / 60) : null)
@@ -63,7 +62,7 @@ export function SessionCard({
   })()
 
   // Format date for display (e.g., "Dec 22, 2025")
-  const formattedDate = format(createdAt, 'MMM d, yyyy')
+  const formattedDate = formatDate(session.created_at, 'MMM d, yyyy')
 
   // Generate default title: Platform - Date
   const defaultTitle = `${platformName} - ${formattedDate}`
@@ -295,10 +294,10 @@ export function SessionCard({
         <div className="flex items-center justify-between pt-3 border-t border-gray-100">
           <div className="flex flex-col">
             <span className="text-xs text-gray-700 font-medium">
-              {format(createdAt, 'EEEE, MMM d, yyyy')}
+              {formatDate(session.created_at, 'EEEE, MMM d, yyyy')}
             </span>
             <span className="text-xs text-gray-400">
-              {formatDistanceToNow(createdAt, { addSuffix: true })}
+              {formatRelativeTime(session.created_at)}
             </span>
           </div>
           <div className="flex items-center gap-1">

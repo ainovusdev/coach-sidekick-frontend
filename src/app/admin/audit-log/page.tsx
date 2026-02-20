@@ -47,6 +47,7 @@ import {
   Monitor,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { formatDate, formatDateTime } from '@/lib/date-utils'
 import { usePermissions } from '@/contexts/permission-context'
 
 import { AuditLogEntry } from '@/services/admin-service'
@@ -171,7 +172,7 @@ export default function AuditLogPage() {
         headers.join(','),
         ...filteredLogs.map(log =>
           [
-            new Date(log.created_at).toLocaleString(),
+            formatDateTime(log.created_at),
             `"${log.user_name || ''}"`,
             log.user_email,
             log.action,
@@ -274,12 +275,7 @@ export default function AuditLogPage() {
     } else if (hours < 24) {
       return `${hours} hour${hours !== 1 ? 's' : ''} ago`
     } else {
-      return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
+      return formatDate(createdAt, 'MMM d, h:mm a')
     }
   }
 
@@ -554,10 +550,7 @@ export default function AuditLogPage() {
                     Timestamp
                   </label>
                   <p className="text-sm">
-                    {new Date(selectedLog.created_at).toLocaleString('en-US', {
-                      dateStyle: 'medium',
-                      timeStyle: 'medium',
-                    })}
+                    {formatDateTime(selectedLog.created_at)}
                   </p>
                 </div>
                 <div>

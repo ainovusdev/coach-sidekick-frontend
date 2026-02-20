@@ -16,6 +16,7 @@ import {
   Lightbulb,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { formatDate } from '@/lib/date-utils'
 import { Skeleton } from '@/components/ui/skeleton'
 
 interface LastSessionCardProps {
@@ -94,15 +95,7 @@ export function LastSessionCard({
     )
   }
 
-  const sessionDate = new Date(lastSession.created_at).toLocaleDateString(
-    'en-US',
-    {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    },
-  )
+  const sessionDate = formatDate(lastSession.created_at, 'EEE, MMM d, yyyy')
 
   const summary = sessionDetails?.meeting_summary
   const insights = sessionDetails?.analyses?.insights

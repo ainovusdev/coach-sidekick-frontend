@@ -2,7 +2,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import {
   MessageSquare,
   ArrowRight,
@@ -97,7 +97,6 @@ export default function RecentSessions({
 
   const SessionCardModern = ({ session }: { session: any }) => {
     const summary = session.meeting_summaries
-    const createdAt = new Date(session.created_at)
     const durationMinutes =
       summary?.duration_minutes ||
       (session.duration_seconds
@@ -107,7 +106,7 @@ export default function RecentSessions({
       session.client_name || session.metadata?.client_name || null
     const coachName = session.coach_name || null
     const meetingSummary = summary?.meeting_summary || session.summary
-    const formattedDate = format(createdAt, 'MMM d')
+    const formattedDate = formatDate(session.created_at, 'MMM d')
     const isLive =
       session.status === 'in_progress' || session.status === 'recording'
     const isCompleted = session.status === 'completed'
@@ -156,7 +155,7 @@ export default function RecentSessions({
                   {formattedDate}
                 </span>
                 <span className="text-gray-300">•</span>
-                <span>{format(createdAt, 'EEEE')}</span>
+                <span>{formatDate(session.created_at, 'EEEE')}</span>
                 {durationMinutes && (
                   <>
                     <span className="text-gray-300">•</span>
@@ -165,7 +164,7 @@ export default function RecentSessions({
                 )}
                 <span className="text-gray-300">•</span>
                 <span className="text-gray-400">
-                  {formatDistanceToNow(createdAt, { addSuffix: true })}
+                  {formatRelativeTime(session.created_at)}
                 </span>
               </div>
             </div>

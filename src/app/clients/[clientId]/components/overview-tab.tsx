@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { useResources } from '@/hooks/queries/use-resources'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
+import { formatDate } from '@/lib/date-utils'
 
 interface OverviewTabProps {
   client: any
@@ -275,7 +276,7 @@ export function OverviewTab({
                       {CATEGORY_LABELS[resource.category]}
                     </Badge>
                     <span className="text-xs text-gray-400 shrink-0">
-                      {new Date(resource.created_at).toLocaleDateString()}
+                      {formatDate(resource.created_at)}
                     </span>
                   </div>
                 )

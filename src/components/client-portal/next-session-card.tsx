@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Calendar, Clock, ArrowRight } from 'lucide-react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 
 interface NextSessionCardProps {
   nextSession: string | null
@@ -31,8 +31,7 @@ export function NextSessionCard({ nextSession }: NextSessionCardProps) {
     )
   }
 
-  const sessionDate = new Date(nextSession)
-  const relativeTime = formatDistanceToNow(sessionDate, { addSuffix: true })
+  const relativeTime = formatRelativeTime(nextSession)
 
   return (
     <Card className="border-gray-200">
@@ -46,12 +45,12 @@ export function NextSessionCard({ nextSession }: NextSessionCardProps) {
               <p className="text-sm font-medium text-gray-900">Next Session</p>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-gray-700 font-medium">
-                  {format(sessionDate, 'EEEE, MMM d')}
+                  {formatDate(nextSession, 'EEEE, MMM d')}
                 </p>
                 <span className="text-xs text-gray-400">·</span>
                 <p className="text-xs text-gray-500 flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  {format(sessionDate, 'h:mm a')}
+                  {formatDate(nextSession, 'h:mm a')}
                 </p>
               </div>
               <p className="text-xs text-blue-600 mt-0.5">{relativeTime}</p>

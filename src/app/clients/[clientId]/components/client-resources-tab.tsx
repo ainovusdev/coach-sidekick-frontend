@@ -53,6 +53,7 @@ import { ResourceDetailDialog } from '@/app/resources/components/resource-detail
 import { CreateResourceDialog } from '@/app/resources/components/create-resource-dialog'
 import { useResourceForm } from '@/app/resources/hooks/use-resource-form'
 import { ShareResourceDialog } from './share-resource-dialog'
+import { formatDate } from '@/lib/date-utils'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
   general: FileText,
@@ -393,7 +394,7 @@ function ResourceMiniCard({
                 {CATEGORY_LABELS[resource.category]}
               </Badge>
               <span className="text-xs text-gray-400">
-                {new Date(resource.created_at).toLocaleDateString()}
+                {formatDate(resource.created_at)}
               </span>
             </div>
           </div>

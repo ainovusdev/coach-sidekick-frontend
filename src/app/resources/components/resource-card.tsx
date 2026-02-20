@@ -30,6 +30,7 @@ import type {
   SharingScope,
   ResourceCategory,
 } from '@/types/resource'
+import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
@@ -164,7 +165,7 @@ export function ResourceCard({
                 <Download className="h-3 w-3" />
                 {resource.download_count} downloads
               </span>
-              <span>{new Date(resource.created_at).toLocaleDateString()}</span>
+              <span>{formatDate(resource.created_at)}</span>
             </div>
           </div>
         </div>

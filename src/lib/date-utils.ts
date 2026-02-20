@@ -83,6 +83,19 @@ export function formatDate(
 }
 
 /**
+ * Format a time only (e.g., "2:30 PM")
+ *
+ * @param dateString - Date string from the API
+ * @returns Formatted time string
+ */
+export function formatTime(dateString: string | null | undefined): string {
+  const date = parseDate(dateString)
+  if (!date) return 'Unknown'
+
+  return fnsFormat(date, 'p')
+}
+
+/**
  * Format a date with time (e.g., "Jan 15, 2024 at 10:30 AM")
  *
  * @param dateString - Date string from the API

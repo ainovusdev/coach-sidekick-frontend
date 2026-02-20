@@ -17,7 +17,7 @@ import {
   ArrowRight,
   MessageSquare,
 } from 'lucide-react'
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 
 interface Session {
   id: string
@@ -83,26 +83,9 @@ export default function ClientSessionsPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatSessionDate = (dateString: string) => {
     if (!dateString) return 'Date unavailable'
-    try {
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return 'Invalid date'
-      return format(date, 'EEEE, MMMM d, yyyy')
-    } catch {
-      return 'Invalid date'
-    }
-  }
-
-  const getRelativeTime = (dateString: string) => {
-    if (!dateString) return ''
-    try {
-      const date = new Date(dateString)
-      if (isNaN(date.getTime())) return ''
-      return formatDistanceToNow(date, { addSuffix: true })
-    } catch {
-      return ''
-    }
+    return formatDate(dateString, 'EEEE, MMMM d, yyyy')
   }
 
   const filteredSessions = sessions.filter(session => {
@@ -114,7 +97,9 @@ export default function ClientSessionsPage() {
       session.key_topics?.some(topic =>
         topic.toLowerCase().includes(searchLower),
       ) ||
-      formatDate(session.session_date).toLowerCase().includes(searchLower)
+      formatSessionDate(session.session_date)
+        .toLowerCase()
+        .includes(searchLower)
     )
   })
 
@@ -235,12 +220,12 @@ export default function ClientSessionsPage() {
                 <div className="w-24 md:w-32 flex-shrink-0 bg-gray-50 p-4 flex flex-col items-center justify-center border-r border-gray-100">
                   <span className="text-2xl font-bold text-gray-900">
                     {session.session_date
-                      ? format(new Date(session.session_date), 'd')
+                      ? formatDate(session.session_date, 'd')
                       : '-'}
                   </span>
                   <span className="text-xs text-gray-500 uppercase tracking-wide">
                     {session.session_date
-                      ? format(new Date(session.session_date), 'MMM yyyy')
+                      ? formatDate(session.session_date, 'MMM yyyy')
                       : ''}
                   </span>
                 </div>
@@ -252,11 +237,11 @@ export default function ClientSessionsPage() {
                     <div className="flex items-center gap-3 flex-wrap">
                       <span className="text-sm font-medium text-gray-900">
                         {session.session_date
-                          ? format(new Date(session.session_date), 'EEEE')
+                          ? formatDate(session.session_date, 'EEEE')
                           : 'Session'}
                       </span>
                       <span className="text-xs text-gray-400">
-                        {getRelativeTime(session.session_date)}
+                        {formatRelativeTime(session.session_date)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">

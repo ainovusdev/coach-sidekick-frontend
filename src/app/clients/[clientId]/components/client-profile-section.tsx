@@ -32,7 +32,7 @@ import {
   MoreVertical,
   Trash2,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 
 interface ClientProfileSectionProps {
   client: any
@@ -166,8 +166,7 @@ export function ClientProfileSection({
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <span>
-                      Client since{' '}
-                      {format(new Date(client.created_at), 'MMM yyyy')}
+                      Client since {formatDate(client.created_at, 'MMM yyyy')}
                     </span>
                   </div>
                 )}

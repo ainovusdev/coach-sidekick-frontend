@@ -46,6 +46,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { formatDate } from '@/lib/date-utils'
 
 interface ClientChatUnifiedProps {
   clientId: string
@@ -593,9 +594,9 @@ export function ClientChatUnified({
                                     >
                                       <div className="flex items-start justify-between mb-1">
                                         <span className="text-xs text-gray-600">
-                                          {new Date(
+                                          {formatDate(
                                             source.date || source.timestamp,
-                                          ).toLocaleDateString()}
+                                          )}
                                         </span>
                                         <span className="text-xs font-medium text-gray-500">
                                           {(

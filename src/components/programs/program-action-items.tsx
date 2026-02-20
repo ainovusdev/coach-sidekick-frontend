@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CheckCircle2, Clock, AlertCircle, ListTodo } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime } from '@/lib/date-utils'
 
 interface ProgramActionItemsProps {
   programId: string
@@ -334,10 +334,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                         </Badge>
                         {item.due_date && (
                           <span className="text-xs text-gray-500">
-                            Due{' '}
-                            {formatDistanceToNow(new Date(item.due_date), {
-                              addSuffix: true,
-                            })}
+                            Due {formatRelativeTime(item.due_date)}
                           </span>
                         )}
                       </div>
@@ -349,11 +346,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                         <span>•</span>
                         <span>Coach: {item.coach_name || 'Unknown'}</span>
                         <span>•</span>
-                        <span>
-                          {formatDistanceToNow(new Date(item.session_date), {
-                            addSuffix: true,
-                          })}
-                        </span>
+                        <span>{formatRelativeTime(item.session_date)}</span>
                       </div>
                     </div>
                   </div>

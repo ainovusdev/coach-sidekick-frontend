@@ -28,7 +28,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { TrendingUp, TrendingDown, Sparkles, Network } from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+import { formatRelativeTime, formatDate } from '@/lib/date-utils'
 
 interface ProgramThemeAnalysisProps {
   programId: string
@@ -149,17 +149,11 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                     </div>
                     <div className="text-xs text-gray-600">
                       <span>
-                        First seen{' '}
-                        {formatDistanceToNow(new Date(theme.first_seen), {
-                          addSuffix: true,
-                        })}
+                        First seen {formatRelativeTime(theme.first_seen)}
                       </span>
                       <span className="mx-2">•</span>
                       <span>
-                        Last seen{' '}
-                        {formatDistanceToNow(new Date(theme.last_seen), {
-                          addSuffix: true,
-                        })}
+                        Last seen {formatRelativeTime(theme.last_seen)}
                       </span>
                     </div>
                   </div>
@@ -200,17 +194,11 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                     </div>
                     <div className="text-xs text-gray-600">
                       <span>
-                        First seen{' '}
-                        {formatDistanceToNow(new Date(theme.first_seen), {
-                          addSuffix: true,
-                        })}
+                        First seen {formatRelativeTime(theme.first_seen)}
                       </span>
                       <span className="mx-2">•</span>
                       <span>
-                        Last seen{' '}
-                        {formatDistanceToNow(new Date(theme.last_seen), {
-                          addSuffix: true,
-                        })}
+                        Last seen {formatRelativeTime(theme.last_seen)}
                       </span>
                     </div>
                   </div>
@@ -234,10 +222,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
             <div className="space-y-6">
               {themes.trending_themes.slice(0, 3).map(theme => {
                 const chartData = theme.occurrences.map(point => ({
-                  date: new Date(point.date).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                  }),
+                  date: formatDate(point.date, 'MMM d'),
                   count: point.value,
                 }))
 

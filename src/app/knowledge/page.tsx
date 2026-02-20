@@ -39,6 +39,7 @@ import {
   FileVideo,
 } from 'lucide-react'
 import Navigation from '@/components/layout/navigation'
+import { formatDate } from '@/lib/date-utils'
 import { KnowledgeChatButton } from '@/components/knowledge/knowledge-chat-button'
 
 const categoryIcons: Record<KnowledgeCategory, React.ReactNode> = {
@@ -250,7 +251,7 @@ export default function KnowledgeBrowsePage() {
                 {' • '}
                 {documentDetail.word_count.toLocaleString()} words
                 {' • '}
-                {new Date(documentDetail.created_at).toLocaleDateString()}
+                {formatDate(documentDetail.created_at)}
               </DialogDescription>
             )}
           </DialogHeader>
@@ -348,7 +349,7 @@ function DocumentCard({
       <CardContent className="pt-0">
         <div className="flex items-center justify-between text-sm text-gray-500">
           <span>{doc.word_count.toLocaleString()} words</span>
-          <span>{new Date(doc.created_at).toLocaleDateString()}</span>
+          <span>{formatDate(doc.created_at)}</span>
         </div>
         {doc.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">

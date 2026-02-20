@@ -20,7 +20,8 @@ import {
   Clock,
   CheckCircle2,
 } from 'lucide-react'
-import { format, differenceInDays, isAfter, isBefore } from 'date-fns'
+import { differenceInDays, isAfter, isBefore } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
 
 interface SprintKanbanSectionProps {
@@ -138,8 +139,8 @@ function SprintAccordionItem({
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>
-                  {format(startDate, 'MMM d')} -{' '}
-                  {format(endDate, 'MMM d, yyyy')}
+                  {formatDate(sprint.start_date, 'MMM d')} -{' '}
+                  {formatDate(sprint.end_date, 'MMM d, yyyy')}
                 </span>
                 {!isUpcoming && !isEnded && (
                   <>

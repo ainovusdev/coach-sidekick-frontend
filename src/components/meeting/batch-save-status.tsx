@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   RefreshCw,
 } from 'lucide-react'
+import { formatTime } from '@/lib/date-utils'
 
 interface BatchSaveStatusProps {
   botId: string
@@ -224,7 +225,7 @@ export function BatchSaveStatus({
 
     if (diffMins < 1) return 'Just now'
     if (diffMins < 60) return `${diffMins}m ago`
-    return date.toLocaleTimeString()
+    return formatTime(dateString)
   }
 
   if (minimal) {
