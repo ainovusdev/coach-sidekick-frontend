@@ -21,7 +21,7 @@ import {
   Plus,
   StickyNote,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { MediaUploader } from '@/components/sessions/media-uploader'
 import SessionHeader from './components/session-header'
@@ -295,11 +295,8 @@ export default function SessionDetailsPage({
   const handleDownloadTranscript = () => {
     if (!sessionData?.transcript || sessionData.transcript.length === 0) return
 
-    const sessionDate = format(new Date(sessionData.session.created_at), 'PPP')
-    const fileDate = format(
-      new Date(sessionData.session.created_at),
-      'yyyy-MM-dd',
-    )
+    const sessionDate = formatDate(sessionData.session.created_at)
+    const fileDate = formatDate(sessionData.session.created_at, 'yyyy-MM-dd')
 
     const lines: string[] = [
       'Session Transcript',
@@ -310,7 +307,7 @@ export default function SessionDetailsPage({
 
     for (const entry of sessionData.transcript) {
       const time = entry.timestamp
-        ? format(new Date(entry.timestamp), 'HH:mm:ss')
+        ? formatDate(entry.timestamp, 'HH:mm:ss')
         : ''
       lines.push(`[${time}] ${entry.speaker}:`)
       lines.push(entry.text)

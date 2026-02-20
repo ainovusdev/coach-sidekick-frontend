@@ -16,7 +16,7 @@ import {
   Circle,
   Calendar,
 } from 'lucide-react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import {
   LiveMeetingService,
   PastCommitmentGroup,
@@ -138,7 +138,7 @@ export function PastCommitmentsPanel({
                     <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {group.session_date
-                        ? format(new Date(group.session_date), 'MMM d, yyyy')
+                        ? formatDate(group.session_date, 'MMM d, yyyy')
                         : 'Previous Sessions'}
                     </div>
 

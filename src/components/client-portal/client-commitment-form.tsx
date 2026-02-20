@@ -29,6 +29,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { format, addDays } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 
 interface ClientCommitmentFormProps {
   open: boolean
@@ -237,7 +238,7 @@ export function ClientCommitmentForm({
               <p className="text-sm text-gray-600">
                 Target:{' '}
                 <span className="font-medium text-gray-900">
-                  {format(new Date(formData.target_date), 'EEEE, MMMM d, yyyy')}
+                  {formatDate(formData.target_date, 'EEEE, MMMM d, yyyy')}
                 </span>
               </p>
             )}

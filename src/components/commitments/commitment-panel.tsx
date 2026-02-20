@@ -8,7 +8,7 @@
 
 import React, { useState } from 'react'
 import { format, isPast, addDays, addWeeks } from 'date-fns'
-import { formatRelativeTime } from '@/lib/date-utils'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -751,7 +751,7 @@ export function CommitmentPanel({
                 >
                   <CalendarIcon className="h-3 w-3" />
                   {isOverdue && 'Overdue: '}
-                  {format(new Date(commitment.target_date), 'MMM d')}
+                  {formatDate(commitment.target_date, 'MMM d')}
                 </span>
               )}
 
@@ -813,7 +813,7 @@ export function CommitmentPanel({
             <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" />
               {group.date
-                ? format(new Date(group.date), 'MMM d, yyyy')
+                ? formatDate(group.date, 'MMM d, yyyy')
                 : 'Previous Sessions'}
             </div>
             <div className="space-y-2 pl-3 border-l-2 border-gray-100 dark:border-gray-700">
@@ -858,7 +858,7 @@ export function CommitmentPanel({
                       {commitment.target_date && (
                         <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-0.5">
                           <CalendarIcon className="h-2.5 w-2.5" />
-                          {format(new Date(commitment.target_date), 'MMM d')}
+                          {formatDate(commitment.target_date, 'MMM d')}
                         </span>
                       )}
                       {isCoach && commitment.is_coach_commitment && (

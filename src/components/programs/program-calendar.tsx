@@ -37,6 +37,7 @@ import {
   addMonths,
   subMonths,
 } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
@@ -98,7 +99,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
     const grouped = new Map<string, typeof filteredSessions>()
 
     filteredSessions.forEach(session => {
-      const dateKey = format(new Date(session.scheduled_date), 'yyyy-MM-dd')
+      const dateKey = formatDate(session.scheduled_date, 'yyyy-MM-dd')
       if (!grouped.has(dateKey)) {
         grouped.set(dateKey, [])
       }
@@ -366,10 +367,10 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                         onClick={() =>
                           router.push(`/clients/${session.client_id}`)
                         }
-                        title={`${format(new Date(session.scheduled_date), 'h:mm a')} - ${session.client_name} with ${session.coach_name || 'Unknown'}`}
+                        title={`${formatDate(session.scheduled_date, 'h:mm a')} - ${session.client_name} with ${session.coach_name || 'Unknown'}`}
                       >
                         <div className="font-medium truncate">
-                          {format(new Date(session.scheduled_date), 'h:mm a')}
+                          {formatDate(session.scheduled_date, 'h:mm a')}
                         </div>
                         <div className="truncate text-gray-600">
                           {session.client_name}

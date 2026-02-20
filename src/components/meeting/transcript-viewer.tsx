@@ -243,10 +243,7 @@ export function TranscriptViewer({
                 </Badge>
               )}
               <span className="text-xs text-gray-400 ml-auto">
-                {new Date(entry.timestamp).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {formatTime(entry.timestamp)}
               </span>
             </div>
             <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
