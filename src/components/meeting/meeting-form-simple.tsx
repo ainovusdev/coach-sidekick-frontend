@@ -13,14 +13,20 @@ import { queryKeys } from '@/lib/query-client'
 interface MeetingFormSimpleProps {
   onSubmit: (meetingUrl: string, clientId?: string) => void | Promise<void>
   loading: boolean
+  preselectedClientId?: string
+  preselectedClientName?: string
 }
 
 export function MeetingFormSimple({
   onSubmit,
   loading,
+  preselectedClientId,
+  preselectedClientName,
 }: MeetingFormSimpleProps) {
   const [meetingUrl, setMeetingUrl] = useState('')
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [showClientSelector, setShowClientSelector] =
+    useState(!preselectedClientId)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
   const queryClient = useQueryClient()
 
@@ -47,7 +53,10 @@ export function MeetingFormSimple({
     }
 
     try {
-      await onSubmit(trimmedUrl, selectedClient?.id)
+      const clientId =
+        selectedClient?.id ||
+        (showClientSelector ? undefined : preselectedClientId)
+      await onSubmit(trimmedUrl, clientId)
     } catch (error) {
       console.error('Form submission error:', error)
     }
@@ -57,13 +66,28 @@ export function MeetingFormSimple({
     <>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <ClientSelector
-            selectedClientId={selectedClient?.id}
-            onClientSelect={setSelectedClient}
-            placeholder="Select client (optional)"
-            allowNone={true}
-            onAddClient={() => setIsClientModalOpen(true)}
-          />
+          {preselectedClientId && !showClientSelector ? (
+            <div className="w-full px-3 py-2 border border-neutral-200 rounded-md bg-neutral-50 flex items-center justify-between">
+              <span className="font-medium text-neutral-900">
+                {preselectedClientName || 'Selected client'}
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowClientSelector(true)}
+                className="text-xs text-neutral-500 hover:text-neutral-700 underline"
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <ClientSelector
+              selectedClientId={selectedClient?.id}
+              onClientSelect={setSelectedClient}
+              placeholder="Select client (optional)"
+              allowNone={true}
+              onAddClient={() => setIsClientModalOpen(true)}
+            />
+          )}
         </div>
 
         <div className="relative">

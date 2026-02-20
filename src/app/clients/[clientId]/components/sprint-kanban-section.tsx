@@ -5,11 +5,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
+import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { CommitmentService } from '@/services/commitment-service'
 import {
   Target,
   Plus,
@@ -20,6 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { format, differenceInDays, isAfter, isBefore } from 'date-fns'
+import { toast } from 'sonner'
 
 interface SprintKanbanSectionProps {
   clientId: string
@@ -49,6 +51,8 @@ function SprintAccordionItem({
   onCommitmentUpdate,
   clientId,
 }: SprintAccordionItemProps) {
+  const queryClient = useQueryClient()
+
   // Calculate sprint stats
   const totalCommitments = commitments.length
   const completedCommitments = commitments.filter(
@@ -221,11 +225,40 @@ function SprintAccordionItem({
           )}
 
           {/* Kanban Board */}
-          <SprintKanbanBoard
+          <CommitmentKanbanBoard
             commitments={commitments}
-            clientId={clientId}
+            onDrop={async (commitmentId, newStatus) => {
+              const statusLabels: Record<string, string> = {
+                active: 'To Do',
+                in_progress: 'In Progress',
+                completed: 'Done',
+              }
+              const queryKey = queryKeys.commitments.list({
+                client_id: clientId,
+              })
+              const previousData = queryClient.getQueryData(queryKey)
+              queryClient.setQueryData(queryKey, (old: any) => {
+                if (!old?.commitments) return old
+                return {
+                  ...old,
+                  commitments: old.commitments.map((c: any) =>
+                    c.id === commitmentId ? { ...c, status: newStatus } : c,
+                  ),
+                }
+              })
+              toast.success(`Moved to ${statusLabels[newStatus]}`)
+              try {
+                await CommitmentService.updateCommitment(commitmentId, {
+                  status: newStatus as any,
+                })
+                onCommitmentUpdate()
+              } catch (error) {
+                console.error('Error updating commitment:', error)
+                queryClient.setQueryData(queryKey, previousData)
+                toast.error('Failed to update commitment - changes reverted')
+              }
+            }}
             onCommitmentClick={onCommitmentClick}
-            onCommitmentUpdate={onCommitmentUpdate}
           />
         </CardContent>
       )}

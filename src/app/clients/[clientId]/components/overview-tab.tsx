@@ -10,8 +10,19 @@ import { useTargets } from '@/hooks/queries/use-targets'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Plus, User, Briefcase, Users } from 'lucide-react'
+import {
+  Plus,
+  User,
+  Briefcase,
+  Users,
+  BookOpen,
+  ArrowRight,
+  Share2,
+} from 'lucide-react'
+import { useResources } from '@/hooks/queries/use-resources'
+import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 
 interface OverviewTabProps {
   client: any
@@ -24,6 +35,8 @@ interface OverviewTabProps {
   onDeleteClient: () => void
   onCreateCommitment?: () => void
   onEditCommitment?: (commitment: any) => void
+  onViewResources?: () => void
+  onShareResource?: () => void
   isViewer?: boolean
 }
 
@@ -38,6 +51,8 @@ export function OverviewTab({
   onDeleteClient,
   onCreateCommitment,
   onEditCommitment,
+  onViewResources,
+  onShareResource,
   isViewer = false,
 }: OverviewTabProps) {
   // Get last session
@@ -57,6 +72,13 @@ export function OverviewTab({
 
   const { data: goalsData } = useGoals(client.id)
   const { data: allTargets = [] } = useTargets()
+
+  // Fetch client-specific resources for the compact card
+  const { data: clientResourcesData } = useResources({
+    scope: 'client',
+    client_id: client.id,
+    limit: 3,
+  })
 
   // Filter targets by client's goals
   const clientTargets = allTargets.filter((t: any) =>
@@ -198,6 +220,83 @@ export function OverviewTab({
               )}
               {isViewer && (
                 <p className="text-sm text-gray-500">No commitments yet</p>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Shared Resources Compact Card */}
+      <Card className="border-gray-200">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-5 w-5 text-gray-700" />
+              <CardTitle className="text-lg font-semibold">
+                Shared Resources ({clientResourcesData?.total || 0})
+              </CardTitle>
+            </div>
+            <div className="flex items-center gap-2">
+              {!isViewer && onShareResource && (
+                <Button onClick={onShareResource} variant="outline" size="sm">
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share Resource
+                </Button>
+              )}
+              {onViewResources && (
+                <Button onClick={onViewResources} variant="ghost" size="sm">
+                  View All
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {(clientResourcesData?.resources?.length || 0) > 0 ? (
+            <div className="space-y-2">
+              {clientResourcesData!.resources.slice(0, 3).map(resource => {
+                const colors =
+                  CATEGORY_COLORS[resource.category] || CATEGORY_COLORS.general
+                return (
+                  <div
+                    key={resource.id}
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {resource.title}
+                      </p>
+                    </div>
+                    <Badge
+                      variant="secondary"
+                      className={`text-[10px] shrink-0 ${colors.bg} ${colors.text} border-0`}
+                    >
+                      {CATEGORY_LABELS[resource.category]}
+                    </Badge>
+                    <span className="text-xs text-gray-400 shrink-0">
+                      {new Date(resource.created_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <div className="text-center py-6">
+              <BookOpen className="h-8 w-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">
+                No resources shared with {client.name} yet
+              </p>
+              {!isViewer && onShareResource && (
+                <Button
+                  onClick={onShareResource}
+                  variant="outline"
+                  size="sm"
+                  className="mt-3"
+                >
+                  <Share2 className="h-4 w-4 mr-2" />
+                  Share a Resource
+                </Button>
               )}
             </div>
           )}

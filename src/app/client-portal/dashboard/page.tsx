@@ -10,6 +10,7 @@ import { CommitmentsWidget } from '@/components/commitments/commitments-widget'
 import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
 import { useClientOutcomes } from '@/hooks/queries/use-client-outcomes'
 import { Progress } from '@/components/ui/progress'
+import { ClientPortalChat } from '@/components/client-portal/client-portal-chat'
 import {
   Clock,
   TrendingUp,
@@ -215,6 +216,11 @@ export default function ClientDashboard() {
         <ActiveSessionsCard />
       </div>
 
+      {/* AI Chat Section */}
+      <div className="mb-6 h-[600px]">
+        <ClientPortalChat />
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Left Column - Last Session & Sprint */}
@@ -347,7 +353,7 @@ export default function ClientDashboard() {
                         <Target className="h-4 w-4 text-gray-600" />
                         My Outcomes
                       </CardTitle>
-                      <Link href="/client-portal/outcomes">
+                      <Link href="/client-portal/my-commitments">
                         <Button variant="ghost" size="sm" className="text-xs">
                           View All
                           <ArrowRight className="h-3 w-3 ml-1" />

@@ -5,7 +5,14 @@ import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
-import { BarChart3, UserCheck, History, Sparkles, Shield } from 'lucide-react'
+import {
+  BarChart3,
+  UserCheck,
+  History,
+  BookOpen,
+  Sparkles,
+  Shield,
+} from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 
@@ -39,13 +46,12 @@ export default function Navigation() {
       icon: History,
       permission: { resource: 'sessions', action: 'view' },
     },
-    // Knowledge hidden for now
-    // {
-    //   path: '/knowledge',
-    //   label: 'Knowledge',
-    //   icon: BookOpen,
-    //   permission: null,
-    // },
+    {
+      path: '/resources',
+      label: 'Resources',
+      icon: BookOpen,
+      permission: null,
+    },
   ]
 
   // NEW: Hide coach/admin nav items for client-only users

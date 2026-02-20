@@ -15,8 +15,8 @@ import {
 import {
   LayoutDashboard,
   History,
-  Target,
   CheckSquare,
+  BookOpen,
   User,
   LogOut,
   Sparkles,
@@ -34,12 +34,12 @@ const navItems = [
     icon: LayoutDashboard,
   },
   { path: '/client-portal/sessions', label: 'Sessions', icon: History },
-  { path: '/client-portal/outcomes', label: 'Outcomes', icon: Target },
   {
     path: '/client-portal/my-commitments',
     label: 'Commitments',
     icon: CheckSquare,
   },
+  { path: '/client-portal/resources', label: 'Resources', icon: BookOpen },
   { path: '/client-portal/persona', label: 'My Profile', icon: User },
 ]
 

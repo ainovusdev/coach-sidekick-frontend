@@ -4,18 +4,34 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   ClientCommitmentService,
   ClientCommitmentCreate,
   ClientCommitmentUpdate,
 } from '@/services/client-commitment-service'
 import { Commitment } from '@/types/commitment'
-import { useClientOutcomes } from '@/hooks/queries/use-client-outcomes'
+import {
+  useClientOutcomes,
+  useClientGoals,
+  useCreateClientOutcome,
+} from '@/hooks/queries/use-client-outcomes'
+import { ClientOutcomeCard } from '@/components/client-portal/client-outcome-card'
 import { CommitmentProgressModal } from '@/components/commitments/commitment-progress-modal'
 import { ClientCommitmentForm } from '@/components/client-portal/client-commitment-form'
-import { ClientCommitmentBoard } from '@/components/client-portal/client-commitment-board'
+import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
 import {
   Target,
   CheckCircle,
@@ -25,6 +41,8 @@ import {
   List,
   RefreshCw,
   AlertCircle,
+  ChevronDown,
+  ChevronRight,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import {
@@ -52,13 +70,60 @@ export default function MyCommitmentsPage() {
   const [commitmentToDelete, setCommitmentToDelete] =
     useState<Commitment | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [outcomesExpanded, setOutcomesExpanded] = useState(false)
+  const [createOutcomeDialogOpen, setCreateOutcomeDialogOpen] = useState(false)
+  const [newOutcomeTitle, setNewOutcomeTitle] = useState('')
+  const [newOutcomeDescription, setNewOutcomeDescription] = useState('')
+  const [selectedGoalId, setSelectedGoalId] = useState('')
+  const [collapsedGoals, setCollapsedGoals] = useState<Set<string>>(new Set())
   const { data: allOutcomes } = useClientOutcomes()
+  const { data: goals } = useClientGoals()
+  const createOutcome = useCreateClientOutcome()
 
   // Build a map of outcome ID → title for badge display
   const outcomeMap: Record<string, string> = {}
   if (allOutcomes) {
     for (const o of allOutcomes) {
       outcomeMap[o.id] = o.title
+    }
+  }
+
+  const toggleGoalCollapse = (goalTitle: string) => {
+    setCollapsedGoals(prev => {
+      const next = new Set(prev)
+      if (next.has(goalTitle)) {
+        next.delete(goalTitle)
+      } else {
+        next.add(goalTitle)
+      }
+      return next
+    })
+  }
+
+  const handleCreateOutcome = async () => {
+    if (!newOutcomeTitle.trim() || !selectedGoalId) return
+    await createOutcome.mutateAsync({
+      title: newOutcomeTitle.trim(),
+      description: newOutcomeDescription.trim() || undefined,
+      goal_id: selectedGoalId,
+    })
+    setNewOutcomeTitle('')
+    setNewOutcomeDescription('')
+    setSelectedGoalId('')
+    setCreateOutcomeDialogOpen(false)
+  }
+
+  // Group outcomes by vision (goal)
+  const outcomesList = allOutcomes || []
+  const groupedByGoal: Record<string, typeof outcomesList> = {}
+  const ungroupedOutcomes: typeof outcomesList = []
+  for (const outcome of outcomesList) {
+    if (outcome.goal_titles?.length > 0) {
+      const goalTitle = outcome.goal_titles[0]
+      if (!groupedByGoal[goalTitle]) groupedByGoal[goalTitle] = []
+      groupedByGoal[goalTitle].push(outcome)
+    } else {
+      ungroupedOutcomes.push(outcome)
     }
   }
 
@@ -296,6 +361,87 @@ export default function MyCommitmentsPage() {
         </Card>
       </div>
 
+      {/* Collapsible Outcomes Section */}
+      {outcomesList.length > 0 && (
+        <div className="mb-8">
+          <button
+            onClick={() => setOutcomesExpanded(!outcomesExpanded)}
+            className="flex items-center gap-2 group w-full"
+          >
+            {outcomesExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+            )}
+            <h2 className="text-lg font-semibold text-gray-900">My Outcomes</h2>
+            <Badge variant="secondary" className="text-xs">
+              {outcomesList.length}
+            </Badge>
+            <div className="flex-1" />
+            <span
+              onClick={e => {
+                e.stopPropagation()
+                setCreateOutcomeDialogOpen(true)
+              }}
+              className="text-sm text-gray-500 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              Create Outcome
+            </span>
+          </button>
+
+          {outcomesExpanded && (
+            <div className="mt-4 space-y-6">
+              {Object.entries(groupedByGoal).map(
+                ([goalTitle, goalOutcomes]) => (
+                  <div key={goalTitle}>
+                    <button
+                      onClick={() => toggleGoalCollapse(goalTitle)}
+                      className="flex items-center gap-2 mb-3 group"
+                    >
+                      {collapsedGoals.has(goalTitle) ? (
+                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                      )}
+                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                        {goalTitle}
+                      </h3>
+                      <Badge variant="secondary" className="text-xs">
+                        {goalOutcomes.length}
+                      </Badge>
+                    </button>
+                    {!collapsedGoals.has(goalTitle) && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {goalOutcomes.map(outcome => (
+                          <ClientOutcomeCard
+                            key={outcome.id}
+                            outcome={outcome}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ),
+              )}
+
+              {ungroupedOutcomes.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+                    Other Outcomes
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {ungroupedOutcomes.map(outcome => (
+                      <ClientOutcomeCard key={outcome.id} outcome={outcome} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* View Toggle */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-lg font-semibold text-gray-900">All Commitments</h2>
@@ -340,14 +486,47 @@ export default function MyCommitmentsPage() {
           </CardContent>
         </Card>
       ) : viewMode === 'board' ? (
-        <ClientCommitmentBoard
+        <CommitmentKanbanBoard
           commitments={commitments}
           outcomeMap={outcomeMap}
           onCommitmentClick={openProgressModal}
           onEdit={openEditModal}
           onDelete={confirmDelete}
-          onStatusChange={loadCommitments}
-          setCommitments={setCommitments}
+          onDrop={async (commitmentId, newStatus) => {
+            const statusLabels: Record<string, string> = {
+              active: 'To Do',
+              in_progress: 'In Progress',
+              completed: 'Done',
+            }
+            const commitment = commitments.find(c => c.id === commitmentId)
+            if (!commitment || commitment.status === newStatus) return
+            const previousCommitments = [...commitments]
+            setCommitments(prev =>
+              prev.map(c =>
+                c.id === commitmentId
+                  ? {
+                      ...c,
+                      status: newStatus as Commitment['status'],
+                      progress_percentage:
+                        newStatus === 'completed' ? 100 : c.progress_percentage,
+                    }
+                  : c,
+              ),
+            )
+            toast.success(`Moved to ${statusLabels[newStatus]}`)
+            try {
+              await ClientCommitmentService.updateCommitment(commitmentId, {
+                status: newStatus as any,
+                progress_percentage:
+                  newStatus === 'completed' ? 100 : undefined,
+              })
+              loadCommitments()
+            } catch (error) {
+              console.error('Error updating commitment:', error)
+              setCommitments(previousCommitments)
+              toast.error('Failed to update commitment - changes reverted')
+            }
+          }}
         />
       ) : (
         <Tabs defaultValue="active" className="space-y-4">
@@ -471,6 +650,90 @@ export default function MyCommitmentsPage() {
           onSubmit={handleUpdateProgress}
         />
       )}
+
+      {/* Create Outcome Dialog */}
+      <Dialog
+        open={createOutcomeDialogOpen}
+        onOpenChange={setCreateOutcomeDialogOpen}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Create Outcome</DialogTitle>
+            <DialogDescription>
+              Define a new outcome linked to one of your visions
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="outcome-title">
+                Title <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="outcome-title"
+                value={newOutcomeTitle}
+                onChange={e => setNewOutcomeTitle(e.target.value)}
+                placeholder="e.g., Complete leadership certification"
+                maxLength={200}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="outcome-goal">
+                Link to Vision <span className="text-red-500">*</span>
+              </Label>
+              <select
+                id="outcome-goal"
+                value={selectedGoalId}
+                onChange={e => setSelectedGoalId(e.target.value)}
+                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+              >
+                <option value="">Select a vision...</option>
+                {(goals || []).map(goal => (
+                  <option key={goal.id} value={goal.id}>
+                    {goal.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="outcome-description">
+                Description <span className="text-gray-400">(optional)</span>
+              </Label>
+              <Textarea
+                id="outcome-description"
+                value={newOutcomeDescription}
+                onChange={e => setNewOutcomeDescription(e.target.value)}
+                placeholder="Describe what success looks like..."
+                rows={2}
+                className="resize-none"
+              />
+            </div>
+          </div>
+
+          <DialogFooter className="pt-4 gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setCreateOutcomeDialogOpen(false)}
+              className="border-gray-300"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateOutcome}
+              disabled={
+                !newOutcomeTitle.trim() ||
+                !selectedGoalId ||
+                createOutcome.isPending
+              }
+              className="bg-gray-900 hover:bg-gray-800"
+            >
+              {createOutcome.isPending ? 'Creating...' : 'Create Outcome'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Delete Confirmation */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
