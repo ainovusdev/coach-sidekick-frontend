@@ -21,6 +21,7 @@ import { MeetingSession } from '@/hooks/use-meeting-history'
 import { usePermissions, PermissionGate } from '@/contexts/permission-context'
 import { SessionService } from '@/services/session-service'
 import { EditSessionModal } from '@/components/sessions/edit-session-modal'
+import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
 import { toast } from 'sonner'
 
 interface SessionCardProps {
@@ -230,6 +231,11 @@ export function SessionCard({
                 <Clock className="h-3 w-3" />
                 <span className="font-medium">{durationMinutes}m</span>
               </div>
+            )}
+            {session.is_group_session && (
+              <GroupSessionBadge
+                count={session.participant_count ?? undefined}
+              />
             )}
             <Badge className={`${getStatusColor(session.status)} text-xs`}>
               {session.status.replace('_', ' ')}

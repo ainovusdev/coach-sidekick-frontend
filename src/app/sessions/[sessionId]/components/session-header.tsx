@@ -22,6 +22,7 @@ import {
   Pencil,
   Download,
   MoreHorizontal,
+  Users,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import { getStatusColor } from '../utils/session-utils'
@@ -36,6 +37,8 @@ interface SessionHeaderProps {
     title?: string | null
     summary?: string | null
     client_id?: string | null
+    is_group_session?: boolean
+    participant_client_ids?: string[]
   }
   onBack: () => void
   onDelete?: () => void
@@ -169,6 +172,14 @@ export default function SessionHeader({
                   />
                   {session.status.replace('_', ' ').toUpperCase()}
                 </Badge>
+
+                {/* Group session badge */}
+                {session.is_group_session && (
+                  <Badge className="bg-purple-50 text-purple-700 border-purple-200 px-3 py-1 text-xs font-medium flex items-center gap-1.5">
+                    <Users className="h-3 w-3" />
+                    Group ({session.participant_client_ids?.length || 0})
+                  </Badge>
+                )}
               </div>
 
               {/* Metadata row */}

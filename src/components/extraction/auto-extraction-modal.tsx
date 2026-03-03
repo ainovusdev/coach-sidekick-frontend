@@ -97,7 +97,9 @@ export function AutoExtractionModal({
         WinsService.extractWins(sessionId).catch(() => ({
           extracted_wins: [],
         })),
-        CommitmentService.extractFromSession(sessionId).catch(() => []),
+        CommitmentService.extractFromSession(sessionId, clientId).catch(
+          () => [],
+        ),
       ])
 
       const allSuggestions: SuggestionItem[] = []

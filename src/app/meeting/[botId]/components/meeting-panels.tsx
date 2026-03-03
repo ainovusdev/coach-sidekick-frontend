@@ -7,7 +7,11 @@ import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
 import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { QuickNote } from '@/components/session-notes/quick-note'
 import { QuickCommitment } from '@/components/commitments/quick-commitment'
+import { ParticipantSelector } from '@/components/group-session/participant-selector'
+import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
 import { TranscriptEntry } from '@/types/meeting'
+import { GroupSessionParticipant } from '@/types/group-session'
+import { GroupSessionService } from '@/services/group-session-service'
 import { useState, useEffect } from 'react'
 import { useCoachingWebSocket } from '@/hooks/use-coaching-websocket'
 import {
@@ -40,6 +44,7 @@ interface MeetingPanelsProps {
   botId: string
   sessionId?: string
   clientId?: string
+  isGroupSession?: boolean
 }
 
 type SidebarTab = 'transcript' | 'context'
@@ -49,6 +54,7 @@ export default function MeetingPanels({
   botId,
   sessionId,
   clientId,
+  isGroupSession,
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
@@ -56,6 +62,41 @@ export default function MeetingPanels({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('transcript')
   const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true)
+
+  // Group session participant selection
+  const [participants, setParticipants] = useState<GroupSessionParticipant[]>(
+    [],
+  )
+  const [selectedParticipantId, setSelectedParticipantId] = useState<
+    string | null
+  >(null)
+
+  // Fetch participants for group sessions
+  useEffect(() => {
+    if (!isGroupSession || !sessionId) return
+    const fetchParticipants = async () => {
+      try {
+        const data = await GroupSessionService.getParticipants(sessionId)
+        setParticipants(data)
+        // Auto-select first participant
+        if (data.length > 0 && !selectedParticipantId) {
+          setSelectedParticipantId(data[0].client_id)
+        }
+      } catch (error) {
+        console.error('Failed to fetch group session participants:', error)
+      }
+    }
+    fetchParticipants()
+  }, [isGroupSession, sessionId])
+
+  // Resolve the active client/session for commitments
+  const selectedParticipant = participants.find(
+    p => p.client_id === selectedParticipantId,
+  )
+  const commitmentClientId = isGroupSession
+    ? selectedParticipant?.client_id
+    : clientId
+  const commitmentSessionId = sessionId
 
   const recentTranscript = transcript
 
@@ -143,73 +184,94 @@ export default function MeetingPanels({
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-0 overflow-hidden p-1">
-        {/* Left Column - Notes (5/8) */}
-        <div className="lg:col-span-5 h-full overflow-hidden">
-          {sessionId ? (
-            <QuickNote sessionId={sessionId} noteType="coach_private" />
-          ) : (
-            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <FileText className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Notes
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Session loading...
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+      <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-1">
+        {/* Participant tags for group sessions */}
+        {isGroupSession && sessionId && participants.length > 0 && (
+          <div className="flex-shrink-0 flex items-center gap-2 px-1 pb-2">
+            <GroupSessionBadge count={participants.length} />
+            <ParticipantSelector
+              participants={participants}
+              selectedId={selectedParticipantId}
+              onSelect={setSelectedParticipantId}
+            />
+          </div>
+        )}
 
-        {/* Right Column - Commitments (3/8) */}
-        <div className="lg:col-span-3 h-full overflow-hidden">
-          {sessionId && clientId ? (
-            <QuickCommitment sessionId={sessionId} clientId={clientId} />
-          ) : sessionId && !clientId ? (
-            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/50 h-full">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
-                    <Target className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+        <div className="flex-1 grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-0 overflow-hidden">
+          {/* Left Column - Notes (5/8) */}
+          <div className="lg:col-span-5 h-full overflow-hidden">
+            {sessionId ? (
+              <QuickNote
+                sessionId={sessionId}
+                noteType="coach_private"
+                clientId={commitmentClientId || undefined}
+              />
+            ) : (
+              <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <FileText className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Notes
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Session loading...
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Commitments
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      No client selected
-                    </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Column - Commitments (3/8) */}
+          <div className="lg:col-span-3 h-full overflow-hidden flex flex-col gap-2">
+            {commitmentSessionId && commitmentClientId ? (
+              <QuickCommitment
+                sessionId={commitmentSessionId}
+                clientId={commitmentClientId}
+              />
+            ) : sessionId && !commitmentClientId ? (
+              <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/50 h-full">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
+                      <Target className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Commitments
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        No client selected
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
-              <CardContent className="p-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                    <Target className="h-4 w-4 text-gray-400" />
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                <CardContent className="p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                      <Target className="h-4 w-4 text-gray-400" />
+                    </div>
+                    <div>
+                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Commitments
+                      </h4>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Session loading...
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Commitments
-                    </h4>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Session loading...
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
+          </div>
         </div>
       </div>
 

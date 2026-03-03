@@ -28,6 +28,8 @@ interface Coach {
   name: string
 }
 
+export type SessionTypeFilter = 'all' | '1:1' | 'group'
+
 interface SessionsFiltersProps {
   clients: Client[]
   coaches: Coach[]
@@ -37,9 +39,11 @@ interface SessionsFiltersProps {
   selectedClient: Client | undefined
   selectedCoachId: string | null
   selectedCoach: Coach | undefined
+  sessionType: SessionTypeFilter
   hasActiveFilters: boolean
   onClientFilter: (clientId: string | null) => void
   onCoachFilter: (coachId: string | null) => void
+  onSessionTypeFilter: (type: SessionTypeFilter) => void
   onClearFilters: () => void
 }
 
@@ -52,9 +56,11 @@ export default function SessionsFilters({
   selectedClient,
   selectedCoachId,
   selectedCoach,
+  sessionType,
   hasActiveFilters,
   onClientFilter,
   onCoachFilter,
+  onSessionTypeFilter,
   onClearFilters,
 }: SessionsFiltersProps) {
   const [clientSearch, setClientSearch] = useState('')
@@ -263,6 +269,26 @@ export default function SessionsFilters({
               )}
             </PopoverContent>
           </Popover>
+        </div>
+
+        {/* Session Type Filter */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-slate-700">Type:</span>
+          <div className="flex items-center border border-slate-200 rounded-md overflow-hidden">
+            {(['all', '1:1', 'group'] as SessionTypeFilter[]).map(type => (
+              <button
+                key={type}
+                onClick={() => onSessionTypeFilter(type)}
+                className={`px-3 py-1.5 text-xs font-medium transition-colors ${
+                  sessionType === type
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-600 hover:bg-slate-50'
+                } ${type !== 'all' ? 'border-l border-slate-200' : ''}`}
+              >
+                {type === 'all' ? 'All' : type === '1:1' ? '1:1' : 'Group'}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Clear All Filters - inline */}

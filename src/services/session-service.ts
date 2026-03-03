@@ -48,6 +48,8 @@ interface BackendSession {
   updated_at: string
   coach_name?: string
   client_name?: string
+  is_group_session?: boolean
+  participant_count?: number | null
 }
 
 // Transform backend session to UI format
@@ -76,6 +78,8 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     coach_id: backendSession.coach_id,
     coach_name: backendSession.coach_name,
     client_name: backendSession.client_name,
+    is_group_session: backendSession.is_group_session,
+    participant_count: backendSession.participant_count,
   }
 }
 
@@ -210,6 +214,17 @@ export class SessionService {
     fetched_at: string
   }> {
     return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/video-url`)
+  }
+
+  static async generateClientAnalysis(
+    sessionId: string,
+    clientId?: string,
+  ): Promise<any> {
+    const params = clientId ? `?client_id=${clientId}` : ''
+    return await ApiClient.post(
+      `${BACKEND_URL}/sessions/${sessionId}/client-analysis/generate${params}`,
+      {},
+    )
   }
 }
 

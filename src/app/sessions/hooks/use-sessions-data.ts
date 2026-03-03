@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useClients } from '@/hooks/queries/use-clients'
 import { useCoaches } from '@/hooks/queries/use-coaches'
+import type { SessionTypeFilter } from '../components/sessions-filters'
 
 /**
  * Custom hook for sessions page data management
@@ -12,6 +13,7 @@ export function useSessionsData(pageSize: number = 12) {
   const [currentPage, setCurrentPage] = useState(0)
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null)
+  const [sessionType, setSessionType] = useState<SessionTypeFilter>('all')
 
   // Pass filters to useMeetingHistory for server-side filtering
   const {
@@ -64,21 +66,35 @@ export function useSessionsData(pageSize: number = 12) {
     // TanStack Query auto-refetches when queryKey changes (filters are part of queryKey)
   }
 
+  const handleSessionTypeFilter = (type: SessionTypeFilter) => {
+    setSessionType(type)
+    setCurrentPage(0)
+  }
+
   const handleClearFilters = () => {
     setSelectedClientId(null)
     setSelectedCoachId(null)
+    setSessionType('all')
     setCurrentPage(0)
     // TanStack Query auto-refetches when queryKey changes (filters are part of queryKey)
   }
 
-  // Sessions are now filtered server-side, no client-side filtering needed
-  const filteredSessions = meetingHistory?.meetings || []
+  // Sessions filtered server-side by client/coach; session type filtered client-side
+  const filteredSessions = useMemo(() => {
+    const sessions = meetingHistory?.meetings || []
+    if (sessionType === 'all') return sessions
+    if (sessionType === 'group') return sessions.filter(s => s.is_group_session)
+    return sessions.filter(s => !s.is_group_session) // '1:1'
+  }, [meetingHistory?.meetings, sessionType])
 
   const selectedClient = clients.find(c => c.id === selectedClientId)
   const selectedCoach = coaches.find(c => c.id === selectedCoachId)
   const hasNextPage = meetingHistory?.pagination.hasMore || false
   const hasPrevPage = currentPage > 0
-  const hasActiveFilters = selectedClientId !== null || selectedCoachId !== null
+  const hasActiveFilters =
+    selectedClientId !== null ||
+    selectedCoachId !== null ||
+    sessionType !== 'all'
 
   return {
     currentPage,
@@ -94,6 +110,7 @@ export function useSessionsData(pageSize: number = 12) {
     selectedClient,
     selectedCoachId,
     selectedCoach,
+    sessionType,
     hasActiveFilters,
     hasNextPage,
     hasPrevPage,
@@ -102,6 +119,7 @@ export function useSessionsData(pageSize: number = 12) {
     handlePrevPage,
     handleClientFilter,
     handleCoachFilter,
+    handleSessionTypeFilter,
     handleClearFilters,
     refetch,
   }

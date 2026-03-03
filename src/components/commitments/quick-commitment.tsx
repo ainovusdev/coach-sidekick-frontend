@@ -45,7 +45,10 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const handleExtract = async () => {
     setIsExtracting(true)
     try {
-      const extracted = await CommitmentService.extractFromSession(sessionId)
+      const extracted = await CommitmentService.extractFromSession(
+        sessionId,
+        clientId,
+      )
       if (extracted.length === 0) toast.info('No commitments found yet')
       else {
         toast.success(`Found ${extracted.length} commitment(s)`)

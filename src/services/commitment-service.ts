@@ -152,12 +152,17 @@ export class CommitmentService {
 
   /**
    * Extract commitments from a session transcript using AI
+   * For group sessions, client_id is required to scope extraction to a participant
    */
   static async extractFromSession(
     sessionId: string,
+    clientId?: string,
   ): Promise<ExtractedCommitment[]> {
+    const url = clientId
+      ? `${BACKEND_URL}/commitments/extract/${sessionId}?client_id=${clientId}`
+      : `${BACKEND_URL}/commitments/extract/${sessionId}`
     const response = await ApiClient.post(
-      `${BACKEND_URL}/commitments/extract/${sessionId}`,
+      url,
       {},
       120000, // 2 minute timeout for AI extraction
     )

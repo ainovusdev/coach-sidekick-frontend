@@ -33,6 +33,7 @@ import { useSessionNotes } from '@/hooks/queries/use-sessions'
 interface QuickNoteProps {
   sessionId: string
   noteType?: 'coach_private' | 'shared'
+  clientId?: string
   onNoteCreated?: () => void
 }
 
@@ -48,6 +49,7 @@ interface SessionNote {
 export function QuickNote({
   sessionId,
   noteType = 'coach_private',
+  clientId,
   onNoteCreated,
 }: QuickNoteProps) {
   const [content, setContent] = useState('')
@@ -61,8 +63,10 @@ export function QuickNote({
   const createNote = useCreateNote(sessionId)
   const updateNote = useUpdateNote(sessionId)
   const deleteNote = useDeleteNote(sessionId)
-  const { data: notes = [], isLoading: notesLoading } =
-    useSessionNotes(sessionId)
+  const { data: notes = [], isLoading: notesLoading } = useSessionNotes(
+    sessionId,
+    clientId,
+  )
 
   // Check if content has actual text (not just empty HTML tags)
   const hasContent = (html: string) => {
@@ -82,6 +86,7 @@ export function QuickNote({
       note_type: noteType,
       title: `Quick note - ${new Date().toLocaleTimeString()}`,
       content: noteContent,
+      ...(clientId ? { client_id: clientId } : {}),
     })
 
     onNoteCreated?.()

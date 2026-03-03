@@ -1,4 +1,8 @@
-import { useQuery, UseQueryOptions } from '@tanstack/react-query'
+import {
+  useQuery,
+  UseQueryOptions,
+  keepPreviousData,
+} from '@tanstack/react-query'
 import { SessionService, SessionListResponse } from '@/services/session-service'
 import { CoachingSession } from '@/types/meeting'
 import { queryKeys } from '@/lib/query-client'
@@ -154,15 +158,20 @@ export function useSessionTranscript(
  */
 export function useSessionNotes(
   sessionId: string | undefined,
+  clientId?: string,
   options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn' | 'enabled'>,
 ) {
   return useQuery({
-    queryKey: queryKeys.sessions.notes(sessionId!),
+    queryKey: queryKeys.sessions.notes(sessionId!, clientId),
     queryFn: async () => {
-      return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/notes`)
+      const params = clientId ? `?client_id=${clientId}` : ''
+      return await ApiClient.get(
+        `${BACKEND_URL}/sessions/${sessionId}/notes${params}`,
+      )
     },
     enabled: !!sessionId,
     staleTime: 3 * 60 * 1000, // 3 minutes (notes can be edited frequently)
+    placeholderData: keepPreviousData,
     ...options,
   })
 }

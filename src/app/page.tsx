@@ -14,7 +14,8 @@ import SystemStatus from './components/system-status'
 import { MyCommitments } from './components/my-commitments'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
-import { Eye, Plus, PlayCircle, FileText } from 'lucide-react'
+import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
+import { Eye, Plus, PlayCircle, FileText, Users } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -27,6 +28,7 @@ export default function CoachDashboard() {
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
+  const [isGroupSessionModalOpen, setIsGroupSessionModalOpen] = useState(false)
 
   // Get first name for personalized greeting
   const firstName = user?.full_name?.split(' ')[0] || 'there'
@@ -236,7 +238,16 @@ export default function CoachDashboard() {
                       error={error}
                       onSubmit={handleCreateBot}
                     />
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-gray-200 space-y-2">
+                      <Button
+                        onClick={() => setIsGroupSessionModalOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-gray-300 hover:bg-gray-50"
+                      >
+                        <Users className="h-4 w-4 mr-2" />
+                        Start Group Session
+                      </Button>
                       <Button
                         onClick={() => setIsManualSessionModalOpen(true)}
                         variant="outline"
@@ -282,6 +293,12 @@ export default function CoachDashboard() {
         <ManualSessionModal
           isOpen={isManualSessionModalOpen}
           onClose={() => setIsManualSessionModalOpen(false)}
+        />
+
+        {/* Group Session Modal */}
+        <StartStandaloneGroupSessionModal
+          open={isGroupSessionModalOpen}
+          onOpenChange={setIsGroupSessionModalOpen}
         />
       </PageLayout>
     </CoachRoute>
