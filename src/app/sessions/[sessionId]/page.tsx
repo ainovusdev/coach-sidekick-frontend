@@ -28,6 +28,7 @@ import SessionHeader from './components/session-header'
 import { SessionHeroCard } from './components/session-hero-card'
 import { SessionOverviewTab } from './components/session-overview-tab'
 import { SessionAnalysisMerged } from './components/session-analysis-merged'
+import { GroupParticipantBar } from './components/group-participant-bar'
 import { QuickNote } from '@/components/session-notes/quick-note'
 import {
   AnalysisService,
@@ -63,9 +64,18 @@ export default function SessionDetailsPage({
   } = useSessionDetails(resolvedParams.sessionId)
   const error = queryError ? String(queryError) : null
 
+  // Group session state
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
+  const isGroupSession = sessionData?.session?.is_group_session ?? false
+  const groupParticipants = sessionData?.session?.participants ?? []
+
   // Extract client_id from session (might be nested)
-  const clientId =
+  // For group sessions with a selected participant, use that participant's client_id
+  const baseClientId =
     sessionData?.session?.client_id || sessionData?.session?.client?.id
+  const clientId = isGroupSession
+    ? (selectedClientId ?? baseClientId)
+    : baseClientId
 
   // Fetch commitments for this specific session only
   const { data: commitmentsData } = useCommitments(
@@ -105,6 +115,10 @@ export default function SessionDetailsPage({
   const [loadingAnalysis, setLoadingAnalysis] = useState(false)
   const [autoTriggered, setAutoTriggered] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
+
+  // Client analysis state (group sessions)
+  const [generatingClientAnalysis, setGeneratingClientAnalysis] =
+    useState(false)
 
   // Commitments state (now from TanStack Query cache)
   const [showCreateCommitment, setShowCreateCommitment] = useState(false)
@@ -346,6 +360,32 @@ export default function SessionDetailsPage({
     }
   }
 
+  // Generate per-client analysis for group sessions
+  const handleGenerateClientAnalysis = async () => {
+    if (!sessionData?.session?.id || !selectedClientId) return
+
+    setGeneratingClientAnalysis(true)
+    try {
+      await SessionService.generateClientAnalysis(
+        sessionData.session.id,
+        selectedClientId,
+      )
+      // Invalidate session details to refetch with new client_analyses
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.detail(sessionData.session.id),
+      })
+      toast({
+        title: 'Analysis Generated',
+        description:
+          'Personalized analysis has been generated for this participant.',
+      })
+    } catch (error) {
+      console.error('Failed to generate client analysis:', error)
+    } finally {
+      setGeneratingClientAnalysis(false)
+    }
+  }
+
   // Refresh video URL handler
   const handleRefreshVideoUrl = async () => {
     if (!sessionData?.session?.id) return
@@ -583,6 +623,15 @@ export default function SessionDetailsPage({
                   )}
                 </div>
 
+                {/* Group Session Participant Bar */}
+                {isGroupSession && groupParticipants.length > 0 && (
+                  <GroupParticipantBar
+                    participants={groupParticipants}
+                    selectedClientId={selectedClientId}
+                    onSelectClient={setSelectedClientId}
+                  />
+                )}
+
                 {/* Quick Note Form (collapsible) */}
                 {showQuickNote && !isViewer && (
                   <QuickNote sessionId={sessionData.session.id} />
@@ -632,6 +681,15 @@ export default function SessionDetailsPage({
                       onRefreshVideoUrl={
                         !isViewer ? handleRefreshVideoUrl : undefined
                       }
+                      isGroupSession={isGroupSession}
+                      selectedClientId={selectedClientId}
+                      clientAnalyses={session.client_analyses}
+                      onGenerateClientAnalysis={
+                        !isViewer && isGroupSession && selectedClientId
+                          ? handleGenerateClientAnalysis
+                          : undefined
+                      }
+                      generatingClientAnalysis={generatingClientAnalysis}
                     />
                   )}
 
