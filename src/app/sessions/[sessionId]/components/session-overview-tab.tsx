@@ -239,7 +239,13 @@ export function SessionOverviewTab({
             <SessionCommitmentsList
               sessionId={sessionId}
               clientId={clientId}
-              commitments={commitments || []}
+              commitments={
+                isGroupSession && selectedClientId
+                  ? (commitments || []).filter(
+                      c => c.client_id === selectedClientId,
+                    )
+                  : commitments || []
+              }
               onUpdate={onRefreshCommitments || (() => {})}
             />
           ))}
