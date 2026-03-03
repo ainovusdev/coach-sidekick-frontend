@@ -13,6 +13,7 @@ interface UseBotDataReturn {
   sessionId: string | null
   clientId: string | null
   clientName: string | null
+  isGroupSession: boolean
   refetch: () => Promise<void>
 }
 
@@ -27,6 +28,7 @@ export function useBotData(botId: string): UseBotDataReturn {
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [clientId, setClientId] = useState<string | null>(null)
   const [clientName, setClientName] = useState<string | null>(null)
+  const [isGroupSession, setIsGroupSession] = useState(false)
   const { isConnected } = useWebSocket()
 
   const ensureSession = useCallback(async (botData: Bot) => {
@@ -41,6 +43,7 @@ export function useBotData(botId: string): UseBotDataReturn {
           setSessionId(existingSession.id)
           setClientId(existingSession.client_id || null)
           setClientName(existingSession.client?.name || null)
+          setIsGroupSession(existingSession.is_group_session || false)
           return existingSession.id
         }
       } catch (error) {
@@ -62,6 +65,7 @@ export function useBotData(botId: string): UseBotDataReturn {
       setSessionId(newSession.id)
       setClientId(newSession.client_id || null)
       setClientName(newSession.client?.name || null)
+      setIsGroupSession(newSession.is_group_session || false)
       return newSession.id
     } catch (error) {
       console.warn('Failed to ensure session exists:', error)
@@ -248,6 +252,7 @@ export function useBotData(botId: string): UseBotDataReturn {
     sessionId,
     clientId,
     clientName,
+    isGroupSession,
     refetch: fetchBotData,
   }
 }

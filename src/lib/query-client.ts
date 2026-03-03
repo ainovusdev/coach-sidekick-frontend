@@ -74,7 +74,12 @@ export const queryKeys = {
       [...queryKeys.sessions.detail(id), 'analysis'] as const,
     transcript: (id: string) =>
       [...queryKeys.sessions.detail(id), 'transcript'] as const,
-    notes: (id: string) => [...queryKeys.sessions.detail(id), 'notes'] as const,
+    notes: (id: string, clientId?: string) =>
+      [
+        ...queryKeys.sessions.detail(id),
+        'notes',
+        ...(clientId ? [clientId] : []),
+      ] as const,
   },
 
   // Bot/Meeting keys
@@ -186,6 +191,18 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.programs.details(), id] as const,
     dashboard: (id: string) =>
       [...queryKeys.programs.detail(id), 'dashboard'] as const,
+  },
+
+  // Group session keys
+  groupSessions: {
+    all: ['group-sessions'] as const,
+    lists: () => [...queryKeys.groupSessions.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.groupSessions.lists(), { filters }] as const,
+    details: () => [...queryKeys.groupSessions.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.groupSessions.details(), id] as const,
+    participants: (id: string) =>
+      [...queryKeys.groupSessions.detail(id), 'participants'] as const,
   },
 
   // Admin keys
@@ -318,6 +335,22 @@ export const invalidateQueries = {
       programId &&
         queryClient.invalidateQueries({
           queryKey: queryKeys.programs.dashboard(programId),
+        }),
+    ])
+  },
+
+  afterGroupSessionUpdate: async (
+    queryClient: QueryClient,
+    sessionId?: string,
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.groupSessions.all,
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all }),
+      sessionId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.groupSessions.detail(sessionId),
         }),
     ])
   },

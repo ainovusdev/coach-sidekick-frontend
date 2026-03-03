@@ -56,4 +56,9 @@ export interface CoachingSession {
   client?: Client
   created_at: string
   updated_at: string
+  // Group session fields
+  is_group_session?: boolean
+  master_session_id?: string | null
+  program_id?: string | null
+  participant_count?: number | null
 }

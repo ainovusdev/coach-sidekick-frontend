@@ -11,13 +11,15 @@ import { calculateSessionStats } from './utils/session-stats'
 import SessionsFilters from './components/sessions-filters'
 import SessionsList from './components/sessions-list'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
-import { History, RefreshCw, Upload } from 'lucide-react'
+import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
+import { History, RefreshCw, Upload, Users } from 'lucide-react'
 
 export default function SessionsHistoryPage() {
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
+  const [isGroupSessionModalOpen, setIsGroupSessionModalOpen] = useState(false)
   const pageSize = 12
 
   const {
@@ -33,6 +35,7 @@ export default function SessionsHistoryPage() {
     selectedClient,
     selectedCoachId,
     selectedCoach,
+    sessionType,
     hasActiveFilters,
     hasNextPage,
     hasPrevPage,
@@ -40,6 +43,7 @@ export default function SessionsHistoryPage() {
     handlePrevPage,
     handleClientFilter,
     handleCoachFilter,
+    handleSessionTypeFilter,
     handleClearFilters,
     refetch,
   } = useSessionsData(pageSize)
@@ -59,15 +63,26 @@ export default function SessionsHistoryPage() {
             actions={
               <div className="flex items-center gap-2">
                 {!isViewer && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsManualSessionModalOpen(true)}
-                    className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Upload Recording
-                  </Button>
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsGroupSessionModalOpen(true)}
+                      className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                    >
+                      <Users className="h-4 w-4" />
+                      Start Group Session
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsManualSessionModalOpen(true)}
+                      className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                    >
+                      <Upload className="h-4 w-4" />
+                      Upload Recording
+                    </Button>
+                  </>
                 )}
                 <Button
                   variant="outline"
@@ -97,9 +112,11 @@ export default function SessionsHistoryPage() {
             selectedClient={selectedClient}
             selectedCoachId={selectedCoachId}
             selectedCoach={selectedCoach}
+            sessionType={sessionType}
             hasActiveFilters={hasActiveFilters}
             onClientFilter={handleClientFilter}
             onCoachFilter={handleCoachFilter}
+            onSessionTypeFilter={handleSessionTypeFilter}
             onClearFilters={handleClearFilters}
           />
 
@@ -126,7 +143,16 @@ export default function SessionsHistoryPage() {
           isOpen={isManualSessionModalOpen}
           onClose={() => {
             setIsManualSessionModalOpen(false)
-            refetch() // Refresh sessions list after creating a new session
+            refetch()
+          }}
+        />
+
+        {/* Standalone Group Session Modal */}
+        <StartStandaloneGroupSessionModal
+          open={isGroupSessionModalOpen}
+          onOpenChange={open => {
+            setIsGroupSessionModalOpen(open)
+            if (!open) refetch()
           }}
         />
       </PageLayout>

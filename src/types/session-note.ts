@@ -58,6 +58,7 @@ export interface SessionNoteBase {
 export interface SessionNoteCreate extends SessionNoteBase {
   template_id?: string
   note_metadata?: Record<string, any>
+  client_id?: string
 }
 
 // Update session note request

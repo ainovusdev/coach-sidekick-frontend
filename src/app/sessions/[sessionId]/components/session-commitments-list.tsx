@@ -544,7 +544,10 @@ export function SessionCommitmentsList({
   const handleExtractCommitments = async () => {
     setExtracting(true)
     try {
-      const extracted = await CommitmentService.extractFromSession(sessionId)
+      const extracted = await CommitmentService.extractFromSession(
+        sessionId,
+        clientId,
+      )
       if (extracted.length > 0) {
         toast.success(
           `Extracted ${extracted.length} commitment${extracted.length > 1 ? 's' : ''} from the session`,

@@ -29,6 +29,7 @@ export default function MeetingPage() {
     sessionId,
     clientId,
     clientName,
+    isGroupSession,
     stopBot,
     isStoppingBot,
     isMeetingEnded,
@@ -82,7 +83,11 @@ export default function MeetingPage() {
           completedSessionIdRef.current || sessionIdRef.current
         console.log('[MeetingPage] Executing redirect to:', redirectSessionId)
         if (redirectSessionId) {
-          router.replace(`/sessions/${redirectSessionId}`)
+          if (isGroupSession) {
+            router.replace(`/sessions/group/${redirectSessionId}`)
+          } else {
+            router.replace(`/sessions/${redirectSessionId}`)
+          }
         } else {
           console.log(
             '[MeetingPage] No session ID available, redirecting to home',
@@ -108,7 +113,11 @@ export default function MeetingPage() {
           // Navigate to session details page if sessionId exists, otherwise go to dashboard
           // Use replace() so the meeting page is not in the history stack
           if (sessionId) {
-            router.replace(`/sessions/${sessionId}`)
+            if (isGroupSession) {
+              router.replace(`/sessions/group/${sessionId}`)
+            } else {
+              router.replace(`/sessions/${sessionId}`)
+            }
           } else {
             router.replace('/')
           }
@@ -144,6 +153,7 @@ export default function MeetingPage() {
           sessionId={sessionId}
           clientId={clientId}
           clientName={clientName}
+          isGroupSession={isGroupSession}
           onStopBot={handleStopBot}
           onNavigateBack={() => router.push('/')}
         />
@@ -156,6 +166,7 @@ export default function MeetingPage() {
               botId={botId}
               sessionId={sessionId || undefined}
               clientId={clientId || undefined}
+              isGroupSession={isGroupSession}
             />
           </div>
         </div>

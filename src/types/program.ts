@@ -4,11 +4,13 @@ export interface Program {
   description: string | null
   color: string
   metadata: Record<string, any>
+  group_coaching_enabled: boolean
   created_by: string
   created_at: string
   updated_at: string
   client_count: number
   coach_count: number
+  group_session_count: number
 }
 
 export interface ProgramCreate {
@@ -24,6 +26,7 @@ export interface ProgramUpdate {
   description?: string | null
   color?: string
   metadata?: Record<string, any>
+  group_coaching_enabled?: boolean
 }
 
 export interface ProgramListResponse {

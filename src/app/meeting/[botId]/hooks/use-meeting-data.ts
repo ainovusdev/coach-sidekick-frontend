@@ -32,8 +32,16 @@ const TERMINAL_BOT_STATUSES = [
 ]
 
 export function useMeetingData({ botId }: UseMeetingDataProps) {
-  const { bot, transcript, loading, error, sessionId, clientId, clientName } =
-    useBotData(botId)
+  const {
+    bot,
+    transcript,
+    loading,
+    error,
+    sessionId,
+    clientId,
+    clientName,
+    isGroupSession,
+  } = useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
   // isMeetingEnded: true when bot status is terminal (call ended) - shows "processing" UI
@@ -100,6 +108,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     sessionId,
     clientId,
     clientName,
+    isGroupSession,
     stopBot,
     isStoppingBot,
     isMeetingEnded,

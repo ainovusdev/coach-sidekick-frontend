@@ -16,6 +16,7 @@ import {
   Moon,
   Sun,
 } from 'lucide-react'
+import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
 
 interface MeetingHeaderProps {
   bot: Bot | null
@@ -24,6 +25,7 @@ interface MeetingHeaderProps {
   sessionId?: string | null
   clientId?: string | null
   clientName?: string | null
+  isGroupSession?: boolean
   onStopBot: () => void
   onNavigateBack: () => void
 }
@@ -35,6 +37,7 @@ export default function MeetingHeader({
   sessionId,
   clientId,
   clientName,
+  isGroupSession,
   onStopBot,
   onNavigateBack,
 }: MeetingHeaderProps) {
@@ -76,6 +79,12 @@ export default function MeetingHeader({
                 <BotStatus bot={bot} onStop={onStopBot} compact />
                 <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
                 <WebSocketStatus />
+                {isGroupSession && (
+                  <>
+                    <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
+                    <GroupSessionBadge />
+                  </>
+                )}
               </div>
             )}
           </div>

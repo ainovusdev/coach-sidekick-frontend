@@ -26,6 +26,9 @@ interface MeetingSession {
   client_name?: string | null
   coach_name?: string | null
   title?: string | null
+  is_group_session?: boolean
+  master_session_id?: string | null
+  participant_count?: number | null
 }
 
 interface MeetingHistoryResponse {
@@ -106,6 +109,9 @@ export function useMeetingHistory(
         client_name: session.client_name || null,
         coach_name: session.coach_name || null,
         title: session.title || null,
+        is_group_session: session.is_group_session || false,
+        master_session_id: session.master_session_id || null,
+        participant_count: session.participant_count || null,
       })),
       pagination: {
         limit,

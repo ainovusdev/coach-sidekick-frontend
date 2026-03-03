@@ -16,6 +16,7 @@ import {
   TrendingUp,
   ArrowRight,
   MessageSquare,
+  Users,
 } from 'lucide-react'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 
@@ -30,6 +31,7 @@ interface Session {
   engagement_level?: string
   tasks_assigned: number
   materials_shared: number
+  is_group_session?: boolean
 }
 
 export default function ClientSessionsPage() {
@@ -258,6 +260,15 @@ export default function ClientSessionsPage() {
                           className="bg-gray-100 text-gray-600 text-xs capitalize"
                         >
                           {session.engagement_level}
+                        </Badge>
+                      )}
+                      {session.is_group_session && (
+                        <Badge
+                          variant="secondary"
+                          className="bg-purple-50 text-purple-600 text-xs"
+                        >
+                          <Users className="h-3 w-3 mr-1" />
+                          Group
                         </Badge>
                       )}
                     </div>

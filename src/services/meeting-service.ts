@@ -8,6 +8,7 @@ export interface CreateBotRequest {
   client_id?: string
   recording_mode?: 'raw_transcript' | 'speaker_separated_audio' | 'video'
   bot_name?: string
+  session_id?: string
 }
 
 export interface CreateBotResponse {
