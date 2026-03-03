@@ -260,7 +260,11 @@ export function SessionOverviewTab({
 
       {/* Notes and Resources */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SessionNotesCompact sessionId={sessionId} isViewer={isViewer} />
+        <SessionNotesCompact
+          sessionId={sessionId}
+          isViewer={isViewer}
+          clientId={isGroupSession ? selectedClientId : undefined}
+        />
         <SessionResourcesCompact
           sessionId={sessionId}
           clientId={clientId}

@@ -21,11 +21,13 @@ import { toast } from 'sonner'
 interface SessionNotesCompactProps {
   sessionId: string
   isViewer?: boolean
+  clientId?: string | null
 }
 
 export function SessionNotesCompact({
   sessionId,
   isViewer = false,
+  clientId,
 }: SessionNotesCompactProps) {
   const [notes, setNotes] = useState<SessionNote[]>([])
   const [loading, setLoading] = useState(true)
@@ -36,11 +38,16 @@ export function SessionNotesCompact({
 
   useEffect(() => {
     fetchNotes()
-  }, [sessionId])
+  }, [sessionId, clientId])
 
   const fetchNotes = async () => {
+    setLoading(true)
     try {
-      const data = await SessionNotesService.getNotes(sessionId)
+      const data = await SessionNotesService.getNotes(
+        sessionId,
+        undefined,
+        clientId || undefined,
+      )
       // Show only the 3 most recent notes
       setNotes(data.slice(0, 3))
     } catch (error) {
@@ -58,6 +65,7 @@ export function SessionNotesCompact({
         title: newTitle.trim() || null,
         content: newContent.trim(),
         note_type: 'coach_private',
+        ...(clientId ? { client_id: clientId } : {}),
       })
       toast.success('Note added')
       setShowCreateDialog(false)
