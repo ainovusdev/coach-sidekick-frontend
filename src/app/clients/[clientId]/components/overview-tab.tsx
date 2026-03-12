@@ -21,6 +21,7 @@ import {
   ArrowRight,
   Share2,
 } from 'lucide-react'
+import { useDiscardCommitment } from '@/hooks/mutations/use-commitment-mutations'
 import { useResources } from '@/hooks/queries/use-resources'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 import { formatDate } from '@/lib/date-utils'
@@ -114,6 +115,12 @@ export function OverviewTab({
       ? stats.average_session_score
       : null
 
+  const discardCommitment = useDiscardCommitment()
+
+  const handleDeleteCommitment = (commitment: any) => {
+    discardCommitment.mutate(commitment.id)
+  }
+
   const handleCommitmentUpdate = () => {
     queryClient.invalidateQueries({
       queryKey: queryKeys.commitments.all,
@@ -147,14 +154,14 @@ export function OverviewTab({
       </div>
 
       {/* Simple Commitments Kanban Board */}
-      <Card className="border-gray-200">
+      <Card className="border-gray-200 dark:border-gray-700">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="text-lg font-semibold">
                 Commitments ({totalCommitments})
               </CardTitle>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Track all commitments across outcomes and sprints
               </p>
             </div>
@@ -210,6 +217,7 @@ export function OverviewTab({
               targets={clientTargets}
               onCommitmentClick={onEditCommitment}
               onCommitmentUpdate={handleCommitmentUpdate}
+              onDelete={!isViewer ? handleDeleteCommitment : undefined}
             />
           ) : (
             <div className="flex flex-col items-center justify-center py-16">
@@ -220,7 +228,9 @@ export function OverviewTab({
                 </Button>
               )}
               {isViewer && (
-                <p className="text-sm text-gray-500">No commitments yet</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                  No commitments yet
+                </p>
               )}
             </div>
           )}
@@ -228,11 +238,11 @@ export function OverviewTab({
       </Card>
 
       {/* Shared Resources Compact Card */}
-      <Card className="border-gray-200">
+      <Card className="border-gray-200 dark:border-gray-700">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-gray-700" />
+              <BookOpen className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               <CardTitle className="text-lg font-semibold">
                 Shared Resources ({clientResourcesData?.total || 0})
               </CardTitle>
@@ -262,10 +272,10 @@ export function OverviewTab({
                 return (
                   <div
                     key={resource.id}
-                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {resource.title}
                       </p>
                     </div>
@@ -284,8 +294,8 @@ export function OverviewTab({
             </div>
           ) : (
             <div className="text-center py-6">
-              <BookOpen className="h-8 w-8 text-gray-300 mx-auto mb-2" />
-              <p className="text-sm text-gray-500">
+              <BookOpen className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 No resources shared with {client.name} yet
               </p>
               {!isViewer && onShareResource && (

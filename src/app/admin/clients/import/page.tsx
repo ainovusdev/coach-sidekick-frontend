@@ -267,10 +267,10 @@ export default function ImportClientsPage() {
       </div>
 
       <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
           Import Clients
         </h1>
-        <p className="text-gray-500 mt-2">
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
           Upload a CSV file to bulk import clients
         </p>
       </div>
@@ -286,7 +286,7 @@ export default function ImportClientsPage() {
                   : ['upload', 'mapping', 'preview', 'result'].indexOf(step) >
                       index
                     ? 'bg-green-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-gray-200 text-gray-500 dark:bg-gray-700 dark:text-gray-400'
               }`}
             >
               {['upload', 'mapping', 'preview', 'result'].indexOf(step) >
@@ -300,7 +300,7 @@ export default function ImportClientsPage() {
               {s}
             </span>
             {index < 3 && (
-              <div className="w-12 h-0.5 bg-gray-200 mx-4 hidden sm:block" />
+              <div className="w-12 h-0.5 bg-gray-200 dark:bg-gray-700 mx-4 hidden sm:block" />
             )}
           </div>
         ))}
@@ -313,9 +313,9 @@ export default function ImportClientsPage() {
             <CardTitle>Upload CSV File</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-              <FileSpreadsheet className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">
+            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center">
+              <FileSpreadsheet className="h-12 w-12 text-gray-400 dark:text-gray-500 mx-auto mb-4" />
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
                 Drag and drop a CSV file here, or click to browse
               </p>
               <input
@@ -331,7 +331,7 @@ export default function ImportClientsPage() {
                   Choose File
                 </label>
               </Button>
-              <p className="text-sm text-gray-400 mt-4">
+              <p className="text-sm text-gray-400 dark:text-gray-500 mt-4">
                 CSV should have headers in the first row. Supported columns:
                 Name (required), Email, Phone, Notes, Tags, Coach Email
               </p>
@@ -347,7 +347,7 @@ export default function ImportClientsPage() {
             <CardTitle>Map Columns</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Map each CSV column to a client field. At minimum, you must map
               the Name field.
             </p>
@@ -364,7 +364,7 @@ export default function ImportClientsPage() {
                 {csvColumns.map(col => (
                   <TableRow key={col.header}>
                     <TableCell className="font-medium">{col.header}</TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-gray-500 dark:text-gray-400">
                       {col.sampleValues.slice(0, 2).join(', ')}
                     </TableCell>
                     <TableCell>
@@ -432,7 +432,7 @@ export default function ImportClientsPage() {
             <CardTitle>Preview Import</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-400">
               Review the first 10 rows before importing. Total rows to import:{' '}
               <strong>{csvData.length - 1}</strong>
             </p>
@@ -494,30 +494,32 @@ export default function ImportClientsPage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex gap-4">
-              <div className="flex-1 bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-                <div className="text-3xl font-bold text-green-600">
+              <div className="flex-1 bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-green-600 dark:text-green-400">
                   {importResult.success_count}
                 </div>
-                <div className="text-sm text-green-700">
+                <div className="text-sm text-green-700 dark:text-green-400">
                   Imported Successfully
                 </div>
               </div>
-              <div className="flex-1 bg-red-50 border border-red-200 rounded-lg p-4 text-center">
-                <div className="text-3xl font-bold text-red-600">
+              <div className="flex-1 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 text-center">
+                <div className="text-3xl font-bold text-red-600 dark:text-red-400">
                   {importResult.failed_count}
                 </div>
-                <div className="text-sm text-red-700">Failed</div>
+                <div className="text-sm text-red-700 dark:text-red-400">
+                  Failed
+                </div>
               </div>
             </div>
 
             {importResult.errors.length > 0 && (
               <div>
                 <h3 className="font-medium mb-2">Errors:</h3>
-                <div className="bg-red-50 border border-red-200 rounded-lg p-4 max-h-60 overflow-y-auto">
+                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4 max-h-60 overflow-y-auto">
                   {importResult.errors.map((err, index) => (
                     <div key={index} className="flex items-start gap-2 mb-2">
-                      <AlertCircle className="h-4 w-4 text-red-500 mt-0.5" />
-                      <span className="text-sm text-red-700">
+                      <AlertCircle className="h-4 w-4 text-red-500 dark:text-red-400 mt-0.5" />
+                      <span className="text-sm text-red-700 dark:text-red-400">
                         Row {err.row}: {err.error}
                       </span>
                     </div>

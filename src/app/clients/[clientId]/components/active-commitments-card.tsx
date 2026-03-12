@@ -44,8 +44,8 @@ export function ActiveCommitmentsCard({
 
   if (isLoading) {
     return (
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="border-b border-gray-100">
+      <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
+        <CardHeader className="border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <Skeleton className="h-9 w-9 rounded-lg" />
             <div className="flex-1">
@@ -64,18 +64,18 @@ export function ActiveCommitmentsCard({
   }
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="border-b border-gray-100">
+    <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
+      <CardHeader className="border-b border-gray-100 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-50 rounded-lg">
-              <Target className="h-5 w-5 text-green-600" />
+            <div className="p-2 bg-green-50 dark:bg-green-900/30 rounded-lg">
+              <Target className="h-5 w-5 text-green-600 dark:text-green-400" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 Client Commitments
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {allCommitments.length} total commitments
               </p>
             </div>
@@ -85,7 +85,7 @@ export function ActiveCommitmentsCard({
               variant="ghost"
               size="sm"
               onClick={onViewAll}
-              className="hover:bg-gray-50"
+              className="hover:bg-gray-50 dark:hover:bg-gray-800"
             >
               View All
               <ArrowRight className="h-4 w-4 ml-1" />
@@ -96,11 +96,11 @@ export function ActiveCommitmentsCard({
       <CardContent className="pt-6">
         {allCommitments.length === 0 ? (
           <div className="text-center py-8">
-            <Target className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-gray-900 font-medium mb-1">
+            <Target className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <h3 className="text-gray-900 dark:text-white font-medium mb-1">
               No commitments yet
             </h3>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               Create commitments to track progress and accountability
             </p>
           </div>
@@ -117,15 +117,15 @@ export function ActiveCommitmentsCard({
               return (
                 <div
                   key={commitment.id}
-                  className="p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors"
+                  className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 mb-1 truncate">
+                      <h4 className="font-medium text-gray-900 dark:text-white mb-1 truncate">
                         {commitment.title}
                       </h4>
                       {commitment.description && (
-                        <p className="text-sm text-gray-600 line-clamp-2 mb-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
                           {commitment.description}
                         </p>
                       )}
@@ -135,13 +135,13 @@ export function ActiveCommitmentsCard({
                           className={cn(
                             'text-xs',
                             commitment.type === 'action' &&
-                              'bg-blue-50 border-blue-200 text-blue-700',
+                              'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
                             commitment.type === 'habit' &&
-                              'bg-purple-50 border-purple-200 text-purple-700',
+                              'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-400',
                             commitment.type === 'milestone' &&
-                              'bg-orange-50 border-orange-200 text-orange-700',
+                              'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400',
                             commitment.type === 'learning' &&
-                              'bg-green-50 border-green-200 text-green-700',
+                              'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400',
                           )}
                         >
                           {commitment.type}
@@ -152,7 +152,9 @@ export function ActiveCommitmentsCard({
                               'flex items-center gap-1 text-xs',
                               isOverdue && 'text-red-600',
                               isDueSoon && 'text-orange-600',
-                              !isOverdue && !isDueSoon && 'text-gray-600',
+                              !isOverdue &&
+                                !isDueSoon &&
+                                'text-gray-600 dark:text-gray-400',
                             )}
                           >
                             <Clock className="h-3 w-3" />
@@ -169,7 +171,7 @@ export function ActiveCommitmentsCard({
                     </div>
                     {commitment.progress_percentage > 0 && (
                       <div className="flex flex-col items-end gap-1">
-                        <div className="flex items-center gap-1 text-sm font-medium text-green-600">
+                        <div className="flex items-center gap-1 text-sm font-medium text-green-600 dark:text-green-400">
                           <TrendingUp className="h-3 w-3" />
                           <span>{commitment.progress_percentage}%</span>
                         </div>
@@ -183,7 +185,7 @@ export function ActiveCommitmentsCard({
               )
             })}
             {allCommitments.length > 5 && (
-              <p className="text-sm text-gray-500 text-center pt-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400 text-center pt-2">
                 +{allCommitments.length - 5} more commitments
               </p>
             )}

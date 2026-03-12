@@ -53,12 +53,21 @@ export function ClientProfileCard({
   insights,
   compact = false,
 }: ClientProfileCardProps) {
-  // Check if profile has meaningful data
+  // Check if profile has meaningful data — check ALL persona fields
   const hasData =
     profile &&
     ((profile.primary_goals?.length ?? 0) > 0 ||
       (profile.main_challenges?.length ?? 0) > 0 ||
       (profile.strengths?.length ?? 0) > 0 ||
+      (profile.personality_traits?.length ?? 0) > 0 ||
+      (profile.values?.length ?? 0) > 0 ||
+      (profile.growth_areas?.length ?? 0) > 0 ||
+      (profile.recurring_themes?.length ?? 0) > 0 ||
+      (profile.breakthrough_moments?.length ?? 0) > 0 ||
+      (profile.achievements?.length ?? 0) > 0 ||
+      (profile.obstacles?.length ?? 0) > 0 ||
+      (profile.short_term_goals?.length ?? 0) > 0 ||
+      (profile.long_term_goals?.length ?? 0) > 0 ||
       profile.communication_style ||
       profile.learning_style ||
       (profile.sessions_analyzed ?? 0) > 0)
@@ -66,30 +75,12 @@ export function ClientProfileCard({
   // Auto-expand if there's meaningful data
   const [isExpanded, setIsExpanded] = useState(hasData)
 
-  if (!profile) {
+  if (!profile || !hasData) {
     return (
-      <Card className={compact ? 'h-auto' : 'h-full'}>
-        <CardHeader className={compact ? 'pb-2 py-2' : 'pb-3'}>
-          <h3
-            className={
-              compact
-                ? 'text-xs font-medium flex items-center gap-1'
-                : 'text-sm font-medium flex items-center gap-2'
-            }
-          >
-            <User
-              className={
-                compact ? 'h-3 w-3 text-gray-500' : 'h-4 w-4 text-gray-500'
-              }
-            />
-            Client Profile
-          </h3>
-        </CardHeader>
-        <CardContent className={compact ? 'pt-0' : ''}>
+      <Card className={compact ? 'h-auto border-0 shadow-none' : 'h-full'}>
+        <CardContent className={compact ? 'p-0' : 'pt-4'}>
           <p className="text-xs text-gray-500">
-            {compact
-              ? 'No profile yet'
-              : 'No client profile available yet. Profile will be built as sessions progress.'}
+            Profile will build as sessions are analyzed.
           </p>
         </CardContent>
       </Card>
@@ -168,26 +159,14 @@ export function ClientProfileCard({
             ))}
           </div>
         )}
-        {!isExpanded && !hasData && (
+        {!isExpanded && summaryItems.length === 0 && (
           <p className="mt-1.5 text-xs text-gray-400">
-            Profile building in progress...
+            Expand to see profile details
           </p>
         )}
       </CardHeader>
       {isExpanded && (
         <CardContent className={compact ? 'space-y-2 pt-0' : 'space-y-4'}>
-          {/* Empty state when no meaningful data */}
-          {!hasData && (
-            <div className="text-center py-3">
-              <p className="text-xs text-gray-500">
-                Client profile is being built from session transcripts.
-              </p>
-              <p className="text-xs text-gray-400 mt-1">
-                More details will appear after sessions are analyzed.
-              </p>
-            </div>
-          )}
-
           {/* Journey Progress */}
           {insights?.client_journey && !compact && (
             <div className="space-y-2">

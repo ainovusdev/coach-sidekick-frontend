@@ -27,28 +27,32 @@ export function EmptyState({
   action,
   secondaryAction,
   className,
-  iconClassName
+  iconClassName,
 }: EmptyStateProps) {
   return (
     <div className={cn('text-center py-12', className)}>
-      <div className={cn(
-        'mx-auto w-12 h-12 bg-neutral-100 rounded-full flex items-center justify-center mb-3',
-        iconClassName
-      )}>
+      <div
+        className={cn(
+          'mx-auto w-12 h-12 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mb-3',
+          iconClassName,
+        )}
+      >
         <Icon className="h-6 w-6 text-neutral-400" />
       </div>
-      <h3 className="text-sm font-medium text-neutral-900 mb-1">{title}</h3>
+      <h3 className="text-sm font-medium text-neutral-900 dark:text-white mb-1">
+        {title}
+      </h3>
       {description && (
-        <p className="text-sm text-neutral-600 mb-4 max-w-sm mx-auto">
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4 max-w-sm mx-auto">
           {description}
         </p>
       )}
       {(action || secondaryAction) && (
         <div className="flex items-center justify-center gap-3">
           {action && (
-            <Button 
+            <Button
               onClick={action.onClick}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white"
+              className="bg-neutral-900 dark:bg-white hover:bg-neutral-800 dark:hover:bg-neutral-100 text-white dark:text-neutral-900"
             >
               {action.icon && <action.icon className="h-4 w-4 mr-2" />}
               {action.label}
@@ -58,7 +62,7 @@ export function EmptyState({
             <Button
               variant={secondaryAction.variant || 'outline'}
               onClick={secondaryAction.onClick}
-              className="border-neutral-300 hover:bg-neutral-50 text-neutral-700"
+              className="border-neutral-300 dark:border-neutral-600 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
             >
               {secondaryAction.label}
             </Button>

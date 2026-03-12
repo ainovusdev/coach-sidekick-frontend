@@ -18,12 +18,24 @@
   border-radius: 3px;
 }
 
+.dark .scrollbar-thin::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background: #9ca3af;
   border-radius: 3px;
 }
 
+.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #4b5563;
+}
+
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
 
@@ -66,17 +78,23 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* App Theme Colors */
-  --color-app-primary: #111111;
-  --color-app-secondary: #6B7280;
-  --color-app-accent: #2563EB;
-  --color-app-background: #FFFFFF;
-  --color-app-surface: #F9FAFB;
-  --color-app-border: #E5E7EB;
+  /* App Theme Colors (reference CSS vars for dark mode support) */
+  --color-app-primary: var(--app-primary);
+  --color-app-secondary: var(--app-secondary);
+  --color-app-accent: var(--app-accent);
+  --color-app-background: var(--app-background);
+  --color-app-surface: var(--app-surface);
+  --color-app-border: var(--app-border);
 }
 
 :root {
   --radius: 0.625rem;
+  --app-primary: #111111;
+  --app-secondary: #6B7280;
+  --app-accent: #2563EB;
+  --app-background: #FFFFFF;
+  --app-surface: #F9FAFB;
+  --app-border: #E5E7EB;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -111,6 +129,12 @@
 }
 
 .dark {
+  --app-primary: #F9FAFB;
+  --app-secondary: #9CA3AF;
+  --app-accent: #3B82F6;
+  --app-background: #111827;
+  --app-surface: #1F2937;
+  --app-border: #374151;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

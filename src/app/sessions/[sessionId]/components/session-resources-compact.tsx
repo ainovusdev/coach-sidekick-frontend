@@ -141,7 +141,7 @@ export function SessionResourcesCompact({
               <Button
                 onClick={handleOpenCreate}
                 size="sm"
-                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
+                className="bg-app-primary hover:bg-app-primary/90 text-app-background text-xs"
               >
                 <Plus className="h-3 w-3 mr-1.5" />
                 Add

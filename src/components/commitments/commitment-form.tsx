@@ -283,8 +283,8 @@ export function CommitmentForm({
                         className={cn(
                           'flex items-start gap-2 px-3 py-2 rounded-lg border cursor-pointer transition-colors min-w-[200px]',
                           isSelected
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-white border-gray-300 hover:border-gray-400 hover:bg-gray-50',
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700',
                         )}
                         onClick={() => {
                           if (isSelected) {
@@ -315,7 +315,9 @@ export function CommitmentForm({
                           <div
                             className={cn(
                               'text-xs mt-0.5',
-                              isSelected ? 'opacity-90' : 'text-gray-600',
+                              isSelected
+                                ? 'opacity-90'
+                                : 'text-gray-600 dark:text-gray-400',
                             )}
                           >
                             {goalInfo && <div>Vision: {goalInfo.title}</div>}
@@ -329,12 +331,12 @@ export function CommitmentForm({
                   })}
                 </div>
               ) : (
-                <div className="text-center py-6 text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg">
+                <div className="text-center py-6 text-sm text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
                   No outcomes available. Create outcomes first.
                 </div>
               )}
               {selectedTargetIds.length > 0 && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   {selectedTargetIds.length} outcome
                   {selectedTargetIds.length !== 1 ? 's' : ''} selected
                 </p>
@@ -388,7 +390,7 @@ export function CommitmentForm({
               variant="ghost"
               size="sm"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full text-gray-600 hover:text-gray-900"
+              className="w-full text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
             >
               {showAdvanced ? '▼ Hide Details' : '▶ Show More Details'}
             </Button>

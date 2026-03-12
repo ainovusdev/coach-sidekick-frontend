@@ -62,9 +62,11 @@ export function UnifiedCreationModal({
       icon: Target,
       title: 'Goal',
       description: 'Long-term outcome (3-12 months)',
-      color: 'text-gray-600',
-      bgColor: 'bg-gray-50 hover:bg-gray-100 border-gray-300',
-      selectedColor: 'bg-gray-100 border-gray-400',
+      color: 'text-gray-600 dark:text-gray-400',
+      bgColor:
+        'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600',
+      selectedColor:
+        'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-500',
     },
     {
       type: 'sprint' as const,
@@ -72,8 +74,10 @@ export function UnifiedCreationModal({
       title: 'Sprint',
       description: '6-8 week timeboxed period',
       color: 'text-purple-600',
-      bgColor: 'bg-purple-50 hover:bg-purple-100 border-purple-300',
-      selectedColor: 'bg-purple-100 border-purple-400',
+      bgColor:
+        'bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border-purple-300 dark:border-purple-700',
+      selectedColor:
+        'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-600',
     },
     {
       type: 'outcome' as const,
@@ -81,8 +85,10 @@ export function UnifiedCreationModal({
       title: 'Outcome',
       description: 'Short-term win (within a sprint)',
       color: 'text-blue-600',
-      bgColor: 'bg-blue-50 hover:bg-blue-100 border-blue-300',
-      selectedColor: 'bg-blue-100 border-blue-400',
+      bgColor:
+        'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-300 dark:border-blue-700',
+      selectedColor:
+        'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600',
     },
     {
       type: 'commitment' as const,
@@ -90,8 +96,10 @@ export function UnifiedCreationModal({
       title: 'Commitment',
       description: 'Actionable task or promise',
       color: 'text-green-600',
-      bgColor: 'bg-green-50 hover:bg-green-100 border-green-300',
-      selectedColor: 'bg-green-100 border-green-400',
+      bgColor:
+        'bg-green-50 dark:bg-green-900/30 hover:bg-green-100 dark:hover:bg-green-900/50 border-green-300 dark:border-green-700',
+      selectedColor:
+        'bg-green-100 dark:bg-green-900/40 border-green-400 dark:border-green-600',
     },
   ]
 
@@ -177,17 +185,19 @@ export function UnifiedCreationModal({
               >
                 <div
                   className={cn(
-                    'flex-shrink-0 p-3 rounded-lg bg-white',
+                    'flex-shrink-0 p-3 rounded-lg bg-white dark:bg-gray-900',
                     option.selectedColor,
                   )}
                 >
                   <Icon className={cn('h-6 w-6', option.color)} />
                 </div>
                 <div className="flex-1">
-                  <h4 className="text-base font-semibold text-gray-900 mb-1">
+                  <h4 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
                     {option.title}
                   </h4>
-                  <p className="text-sm text-gray-600">{option.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    {option.description}
+                  </p>
                 </div>
               </button>
             )

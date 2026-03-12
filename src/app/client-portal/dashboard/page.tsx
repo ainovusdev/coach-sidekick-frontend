@@ -135,7 +135,7 @@ export default function ClientDashboard() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-600">No data available</p>
+          <p className="text-gray-600 dark:text-gray-400">No data available</p>
         </div>
       </div>
     )
@@ -157,18 +157,18 @@ export default function ClientDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-6">
-        <p className="text-gray-500 text-sm font-medium mb-1">
+        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">
           {getGreeting()}
         </p>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
           {dashboardData.client_info?.name || 'Welcome back'}
         </h1>
-        <p className="text-gray-500 mt-1">
+        <p className="text-gray-500 dark:text-gray-400 mt-1">
           Your coaching journey at a glance
           {dashboardData.coach_name && (
             <>
               <span className="mx-2">·</span>
-              <span className="text-gray-600 font-medium">
+              <span className="text-gray-600 dark:text-gray-400 font-medium">
                 Coach: {dashboardData.coach_name}
               </span>
             </>
@@ -193,17 +193,17 @@ export default function ClientDashboard() {
       {/* Stat Cards - 4 column grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {/* Sessions */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50">
-                <CalendarDays className="h-4 w-4 text-blue-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {dashboardData.stats?.total_sessions || 0}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {dashboardData.stats?.sessions_this_month
                     ? `${dashboardData.stats.sessions_this_month} this month`
                     : 'Sessions'}
@@ -214,19 +214,19 @@ export default function ClientDashboard() {
         </Card>
 
         {/* Tasks */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
+                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {dashboardData.stats?.completed_tasks || 0}/
                   {(dashboardData.stats?.completed_tasks || 0) +
                     (dashboardData.stats?.pending_tasks || 0)}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {dashboardData.stats?.pending_tasks
                     ? `${dashboardData.stats.pending_tasks} pending`
                     : 'Tasks'}
@@ -237,40 +237,42 @@ export default function ClientDashboard() {
         </Card>
 
         {/* Success Rate */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50">
-                <BarChart3 className="h-4 w-4 text-purple-600" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
+                <BarChart3 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {completionRate}%
                 </p>
-                <p className="text-xs text-gray-500">Success rate</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Success rate
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Streak / Active Goals */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-900/30">
                 {dashboardData.stats?.current_streak_days > 0 ? (
-                  <Flame className="h-4 w-4 text-orange-600" />
+                  <Flame className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 ) : (
-                  <Target className="h-4 w-4 text-orange-600" />
+                  <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 )}
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {dashboardData.stats?.current_streak_days > 0
                     ? dashboardData.stats.current_streak_days
                     : dashboardData.stats?.active_goals || 0}
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   {dashboardData.stats?.current_streak_days > 0
                     ? 'Day streak'
                     : 'Active goals'}
@@ -293,11 +295,11 @@ export default function ClientDashboard() {
 
           {/* Last Session Card */}
           {lastSession ? (
-            <Card className="border-gray-200">
+            <Card className="border-gray-200 dark:border-gray-700">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-600" />
+                    <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                     Last Session
                   </CardTitle>
                   <Link href={`/client-portal/sessions/${lastSession.id}`}>
@@ -311,17 +313,17 @@ export default function ClientDashboard() {
               <CardContent className="pt-0">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
                       {formatDate(lastSession.date, 'EEEE, MMMM d, yyyy')}
                     </p>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                       {formatRelativeTime(lastSession.date)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge
                       variant="secondary"
-                      className="bg-gray-100 text-gray-700 text-xs"
+                      className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
                     >
                       <Clock className="h-3 w-3 mr-1" />
                       {lastSession.duration_minutes} min
@@ -329,7 +331,7 @@ export default function ClientDashboard() {
                     {lastSession.score && (
                       <Badge
                         variant="secondary"
-                        className="bg-gray-100 text-gray-700 text-xs"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
                       >
                         <TrendingUp className="h-3 w-3 mr-1" />
                         {lastSession.score}/10
@@ -339,7 +341,7 @@ export default function ClientDashboard() {
                 </div>
 
                 {lastSession.summary && (
-                  <p className="text-sm text-gray-600 leading-relaxed line-clamp-3 mb-3">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3 mb-3">
                     {lastSession.summary}
                   </p>
                 )}
@@ -351,7 +353,7 @@ export default function ClientDashboard() {
                         <Badge
                           key={idx}
                           variant="outline"
-                          className="text-xs border-gray-200 text-gray-600"
+                          className="text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
                         >
                           {topic}
                         </Badge>
@@ -361,13 +363,13 @@ export default function ClientDashboard() {
               </CardContent>
             </Card>
           ) : (
-            <Card className="border-gray-200">
+            <Card className="border-gray-200 dark:border-gray-700">
               <CardContent className="py-8 text-center">
-                <FileText className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <h3 className="font-medium text-gray-900 mb-1 text-sm">
+                <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <h3 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">
                   No sessions yet
                 </h3>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Your coaching sessions will appear here after your first call.
                 </p>
               </CardContent>
@@ -392,7 +394,7 @@ export default function ClientDashboard() {
       {/* Recent Sessions - Full Width */}
       {dashboardData.recent_sessions &&
         dashboardData.recent_sessions.length > 1 && (
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">
@@ -413,25 +415,25 @@ export default function ClientDashboard() {
                     key={session.id}
                     href={`/client-portal/sessions/${session.id}`}
                   >
-                    <div className="group p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer">
+                    <div className="group p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all cursor-pointer">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
                           {formatDate(session.date, 'MMM d, yyyy')}
                         </p>
                         <Badge
                           variant="secondary"
-                          className="text-xs bg-gray-100 text-gray-600"
+                          className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                         >
                           {session.duration_minutes} min
                         </Badge>
                       </div>
                       {session.summary && (
-                        <p className="text-sm text-gray-600 line-clamp-2">
+                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                           {session.summary}
                         </p>
                       )}
                       <div className="flex items-center justify-end mt-3">
-                        <span className="text-xs text-gray-500 group-hover:text-gray-700 font-medium">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 font-medium">
                           View details
                           <ChevronRight className="h-3 w-3 inline ml-0.5" />
                         </span>

@@ -105,7 +105,7 @@ export function RoleSwitcher() {
             <DropdownMenuItem
               key={view.role}
               onClick={() => router.push(dashboardPath)}
-              className={`cursor-pointer ${isCurrentView ? 'bg-gray-100' : ''}`}
+              className={`cursor-pointer ${isCurrentView ? 'bg-gray-100 dark:bg-gray-800' : ''}`}
             >
               <div className="flex items-start gap-3 w-full">
                 <Icon className="h-4 w-4 mt-0.5" />
@@ -116,7 +116,7 @@ export function RoleSwitcher() {
                   </div>
                 </div>
                 {isCurrentView && (
-                  <div className="text-xs text-blue-600 font-medium mt-0.5">
+                  <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-0.5">
                     Current
                   </div>
                 )}

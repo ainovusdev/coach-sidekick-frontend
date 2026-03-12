@@ -182,7 +182,7 @@ function DraftCommitmentCard({
 
       {/* Transcript context */}
       {commitment.transcript_context && (
-        <p className="text-xs italic text-gray-500 bg-white/80 dark:bg-gray-700/50 rounded px-2 py-1 mb-2">
+        <p className="text-xs italic text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-700/50 rounded px-2 py-1 mb-2">
           &ldquo;{commitment.transcript_context}&rdquo;
         </p>
       )}

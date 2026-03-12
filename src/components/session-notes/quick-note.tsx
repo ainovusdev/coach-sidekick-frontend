@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { formatRelativeTime } from '@/lib/date-utils'
 import {
   RichTextEditor,
@@ -35,6 +35,7 @@ interface QuickNoteProps {
   noteType?: 'coach_private' | 'shared'
   clientId?: string
   onNoteCreated?: () => void
+  isMeetingEnded?: boolean
 }
 
 interface SessionNote {
@@ -51,6 +52,7 @@ export function QuickNote({
   noteType = 'coach_private',
   clientId,
   onNoteCreated,
+  isMeetingEnded,
 }: QuickNoteProps) {
   const [content, setContent] = useState('')
   const [selectedType, setSelectedType] = useState<'coach_private' | 'shared'>(
@@ -60,13 +62,17 @@ export function QuickNote({
   const [editContent, setEditContent] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
 
-  const createNote = useCreateNote(sessionId)
-  const updateNote = useUpdateNote(sessionId)
-  const deleteNote = useDeleteNote(sessionId)
+  const createNote = useCreateNote(sessionId, clientId)
+  const updateNote = useUpdateNote(sessionId, clientId)
+  const deleteNote = useDeleteNote(sessionId, clientId)
   const { data: notes = [], isLoading: notesLoading } = useSessionNotes(
     sessionId,
     clientId,
   )
+
+  // Keep a ref to content so effects always have the latest value
+  const contentRef = useRef(content)
+  contentRef.current = content
 
   // Check if content has actual text (not just empty HTML tags)
   const hasContent = (html: string) => {
@@ -91,6 +97,32 @@ export function QuickNote({
 
     onNoteCreated?.()
   }
+
+  const handleEditorKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && e.shiftKey) {
+      e.preventDefault()
+      handleSave()
+    }
+  }
+
+  // Auto-save unsaved note when meeting ends (before redirect)
+  useEffect(() => {
+    if (isMeetingEnded && hasContent(contentRef.current)) {
+      handleSave()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isMeetingEnded])
+
+  // Warn user on tab close/reload if they have unsaved note text
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasContent(contentRef.current)) {
+        e.preventDefault()
+      }
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [])
 
   const handleStartEdit = (note: SessionNote) => {
     setEditingNoteId(note.id)
@@ -169,6 +201,7 @@ export function QuickNote({
           <RichTextEditor
             content={content}
             onChange={setContent}
+            onKeyDown={handleEditorKeyDown}
             placeholder="Capture important moments during the session..."
             className="h-full"
           />
@@ -179,10 +212,14 @@ export function QuickNote({
             onClick={handleSave}
             disabled={!hasContent(content)}
             size="sm"
+            title="Save Note (Shift+Enter)"
             className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
           >
             <Check className="h-3.5 w-3.5 mr-1.5" />
             Save Note
+            <kbd className="ml-1.5 text-[10px] opacity-60 font-normal">
+              Shift+Enter
+            </kbd>
           </Button>
         </div>
       </div>

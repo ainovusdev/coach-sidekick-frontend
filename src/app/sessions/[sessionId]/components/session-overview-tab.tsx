@@ -402,7 +402,7 @@ export function SessionOverviewTab({
                   .map((focus, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-app-border text-sm text-app-primary"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-app-border text-sm text-app-primary"
                     >
                       {focus}
                     </span>

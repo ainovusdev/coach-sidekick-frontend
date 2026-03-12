@@ -144,8 +144,10 @@ export default function ClientSessionsPage() {
       {/* Header with Stats */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Your Sessions</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Your Sessions
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Review your coaching sessions and track your progress
           </p>
         </div>
@@ -153,56 +155,62 @@ export default function ClientSessionsPage() {
         {/* Inline Stats */}
         <div className="flex items-center gap-6 md:gap-8">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{totalSessions}</p>
-            <p className="text-xs text-gray-500">Sessions</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {totalSessions}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Sessions</p>
           </div>
-          <div className="h-8 w-px bg-gray-200" />
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {Math.round(totalDuration / 60)}
             </p>
-            <p className="text-xs text-gray-500">Hours</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Hours</p>
           </div>
-          <div className="h-8 w-px bg-gray-200" />
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{totalTasks}</p>
-            <p className="text-xs text-gray-500">Commitments</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {totalTasks}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Commitments
+            </p>
           </div>
         </div>
       </div>
 
       {/* Search Bar */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
         <Input
           type="text"
           placeholder="Search by date, topic, or summary..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          className="pl-10 h-11 bg-white border-gray-200 text-gray-900 placeholder:text-gray-400"
+          className="pl-10 h-11 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
         />
       </div>
 
       {/* Sessions List */}
       {filteredSessions.length === 0 ? (
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="py-16 text-center">
-            <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+            <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             {searchTerm ? (
               <>
-                <h3 className="font-medium text-gray-900 mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                   No sessions found
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   No sessions matching &quot;{searchTerm}&quot;
                 </p>
               </>
             ) : (
               <>
-                <h3 className="font-medium text-gray-900 mb-2">
+                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                   No sessions yet
                 </h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   Your coaching sessions will appear here after your first call.
                 </p>
               </>
@@ -217,15 +225,15 @@ export default function ClientSessionsPage() {
               href={`/client-portal/sessions/${session.id}`}
               className="block group"
             >
-              <div className="flex items-stretch border border-gray-200 rounded-xl bg-white hover:border-gray-300 hover:shadow-sm transition-all overflow-hidden">
+              <div className="flex items-stretch border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all overflow-hidden">
                 {/* Date Column */}
-                <div className="w-24 md:w-32 flex-shrink-0 bg-gray-50 p-4 flex flex-col items-center justify-center border-r border-gray-100">
-                  <span className="text-2xl font-bold text-gray-900">
+                <div className="w-24 md:w-32 flex-shrink-0 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col items-center justify-center border-r border-gray-100 dark:border-gray-800">
+                  <span className="text-2xl font-bold text-gray-900 dark:text-white">
                     {session.session_date
                       ? formatDate(session.session_date, 'd')
                       : '-'}
                   </span>
-                  <span className="text-xs text-gray-500 uppercase tracking-wide">
+                  <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     {session.session_date
                       ? formatDate(session.session_date, 'MMM yyyy')
                       : ''}
@@ -237,19 +245,19 @@ export default function ClientSessionsPage() {
                   {/* Top Row */}
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <div className="flex items-center gap-3 flex-wrap">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
                         {session.session_date
                           ? formatDate(session.session_date, 'EEEE')
                           : 'Session'}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-400 dark:text-gray-500">
                         {formatRelativeTime(session.session_date)}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Badge
                         variant="secondary"
-                        className="bg-gray-100 text-gray-600 text-xs"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs"
                       >
                         <Clock className="h-3 w-3 mr-1" />
                         {session.duration_minutes || 0} min
@@ -257,7 +265,7 @@ export default function ClientSessionsPage() {
                       {session.engagement_level && (
                         <Badge
                           variant="secondary"
-                          className="bg-gray-100 text-gray-600 text-xs capitalize"
+                          className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs capitalize"
                         >
                           {session.engagement_level}
                         </Badge>
@@ -265,7 +273,7 @@ export default function ClientSessionsPage() {
                       {session.is_group_session && (
                         <Badge
                           variant="secondary"
-                          className="bg-purple-50 text-purple-600 text-xs"
+                          className="bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs"
                         >
                           <Users className="h-3 w-3 mr-1" />
                           Group
@@ -276,11 +284,11 @@ export default function ClientSessionsPage() {
 
                   {/* Summary */}
                   {session.summary ? (
-                    <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
                       {session.summary}
                     </p>
                   ) : (
-                    <p className="text-sm text-gray-400 italic mb-3">
+                    <p className="text-sm text-gray-400 dark:text-gray-500 italic mb-3">
                       No summary available
                     </p>
                   )}
@@ -294,13 +302,13 @@ export default function ClientSessionsPage() {
                           {session.key_topics.slice(0, 3).map((topic, idx) => (
                             <span
                               key={idx}
-                              className="inline-flex px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded"
+                              className="inline-flex px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded"
                             >
                               {topic}
                             </span>
                           ))}
                           {session.key_topics.length > 3 && (
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-gray-400 dark:text-gray-500">
                               +{session.key_topics.length - 3}
                             </span>
                           )}
@@ -309,7 +317,7 @@ export default function ClientSessionsPage() {
                     </div>
 
                     {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-gray-500 flex-shrink-0">
+                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
                       {session.tasks_assigned > 0 && (
                         <span className="flex items-center gap-1">
                           <FileText className="h-3.5 w-3.5" />
@@ -328,8 +336,8 @@ export default function ClientSessionsPage() {
                 </div>
 
                 {/* Arrow */}
-                <div className="flex items-center px-4 bg-gray-50 border-l border-gray-100 group-hover:bg-gray-100 transition-colors">
-                  <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+                <div className="flex items-center px-4 bg-gray-50 dark:bg-gray-800 border-l border-gray-100 dark:border-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
+                  <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
                 </div>
               </div>
             </Link>
@@ -339,24 +347,26 @@ export default function ClientSessionsPage() {
 
       {/* Pagination */}
       {sessions.length > 0 && (
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
           </Button>
 
-          <span className="text-sm text-gray-500">Page {currentPage}</span>
+          <span className="text-sm text-gray-500 dark:text-gray-400">
+            Page {currentPage}
+          </span>
 
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={filteredSessions.length < itemsPerPage}
-            className="text-gray-600 hover:text-gray-900"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           >
             Next
             <ChevronRight className="ml-1 h-4 w-4" />

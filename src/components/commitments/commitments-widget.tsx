@@ -254,7 +254,7 @@ export function CommitmentsWidget({
             })}
 
             <Link href={viewAllLink}>
-              <Button className="w-full bg-gray-900 text-white hover:bg-gray-800 mt-2">
+              <Button className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 mt-2">
                 View All Commitments
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>

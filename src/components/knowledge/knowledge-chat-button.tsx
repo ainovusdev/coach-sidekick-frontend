@@ -218,7 +218,7 @@ export function KnowledgeChatButton() {
         {showHistory ? (
           // Session History View
           <ScrollArea className="flex-1 p-4">
-            <h3 className="font-medium text-sm text-gray-500 mb-3">
+            <h3 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-3">
               Recent Conversations
             </h3>
             {sessions.length === 0 ? (
@@ -230,14 +230,14 @@ export function KnowledgeChatButton() {
                 {sessions.map(session => (
                   <div
                     key={session.id}
-                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 cursor-pointer"
+                    className="flex items-center justify-between p-3 rounded-lg border dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                     onClick={() => loadSession(session.id)}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">
                         {session.title || 'Untitled conversation'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {session.message_count} messages •{' '}
                         {session.last_message_at
                           ? formatDate(session.last_message_at)
@@ -264,7 +264,9 @@ export function KnowledgeChatButton() {
           <>
             {/* Category Filter */}
             <div className="px-4 py-2 border-b flex items-center gap-2 flex-wrap">
-              <span className="text-xs text-gray-500">Filter:</span>
+              <span className="text-xs text-gray-500 dark:text-gray-400">
+                Filter:
+              </span>
               {Object.entries(CATEGORY_METADATA).map(([key, meta]) => (
                 <Badge
                   key={key}
@@ -292,11 +294,11 @@ export function KnowledgeChatButton() {
               <div className="p-4 space-y-4">
                 {messages.length === 0 ? (
                   <div className="text-center py-12">
-                    <Sparkles className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-2">
+                    <Sparkles className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
+                    <h3 className="font-medium text-gray-900 dark:text-white mb-2">
                       Ask about coaching
                     </h3>
-                    <p className="text-sm text-gray-500 mb-4">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                       Get answers from your knowledge base
                     </p>
                     <div className="space-y-2 text-sm">
@@ -335,7 +337,7 @@ export function KnowledgeChatButton() {
                           'max-w-[85%] rounded-lg px-4 py-2',
                           message.role === 'user'
                             ? 'bg-primary text-primary-foreground'
-                            : 'bg-gray-100',
+                            : 'bg-gray-100 dark:bg-gray-800',
                         )}
                       >
                         {message.isLoading ? (
@@ -353,9 +355,9 @@ export function KnowledgeChatButton() {
 
                         {/* Sources */}
                         {message.sources && message.sources.length > 0 && (
-                          <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
                             <button
-                              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+                              className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                               onClick={() => toggleSourceExpanded(index)}
                             >
                               <FileText className="h-3 w-3" />
@@ -372,7 +374,7 @@ export function KnowledgeChatButton() {
                                 {message.sources.map((source, si) => (
                                   <div
                                     key={si}
-                                    className="p-2 bg-white rounded border text-xs"
+                                    className="p-2 bg-white dark:bg-gray-800 rounded border dark:border-gray-700 text-xs"
                                   >
                                     <div className="flex items-center justify-between mb-1">
                                       <span className="font-medium truncate">
@@ -388,7 +390,7 @@ export function KnowledgeChatButton() {
                                         %
                                       </Badge>
                                     </div>
-                                    <p className="text-gray-600 line-clamp-2">
+                                    <p className="text-gray-600 dark:text-gray-400 line-clamp-2">
                                       {source.excerpt}
                                     </p>
                                   </div>

@@ -164,7 +164,7 @@ export function SessionAnalysisMerged({
                       key={idx}
                       className="flex gap-3 p-3 bg-app-surface rounded-lg"
                     >
-                      <span className="flex-shrink-0 w-5 h-5 bg-app-primary text-white rounded text-xs flex items-center justify-center font-medium">
+                      <span className="flex-shrink-0 w-5 h-5 bg-app-primary text-app-background rounded text-xs flex items-center justify-center font-medium">
                         {idx + 1}
                       </span>
                       <p className="text-sm text-app-secondary leading-relaxed">
@@ -233,7 +233,7 @@ export function SessionAnalysisMerged({
                               (strength, idx) => (
                                 <Badge
                                   key={idx}
-                                  className="bg-app-primary text-white hover:bg-app-primary/90"
+                                  className="bg-app-primary text-app-background hover:bg-app-primary/90"
                                 >
                                   {strength}
                                 </Badge>
@@ -322,7 +322,7 @@ export function SessionAnalysisMerged({
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {overallScore !== undefined && (
-                  <div className="text-center p-4 bg-white rounded-xl border border-app-border">
+                  <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-xl border border-app-border">
                     <div className="text-4xl font-bold text-app-primary mb-1">
                       {overallScore.toFixed(1)}
                       <span className="text-xl text-app-secondary">/10</span>
@@ -334,7 +334,7 @@ export function SessionAnalysisMerged({
                   </div>
                 )}
 
-                <div className="text-center p-4 bg-white rounded-xl border border-app-border">
+                <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-xl border border-app-border">
                   <div className="text-4xl font-bold text-app-primary mb-1">
                     {(coaching.sentiment.score * 10).toFixed(1)}
                     <span className="text-xl text-app-secondary">/10</span>
@@ -342,12 +342,12 @@ export function SessionAnalysisMerged({
                   <p className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
                     Sentiment
                   </p>
-                  <Badge className="bg-app-primary text-white">
+                  <Badge className="bg-app-primary text-app-background">
                     {coaching.sentiment.overall}
                   </Badge>
                 </div>
 
-                <div className="text-center p-4 bg-white rounded-xl border border-app-border">
+                <div className="text-center p-4 bg-white dark:bg-gray-800 rounded-xl border border-app-border">
                   <Badge
                     variant="outline"
                     className="text-lg px-4 py-2 border-app-border mb-2"
@@ -444,7 +444,7 @@ export function SessionAnalysisMerged({
                       key={value.key}
                       className="text-center p-4 bg-app-surface rounded-xl"
                     >
-                      <div className="w-10 h-10 mx-auto bg-white border border-app-border rounded-full flex items-center justify-center mb-3">
+                      <div className="w-10 h-10 mx-auto bg-white dark:bg-gray-800 border border-app-border rounded-full flex items-center justify-center mb-3">
                         <Icon className="h-5 w-5 text-app-secondary" />
                       </div>
                       <h4 className="text-xs font-medium text-app-secondary mb-2">

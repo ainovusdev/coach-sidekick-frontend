@@ -190,7 +190,7 @@ export function ClientCommitmentForm({
               htmlFor="target_date"
               className="text-sm font-medium flex items-center gap-2"
             >
-              <Calendar className="h-4 w-4 text-gray-500" />
+              <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               When will you complete this?{' '}
               <span className="text-red-500">*</span>
             </Label>
@@ -210,8 +210,8 @@ export function ClientCommitmentForm({
                     onClick={() => setDatePreset(preset.days)}
                     className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                       isSelected
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                     }`}
                   >
                     {preset.label}
@@ -229,15 +229,15 @@ export function ClientCommitmentForm({
                 onChange={e => updateField('target_date', e.target.value)}
                 required
                 min={format(new Date(), 'yyyy-MM-dd')}
-                className="h-12 text-base pl-4 pr-4 bg-gray-50 border-gray-200 font-medium"
+                className="h-12 text-base pl-4 pr-4 bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700 font-medium"
               />
             </div>
 
             {/* Selected date display */}
             {formData.target_date && (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 Target:{' '}
-                <span className="font-medium text-gray-900">
+                <span className="font-medium text-gray-900 dark:text-white">
                   {formatDate(formData.target_date, 'EEEE, MMMM d, yyyy')}
                 </span>
               </p>
@@ -248,9 +248,11 @@ export function ClientCommitmentForm({
           {outcomes && outcomes.length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium flex items-center gap-2">
-                <Target className="h-4 w-4 text-gray-500" />
+                <Target className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                 Link to Outcome{' '}
-                <span className="text-gray-400">(optional)</span>
+                <span className="text-gray-400 dark:text-gray-500">
+                  (optional)
+                </span>
               </Label>
               <div className="flex flex-wrap gap-1.5">
                 {outcomes.map(outcome => {
@@ -268,8 +270,8 @@ export function ClientCommitmentForm({
                       }
                       className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                         isSelected
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                       }`}
                       title={
                         outcome.goal_titles.length > 0
@@ -300,26 +302,26 @@ export function ClientCommitmentForm({
                     onClick={() => updateField('type', option.value as any)}
                     className={`flex items-start gap-3 p-3 rounded-xl border-2 transition-all text-left ${
                       isSelected
-                        ? 'border-gray-900 bg-gray-50'
-                        : 'border-gray-200 hover:border-gray-300 bg-white'
+                        ? 'border-gray-900 bg-gray-50 dark:border-white dark:bg-gray-800'
+                        : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 bg-white dark:bg-gray-900'
                     }`}
                   >
                     <div
                       className={`h-8 w-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
                         isSelected
-                          ? 'bg-gray-900 text-white'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400'
                       }`}
                     >
                       <Icon className="h-4 w-4" />
                     </div>
                     <div>
                       <p
-                        className={`text-sm font-medium ${isSelected ? 'text-gray-900' : 'text-gray-700'}`}
+                        className={`text-sm font-medium ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-700 dark:text-gray-300'}`}
                       >
                         {option.label}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                         {option.description}
                       </p>
                     </div>
@@ -333,10 +335,12 @@ export function ClientCommitmentForm({
           <div className="space-y-2">
             <Label
               htmlFor="description"
-              className="text-sm font-medium text-gray-600"
+              className="text-sm font-medium text-gray-600 dark:text-gray-400"
             >
               Additional Details{' '}
-              <span className="text-gray-400">(optional)</span>
+              <span className="text-gray-400 dark:text-gray-500">
+                (optional)
+              </span>
             </Label>
             <Textarea
               id="description"
@@ -353,14 +357,14 @@ export function ClientCommitmentForm({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="border-gray-300"
+              className="border-gray-300 dark:border-gray-600"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={loading || !formData.title || !formData.target_date}
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
             >
               {loading
                 ? 'Saving...'

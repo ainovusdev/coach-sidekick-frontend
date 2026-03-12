@@ -114,10 +114,10 @@ export default function ProgramDashboardPage({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Unable to Load Dashboard
             </h3>
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
               There was an error loading the sandbox dashboard.
             </p>
             <Button onClick={() => router.push('/admin/programs')}>
@@ -190,7 +190,7 @@ export default function ProgramDashboardPage({
         </Button>
 
         {/* Program Title and Compact Stats Bar */}
-        <div className="bg-white border rounded-lg p-4 shadow-sm">
+        <div className="bg-white dark:bg-gray-900 border rounded-lg p-4 shadow-sm">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             {/* Program Info */}
             <div className="flex items-center gap-3">
@@ -199,11 +199,11 @@ export default function ProgramDashboardPage({
                 style={{ backgroundColor: dashboard.program_color }}
               />
               <div className="min-w-0">
-                <h1 className="text-2xl font-bold text-gray-900 truncate">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
                   {dashboard.program_name}
                 </h1>
                 {dashboard.program_description && (
-                  <p className="text-gray-600 text-sm truncate">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm truncate">
                     {dashboard.program_description}
                   </p>
                 )}
@@ -213,38 +213,42 @@ export default function ProgramDashboardPage({
             {/* Compact Stats */}
             <div className="flex items-center gap-6 text-sm">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-gray-500" />
-                <span className="font-semibold text-gray-900">
+                <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {dashboard.total_clients}
                 </span>
-                <span className="text-gray-500">Clients</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Clients
+                </span>
               </div>
-              <div className="hidden sm:block w-px h-4 bg-gray-200" />
+              <div className="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-gray-500" />
-                <span className="font-semibold text-gray-900">
+                <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {dashboard.total_sessions}
                 </span>
-                <span className="text-gray-500">Sessions</span>
+                <span className="text-gray-500 dark:text-gray-400">
+                  Sessions
+                </span>
               </div>
-              <div className="hidden sm:block w-px h-4 bg-gray-200" />
+              <div className="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-gray-500" />
-                <span className="font-semibold text-gray-900">
+                <XCircle className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {dashboard.missed_sessions}
                 </span>
-                <span className="text-gray-500">Missed</span>
+                <span className="text-gray-500 dark:text-gray-400">Missed</span>
                 {dashboard.missed_sessions > 0 && (
                   <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                 )}
               </div>
-              <div className="hidden sm:block w-px h-4 bg-gray-200" />
+              <div className="hidden sm:block w-px h-4 bg-gray-200 dark:bg-gray-700" />
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-gray-500" />
-                <span className="font-semibold text-gray-900">
+                <TrendingUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                <span className="font-semibold text-gray-900 dark:text-white">
                   {dashboard.active_this_week}
                 </span>
-                <span className="text-gray-500">Active</span>
+                <span className="text-gray-500 dark:text-gray-400">Active</span>
               </div>
             </div>
 
@@ -275,11 +279,11 @@ export default function ProgramDashboardPage({
 
       {/* At-Risk Alert Banner */}
       {statusCounts['at-risk'] > 0 && (
-        <div className="mb-6 bg-gray-50 border border-gray-200 border-l-4 border-l-red-500 rounded-lg p-4">
+        <div className="mb-6 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 border-l-4 border-l-red-500 rounded-lg p-4">
           <div className="flex items-start gap-3">
             <AlertCircle className="h-5 w-5 text-red-500 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <h3 className="text-sm font-semibold text-gray-900">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
                 {statusCounts['at-risk']} client
                 {statusCounts['at-risk'] !== 1 ? 's' : ''} need
                 {statusCounts['at-risk'] === 1 ? 's' : ''} attention
@@ -293,7 +297,7 @@ export default function ProgramDashboardPage({
                       onClick={() =>
                         router.push(`/clients/${client.client_id}`)
                       }
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white border border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
                       {client.client_name}
@@ -303,7 +307,7 @@ export default function ProgramDashboardPage({
             </div>
             <button
               onClick={() => setFilterStatus('at-risk')}
-              className="text-sm font-medium text-gray-600 hover:text-gray-900 shrink-0"
+              className="text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white shrink-0"
             >
               View all →
             </button>
@@ -313,63 +317,63 @@ export default function ProgramDashboardPage({
 
       {/* Tabbed Interface */}
       <Tabs defaultValue="overview" className="space-y-6">
-        <div className="border-b border-gray-200">
+        <div className="border-b border-gray-200 dark:border-gray-700">
           <TabsList className="flex w-full bg-transparent p-0 h-auto gap-0">
             <TabsTrigger
               value="overview"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Overview</span>
-              <span className="ml-1.5 hidden sm:inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900">
+              <span className="ml-1.5 hidden sm:inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium rounded-full bg-gray-100 text-gray-600 data-[state=active]:bg-gray-200 data-[state=active]:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:data-[state=active]:bg-gray-700 dark:data-[state=active]:text-white">
                 {dashboard.total_clients}
               </span>
             </TabsTrigger>
             <TabsTrigger
               value="trends"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Trends</span>
             </TabsTrigger>
             <TabsTrigger
               value="action-items"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <ListTodo className="h-4 w-4" />
               <span className="hidden sm:inline">Actions</span>
             </TabsTrigger>
             <TabsTrigger
               value="calendar"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <CalendarDays className="h-4 w-4" />
               <span className="hidden sm:inline">Calendar</span>
             </TabsTrigger>
             <TabsTrigger
               value="themes"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Sparkles className="h-4 w-4" />
               <span className="hidden sm:inline">Themes</span>
             </TabsTrigger>
             <TabsTrigger
               value="outcomes"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Target className="h-4 w-4" />
               <span className="hidden sm:inline">Outcomes</span>
             </TabsTrigger>
             <TabsTrigger
               value="group-sessions"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Users className="h-4 w-4" />
               <span className="hidden sm:inline">Group Sessions</span>
             </TabsTrigger>
             <TabsTrigger
               value="wins"
-              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 rounded-none bg-transparent shadow-none transition-colors"
+              className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Trophy className="h-4 w-4" />
               <span className="hidden sm:inline">Wins</span>
@@ -387,8 +391,8 @@ export default function ProgramDashboardPage({
                 onClick={() => setFilterStatus('all')}
                 className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
                   filterStatus === 'all'
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 All ({statusCounts.all})
@@ -397,8 +401,8 @@ export default function ProgramDashboardPage({
                 onClick={() => setFilterStatus('at-risk')}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
                   filterStatus === 'at-risk'
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 <span
@@ -410,8 +414,8 @@ export default function ProgramDashboardPage({
                 onClick={() => setFilterStatus('on-track')}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
                   filterStatus === 'on-track'
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-blue-500" />
@@ -421,8 +425,8 @@ export default function ProgramDashboardPage({
                 onClick={() => setFilterStatus('excelling')}
                 className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
                   filterStatus === 'excelling'
-                    ? 'bg-gray-900 text-white border-gray-900'
-                    : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+                    : 'bg-white dark:bg-gray-900 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800'
                 }`}
               >
                 <span className="w-2 h-2 rounded-full bg-green-500" />
@@ -446,7 +450,7 @@ export default function ProgramDashboardPage({
                   <SelectItem value="date">Last Session</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-gray-500 dark:text-gray-400">
                 {filteredClients.length} client
                 {filteredClients.length !== 1 ? 's' : ''}
               </span>
@@ -457,11 +461,11 @@ export default function ProgramDashboardPage({
           {filteredClients.length === 0 ? (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12">
-                <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <AlertCircle className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No clients found
                 </h3>
-                <p className="text-gray-600 text-center">
+                <p className="text-gray-600 dark:text-gray-400 text-center">
                   {filterStatus !== 'all'
                     ? 'Try changing the filter to see more clients'
                     : 'Add clients to this sandbox to see them here'}
@@ -574,11 +578,11 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case 'at-risk':
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
       case 'excelling':
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
     }
   }
 
@@ -604,7 +608,10 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
       )
     }
     return (
-      <span className="flex items-center text-gray-400" title="Stable">
+      <span
+        className="flex items-center text-gray-400 dark:text-gray-500"
+        title="Stable"
+      >
         <Minus className="h-4 w-4" />
       </span>
     )
@@ -654,12 +661,14 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
         {/* Completion Rate with Progress Bar */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <p className="text-xs text-gray-500">Completion Rate</p>
-            <span className="text-sm font-semibold text-gray-900">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Completion Rate
+            </p>
+            <span className="text-sm font-semibold text-gray-900 dark:text-white">
               {Math.round(client.completion_rate)}%
             </span>
           </div>
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${getProgressColor()}`}
               style={{ width: `${Math.min(100, client.completion_rate)}%` }}
@@ -670,8 +679,8 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
         {/* Session Stats */}
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4">
-            <span className="text-gray-600">
-              <span className="font-semibold text-gray-900">
+            <span className="text-gray-600 dark:text-gray-400">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {client.total_sessions}
               </span>{' '}
               sessions
@@ -690,7 +699,9 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
             <>
               <div
                 className={`flex items-center gap-2 text-xs mb-1 ${
-                  needsAttention ? 'text-red-600 font-medium' : 'text-gray-500'
+                  needsAttention
+                    ? 'text-red-600 font-medium'
+                    : 'text-gray-500 dark:text-gray-400'
                 }`}
               >
                 <Clock className="h-3 w-3" />
@@ -699,19 +710,21 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
                 {needsAttention && ' - needs attention'}
               </div>
               {client.last_session_summary && (
-                <p className="text-sm text-gray-700 line-clamp-2">
+                <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
                   {client.last_session_summary}
                 </p>
               )}
             </>
           ) : (
-            <p className="text-sm text-gray-500 italic">No sessions yet</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 italic">
+              No sessions yet
+            </p>
           )}
         </div>
 
         {/* Missed Sessions Warning */}
         {client.missed_sessions > 0 && (
-          <div className="flex items-center gap-2 text-sm text-orange-600 bg-orange-50 p-2 rounded">
+          <div className="flex items-center gap-2 text-sm text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30 p-2 rounded">
             <AlertCircle className="h-4 w-4 shrink-0" />
             {client.missed_sessions} missed session
             {client.missed_sessions > 1 ? 's' : ''}
@@ -721,7 +734,9 @@ function ClientCard({ client }: { client: ClientSessionSummary }) {
         {/* Emerging Themes */}
         {client.emerging_themes.length > 0 && (
           <div className="pt-3 border-t">
-            <p className="text-xs text-gray-500 mb-2">Emerging Themes</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+              Emerging Themes
+            </p>
             <div className="flex flex-wrap gap-1">
               {client.emerging_themes.slice(0, 3).map((theme, index) => (
                 <Badge key={index} variant="secondary" className="text-xs">

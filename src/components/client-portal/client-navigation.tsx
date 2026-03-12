@@ -82,7 +82,7 @@ export function ClientNavigation() {
   if (!isAuthenticated) return null
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Section */}
@@ -105,13 +105,13 @@ export function ClientNavigation() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Client Portal
                   </h1>
                 </div>
-                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full">
-                  <Sparkles className="w-3 h-3 text-gray-600" />
-                  <span className="text-xs font-medium text-gray-600">
+                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
+                  <Sparkles className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                     Novus Global
                   </span>
                 </div>
@@ -120,7 +120,7 @@ export function ClientNavigation() {
 
             {/* Desktop Navigation Links */}
             <nav className="hidden md:flex items-center">
-              <div className="flex items-center bg-gray-50 rounded-lg p-1">
+              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
                 {navItems.map(item => {
                   const Icon = item.icon
                   const isActive = isActivePath(item.path)
@@ -134,8 +134,8 @@ export function ClientNavigation() {
                         transition-all duration-200 cursor-pointer
                         ${
                           isActive
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm'
+                            ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700'
                         }
                       `}
                     >
@@ -161,7 +161,7 @@ export function ClientNavigation() {
                   className="relative h-8 w-8 rounded-full"
                 >
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                    <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
                       {getInitials()}
                     </AvatarFallback>
                   </Avatar>
@@ -215,7 +215,7 @@ export function ClientNavigation() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100">
+          <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
             <nav className="flex flex-col gap-1">
               {navItems.map(item => {
                 const Icon = item.icon
@@ -233,8 +233,8 @@ export function ClientNavigation() {
                       transition-all duration-200
                       ${
                         isActive
-                          ? 'bg-gray-100 text-gray-900'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                          ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800'
                       }
                     `}
                   >

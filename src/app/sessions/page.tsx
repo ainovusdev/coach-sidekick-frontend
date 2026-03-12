@@ -68,7 +68,7 @@ export default function SessionsHistoryPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsGroupSessionModalOpen(true)}
-                      className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                      className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
                     >
                       <Users className="h-4 w-4" />
                       Start Group Session
@@ -77,7 +77,7 @@ export default function SessionsHistoryPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsManualSessionModalOpen(true)}
-                      className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                      className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
                     >
                       <Upload className="h-4 w-4" />
                       Upload Recording
@@ -91,7 +91,7 @@ export default function SessionsHistoryPage() {
                     refetch()
                   }}
                   disabled={historyLoading}
-                  className="flex items-center gap-2 border-slate-300 hover:bg-slate-50"
+                  className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`}

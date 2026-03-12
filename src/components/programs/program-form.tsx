@@ -214,8 +214,8 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                     onClick={() => setValue('color', color.value)}
                     className={`w-10 h-10 rounded-full border-2 transition-all ${
                       selectedColor === color.value
-                        ? 'border-gray-900 scale-110'
-                        : 'border-gray-300 hover:scale-105'
+                        ? 'border-gray-900 dark:border-white scale-110'
+                        : 'border-gray-300 dark:border-gray-600 hover:scale-105'
                     }`}
                     style={{ backgroundColor: color.value }}
                     title={color.name}
@@ -224,7 +224,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
               </div>
               <div className="flex items-center gap-2">
                 <div
-                  className="w-10 h-10 rounded-full border-2 border-gray-300"
+                  className="w-10 h-10 rounded-full border-2 border-gray-300 dark:border-gray-600"
                   style={{ backgroundColor: selectedColor }}
                 />
                 <Input
@@ -252,7 +252,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
         </CardHeader>
         <CardContent className="space-y-4">
           {clients.length === 0 ? (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               No clients available. Create clients first before assigning them
               to sandboxes.
             </p>
@@ -270,14 +270,14 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                       <Badge
                         key={clientId}
                         variant="secondary"
-                        className={`pl-3 pr-1 ${isNew ? 'bg-green-50 text-green-700 border-green-200' : ''}`}
+                        className={`pl-3 pr-1 ${isNew ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' : ''}`}
                       >
                         {isNew && <Plus className="h-3 w-3 mr-1" />}
                         {client.name}
                         <button
                           type="button"
                           onClick={() => toggleClient(clientId)}
-                          className="ml-2 hover:bg-gray-200 rounded p-1"
+                          className="ml-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded p-1"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -291,7 +291,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
               {mode === 'edit' &&
                 initialClients.some(id => !selectedClients.includes(id)) && (
                   <div className="flex flex-wrap gap-2 pb-4 border-b">
-                    <p className="text-sm text-gray-600 w-full mb-2">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 w-full mb-2">
                       Clients to be removed:
                     </p>
                     {initialClients
@@ -303,14 +303,14 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                           <Badge
                             key={clientId}
                             variant="secondary"
-                            className="pl-3 pr-1 bg-red-50 text-red-700 border-red-200"
+                            className="pl-3 pr-1 bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
                           >
                             <X className="h-3 w-3 mr-1" />
                             {client.name}
                             <button
                               type="button"
                               onClick={() => toggleClient(clientId)}
-                              className="ml-2 hover:bg-gray-200 rounded p-1"
+                              className="ml-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded p-1"
                               title="Undo removal"
                             >
                               <Plus className="h-3 w-3" />
@@ -322,7 +322,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                 )}
 
               {/* Client List */}
-              <div className="max-h-96 overflow-y-auto space-y-1 border rounded-lg p-2 bg-gray-50">
+              <div className="max-h-96 overflow-y-auto space-y-1 border rounded-lg p-2 bg-gray-50 dark:bg-gray-800">
                 {clients.map(client => {
                   const isSelected = selectedClients.includes(client.id)
                   const isNew =
@@ -340,11 +340,11 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                       className={`flex items-center space-x-3 p-3 rounded-lg transition-all cursor-pointer ${
                         isSelected
                           ? isNew
-                            ? 'bg-green-50 border-2 border-green-300 hover:bg-green-100'
-                            : 'bg-white border-2 border-blue-300 hover:bg-blue-50'
+                            ? 'bg-green-50 border-2 border-green-300 hover:bg-green-100 dark:bg-green-900/30 dark:border-green-700 dark:hover:bg-green-900/50'
+                            : 'bg-white border-2 border-blue-300 hover:bg-blue-50 dark:bg-gray-900 dark:border-blue-700 dark:hover:bg-blue-900/30'
                           : isRemoved
-                            ? 'bg-red-50 border-2 border-red-200 opacity-60 hover:bg-red-100'
-                            : 'bg-white border-2 border-gray-200 hover:bg-gray-50'
+                            ? 'bg-red-50 border-2 border-red-200 opacity-60 hover:bg-red-100 dark:bg-red-900/30 dark:border-red-800 dark:hover:bg-red-900/50'
+                            : 'bg-white border-2 border-gray-200 hover:bg-gray-50 dark:bg-gray-900 dark:border-gray-700 dark:hover:bg-gray-800'
                       }`}
                       onClick={() => toggleClient(client.id)}
                     >
@@ -353,7 +353,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                         className={`flex items-center justify-center w-5 h-5 rounded border-2 transition-colors ${
                           isSelected
                             ? 'bg-blue-600 border-blue-600'
-                            : 'bg-white border-gray-300'
+                            : 'bg-white border-gray-300 dark:bg-gray-900 dark:border-gray-600'
                         }`}
                       >
                         {isSelected && (
@@ -376,7 +376,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                           {isNew && (
                             <Badge
                               variant="outline"
-                              className="text-xs bg-green-100 text-green-700 border-green-300"
+                              className="text-xs bg-green-100 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
                             >
                               New
                             </Badge>
@@ -384,7 +384,7 @@ export function ProgramForm({ program, mode }: ProgramFormProps) {
                           {isRemoved && (
                             <Badge
                               variant="outline"
-                              className="text-xs bg-red-100 text-red-700 border-red-300"
+                              className="text-xs bg-red-100 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800"
                             >
                               Will Remove
                             </Badge>

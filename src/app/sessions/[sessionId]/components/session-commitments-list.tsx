@@ -301,7 +301,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 <label className="text-xs font-semibold text-app-primary mb-1 block">
                   From Transcript
                 </label>
-                <p className="text-sm text-app-secondary italic bg-white/50 p-2 rounded border border-amber-100">
+                <p className="text-sm text-app-secondary italic bg-white/50 dark:bg-gray-800/50 p-2 rounded border border-amber-100">
                   &ldquo;{commitment.transcript_context}&rdquo;
                 </p>
               </div>
@@ -455,7 +455,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 variant="ghost"
                 onClick={handleDiscard}
                 disabled={isDiscarding}
-                className="h-7 px-2 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                className="h-7 px-2 text-gray-400 dark:text-gray-400 hover:text-red-600 hover:bg-red-50"
                 title="Delete commitment"
               >
                 {isDiscarding ? (
@@ -631,7 +631,7 @@ export function SessionCommitmentsList({
               <Button
                 onClick={() => setShowCreateDialog(true)}
                 size="sm"
-                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
+                className="bg-app-primary hover:bg-app-primary/90 text-app-background text-xs"
               >
                 <Plus className="h-3 w-3 mr-1.5" />
                 Add

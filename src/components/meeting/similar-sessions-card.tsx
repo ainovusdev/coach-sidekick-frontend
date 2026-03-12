@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Calendar,
   ChevronRight,
@@ -323,7 +322,7 @@ export function SimilarSessionsCard({
             </DialogTitle>
           </DialogHeader>
 
-          <ScrollArea className="flex-1 pr-4 -mr-4">
+          <div className="flex-1 overflow-y-auto pr-2">
             {selectedSession && (
               <div className="space-y-5 pb-4">
                 {/* Why this is relevant */}
@@ -467,7 +466,7 @@ export function SimilarSessionsCard({
                     href={`/sessions/${selectedSession.session.session_id}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full p-3 bg-gray-900 hover:bg-gray-800 text-white rounded-lg transition-colors"
+                    className="flex items-center justify-center gap-2 w-full p-3 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 rounded-lg transition-colors"
                   >
                     <ExternalLink className="h-4 w-4" />
                     View Full Session Details
@@ -475,7 +474,7 @@ export function SimilarSessionsCard({
                 )}
               </div>
             )}
-          </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>

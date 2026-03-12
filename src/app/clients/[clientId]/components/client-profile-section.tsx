@@ -77,18 +77,18 @@ export function ClientProfileSection({
     return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`
   }
   return (
-    <Card className="border-gray-200">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="border-gray-200 dark:border-gray-700">
+      <CardHeader className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <User2 className="h-5 w-5 text-gray-600" />
+              <User2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               Client Profile
             </CardTitle>
             {client.invitation_status === 'accepted' && (
               <Badge
                 variant="secondary"
-                className="bg-green-100 text-green-700 text-xs"
+                className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs"
               >
                 <UserCheck className="h-3 w-3 mr-1" />
                 Portal Active
@@ -117,7 +117,7 @@ export function ClientProfileSection({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={onDelete}
-                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete Client
@@ -144,12 +144,12 @@ export function ClientProfileSection({
             </div>
 
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 {client.name}
               </h3>
 
               {/* Contact Info */}
-              <div className="space-y-1.5 text-sm text-gray-600">
+              <div className="space-y-1.5 text-sm text-gray-600 dark:text-gray-400">
                 {client.email && (
                   <div className="flex items-center gap-2">
                     <Mail className="h-4 w-4 text-gray-400" />
@@ -181,20 +181,20 @@ export function ClientProfileSection({
               ) : persona ? (
                 <div className="mt-3 space-y-1.5 text-sm">
                   {persona.demographics?.occupation && (
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <Briefcase className="h-4 w-4 text-gray-400" />
                       <span>{persona.demographics.occupation}</span>
                     </div>
                   )}
                   {persona.demographics?.location && (
-                    <div className="flex items-center gap-2 text-gray-600">
+                    <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                       <MapPin className="h-4 w-4 text-gray-400" />
                       <span>{persona.demographics.location}</span>
                     </div>
                   )}
                   {persona.personality?.values &&
                     persona.personality.values.length > 0 && (
-                      <div className="flex items-start gap-2 text-gray-600">
+                      <div className="flex items-start gap-2 text-gray-600 dark:text-gray-400">
                         <Heart className="h-4 w-4 text-gray-400 mt-0.5" />
                         <span className="flex-1">
                           {persona.personality.values.slice(0, 3).join(', ')}
@@ -219,8 +219,8 @@ export function ClientProfileSection({
 
           {/* AI Insights from Persona */}
           {persona && persona.patterns && (
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2">
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
                 AI Insights
               </h4>
@@ -228,10 +228,10 @@ export function ClientProfileSection({
                 {persona.patterns.strengths &&
                   persona.patterns.strengths.length > 0 && (
                     <div>
-                      <span className="text-xs font-semibold text-green-700">
+                      <span className="text-xs font-semibold text-green-700 dark:text-green-400">
                         Strengths:
                       </span>
-                      <p className="text-gray-600 mt-0.5">
+                      <p className="text-gray-600 dark:text-gray-400 mt-0.5">
                         {persona.patterns.strengths.slice(0, 2).join(', ')}
                       </p>
                     </div>
@@ -239,10 +239,10 @@ export function ClientProfileSection({
                 {persona.patterns.growth_areas &&
                   persona.patterns.growth_areas.length > 0 && (
                     <div>
-                      <span className="text-xs font-semibold text-orange-700">
+                      <span className="text-xs font-semibold text-orange-700 dark:text-orange-400">
                         Growth Areas:
                       </span>
-                      <p className="text-gray-600 mt-0.5">
+                      <p className="text-gray-600 dark:text-gray-400 mt-0.5">
                         {persona.patterns.growth_areas.slice(0, 2).join(', ')}
                       </p>
                     </div>
@@ -252,19 +252,21 @@ export function ClientProfileSection({
           )}
 
           {/* Coaching Statistics */}
-          <div className="pt-4 border-t border-gray-100">
-            <h4 className="text-sm font-semibold text-gray-700 mb-3">
+          <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
               Coaching Statistics
             </h4>
             <div className="grid grid-cols-2 gap-4">
               {/* Total Sessions */}
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-blue-50">
-                  <MessageSquare className="h-4 w-4 text-blue-600" />
+                <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/30">
+                  <MessageSquare className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Total Sessions</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Total Sessions
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {totalSessions}
                   </p>
                 </div>
@@ -272,12 +274,14 @@ export function ClientProfileSection({
 
               {/* Avg Duration */}
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-purple-50">
-                  <Clock className="h-4 w-4 text-purple-600" />
+                <div className="p-2 rounded-lg bg-purple-50 dark:bg-purple-900/30">
+                  <Clock className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Avg Duration</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Avg Duration
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {formatDuration(avgDuration)}
                   </p>
                 </div>
@@ -285,12 +289,14 @@ export function ClientProfileSection({
 
               {/* Avg Score */}
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-green-50">
-                  <TrendingUp className="h-4 w-4 text-green-600" />
+                <div className="p-2 rounded-lg bg-green-50 dark:bg-green-900/30">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Avg Score</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Avg Score
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {avgScore !== null ? `${avgScore.toFixed(1)}/10` : 'N/A'}
                   </p>
                 </div>
@@ -298,15 +304,17 @@ export function ClientProfileSection({
 
               {/* Commitments */}
               <div className="flex items-start gap-3">
-                <div className="p-2 rounded-lg bg-orange-50">
-                  <CheckCircle2 className="h-4 w-4 text-orange-600" />
+                <div className="p-2 rounded-lg bg-orange-50 dark:bg-orange-900/30">
+                  <CheckCircle2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-600">Commitments</p>
-                  <p className="text-lg font-semibold text-gray-900">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Commitments
+                  </p>
+                  <p className="text-lg font-semibold text-gray-900 dark:text-white">
                     {completedCommitments}/{totalCommitments}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
                     {commitmentCompletionRate}% complete
                   </p>
                 </div>
@@ -317,7 +325,7 @@ export function ClientProfileSection({
             {activeGoals > 0 && (
               <div className="flex items-center gap-2 mt-3 p-2 bg-primary/5 rounded-lg">
                 <Target className="h-4 w-4 text-primary" />
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   <strong>{activeGoals}</strong> active goal
                   {activeGoals !== 1 ? 's' : ''}
                 </span>
@@ -327,11 +335,11 @@ export function ClientProfileSection({
 
           {/* Meta Performance Vision */}
           {client.meta_performance_vision && (
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Meta Performance Vision
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed">
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                 {client.meta_performance_vision}
               </p>
             </div>
@@ -339,11 +347,11 @@ export function ClientProfileSection({
 
           {/* Notes */}
           {client.notes && (
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="text-sm font-semibold text-gray-700 mb-2">
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Notes
               </h4>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed whitespace-pre-wrap">
                 {client.notes}
               </p>
             </div>

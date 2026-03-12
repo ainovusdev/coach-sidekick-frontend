@@ -354,7 +354,7 @@ function ResetPasswordContent() {
             <Button
               type="submit"
               disabled={loading || !newPassword || !confirmPassword}
-              className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+              className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
             >
               {loading ? (
                 <>

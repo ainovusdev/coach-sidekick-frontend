@@ -258,7 +258,7 @@ export default function MyCommitmentsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <AlertCircle className="size-12 mx-auto mb-4 text-red-600" />
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">{error}</p>
           <Button onClick={loadCommitments} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
@@ -273,8 +273,10 @@ export default function MyCommitmentsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Commitments</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            My Commitments
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Track and manage your personal commitments
           </p>
         </div>
@@ -283,7 +285,7 @@ export default function MyCommitmentsPage() {
             variant="outline"
             size="sm"
             onClick={loadCommitments}
-            className="border-gray-300"
+            className="border-gray-300 dark:border-gray-600"
           >
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -296,65 +298,73 @@ export default function MyCommitmentsPage() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <Card className="bg-white border-gray-200 shadow-sm">
+        <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <Target className="h-5 w-5 text-blue-600" />
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                <Target className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {activeCommitments.length}
                 </div>
-                <div className="text-sm text-gray-600">Active</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Active
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-gray-200 shadow-sm">
+        <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {completedCommitments.length}
                 </div>
-                <div className="text-sm text-gray-600">Completed</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Completed
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-gray-200 shadow-sm">
+        <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {atRiskCommitments.length}
                 </div>
-                <div className="text-sm text-gray-600">At Risk</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  At Risk
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-white border-gray-200 shadow-sm">
+        <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-purple-600" />
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <div className="text-2xl font-bold text-gray-900">
+                <div className="text-2xl font-bold text-gray-900 dark:text-white">
                   {avgProgress}%
                 </div>
-                <div className="text-sm text-gray-600">Avg Progress</div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">
+                  Avg Progress
+                </div>
               </div>
             </div>
           </CardContent>
@@ -369,11 +379,13 @@ export default function MyCommitmentsPage() {
             className="flex items-center gap-2 group w-full"
           >
             {outcomesExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+              <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
             )}
-            <h2 className="text-lg font-semibold text-gray-900">My Outcomes</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              My Outcomes
+            </h2>
             <Badge variant="secondary" className="text-xs">
               {outcomesList.length}
             </Badge>
@@ -383,7 +395,7 @@ export default function MyCommitmentsPage() {
                 e.stopPropagation()
                 setCreateOutcomeDialogOpen(true)
               }}
-              className="text-sm text-gray-500 hover:text-gray-900 font-medium flex items-center gap-1 cursor-pointer"
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-medium flex items-center gap-1 cursor-pointer"
             >
               <Plus className="h-3.5 w-3.5" />
               Create Outcome
@@ -400,11 +412,11 @@ export default function MyCommitmentsPage() {
                       className="flex items-center gap-2 mb-3 group"
                     >
                       {collapsedGoals.has(goalTitle) ? (
-                        <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+                        <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-400" />
                       )}
-                      <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
                         {goalTitle}
                       </h3>
                       <Badge variant="secondary" className="text-xs">
@@ -427,7 +439,7 @@ export default function MyCommitmentsPage() {
 
               {ungroupedOutcomes.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide mb-3">
                     Other Outcomes
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -444,13 +456,19 @@ export default function MyCommitmentsPage() {
 
       {/* View Toggle */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">All Commitments</h2>
-        <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+          All Commitments
+        </h2>
+        <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
           <Button
             variant={viewMode === 'board' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setViewMode('board')}
-            className={viewMode === 'board' ? '' : 'hover:bg-white'}
+            className={
+              viewMode === 'board'
+                ? ''
+                : 'hover:bg-white dark:hover:bg-gray-700'
+            }
           >
             <LayoutGrid className="h-4 w-4 mr-1" />
             Board
@@ -459,7 +477,9 @@ export default function MyCommitmentsPage() {
             variant={viewMode === 'list' ? 'default' : 'ghost'}
             size="sm"
             onClick={() => setViewMode('list')}
-            className={viewMode === 'list' ? '' : 'hover:bg-white'}
+            className={
+              viewMode === 'list' ? '' : 'hover:bg-white dark:hover:bg-gray-700'
+            }
           >
             <List className="h-4 w-4 mr-1" />
             List
@@ -469,13 +489,13 @@ export default function MyCommitmentsPage() {
 
       {/* Content */}
       {commitments.length === 0 ? (
-        <Card className="border-2 border-dashed border-gray-300">
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <Target className="h-16 w-16 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <Target className="h-16 w-16 text-gray-400 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No Commitments Yet
             </h3>
-            <p className="text-gray-600 text-center max-w-md mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
               Create your first commitment to start tracking your outcomes and
               progress
             </p>
@@ -530,7 +550,7 @@ export default function MyCommitmentsPage() {
         />
       ) : (
         <Tabs defaultValue="active" className="space-y-4">
-          <TabsList className="bg-gray-50">
+          <TabsList className="bg-gray-50 dark:bg-gray-800">
             <TabsTrigger value="active">
               Active ({activeCommitments.length})
             </TabsTrigger>
@@ -541,17 +561,19 @@ export default function MyCommitmentsPage() {
 
           <TabsContent value="active" className="space-y-3">
             {activeCommitments.length === 0 ? (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="py-12 text-center">
-                  <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">No active commitments</p>
+                  <Target className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No active commitments
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               activeCommitments.map(commitment => (
                 <Card
                   key={commitment.id}
-                  className="border-gray-200 hover:shadow-sm transition-shadow"
+                  className="border-gray-200 dark:border-gray-700 hover:shadow-sm transition-shadow"
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
@@ -564,11 +586,11 @@ export default function MyCommitmentsPage() {
                             </Badge>
                           )}
                         </div>
-                        <h3 className="font-medium text-gray-900 mb-1">
+                        <h3 className="font-medium text-gray-900 dark:text-white mb-1">
                           {commitment.title}
                         </h3>
                         {commitment.description && (
-                          <p className="text-sm text-gray-600 line-clamp-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
                             {commitment.description}
                           </p>
                         )}
@@ -597,27 +619,29 @@ export default function MyCommitmentsPage() {
 
           <TabsContent value="completed" className="space-y-3">
             {completedCommitments.length === 0 ? (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="py-12 text-center">
-                  <CheckCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-600">No completed commitments yet</p>
+                  <CheckCircle className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">
+                    No completed commitments yet
+                  </p>
                 </CardContent>
               </Card>
             ) : (
               completedCommitments.map(commitment => (
                 <Card
                   key={commitment.id}
-                  className="border-gray-200 opacity-80"
+                  className="border-gray-200 dark:border-gray-700 opacity-80"
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
                       <div className="flex-1">
-                        <h3 className="font-medium text-gray-900">
+                        <h3 className="font-medium text-gray-900 dark:text-white">
                           {commitment.title}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge className="bg-green-100 text-green-800">
+                          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                             Completed
                           </Badge>
                           <Badge variant="secondary">{commitment.type}</Badge>
@@ -686,7 +710,7 @@ export default function MyCommitmentsPage() {
                 id="outcome-goal"
                 value={selectedGoalId}
                 onChange={e => setSelectedGoalId(e.target.value)}
-                className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
               >
                 <option value="">Select a vision...</option>
                 {(goals || []).map(goal => (
@@ -699,7 +723,10 @@ export default function MyCommitmentsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="outcome-description">
-                Description <span className="text-gray-400">(optional)</span>
+                Description{' '}
+                <span className="text-gray-400 dark:text-gray-500">
+                  (optional)
+                </span>
               </Label>
               <Textarea
                 id="outcome-description"
@@ -716,7 +743,7 @@ export default function MyCommitmentsPage() {
             <Button
               variant="outline"
               onClick={() => setCreateOutcomeDialogOpen(false)}
-              className="border-gray-300"
+              className="border-gray-300 dark:border-gray-600"
             >
               Cancel
             </Button>
@@ -727,7 +754,7 @@ export default function MyCommitmentsPage() {
                 !selectedGoalId ||
                 createOutcome.isPending
               }
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
             >
               {createOutcome.isPending ? 'Creating...' : 'Create Outcome'}
             </Button>

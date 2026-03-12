@@ -87,10 +87,10 @@ export function ChatModeSelector({
     <>
       <Card className="p-6">
         <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
             Choose Your Chat Experience
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             Select how you&apos;d like to interact with{' '}
             {clientName || 'your client'}
             &apos;s AI assistant
@@ -100,19 +100,19 @@ export function ChatModeSelector({
         <div className="grid md:grid-cols-2 gap-4">
           {/* Classic Chat Mode */}
           <Card
-            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-gray-300"
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-gray-300 dark:hover:border-gray-500"
             onClick={() => handleModeSelect('classic')}
           >
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-gray-700" />
+              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-gray-700 dark:text-gray-300" />
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
                   Classic Chat
                 </h4>
-                <p className="text-xs text-gray-600 mb-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                   Text-based conversation with optional voice input
                 </p>
               </div>
@@ -129,13 +129,15 @@ export function ChatModeSelector({
                 </Badge>
               </div>
 
-              <div className="w-full pt-3 border-t">
+              <div className="w-full pt-3 border-t dark:border-gray-700">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Response time</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Response time
+                  </span>
                   <span className="font-medium">2-3 seconds</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500">Cost</span>
+                  <span className="text-gray-500 dark:text-gray-400">Cost</span>
                   <span className="font-medium text-green-600">Low</span>
                 </div>
               </div>
@@ -177,34 +179,38 @@ export function ChatModeSelector({
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 mb-1">
+                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
                   Realtime Voice
                 </h4>
-                <p className="text-xs text-gray-600 mb-2">
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                   Natural speech-to-speech conversation
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-1 justify-center">
-                <Badge className="text-xs bg-violet-100 text-violet-700 border-violet-200">
+                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
                   <Sparkles className="h-3 w-3 mr-1" />
                   GPT-4o
                 </Badge>
-                <Badge className="text-xs bg-violet-100 text-violet-700 border-violet-200">
+                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
                   Native Audio
                 </Badge>
-                <Badge className="text-xs bg-violet-100 text-violet-700 border-violet-200">
+                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
                   Live RAG
                 </Badge>
               </div>
 
-              <div className="w-full pt-3 border-t">
+              <div className="w-full pt-3 border-t dark:border-gray-700">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500">Response time</span>
-                  <span className="font-medium text-violet-600">~300ms</span>
+                  <span className="text-gray-500 dark:text-gray-400">
+                    Response time
+                  </span>
+                  <span className="font-medium text-violet-600 dark:text-violet-400">
+                    ~300ms
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500">Cost</span>
+                  <span className="text-gray-500 dark:text-gray-400">Cost</span>
                   <span className="font-medium text-orange-600">$0.06/min</span>
                 </div>
               </div>
@@ -232,11 +238,11 @@ export function ChatModeSelector({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-violet-900 mb-2">
+            <div className="bg-violet-50 dark:bg-violet-900/30 border border-violet-200 dark:border-violet-800 rounded-lg p-3">
+              <h4 className="font-medium text-sm text-violet-900 dark:text-violet-300 mb-2">
                 Premium Features
               </h4>
-              <ul className="space-y-1 text-xs text-violet-700">
+              <ul className="space-y-1 text-xs text-violet-700 dark:text-violet-300">
                 <li className="flex items-start gap-2">
                   <Sparkles className="h-3 w-3 mt-0.5 flex-shrink-0" />
                   <span>Ultra-low latency (~300ms) responses</span>
@@ -256,27 +262,27 @@ export function ChatModeSelector({
               </ul>
             </div>
 
-            <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <DollarSign className="h-4 w-4 text-orange-600 mt-0.5 flex-shrink-0" />
+                <DollarSign className="h-4 w-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
                 <div className="text-xs">
-                  <p className="font-medium text-orange-900 mb-1">
+                  <p className="font-medium text-orange-900 dark:text-orange-300 mb-1">
                     Usage Costs
                   </p>
-                  <p className="text-orange-700">
+                  <p className="text-orange-700 dark:text-orange-400">
                     Voice input: $0.06/minute • Voice output: $0.24/minute
                   </p>
-                  <p className="text-orange-600 mt-1">
+                  <p className="text-orange-600 dark:text-orange-400 mt-1">
                     Typical 5-minute conversation: ~$0.30-$0.50
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-gray-600 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-gray-600">
+                <Info className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-gray-600 dark:text-gray-400">
                   <p className="mb-1">
                     Requires microphone access and a stable internet connection.
                   </p>

@@ -295,7 +295,7 @@ export function NotesList({
               size="sm"
               onClick={saveEdit}
               disabled={saving || !editContent.trim()}
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -421,7 +421,7 @@ export function NotesList({
             onClick={() => setActiveFilter('all')}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               activeFilter === 'all'
-                ? 'bg-gray-900 text-white'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
           >
@@ -439,7 +439,7 @@ export function NotesList({
                 onClick={() => setActiveFilter(type)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   activeFilter === type
-                    ? 'bg-gray-900 text-white'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -456,7 +456,7 @@ export function NotesList({
         <Button
           onClick={() => setShowCreateForm(true)}
           size="sm"
-          className="bg-gray-900 hover:bg-gray-800"
+          className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
         >
           <Plus className="h-4 w-4 mr-1" />
           Add Note
@@ -485,7 +485,7 @@ export function NotesList({
                     title={config.description}
                     className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors ${
                       newNoteType === type
-                        ? 'bg-gray-900 text-white'
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
                         : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
                     }`}
                   >
@@ -520,7 +520,7 @@ export function NotesList({
               size="sm"
               onClick={handleCreateNote}
               disabled={creating || !newNoteContent.trim()}
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
             >
               {creating ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />

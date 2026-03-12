@@ -37,13 +37,13 @@ export default function ClientHeader({
   onDelete,
 }: ClientHeaderProps) {
   return (
-    <div className="border-b border-gray-200 bg-white shadow-sm">
+    <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={onBack}
-          className="text-gray-600 hover:text-gray-900 hover:bg-gray-100 mb-2"
+          className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 mb-2"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back to Clients
@@ -52,22 +52,22 @@ export default function ClientHeader({
         {/* Client Profile Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-6">
-            <Avatar className="h-16 w-16 bg-gray-900 border-2 border-gray-200 shadow-md">
-              <AvatarFallback className="bg-gray-900 text-white text-xl font-bold">
+            <Avatar className="h-16 w-16 bg-gray-900 dark:bg-white border-2 border-gray-200 dark:border-gray-700 shadow-md">
+              <AvatarFallback className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-xl font-bold">
                 {getClientInitials(client.name)}
               </AvatarFallback>
             </Avatar>
 
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold text-gray-900">
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                   {client.name}
                 </h1>
                 {/* Ownership indicator */}
                 {client.is_my_client === false && client.coach_name && (
                   <Badge
                     variant="outline"
-                    className="bg-blue-50 border-blue-300 text-blue-700"
+                    className="bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400"
                   >
                     <Users className="h-3 w-3 mr-1" />
                     {client.coach_name}&apos;s Client
@@ -76,14 +76,14 @@ export default function ClientHeader({
               </div>
 
               {client.meta_performance_vision && (
-                <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border-l-4 border-purple-500 rounded-r-lg">
+                <div className="mt-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 border-l-4 border-purple-500 rounded-r-lg">
                   <div className="flex items-start gap-2">
-                    <Sparkles className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                    <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
                     <div className="flex-1">
-                      <p className="text-xs font-semibold text-purple-900 uppercase tracking-wider mb-1">
+                      <p className="text-xs font-semibold text-purple-900 dark:text-purple-300 uppercase tracking-wider mb-1">
                         Meta Performance Vision
                       </p>
-                      <p className="text-sm text-gray-800 italic leading-relaxed">
+                      <p className="text-sm text-gray-800 dark:text-gray-300 italic leading-relaxed">
                         &ldquo;{client.meta_performance_vision}&rdquo;
                       </p>
                     </div>
@@ -92,21 +92,21 @@ export default function ClientHeader({
               )}
 
               {client.notes && (
-                <p className="text-sm text-gray-600 max-w-2xl mt-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 max-w-2xl mt-2">
                   {client.notes}
                 </p>
               )}
               <div className="flex items-center gap-3 mt-2">
                 <Badge
                   variant="secondary"
-                  className="bg-gray-100 text-gray-700"
+                  className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                 >
                   <Calendar className="h-3 w-3 mr-1" />
                   Added {formatDate(client.created_at)}
                 </Badge>
                 <Badge
                   variant="secondary"
-                  className="bg-gray-100 text-gray-700"
+                  className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                 >
                   <Activity className="h-3 w-3 mr-1" />
                   {totalSessions} Sessions
@@ -114,7 +114,7 @@ export default function ClientHeader({
                 {avgDuration > 0 && (
                   <Badge
                     variant="secondary"
-                    className="bg-gray-100 text-gray-700"
+                    className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                   >
                     <Clock className="h-3 w-3 mr-1" />
                     {avgDuration.toFixed(0)}m avg
@@ -123,7 +123,7 @@ export default function ClientHeader({
                 {client.invitation_status === 'accepted' && (
                   <Badge
                     variant="secondary"
-                    className="bg-green-100 text-green-700"
+                    className="bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                   >
                     <UserCheck className="h-3 w-3 mr-1" />
                     Portal Active
@@ -132,7 +132,7 @@ export default function ClientHeader({
                 {client.invitation_status === 'invited' && (
                   <Badge
                     variant="secondary"
-                    className="bg-purple-100 text-purple-700"
+                    className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400"
                   >
                     <Send className="h-3 w-3 mr-1" />
                     Invited
@@ -148,7 +148,7 @@ export default function ClientHeader({
                 <Button
                   onClick={onEdit}
                   variant="outline"
-                  className="border-gray-300 hover:bg-gray-50"
+                  className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit
@@ -156,7 +156,7 @@ export default function ClientHeader({
                 <Button
                   variant="outline"
                   onClick={onDelete}
-                  className="border-red-300 text-red-600 hover:bg-red-50"
+                  className="border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
@@ -166,7 +166,7 @@ export default function ClientHeader({
             {isViewer && (
               <Badge
                 variant="outline"
-                className="bg-blue-50 border-blue-200 text-blue-700 px-3 py-2"
+                className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 px-3 py-2"
               >
                 <Eye className="h-3.5 w-3.5 mr-1.5" />
                 View Only Access

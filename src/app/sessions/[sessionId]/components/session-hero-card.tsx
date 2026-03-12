@@ -115,7 +115,7 @@ export function SessionHeroCard({
                       Sentiment
                     </span>
                   </div>
-                  <Badge className="bg-app-primary text-white hover:bg-app-primary/90">
+                  <Badge className="bg-app-primary text-app-background hover:bg-app-primary/90">
                     {sentiment.overall}
                   </Badge>
                 </div>

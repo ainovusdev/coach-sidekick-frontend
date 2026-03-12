@@ -28,14 +28,20 @@ interface SessionsListProps {
   onSessionDeleted?: () => void
 }
 
-export default function SessionsList({ sessions, clientId, clientName, onUploadClick, onSessionDeleted }: SessionsListProps) {
+export default function SessionsList({
+  sessions,
+  clientId,
+  clientName,
+  onUploadClick,
+  onSessionDeleted,
+}: SessionsListProps) {
   return (
     <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
       <CardHeader className="border-b border-gray-100 flex flex-row items-center justify-between bg-gray-50">
         <CardTitle className="text-lg font-medium text-gray-900">
           Coaching Sessions
         </CardTitle>
-        <Button 
+        <Button
           onClick={onUploadClick}
           size="sm"
           variant="outline"
@@ -57,10 +63,10 @@ export default function SessionsList({ sessions, clientId, clientName, onUploadC
             <p className="text-sm text-gray-500 max-w-sm mx-auto mb-4">
               Start your first coaching session with {clientName}.
             </p>
-            <Button 
+            <Button
               onClick={onUploadClick}
               size="sm"
-              className="bg-gray-900 hover:bg-gray-800 text-white"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
             >
               <Upload className="h-4 w-4 mr-2" />
               Upload First Recording
@@ -69,9 +75,9 @@ export default function SessionsList({ sessions, clientId, clientName, onUploadC
         ) : (
           <div>
             {sessions.map(session => (
-              <SessionCard 
-                key={session.id} 
-                session={session} 
+              <SessionCard
+                key={session.id}
+                session={session}
                 onDelete={onSessionDeleted}
               />
             ))}

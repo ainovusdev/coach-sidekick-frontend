@@ -368,7 +368,7 @@ export function MediaUploader({
                   <Button
                     onClick={handleUpload}
                     disabled={!file}
-                    className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                    className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
                   >
                     <Upload className="w-4 h-4 mr-2" />
                     Upload & Process
@@ -434,7 +434,7 @@ export function MediaUploader({
                 <Button
                   onClick={handlePasteSubmit}
                   disabled={pastedText.length < 50}
-                  className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
                 >
                   <ClipboardPaste className="w-4 h-4 mr-2" />
                   Process Text

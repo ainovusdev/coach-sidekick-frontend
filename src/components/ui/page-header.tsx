@@ -17,7 +17,7 @@ export function PageHeader({
   icon: Icon,
   iconVariant = 'default',
   actions,
-  className
+  className,
 }: PageHeaderProps) {
   return (
     <div className={cn('mb-8', className)}>
@@ -30,28 +30,32 @@ export function PageHeader({
                   <Icon className="h-6 w-6 text-white" />
                 </div>
               ) : (
-                <Icon className="h-6 w-6 text-neutral-600" />
+                <Icon className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
               )}
-              <h1 className={cn(
-                'text-3xl',
-                iconVariant === 'gradient' 
-                  ? 'font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent'
-                  : 'font-semibold text-neutral-900'
-              )}>
+              <h1
+                className={cn(
+                  'text-3xl',
+                  iconVariant === 'gradient'
+                    ? 'font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent'
+                    : 'font-semibold text-neutral-900 dark:text-white',
+                )}
+              >
                 {title}
               </h1>
             </div>
           )}
           {!Icon && (
-            <h1 className="text-3xl font-semibold text-neutral-900">{title}</h1>
+            <h1 className="text-3xl font-semibold text-neutral-900 dark:text-white">
+              {title}
+            </h1>
           )}
           {description && (
-            <p className="text-neutral-500 mt-1">{description}</p>
+            <p className="text-neutral-500 dark:text-neutral-400 mt-1">
+              {description}
+            </p>
           )}
         </div>
-        {actions && (
-          <div className="flex items-center gap-3">{actions}</div>
-        )}
+        {actions && <div className="flex items-center gap-3">{actions}</div>}
       </div>
     </div>
   )

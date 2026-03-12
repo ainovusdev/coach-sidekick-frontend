@@ -105,20 +105,20 @@ export default function ClientsPage() {
   return (
     <ProtectedRoute loadingMessage="Loading clients...">
       <PageLayout>
-        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50">
+        <div className="min-h-screen bg-gradient-to-b from-gray-50 via-white to-gray-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             {/* Page Header */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 mb-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div className="flex items-center gap-4">
                   <div className="p-3 bg-gray-900 rounded-xl">
                     <Users className="h-6 w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                       Clients
                     </h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
                       {isViewer
                         ? 'View assigned clients and their information'
                         : 'Manage and track your coaching relationships'}
@@ -130,7 +130,7 @@ export default function ClientsPage() {
                   {!isViewer && (
                     <Button
                       onClick={() => setIsCreateModalOpen(true)}
-                      className="bg-gray-900 hover:bg-gray-800"
+                      className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
                     >
                       <Plus className="h-4 w-4 mr-2" />
                       Add Client
@@ -152,14 +152,14 @@ export default function ClientsPage() {
 
               {/* Viewer Notice */}
               {isViewer && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="mt-4 p-4 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+                    <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-blue-900">
+                      <p className="text-sm font-medium text-blue-900 dark:text-blue-200">
                         Viewer Access
                       </p>
-                      <p className="text-sm text-blue-700 mt-1">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
                         You have read-only access to these assigned clients.
                         Contact your administrator to modify access levels.
                       </p>
@@ -178,12 +178,12 @@ export default function ClientsPage() {
                   placeholder="Search by name or notes..."
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-10 h-11 bg-white border-gray-200"
+                  className="pl-10 pr-10 h-11 bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700"
                 />
                 {searchTerm && (
                   <button
                     onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 rounded-full"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
                   >
                     <X className="h-4 w-4 text-gray-400" />
                   </button>
@@ -195,7 +195,7 @@ export default function ClientsPage() {
                 value={sortBy}
                 onValueChange={(value: SortBy) => setSortBy(value)}
               >
-                <SelectTrigger className="w-[180px] h-11 bg-white">
+                <SelectTrigger className="w-[180px] h-11 bg-white dark:bg-gray-800">
                   <ArrowUpDown className="h-4 w-4 mr-2 text-gray-400" />
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>

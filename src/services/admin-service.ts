@@ -67,20 +67,6 @@ export interface ClientAccessMatrix {
   }[]
 }
 
-export interface AuditLogEntry {
-  id: string
-  user_id: string
-  user_email: string
-  user_name?: string | null
-  resource_type: string
-  resource_id: string | null
-  action: string
-  details?: any
-  ip_address?: string | null
-  user_agent?: string | null
-  created_at: string
-}
-
 class AdminService {
   private static instance: AdminService
 
@@ -263,18 +249,6 @@ class AdminService {
 
   async removeClientAccess(clientId: string, userId: string): Promise<void> {
     await axiosInstance.delete(`/access/client-access/${clientId}/${userId}`)
-  }
-
-  async getAuditLog(params?: {
-    limit?: number
-    resource_type?: string
-    user_id?: string
-    action?: string
-    start_date?: string
-    end_date?: string
-  }): Promise<AuditLogEntry[]> {
-    const response = await axiosInstance.get('/access/audit-log', { params })
-    return response.data
   }
 
   // Coach Access Management

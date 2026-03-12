@@ -509,7 +509,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                     (moment, index) => (
                       <div
                         key={index}
-                        className="bg-gray-900 rounded-lg p-3 text-white"
+                        className="bg-gray-900 dark:bg-white rounded-lg p-3 text-white dark:text-gray-900"
                       >
                         <p className="text-sm">{moment}</p>
                       </div>

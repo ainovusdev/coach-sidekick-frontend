@@ -2,9 +2,9 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'
 import { PermissionProvider } from '@/contexts/permission-context'
-import { WebSocketProvider } from '@/contexts/websocket-context'
 import { QueryProvider } from '@/components/providers/query-provider'
-import { Toaster } from 'sonner' // NEW: Sonner toast notifications
+import { ThemeProvider } from '@/components/providers/theme-provider'
+import { Toaster } from 'sonner'
 import './globals.css'
 
 const geistSans = Geist({
@@ -29,16 +29,15 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <QueryProvider>
-          <AuthProvider>
-            <PermissionProvider>
-              <WebSocketProvider>
+        <ThemeProvider>
+          <QueryProvider>
+            <AuthProvider>
+              <PermissionProvider>
                 {children}
-                {/* Sonner toast notifications - high z-index to appear above all content */}
                 <Toaster
                   position="top-right"
                   richColors
@@ -51,10 +50,10 @@ export default function RootLayout({
                     },
                   }}
                 />
-              </WebSocketProvider>
-            </PermissionProvider>
-          </AuthProvider>
-        </QueryProvider>
+              </PermissionProvider>
+            </AuthProvider>
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   )

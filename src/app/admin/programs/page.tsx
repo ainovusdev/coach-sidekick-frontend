@@ -82,8 +82,10 @@ export default function ProgramsListPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Sandboxes</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Sandboxes
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage coaching sandboxes and track client progress
           </p>
         </div>
@@ -96,7 +98,7 @@ export default function ProgramsListPage() {
       {/* Search */}
       <div className="mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <Input
             placeholder="Search sandboxes..."
             value={searchQuery}
@@ -110,11 +112,11 @@ export default function ProgramsListPage() {
       {programs.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <AlertCircle className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No sandboxes found
             </h3>
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
               {searchQuery
                 ? 'Try adjusting your search query'
                 : 'Get started by creating your first sandbox'}
@@ -160,8 +162,8 @@ export default function ProgramsListPage() {
                   {/* Stats */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm text-gray-600">
+                      <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                      <span className="text-sm text-gray-600 dark:text-gray-400">
                         {program.client_count} client
                         {program.client_count !== 1 ? 's' : ''}
                       </span>
@@ -204,7 +206,7 @@ export default function ProgramsListPage() {
                         setDeleteProgram(program)
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-red-600" />
+                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                     </Button>
                   </div>
                 </div>

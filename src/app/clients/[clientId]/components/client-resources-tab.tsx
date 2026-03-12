@@ -152,10 +152,10 @@ export function ClientResourcesTab({
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
             Resources ({allResources.length})
           </h3>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
             Resources shared with {clientName || 'this client'} and global
             resources
           </p>
@@ -200,7 +200,7 @@ export function ClientResourcesTab({
       {/* Client-specific resources section */}
       {clientResources.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-1.5">
+          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
             <Users className="h-4 w-4" />
             Shared with {clientName || 'this client'}
           </h4>
@@ -220,7 +220,7 @@ export function ClientResourcesTab({
       {/* Global resources section */}
       {globalResources.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-500 mb-3 flex items-center gap-1.5">
+          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
             <Globe className="h-4 w-4" />
             Global resources
           </h4>
@@ -239,13 +239,13 @@ export function ClientResourcesTab({
 
       {/* Empty state */}
       {allResources.length === 0 && (
-        <Card className="border-2 border-dashed border-gray-300">
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <BookOpen className="h-12 w-12 text-gray-300 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No Resources Shared
             </h3>
-            <p className="text-gray-500 text-center max-w-md mb-4">
+            <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-4">
               No resources have been shared with {clientName || 'this client'}{' '}
               yet.
             </p>
@@ -318,7 +318,7 @@ export function ClientResourcesTab({
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 rounded-full">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
               </div>
               <AlertDialogTitle>Delete Resource</AlertDialogTitle>
@@ -374,7 +374,7 @@ function ResourceMiniCard({
 
   return (
     <Card
-      className="border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      className="border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onView(resource)}
     >
       <CardContent className="py-3 px-4">
@@ -383,7 +383,7 @@ function ResourceMiniCard({
             <Icon className={`h-4 w-4 ${colors.text}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-gray-900 truncate">
+            <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
               {resource.title}
             </h4>
             <div className="flex items-center gap-2 mt-0.5">

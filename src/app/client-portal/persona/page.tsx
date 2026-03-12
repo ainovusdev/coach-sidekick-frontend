@@ -85,15 +85,15 @@ export default function ClientPersonaPage() {
   if (noPersona || !persona) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-12">
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="flex flex-col items-center justify-center py-16 px-8">
-            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-6">
-              <Brain className="h-8 w-8 text-gray-400" />
+            <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-6">
+              <Brain className="h-8 w-8 text-gray-400 dark:text-gray-500" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-3 text-center">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 text-center">
               Your Coaching Persona is Being Developed
             </h2>
-            <p className="text-center text-gray-600 max-w-md mb-8">
+            <p className="text-center text-gray-600 dark:text-gray-400 max-w-md mb-8">
               {error ||
                 'Your personalized coaching profile will be available after a few sessions with your coach. This helps us provide better, more tailored coaching suggestions.'}
             </p>
@@ -136,37 +136,41 @@ export default function ClientPersonaPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-2">
         <div>
-          <p className="text-gray-500 text-sm font-medium mb-1">
+          <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">
             AI-Generated Profile
           </p>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
             Your Coaching Persona
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Based on your coaching journey and sessions
           </p>
         </div>
 
         <div className="flex items-center gap-6 md:gap-8">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {persona.metadata.sessions_analyzed}
             </p>
-            <p className="text-xs text-gray-500">Sessions</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Sessions</p>
           </div>
-          <div className="h-8 w-px bg-gray-200" />
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900">{confidence}</p>
-            <p className="text-xs text-gray-500">Confidence</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              {confidence}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              Confidence
+            </p>
           </div>
-          <div className="h-8 w-px bg-gray-200" />
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="text-center">
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-gray-900 dark:text-white">
               {persona.metadata.last_updated
                 ? formatDate(persona.metadata.last_updated, 'MMM d')
                 : '-'}
             </p>
-            <p className="text-xs text-gray-500">Updated</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Updated</p>
           </div>
         </div>
       </div>
@@ -175,33 +179,33 @@ export default function ClientPersonaPage() {
       {hasBasicInfo && (
         <div className="flex flex-wrap gap-3">
           {persona.basic_info.occupation && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
-              <Briefcase className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2">
+              <Briefcase className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 {persona.basic_info.occupation}
               </span>
             </div>
           )}
           {persona.basic_info.location && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
-              <MapPin className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2">
+              <MapPin className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 {persona.basic_info.location}
               </span>
             </div>
           )}
           {persona.basic_info.age_range && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
-              <User className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2">
+              <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 {persona.basic_info.age_range}
               </span>
             </div>
           )}
           {persona.basic_info.family_situation && (
-            <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-full px-4 py-2">
-              <Users className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-700">
+            <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full px-4 py-2">
+              <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm text-gray-700 dark:text-gray-300">
                 {persona.basic_info.family_situation}
               </span>
             </div>
@@ -213,26 +217,30 @@ export default function ClientPersonaPage() {
       {(hasPrimaryGoals || hasShortTermGoals || hasLongTermGoals) && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Target className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">Vision</h2>
+            <Target className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              Vision
+            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {hasPrimaryGoals && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                     Primary Vision
                   </h3>
                   <div className="space-y-3">
                     {persona.goals.primary.map((goal, idx) => (
                       <div key={idx} className="flex items-start gap-3">
-                        <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 mt-0.5">
-                          <span className="text-xs font-medium text-gray-600">
+                        <div className="h-5 w-5 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                             {idx + 1}
                           </span>
                         </div>
-                        <p className="text-sm text-gray-600">{goal}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {goal}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -241,14 +249,18 @@ export default function ClientPersonaPage() {
             )}
 
             {hasShortTermGoals && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-3">Short-term</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                    Short-term
+                  </h3>
                   <div className="space-y-2">
                     {persona.goals.short_term.map((goal, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-gray-600">{goal}</p>
+                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {goal}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -257,16 +269,18 @@ export default function ClientPersonaPage() {
             )}
 
             {hasLongTermGoals && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                     Long-term Vision
                   </h3>
                   <div className="space-y-2">
                     {persona.goals.long_term.map((goal, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-gray-600">{goal}</p>
+                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {goal}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -282,11 +296,11 @@ export default function ClientPersonaPage() {
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {hasStrengths && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <Sparkles className="h-5 w-5 text-gray-600" />
-                    <h3 className="font-medium text-gray-900">
+                    <Sparkles className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
                       Your Strengths
                     </h3>
                   </div>
@@ -295,7 +309,7 @@ export default function ClientPersonaPage() {
                       <Badge
                         key={idx}
                         variant="secondary"
-                        className="bg-gray-100 text-gray-700"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                       >
                         {strength}
                       </Badge>
@@ -306,19 +320,21 @@ export default function ClientPersonaPage() {
             )}
 
             {hasGrowthAreas && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <Lightbulb className="h-5 w-5 text-gray-600" />
-                    <h3 className="font-medium text-gray-900">
+                    <Lightbulb className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
                       Growth Opportunities
                     </h3>
                   </div>
                   <div className="space-y-2">
                     {persona.development.growth_areas.map((area, idx) => (
                       <div key={idx} className="flex items-start gap-2">
-                        <ChevronRight className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-gray-600">{area}</p>
+                        <ChevronRight className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {area}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -333,25 +349,27 @@ export default function ClientPersonaPage() {
       {(hasChallenges || hasObstacles) && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <AlertTriangle className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Challenges to Overcome
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {hasChallenges && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-3">
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                     Current Challenges
                   </h3>
                   <div className="space-y-2">
                     {persona.challenges.main_challenges.map(
                       (challenge, idx) => (
                         <div key={idx} className="flex items-start gap-2">
-                          <div className="h-1.5 w-1.5 rounded-full bg-gray-400 mt-2 flex-shrink-0" />
-                          <p className="text-sm text-gray-600">{challenge}</p>
+                          <div className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500 mt-2 flex-shrink-0" />
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {challenge}
+                          </p>
                         </div>
                       ),
                     )}
@@ -361,7 +379,7 @@ export default function ClientPersonaPage() {
             )}
 
             {hasObstacles && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   {persona.challenges.obstacles.length > 0 && (
                     <div
@@ -369,13 +387,16 @@ export default function ClientPersonaPage() {
                         persona.challenges.fears.length > 0 ? 'mb-4' : ''
                       }
                     >
-                      <h3 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                        <Shield className="h-4 w-4 text-gray-500" />
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-3 flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                         Obstacles
                       </h3>
                       <div className="space-y-2">
                         {persona.challenges.obstacles.map((obstacle, idx) => (
-                          <p key={idx} className="text-sm text-gray-600 pl-6">
+                          <p
+                            key={idx}
+                            className="text-sm text-gray-600 dark:text-gray-400 pl-6"
+                          >
                             {obstacle}
                           </p>
                         ))}
@@ -384,12 +405,15 @@ export default function ClientPersonaPage() {
                   )}
                   {persona.challenges.fears.length > 0 && (
                     <div>
-                      <h3 className="font-medium text-gray-900 mb-3">
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-3">
                         Concerns
                       </h3>
                       <div className="space-y-2">
                         {persona.challenges.fears.map((fear, idx) => (
-                          <p key={idx} className="text-sm text-gray-600 pl-6">
+                          <p
+                            key={idx}
+                            className="text-sm text-gray-600 dark:text-gray-400 pl-6"
+                          >
                             {fear}
                           </p>
                         ))}
@@ -407,29 +431,31 @@ export default function ClientPersonaPage() {
       {(hasTraits || hasValues || hasStyles) && (
         <section>
           <div className="flex items-center gap-2 mb-4">
-            <Brain className="h-5 w-5 text-gray-600" />
-            <h2 className="text-lg font-semibold text-gray-900">
+            <Brain className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
               Personality & Style
             </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {hasStyles && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <MessageCircle className="h-4 w-4 text-gray-500" />
-                    <h3 className="font-medium text-gray-900">Style</h3>
+                    <MessageCircle className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      Style
+                    </h3>
                   </div>
                   <div className="space-y-3">
                     {persona.personality.communication_style && (
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                           Communication
                         </p>
                         <Badge
                           variant="secondary"
-                          className="bg-gray-100 text-gray-700"
+                          className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                         >
                           {persona.personality.communication_style}
                         </Badge>
@@ -437,12 +463,12 @@ export default function ClientPersonaPage() {
                     )}
                     {persona.personality.learning_style && (
                       <div>
-                        <p className="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                        <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1">
                           Learning
                         </p>
                         <Badge
                           variant="secondary"
-                          className="bg-gray-100 text-gray-700"
+                          className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                         >
                           {persona.personality.learning_style}
                         </Badge>
@@ -454,15 +480,17 @@ export default function ClientPersonaPage() {
             )}
 
             {hasTraits && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
-                  <h3 className="font-medium text-gray-900 mb-3">Traits</h3>
+                  <h3 className="font-medium text-gray-900 dark:text-white mb-3">
+                    Traits
+                  </h3>
                   <div className="flex flex-wrap gap-2">
                     {persona.personality.traits.map((trait, idx) => (
                       <Badge
                         key={idx}
                         variant="secondary"
-                        className="bg-gray-100 text-gray-700"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                       >
                         {trait}
                       </Badge>
@@ -473,17 +501,21 @@ export default function ClientPersonaPage() {
             )}
 
             {hasValues && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-3">
-                    <Heart className="h-4 w-4 text-gray-500" />
-                    <h3 className="font-medium text-gray-900">Core Values</h3>
+                    <Heart className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
+                      Core Values
+                    </h3>
                   </div>
                   <div className="space-y-2">
                     {persona.personality.values.map((value, idx) => (
                       <div key={idx} className="flex items-center gap-2">
-                        <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
-                        <span className="text-sm text-gray-600">{value}</span>
+                        <div className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
+                        <span className="text-sm text-gray-600 dark:text-gray-400">
+                          {value}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -499,11 +531,11 @@ export default function ClientPersonaPage() {
         <section>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {hasAchievements && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <Trophy className="h-5 w-5 text-gray-600" />
-                    <h3 className="font-medium text-gray-900">
+                    <Trophy className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
                       Achievements & Breakthroughs
                     </h3>
                   </div>
@@ -511,8 +543,10 @@ export default function ClientPersonaPage() {
                     {persona.development.achievements.map(
                       (achievement, idx) => (
                         <div key={idx} className="flex items-start gap-3">
-                          <Trophy className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-                          <p className="text-sm text-gray-600">{achievement}</p>
+                          <Trophy className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-0.5 flex-shrink-0" />
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {achievement}
+                          </p>
                         </div>
                       ),
                     )}
@@ -522,11 +556,11 @@ export default function ClientPersonaPage() {
             )}
 
             {hasThemes && (
-              <Card className="border-gray-200">
+              <Card className="border-gray-200 dark:border-gray-700">
                 <CardContent className="p-5">
                   <div className="flex items-center gap-2 mb-4">
-                    <BookOpen className="h-5 w-5 text-gray-600" />
-                    <h3 className="font-medium text-gray-900">
+                    <BookOpen className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    <h3 className="font-medium text-gray-900 dark:text-white">
                       Recurring Themes
                     </h3>
                   </div>
@@ -535,7 +569,7 @@ export default function ClientPersonaPage() {
                       <Badge
                         key={idx}
                         variant="secondary"
-                        className="bg-gray-100 text-gray-700"
+                        className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
                       >
                         {theme}
                       </Badge>

@@ -239,7 +239,7 @@ export function GoalFormModal({
                         'flex items-center space-x-2 border rounded-lg p-3 cursor-pointer transition-colors',
                         formData.category === option.value
                           ? 'border-primary bg-primary/5'
-                          : 'border-gray-200 hover:border-gray-300',
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500',
                       )}
                       onClick={() =>
                         setFormData({ ...formData, category: option.value })

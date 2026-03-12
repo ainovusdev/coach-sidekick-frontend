@@ -30,7 +30,7 @@ export function GroupParticipantBar({
         className={cn(
           'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
           selectedClientId === null
-            ? 'bg-app-primary text-white'
+            ? 'bg-app-primary text-app-background'
             : 'bg-app-surface text-app-secondary hover:bg-app-border',
         )}
       >
@@ -45,7 +45,7 @@ export function GroupParticipantBar({
           className={cn(
             'flex-shrink-0 px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
             selectedClientId === p.client_id
-              ? 'bg-app-primary text-white'
+              ? 'bg-app-primary text-app-background'
               : 'bg-app-surface text-app-secondary hover:bg-app-border',
           )}
         >

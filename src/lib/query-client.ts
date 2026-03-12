@@ -249,19 +249,6 @@ export const queryKeys = {
         [...queryKeys.admin.coachAccess.all, 'role', role] as const,
     },
 
-    // Audit log keys
-    auditLog: {
-      all: ['admin', 'audit-log'] as const,
-      list: (params?: {
-        limit?: number
-        resource_type?: string
-        user_id?: string
-        action?: string
-        start_date?: string
-        end_date?: string
-      }) => [...queryKeys.admin.auditLog.all, { params }] as const,
-    },
-
     // Dashboard keys (composite data)
     dashboard: {
       stats: () => ['admin', 'dashboard', 'stats'] as const,

@@ -60,12 +60,18 @@ export function SessionCardCompact({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-gray-700" />
+        return (
+          <CheckCircle2 className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+        )
       case 'in_progress':
       case 'recording':
-        return <Circle className="h-4 w-4 text-gray-900 animate-pulse" />
+        return (
+          <Circle className="h-4 w-4 text-gray-900 dark:text-white animate-pulse" />
+        )
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-gray-800" />
+        return (
+          <AlertCircle className="h-4 w-4 text-gray-800 dark:text-gray-200" />
+        )
       default:
         return <Circle className="h-4 w-4 text-gray-400" />
     }
@@ -76,26 +82,26 @@ export function SessionCardCompact({
     switch (status) {
       case 'completed':
         return (
-          <Badge className="bg-gray-900 text-white border-gray-900 text-xs">
+          <Badge className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white text-xs">
             {statusText}
           </Badge>
         )
       case 'in_progress':
       case 'recording':
         return (
-          <Badge className="bg-gray-800 text-white border-gray-800 text-xs animate-pulse">
+          <Badge className="bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 border-gray-800 dark:border-gray-200 text-xs animate-pulse">
             {statusText}
           </Badge>
         )
       case 'error':
         return (
-          <Badge className="bg-gray-700 text-white border-gray-700 text-xs">
+          <Badge className="bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-gray-700 dark:border-gray-300 text-xs">
             {statusText}
           </Badge>
         )
       default:
         return (
-          <Badge className="bg-gray-100 text-gray-800 border-gray-200 text-xs">
+          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700 text-xs">
             {statusText}
           </Badge>
         )
@@ -124,18 +130,20 @@ export function SessionCardCompact({
           {getStatusIcon(session.status)}
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-gray-900 dark:text-white">
                 {platformName} - {formattedDate}
               </span>
               {showClient && clientName && (
                 <>
                   <span className="text-gray-400">•</span>
-                  <span className="text-gray-600">{clientName}</span>
+                  <span className="text-gray-600 dark:text-gray-400">
+                    {clientName}
+                  </span>
                 </>
               )}
             </div>
             <div className="flex items-center gap-3 mt-1">
-              <div className="flex items-center gap-1 text-xs text-gray-500">
+              <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <Calendar className="h-3 w-3" />
                 <span>
                   {formatDate(session.created_at, 'EEEE')} •{' '}
@@ -145,7 +153,7 @@ export function SessionCardCompact({
               {durationMinutes && (
                 <>
                   <span className="text-gray-400">•</span>
-                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                     <Clock className="h-3 w-3" />
                     <span>{durationMinutes} minutes</span>
                   </div>
@@ -161,7 +169,7 @@ export function SessionCardCompact({
               variant="ghost"
               onClick={handleReanalyze}
               disabled={isReanalyzing}
-              className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
               title="Reanalyze session"
             >
               {isReanalyzing ? (
@@ -178,14 +186,14 @@ export function SessionCardCompact({
       {/* Summary Section */}
       {meetingSummary ? (
         <div className="pl-7">
-          <div className="p-3 bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-lg">
+          <div className="p-3 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-lg">
             <div className="flex items-start gap-2">
-              <FileText className="h-4 w-4 text-gray-600 mt-0.5 flex-shrink-0" />
+              <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
               <div className="flex-1">
-                <p className="text-xs font-semibold text-gray-700 mb-1 uppercase tracking-wider">
+                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 uppercase tracking-wider">
                   Summary
                 </p>
-                <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2">
                   {meetingSummary}
                 </p>
               </div>
@@ -194,15 +202,15 @@ export function SessionCardCompact({
         </div>
       ) : session.status === 'completed' ? (
         <div className="pl-7">
-          <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
-            <p className="text-sm text-gray-600 italic">
+          <div className="p-3 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+            <p className="text-sm text-gray-600 dark:text-gray-400 italic">
               Processing summary...
             </p>
           </div>
         </div>
       ) : session.status === 'in_progress' || session.status === 'recording' ? (
         <div className="pl-7">
-          <div className="p-3 bg-gray-900 text-white rounded-lg">
+          <div className="p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 animate-pulse" />
               <p className="text-sm font-medium">

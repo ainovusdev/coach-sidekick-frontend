@@ -48,7 +48,7 @@ export function ProgressSummaryWidget({
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Target className="h-4 w-4 text-gray-600" />
+            <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             Commitments & Outcomes
           </CardTitle>
           <Link href="/client-portal/my-commitments">
@@ -62,21 +62,21 @@ export function ProgressSummaryWidget({
       <CardContent className="pt-0">
         <div className="flex items-center gap-4 mb-3">
           <div className="text-center flex-1">
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-lg font-bold text-gray-900 dark:text-white">
               {activeOutcomes.length + activeCommitments.length}
             </p>
-            <p className="text-xs text-gray-500">Active</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Active</p>
           </div>
-          <div className="h-8 w-px bg-gray-200" />
+          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
           <div className="text-center flex-1">
-            <p className="text-lg font-bold text-gray-900">
+            <p className="text-lg font-bold text-gray-900 dark:text-white">
               {completedOutcomes.length + completedCommitments.length}
             </p>
-            <p className="text-xs text-gray-500">Done</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">Done</p>
           </div>
         </div>
         <div>
-          <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
             <span>Progress</span>
             <span className="font-medium">{avgProgress}%</span>
           </div>

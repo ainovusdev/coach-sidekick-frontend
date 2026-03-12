@@ -245,18 +245,19 @@ export function ClientInvitationModal({
         ) : (
           <div className="py-8">
             <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 animate-in fade-in zoom-in duration-500">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 animate-in fade-in zoom-in duration-500">
+                <CheckCircle className="h-10 w-10 text-green-600 dark:text-green-400" />
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-gray-900">
+              <h3 className="mt-4 text-xl font-semibold text-gray-900 dark:text-white">
                 {invitationType === 'access_invitation_sent'
                   ? 'Access Invitation Sent!'
                   : 'Invitation Sent Successfully!'}
               </h3>
               <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
                   <Mail className="inline-block h-4 w-4 mr-1" />
-                  Sent to: <span className="text-gray-900">{email}</span>
+                  Sent to:{' '}
+                  <span className="text-gray-900 dark:text-white">{email}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {responseMessage ||
@@ -264,12 +265,12 @@ export function ClientInvitationModal({
                 </p>
               </div>
 
-              <div className="mt-6 rounded-lg bg-blue-50 p-4 text-left">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">
+              <div className="mt-6 rounded-lg bg-blue-50 dark:bg-blue-900/30 p-4 text-left">
+                <h4 className="text-sm font-medium text-blue-900 dark:text-blue-300 mb-2">
                   What happens next:
                 </h4>
                 {invitationType === 'access_invitation_sent' ? (
-                  <ul className="space-y-1.5 text-xs text-blue-700">
+                  <ul className="space-y-1.5 text-xs text-blue-700 dark:text-blue-300">
                     <li className="flex items-start">
                       <span className="mr-2">•</span>
                       <span>
@@ -295,7 +296,7 @@ export function ClientInvitationModal({
                     </li>
                   </ul>
                 ) : (
-                  <ul className="space-y-1.5 text-xs text-blue-700">
+                  <ul className="space-y-1.5 text-xs text-blue-700 dark:text-blue-300">
                     <li className="flex items-start">
                       <span className="mr-2">•</span>
                       <span>
