@@ -79,7 +79,7 @@ export function ClientProfileCard({
     return (
       <Card className={compact ? 'h-auto border-0 shadow-none' : 'h-full'}>
         <CardContent className={compact ? 'p-0' : 'pt-4'}>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             Profile will build as sessions are analyzed.
           </p>
         </CardContent>
@@ -106,15 +106,17 @@ export function ClientProfileCard({
   }
 
   const getBreakthroughColor = (potential: string) => {
-    if (potential?.includes('High')) return 'text-green-600 bg-green-50'
-    if (potential?.includes('Emerging')) return 'text-yellow-600 bg-yellow-50'
-    return 'text-gray-600 bg-gray-50'
+    if (potential?.includes('High'))
+      return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30'
+    if (potential?.includes('Emerging'))
+      return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/30'
+    return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800'
   }
 
   return (
     <Card className="h-auto">
       <CardHeader
-        className={`${compact ? 'pb-2 py-2' : 'pb-3'} cursor-pointer hover:bg-gray-50 transition-colors`}
+        className={`${compact ? 'pb-2 py-2' : 'pb-3'} cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
@@ -127,7 +129,9 @@ export function ClientProfileCard({
           >
             <User
               className={
-                compact ? 'h-3 w-3 text-gray-500' : 'h-4 w-4 text-gray-500'
+                compact
+                  ? 'h-3 w-3 text-gray-500 dark:text-gray-400'
+                  : 'h-4 w-4 text-gray-500 dark:text-gray-400'
               }
             />
             Client Profile
@@ -139,9 +143,9 @@ export function ClientProfileCard({
           </h3>
           <div className="flex items-center gap-2">
             {isExpanded ? (
-              <ChevronUp className="h-3 w-3 text-gray-400" />
+              <ChevronUp className="h-3 w-3 text-gray-400 dark:text-gray-500" />
             ) : (
-              <ChevronDown className="h-3 w-3 text-gray-400" />
+              <ChevronDown className="h-3 w-3 text-gray-400 dark:text-gray-500" />
             )}
           </div>
         </div>
@@ -160,7 +164,7 @@ export function ClientProfileCard({
           </div>
         )}
         {!isExpanded && summaryItems.length === 0 && (
-          <p className="mt-1.5 text-xs text-gray-400">
+          <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
             Expand to see profile details
           </p>
         )}
@@ -171,15 +175,17 @@ export function ClientProfileCard({
           {insights?.client_journey && !compact && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Journey Stage
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {getJourneyProgress()}%
                 </span>
               </div>
               <Progress value={getJourneyProgress()} className="h-1.5" />
-              <p className="text-xs text-gray-600">{insights.client_journey}</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
+                {insights.client_journey}
+              </p>
             </div>
           )}
 
@@ -188,8 +194,8 @@ export function ClientProfileCard({
             {profile.communication_style && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs font-medium text-gray-700">
+                  <MessageSquare className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Communication
                   </span>
                 </div>
@@ -204,8 +210,8 @@ export function ClientProfileCard({
             {profile.learning_style && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <Brain className="h-3 w-3 text-gray-400" />
-                  <span className="text-xs font-medium text-gray-700">
+                  <Brain className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                     Learning
                   </span>
                 </div>
@@ -226,7 +232,7 @@ export function ClientProfileCard({
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Target className="h-3 w-3 text-green-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Vision
                 </span>
               </div>
@@ -247,7 +253,10 @@ export function ClientProfileCard({
                   >
                     <span className="text-blue-500 mt-0.5">•</span>
                     <span>
-                      {goal} <span className="text-gray-400">(short-term)</span>
+                      {goal}{' '}
+                      <span className="text-gray-400 dark:text-gray-500">
+                        (short-term)
+                      </span>
                     </span>
                   </div>
                 ))}
@@ -261,7 +270,7 @@ export function ClientProfileCard({
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <AlertCircle className="h-3 w-3 text-orange-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Current Challenges
                 </span>
               </div>
@@ -289,7 +298,7 @@ export function ClientProfileCard({
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <Award className="h-3 w-3 text-purple-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Strengths
                 </span>
               </div>
@@ -297,7 +306,7 @@ export function ClientProfileCard({
                 {profile.strengths?.slice(0, 4).map((strength, i) => (
                   <Badge
                     key={i}
-                    className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                    className="text-xs bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800"
                   >
                     {strength}
                   </Badge>
@@ -312,7 +321,7 @@ export function ClientProfileCard({
             <div className="space-y-2">
               <div className="flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 text-blue-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Focus Areas
                 </span>
               </div>
@@ -333,7 +342,7 @@ export function ClientProfileCard({
             <div className="space-y-1">
               <div className="flex items-center gap-1">
                 <Sparkles className="h-3 w-3 text-yellow-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Breakthrough Potential
                 </span>
               </div>
@@ -348,7 +357,7 @@ export function ClientProfileCard({
           {/* Recurring Themes */}
           {(profile.recurring_themes?.length ?? 0) > 0 && (
             <div className="space-y-2">
-              <span className="text-xs font-medium text-gray-700">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                 Recurring Themes
               </span>
               <div className="flex flex-wrap gap-1">
@@ -366,7 +375,7 @@ export function ClientProfileCard({
             <div className="space-y-2 border-t pt-2">
               <div className="flex items-center gap-1">
                 <Award className="h-3 w-3 text-gold-500" />
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   Recent Achievements
                 </span>
               </div>
