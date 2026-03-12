@@ -4,7 +4,6 @@ import { CoachingPanel } from '@/components/meeting/coaching-panel'
 import { ClientProfileCard } from '@/components/meeting/client-profile-card'
 import { SimilarSessionsCard } from '@/components/meeting/similar-sessions-card'
 import { PatternInsightsCard } from '@/components/meeting/pattern-insights-card'
-import { AnalysisConversationsCard } from '@/components/meeting/analysis-conversations-card'
 import { QuickNote } from '@/components/session-notes/quick-note'
 import { QuickCommitment } from '@/components/commitments/quick-commitment'
 import { ParticipantSelector } from '@/components/group-session/participant-selector'
@@ -20,7 +19,6 @@ import {
   User,
   History,
   TrendingUp,
-  MessageSquareText,
   MessageSquare,
   PanelRightClose,
   PanelRightOpen,
@@ -45,6 +43,7 @@ interface MeetingPanelsProps {
   sessionId?: string
   clientId?: string
   isGroupSession?: boolean
+  isMeetingEnded?: boolean
 }
 
 type SidebarTab = 'transcript' | 'context'
@@ -55,6 +54,7 @@ export default function MeetingPanels({
   sessionId,
   clientId,
   isGroupSession,
+  isMeetingEnded,
 }: MeetingPanelsProps) {
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
@@ -124,8 +124,6 @@ export default function MeetingPanels({
     }
 
     fetchContext()
-    const intervalId = setInterval(fetchContext, 30000)
-    return () => clearInterval(intervalId)
   }, [botId, clientId])
 
   useCoachingWebSocket(botId, {
@@ -205,6 +203,7 @@ export default function MeetingPanels({
                 sessionId={sessionId}
                 noteType="coach_private"
                 clientId={commitmentClientId || undefined}
+                isMeetingEnded={isMeetingEnded}
               />
             ) : (
               <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
@@ -445,25 +444,6 @@ export default function MeetingPanels({
                           compact={true}
                         />
                       )}
-                    </AccordionContent>
-                  </AccordionItem>
-
-                  {/* Analysis Conversations */}
-                  <AccordionItem value="analysis" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
-                      <div className="flex items-center gap-2">
-                        <MessageSquareText className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
-                          Analysis
-                        </span>
-                      </div>
-                    </AccordionTrigger>
-                    <AccordionContent className="px-4 pb-3">
-                      <AnalysisConversationsCard
-                        conversations={fullContext?.analysis_conversations}
-                        loading={contextLoading}
-                        compact={true}
-                      />
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>

@@ -72,12 +72,18 @@ export function SessionCard({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-gray-700" />
+        return (
+          <CheckCircle2 className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+        )
       case 'in_progress':
       case 'recording':
-        return <Circle className="h-4 w-4 text-gray-900 animate-pulse" />
+        return (
+          <Circle className="h-4 w-4 text-gray-900 dark:text-white animate-pulse" />
+        )
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-gray-800" />
+        return (
+          <AlertCircle className="h-4 w-4 text-gray-800 dark:text-gray-200" />
+        )
       default:
         return <Circle className="h-4 w-4 text-gray-400" />
     }
@@ -86,14 +92,14 @@ export function SessionCard({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-gray-900 text-white border-gray-900'
+        return 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
       case 'in_progress':
       case 'recording':
-        return 'bg-gray-800 text-white border-gray-800'
+        return 'bg-gray-800 dark:bg-gray-200 text-white dark:text-gray-900 border-gray-800 dark:border-gray-200'
       case 'error':
-        return 'bg-gray-700 text-white border-gray-700'
+        return 'bg-gray-700 dark:bg-gray-300 text-white dark:text-gray-900 border-gray-700 dark:border-gray-300'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-700'
     }
   }
 
@@ -149,7 +155,7 @@ export function SessionCard({
   }
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 border border-gray-200 bg-white hover:border-gray-300">
+    <Card className="hover:shadow-lg transition-all duration-200 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-500">
       <CardContent className="p-4 space-y-3">
         {/* Session Title - Editable */}
         {!isViewer && isEditingTitle ? (
@@ -168,7 +174,7 @@ export function SessionCard({
               size="sm"
               onClick={handleSaveTitle}
               disabled={isSavingTitle}
-              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30"
             >
               <Check className="h-4 w-4" />
             </Button>
@@ -177,14 +183,14 @@ export function SessionCard({
               size="sm"
               onClick={handleCancelEdit}
               disabled={isSavingTitle}
-              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
             >
               <X className="h-4 w-4" />
             </Button>
           </div>
         ) : (
           <div className="flex items-center gap-2 group">
-            <h3 className="text-sm font-semibold text-gray-900 flex-1 line-clamp-1">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex-1 line-clamp-1">
               {displayTitle}
             </h3>
             {!isViewer && (
@@ -208,12 +214,12 @@ export function SessionCard({
           <div className="flex items-center gap-2 flex-1">
             {getStatusIcon(session.status)}
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-sm font-semibold text-gray-900 dark:text-white">
                 {getPlatformName(session.meeting_url)}
               </span>
               {/* NEW: Coach and Client info */}
               {(coachName || clientName) && (
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {coachName && (
                     <span className="font-medium">Coach: {coachName}</span>
                   )}
@@ -227,7 +233,7 @@ export function SessionCard({
           </div>
           <div className="flex items-center gap-2">
             {durationMinutes && (
-              <div className="flex items-center gap-1 text-xs text-gray-600">
+              <div className="flex items-center gap-1 text-xs text-gray-600 dark:text-gray-400">
                 <Clock className="h-3 w-3" />
                 <span className="font-medium">{durationMinutes}m</span>
               </div>
@@ -246,63 +252,65 @@ export function SessionCard({
         {/* AI Summary - The main focus */}
         {isViewer ? (
           // Viewers see restricted message instead of actual content
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Lock className="h-4 w-4 text-gray-500" />
+              <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <Lock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-bold text-gray-700 mb-1.5 uppercase tracking-wider">
+                <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mb-1.5 uppercase tracking-wider">
                   Restricted Access
                 </p>
-                <p className="text-sm text-gray-500 leading-relaxed">
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
                   Session content is not available with viewer permissions
                 </p>
               </div>
             </div>
           </div>
         ) : meetingSummary ? (
-          <div className="p-4 bg-gradient-to-b from-gray-50 to-white border border-gray-200 rounded-xl">
+          <div className="p-4 bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-800/50 border border-gray-200 dark:border-gray-700 rounded-xl">
             <div className="flex items-start gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <FileText className="h-4 w-4 text-gray-700" />
+              <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                <FileText className="h-4 w-4 text-gray-700 dark:text-gray-300" />
               </div>
               <div className="flex-1">
-                <p className="text-xs font-bold text-gray-900 mb-1.5 uppercase tracking-wider">
+                <p className="text-xs font-bold text-gray-900 dark:text-white mb-1.5 uppercase tracking-wider">
                   Session Summary
                 </p>
-                <p className="text-sm text-gray-700 leading-relaxed line-clamp-2">
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-2">
                   {meetingSummary}
                 </p>
               </div>
             </div>
           </div>
         ) : session.status === 'completed' ? (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-            <p className="text-sm text-gray-600 font-medium">
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+            <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
               Processing summary...
             </p>
           </div>
         ) : session.status === 'in_progress' ||
           session.status === 'recording' ? (
-          <div className="p-4 bg-gray-900 text-white rounded-xl">
+          <div className="p-4 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl">
             <p className="text-sm font-medium">
               Live Session • Recording in progress
             </p>
           </div>
         ) : (
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl">
-            <p className="text-sm text-gray-600">Initializing session...</p>
+          <div className="p-4 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Initializing session...
+            </p>
           </div>
         )}
 
         {/* Footer with date, time and action */}
-        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
           <div className="flex flex-col">
-            <span className="text-xs text-gray-700 font-medium">
+            <span className="text-xs text-gray-700 dark:text-gray-300 font-medium">
               {formatDate(session.created_at, 'EEEE, MMM d, yyyy')}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {formatRelativeTime(session.created_at)}
             </span>
           </div>
@@ -312,7 +320,7 @@ export function SessionCard({
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowEditModal(true)}
-                className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
+                className="text-xs hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium"
               >
                 <SquarePen className="h-3 w-3 mr-1" />
                 Edit
@@ -338,7 +346,7 @@ export function SessionCard({
                   variant="ghost"
                   size="sm"
                   onClick={() => onViewDetails(session.id)}
-                  className="text-xs hover:bg-gray-100 text-gray-700 hover:text-gray-900 font-medium"
+                  className="text-xs hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium"
                 >
                   <Eye className="h-3 w-3 mr-1" />
                   View Details

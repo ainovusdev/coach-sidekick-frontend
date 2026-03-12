@@ -1,10 +1,8 @@
 'use client'
 
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { formatDate } from '@/lib/date-utils'
-import { Badge } from '@/components/ui/badge'
 import {
-  Brain,
   TrendingUp,
   TrendingDown,
   Activity,
@@ -80,34 +78,17 @@ export function PatternInsightsCard({
     return pattern.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
   }
 
-  if (
-    (currentPatterns?.length ?? 0) === 0 &&
-    (patternHistory?.length ?? 0) === 0 &&
-    (recurringThemes?.length ?? 0) === 0
-  ) {
+  const allPatterns = insights?.key_patterns || currentPatterns || []
+  const hasPatterns = allPatterns.length > 0
+  const hasHistory = (patternHistory?.length ?? 0) > 0
+  const hasThemes = (recurringThemes?.length ?? 0) > 0
+
+  if (!hasPatterns && !hasHistory && !hasThemes) {
     return (
-      <Card className={compact ? 'h-auto' : 'h-full'}>
-        <CardHeader className={compact ? 'pb-2 py-2' : 'pb-3'}>
-          <h3
-            className={
-              compact
-                ? 'text-xs font-medium flex items-center gap-1'
-                : 'text-sm font-medium flex items-center gap-2'
-            }
-          >
-            <Brain
-              className={
-                compact ? 'h-3 w-3 text-gray-500' : 'h-4 w-4 text-gray-500'
-              }
-            />
-            {compact ? 'Patterns' : 'Pattern Insights'}
-          </h3>
-        </CardHeader>
-        <CardContent className={compact ? 'pt-0' : ''}>
+      <Card className={compact ? 'h-auto border-0 shadow-none' : 'h-full'}>
+        <CardContent className={compact ? 'p-0' : 'pt-4'}>
           <p className="text-xs text-gray-500">
-            {compact
-              ? 'No patterns yet'
-              : 'Patterns will emerge as the conversation develops.'}
+            Patterns will emerge as the conversation develops.
           </p>
         </CardContent>
       </Card>
@@ -115,148 +96,107 @@ export function PatternInsightsCard({
   }
 
   return (
-    <Card className={compact ? 'h-auto' : 'h-full overflow-hidden'}>
-      <CardHeader className={compact ? 'pb-2 py-2' : 'pb-3'}>
-        <h3
-          className={
-            compact
-              ? 'text-xs font-medium flex items-center gap-1'
-              : 'text-sm font-medium flex items-center gap-2'
-          }
-        >
-          <Brain
-            className={
-              compact ? 'h-3 w-3 text-purple-500' : 'h-4 w-4 text-purple-500'
-            }
-          />
-          {compact ? 'Patterns' : 'Pattern Insights'}
-        </h3>
-      </CardHeader>
+    <Card
+      className={
+        compact ? 'h-auto border-0 shadow-none' : 'h-full overflow-hidden'
+      }
+    >
       <CardContent
         className={
-          compact ? 'space-y-2 pt-0' : 'space-y-4 overflow-y-auto max-h-[600px]'
+          compact
+            ? 'space-y-3 p-0'
+            : 'space-y-4 pt-4 overflow-y-auto max-h-[600px]'
         }
       >
-        {/* Current Patterns */}
-        {((currentPatterns?.length ?? 0) > 0 ||
-          (insights?.key_patterns?.length ?? 0) > 0) && (
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-gray-700">
-                Active Patterns
-              </span>
-              <Badge variant="secondary" className="text-xs">
-                Now
-              </Badge>
-            </div>
-            <div className="space-y-1">
-              {(insights?.key_patterns || currentPatterns || []).map(
-                (pattern, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    {getPatternIcon(pattern)}
-                    <Badge className={`text-xs ${getPatternColor(pattern)}`}>
-                      {formatPatternName(pattern)}
-                    </Badge>
-                  </div>
-                ),
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Pattern Evolution */}
-        {(patternHistory?.length ?? 0) > 0 && !compact && (
-          <div className="space-y-2">
-            <span className="text-xs font-medium text-gray-700">
-              Pattern Evolution
+        {/* Active Patterns */}
+        {hasPatterns && (
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Active
             </span>
-            <div className="space-y-2">
-              {(patternHistory || []).slice(0, 3).map((history, i) => {
-                const date = new Date(history.date)
-                const timeAgo = getTimeAgo(date)
-
-                return (
-                  <div key={i} className="border rounded-lg p-2 bg-gray-50">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-xs text-gray-500">{timeAgo}</span>
-                      {history.dominant_pattern && (
-                        <Badge variant="outline" className="text-xs py-0">
-                          {formatPatternName(history.dominant_pattern)}
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-1">
-                      {history.patterns.slice(0, 3).map((pattern, j) => (
-                        <div key={j} className="flex items-center gap-1">
-                          {getPatternIcon(pattern)}
-                          <span className="text-xs text-gray-600">
-                            {formatPatternName(pattern)}
-                          </span>
-                          {history.intensity?.[pattern] && (
-                            <span className="text-xs text-gray-400">
-                              ({Math.round(history.intensity[pattern] * 100)}%)
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {history.context && (
-                      <p className="text-xs text-gray-500 mt-1">
-                        {history.context}
-                      </p>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Recurring Themes */}
-        {(recurringThemes?.length ?? 0) > 0 && (
-          <div className="space-y-2">
-            <span className="text-xs font-medium text-gray-700">
-              Recurring Themes
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {(recurringThemes || []).map((theme, i) => (
+            <div className="flex flex-wrap gap-1.5">
+              {allPatterns.map((pattern, i) => (
                 <div
                   key={i}
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-full bg-gray-100 ${getThemeSize(theme.count)}`}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ${getPatternColor(pattern)}`}
                 >
-                  <span className="text-gray-700">{theme.theme}</span>
-                  {theme.count > 1 && (
-                    <Badge variant="secondary" className="text-xs h-4 px-1">
-                      {theme.count}
-                    </Badge>
-                  )}
+                  {getPatternIcon(pattern)}
+                  {formatPatternName(pattern)}
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Pattern Insights Summary */}
+        {/* Pattern Timeline (non-compact only) */}
+        {hasHistory && !compact && (
+          <div className="space-y-2">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              History
+            </span>
+            <div className="space-y-1.5">
+              {(patternHistory || []).slice(0, 3).map((history, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs">
+                  <span className="text-gray-400 w-16 flex-shrink-0 text-right">
+                    {getTimeAgo(new Date(history.date))}
+                  </span>
+                  <div className="w-px h-4 bg-gray-200 dark:bg-gray-600" />
+                  <div className="flex flex-wrap gap-1">
+                    {history.patterns.slice(0, 3).map((pattern, j) => (
+                      <span
+                        key={j}
+                        className="flex items-center gap-1 text-gray-600 dark:text-gray-400"
+                      >
+                        {getPatternIcon(pattern)}
+                        {formatPatternName(pattern)}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Recurring Themes */}
+        {hasThemes && (
+          <div className="space-y-1.5">
+            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Recurring Themes
+            </span>
+            <div className="flex flex-wrap gap-1.5">
+              {(recurringThemes || []).map((theme, i) => (
+                <span
+                  key={i}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 ${getThemeSize(theme.count)}`}
+                >
+                  {theme.theme}
+                  {theme.count > 1 && (
+                    <span className="text-gray-400 dark:text-gray-500">
+                      x{theme.count}
+                    </span>
+                  )}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Pattern Summary (non-compact, 3+ history entries) */}
         {(patternHistory?.length ?? 0) > 2 && !compact && (
-          <div className="border-t pt-3">
-            <div className="space-y-2">
-              <span className="text-xs font-medium text-gray-700">
-                Pattern Summary
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <div className="text-center p-2 bg-gray-50 rounded">
-                  <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
-                  <p className="text-xs text-gray-600">
-                    {countPositivePatterns(patternHistory || [])} positive
-                    shifts
-                  </p>
-                </div>
-                <div className="text-center p-2 bg-gray-50 rounded">
-                  <Activity className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-                  <p className="text-xs text-gray-600">
-                    {countUniquePatterns(patternHistory || [])} unique patterns
-                  </p>
-                </div>
+          <div className="border-t dark:border-gray-700 pt-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {countPositivePatterns(patternHistory || [])} positive shifts
+                </p>
+              </div>
+              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                <Activity className="h-4 w-4 text-blue-500 mx-auto mb-1" />
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  {countUniquePatterns(patternHistory || [])} unique patterns
+                </p>
               </div>
             </div>
           </div>

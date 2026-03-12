@@ -78,21 +78,21 @@ export default function ClientSelector({
       <div className="relative">
         {selectedClient ? (
           <div
-            className="w-full px-3 py-2 border border-neutral-200 rounded-md bg-white cursor-pointer hover:border-neutral-400 flex items-center justify-between"
+            className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md bg-white dark:bg-gray-900 cursor-pointer hover:border-neutral-400 dark:hover:border-neutral-500 flex items-center justify-between"
             onClick={() => setIsOpen(!isOpen)}
           >
             <div className="flex items-center gap-3">
-              <Avatar className="h-8 w-8 bg-neutral-100 border border-neutral-200">
-                <AvatarFallback className="bg-white text-neutral-700 text-sm">
+              <Avatar className="h-8 w-8 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                <AvatarFallback className="bg-white dark:bg-gray-900 text-neutral-700 dark:text-neutral-300 text-sm">
                   {getClientInitials(selectedClient.name)}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <span className="font-medium text-neutral-900">
+                <span className="font-medium text-neutral-900 dark:text-white">
                   {selectedClient.name}
                 </span>
                 {selectedClient.notes && (
-                  <span className="text-sm text-neutral-500 ml-2 truncate max-w-[200px] inline-block align-middle">
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400 ml-2 truncate max-w-[200px] inline-block align-middle">
                     {selectedClient.notes}
                   </span>
                 )}
@@ -106,7 +106,7 @@ export default function ClientSelector({
                   e.stopPropagation()
                   handleClientSelect(null)
                 }}
-                className="h-6 w-6 p-0 hover:bg-neutral-50 text-neutral-500"
+                className="h-6 w-6 p-0 hover:bg-neutral-50 dark:hover:bg-neutral-800 text-neutral-500 dark:text-neutral-400"
               >
                 ×
               </Button>
@@ -118,13 +118,13 @@ export default function ClientSelector({
             value={searchTerm}
             onChange={handleSearchChange}
             onFocus={() => setIsOpen(true)}
-            className="cursor-pointer border-neutral-200 focus:border-neutral-400 focus:ring-0"
+            className="cursor-pointer border-neutral-200 dark:border-neutral-700 focus:border-neutral-400 dark:focus:border-neutral-500 focus:ring-0"
           />
         )}
       </div>
 
       {isOpen && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-neutral-200 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-900 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-lg z-50 max-h-64 overflow-y-auto">
           {!selectedClient && (
             <div className="p-2">
               <Input
@@ -132,7 +132,7 @@ export default function ClientSelector({
                 value={searchTerm}
                 onChange={handleSearchChange}
                 autoFocus
-                className="w-full border-neutral-200 focus:border-neutral-400 focus:ring-0"
+                className="w-full border-neutral-200 dark:border-neutral-700 focus:border-neutral-400 dark:focus:border-neutral-500 focus:ring-0"
               />
             </div>
           )}
@@ -140,59 +140,61 @@ export default function ClientSelector({
           {/* Add Client Option */}
           {onAddClient && (
             <div
-              className="px-3 py-2.5 hover:bg-neutral-50 cursor-pointer flex items-center gap-2 border-b border-neutral-100"
+              className="px-3 py-2.5 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-2 border-b border-neutral-100 dark:border-neutral-700"
               onClick={() => {
                 setIsOpen(false)
                 onAddClient()
               }}
             >
-              <div className="w-8 h-8 rounded-full bg-gray-900 flex items-center justify-center">
-                <Plus className="h-4 w-4 text-white" />
+              <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center">
+                <Plus className="h-4 w-4 text-white dark:text-gray-900" />
               </div>
-              <span className="font-medium text-gray-900">Add new client</span>
+              <span className="font-medium text-gray-900 dark:text-white">
+                Add new client
+              </span>
             </div>
           )}
 
           <div className="py-1">
             {allowNone && !selectedClient && (
               <div
-                className="px-3 py-2 hover:bg-neutral-50 cursor-pointer border-b border-neutral-100"
+                className="px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer border-b border-neutral-100 dark:border-neutral-700"
                 onClick={() => handleClientSelect(null)}
               >
-                <span className="text-neutral-500 italic">
+                <span className="text-neutral-500 dark:text-neutral-400 italic">
                   No client selected
                 </span>
               </div>
             )}
 
             {loading && clients.length === 0 ? (
-              <div className="px-3 py-4 text-center text-neutral-500">
+              <div className="px-3 py-4 text-center text-neutral-500 dark:text-neutral-400">
                 Loading clients...
               </div>
             ) : filteredClients.length === 0 ? (
-              <div className="px-3 py-4 text-center text-neutral-500">
+              <div className="px-3 py-4 text-center text-neutral-500 dark:text-neutral-400">
                 {searchTerm ? 'No clients found' : 'No clients available'}
               </div>
             ) : (
               filteredClients.map(client => (
                 <div
                   key={client.id}
-                  className="px-3 py-2 hover:bg-neutral-50 cursor-pointer flex items-center gap-3"
+                  className="px-3 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-800 cursor-pointer flex items-center gap-3"
                   onClick={() => handleClientSelect(client as Client)}
                 >
-                  <Avatar className="h-8 w-8 bg-neutral-100 border border-neutral-200">
-                    <AvatarFallback className="bg-white text-neutral-700 text-sm">
+                  <Avatar className="h-8 w-8 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700">
+                    <AvatarFallback className="bg-white dark:bg-gray-900 text-neutral-700 dark:text-neutral-300 text-sm">
                       {getClientInitials(client.name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-neutral-900 truncate">
+                      <span className="font-medium text-neutral-900 dark:text-white truncate">
                         {client.name}
                       </span>
                     </div>
                     {client.email && (
-                      <div className="text-sm text-neutral-500 truncate">
+                      <div className="text-sm text-neutral-500 dark:text-neutral-400 truncate">
                         {client.email}
                       </div>
                     )}

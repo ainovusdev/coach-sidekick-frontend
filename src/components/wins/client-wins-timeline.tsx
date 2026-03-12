@@ -44,7 +44,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
 
   if (loading) {
     return (
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
         <CardContent className="py-12 flex items-center justify-center">
           <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
         </CardContent>
@@ -81,8 +81,8 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
   const pendingWins = wins.filter(w => !w.is_approved)
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="bg-gray-50 border-b border-gray-200">
+    <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
+      <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
@@ -90,7 +90,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
             </div>
             <div>
               <CardTitle className="text-lg">Client Wins</CardTitle>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Achievements and breakthroughs from all sessions
               </p>
             </div>
@@ -100,7 +100,10 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
               {approvedWins.length} wins
             </Badge>
             {pendingWins.length > 0 && (
-              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+              >
                 {pendingWins.length} pending
               </Badge>
             )}
@@ -110,7 +113,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
 
       <CardContent className="p-0">
         {winsBySession.length > 0 ? (
-          <div className="divide-y divide-gray-100">
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
             {winsBySession.map(sessionGroup => (
               <div key={sessionGroup.sessionId} className="p-6">
                 {/* Session Header */}
@@ -118,11 +121,11 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                   <div className="flex items-center gap-3">
                     <Calendar className="h-4 w-4 text-gray-400" />
                     <div>
-                      <h4 className="font-medium text-gray-900">
+                      <h4 className="font-medium text-gray-900 dark:text-white">
                         {sessionGroup.sessionTitle || 'Coaching Session'}
                       </h4>
                       {sessionGroup.sessionDate && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(sessionGroup.sessionDate, 'MMMM d, yyyy')}
                         </p>
                       )}
@@ -143,8 +146,8 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                       key={win.id}
                       className={`p-4 rounded-lg border ${
                         win.is_approved
-                          ? 'bg-white border-gray-200'
-                          : 'bg-amber-50 border-amber-200'
+                          ? 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
+                          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
                       }`}
                     >
                       <div className="flex items-start gap-3">
@@ -163,14 +166,14 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-2">
-                            <h5 className="font-medium text-gray-900">
+                            <h5 className="font-medium text-gray-900 dark:text-white">
                               {win.title}
                             </h5>
                             <div className="flex gap-1.5">
                               {win.is_ai_generated && (
                                 <Badge
                                   variant="secondary"
-                                  className="bg-gray-100 text-gray-500 text-xs"
+                                  className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs"
                                 >
                                   AI
                                 </Badge>
@@ -186,7 +189,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                             </div>
                           </div>
                           {win.description && (
-                            <p className="text-sm text-gray-600 mt-1">
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                               {win.description}
                             </p>
                           )}
@@ -200,11 +203,11 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
           </div>
         ) : (
           <div className="py-16 text-center">
-            <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <Trophy className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
               No wins recorded yet
             </h3>
-            <p className="text-gray-500 max-w-sm mx-auto">
+            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
               Wins will appear here as they are recorded during coaching
               sessions. Use AI extraction or add them manually from session
               details.

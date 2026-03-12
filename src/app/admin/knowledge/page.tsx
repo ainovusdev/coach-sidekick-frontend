@@ -64,6 +64,7 @@ import {
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { formatDate } from '@/lib/date-utils'
+import { toast } from 'sonner'
 
 const categoryIcons: Record<KnowledgeCategory, React.ReactNode> = {
   coaching_improvement: <Lightbulb className="h-4 w-4" />,
@@ -191,6 +192,13 @@ export default function KnowledgeHubPage() {
         queryClient.invalidateQueries({ queryKey: ['knowledge-documents'] })
       } catch (err) {
         console.error('Processing failed:', err)
+        toast.error('Document processing failed', {
+          description:
+            err instanceof Error
+              ? err.message
+              : 'Processing failed. Please try again.',
+          duration: 8000,
+        })
       }
     },
   })
@@ -259,8 +267,10 @@ export default function KnowledgeHubPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Knowledge Hub</h1>
-          <p className="text-gray-600 mt-1">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Knowledge Hub
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage coaching resources and knowledge documents
           </p>
         </div>
@@ -277,10 +287,12 @@ export default function KnowledgeHubPage() {
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Total Documents</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Total Documents
+                  </p>
                   <p className="text-2xl font-bold">{stats.total_documents}</p>
                 </div>
-                <FileText className="h-8 w-8 text-gray-400" />
+                <FileText className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               </div>
             </CardContent>
           </Card>
@@ -288,12 +300,14 @@ export default function KnowledgeHubPage() {
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Total Words</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Total Words
+                  </p>
                   <p className="text-2xl font-bold">
                     {stats.total_words.toLocaleString()}
                   </p>
                 </div>
-                <BookOpen className="h-8 w-8 text-gray-400" />
+                <BookOpen className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               </div>
             </CardContent>
           </Card>
@@ -301,12 +315,14 @@ export default function KnowledgeHubPage() {
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Indexed Chunks</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Indexed Chunks
+                  </p>
                   <p className="text-2xl font-bold">
                     {stats.total_chunks_indexed}
                   </p>
                 </div>
-                <Zap className="h-8 w-8 text-gray-400" />
+                <Zap className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               </div>
             </CardContent>
           </Card>
@@ -314,12 +330,14 @@ export default function KnowledgeHubPage() {
             <CardContent className="pt-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Processing</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Processing
+                  </p>
                   <p className="text-2xl font-bold">
                     {stats.documents_by_status?.processing || 0}
                   </p>
                 </div>
-                <Loader2 className="h-8 w-8 text-gray-400" />
+                <Loader2 className="h-8 w-8 text-gray-400 dark:text-gray-500" />
               </div>
             </CardContent>
           </Card>
@@ -329,7 +347,7 @@ export default function KnowledgeHubPage() {
       {/* Filters */}
       <div className="flex gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
           <Input
             placeholder="Search documents..."
             value={searchQuery}
@@ -374,11 +392,11 @@ export default function KnowledgeHubPage() {
       ) : documents.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <AlertCircle className="h-12 w-12 text-gray-400 dark:text-gray-500 mb-4" />
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No documents found
             </h3>
-            <p className="text-gray-600 text-center mb-6">
+            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
               {searchQuery || categoryFilter !== 'all' || statusFilter !== 'all'
                 ? 'Try adjusting your filters'
                 : 'Get started by uploading your first document'}
@@ -408,14 +426,14 @@ export default function KnowledgeHubPage() {
                     {/* File Icon */}
                     <div className="flex-shrink-0">
                       {fileTypeIcons[doc.file_type] || (
-                        <FileText className="h-5 w-5 text-gray-500" />
+                        <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                       )}
                     </div>
 
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium text-gray-900 truncate">
+                        <h3 className="font-medium text-gray-900 dark:text-white truncate">
                           {doc.title}
                         </h3>
                         <Badge variant="outline" className={status.color}>
@@ -423,7 +441,7 @@ export default function KnowledgeHubPage() {
                           <span className="ml-1">{status.label}</span>
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span className="flex items-center gap-1">
                           {categoryIcons[doc.category as KnowledgeCategory]}
                           {categoryMeta?.name || doc.category}
@@ -455,6 +473,12 @@ export default function KnowledgeHubPage() {
                           className="mt-2 h-1"
                         />
                       )}
+                      {doc.processing_status === 'failed' &&
+                        doc.processing_error && (
+                          <p className="mt-1 text-xs text-red-600 dark:text-red-400">
+                            {doc.processing_error}
+                          </p>
+                        )}
                     </div>
 
                     {/* Actions */}
@@ -498,8 +522,8 @@ export default function KnowledgeHubPage() {
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
                 isDragActive
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-300 hover:border-gray-400'
+                  ? 'border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                  : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
               }`}
             >
               <input {...getInputProps()} />
@@ -509,17 +533,17 @@ export default function KnowledgeHubPage() {
                     <FileText className="h-5 w-5" />
                   )}
                   <span className="font-medium">{uploadFile.name}</span>
-                  <span className="text-gray-500">
+                  <span className="text-gray-500 dark:text-gray-400">
                     ({(uploadFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
                 </div>
               ) : (
                 <div>
-                  <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
-                  <p className="text-gray-600">
+                  <Upload className="h-8 w-8 mx-auto text-gray-400 dark:text-gray-500 mb-2" />
+                  <p className="text-gray-600 dark:text-gray-400">
                     Drag & drop a file here, or click to select
                   </p>
-                  <p className="text-sm text-gray-400 mt-1">
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                     Supports PDF, DOCX, TXT, audio, and video files
                   </p>
                 </div>
@@ -630,20 +654,24 @@ export default function KnowledgeHubPage() {
 
           {isLoadingDetail ? (
             <div className="py-8 text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400" />
+              <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-400 dark:text-gray-500" />
             </div>
           ) : documentDetail ? (
             <div className="space-y-4">
               {documentDetail.description && (
                 <div>
-                  <Label className="text-gray-500">Description</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    Description
+                  </Label>
                   <p className="mt-1">{documentDetail.description}</p>
                 </div>
               )}
 
               {documentDetail.tags.length > 0 && (
                 <div>
-                  <Label className="text-gray-500">Tags</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    Tags
+                  </Label>
                   <div className="flex gap-1 mt-1">
                     {documentDetail.tags.map(tag => (
                       <Badge key={tag} variant="secondary">
@@ -655,8 +683,10 @@ export default function KnowledgeHubPage() {
               )}
 
               <div>
-                <Label className="text-gray-500">Extracted Content</Label>
-                <div className="mt-1 p-4 bg-gray-50 rounded-lg max-h-96 overflow-y-auto">
+                <Label className="text-gray-500 dark:text-gray-400">
+                  Extracted Content
+                </Label>
+                <div className="mt-1 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg max-h-96 overflow-y-auto">
                   <pre className="whitespace-pre-wrap text-sm font-mono">
                     {documentDetail.extracted_text ||
                       'No content extracted yet'}
@@ -666,13 +696,17 @@ export default function KnowledgeHubPage() {
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <Label className="text-gray-500">File Type</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    File Type
+                  </Label>
                   <p className="mt-1">
                     {documentDetail.file_type.toUpperCase()}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-gray-500">File Size</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    File Size
+                  </Label>
                   <p className="mt-1">
                     {documentDetail.file_size_bytes
                       ? `${(documentDetail.file_size_bytes / 1024 / 1024).toFixed(2)} MB`
@@ -680,13 +714,17 @@ export default function KnowledgeHubPage() {
                   </p>
                 </div>
                 <div>
-                  <Label className="text-gray-500">Indexed</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    Indexed
+                  </Label>
                   <p className="mt-1">
                     {documentDetail.weaviate_indexed ? 'Yes' : 'No'}
                   </p>
                 </div>
                 <div>
-                  <Label className="text-gray-500">Chunks</Label>
+                  <Label className="text-gray-500 dark:text-gray-400">
+                    Chunks
+                  </Label>
                   <p className="mt-1">{documentDetail.weaviate_chunk_count}</p>
                 </div>
               </div>

@@ -77,9 +77,9 @@ export function ActiveSessionsCard() {
   }
 
   return (
-    <Card className="border-green-200 bg-green-50/50">
+    <Card className="border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/20">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-green-800">
+        <CardTitle className="text-lg font-semibold flex items-center gap-2 text-green-800 dark:text-green-400">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
             <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
@@ -91,13 +91,13 @@ export function ActiveSessionsCard() {
         {activeSessions.map(session => (
           <div
             key={session.session_id}
-            className="flex items-center justify-between p-4 bg-white rounded-lg border border-green-200"
+            className="flex items-center justify-between p-4 bg-white rounded-lg border border-green-200 dark:bg-gray-800 dark:border-green-800"
           >
             <div className="space-y-1">
-              <p className="font-medium text-gray-900">
+              <p className="font-medium text-gray-900 dark:text-white">
                 Session with {session.coach_name}
               </p>
-              <div className="flex items-center gap-3 text-sm text-gray-500">
+              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3.5 w-3.5" />
                   {formatDuration(session.duration_seconds)} elapsed
@@ -114,7 +114,10 @@ export function ActiveSessionsCard() {
                 </Button>
               </Link>
             ) : (
-              <Badge variant="secondary" className="bg-gray-100 text-gray-600">
+              <Badge
+                variant="secondary"
+                className="bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+              >
                 No link available
               </Badge>
             )}

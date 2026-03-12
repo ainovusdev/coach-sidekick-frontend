@@ -22,8 +22,9 @@ export interface NoteCreate {
  *   content: 'Important insight...'
  * })
  */
-export function useCreateNote(sessionId: string) {
+export function useCreateNote(sessionId: string, clientId?: string) {
   const queryClient = useQueryClient()
+  const notesKey = queryKeys.sessions.notes(sessionId, clientId)
 
   return useMutation({
     mutationFn: (data: NoteCreate) =>
@@ -31,14 +32,10 @@ export function useCreateNote(sessionId: string) {
 
     onMutate: async newNote => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      await queryClient.cancelQueries({ queryKey: notesKey })
 
       // Snapshot previous value
-      const previousNotes = queryClient.getQueryData(
-        queryKeys.sessions.notes(sessionId),
-      )
+      const previousNotes = queryClient.getQueryData(notesKey)
 
       // Optimistically update with temporary ID
       const timestamp = nowUTC()
@@ -55,13 +52,10 @@ export function useCreateNote(sessionId: string) {
         note_metadata: null,
       }
 
-      queryClient.setQueryData(
-        queryKeys.sessions.notes(sessionId),
-        (old: any) => {
-          if (!old) return [optimisticNote]
-          return [optimisticNote, ...old]
-        },
-      )
+      queryClient.setQueryData(notesKey, (old: any) => {
+        if (!old) return [optimisticNote]
+        return [optimisticNote, ...old]
+      })
 
       return { previousNotes }
     },
@@ -69,10 +63,7 @@ export function useCreateNote(sessionId: string) {
     onError: (err, _newNote, context) => {
       // Rollback on error
       if (context?.previousNotes) {
-        queryClient.setQueryData(
-          queryKeys.sessions.notes(sessionId),
-          context.previousNotes,
-        )
+        queryClient.setQueryData(notesKey, context.previousNotes)
       }
 
       toast.error('Failed to save note', {
@@ -88,9 +79,7 @@ export function useCreateNote(sessionId: string) {
 
     onSettled: () => {
       // Refetch to get the real data from server
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      queryClient.invalidateQueries({ queryKey: notesKey })
     },
   })
 }
@@ -98,8 +87,9 @@ export function useCreateNote(sessionId: string) {
 /**
  * Hook to update an existing note with optimistic updates
  */
-export function useUpdateNote(sessionId: string) {
+export function useUpdateNote(sessionId: string, clientId?: string) {
   const queryClient = useQueryClient()
+  const notesKey = queryKeys.sessions.notes(sessionId, clientId)
 
   return useMutation({
     mutationFn: ({
@@ -112,27 +102,20 @@ export function useUpdateNote(sessionId: string) {
 
     onMutate: async ({ noteId, data }) => {
       // Cancel outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      await queryClient.cancelQueries({ queryKey: notesKey })
 
       // Snapshot previous value
-      const previousNotes = queryClient.getQueryData(
-        queryKeys.sessions.notes(sessionId),
-      )
+      const previousNotes = queryClient.getQueryData(notesKey)
 
       // Optimistically update the note in the list
-      queryClient.setQueryData(
-        queryKeys.sessions.notes(sessionId),
-        (old: any) => {
-          if (!Array.isArray(old)) return old
-          return old.map((note: any) =>
-            note.id === noteId
-              ? { ...note, ...data, updated_at: nowUTC() }
-              : note,
-          )
-        },
-      )
+      queryClient.setQueryData(notesKey, (old: any) => {
+        if (!Array.isArray(old)) return old
+        return old.map((note: any) =>
+          note.id === noteId
+            ? { ...note, ...data, updated_at: nowUTC() }
+            : note,
+        )
+      })
 
       return { previousNotes, noteId }
     },
@@ -140,10 +123,7 @@ export function useUpdateNote(sessionId: string) {
     onError: (err, _variables, context) => {
       // Rollback on error
       if (context?.previousNotes) {
-        queryClient.setQueryData(
-          queryKeys.sessions.notes(sessionId),
-          context.previousNotes,
-        )
+        queryClient.setQueryData(notesKey, context.previousNotes)
       }
 
       toast.error('Failed to update note', {
@@ -157,9 +137,7 @@ export function useUpdateNote(sessionId: string) {
 
     onSettled: () => {
       // Refetch to get the real data from server
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      queryClient.invalidateQueries({ queryKey: notesKey })
     },
   })
 }
@@ -167,39 +145,30 @@ export function useUpdateNote(sessionId: string) {
 /**
  * Hook to delete a note
  */
-export function useDeleteNote(sessionId: string) {
+export function useDeleteNote(sessionId: string, clientId?: string) {
   const queryClient = useQueryClient()
+  const notesKey = queryKeys.sessions.notes(sessionId, clientId)
 
   return useMutation({
     mutationFn: (noteId: string) => SessionNotesService.deleteNote(noteId),
 
     onMutate: async noteId => {
-      await queryClient.cancelQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      await queryClient.cancelQueries({ queryKey: notesKey })
 
-      const previousNotes = queryClient.getQueryData(
-        queryKeys.sessions.notes(sessionId),
-      )
+      const previousNotes = queryClient.getQueryData(notesKey)
 
       // Optimistically remove
-      queryClient.setQueryData(
-        queryKeys.sessions.notes(sessionId),
-        (old: any) => {
-          if (!Array.isArray(old)) return old
-          return old.filter((note: any) => note.id !== noteId)
-        },
-      )
+      queryClient.setQueryData(notesKey, (old: any) => {
+        if (!Array.isArray(old)) return old
+        return old.filter((note: any) => note.id !== noteId)
+      })
 
       return { previousNotes }
     },
 
     onError: (err, _noteId, context) => {
       if (context?.previousNotes) {
-        queryClient.setQueryData(
-          queryKeys.sessions.notes(sessionId),
-          context.previousNotes,
-        )
+        queryClient.setQueryData(notesKey, context.previousNotes)
       }
 
       toast.error('Failed to delete note', {
@@ -212,9 +181,7 @@ export function useDeleteNote(sessionId: string) {
     },
 
     onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.notes(sessionId),
-      })
+      queryClient.invalidateQueries({ queryKey: notesKey })
     },
   })
 }

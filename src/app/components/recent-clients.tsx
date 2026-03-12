@@ -25,16 +25,16 @@ export default function RecentClients({
 
   if (clientsLoading) {
     return (
-      <Card className="bg-white border border-gray-200 h-full w-full">
-        <CardHeader className="pb-4 border-b border-gray-200">
-          <div className="h-6 w-32 bg-gray-100 rounded animate-pulse" />
+      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 h-full w-full">
+        <CardHeader className="pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="h-6 w-32 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
         </CardHeader>
         <CardContent className="p-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map(i => (
               <div
                 key={i}
-                className="h-20 bg-gray-100 rounded-lg animate-pulse w-full"
+                className="h-20 bg-gray-100 dark:bg-gray-800 rounded-lg animate-pulse w-full"
               />
             ))}
           </div>
@@ -45,24 +45,26 @@ export default function RecentClients({
 
   if (clients.length === 0) {
     return (
-      <Card className="bg-white border border-gray-200">
-        <CardHeader className="border-b border-gray-200 pb-4">
-          <h2 className="text-lg font-semibold text-gray-900">My Clients</h2>
+      <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+        <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            My Clients
+          </h2>
         </CardHeader>
         <CardContent className="p-6">
           <div className="text-center py-12">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 rounded-full mb-4">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
               <Users className="h-8 w-8 text-gray-400" />
             </div>
-            <h3 className="text-base font-semibold text-gray-900 mb-2">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
               No clients yet
             </h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
               Start building meaningful coaching relationships
             </p>
             <Button
               onClick={() => router.push('/clients')}
-              className="bg-gray-900 hover:bg-gray-800 text-white"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
             >
               Add Your First Client
               <Plus className="h-4 w-4 ml-2" />
@@ -77,21 +79,21 @@ export default function RecentClients({
     <div className="h-full flex flex-col w-full">
       {/* My Clients Section */}
       {myClients.length > 0 && (
-        <Card className="border border-gray-200 flex flex-col h-full w-full">
+        <Card className="border border-gray-200 dark:border-gray-700 flex flex-col h-full w-full">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-900 rounded-lg">
-                  <UserCircle className="h-5 w-5 text-white" />
+                <div className="p-2 bg-gray-900 dark:bg-white rounded-lg">
+                  <UserCircle className="h-5 w-5 text-white dark:text-gray-900" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                     My Clients
-                    <Badge className="bg-gray-900 text-white">
+                    <Badge className="bg-gray-900 dark:bg-white text-white dark:text-gray-900">
                       {myClients.length}
                     </Badge>
                   </h3>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
                     Clients you created and manage
                   </p>
                 </div>
@@ -100,7 +102,7 @@ export default function RecentClients({
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/clients')}
-                className="text-gray-600 hover:text-gray-900"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               >
                 View All
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -126,7 +128,7 @@ export default function RecentClients({
                   variant="outline"
                   size="sm"
                   onClick={() => router.push('/clients')}
-                  className="border-gray-300 hover:border-gray-900"
+                  className="border-gray-300 dark:border-gray-600 hover:border-gray-900 dark:hover:border-gray-400"
                 >
                   View {myClients.length - 6} More Clients
                 </Button>

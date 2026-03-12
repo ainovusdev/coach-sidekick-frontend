@@ -15,22 +15,22 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
         components={{
           // Headings
           h1: ({ children }) => (
-            <h1 className="text-base font-bold text-gray-900 mb-2 mt-3 first:mt-0">
+            <h1 className="text-base font-bold text-gray-900 dark:text-white mb-2 mt-3 first:mt-0">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="text-sm font-bold text-gray-900 mb-1.5 mt-3 first:mt-0">
+            <h2 className="text-sm font-bold text-gray-900 dark:text-white mb-1.5 mt-3 first:mt-0">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="text-sm font-semibold text-gray-800 mb-1 mt-2.5 first:mt-0">
+            <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-200 mb-1 mt-2.5 first:mt-0">
               {children}
             </h3>
           ),
           h4: ({ children }) => (
-            <h4 className="text-sm font-semibold text-gray-700 mb-1 mt-2 first:mt-0">
+            <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1 mt-2 first:mt-0">
               {children}
             </h4>
           ),
@@ -42,12 +42,12 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
 
           // Lists
           ul: ({ children }) => (
-            <ul className="list-disc pl-5 mb-2 space-y-0.5 text-gray-700">
+            <ul className="list-disc pl-5 mb-2 space-y-0.5 text-gray-700 dark:text-gray-300">
               {children}
             </ul>
           ),
           ol: ({ children }) => (
-            <ol className="list-decimal pl-5 mb-2 space-y-0.5 text-gray-700">
+            <ol className="list-decimal pl-5 mb-2 space-y-0.5 text-gray-700 dark:text-gray-300">
               {children}
             </ol>
           ),
@@ -57,10 +57,14 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
 
           // Inline formatting
           strong: ({ children }) => (
-            <strong className="font-semibold text-gray-900">{children}</strong>
+            <strong className="font-semibold text-gray-900 dark:text-white">
+              {children}
+            </strong>
           ),
           em: ({ children }) => (
-            <em className="italic text-gray-700">{children}</em>
+            <em className="italic text-gray-700 dark:text-gray-300">
+              {children}
+            </em>
           ),
 
           // Links
@@ -77,23 +81,25 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
 
           // Blockquotes
           blockquote: ({ children }) => (
-            <blockquote className="border-l-3 border-gray-300 pl-3 my-2 text-gray-600 italic">
+            <blockquote className="border-l-3 border-gray-300 dark:border-gray-600 pl-3 my-2 text-gray-600 dark:text-gray-400 italic">
               {children}
             </blockquote>
           ),
 
           // Horizontal rule
-          hr: () => <hr className="my-3 border-gray-200" />,
+          hr: () => (
+            <hr className="my-3 border-gray-200 dark:border-gray-700" />
+          ),
 
           // Code
           code: ({ className, children }: any) => {
             const isBlock = className?.includes('language-')
             return isBlock ? (
-              <code className="block bg-gray-50 text-gray-800 p-3 rounded-md text-xs font-mono overflow-x-auto my-2 border border-gray-200">
+              <code className="block bg-gray-50 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-3 rounded-md text-xs font-mono overflow-x-auto my-2 border border-gray-200 dark:border-gray-700">
                 {children}
               </code>
             ) : (
-              <code className="bg-gray-100 text-gray-800 px-1.5 py-0.5 rounded text-xs font-mono">
+              <code className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-1.5 py-0.5 rounded text-xs font-mono">
                 {children}
               </code>
             )
@@ -104,28 +110,28 @@ export function ChatMarkdown({ content }: ChatMarkdownProps) {
 
           // Tables
           table: ({ children }) => (
-            <div className="my-3 overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <div className="my-3 overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+              <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700 text-sm">
                 {children}
               </table>
             </div>
           ),
           thead: ({ children }) => (
-            <thead className="bg-gray-50">{children}</thead>
+            <thead className="bg-gray-50 dark:bg-gray-800">{children}</thead>
           ),
           tbody: ({ children }) => (
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700 bg-white dark:bg-gray-900">
               {children}
             </tbody>
           ),
           tr: ({ children }) => <tr>{children}</tr>,
           th: ({ children }) => (
-            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
+            <th className="px-3 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
               {children}
             </th>
           ),
           td: ({ children }) => (
-            <td className="px-3 py-2 text-sm text-gray-700 whitespace-nowrap">
+            <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
               {children}
             </td>
           ),

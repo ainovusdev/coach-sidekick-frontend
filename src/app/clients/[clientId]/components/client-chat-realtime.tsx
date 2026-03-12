@@ -195,11 +195,11 @@ export function ClientChatRealtime({
       <Card className="flex flex-col h-full p-4">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm">
-            <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">
+            <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
               No Knowledge Base Yet
             </h3>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               The AI assistant will be available after analyzing coaching
               sessions.
             </p>
@@ -210,9 +210,9 @@ export function ClientChatRealtime({
   }
 
   return (
-    <Card className="flex flex-col h-full bg-gradient-to-b from-white to-gray-50/50">
+    <Card className="flex flex-col h-full bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900">
       {/* Header */}
-      <div className="border-b bg-white px-4 py-3">
+      <div className="border-b dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -227,7 +227,7 @@ export function ClientChatRealtime({
               />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900">
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                 Realtime Voice Chat
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
@@ -254,7 +254,7 @@ export function ClientChatRealtime({
 
           <div className="flex items-center gap-2">
             {/* Mode Toggle */}
-            <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
               <Button
                 size="sm"
                 variant={mode === 'voice' ? 'default' : 'ghost'}
@@ -297,10 +297,10 @@ export function ClientChatRealtime({
               <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 mx-auto mb-4 flex items-center justify-center">
                 <Bot className="h-8 w-8 text-violet-600" />
               </div>
-              <h4 className="text-lg font-semibold text-gray-900 mb-2">
+              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Ready for conversation
               </h4>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                 {mode === 'voice'
                   ? `Hold the record button and speak naturally about ${
                       clientName || 'your client'
@@ -357,8 +357,8 @@ export function ClientChatRealtime({
                     className={cn(
                       'rounded-xl px-4 py-2.5 shadow-sm',
                       message.role === 'user'
-                        ? 'bg-gray-900 text-white'
-                        : 'bg-white border border-gray-200',
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
                     )}
                   >
                     {message.isVoice && (
@@ -388,7 +388,7 @@ export function ClientChatRealtime({
                     message.sources.length > 0 && (
                       <button
                         onClick={() => toggleSources(message.id)}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-800"
+                        className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
                       >
                         <BookOpen className="h-3 w-3" />
                         {showSources[message.id] ? 'Hide' : 'Show'} sources
@@ -406,11 +406,13 @@ export function ClientChatRealtime({
                       {message.sources.map((source: any, idx: number) => (
                         <div
                           key={idx}
-                          className="bg-gray-50 rounded-lg p-2.5 text-xs"
+                          className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5 text-xs"
                         >
                           <div className="flex justify-between mb-1">
-                            <span className="text-gray-600">{source.date}</span>
-                            <span className="text-gray-500">
+                            <span className="text-gray-600 dark:text-gray-400">
+                              {source.date}
+                            </span>
+                            <span className="text-gray-500 dark:text-gray-400">
                               {(source.relevance * 100).toFixed(0)}% match
                             </span>
                           </div>
@@ -447,7 +449,7 @@ export function ClientChatRealtime({
             {isRecording && (
               <div className="flex gap-3 justify-start">
                 <div className="h-8 w-8" />
-                <div className="bg-red-50 text-red-600 rounded-lg px-3 py-2 flex items-center gap-2">
+                <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg px-3 py-2 flex items-center gap-2">
                   <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                   <span className="text-sm">Listening...</span>
                   {interimTranscript && (
@@ -462,7 +464,7 @@ export function ClientChatRealtime({
             {isSpeaking && (
               <div className="flex gap-3 justify-start">
                 <div className="h-8 w-8" />
-                <div className="bg-violet-50 text-violet-600 rounded-lg px-3 py-2 flex items-center gap-2">
+                <div className="bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg px-3 py-2 flex items-center gap-2">
                   <Volume2 className="h-4 w-4 animate-pulse" />
                   <span className="text-sm">Speaking...</span>
                 </div>
@@ -475,7 +477,7 @@ export function ClientChatRealtime({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t bg-white p-4">
+      <div className="border-t dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
         {mode === 'voice' ? (
           <div className="flex flex-col items-center gap-3">
             <TooltipProvider>
@@ -548,7 +550,7 @@ export function ClientChatRealtime({
               </div>
             </TooltipProvider>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-gray-400">
               Hold the button and speak naturally
             </p>
           </div>
@@ -560,7 +562,7 @@ export function ClientChatRealtime({
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Ask about ${clientName || 'this client'}...`}
-              className="w-full min-h-[44px] max-h-[120px] pl-4 pr-12 py-3 text-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
+              className="w-full min-h-[44px] max-h-[120px] pl-4 pr-12 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
               disabled={!isConnected}
               rows={1}
             />

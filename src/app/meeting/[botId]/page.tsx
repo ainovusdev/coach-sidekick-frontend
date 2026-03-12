@@ -167,6 +167,7 @@ export default function MeetingPage() {
               sessionId={sessionId || undefined}
               clientId={clientId || undefined}
               isGroupSession={isGroupSession}
+              isMeetingEnded={isMeetingEnded}
             />
           </div>
         </div>

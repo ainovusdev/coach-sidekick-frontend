@@ -13,10 +13,11 @@ interface UpcomingTasksWidgetProps {
 }
 
 const priorityColors: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-yellow-100 text-yellow-700',
-  low: 'bg-gray-100 text-gray-600',
+  urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  medium:
+    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+  low: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
 }
 
 export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
@@ -34,7 +35,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-gray-600" />
+            <CheckSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             Upcoming Tasks
           </CardTitle>
           <Link href="/client-portal/sessions">
@@ -47,7 +48,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
       </CardHeader>
       <CardContent className="pt-0">
         {sortedTasks.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
             No pending tasks
           </p>
         ) : (
@@ -57,7 +58,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
               return (
                 <div key={task.id} className="flex items-start gap-2.5 py-1.5">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {task.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -71,8 +72,8 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
                         <span
                           className={`text-xs flex items-center gap-1 ${
                             isOverdue
-                              ? 'text-red-600 font-medium'
-                              : 'text-gray-500'
+                              ? 'text-red-600 dark:text-red-400 font-medium'
+                              : 'text-gray-500 dark:text-gray-400'
                           }`}
                         >
                           {isOverdue && <AlertCircle className="h-3 w-3" />}

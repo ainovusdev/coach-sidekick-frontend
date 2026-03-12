@@ -152,7 +152,7 @@ export function EnhancedDraftReview({
                   onClick={handleConfirmAll}
                   disabled={confirming}
                   size="lg"
-                  className="bg-gray-900 hover:bg-gray-800 text-white flex-shrink-0"
+                  className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 flex-shrink-0"
                 >
                   {confirming ? (
                     <>
@@ -495,7 +495,7 @@ export function EnhancedDraftReview({
             onClick={handleConfirmAll}
             disabled={confirming}
             size="lg"
-            className="bg-gray-900 hover:bg-gray-800 text-white px-8"
+            className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 px-8"
           >
             {confirming ? (
               <>

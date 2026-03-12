@@ -234,7 +234,7 @@ export function ManualSessionModal({
             <Button
               type="submit"
               disabled={creating || !formData.client_id || loadingClients}
-              className="bg-gray-900 hover:bg-gray-800 text-white"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
             >
               {creating ? (
                 <>

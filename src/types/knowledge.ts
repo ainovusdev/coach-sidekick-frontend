@@ -22,6 +22,7 @@ export interface KnowledgeDocument {
   word_count: number
   processing_status: ProcessingStatus
   processing_progress: number
+  processing_error: string | null
   uploaded_by: string
   uploader_name?: string
   created_at: string

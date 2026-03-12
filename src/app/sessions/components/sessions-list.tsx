@@ -4,12 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { EmptyState } from '@/components/ui/empty-state'
 import { SessionCard } from '@/components/sessions/session-card'
-import {
-  MessageSquare,
-  ChevronLeft,
-  ChevronRight,
-  Zap,
-} from 'lucide-react'
+import { MessageSquare, ChevronLeft, ChevronRight, Zap } from 'lucide-react'
 
 interface SessionsListProps {
   sessions: any[]
@@ -45,11 +40,11 @@ export default function SessionsList({
   const router = useRouter()
 
   return (
-    <Card className="shadow-lg border-slate-200">
-      <CardHeader className="border-b border-slate-200 bg-slate-50">
+    <Card className="shadow-lg border-slate-200 dark:border-gray-700">
+      <CardHeader className="border-b border-slate-200 bg-slate-50 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-3 text-slate-800">
-            <MessageSquare className="h-5 w-5 text-slate-600" />
+          <CardTitle className="flex items-center gap-3 text-slate-800 dark:text-white">
+            <MessageSquare className="h-5 w-5 text-slate-600 dark:text-gray-400" />
             {selectedClientName
               ? `${selectedClientName}'s Sessions`
               : 'All Sessions'}
@@ -57,11 +52,10 @@ export default function SessionsList({
 
           {/* Pagination Info */}
           <div className="flex items-center gap-4">
-            <div className="text-sm text-slate-600">
+            <div className="text-sm text-slate-600 dark:text-gray-400">
               {totalSessions > 0 && (
                 <span>
-                  Showing {Math.min(pageSize, totalSessions)} of{' '}
-                  {totalSessions}
+                  Showing {Math.min(pageSize, totalSessions)} of {totalSessions}
                 </span>
               )}
             </div>
@@ -75,7 +69,7 @@ export default function SessionsList({
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm text-slate-600 px-2">
+                <span className="text-sm text-slate-600 dark:text-gray-400 px-2">
                   {currentPage + 1}
                 </span>
                 <Button
@@ -101,7 +95,7 @@ export default function SessionsList({
             description={error}
             action={{
               label: 'Try Again',
-              onClick: onRefetch
+              onClick: onRefetch,
             }}
             iconClassName="bg-red-100"
           />
@@ -111,7 +105,10 @@ export default function SessionsList({
         {loading && !sessions.length && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card key={i} className="border border-slate-200">
+              <Card
+                key={i}
+                className="border border-slate-200 dark:border-gray-700"
+              >
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -136,24 +133,32 @@ export default function SessionsList({
         {!loading && !error && totalSessions === 0 && (
           <EmptyState
             icon={MessageSquare}
-            title={selectedClientName
-              ? `No sessions with ${selectedClientName}`
-              : 'No sessions yet'}
-            description={selectedClientName
-              ? `Start your first coaching session with ${selectedClientName} to see it here.`
-              : 'Start your first coaching session to see analytics and insights powered by AI.'}
+            title={
+              selectedClientName
+                ? `No sessions with ${selectedClientName}`
+                : 'No sessions yet'
+            }
+            description={
+              selectedClientName
+                ? `Start your first coaching session with ${selectedClientName} to see it here.`
+                : 'Start your first coaching session to see analytics and insights powered by AI.'
+            }
             action={{
               label: 'Start New Session',
               onClick: () => router.push('/'),
-              icon: Zap
+              icon: Zap,
             }}
-            secondaryAction={selectedClientName && onClearFilter ? {
-              label: 'View All Sessions',
-              onClick: onClearFilter,
-              variant: 'outline'
-            } : undefined}
+            secondaryAction={
+              selectedClientName && onClearFilter
+                ? {
+                    label: 'View All Sessions',
+                    onClick: onClearFilter,
+                    variant: 'outline',
+                  }
+                : undefined
+            }
             className="py-16"
-            iconClassName="w-16 h-16 bg-slate-100"
+            iconClassName="w-16 h-16 bg-slate-100 dark:bg-gray-800"
           />
         )}
 

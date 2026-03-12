@@ -1,23 +1,16 @@
 /**
  * Coach Meeting Layout
- * Provides ThemeProvider for dark mode support
+ * Provides WebSocketProvider for real-time meeting data (transcripts, bot status, coaching)
+ * ThemeProvider is now in root layout
  */
+'use client'
 
-import { ThemeProvider } from '@/components/providers/theme-provider'
+import { WebSocketProvider } from '@/contexts/websocket-context'
 
 export default function MeetingLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="light"
-      enableSystem={false}
-      storageKey="coach-meeting-theme"
-    >
-      {children}
-    </ThemeProvider>
-  )
+  return <WebSocketProvider>{children}</WebSocketProvider>
 }

@@ -105,25 +105,25 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
       case 'in_progress':
         return <PlayCircle className="h-4 w-4 text-blue-600" />
       default:
-        return <Circle className="h-4 w-4 text-gray-600" />
+        return <Circle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-700 bg-green-50 border-green-200'
+        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
       case 'in_progress':
-        return 'text-blue-700 bg-blue-50 border-blue-200'
+        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
       default:
-        return 'text-gray-700 bg-gray-50 border-gray-200'
+        return 'text-gray-700 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600'
     }
   }
 
   return (
-    <div className="border border-gray-200 rounded-lg overflow-hidden">
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
       {/* Header - Always Visible */}
-      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 transition-colors">
+      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Status Indicator Icon */}
           <div className="flex-shrink-0">
@@ -132,12 +132,12 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded transition-colors"
+            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600" />
+              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             )}
           </button>
 
@@ -153,9 +153,9 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
           ) : (
             <p
               className={cn(
-                'text-sm font-medium flex-1',
+                'text-sm font-medium flex-1 dark:text-gray-200',
                 commitment.status === 'completed' &&
-                  'line-through text-gray-500',
+                  'line-through text-gray-500 dark:text-gray-500',
               )}
             >
               {commitment.title}
@@ -232,10 +232,10 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
       {/* Expanded Details */}
       {isExpanded && (
-        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-gray-100 bg-gray-50">
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
           {/* Description */}
           <div>
-            <label className="text-xs font-semibold text-gray-700 mb-1 block">
+            <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1 block">
               Description
             </label>
             {isEditing ? (
@@ -248,14 +248,14 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 placeholder="Add description..."
               />
             ) : (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
                 {commitment.description || 'No description'}
               </p>
             )}
           </div>
 
           {/* Additional Info */}
-          <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+          <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
             {commitment.priority && (
               <span>
                 Priority: <strong>{commitment.priority}</strong>
@@ -298,11 +298,13 @@ export function LastSessionInsightsCard({
 
   if (!session) {
     return (
-      <Card className="border-gray-200">
+      <Card className="border-gray-200 dark:border-gray-700">
         <CardContent className="p-12 text-center">
-          <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <h3 className="text-gray-900 font-medium mb-2">No sessions yet</h3>
-          <p className="text-gray-500 text-sm">
+          <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+          <h3 className="text-gray-900 dark:text-white font-medium mb-2">
+            No sessions yet
+          </h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm">
             Start your first coaching session to see insights here.
           </p>
         </CardContent>
@@ -322,11 +324,11 @@ export function LastSessionInsightsCard({
   })
 
   return (
-    <Card className="border-gray-200">
-      <CardHeader className="border-b border-gray-200">
+    <Card className="border-gray-200 dark:border-gray-700">
+      <CardHeader className="border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-600" />
+            <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             Last Session Insights
           </CardTitle>
           <Button
@@ -342,13 +344,13 @@ export function LastSessionInsightsCard({
 
       <CardContent className="p-6 pt-0 space-y-5">
         {/* Simplified Session Info Bar */}
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-700">
           <div className="flex-1">
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white">
               {session.title || 'Coaching Session'}
             </h3>
           </div>
-          <div className="flex items-center gap-3 text-sm text-gray-600">
+          <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
             <span>
               {formatDate(session.started_at || session.created_at, 'MMM d')}
             </span>
@@ -360,7 +362,7 @@ export function LastSessionInsightsCard({
             </Badge>
             {sessionDetails?.sessionScore !== null &&
               sessionDetails?.sessionScore !== undefined && (
-                <div className="flex items-center gap-1 text-sm font-bold text-green-600">
+                <div className="flex items-center gap-1 text-sm font-bold text-green-600 dark:text-green-400">
                   <TrendingUp className="h-4 w-4" />
                   {sessionDetails.sessionScore.toFixed(1)}/10
                 </div>
@@ -380,10 +382,10 @@ export function LastSessionInsightsCard({
               sessionDetails?.meeting_summary?.meeting_summary ||
               session?.summary) && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-700 mb-2">
+                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Session Summary
                 </h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
+                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                   {sessionDetails?.summary ||
                     sessionDetails?.meeting_summary?.meeting_summary ||
                     session?.summary}
@@ -396,7 +398,7 @@ export function LastSessionInsightsCard({
               commitments.commitments &&
               commitments.commitments.length > 0 && (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+                  <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
                     <TargetIcon className="h-4 w-4" />
                     Commitments from This Session (
                     {commitments.commitments.length})
@@ -415,7 +417,7 @@ export function LastSessionInsightsCard({
 
             {/* Next Session Focus */}
             <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+              <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2 flex items-center gap-2">
                 <TargetIcon className="h-4 w-4 text-primary" />
                 Next Session Focus
               </h4>
@@ -426,20 +428,20 @@ export function LastSessionInsightsCard({
                     .map((item: string, index: number) => (
                       <li
                         key={index}
-                        className="text-sm text-gray-700 flex items-start gap-2"
+                        className="text-sm text-gray-700 dark:text-gray-300 flex items-start gap-2"
                       >
                         <span className="text-primary mt-0.5">→</span>
                         <span>{item}</span>
                       </li>
                     ))}
                   {session.action_items.length > 3 && (
-                    <li className="text-xs text-gray-600 ml-5">
+                    <li className="text-xs text-gray-600 dark:text-gray-400 ml-5">
                       +{session.action_items.length - 3} more items
                     </li>
                   )}
                 </ul>
               ) : (
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Review progress on current commitments and set new goals for
                   next session.
                 </p>

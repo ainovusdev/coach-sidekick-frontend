@@ -260,7 +260,11 @@ export function SessionOverviewTab({
 
       {/* Notes and Resources */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <SessionNotesCompact sessionId={sessionId} isViewer={isViewer} />
+        <SessionNotesCompact
+          sessionId={sessionId}
+          isViewer={isViewer}
+          clientId={isGroupSession ? selectedClientId : undefined}
+        />
         <SessionResourcesCompact
           sessionId={sessionId}
           clientId={clientId}
@@ -398,7 +402,7 @@ export function SessionOverviewTab({
                   .map((focus, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-app-border text-sm text-app-primary"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-app-border text-sm text-app-primary"
                     >
                       {focus}
                     </span>

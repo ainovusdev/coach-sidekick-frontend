@@ -16,7 +16,7 @@ export default function StartRecording({
     <div>
       <MeetingFormSimple onSubmit={onSubmit} loading={loading} />
       {error && (
-        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-700 flex items-center gap-2">
             <AlertCircle className="h-4 w-4" />
             {error}

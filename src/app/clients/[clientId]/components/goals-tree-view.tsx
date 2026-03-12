@@ -86,7 +86,7 @@ function TreeNode({
   const getIcon = () => {
     switch (type) {
       case 'goal':
-        return <Target className="h-4 w-4 text-gray-600" />
+        return <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
       case 'outcome':
         return <Zap className="h-4 w-4 text-blue-600" />
       case 'sprint':
@@ -98,13 +98,13 @@ function TreeNode({
     if (!data.status) return ''
     switch (data.status) {
       case 'active':
-        return 'bg-green-100 text-green-700 border-green-200'
+        return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
       case 'completed':
-        return 'bg-blue-100 text-blue-700 border-blue-200'
+        return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
       case 'paused':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200'
+        return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800'
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200'
+        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
     }
   }
 
@@ -112,7 +112,7 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors',
+          'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
           isSelected && 'bg-primary/10 border border-primary/20',
         )}
         style={{ paddingLeft: `${indent + 12}px` }}
@@ -125,12 +125,12 @@ function TreeNode({
               e.stopPropagation()
               onToggle?.()
             }}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 rounded"
+            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600" />
+              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600" />
+              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
             )}
           </button>
         )}
@@ -141,7 +141,7 @@ function TreeNode({
         <div className="flex-shrink-0">{getIcon()}</div>
 
         {/* Title */}
-        <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+        <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white truncate">
           {data.title}
         </span>
 
@@ -159,8 +159,8 @@ function TreeNode({
         {(onEdit || onDelete || onComplete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-              <button className="flex-shrink-0 p-1 hover:bg-gray-200 rounded">
-                <MoreVertical className="h-4 w-4 text-gray-600" />
+              <button className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded">
+                <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-400" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -368,16 +368,16 @@ export function GoalsTreeView({
   // Empty state
   if (goals.length === 0) {
     return (
-      <Card className="border-gray-200">
+      <Card className="border-gray-200 dark:border-gray-700">
         <CardContent className="p-12 text-center">
           <div className="max-w-md mx-auto">
-            <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <Target className="h-8 w-8 text-gray-600" />
+            <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
+              <Target className="h-8 w-8 text-gray-600 dark:text-gray-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               No Vision Yet
             </h3>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
               Create your first vision to get started with the tree view.
             </p>
             <Button onClick={onCreateNew} size="lg">
@@ -411,7 +411,7 @@ export function GoalsTreeView({
     <div className="space-y-3">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Vision & Progress (Tree View)
         </h3>
         <Button variant="outline" size="sm" onClick={onCreateNew}>
@@ -423,21 +423,21 @@ export function GoalsTreeView({
       {/* Split Panel Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left Panel: Goals & Sprints */}
-        <Card className="border-gray-200">
+        <Card className="border-gray-200 dark:border-gray-700">
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
               <div className="p-3 space-y-6">
                 {/* Vision Section */}
-                <div className="pb-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
+                <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>VISION</span>
                     {onCreateGoal && (
                       <button
                         onClick={onCreateGoal}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
                         title="Add new vision"
                       >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 cursor-pointer" />
+                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
                       </button>
                     )}
                   </div>
@@ -490,15 +490,15 @@ export function GoalsTreeView({
 
                 {/* Outcomes Section - with Sprint Badges */}
                 <div className="pb-4 border-b">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>OUTCOMES</span>
                     {onCreateOutcome && (
                       <button
                         onClick={onCreateOutcome}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
                         title="Add new outcome"
                       >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 cursor-pointer" />
+                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
                       </button>
                     )}
                   </div>
@@ -541,7 +541,7 @@ export function GoalsTreeView({
                                   className={cn(
                                     'text-[10px] px-1.5 py-0 cursor-pointer hover:opacity-80',
                                     sprint.status === 'active' &&
-                                      'bg-blue-100 text-blue-800',
+                                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
                                   )}
                                   onClick={() =>
                                     handleNodeClick(sprint.id, 'sprint')
@@ -564,15 +564,15 @@ export function GoalsTreeView({
 
                 {/* Sprint Timeline - Simplified */}
                 <div className="pb-4">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 mb-3 px-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>SPRINT TIMELINE</span>
                     {onCreateSprint && (
                       <button
                         onClick={onCreateSprint}
-                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
                         title="Add new sprint"
                       >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 cursor-pointer" />
+                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
                       </button>
                     )}
                   </div>
@@ -586,7 +586,7 @@ export function GoalsTreeView({
                         <div
                           key={sprint.id}
                           className={cn(
-                            'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors',
+                            'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
                             selectedNodeId === sprint.id &&
                               selectedNodeType === 'sprint' &&
                               'bg-primary/10 border border-primary/20',
@@ -601,7 +601,7 @@ export function GoalsTreeView({
                                 : 'text-gray-400',
                             )}
                           />
-                          <span className="flex-1 text-sm font-medium text-gray-900 truncate">
+                          <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white truncate">
                             {sprint.title}
                           </span>
                           <Badge variant="secondary" className="text-[10px]">
@@ -620,8 +620,8 @@ export function GoalsTreeView({
                               asChild
                               onClick={e => e.stopPropagation()}
                             >
-                              <button className="flex-shrink-0 p-1 hover:bg-gray-200 rounded">
-                                <MoreVertical className="h-4 w-4 text-gray-600" />
+                              <button className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded">
+                                <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                               </button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -670,14 +670,14 @@ export function GoalsTreeView({
 
         {/* Right Panel: Commitments Kanban */}
         <div className="lg:col-span-2">
-          <Card className="border-gray-200">
+          <Card className="border-gray-200 dark:border-gray-700">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-sm font-semibold mb-1">
                     Commitments ({filteredCommitments.length})
                   </CardTitle>
-                  <p className="text-xs text-gray-600">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
                     {getFilterDescription()}
                   </p>
                 </div>
@@ -696,8 +696,10 @@ export function GoalsTreeView({
                 )}
               </div>
               {/* Assignee Filter Buttons */}
-              <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100">
-                <span className="text-xs text-gray-500 mr-2">Show:</span>
+              <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
+                  Show:
+                </span>
                 <Button
                   variant={assigneeFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
@@ -705,8 +707,8 @@ export function GoalsTreeView({
                   className={cn(
                     'h-7 text-xs px-3',
                     assigneeFilter === 'all'
-                      ? 'bg-gray-900 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
                   )}
                 >
                   All
@@ -719,7 +721,7 @@ export function GoalsTreeView({
                     'h-7 text-xs px-3',
                     assigneeFilter === 'client'
                       ? 'bg-slate-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
                   )}
                 >
                   <User className="h-3 w-3 mr-1" />
@@ -733,7 +735,7 @@ export function GoalsTreeView({
                     'h-7 text-xs px-3',
                     assigneeFilter === 'coach'
                       ? 'bg-amber-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50',
+                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
                   )}
                 >
                   <Briefcase className="h-3 w-3 mr-1" />

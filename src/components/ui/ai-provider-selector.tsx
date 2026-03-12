@@ -71,7 +71,7 @@ export function AIProviderSelector({
     return (
       <div className={className}>
         <Select value={value} onValueChange={v => onChange(v as AIProvider)}>
-          <SelectTrigger className="w-full bg-white border-gray-200">
+          <SelectTrigger className="w-full bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
             <SelectValue>
               {(() => {
                 const provider = providers.find(p => p.id === value)

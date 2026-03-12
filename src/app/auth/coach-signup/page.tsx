@@ -130,7 +130,7 @@ function CoachSignupContent() {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <LoadingSpinner />
       </div>
     )
@@ -157,7 +157,7 @@ function CoachSignupContent() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
+    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
       {/* Left side - Features */}
       <div className="hidden lg:flex lg:w-1/2 bg-gray-900 text-white p-12 flex-col justify-center">
         <div className="max-w-md mx-auto">
@@ -233,11 +233,11 @@ function CoachSignupContent() {
                 : "You've been invited to join as a coach"}
             </p>
             {invitationInfo.existing_user && invitationInfo.existing_roles && (
-              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
+              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                <p className="text-sm text-blue-800 dark:text-blue-200">
                   <strong>Existing Account Detected</strong>
                 </p>
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                   You already have an account as a{' '}
                   {invitationInfo.existing_roles
                     .map(r => r.replace('_', ' '))
@@ -257,10 +257,10 @@ function CoachSignupContent() {
                   type="email"
                   value={invitationInfo.email}
                   disabled
-                  className="bg-gray-100"
+                  className="bg-gray-100 dark:bg-gray-800"
                 />
                 {invitationInfo.existing_user && (
-                  <p className="text-xs text-blue-600 mt-1">
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
                     This email is already registered in our system
                   </p>
                 )}
@@ -340,7 +340,7 @@ function CoachSignupContent() {
             <CardFooter className="flex flex-col gap-4 pt-6">
               <Button
                 type="submit"
-                className="w-full bg-gray-900 hover:bg-gray-800"
+                className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
                 disabled={isLoading}
               >
                 {isLoading

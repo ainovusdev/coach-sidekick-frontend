@@ -1,7 +1,7 @@
 export const getStatusColor = (status: string) => {
   switch (status) {
     case 'completed':
-      return 'bg-gray-900 text-white border-gray-900'
+      return 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
     case 'in_progress':
       return 'bg-gray-700 text-white border-gray-700'
     case 'error':

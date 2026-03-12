@@ -24,11 +24,11 @@ export function SessionsTab({
   const router = useRouter()
 
   return (
-    <Card className="border-gray-200 shadow-sm overflow-hidden h-full flex flex-col">
-      <CardHeader className="border-b border-gray-200 flex-shrink-0">
+    <Card className="border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden h-full flex flex-col">
+      <CardHeader className="border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-gray-600" />
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             Coaching Sessions
           </h2>
           {!isViewer && (
@@ -46,8 +46,9 @@ export function SessionsTab({
               <div
                 key={session.id}
                 className={cn(
-                  'p-4 hover:bg-gray-50 transition-colors cursor-pointer',
-                  index !== 0 && 'border-t border-gray-100',
+                  'p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer',
+                  index !== 0 &&
+                    'border-t border-gray-100 dark:border-gray-700',
                 )}
                 onClick={() => router.push(`/sessions/${session.id}`)}
               >
@@ -63,11 +64,11 @@ export function SessionsTab({
         ) : (
           <div className="flex items-center justify-center h-full">
             <div className="text-center p-8">
-              <MessageSquare className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-gray-900 font-medium mb-2">
+              <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <h3 className="text-gray-900 dark:text-white font-medium mb-2">
                 No sessions yet
               </h3>
-              <p className="text-gray-500 text-sm mb-4">
+              <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                 {isViewer
                   ? `No sessions have been recorded for ${client.name} yet.`
                   : `Start recording your first coaching session with ${client.name}`}
@@ -75,7 +76,7 @@ export function SessionsTab({
               {!isViewer && (
                 <Button
                   onClick={onAddSession}
-                  className="bg-gray-900 hover:bg-gray-800 text-white"
+                  className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
                 >
                   <Upload className="h-4 w-4 mr-2" />
                   Upload Recording

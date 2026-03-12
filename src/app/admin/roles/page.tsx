@@ -123,8 +123,12 @@ export default function RolesPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Role Management</h1>
-        <p className="text-gray-500 mt-2">Manage user roles and permissions</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Role Management
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400 mt-2">
+          Manage user roles and permissions
+        </p>
       </div>
 
       {/* Role Overview Cards */}
@@ -162,7 +166,7 @@ export default function RolesPage() {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm font-medium text-gray-600">
+                    <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
                       {info.name}
                     </CardTitle>
                     <Badge
@@ -174,10 +178,10 @@ export default function RolesPage() {
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white">
                     {count}
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                     {info.description}
                   </p>
                 </CardContent>
@@ -200,7 +204,7 @@ export default function RolesPage() {
               <div className="space-y-4">
                 {/* Search */}
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
                   <Input
                     placeholder="Search users..."
                     value={searchQuery}
@@ -214,14 +218,14 @@ export default function RolesPage() {
                   {filteredUsers.map(user => (
                     <div
                       key={user.id}
-                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50"
+                      className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50 dark:hover:bg-gray-800"
                     >
                       <div className="flex-1">
-                        <p className="font-medium text-sm text-gray-900">
+                        <p className="font-medium text-sm text-gray-900 dark:text-white">
                           {user.email}
                         </p>
                         {user.full_name && (
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
                             {user.full_name}
                           </p>
                         )}
@@ -295,10 +299,10 @@ export default function RolesPage() {
               <CardContent>
                 <div className="space-y-4">
                   {/* Description */}
-                  <div className="p-3 bg-gray-50 rounded-lg">
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="flex items-start gap-2">
-                      <Info className="h-4 w-4 text-gray-400 mt-0.5" />
-                      <p className="text-sm text-gray-600">
+                      <Info className="h-4 w-4 text-gray-400 dark:text-gray-500 mt-0.5" />
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
                         {roleInfoMap[selectedRole]?.description}
                       </p>
                     </div>
@@ -306,7 +310,7 @@ export default function RolesPage() {
 
                   {/* Members */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
                       Members ({roleUsers.length})
                     </h3>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -317,11 +321,11 @@ export default function RolesPage() {
                             className="flex items-center justify-between p-2 rounded border"
                           >
                             <div>
-                              <p className="text-sm font-medium text-gray-900">
+                              <p className="text-sm font-medium text-gray-900 dark:text-white">
                                 {user.email}
                               </p>
                               {user.full_name && (
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                   {user.full_name}
                                 </p>
                               )}
@@ -338,7 +342,7 @@ export default function RolesPage() {
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-gray-400 text-center py-4">
+                        <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
                           No users with this role
                         </p>
                       )}
@@ -347,7 +351,7 @@ export default function RolesPage() {
 
                   {/* Permissions (could be expanded) */}
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 mb-2">
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
                       Permissions
                     </h3>
                     <div className="space-y-1">
@@ -364,7 +368,6 @@ export default function RolesPage() {
                           <PermissionItem label="Manage users" />
                           <PermissionItem label="Assign roles (except super admin)" />
                           <PermissionItem label="Manage client access" />
-                          <PermissionItem label="View audit logs" />
                         </>
                       )}
                       {selectedRole === 'coach' && (
@@ -396,8 +399,8 @@ export default function RolesPage() {
 
 function PermissionItem({ label }: { label: string }) {
   return (
-    <div className="flex items-center gap-2 text-sm text-gray-600">
-      <div className="h-1.5 w-1.5 rounded-full bg-gray-400" />
+    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+      <div className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500" />
       {label}
     </div>
   )

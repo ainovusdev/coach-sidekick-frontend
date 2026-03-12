@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import {
   BarChart3,
   UserCheck,
@@ -73,7 +74,7 @@ export default function Navigation() {
   }
 
   return (
-    <header className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo Section */}
@@ -96,13 +97,13 @@ export default function Navigation() {
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900">
+                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Coach Sidekick
                   </h1>
                 </div>
-                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 rounded-full">
-                  <Sparkles className="w-3 h-3 text-gray-600" />
-                  <span className="text-xs font-medium text-gray-600">
+                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
+                  <Sparkles className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                     Novus Global Powered AI
                   </span>
                 </div>
@@ -111,7 +112,7 @@ export default function Navigation() {
 
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center">
-              <div className="flex items-center bg-gray-50 rounded-lg p-1">
+              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
                 {navItems.map(item => {
                   const Icon = item.icon
                   const isActive = isActivePath(item.path)
@@ -125,8 +126,8 @@ export default function Navigation() {
                         transition-all duration-200 cursor-pointer
                         ${
                           isActive
-                            ? 'bg-white text-gray-900 shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm'
+                            ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 hover:shadow-sm'
                         }
                       `}
                     >
@@ -144,18 +145,21 @@ export default function Navigation() {
             {isAuthenticated && (
               <>
                 <div className="hidden lg:flex items-center">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
                     <div className="relative">
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Active
                     </span>
                   </div>
                 </div>
 
-                {/* NEW: Role Switcher */}
+                {/* Theme Toggle */}
+                <ThemeToggle />
+
+                {/* Role Switcher */}
                 <RoleSwitcher />
 
                 {/* Admin Button - Only show for admin and super_admin roles */}

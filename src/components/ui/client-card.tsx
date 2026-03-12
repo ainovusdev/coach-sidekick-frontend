@@ -36,7 +36,7 @@ export function ClientCard({
     <PermissionGate resource="clients" action="view" fallback={null}>
       <Card
         className={cn(
-          'border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all duration-200',
+          'border border-gray-200 dark:border-gray-700 hover:border-gray-900 dark:hover:border-gray-500 hover:shadow-sm transition-all duration-200',
           onClick && !isViewer ? 'cursor-pointer' : 'cursor-default',
           className,
         )}
@@ -44,23 +44,27 @@ export function ClientCard({
       >
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-10 w-10 bg-gray-900 border-2 border-gray-200 flex-shrink-0">
-              <AvatarFallback className="bg-gray-900 text-white text-sm font-bold">
+            <Avatar className="h-10 w-10 bg-gray-900 border-2 border-gray-200 dark:border-gray-700 flex-shrink-0">
+              <AvatarFallback className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
                 {getInitials(name)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 text-sm truncate">
+              <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
                 {name}
               </h3>
               {email && (
                 <div className="flex items-center gap-1 mt-1">
                   <Mail className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                  <p className="text-xs text-gray-500 truncate">{email}</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {email}
+                  </p>
                 </div>
               )}
               {!email && isMyClient === false && coachName && (
-                <p className="text-xs text-gray-500 mt-1">by {coachName}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  by {coachName}
+                </p>
               )}
             </div>
           </div>

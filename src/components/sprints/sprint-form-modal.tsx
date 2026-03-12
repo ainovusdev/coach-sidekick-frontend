@@ -290,7 +290,7 @@ export function SprintFormModal({
                           'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors',
                           isSelected
                             ? 'bg-primary/5 border-primary'
-                            : 'bg-white border-gray-200 hover:border-gray-300',
+                            : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500',
                         )}
                         onClick={() => {
                           if (isSelected) {
@@ -315,14 +315,14 @@ export function SprintFormModal({
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-sm text-gray-900">
+                          <div className="font-medium text-sm text-gray-900 dark:text-white">
                             {outcome.title}
                           </div>
-                          <div className="text-xs text-gray-500 mt-0.5">
+                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                             Vision: {goalTitle}
                           </div>
                           {outcome.description && (
-                            <div className="text-xs text-gray-600 mt-1 line-clamp-2">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                               {outcome.description}
                             </div>
                           )}
@@ -332,14 +332,14 @@ export function SprintFormModal({
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-amber-700 p-4 border border-amber-200 rounded-lg bg-amber-50">
+                <div className="text-sm text-amber-700 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/30">
                   <strong>No outcomes available.</strong> You must create at
                   least one outcome before creating a sprint. Go to the Outcomes
                   section to create one first.
                 </div>
               )}
               {selectedOutcomeIds.length > 0 && (
-                <div className="text-xs text-gray-600">
+                <div className="text-xs text-gray-600 dark:text-gray-400">
                   {selectedOutcomeIds.length} outcome(s) selected
                 </div>
               )}

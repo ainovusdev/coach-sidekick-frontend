@@ -48,7 +48,7 @@ function ToolbarButton({
       title={title}
       className={cn(
         'p-1.5 rounded-md transition-colors',
-        'hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800',
+        'hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800',
         isActive &&
           'bg-gray-200 dark:bg-gray-600 text-blue-600 dark:text-blue-400',
         disabled && 'opacity-50 cursor-not-allowed',

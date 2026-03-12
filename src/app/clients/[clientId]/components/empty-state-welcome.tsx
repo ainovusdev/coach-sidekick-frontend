@@ -19,15 +19,17 @@ export function EmptyStateWelcome({
     <div className="max-w-2xl mx-auto py-12">
       {/* Client Name Header */}
       <div className="mb-10">
-        <h1 className="text-2xl font-bold text-gray-900 mb-1">{client.name}</h1>
-        <p className="text-gray-500">No sessions yet</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+          {client.name}
+        </h1>
+        <p className="text-gray-500 dark:text-gray-400">No sessions yet</p>
       </div>
 
       {/* Primary Action - Start Session */}
       <div className="mb-8">
         <button
           onClick={onStartSession}
-          className="w-full group bg-gray-900 hover:bg-gray-800 rounded-xl p-6 text-left transition-all"
+          className="w-full group bg-gray-900 hover:bg-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-xl p-6 text-left transition-all"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -56,42 +58,42 @@ export function EmptyStateWelcome({
 
         <button
           onClick={onAddPastSession}
-          className="w-full group flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+          className="w-full group flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <FileText className="h-5 w-5 text-gray-600" />
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <FileText className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </div>
             <div className="text-left">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Add Past Session
               </h4>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Upload notes or recordings
               </p>
             </div>
           </div>
-          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
         </button>
 
         <button
           onClick={onSetGoals}
-          className="w-full group flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+          className="w-full group flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <Target className="h-5 w-5 text-gray-600" />
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <Target className="h-5 w-5 text-gray-600 dark:text-gray-400" />
             </div>
             <div className="text-left">
-              <h4 className="text-sm font-medium text-gray-900">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
                 Set a meta performance vision
               </h4>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Define outcomes to track progress
               </p>
             </div>
           </div>
-          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
         </button>
       </div>
     </div>

@@ -60,10 +60,12 @@ export function CommitmentKanbanCard({
     !isCompleted
 
   const priorityColors = {
-    urgent: 'bg-red-100 text-red-700 border-red-200',
-    high: 'bg-orange-100 text-orange-700 border-orange-200',
-    medium: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    low: 'bg-gray-100 text-gray-700 border-gray-200',
+    urgent:
+      'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
+    high: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800',
+    medium:
+      'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+    low: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
   }
 
   const getBorderColor = () => {
@@ -74,8 +76,8 @@ export function CommitmentKanbanCard({
   }
 
   const getBgColor = () => {
-    if (isCompleted) return 'bg-green-50/50'
-    if (isInProgress) return 'bg-blue-50/50'
+    if (isCompleted) return 'bg-green-50/50 dark:bg-green-900/10'
+    if (isInProgress) return 'bg-blue-50/50 dark:bg-blue-900/10'
     return ''
   }
 
@@ -139,7 +141,7 @@ export function CommitmentKanbanCard({
             {commitment.is_coach_commitment ? (
               <Badge
                 variant="outline"
-                className="bg-amber-50 border-amber-300 text-amber-800 text-xs w-fit"
+                className="bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-400 text-xs w-fit"
               >
                 <Briefcase className="h-3 w-3 mr-1" />
                 Coach Task
@@ -147,7 +149,7 @@ export function CommitmentKanbanCard({
             ) : (
               <Badge
                 variant="outline"
-                className="bg-slate-50 border-slate-200 text-slate-600 text-xs w-fit"
+                className="bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs w-fit"
               >
                 <User className="h-3 w-3 mr-1" />
                 Client Task
@@ -199,7 +201,9 @@ export function CommitmentKanbanCard({
         <h4
           className={cn(
             'text-sm font-semibold line-clamp-2',
-            isCompleted ? 'text-green-700 line-through' : 'text-gray-900',
+            isCompleted
+              ? 'text-green-700 dark:text-green-400 line-through'
+              : 'text-gray-900 dark:text-white',
           )}
         >
           {commitment.title}
@@ -207,7 +211,7 @@ export function CommitmentKanbanCard({
 
         {/* Description */}
         {commitment.description && (
-          <p className="text-xs text-gray-600 line-clamp-2">
+          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
             {commitment.description}
           </p>
         )}
@@ -219,7 +223,7 @@ export function CommitmentKanbanCard({
               <Badge
                 key={outcome.id}
                 variant="outline"
-                className="bg-gray-50 border-gray-200 text-gray-700 text-xs w-fit"
+                className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs w-fit"
               >
                 <Target className="h-3 w-3 mr-1" />
                 {outcome.title}
@@ -229,12 +233,14 @@ export function CommitmentKanbanCard({
         )}
 
         {/* Footer: Date and Priority */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
           {commitment.target_date && (
             <div
               className={cn(
                 'flex items-center gap-1 text-xs',
-                isOverdue ? 'text-red-600 font-medium' : 'text-gray-600',
+                isOverdue
+                  ? 'text-red-600 font-medium'
+                  : 'text-gray-600 dark:text-gray-400',
               )}
             >
               {isOverdue && <AlertCircle className="h-3 w-3" />}

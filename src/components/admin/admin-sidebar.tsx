@@ -12,8 +12,6 @@ import {
   Shield,
   ChevronLeft,
   ChevronRight,
-  Settings,
-  FileText,
   Network,
   FolderKanban,
   BookOpen,
@@ -63,18 +61,6 @@ const menuItems = [
     icon: Shield,
     requiredRole: ['super_admin'],
   },
-  {
-    title: 'Audit Log',
-    href: '/admin/audit-log',
-    icon: FileText,
-    requiredRole: ['super_admin'],
-  },
-  {
-    title: 'Settings',
-    href: '/admin/settings',
-    icon: Settings,
-    requiredRole: ['super_admin'],
-  },
 ]
 
 export function AdminSidebar() {
@@ -89,7 +75,7 @@ export function AdminSidebar() {
   return (
     <div
       className={cn(
-        'bg-gray-900 text-white transition-all duration-300 ease-in-out flex flex-col',
+        'bg-gray-900 dark:bg-gray-950 text-white transition-all duration-300 ease-in-out flex flex-col',
         collapsed ? 'w-16' : 'w-64',
       )}
     >

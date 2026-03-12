@@ -242,7 +242,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                     onClick={() => toggleClientFilter(client.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedClients.includes(client.id)
-                        ? 'bg-gray-900 text-white border-gray-900'
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
                         : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
                     }`}
                   >
@@ -272,7 +272,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                     onClick={() => toggleCoachFilter(coach.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedCoaches.includes(coach.id)
-                        ? 'bg-gray-900 text-white border-gray-900'
+                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
                         : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
                     }`}
                   >

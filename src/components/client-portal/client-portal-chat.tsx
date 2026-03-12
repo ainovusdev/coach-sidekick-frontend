@@ -256,11 +256,11 @@ export function ClientPortalChat() {
       <div className="flex flex-col h-full p-4">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm">
-            <MessageSquare className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 mb-1">
+            <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
               AI Assistant Not Available Yet
             </h3>
-            <p className="text-xs text-gray-500 mb-3">
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
               {hasSessionData
                 ? 'Your coaching sessions are being processed. Please try again in a few moments.'
                 : 'The AI assistant will be available after your coaching sessions are analyzed.'}
@@ -281,21 +281,21 @@ export function ClientPortalChat() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-gray-50 to-gray-100 border-b border-gray-200">
+      <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="px-5 py-4">
           {/* Title Row */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-white shadow-sm flex items-center justify-center border border-gray-200">
-                <MessageSquare className="h-5 w-5 text-gray-700" />
+              <div className="h-10 w-10 rounded-lg bg-white dark:bg-gray-900 shadow-sm flex items-center justify-center border border-gray-200 dark:border-gray-700">
+                <MessageSquare className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               </div>
               <div>
-                <h3 className="text-base font-semibold text-gray-900">
+                <h3 className="text-base font-semibold text-gray-900 dark:text-white">
                   AI Coaching Assistant
                 </h3>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                   Reflect on your coaching journey
                 </p>
               </div>
@@ -306,7 +306,7 @@ export function ClientPortalChat() {
               size="sm"
               variant="ghost"
               onClick={handleClearChat}
-              className="h-9 w-9 p-0 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="h-9 w-9 p-0 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700"
               title="Clear chat"
             >
               <RotateCw className="h-3.5 w-3.5" />
@@ -316,15 +316,15 @@ export function ClientPortalChat() {
           {/* Stats Bar */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
-                <span className="text-xs font-medium text-gray-700">
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {stats.unique_sessions} sessions
                 </span>
               </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white rounded-full border border-gray-200 shadow-sm">
-                <Database className="h-3 w-3 text-gray-500" />
-                <span className="text-xs font-medium text-gray-700">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
+                <Database className="h-3 w-3 text-gray-500 dark:text-gray-400" />
+                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
                   {stats.total_chunks} insights
                 </span>
               </div>
@@ -334,18 +334,18 @@ export function ClientPortalChat() {
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 bg-gray-50/50">
+      <ScrollArea className="flex-1 bg-gray-50/50 dark:bg-gray-900/50">
         <div className="p-5 space-y-4">
           {messages.length === 0 ? (
             <div>
               <div className="text-center py-8">
-                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 mx-auto mb-4 flex items-center justify-center shadow-sm">
-                  <Bot className="h-7 w-7 text-gray-600" />
+                <div className="h-14 w-14 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 mx-auto mb-4 flex items-center justify-center shadow-sm">
+                  <Bot className="h-7 w-7 text-gray-600 dark:text-gray-300" />
                 </div>
-                <p className="text-sm font-medium text-gray-900 mb-1">
+                <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
                   Ask about your coaching journey
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Reflect on your sessions, goals, and progress
                 </p>
               </div>
@@ -353,20 +353,20 @@ export function ClientPortalChat() {
               {/* Suggested Questions */}
               {suggestedQuestions.length > 0 && (
                 <div className="space-y-2">
-                  <p className="text-xs text-gray-500 uppercase tracking-wider text-center">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider text-center">
                     Suggested Questions
                   </p>
                   {suggestedQuestions.slice(0, 3).map((question, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSuggestedQuestion(question)}
-                      className="w-full text-left p-3 rounded-lg bg-white border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all group"
+                      className="w-full text-left p-3 rounded-lg bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all group"
                     >
                       <div className="flex items-start gap-2.5">
-                        <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 transition-colors">
-                          <Sparkles className="h-3 w-3 text-gray-600" />
+                        <div className="h-6 w-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 group-hover:bg-gray-200 dark:group-hover:bg-gray-600 transition-colors">
+                          <Sparkles className="h-3 w-3 text-gray-600 dark:text-gray-300" />
                         </div>
-                        <span className="text-xs text-gray-700 leading-relaxed font-medium">
+                        <span className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
                           {question}
                         </span>
                       </div>
@@ -390,8 +390,8 @@ export function ClientPortalChat() {
                   >
                     {isAssistant && (
                       <div className="flex-shrink-0">
-                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm">
-                          <Bot className="h-4 w-4 text-gray-700" />
+                        <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center shadow-sm">
+                          <Bot className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                         </div>
                       </div>
                     )}
@@ -406,8 +406,8 @@ export function ClientPortalChat() {
                         className={cn(
                           'rounded-lg px-3.5 py-2.5 shadow-sm',
                           isAssistant
-                            ? 'bg-white text-gray-900 border border-gray-200'
-                            : 'bg-gray-900 text-white border border-gray-800',
+                            ? 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700'
+                            : 'bg-gray-900 dark:bg-gray-700 text-white border border-gray-800 dark:border-gray-600',
                         )}
                       >
                         {message.isVoice && (
@@ -438,7 +438,7 @@ export function ClientPortalChat() {
                           <div className="space-y-1">
                             <button
                               onClick={() => toggleSources(idx)}
-                              className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-800 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded transition-colors"
+                              className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-2 py-1 rounded transition-colors"
                             >
                               <BookOpen className="h-3 w-3" />
                               <span>
@@ -460,15 +460,15 @@ export function ClientPortalChat() {
                                   (source: any, sourceIdx: number) => (
                                     <div
                                       key={sourceIdx}
-                                      className="bg-white rounded-lg border border-gray-200 p-2.5"
+                                      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-2.5"
                                     >
                                       <div className="flex items-start justify-between mb-1">
-                                        <span className="text-xs text-gray-600">
+                                        <span className="text-xs text-gray-600 dark:text-gray-400">
                                           {formatDate(
                                             source.date || source.timestamp,
                                           )}
                                         </span>
-                                        <span className="text-xs font-medium text-gray-500">
+                                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                                           {(
                                             source.relevance_score * 100
                                           ).toFixed(0)}
@@ -476,7 +476,7 @@ export function ClientPortalChat() {
                                         </span>
                                       </div>
                                       {source.content && (
-                                        <p className="text-xs text-gray-700 leading-relaxed line-clamp-3">
+                                        <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed line-clamp-3">
                                           {source.content}
                                         </p>
                                       )}
@@ -503,12 +503,14 @@ export function ClientPortalChat() {
               {/* Loading state */}
               {isLoading && (
                 <div className="flex gap-2 justify-start">
-                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-sm">
-                    <Bot className="h-4 w-4 text-gray-700" />
+                  <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center shadow-sm">
+                    <Bot className="h-4 w-4 text-gray-700 dark:text-gray-300" />
                   </div>
-                  <div className="bg-white rounded-lg px-4 py-3 border border-gray-200 shadow-sm flex items-center gap-2">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-600" />
-                    <span className="text-xs text-gray-500">Thinking...</span>
+                  <div className="bg-white dark:bg-gray-800 rounded-lg px-4 py-3 border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-2">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-600 dark:text-gray-400" />
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Thinking...
+                    </span>
                   </div>
                 </div>
               )}
@@ -516,7 +518,7 @@ export function ClientPortalChat() {
               {/* Voice status indicators */}
               {isListening && (
                 <div className="flex gap-2 justify-end">
-                  <div className="bg-red-50 text-red-600 rounded-lg px-3 py-2 flex items-center gap-2">
+                  <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg px-3 py-2 flex items-center gap-2">
                     <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                     <span className="text-sm">Listening...</span>
                     {interimTranscript && (
@@ -531,7 +533,7 @@ export function ClientPortalChat() {
               {isSpeaking && (
                 <div className="flex gap-2 justify-start">
                   <div className="h-8 w-8" />
-                  <div className="bg-violet-50 text-violet-600 rounded-lg px-3 py-2 flex items-center gap-2">
+                  <div className="bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg px-3 py-2 flex items-center gap-2">
                     <Volume2 className="h-4 w-4 animate-pulse" />
                     <span className="text-sm">Speaking...</span>
                   </div>
@@ -545,7 +547,7 @@ export function ClientPortalChat() {
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t border-gray-200 p-4 bg-gradient-to-b from-white to-gray-50">
+      <div className="border-t border-gray-200 dark:border-gray-700 p-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
         <div className="flex gap-2">
           {/* Voice/Text Toggle */}
           <TooltipProvider>
@@ -558,8 +560,8 @@ export function ClientPortalChat() {
                   className={cn(
                     'h-10 w-10 p-0 rounded-lg transition-all flex-shrink-0',
                     inputMode === 'voice'
-                      ? 'bg-gray-900 hover:bg-gray-800 text-white'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100',
+                      ? 'bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900'
+                      : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
                   )}
                   disabled={isListening}
                 >
@@ -589,7 +591,7 @@ export function ClientPortalChat() {
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask about your coaching journey..."
-                className="w-full min-h-[40px] max-h-[120px] pl-4 pr-12 py-2.5 text-sm border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400 bg-white shadow-sm"
+                className="w-full min-h-[40px] max-h-[120px] pl-4 pr-12 py-2.5 text-sm border border-gray-200 dark:border-gray-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-white dark:bg-gray-800 dark:text-white shadow-sm"
                 disabled={isLoading}
                 rows={1}
               />
@@ -597,7 +599,7 @@ export function ClientPortalChat() {
                 onClick={() => handleSend()}
                 disabled={!input.trim() || isLoading}
                 size="sm"
-                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 hover:bg-gray-800 text-white h-7 w-7 p-0 rounded-lg shadow-sm transition-all disabled:opacity-50"
+                className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 h-7 w-7 p-0 rounded-lg shadow-sm transition-all disabled:opacity-50"
               >
                 {isLoading ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -642,7 +644,7 @@ export function ClientPortalChat() {
                 </Button>
               )}
 
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {isListening ? 'Release to send' : 'Hold to speak'}
               </span>
             </div>
@@ -651,13 +653,13 @@ export function ClientPortalChat() {
 
         {/* Status Bar */}
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
             {inputMode === 'voice'
               ? 'Classic Voice \u2022 Text-to-speech enabled'
               : 'Enter to send \u2022 Shift+Enter for new line'}
           </p>
           {messages.length > 0 && (
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-gray-400 dark:text-gray-500">
               {messages.length} messages
             </span>
           )}

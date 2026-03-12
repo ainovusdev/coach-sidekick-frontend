@@ -168,7 +168,7 @@ export default function ClientModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4">
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+          <DialogTitle className="text-lg font-semibold text-gray-900 dark:text-white">
             {mode === 'create' ? 'New Client' : 'Edit Client'}
           </DialogTitle>
         </DialogHeader>
@@ -179,7 +179,7 @@ export default function ClientModal({
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
               >
                 Name
               </label>
@@ -190,7 +190,7 @@ export default function ClientModal({
                 className={`h-10 ${
                   errors.name
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                    : 'border-gray-200 focus:border-gray-400'
+                    : 'border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500'
                 }`}
                 placeholder="Client's full name"
                 disabled={isLoading}
@@ -205,7 +205,7 @@ export default function ClientModal({
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700 mb-1.5"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
               >
                 Email
               </label>
@@ -217,7 +217,7 @@ export default function ClientModal({
                 className={`h-10 ${
                   errors.email
                     ? 'border-red-300 focus:border-red-500 focus:ring-red-200'
-                    : 'border-gray-200 focus:border-gray-400'
+                    : 'border-gray-200 dark:border-gray-600 focus:border-gray-400 dark:focus:border-gray-500'
                 }`}
                 placeholder="client@example.com"
                 disabled={isLoading}
@@ -229,10 +229,10 @@ export default function ClientModal({
 
             {/* Invite Toggle - Only show in create mode when email is entered */}
             {mode === 'create' && formData.email.trim() && (
-              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between py-3 px-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
                 <div className="flex items-center gap-2">
-                  <Send className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-700">
+                  <Send className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <span className="text-sm text-gray-700 dark:text-gray-300">
                     Send portal invitation
                   </span>
                 </div>
@@ -251,19 +251,21 @@ export default function ClientModal({
 
             {/* Error message */}
             {errors.submit && (
-              <div className="rounded-lg bg-red-50 border border-red-200 p-3">
-                <p className="text-sm text-red-700">{errors.submit}</p>
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 p-3">
+                <p className="text-sm text-red-700 dark:text-red-400">
+                  {errors.submit}
+                </p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="flex gap-3 px-6 py-4 mt-4 border-t border-gray-100 bg-gray-50/50">
+          <div className="flex gap-3 px-6 py-4 mt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/50">
             <Button
               type="button"
               variant="outline"
               onClick={onClose}
-              className="flex-1 h-10 border-gray-200 hover:bg-gray-100 text-gray-700"
+              className="flex-1 h-10 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
               disabled={isLoading}
             >
               Cancel
@@ -271,7 +273,7 @@ export default function ClientModal({
             <Button
               type="submit"
               disabled={isLoading || !formData.name.trim()}
-              className="flex-1 h-10 bg-gray-900 hover:bg-gray-800 text-white"
+              className="flex-1 h-10 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
             >
               {isLoading ? (
                 <>

@@ -266,15 +266,15 @@ export default function ClientDetailPage({
   return (
     <ProtectedRoute loadingMessage="Loading client details...">
       <PageLayout>
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
           {/* Simple Back Link */}
-          <div className="border-b border-gray-200 bg-white">
+          <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/clients')}
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
@@ -306,38 +306,38 @@ export default function ClientDetailPage({
                   className="space-y-6"
                 >
                   <div className="flex items-center justify-between">
-                    <TabsList className="bg-white border border-gray-200 p-1 rounded-xl shadow-sm">
+                    <TabsList className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
                       <TabsTrigger
                         value="overview"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
                       >
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
                       <TabsTrigger
                         value="sessions"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Sessions & Chat
                       </TabsTrigger>
                       <TabsTrigger
                         value="goals"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Vision & Progress
                       </TabsTrigger>
                       <TabsTrigger
                         value="wins"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
                       >
                         <Trophy className="h-4 w-4 mr-2" />
                         Wins
                       </TabsTrigger>
                       <TabsTrigger
                         value="resources"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
                       >
                         <BookOpen className="h-4 w-4 mr-2" />
                         Resources
@@ -350,7 +350,7 @@ export default function ClientDetailPage({
                           onClick={() =>
                             modalState.setIsStartSessionModalOpen(true)
                           }
-                          className="bg-primary hover:bg-primary/90 text-white"
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground"
                         >
                           <Mic className="h-4 w-4 mr-2" />
                           Start Live Session
@@ -514,7 +514,7 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 rounded-full">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <AlertDialogTitle>Delete Client</AlertDialogTitle>
@@ -527,7 +527,7 @@ export default function ClientDetailPage({
                 <p className="text-sm text-red-600 font-medium">
                   This action cannot be undone. This will permanently delete:
                 </p>
-                <ul className="text-sm text-gray-700 space-y-1 ml-4">
+                <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1 ml-4">
                   <li>• All coaching sessions and transcripts</li>
                   <li>• Session insights and analysis</li>
                   <li>• Client persona and knowledge base</li>
@@ -574,7 +574,7 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 rounded-full">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <AlertDialogTitle>Delete Vision</AlertDialogTitle>
@@ -582,19 +582,19 @@ export default function ClientDetailPage({
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the vision{' '}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 dark:text-white">
                     &quot;{goalToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
                     <strong>Note:</strong> Deleting this vision will unlink it
                     from any associated outcomes. The outcomes themselves will
                     remain and stay linked to their sprints and commitments.
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   This action cannot be undone.
                 </p>
               </AlertDialogDescription>
@@ -640,7 +640,7 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 rounded-full">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <AlertDialogTitle>Delete Outcome</AlertDialogTitle>
@@ -648,12 +648,12 @@ export default function ClientDetailPage({
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the outcome{' '}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 dark:text-white">
                     &quot;{outcomeToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   This action cannot be undone. This will also delete all
                   associated commitments for this outcome.
                 </p>
@@ -700,7 +700,7 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 rounded-full">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <AlertDialogTitle>Delete Sprint</AlertDialogTitle>
@@ -708,19 +708,19 @@ export default function ClientDetailPage({
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the sprint{' '}
-                  <span className="font-semibold text-gray-900">
+                  <span className="font-semibold text-gray-900 dark:text-white">
                     &quot;{sprintToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <p className="text-sm text-blue-800">
+                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
                     <strong>Note:</strong> Deleting this sprint will unlink it
                     from any associated outcomes. The outcomes themselves will
                     remain.
                   </p>
                 </div>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   This action cannot be undone.
                 </p>
               </AlertDialogDescription>

@@ -307,7 +307,7 @@ export function AutoExtractionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3">
             <div className="p-2.5 bg-black rounded-xl">
@@ -326,7 +326,7 @@ export function AutoExtractionModal({
           </div>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="py-4 overflow-y-auto min-h-0">
           {/* Loading State */}
           {step === 'loading' && (
             <div className="flex flex-col items-center justify-center py-12">
@@ -594,7 +594,7 @@ export function AutoExtractionModal({
                     size="sm"
                     onClick={handleConfirmAll}
                     disabled={isSaving || acceptedCount === 0}
-                    className="bg-gray-900 hover:bg-gray-800"
+                    className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
                   >
                     {isSaving ? (
                       <>

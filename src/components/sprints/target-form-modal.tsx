@@ -165,8 +165,8 @@ export function TargetFormModal({
                         className={cn(
                           'flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors',
                           isSelected
-                            ? 'bg-primary text-white border-primary'
-                            : 'bg-white border-gray-300 hover:border-gray-400',
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
                         )}
                         onClick={() => {
                           if (isSelected) {
@@ -198,10 +198,12 @@ export function TargetFormModal({
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500">No active visions</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
+                  No active visions
+                </div>
               )}
               {selectedGoalIds.length > 0 && (
-                <p className="text-xs text-gray-600">
+                <p className="text-xs text-gray-600 dark:text-gray-400">
                   {selectedGoalIds.length} vision
                   {selectedGoalIds.length !== 1 ? 's' : ''} selected
                 </p>

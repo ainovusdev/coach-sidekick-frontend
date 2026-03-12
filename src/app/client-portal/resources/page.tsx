@@ -81,7 +81,7 @@ function SourceLabel({ source }: { source: string }) {
   const normalized = source.toLowerCase()
   if (normalized.includes('session')) {
     return (
-      <span className="flex items-center gap-1 text-xs text-gray-500">
+      <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
         <Calendar className="h-3 w-3" />
         From session
       </span>
@@ -89,14 +89,14 @@ function SourceLabel({ source }: { source: string }) {
   }
   if (normalized.includes('client') || normalized.includes('you')) {
     return (
-      <span className="flex items-center gap-1 text-xs text-gray-500">
+      <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
         <User className="h-3 w-3" />
         Shared with you
       </span>
     )
   }
   return (
-    <span className="flex items-center gap-1 text-xs text-gray-500">
+    <span className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
       <Globe className="h-3 w-3" />
       From your coach
     </span>
@@ -133,7 +133,7 @@ function ResourceReadingDialog({
                 {resource.title}
               </DialogTitle>
               {resource.description && (
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {resource.description}
                 </p>
               )}
@@ -156,15 +156,15 @@ function ResourceReadingDialog({
                 {CATEGORY_LABELS[resource.category] || resource.category}
               </Badge>
               <SourceLabel source={resource.source} />
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-gray-400 dark:text-gray-500">
                 {formatDate(resource.created_at)}
               </span>
             </div>
 
             {/* Text content in reading view */}
             {resource.content && (
-              <div className="prose prose-sm max-w-none p-6 bg-gray-50 rounded-lg">
-                <div className="whitespace-pre-wrap text-gray-800 leading-relaxed">
+              <div className="prose prose-sm max-w-none p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
                   {resource.content}
                 </div>
               </div>
@@ -172,14 +172,14 @@ function ResourceReadingDialog({
 
             {/* File details */}
             {resource.file_url && (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <FileText className="h-5 w-5 text-gray-500" />
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {resource.file_type || 'File'}
                   </p>
                   {resource.file_size && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
                       {formatFileSize(resource.file_size)}
                     </p>
                   )}
@@ -197,9 +197,9 @@ function ResourceReadingDialog({
 
             {/* Link details */}
             {resource.content_url && (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-                <Link2 className="h-5 w-5 text-gray-500" />
-                <p className="flex-1 text-sm text-blue-600 truncate">
+              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <Link2 className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <p className="flex-1 text-sm text-blue-600 dark:text-blue-400 truncate">
                   {resource.content_url}
                 </p>
                 <Button
@@ -265,7 +265,7 @@ function ResourceCard({
     resource.content && !resource.file_url && !resource.content_url
 
   return (
-    <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow">
       <CardContent className="pt-6">
         <div className="flex items-start gap-3">
           <div className={`p-2.5 rounded-lg ${colors.bg} shrink-0`}>
@@ -273,21 +273,21 @@ function ResourceCard({
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-semibold text-gray-900 truncate">
+              <h3 className="font-semibold text-gray-900 dark:text-white truncate">
                 {resource.title}
               </h3>
               {!resource.is_viewed ? (
-                <Badge className="bg-green-100 text-green-700 border-0 text-xs shrink-0">
+                <Badge className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-0 text-xs shrink-0">
                   <Sparkles className="h-3 w-3 mr-1" />
                   NEW
                 </Badge>
               ) : (
-                <CheckCircle className="h-4 w-4 text-gray-300 shrink-0" />
+                <CheckCircle className="h-4 w-4 text-gray-300 dark:text-gray-600 shrink-0" />
               )}
             </div>
 
             {resource.description && (
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
                 {resource.description}
               </p>
             )}
@@ -303,7 +303,7 @@ function ResourceCard({
               <SourceLabel source={resource.source} />
 
               {resource.file_size && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-gray-400 dark:text-gray-500">
                   {formatFileSize(resource.file_size)}
                 </span>
               )}
@@ -359,7 +359,7 @@ function ResourceCard({
                 )}
             </div>
 
-            <div className="text-xs text-gray-400 mt-2">
+            <div className="text-xs text-gray-400 dark:text-gray-500 mt-2">
               {formatDate(resource.created_at)}
             </div>
           </div>
@@ -426,19 +426,21 @@ export default function ClientResourcesPage() {
       label: 'Total Resources',
       value: total,
       icon: FolderOpen,
-      color: 'bg-blue-50 text-blue-600',
+      color: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
     },
     {
       label: 'New / Unviewed',
       value: unviewedCount,
       icon: Sparkles,
-      color: 'bg-green-50 text-green-600',
+      color:
+        'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
     },
     {
       label: 'Categories',
       value: uniqueCategories,
       icon: Filter,
-      color: 'bg-purple-50 text-purple-600',
+      color:
+        'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
     },
   ]
 
@@ -457,7 +459,9 @@ export default function ClientResourcesPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <AlertCircle className="size-12 mx-auto mb-4 text-red-600" />
-          <p className="text-gray-600 mb-4">Failed to load resources</p>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Failed to load resources
+          </p>
           <Button onClick={() => refetch()} variant="outline">
             <RefreshCw className="h-4 w-4 mr-2" />
             Retry
@@ -476,8 +480,10 @@ export default function ClientResourcesPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Resources</h1>
-          <p className="text-gray-600 mt-2">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            My Resources
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
             Documents, exercises, and materials shared by your coach
           </p>
         </div>
@@ -485,7 +491,7 @@ export default function ClientResourcesPage() {
           variant="outline"
           size="sm"
           onClick={() => refetch()}
-          className="border-gray-300 self-start"
+          className="border-gray-300 dark:border-gray-600 self-start"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
@@ -497,17 +503,22 @@ export default function ClientResourcesPage() {
           {statCards.map(stat => {
             const StatIcon = stat.icon
             return (
-              <Card key={stat.label} className="border-gray-200">
+              <Card
+                key={stat.label}
+                className="border-gray-200 dark:border-gray-700"
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${stat.color}`}>
                       <StatIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {stat.value}
                       </p>
-                      <p className="text-xs text-gray-500">{stat.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {stat.label}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -533,7 +544,7 @@ export default function ClientResourcesPage() {
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value as SortOption)}
-            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+            className="rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent dark:border-gray-600 dark:bg-gray-900 dark:text-white"
           >
             <option value="newest">Newest first</option>
             <option value="oldest">Oldest first</option>
@@ -550,8 +561,8 @@ export default function ClientResourcesPage() {
             onClick={() => setCategoryFilter(filter.value)}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
               categoryFilter === filter.value
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
             }`}
           >
             {filter.label}
@@ -561,7 +572,7 @@ export default function ClientResourcesPage() {
 
       {/* Resource count */}
       {hasFilteredResults && (
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           {sortedResources.length} resource
           {sortedResources.length !== 1 ? 's' : ''}
         </p>
@@ -569,26 +580,26 @@ export default function ClientResourcesPage() {
 
       {/* Resources Grid or Empty States */}
       {!hasFilteredResults ? (
-        <Card className="border-2 border-dashed border-gray-300">
+        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
           <CardContent className="flex flex-col items-center justify-center py-16">
             {!hasAnyResources && !isFiltering ? (
               <>
-                <BookOpen className="h-16 w-16 text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <BookOpen className="h-16 w-16 text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No Resources Yet
                 </h3>
-                <p className="text-gray-500 text-center max-w-md">
+                <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
                   Your coach will share resources here as you progress. Check
                   back later for documents, exercises, and other materials.
                 </p>
               </>
             ) : (
               <>
-                <Search className="h-12 w-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                <Search className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No Matching Resources
                 </h3>
-                <p className="text-gray-500 text-center max-w-md">
+                <p className="text-gray-500 dark:text-gray-400 text-center max-w-md">
                   No resources match your filter. Try adjusting your search or
                   category.
                 </p>

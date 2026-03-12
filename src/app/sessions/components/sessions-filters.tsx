@@ -85,8 +85,10 @@ export default function SessionsFilters({
         {/* Client Filter */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Client:</span>
+            <Filter className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Client:
+            </span>
           </div>
 
           {!loadingClients && (
@@ -108,9 +110,9 @@ export default function SessionsFilters({
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[280px] p-0" align="start">
-                <div className="p-2 border-b">
+                <div className="p-2 border-b dark:border-slate-700">
                   <div className="relative">
-                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                    <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 dark:text-slate-500" />
                     <Input
                       placeholder="Search clients..."
                       value={clientSearch}
@@ -128,16 +130,16 @@ export default function SessionsFilters({
                         setClientPopoverOpen(false)
                         setClientSearch('')
                       }}
-                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                         selectedClientId === null
-                          ? 'bg-slate-100 font-medium'
+                          ? 'bg-slate-100 dark:bg-slate-800 font-medium'
                           : ''
                       }`}
                     >
                       <Users className="h-3 w-3" />
                       <span className="flex-1 text-left">All Clients</span>
                       {selectedClientId === null && (
-                        <Check className="h-3 w-3 text-slate-600" />
+                        <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                       )}
                     </button>
 
@@ -150,28 +152,28 @@ export default function SessionsFilters({
                           setClientPopoverOpen(false)
                           setClientSearch('')
                         }}
-                        className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                        className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                           selectedClientId === client.id
-                            ? 'bg-slate-100 font-medium'
+                            ? 'bg-slate-100 dark:bg-slate-800 font-medium'
                             : ''
                         }`}
                       >
                         <User className="h-3 w-3" />
                         <span className="flex-1 text-left">{client.name}</span>
                         {selectedClientId === client.id && (
-                          <Check className="h-3 w-3 text-slate-600" />
+                          <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                         )}
                       </button>
                     ))}
 
                     {filteredClients.length === 0 && (
-                      <div className="px-2 py-4 text-xs text-slate-500 text-center">
+                      <div className="px-2 py-4 text-xs text-slate-500 dark:text-slate-400 text-center">
                         No clients found
                       </div>
                     )}
                   </div>
                 </ScrollArea>
-                <div className="p-2 border-t text-xs text-slate-500 text-center">
+                <div className="p-2 border-t dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 text-center">
                   {clients.length} clients total
                 </div>
               </PopoverContent>
@@ -182,8 +184,10 @@ export default function SessionsFilters({
         {/* Coach Filter */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Coach:</span>
+            <Users className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Coach:
+            </span>
           </div>
 
           <Popover open={coachPopoverOpen} onOpenChange={setCoachPopoverOpen}>
@@ -201,9 +205,9 @@ export default function SessionsFilters({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-0" align="start">
-              <div className="p-2 border-b">
+              <div className="p-2 border-b dark:border-slate-700">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 dark:text-slate-500" />
                   <Input
                     placeholder="Search coaches..."
                     value={coachSearch}
@@ -221,14 +225,16 @@ export default function SessionsFilters({
                       setCoachPopoverOpen(false)
                       setCoachSearch('')
                     }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
-                      selectedCoachId === null ? 'bg-slate-100 font-medium' : ''
+                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                      selectedCoachId === null
+                        ? 'bg-slate-100 dark:bg-slate-800 font-medium'
+                        : ''
                     }`}
                   >
                     <Users className="h-3 w-3" />
                     <span className="flex-1 text-left">All Coaches</span>
                     {selectedCoachId === null && (
-                      <Check className="h-3 w-3 text-slate-600" />
+                      <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                     )}
                   </button>
 
@@ -241,29 +247,29 @@ export default function SessionsFilters({
                         setCoachPopoverOpen(false)
                         setCoachSearch('')
                       }}
-                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                         selectedCoachId === coach.id
-                          ? 'bg-slate-100 font-medium'
+                          ? 'bg-slate-100 dark:bg-slate-800 font-medium'
                           : ''
                       }`}
                     >
                       <User className="h-3 w-3" />
                       <span className="flex-1 text-left">{coach.name}</span>
                       {selectedCoachId === coach.id && (
-                        <Check className="h-3 w-3 text-slate-600" />
+                        <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                       )}
                     </button>
                   ))}
 
                   {filteredCoaches.length === 0 && (
-                    <div className="px-2 py-4 text-xs text-slate-500 text-center">
+                    <div className="px-2 py-4 text-xs text-slate-500 dark:text-slate-400 text-center">
                       No coaches found
                     </div>
                   )}
                 </div>
               </ScrollArea>
               {coaches.length > 0 && (
-                <div className="p-2 border-t text-xs text-slate-500 text-center">
+                <div className="p-2 border-t dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 text-center">
                   {coaches.length} coaches total
                 </div>
               )}
@@ -273,17 +279,19 @@ export default function SessionsFilters({
 
         {/* Session Type Filter */}
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-slate-700">Type:</span>
-          <div className="flex items-center border border-slate-200 rounded-md overflow-hidden">
+          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+            Type:
+          </span>
+          <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-md overflow-hidden">
             {(['all', '1:1', 'group'] as SessionTypeFilter[]).map(type => (
               <button
                 key={type}
                 onClick={() => onSessionTypeFilter(type)}
                 className={`px-3 py-1.5 text-xs font-medium transition-colors ${
                   sessionType === type
-                    ? 'bg-slate-900 text-white'
-                    : 'bg-white text-slate-600 hover:bg-slate-50'
-                } ${type !== 'all' ? 'border-l border-slate-200' : ''}`}
+                    ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
+                    : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800'
+                } ${type !== 'all' ? 'border-l border-slate-200 dark:border-slate-700' : ''}`}
               >
                 {type === 'all' ? 'All' : type === '1:1' ? '1:1' : 'Group'}
               </button>
@@ -297,7 +305,7 @@ export default function SessionsFilters({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="text-slate-500 hover:text-slate-700 text-xs"
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300 text-xs"
           >
             <X className="h-3 w-3 mr-1" />
             Clear filters
@@ -307,11 +315,11 @@ export default function SessionsFilters({
 
       {/* Active Filters Display */}
       {(selectedClient || selectedCoach) && (
-        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg space-y-2">
           {selectedClient && (
             <div className="flex items-center gap-2">
               <User className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                 Client: {selectedClient.name}
               </span>
             </div>
@@ -319,7 +327,7 @@ export default function SessionsFilters({
           {selectedCoach && (
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-100">
                 Coach: {selectedCoach.name}
               </span>
             </div>

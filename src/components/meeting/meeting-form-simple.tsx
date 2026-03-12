@@ -67,14 +67,14 @@ export function MeetingFormSimple({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           {preselectedClientId && !showClientSelector ? (
-            <div className="w-full px-3 py-2 border border-neutral-200 rounded-md bg-neutral-50 flex items-center justify-between">
-              <span className="font-medium text-neutral-900">
+            <div className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-800 flex items-center justify-between">
+              <span className="font-medium text-neutral-900 dark:text-white">
                 {preselectedClientName || 'Selected client'}
               </span>
               <button
                 type="button"
                 onClick={() => setShowClientSelector(true)}
-                className="text-xs text-neutral-500 hover:text-neutral-700 underline"
+                className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 underline"
               >
                 Change
               </button>
@@ -107,7 +107,7 @@ export function MeetingFormSimple({
           disabled={
             loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())
           }
-          className="w-full bg-gray-900 hover:bg-gray-800 text-white"
+          className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
         >
           {loading ? (
             <>

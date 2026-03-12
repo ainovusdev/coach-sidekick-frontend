@@ -21,28 +21,35 @@ import { toast } from 'sonner'
 interface SessionNotesCompactProps {
   sessionId: string
   isViewer?: boolean
+  clientId?: string | null
 }
 
 export function SessionNotesCompact({
   sessionId,
   isViewer = false,
+  clientId,
 }: SessionNotesCompactProps) {
   const [notes, setNotes] = useState<SessionNote[]>([])
   const [loading, setLoading] = useState(true)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [expandedNoteId, setExpandedNoteId] = useState<string | null>(null)
   const [newTitle, setNewTitle] = useState('')
   const [newContent, setNewContent] = useState('')
   const [isCreating, setIsCreating] = useState(false)
 
   useEffect(() => {
     fetchNotes()
-  }, [sessionId])
+  }, [sessionId, clientId])
 
   const fetchNotes = async () => {
+    setLoading(true)
     try {
-      const data = await SessionNotesService.getNotes(sessionId)
-      // Show only the 3 most recent notes
-      setNotes(data.slice(0, 3))
+      const data = await SessionNotesService.getNotes(
+        sessionId,
+        undefined,
+        clientId || undefined,
+      )
+      setNotes(data)
     } catch (error) {
       console.error('Failed to fetch notes:', error)
     } finally {
@@ -58,6 +65,7 @@ export function SessionNotesCompact({
         title: newTitle.trim() || null,
         content: newContent.trim(),
         note_type: 'coach_private',
+        ...(clientId ? { client_id: clientId } : {}),
       })
       toast.success('Note added')
       setShowCreateDialog(false)
@@ -107,7 +115,7 @@ export function SessionNotesCompact({
               <Button
                 onClick={() => setShowCreateDialog(true)}
                 size="sm"
-                className="bg-app-primary hover:bg-app-primary/90 text-white text-xs"
+                className="bg-app-primary hover:bg-app-primary/90 text-app-background text-xs"
               >
                 <Plus className="h-3 w-3 mr-1.5" />
                 Add
@@ -130,21 +138,26 @@ export function SessionNotesCompact({
             <p className="text-sm text-app-secondary">No notes yet</p>
           </div>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-2 max-h-80 overflow-y-auto">
             {notes.map(note => (
               <div
                 key={note.id}
-                className="p-3 bg-app-surface rounded-lg border border-app-border hover:border-app-border transition-colors"
+                className="p-3 bg-app-surface rounded-lg border border-app-border hover:border-app-border transition-colors cursor-pointer"
+                onClick={() =>
+                  setExpandedNoteId(expandedNoteId === note.id ? null : note.id)
+                }
               >
                 <div className="flex items-start justify-between gap-2 mb-1">
-                  <h4 className="font-medium text-sm text-app-primary line-clamp-1">
+                  <h4
+                    className={`font-medium text-sm text-app-primary ${expandedNoteId === note.id ? '' : 'line-clamp-1'}`}
+                  >
                     {note.title}
                   </h4>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
                         note.note_type === 'shared'
-                          ? 'bg-gray-900'
+                          ? 'bg-gray-900 dark:bg-white'
                           : 'bg-gray-400'
                       }`}
                     />
@@ -156,7 +169,7 @@ export function SessionNotesCompact({
 
                 {note.content && (
                   <div
-                    className="text-sm text-app-secondary line-clamp-2 mb-2 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0"
+                    className={`text-sm text-app-secondary ${expandedNoteId === note.id ? '' : 'line-clamp-2'} mb-2 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0`}
                     dangerouslySetInnerHTML={{ __html: note.content }}
                   />
                 )}

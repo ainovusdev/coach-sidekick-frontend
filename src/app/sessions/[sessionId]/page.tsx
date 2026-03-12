@@ -417,7 +417,7 @@ export default function SessionDetailsPage({
   if (error) {
     return (
       <div className="min-h-screen bg-app-surface flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto bg-white rounded-lg shadow-sm p-8 border border-app-border">
+        <div className="text-center max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 border border-app-border">
           <EmptyState
             icon={AlertCircle}
             title="Error Loading Session"
@@ -469,7 +469,7 @@ export default function SessionDetailsPage({
   return (
     <ProtectedRoute loadingMessage="Loading session details...">
       <PageLayout>
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-white dark:bg-gray-900">
           {/* Header */}
           <SessionHeader
             session={session}
@@ -563,14 +563,14 @@ export default function SessionDetailsPage({
                     <TabsList className="bg-app-surface p-1 rounded-lg">
                       <TabsTrigger
                         value="overview"
-                        className="data-[state=active]:bg-white data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                        className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
                       >
                         <LayoutGrid className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
                       <TabsTrigger
                         value="analysis"
-                        className="data-[state=active]:bg-white data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                        className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
                       >
                         <Brain className="h-4 w-4 mr-2" />
                         Analysis
@@ -605,7 +605,7 @@ export default function SessionDetailsPage({
                         onClick={triggerAnalysisWithProgress}
                         disabled={analyzing || !transcriptsExist}
                         size="sm"
-                        className="bg-app-primary hover:bg-app-primary/90 text-white text-sm"
+                        className="bg-app-primary hover:bg-app-primary/90 text-app-background text-sm"
                       >
                         {analyzing ? (
                           <>

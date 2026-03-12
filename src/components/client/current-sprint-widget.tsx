@@ -103,7 +103,7 @@ export function CurrentSprintWidget({
             {onCreateSprint && (
               <Button
                 onClick={onCreateSprint}
-                className="bg-gray-900 hover:bg-gray-800"
+                className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Sprint

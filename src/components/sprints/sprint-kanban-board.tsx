@@ -13,6 +13,7 @@ interface SprintKanbanBoardProps {
   targets?: any[]
   onCommitmentClick?: (commitment: any) => void
   onCommitmentUpdate?: () => void
+  onDelete?: (commitment: any) => void
 }
 
 /**
@@ -25,6 +26,7 @@ export function SprintKanbanBoard({
   targets = [],
   onCommitmentClick,
   onCommitmentUpdate,
+  onDelete,
 }: SprintKanbanBoardProps) {
   const queryClient = useQueryClient()
 
@@ -68,6 +70,7 @@ export function SprintKanbanBoard({
       targets={targets}
       onDrop={handleDrop}
       onCommitmentClick={onCommitmentClick}
+      onDelete={onDelete}
     />
   )
 }

@@ -96,8 +96,10 @@ export default function ClientsFilters({
         {/* Status Filter */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Status:</span>
+            <Filter className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Status:
+            </span>
           </div>
 
           <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
@@ -123,16 +125,16 @@ export default function ClientsFilters({
                       onStatusFilter(option.value)
                       setStatusPopoverOpen(false)
                     }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                       statusFilter === option.value
-                        ? 'bg-slate-100 font-medium'
+                        ? 'bg-slate-100 dark:bg-slate-800 font-medium'
                         : ''
                     }`}
                   >
                     {option.icon}
                     <span className="flex-1 text-left">{option.label}</span>
                     {statusFilter === option.value && (
-                      <Check className="h-3 w-3 text-slate-600" />
+                      <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                     )}
                   </button>
                 ))}
@@ -144,8 +146,10 @@ export default function ClientsFilters({
         {/* Coach Filter */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-slate-600" />
-            <span className="text-sm font-medium text-slate-700">Coach:</span>
+            <Users className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Coach:
+            </span>
           </div>
 
           <Popover open={coachPopoverOpen} onOpenChange={setCoachPopoverOpen}>
@@ -164,9 +168,9 @@ export default function ClientsFilters({
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[280px] p-0" align="start">
-              <div className="p-2 border-b">
+              <div className="p-2 border-b dark:border-slate-700">
                 <div className="relative">
-                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" />
+                  <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 dark:text-slate-500" />
                   <Input
                     placeholder="Search coaches..."
                     value={coachSearch}
@@ -184,14 +188,16 @@ export default function ClientsFilters({
                       setCoachPopoverOpen(false)
                       setCoachSearch('')
                     }}
-                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
-                      selectedCoachId === null ? 'bg-slate-100 font-medium' : ''
+                    className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                      selectedCoachId === null
+                        ? 'bg-slate-100 dark:bg-slate-800 font-medium'
+                        : ''
                     }`}
                   >
                     <Users className="h-3 w-3" />
                     <span className="flex-1 text-left">All Coaches</span>
                     {selectedCoachId === null && (
-                      <Check className="h-3 w-3 text-slate-600" />
+                      <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                     )}
                   </button>
 
@@ -204,29 +210,29 @@ export default function ClientsFilters({
                         setCoachPopoverOpen(false)
                         setCoachSearch('')
                       }}
-                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 ${
+                      className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
                         selectedCoachId === coach.id
-                          ? 'bg-slate-100 font-medium'
+                          ? 'bg-slate-100 dark:bg-slate-800 font-medium'
                           : ''
                       }`}
                     >
                       <User className="h-3 w-3" />
                       <span className="flex-1 text-left">{coach.name}</span>
                       {selectedCoachId === coach.id && (
-                        <Check className="h-3 w-3 text-slate-600" />
+                        <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
                       )}
                     </button>
                   ))}
 
                   {filteredCoaches.length === 0 && (
-                    <div className="px-2 py-4 text-xs text-slate-500 text-center">
+                    <div className="px-2 py-4 text-xs text-slate-500 dark:text-slate-400 text-center">
                       No coaches found
                     </div>
                   )}
                 </div>
               </ScrollArea>
               {coaches.length > 0 && (
-                <div className="p-2 border-t text-xs text-slate-500 text-center">
+                <div className="p-2 border-t dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400 text-center">
                   {coaches.length} coaches total
                 </div>
               )}
@@ -240,7 +246,7 @@ export default function ClientsFilters({
             variant="ghost"
             size="sm"
             onClick={onClearFilters}
-            className="text-slate-500 hover:text-slate-700 text-xs"
+            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-xs"
           >
             <X className="h-3 w-3 mr-1" />
             Clear filters
@@ -250,19 +256,19 @@ export default function ClientsFilters({
 
       {/* Active Filters Display */}
       {hasActiveFilters && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg space-y-2">
+        <div className="p-3 bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg space-y-2">
           {statusFilter !== 'all' && (
             <div className="flex items-center gap-2">
-              <UserCheck className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
+              <UserCheck className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
                 Status: {currentStatusLabel}
               </span>
             </div>
           )}
           {selectedCoach && (
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-900">
+              <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
                 Coach: {selectedCoach.name}
               </span>
             </div>

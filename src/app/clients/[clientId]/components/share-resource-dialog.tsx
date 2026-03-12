@@ -130,14 +130,14 @@ export function ShareResourceDialog({
               </div>
             ) : globalResources.length === 0 ? (
               <div className="text-center py-8">
-                <BookOpen className="h-10 w-10 text-gray-300 mx-auto mb-3" />
-                <p className="text-sm text-gray-500">
+                <BookOpen className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">
                   No global resources to share. Create one first.
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
                   Select global resources to share with{' '}
                   {clientName || 'this client'}
                 </p>
@@ -155,8 +155,8 @@ export function ShareResourceDialog({
 
           <TabsContent value="new" className="mt-4">
             <div className="flex flex-col items-center justify-center py-8">
-              <Plus className="h-10 w-10 text-gray-400 mb-3" />
-              <p className="text-sm text-gray-600 mb-4 text-center">
+              <Plus className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-3" />
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
                 Create a new resource specifically for{' '}
                 {clientName || 'this client'}
               </p>
@@ -169,14 +169,14 @@ export function ShareResourceDialog({
         </Tabs>
 
         {selectedIds.size > 0 && (
-          <DialogFooter className="pt-4 border-t border-gray-100">
+          <DialogFooter className="pt-4 border-t border-gray-100 dark:border-gray-800">
             <Button variant="outline" onClick={() => setSelectedIds(new Set())}>
               Clear ({selectedIds.size})
             </Button>
             <Button
               onClick={handleShare}
               disabled={shareResource.isPending}
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
             >
               {shareResource.isPending
                 ? 'Sharing...'
@@ -206,26 +206,30 @@ function ShareableResourceItem({
       onClick={onToggle}
       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
         selected
-          ? 'border-gray-900 bg-gray-50'
-          : 'border-gray-200 hover:border-gray-300'
+          ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-800'
+          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
       }`}
     >
       <div
         className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
-          selected ? 'border-gray-900 bg-gray-900' : 'border-gray-300'
+          selected
+            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white'
+            : 'border-gray-300 dark:border-gray-500'
         }`}
       >
-        {selected && <Check className="h-3 w-3 text-white" />}
+        {selected && (
+          <Check className="h-3 w-3 text-white dark:text-gray-900" />
+        )}
       </div>
       <div className={`p-1.5 rounded ${colors.bg} shrink-0`}>
         <Icon className={`h-3.5 w-3.5 ${colors.text}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">
+        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
           {resource.title}
         </p>
         {resource.description && (
-          <p className="text-xs text-gray-500 truncate">
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {resource.description}
           </p>
         )}

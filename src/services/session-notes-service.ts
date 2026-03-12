@@ -40,9 +40,11 @@ export class SessionNotesService {
   static async getNotes(
     sessionId: string,
     noteType?: NoteType,
+    clientId?: string,
   ): Promise<SessionNote[]> {
     const params = new URLSearchParams()
     if (noteType) params.append('note_type', noteType)
+    if (clientId) params.append('client_id', clientId)
 
     const queryString = params.toString()
     const url = `${BACKEND_URL}/sessions/${sessionId}/notes${queryString ? `?${queryString}` : ''}`

@@ -147,7 +147,7 @@ export default function KnowledgeBrowsePage() {
             <TabsList className="flex flex-wrap gap-2 bg-transparent h-auto p-0">
               <TabsTrigger
                 value="all"
-                className="data-[state=active]:bg-gray-900 data-[state=active]:text-white px-4 py-2"
+                className="data-[state=active]:bg-gray-900 dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-gray-900 px-4 py-2"
               >
                 All
                 {stats && (
@@ -160,7 +160,7 @@ export default function KnowledgeBrowsePage() {
                 <TabsTrigger
                   key={key}
                   value={key}
-                  className="data-[state=active]:bg-gray-900 data-[state=active]:text-white px-4 py-2"
+                  className="data-[state=active]:bg-gray-900 dark:data-[state=active]:bg-white data-[state=active]:text-white dark:data-[state=active]:text-gray-900 px-4 py-2"
                 >
                   <span className="flex items-center gap-2">
                     {categoryIcons[key as KnowledgeCategory]}

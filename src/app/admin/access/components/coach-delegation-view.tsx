@@ -331,7 +331,7 @@ export default function CoachDelegationView({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-blue-100">
+                      <AvatarFallback className="bg-blue-100 dark:bg-blue-900/30">
                         {getUserInitials(
                           assignment.coach.email,
                           assignment.coach.full_name,
@@ -381,7 +381,7 @@ export default function CoachDelegationView({
                           >
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="text-xs bg-purple-100">
+                                <AvatarFallback className="text-xs bg-purple-100 dark:bg-purple-900/30">
                                   {getUserInitials(
                                     admin.email,
                                     admin.full_name,
@@ -428,7 +428,7 @@ export default function CoachDelegationView({
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-12 w-12">
-                      <AvatarFallback className="bg-purple-100">
+                      <AvatarFallback className="bg-purple-100 dark:bg-purple-900/30">
                         {getUserInitials(
                           assignment.admin.email,
                           assignment.admin.full_name,
@@ -489,7 +489,7 @@ export default function CoachDelegationView({
                           >
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="text-xs bg-blue-100">
+                                <AvatarFallback className="text-xs bg-blue-100 dark:bg-blue-900/30">
                                   {getUserInitials(
                                     coach.email,
                                     coach.full_name,

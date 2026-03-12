@@ -138,14 +138,38 @@ export const CATEGORY_COLORS: Record<
   ResourceCategory,
   { bg: string; text: string }
 > = {
-  general: { bg: 'bg-gray-100', text: 'text-gray-700' },
-  worksheet: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  exercise: { bg: 'bg-green-100', text: 'text-green-700' },
-  article: { bg: 'bg-purple-100', text: 'text-purple-700' },
-  template: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  video: { bg: 'bg-red-100', text: 'text-red-700' },
-  document: { bg: 'bg-indigo-100', text: 'text-indigo-700' },
-  link: { bg: 'bg-teal-100', text: 'text-teal-700' },
+  general: {
+    bg: 'bg-gray-100 dark:bg-gray-800',
+    text: 'text-gray-700 dark:text-gray-300',
+  },
+  worksheet: {
+    bg: 'bg-blue-100 dark:bg-blue-900/30',
+    text: 'text-blue-700 dark:text-blue-400',
+  },
+  exercise: {
+    bg: 'bg-green-100 dark:bg-green-900/30',
+    text: 'text-green-700 dark:text-green-400',
+  },
+  article: {
+    bg: 'bg-purple-100 dark:bg-purple-900/30',
+    text: 'text-purple-700 dark:text-purple-400',
+  },
+  template: {
+    bg: 'bg-orange-100 dark:bg-orange-900/30',
+    text: 'text-orange-700 dark:text-orange-400',
+  },
+  video: {
+    bg: 'bg-red-100 dark:bg-red-900/30',
+    text: 'text-red-700 dark:text-red-400',
+  },
+  document: {
+    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
+    text: 'text-indigo-700 dark:text-indigo-400',
+  },
+  link: {
+    bg: 'bg-teal-100 dark:bg-teal-900/30',
+    text: 'text-teal-700 dark:text-teal-400',
+  },
 }
 
 export const CATEGORY_ICONS_MAP: Record<ResourceCategory, string> = {

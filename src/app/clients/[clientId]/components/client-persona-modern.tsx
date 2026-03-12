@@ -274,7 +274,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
                         className={cn(
                           'px-3 py-1.5 rounded-full text-xs font-medium',
                           index === 0
-                            ? 'bg-gray-900 text-white'
+                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
                             : index === 1
                               ? 'bg-gray-700 text-white'
                               : index === 2
@@ -345,7 +345,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
                   {persona.personality.values.map((value, index) => (
                     <div
                       key={index}
-                      className="p-3 bg-gray-900 text-white rounded-lg text-center"
+                      className="p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg text-center"
                     >
                       <Star className="h-4 w-4 mx-auto mb-1 opacity-60" />
                       <p className="text-xs font-medium">{value}</p>
@@ -491,7 +491,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
                           (moment, index) => (
                             <div
                               key={index}
-                              className="p-3 bg-gray-900 text-white rounded-lg"
+                              className="p-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-lg"
                             >
                               <div className="flex items-start gap-2">
                                 <Lightbulb className="h-4 w-4 opacity-80 flex-shrink-0 mt-0.5" />
@@ -526,7 +526,7 @@ export function ClientPersonaModern({ clientId }: ClientPersonaProps) {
                       className={cn(
                         'px-3 py-1.5',
                         index < 2
-                          ? 'bg-gray-900 text-white border-gray-900'
+                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
                           : index < 4
                             ? 'bg-gray-200 text-gray-800 border-gray-200'
                             : 'bg-gray-100 text-gray-700 border-gray-100',

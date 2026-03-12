@@ -218,8 +218,10 @@ export default function ClientProfilePage() {
       <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-12 py-10">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading profile...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading profile...
+            </p>
           </div>
         </div>
       </div>
@@ -230,8 +232,10 @@ export default function ClientProfilePage() {
     <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-12 py-10">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-600 mt-2">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          Profile Settings
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
           Manage your account information and preferences
         </p>
       </div>
@@ -239,28 +243,30 @@ export default function ClientProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Profile Card */}
         <div className="lg:col-span-1">
-          <Card className="bg-white border-gray-200">
+          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 bg-white border-4 border-gray-200 mb-4">
-                  <AvatarFallback className="bg-white text-black text-2xl font-bold">
+                <Avatar className="h-24 w-24 bg-white dark:bg-gray-900 border-4 border-gray-200 dark:border-gray-700 mb-4">
+                  <AvatarFallback className="bg-white dark:bg-gray-900 text-black dark:text-white text-2xl font-bold">
                     {profileData?.full_name
                       ? getInitials(profileData.full_name)
                       : user?.email?.slice(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
 
-                <h2 className="text-xl font-bold text-gray-900 mb-1">
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                   {profileData?.full_name || 'User'}
                 </h2>
-                <p className="text-gray-600 text-sm mb-4">{user?.email}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                  {user?.email}
+                </p>
 
                 <div className="flex flex-wrap gap-2 justify-center mb-4">
                   {roles.map(role => (
                     <Badge
                       key={role}
                       variant="outline"
-                      className="bg-gray-50 border-gray-300 text-gray-700"
+                      className="bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
                     >
                       {role === 'client' && <User className="h-3 w-3 mr-1" />}
                       {role === 'coach' && <Users className="h-3 w-3 mr-1" />}
@@ -271,7 +277,7 @@ export default function ClientProfilePage() {
                 </div>
 
                 {profileData?.created_at && (
-                  <div className="flex items-center text-sm text-gray-500">
+                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
                     <Calendar className="h-4 w-4 mr-2" />
                     Member since{' '}
                     {formatDate(profileData.created_at, 'MMMM yyyy')}
@@ -279,26 +285,26 @@ export default function ClientProfilePage() {
                 )}
               </div>
 
-              <Separator className="my-6 bg-gray-50" />
+              <Separator className="my-6 bg-gray-50 dark:bg-gray-800" />
 
               {/* Coaches List */}
               {clientInfo.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
                     Your Coaches
                   </h3>
                   <div className="space-y-3">
                     {clientInfo.map((client, index) => (
                       <div
                         key={index}
-                        className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg border border-gray-300"
+                        className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600"
                       >
-                        <Users className="h-5 w-5 text-gray-600 mt-0.5" />
+                        <Users className="h-5 w-5 text-gray-600 dark:text-gray-400 mt-0.5" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                             {client.coach_name || 'Coach'}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                             {client.coach_email || 'Email not available'}
                           </p>
                         </div>
@@ -314,41 +320,47 @@ export default function ClientProfilePage() {
         {/* Right Column - Edit Form */}
         <div className="lg:col-span-2 space-y-6">
           {/* Personal Information */}
-          <Card className="bg-white border-gray-200">
+          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-gray-900">
+              <CardTitle className="text-gray-900 dark:text-white">
                 Personal Information
               </CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardDescription className="text-gray-600 dark:text-gray-400">
                 Update your personal details
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-700">
+                <Label
+                  htmlFor="email"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   Email Address
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <Input
                     id="email"
                     type="email"
                     value={user?.email || ''}
                     disabled
-                    className="pl-10 bg-gray-50 border-gray-300 text-gray-600 cursor-not-allowed"
+                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
                   Email cannot be changed. Contact support if needed.
                 </p>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="full_name" className="text-gray-700">
+                <Label
+                  htmlFor="full_name"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   Full Name
                 </Label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <Input
                     id="full_name"
                     type="text"
@@ -359,7 +371,7 @@ export default function ClientProfilePage() {
                         full_name: e.target.value,
                       }))
                     }
-                    className="pl-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     placeholder="Enter your full name"
                   />
                 </div>
@@ -368,20 +380,25 @@ export default function ClientProfilePage() {
           </Card>
 
           {/* Change Password */}
-          <Card className="bg-white border-gray-200">
+          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-gray-900">Change Password</CardTitle>
-              <CardDescription className="text-gray-600">
+              <CardTitle className="text-gray-900 dark:text-white">
+                Change Password
+              </CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
                 Update your password to keep your account secure
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current_password" className="text-gray-700">
+                <Label
+                  htmlFor="current_password"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   Current Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <Input
                     id="current_password"
                     type={showPassword ? 'text' : 'password'}
@@ -392,13 +409,13 @@ export default function ClientProfilePage() {
                         current_password: e.target.value,
                       }))
                     }
-                    className="pl-10 pr-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                    className="pl-10 pr-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     placeholder="Enter current password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                   >
                     {showPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -410,11 +427,14 @@ export default function ClientProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="new_password" className="text-gray-700">
+                <Label
+                  htmlFor="new_password"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   New Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <Input
                     id="new_password"
                     type={showPassword ? 'text' : 'password'}
@@ -425,7 +445,7 @@ export default function ClientProfilePage() {
                         new_password: e.target.value,
                       }))
                     }
-                    className="pl-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     placeholder="Create a strong password"
                   />
                 </div>
@@ -441,11 +461,14 @@ export default function ClientProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm_password" className="text-gray-700">
+                <Label
+                  htmlFor="confirm_password"
+                  className="text-gray-700 dark:text-gray-300"
+                >
                   Confirm New Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <Input
                     id="confirm_password"
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -456,13 +479,13 @@ export default function ClientProfilePage() {
                         confirm_password: e.target.value,
                       }))
                     }
-                    className="pl-10 pr-10 bg-gray-50 border-gray-300 text-gray-900 placeholder:text-gray-500"
+                    className="pl-10 pr-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
                     placeholder="Confirm new password"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-4 w-4" />
@@ -480,7 +503,7 @@ export default function ClientProfilePage() {
             <Button
               onClick={handleSaveProfile}
               disabled={saving}
-              className="bg-white text-black hover:bg-zinc-200"
+              className="bg-white text-black hover:bg-zinc-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
             >
               {saving ? (
                 <>

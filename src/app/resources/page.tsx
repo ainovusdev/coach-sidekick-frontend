@@ -160,25 +160,28 @@ export default function CoachResourcesPage() {
       label: 'Total Resources',
       value: totalResources,
       icon: FolderOpen,
-      color: 'bg-blue-50 text-blue-600',
+      color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
     },
     {
       label: 'Global',
       value: globalCount,
       icon: Globe,
-      color: 'bg-green-50 text-green-600',
+      color:
+        'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400',
     },
     {
       label: 'Client-specific',
       value: clientSpecificCount,
       icon: Users,
-      color: 'bg-purple-50 text-purple-600',
+      color:
+        'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
     },
     {
       label: 'Total Downloads',
       value: totalDownloads,
       icon: Download,
-      color: 'bg-orange-50 text-orange-600',
+      color:
+        'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
     },
   ]
 
@@ -200,7 +203,9 @@ export default function CoachResourcesPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
             <AlertCircle className="size-12 mx-auto mb-4 text-red-600" />
-            <p className="text-gray-600 mb-4">Failed to load resources</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">
+              Failed to load resources
+            </p>
             <Button onClick={() => refetch()} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Retry
@@ -217,8 +222,10 @@ export default function CoachResourcesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Resources</h1>
-            <p className="text-gray-600 mt-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Resources
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
               Manage and share resources with your clients
             </p>
           </div>
@@ -227,7 +234,7 @@ export default function CoachResourcesPage() {
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="border-gray-300"
+              className="border-gray-300 dark:border-gray-600"
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -248,17 +255,22 @@ export default function CoachResourcesPage() {
           {statCards.map(stat => {
             const StatIcon = stat.icon
             return (
-              <Card key={stat.label} className="border-gray-200">
+              <Card
+                key={stat.label}
+                className="border-gray-200 dark:border-gray-700"
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${stat.color}`}>
                       <StatIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900">
+                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
                         {stat.value}
                       </p>
-                      <p className="text-xs text-gray-500">{stat.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {stat.label}
+                      </p>
                     </div>
                   </div>
                 </CardContent>
@@ -288,8 +300,8 @@ export default function CoachResourcesPage() {
                 onClick={() => setScopeFilter(filter.value)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   scopeFilter === filter.value
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
               >
                 <FilterIcon className="h-3.5 w-3.5" />
@@ -301,20 +313,20 @@ export default function CoachResourcesPage() {
 
         {/* Resource count */}
         {total > 0 && (
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
             {total} resource{total !== 1 ? 's' : ''}
           </p>
         )}
 
         {/* Resources Grid */}
         {resources.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300">
+          <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 No Resources Yet
               </h3>
-              <p className="text-gray-600 text-center max-w-md mb-6">
+              <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
                 Start sharing resources with your clients. Upload documents,
                 share links, or write articles.
               </p>
@@ -396,7 +408,7 @@ export default function CoachResourcesPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 rounded-full">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                   <AlertTriangle className="h-5 w-5 text-red-600" />
                 </div>
                 <AlertDialogTitle>Delete Resource</AlertDialogTitle>

@@ -62,7 +62,7 @@ export function SessionTitleEditor({
   if (!isEditing) {
     return (
       <div className="flex items-center gap-2 group">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
           {displayTitle}
         </h1>
         <Button
@@ -94,7 +94,7 @@ export function SessionTitleEditor({
           size="sm"
           onClick={handleSave}
           disabled={isSaving}
-          className="text-green-600 hover:text-green-700 hover:bg-green-50"
+          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30"
         >
           <Check className="h-4 w-4" />
         </Button>
@@ -103,7 +103,7 @@ export function SessionTitleEditor({
           size="sm"
           onClick={handleCancel}
           disabled={isSaving}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
         >
           <X className="h-4 w-4" />
         </Button>
