@@ -149,11 +149,11 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-700 bg-green-50 border-green-200'
+        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
       case 'in_progress':
-        return 'text-blue-700 bg-blue-50 border-blue-200'
+        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
       case 'draft':
-        return 'text-amber-700 bg-amber-50 border-amber-200'
+        return 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-900/30 dark:border-amber-800'
       default:
         return 'text-app-primary bg-app-surface border-app-border'
     }
@@ -162,7 +162,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   // Draft commitment item - special styling with accept/reject buttons
   if (isDraft) {
     return (
-      <div className="border border-amber-200 rounded-lg overflow-hidden bg-amber-50">
+      <div className="border border-amber-200 dark:border-amber-800 rounded-lg overflow-hidden bg-amber-50 dark:bg-amber-900/20">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 p-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -172,12 +172,12 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-shrink-0 p-0.5 hover:bg-amber-100 rounded transition-colors"
+              className="flex-shrink-0 p-0.5 hover:bg-amber-100 dark:hover:bg-amber-800/50 rounded transition-colors"
             >
               {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-amber-700" />
+                <ChevronDown className="h-4 w-4 text-amber-700 dark:text-amber-400" />
               ) : (
-                <ChevronRight className="h-4 w-4 text-amber-700" />
+                <ChevronRight className="h-4 w-4 text-amber-700 dark:text-amber-400" />
               )}
             </button>
 
@@ -198,7 +198,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
             <Badge
               variant="secondary"
-              className="bg-amber-100 text-amber-700 border-amber-200 text-xs"
+              className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800 text-xs"
             >
               Draft
             </Badge>
@@ -233,7 +233,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                   variant="outline"
                   onClick={handleConfirm}
                   disabled={isConfirming || isDiscarding}
-                  className="h-7 px-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700"
+                  className="h-7 px-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
                   title="Accept commitment"
                 >
                   {isConfirming ? (
@@ -257,7 +257,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                   variant="outline"
                   onClick={handleDiscard}
                   disabled={isConfirming || isDiscarding}
-                  className="h-7 px-2 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  className="h-7 px-2 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
                   title="Discard commitment"
                 >
                   {isDiscarding ? (
@@ -273,7 +273,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
         {/* Expanded Details */}
         {isExpanded && (
-          <div className="px-3 pb-3 pt-1 space-y-3 border-t border-amber-200 bg-amber-50/50">
+          <div className="px-3 pb-3 pt-1 space-y-3 border-t border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
             {/* Description */}
             <div>
               <label className="text-xs font-semibold text-app-primary mb-1 block">
@@ -301,7 +301,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 <label className="text-xs font-semibold text-app-primary mb-1 block">
                   From Transcript
                 </label>
-                <p className="text-sm text-app-secondary italic bg-white/50 dark:bg-gray-800/50 p-2 rounded border border-amber-100">
+                <p className="text-sm text-app-secondary italic bg-white/50 dark:bg-gray-800/50 p-2 rounded border border-amber-100 dark:border-amber-800">
                   &ldquo;{commitment.transcript_context}&rdquo;
                 </p>
               </div>
@@ -455,7 +455,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 variant="ghost"
                 onClick={handleDiscard}
                 disabled={isDiscarding}
-                className="h-7 px-2 text-gray-400 dark:text-gray-400 hover:text-red-600 hover:bg-red-50"
+                className="h-7 px-2 text-gray-400 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30"
                 title="Delete commitment"
               >
                 {isDiscarding ? (

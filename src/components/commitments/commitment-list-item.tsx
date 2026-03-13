@@ -33,15 +33,15 @@ export function CommitmentListItem({
 
   return (
     <>
-      <Card className="border-gray-200 hover:border-blue-200 transition-colors">
+      <Card className="border-gray-200 dark:border-gray-700 hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
         <CardContent className="p-4">
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h5 className="font-medium text-gray-900 mb-1">
+              <h5 className="font-medium text-gray-900 dark:text-white mb-1">
                 {commitment.title}
               </h5>
               {commitment.description && (
-                <p className="text-sm text-gray-600 mb-2 line-clamp-2">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
                   {commitment.description}
                 </p>
               )}
@@ -52,10 +52,10 @@ export function CommitmentListItem({
                   className={
                     commitment.priority === 'high' ||
                     commitment.priority === 'urgent'
-                      ? 'bg-red-100 text-red-700'
+                      ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
                       : commitment.priority === 'medium'
-                        ? 'bg-yellow-100 text-yellow-700'
-                        : 'bg-gray-100 text-gray-700'
+                        ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
+                        : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                   }
                 >
                   {commitment.priority}
@@ -68,7 +68,7 @@ export function CommitmentListItem({
                 {commitment.progress_percentage > 0 && (
                   <Badge
                     variant="secondary"
-                    className="bg-green-100 text-green-700"
+                    className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                   >
                     {commitment.progress_percentage}% complete
                   </Badge>
@@ -76,7 +76,7 @@ export function CommitmentListItem({
                 {commitment.extracted_from_transcript && (
                   <Badge
                     variant="secondary"
-                    className="bg-gray-100 text-gray-700"
+                    className="bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                   >
                     <Sparkles className="h-3 w-3 mr-1" />
                     AI Extracted

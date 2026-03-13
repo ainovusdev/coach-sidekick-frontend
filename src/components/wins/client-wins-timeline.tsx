@@ -85,8 +85,8 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
       <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-amber-600" />
+            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+              <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <CardTitle className="text-lg">Client Wins</CardTitle>
@@ -96,7 +96,10 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-amber-100 text-amber-700">
+            <Badge
+              variant="secondary"
+              className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+            >
               {approvedWins.length} wins
             </Badge>
             {pendingWins.length > 0 && (
@@ -153,14 +156,16 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                            win.is_approved ? 'bg-amber-100' : 'bg-amber-200'
+                            win.is_approved
+                              ? 'bg-amber-100 dark:bg-amber-900/40'
+                              : 'bg-amber-200 dark:bg-amber-900/60'
                           }`}
                         >
                           <Trophy
                             className={`h-4 w-4 ${
                               win.is_approved
-                                ? 'text-amber-600'
-                                : 'text-amber-700'
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-amber-700 dark:text-amber-300'
                             }`}
                           />
                         </div>
@@ -181,7 +186,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                               {!win.is_approved && (
                                 <Badge
                                   variant="secondary"
-                                  className="bg-amber-100 text-amber-700 text-xs"
+                                  className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-xs"
                                 >
                                   Pending
                                 </Badge>
