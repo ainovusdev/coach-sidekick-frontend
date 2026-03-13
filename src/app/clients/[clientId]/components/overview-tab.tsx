@@ -35,6 +35,7 @@ interface OverviewTabProps {
   onEditClient: () => void
   onInviteClient: () => void
   onDeleteClient: () => void
+  onCancelInvitation?: () => void
   onCreateCommitment?: () => void
   onEditCommitment?: (commitment: any) => void
   onViewResources?: () => void
@@ -51,6 +52,7 @@ export function OverviewTab({
   onEditClient,
   onInviteClient,
   onDeleteClient,
+  onCancelInvitation,
   onCreateCommitment,
   onEditCommitment,
   onViewResources,
@@ -146,6 +148,7 @@ export function OverviewTab({
           onEdit={onEditClient}
           onInvite={onInviteClient}
           onDelete={onDeleteClient}
+          onCancelInvite={onCancelInvitation}
           isViewer={isViewer}
         />
 

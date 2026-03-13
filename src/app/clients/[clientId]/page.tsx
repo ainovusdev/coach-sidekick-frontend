@@ -17,6 +17,7 @@ import { ClientModals } from './components/client-modals'
 import { EmptyStateWelcome } from './components/empty-state-welcome'
 import { useClientData } from './hooks/use-client-data'
 import { useClientModals } from './hooks/use-client-modals'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { GoalService } from '@/services/goal-service'
 import { TargetService } from '@/services/target-service'
 import { SprintService } from '@/services/sprint-service'
@@ -35,6 +36,7 @@ import {
   Target,
   Trophy,
   BookOpen,
+  XCircle,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -68,6 +70,8 @@ export default function ClientDetailPage({
   const queryClient = useQueryClient()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [showCancelInviteDialog, setShowCancelInviteDialog] = useState(false)
+  const [isCancellingInvite, setIsCancellingInvite] = useState(false)
   const [showDeleteGoalDialog, setShowDeleteGoalDialog] = useState(false)
   const [goalToDelete, setGoalToDelete] = useState<any>(null)
   const [isDeletingGoal, setIsDeletingGoal] = useState(false)
@@ -78,6 +82,9 @@ export default function ClientDetailPage({
   const [sprintToDelete, setSprintToDelete] = useState<any>(null)
   const [isDeletingSprint, setIsDeletingSprint] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -98,6 +105,28 @@ export default function ClientDetailPage({
       console.error('Error deleting client:', error)
       setShowDeleteDialog(false)
       setIsDeleting(false)
+    }
+  }
+
+  const handleCancelInvitation = async () => {
+    if (!client?.id) return
+    setIsCancellingInvite(true)
+    try {
+      await ClientService.cancelInvitation(client.id)
+      toast.success('Invitation cancelled', {
+        description: `Portal invitation for ${client.name} has been cancelled.`,
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+      refetch()
+      setShowCancelInviteDialog(false)
+    } catch (error) {
+      console.error('Error cancelling invitation:', error)
+      toast.error('Failed to cancel invitation', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later',
+      })
+    } finally {
+      setIsCancellingInvite(false)
     }
   }
 
@@ -371,13 +400,13 @@ export default function ClientDetailPage({
                         modalState.setIsInviteModalOpen(true)
                       }
                       onDeleteClient={() => setShowDeleteDialog(true)}
+                      onCancelInvitation={() => setShowCancelInviteDialog(true)}
                       onCreateCommitment={() => {
                         modalState.setEditingCommitment(null)
                         modalState.setShowCommitmentForm(true)
                       }}
                       onEditCommitment={commitment => {
-                        modalState.setEditingCommitment(commitment)
-                        modalState.setShowCommitmentForm(true)
+                        setSelectedCommitmentId(commitment.id)
                       }}
                       onViewResources={() => setActiveTab('resources')}
                       onShareResource={() => setActiveTab('resources')}
@@ -416,8 +445,7 @@ export default function ClientDetailPage({
                         modalState.setShowCommitmentForm(true)
                       }}
                       onCommitmentClick={commitment => {
-                        modalState.setEditingCommitment(commitment)
-                        modalState.setShowCommitmentForm(true)
+                        setSelectedCommitmentId(commitment.id)
                       }}
                       onEditGoal={goal => {
                         modalState.setEditingGoal(goal)
@@ -554,6 +582,57 @@ export default function ClientDetailPage({
                   <>
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Client
+                  </>
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Cancel Invitation Confirmation Dialog */}
+        <AlertDialog
+          open={showCancelInviteDialog}
+          onOpenChange={open => {
+            if (!isCancellingInvite) {
+              setShowCancelInviteDialog(open)
+            }
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                  <XCircle className="h-5 w-5 text-red-600" />
+                </div>
+                <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
+              </div>
+              <AlertDialogDescription>
+                Are you sure you want to cancel the portal invitation for{' '}
+                <strong>{client?.name}</strong>? They will no longer be able to
+                accept the invitation.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={isCancellingInvite}>
+                Keep Invitation
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={e => {
+                  e.preventDefault()
+                  handleCancelInvitation()
+                }}
+                disabled={isCancellingInvite}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isCancellingInvite ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Cancelling...
+                  </>
+                ) : (
+                  <>
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel Invitation
                   </>
                 )}
               </AlertDialogAction>
@@ -752,6 +831,12 @@ export default function ClientDetailPage({
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        {/* Commitment Detail Panel */}
+        <CommitmentDetailPanel
+          commitmentId={selectedCommitmentId}
+          onClose={() => setSelectedCommitmentId(null)}
+          onCommitmentUpdate={refetch}
+        />
       </PageLayout>
     </ProtectedRoute>
   )

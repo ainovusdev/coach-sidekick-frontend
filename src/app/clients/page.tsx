@@ -17,6 +17,8 @@ import {
 import { Client } from '@/types/meeting'
 import ClientModal from '@/components/clients/client-modal'
 import { ClientInvitationModal } from '@/components/clients/client-invitation-modal'
+import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { toast } from 'sonner'
 import { useClientsData, SortBy } from './hooks/use-clients-data'
 import ClientsFilters from './components/clients-filters'
 import ClientsList from './components/clients-list'
@@ -44,6 +46,8 @@ export default function ClientsPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
+  const [showCancelInviteDialog, setShowCancelInviteDialog] = useState(false)
+  const [isCancellingInvite, setIsCancellingInvite] = useState(false)
 
   // Use the data hook
   const {
@@ -100,6 +104,33 @@ export default function ClientsPage() {
   const openInviteModal = (client: Client) => {
     setSelectedClient(client)
     setIsInviteModalOpen(true)
+  }
+
+  const openCancelInvitationDialog = (client: Client) => {
+    setSelectedClient(client)
+    setShowCancelInviteDialog(true)
+  }
+
+  const handleCancelInvitation = async () => {
+    if (!selectedClient) return
+    setIsCancellingInvite(true)
+    try {
+      await ClientService.cancelInvitation(selectedClient.id)
+      toast.success('Invitation cancelled', {
+        description: `Portal invitation for ${selectedClient.name} has been cancelled.`,
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+      setShowCancelInviteDialog(false)
+      setSelectedClient(null)
+    } catch (error) {
+      console.error('Error cancelling invitation:', error)
+      toast.error('Failed to cancel invitation', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later',
+      })
+    } finally {
+      setIsCancellingInvite(false)
+    }
   }
 
   return (
@@ -232,6 +263,7 @@ export default function ClientsPage() {
               onClientClick={clientId => router.push(`/clients/${clientId}`)}
               onEditClient={openEditModal}
               onInviteClient={openInviteModal}
+              onCancelInvitation={openCancelInvitationDialog}
               onCreateClient={() => setIsCreateModalOpen(true)}
             />
           </div>
@@ -274,6 +306,24 @@ export default function ClientsPage() {
             onInvitationSent={() => refetch()}
           />
         )}
+
+        {/* Cancel Invitation Dialog */}
+        <ConfirmationDialog
+          open={showCancelInviteDialog}
+          onOpenChange={open => {
+            if (!isCancellingInvite) {
+              setShowCancelInviteDialog(open)
+              if (!open) setSelectedClient(null)
+            }
+          }}
+          title="Cancel Invitation"
+          description={`Are you sure you want to cancel the portal invitation for ${selectedClient?.name}? They will no longer be able to accept the invitation.`}
+          confirmText={
+            isCancellingInvite ? 'Cancelling...' : 'Cancel Invitation'
+          }
+          variant="destructive"
+          onConfirm={handleCancelInvitation}
+        />
       </PageLayout>
     </ProtectedRoute>
   )

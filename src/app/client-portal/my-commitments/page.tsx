@@ -32,6 +32,7 @@ import { ClientOutcomeCard } from '@/components/client-portal/client-outcome-car
 import { CommitmentProgressModal } from '@/components/commitments/commitment-progress-modal'
 import { ClientCommitmentForm } from '@/components/client-portal/client-commitment-form'
 import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import {
   Target,
   CheckCircle,
@@ -69,6 +70,9 @@ export default function MyCommitmentsPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [commitmentToDelete, setCommitmentToDelete] =
     useState<Commitment | null>(null)
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<
+    string | null
+  >(null)
   const [error, setError] = useState<string | null>(null)
   const [outcomesExpanded, setOutcomesExpanded] = useState(false)
   const [createOutcomeDialogOpen, setCreateOutcomeDialogOpen] = useState(false)
@@ -509,7 +513,7 @@ export default function MyCommitmentsPage() {
         <CommitmentKanbanBoard
           commitments={commitments}
           outcomeMap={outcomeMap}
-          onCommitmentClick={openProgressModal}
+          onCommitmentClick={c => setSelectedCommitmentId(c.id)}
           onEdit={openEditModal}
           onDelete={confirmDelete}
           onDrop={async (commitmentId, newStatus) => {
@@ -783,6 +787,13 @@ export default function MyCommitmentsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Detail Panel */}
+      <CommitmentDetailPanel
+        commitmentId={selectedCommitmentId}
+        onClose={() => setSelectedCommitmentId(null)}
+        onCommitmentUpdate={loadCommitments}
+      />
     </div>
   )
 }

@@ -6,6 +6,7 @@
 import { ApiClient } from '@/lib/api-client'
 import {
   Commitment,
+  CommitmentAttachment,
   CommitmentCreate,
   CommitmentUpdate,
   CommitmentUpdateCreate,
@@ -16,6 +17,7 @@ import {
   Milestone,
   CommitmentStats,
 } from '@/types/commitment'
+import authService from '@/services/auth-service'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -192,7 +194,7 @@ export class CommitmentService {
     data: Partial<MilestoneCreate>,
   ): Promise<Milestone> {
     const response = await ApiClient.patch(
-      `${BACKEND_URL}/commitments/${commitmentId}/milestones/${milestoneId}`,
+      `${BACKEND_URL}/commitments/milestones/${milestoneId}`,
       data,
     )
     return response
@@ -240,5 +242,100 @@ export class CommitmentService {
     await ApiClient.post(`${BACKEND_URL}/commitments/bulk-discard`, {
       commitment_ids: commitmentIds,
     })
+  }
+
+  // === Attachment Methods ===
+
+  /**
+   * Upload a file attachment to a commitment
+   * Uses XHR for progress tracking when onProgress is provided
+   */
+  static async uploadAttachment(
+    commitmentId: string,
+    file: File,
+    onProgress?: (percent: number) => void,
+  ): Promise<CommitmentAttachment> {
+    const token = authService.getToken()
+    const formData = new FormData()
+    formData.append('file', file)
+
+    if (onProgress) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        xhr.open(
+          'POST',
+          `${BACKEND_URL}/commitments/${commitmentId}/attachments`,
+        )
+        if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
+
+        xhr.upload.onprogress = e => {
+          if (e.lengthComputable) {
+            onProgress(Math.round((e.loaded / e.total) * 100))
+          }
+        }
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve(JSON.parse(xhr.responseText))
+          } else {
+            try {
+              const error = JSON.parse(xhr.responseText)
+              reject(new Error(error.detail || 'Failed to upload attachment'))
+            } catch {
+              reject(new Error('Upload failed'))
+            }
+          }
+        }
+
+        xhr.onerror = () => reject(new Error('Network error during upload'))
+        xhr.send(formData)
+      })
+    }
+
+    const response = await fetch(
+      `${BACKEND_URL}/commitments/${commitmentId}/attachments`,
+      {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: formData,
+      },
+    )
+
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ detail: 'Upload failed' }))
+      throw new Error(error.detail || 'Failed to upload attachment')
+    }
+
+    return response.json()
+  }
+
+  /**
+   * Delete a file attachment from a commitment
+   */
+  static async deleteAttachment(
+    commitmentId: string,
+    attachmentId: string,
+  ): Promise<void> {
+    await ApiClient.delete(
+      `${BACKEND_URL}/commitments/${commitmentId}/attachments/${attachmentId}`,
+    )
+  }
+
+  /**
+   * Refresh the presigned URL for an attachment
+   */
+  static async refreshAttachmentUrl(
+    commitmentId: string,
+    attachmentId: string,
+  ): Promise<CommitmentAttachment> {
+    const response = await ApiClient.post(
+      `${BACKEND_URL}/commitments/${commitmentId}/attachments/${attachmentId}/refresh-url`,
+      {},
+    )
+    return response
   }
 }

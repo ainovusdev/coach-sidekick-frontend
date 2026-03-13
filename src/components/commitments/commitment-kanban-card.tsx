@@ -19,7 +19,6 @@ import {
   MoreVertical,
   Edit,
   Trash2,
-  TrendingUp,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
@@ -132,7 +131,7 @@ export function CommitmentKanbanCard({
         isDragging && 'opacity-50 rotate-2',
         'hover:border-primary/50',
       )}
-      onClick={hasActions ? undefined : onClick}
+      onClick={onClick}
     >
       <CardContent className="p-4 space-y-3">
         {/* Top row: Assignment badge + actions dropdown */}
@@ -169,6 +168,7 @@ export function CommitmentKanbanCard({
                   variant="ghost"
                   size="sm"
                   className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                  onClick={e => e.stopPropagation()}
                 >
                   <MoreVertical className="h-4 w-4" />
                 </Button>
@@ -178,12 +178,6 @@ export function CommitmentKanbanCard({
                   <DropdownMenuItem onClick={onEdit}>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit
-                  </DropdownMenuItem>
-                )}
-                {onClick && (
-                  <DropdownMenuItem onClick={onClick}>
-                    <TrendingUp className="h-4 w-4 mr-2" />
-                    Update Progress
                   </DropdownMenuItem>
                 )}
                 {onDelete && (

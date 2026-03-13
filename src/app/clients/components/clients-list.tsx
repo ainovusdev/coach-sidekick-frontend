@@ -17,6 +17,7 @@ interface ClientsListProps {
   onClientClick: (clientId: string) => void
   onEditClient: (client: Client) => void
   onInviteClient: (client: Client) => void
+  onCancelInvitation?: (client: Client) => void
   onCreateClient: () => void
 }
 
@@ -31,6 +32,7 @@ export default function ClientsList({
   onClientClick,
   onEditClient,
   onInviteClient,
+  onCancelInvitation,
   onCreateClient,
 }: ClientsListProps) {
   // Loading skeleton
@@ -132,6 +134,7 @@ export default function ClientsList({
                 onView={() => onClientClick(client.id)}
                 onEdit={() => onEditClient(client)}
                 onInvite={() => onInviteClient(client)}
+                onCancelInvite={() => onCancelInvitation?.(client)}
               />
             ))}
           </div>
@@ -159,6 +162,7 @@ export default function ClientsList({
                 onView={() => onClientClick(client.id)}
                 onEdit={() => onEditClient(client)}
                 onInvite={() => onInviteClient(client)}
+                onCancelInvite={() => onCancelInvitation?.(client)}
               />
             ))}
           </div>

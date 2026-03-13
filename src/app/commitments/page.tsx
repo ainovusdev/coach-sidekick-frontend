@@ -26,6 +26,7 @@ import {
   CommitmentType,
 } from '@/types/commitment'
 import { CommitmentService } from '@/services/commitment-service'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { ClientService } from '@/services/client-service'
 import { Client } from '@/types/meeting'
 import { useToast } from '@/hooks/use-toast'
@@ -55,6 +56,9 @@ export default function CommitmentsPage() {
   const [progressModalOpen, setProgressModalOpen] = useState(false)
   const [selectedCommitment, setSelectedCommitment] =
     useState<Commitment | null>(null)
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<
+    string | null
+  >(null)
 
   const { toast } = useToast()
 
@@ -204,7 +208,11 @@ export default function CommitmentsPage() {
     setFormOpen(true)
   }
 
-  const openProgressModal = (commitment: Commitment) => {
+  const openDetailPanel = (commitment: Commitment) => {
+    setSelectedCommitmentId(commitment.id)
+  }
+
+  const _openProgressModal = (commitment: Commitment) => {
     setSelectedCommitment(commitment)
     setProgressModalOpen(true)
   }
@@ -354,7 +362,7 @@ export default function CommitmentsPage() {
             commitments={filteredCommitments}
             onEdit={openEditForm}
             onDelete={handleDeleteCommitment}
-            onUpdateProgress={openProgressModal}
+            onUpdateProgress={openDetailPanel}
             showFilters={false}
           />
         </TabsContent>
@@ -375,6 +383,13 @@ export default function CommitmentsPage() {
         open={progressModalOpen}
         onOpenChange={setProgressModalOpen}
         onSubmit={handleUpdateProgress}
+      />
+
+      {/* Detail Panel */}
+      <CommitmentDetailPanel
+        commitmentId={selectedCommitmentId}
+        onClose={() => setSelectedCommitmentId(null)}
+        onCommitmentUpdate={loadData}
       />
     </div>
   )
