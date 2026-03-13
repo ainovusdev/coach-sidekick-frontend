@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
 import { CoachRoute } from '@/components/auth/coach-route'
 import { usePermissions } from '@/contexts/permission-context'
 import { useAuth } from '@/contexts/auth-context'
 import { useDashboardData } from './hooks/use-dashboard-data'
+import { useSessions } from '@/hooks/queries/use-sessions'
 import RecentClients from './components/recent-clients'
 import RecentSessions from './components/recent-sessions'
 import LiveSessionBanner from './components/live-session-banner'
@@ -47,6 +48,28 @@ export default function CoachDashboard() {
     refetch,
   } = useDashboardData()
 
+  // Dedicated query for active sessions - independent of the paginated recent sessions list
+  const { data: activeSessionsData } = useSessions(
+    { status: 'active' },
+    { staleTime: 30 * 1000 }, // 30s - refresh frequently for live sessions
+  )
+
+  const activeSessions = useMemo(() => {
+    if (!activeSessionsData?.sessions) return []
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000)
+    return activeSessionsData.sessions
+      .filter((s: any) => new Date(s.created_at) >= twoHoursAgo)
+      .map((s: any) => ({
+        id: s.id,
+        bot_id: s.bot_id,
+        client_name: s.client_name || s.client?.name || null,
+        coach_name: s.coach_name || null,
+        is_group_session: s.is_group_session || false,
+        participant_count: s.participant_count || null,
+        created_at: s.created_at,
+      }))
+  }, [activeSessionsData])
+
   const handleCreateBot = async (meetingUrl: string, clientId?: string) => {
     try {
       const botId = await debouncedCreateBot(meetingUrl, clientId)
@@ -68,6 +91,9 @@ export default function CoachDashboard() {
       <CoachRoute>
         <PageLayout>
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {/* Live Session Banner - show even for new coaches */}
+            <LiveSessionBanner sessions={activeSessions} />
+
             {/* Personalized Welcome Header */}
             <div className="mb-8 text-center">
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -220,17 +246,7 @@ export default function CoachDashboard() {
           )}
 
           {/* Live Session Banner */}
-          <LiveSessionBanner
-            sessions={
-              meetingHistory?.meetings.filter(
-                (s: any) =>
-                  (s.status === 'active' ||
-                    s.status === 'in_progress' ||
-                    s.status === 'recording') &&
-                  s.metadata?.coach_id === user?.id,
-              ) || []
-            }
-          />
+          <LiveSessionBanner sessions={activeSessions} />
 
           {/* Top Section: Clients (2/3) and Start Session (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:items-stretch">
