@@ -3,13 +3,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 
 import { cn } from '@/lib/utils'
 
-function Dialog(
-  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>,
-) {
-  // modal={false} prevents Radix from adding pointer-events:none to body.
-  // The overlay already blocks interaction behind the dialog.
-  return <DialogPrimitive.Root modal={false} {...props} />
-}
+const Dialog = DialogPrimitive.Root
 
 const DialogTrigger = DialogPrimitive.Trigger
 
