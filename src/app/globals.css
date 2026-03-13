@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Prevent Radix UI from disabling pointer events on body when modals open.
+   The dialog overlays already block interaction behind them. */
+body {
+  pointer-events: auto !important;
+}
+
 /* Custom Scrollbar Styles */
 .scrollbar-thin {
   scrollbar-width: thin;

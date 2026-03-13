@@ -9,21 +9,7 @@ import { buttonVariants } from '@/components/ui/button'
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {
-  return (
-    <AlertDialogPrimitive.Root
-      data-slot="alert-dialog"
-      {...props}
-      onOpenChange={open => {
-        props.onOpenChange?.(open)
-        if (!open) {
-          // Radix sometimes leaves pointer-events: none on body after close
-          setTimeout(() => {
-            document.body.style.removeProperty('pointer-events')
-          }, 0)
-        }
-      }}
-    />
-  )
+  return <AlertDialogPrimitive.Root data-slot="alert-dialog" {...props} />
 }
 
 function AlertDialogTrigger({
