@@ -3,7 +3,24 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 
 import { cn } from '@/lib/utils'
 
-const Dialog = DialogPrimitive.Root
+function Dialog(
+  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>,
+) {
+  return (
+    <DialogPrimitive.Root
+      {...props}
+      onOpenChange={open => {
+        props.onOpenChange?.(open)
+        if (!open) {
+          // Radix sometimes leaves pointer-events: none on body after close
+          setTimeout(() => {
+            document.body.style.removeProperty('pointer-events')
+          }, 0)
+        }
+      }}
+    />
+  )
+}
 
 const DialogTrigger = DialogPrimitive.Trigger
 
