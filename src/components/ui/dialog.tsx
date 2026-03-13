@@ -6,20 +6,9 @@ import { cn } from '@/lib/utils'
 function Dialog(
   props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Root>,
 ) {
-  return (
-    <DialogPrimitive.Root
-      {...props}
-      onOpenChange={open => {
-        props.onOpenChange?.(open)
-        if (!open) {
-          // Radix sometimes leaves pointer-events: none on body after close
-          setTimeout(() => {
-            document.body.style.removeProperty('pointer-events')
-          }, 0)
-        }
-      }}
-    />
-  )
+  // modal={false} prevents Radix from adding pointer-events:none to body.
+  // The overlay already blocks interaction behind the dialog.
+  return <DialogPrimitive.Root modal={false} {...props} />
 }
 
 const DialogTrigger = DialogPrimitive.Trigger
