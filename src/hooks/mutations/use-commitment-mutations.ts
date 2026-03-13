@@ -613,13 +613,25 @@ export function useUploadAttachment(commitmentId: string) {
       })
     },
 
-    onSuccess: () => {
+    onSuccess: data => {
+      // Immediately replace temp attachment with the real one from server
+      queryClient.setQueryData(detailKey, (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          attachments: [
+            ...(old.attachments || []).filter(
+              (a: any) => !a.id?.startsWith('temp-'),
+            ),
+            data,
+          ],
+        }
+      })
       toast.success('File uploaded')
     },
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
-      queryClient.invalidateQueries({ queryKey: detailKey })
     },
   })
 }
