@@ -163,19 +163,20 @@ export function CommitmentDetailPanel({
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 z-30 md:hidden"
-          onClick={onClose}
-        />
-      )}
+      {/* Backdrop overlay */}
+      <div
+        className={cn(
+          'fixed inset-0 z-30 bg-black/50 transition-opacity duration-300',
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
+        )}
+        onClick={onClose}
+      />
 
       {/* Panel */}
       <div
         ref={panelRef}
         className={cn(
-          'fixed right-0 top-0 h-full w-full md:w-[520px] z-40 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-xl',
+          'fixed right-0 top-0 h-full w-full md:w-[640px] z-40 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
@@ -408,8 +409,9 @@ function FieldsGrid({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">Active</SelectItem>
-            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="active">To Do</SelectItem>
+            <SelectItem value="in_progress">In Progress</SelectItem>
+            <SelectItem value="completed">Done</SelectItem>
             <SelectItem value="abandoned">Abandoned</SelectItem>
           </SelectContent>
         </Select>

@@ -284,7 +284,6 @@ export default function ClientsPage() {
           isOpen={isEditModalOpen}
           onClose={() => {
             setIsEditModalOpen(false)
-            setSelectedClient(null)
           }}
           onSubmit={handleEditClient}
           client={selectedClient}
@@ -292,20 +291,18 @@ export default function ClientsPage() {
         />
 
         {/* Client Invitation Modal */}
-        {selectedClient && (
-          <ClientInvitationModal
-            isOpen={isInviteModalOpen}
-            onClose={() => {
-              setIsInviteModalOpen(false)
-              setSelectedClient(null)
-            }}
-            clientId={selectedClient.id}
-            clientName={selectedClient.name}
-            clientEmail={selectedClient.email}
-            invitationStatus={selectedClient.invitation_status}
-            onInvitationSent={() => refetch()}
-          />
-        )}
+        <ClientInvitationModal
+          isOpen={isInviteModalOpen}
+          onClose={() => {
+            setIsInviteModalOpen(false)
+            setSelectedClient(null)
+          }}
+          clientId={selectedClient?.id || ''}
+          clientName={selectedClient?.name || ''}
+          clientEmail={selectedClient?.email}
+          invitationStatus={selectedClient?.invitation_status}
+          onInvitationSent={() => refetch()}
+        />
 
         {/* Cancel Invitation Dialog */}
         <ConfirmationDialog
@@ -313,7 +310,6 @@ export default function ClientsPage() {
           onOpenChange={open => {
             if (!isCancellingInvite) {
               setShowCancelInviteDialog(open)
-              if (!open) setSelectedClient(null)
             }
           }}
           title="Cancel Invitation"

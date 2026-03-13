@@ -191,28 +191,36 @@ export class ClientService {
   }
 
   static async cancelInvitation(clientId: string): Promise<void> {
-    // Try signup invitations first
-    const signupInvitations =
-      await ClientService.getClientSignupInvitations(clientId)
-    const pendingSignup = signupInvitations.find(
-      inv => !inv.accepted_at && new Date(inv.expires_at) > new Date(),
-    )
-    if (pendingSignup) {
-      await ApiClient.delete(`${BACKEND_URL}/invitations/${pendingSignup.id}`)
-      return
+    // Try access invitations first (more common, uses query param)
+    try {
+      const accessInvitations =
+        await ClientService.getClientAccessInvitations(clientId)
+      const pendingAccess = accessInvitations.find(
+        inv => inv.status === 'pending',
+      )
+      if (pendingAccess) {
+        await ApiClient.delete(
+          `${BACKEND_URL}/client-access-invitations/${pendingAccess.id}`,
+        )
+        return
+      }
+    } catch (e) {
+      console.warn('Could not fetch access invitations:', e)
     }
 
-    // Try access invitations
-    const accessInvitations =
-      await ClientService.getClientAccessInvitations(clientId)
-    const pendingAccess = accessInvitations.find(
-      inv => inv.status === 'pending',
-    )
-    if (pendingAccess) {
-      await ApiClient.delete(
-        `${BACKEND_URL}/client-access-invitations/${pendingAccess.id}`,
+    // Try signup invitations
+    try {
+      const signupInvitations =
+        await ClientService.getClientSignupInvitations(clientId)
+      const pendingSignup = signupInvitations.find(
+        inv => !inv.accepted_at && new Date(inv.expires_at) > new Date(),
       )
-      return
+      if (pendingSignup) {
+        await ApiClient.delete(`${BACKEND_URL}/invitations/${pendingSignup.id}`)
+        return
+      }
+    } catch (e) {
+      console.warn('Could not fetch signup invitations:', e)
     }
 
     throw new Error('No pending invitation found for this client')
