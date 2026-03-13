@@ -12,6 +12,7 @@ import {
   Clock,
   UserCheck,
   MoreHorizontal,
+  XCircle,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import {
@@ -28,6 +29,7 @@ interface ClientCardProps {
   onView: () => void
   onEdit: () => void
   onInvite: () => void
+  onCancelInvite?: () => void
 }
 
 export default function ClientCard({
@@ -37,6 +39,7 @@ export default function ClientCard({
   onView,
   onEdit,
   onInvite,
+  onCancelInvite,
 }: ClientCardProps) {
   const stats = client.client_session_stats?.[0]
 
@@ -182,6 +185,19 @@ export default function ClientCard({
                       <Send className="h-4 w-4 mr-2" />
                       Send Invite
                     </DropdownMenuItem>
+                    {client.invitation_status === 'invited' &&
+                      onCancelInvite && (
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.stopPropagation()
+                            onCancelInvite()
+                          }}
+                          className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
+                        >
+                          <XCircle className="h-4 w-4 mr-2" />
+                          Cancel Invitation
+                        </DropdownMenuItem>
+                      )}
                   </>
                 )}
               </DropdownMenuContent>

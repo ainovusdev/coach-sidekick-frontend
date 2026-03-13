@@ -12,6 +12,18 @@ export type MilestoneStatus =
   | 'completed'
   | 'skipped'
 
+// Attachment on a commitment
+export interface CommitmentAttachment {
+  id: string
+  filename: string
+  file_key: string
+  file_url: string
+  file_size: number
+  content_type: string
+  uploaded_by_id: string
+  uploaded_at: string
+}
+
 // Base commitment interface
 export interface CommitmentBase {
   title: string
@@ -37,6 +49,7 @@ export interface CommitmentCreate extends CommitmentBase {
 export interface CommitmentUpdate {
   title?: string
   description?: string
+  type?: CommitmentType
   status?: CommitmentStatus
   priority?: CommitmentPriority
   target_date?: string
@@ -75,6 +88,7 @@ export interface Commitment extends CommitmentBase {
   days_until_deadline?: number
 
   // Related data
+  attachments?: CommitmentAttachment[]
   updates?: CommitmentUpdateEntry[]
   milestones?: Milestone[]
   linked_target_ids?: string[] // IDs of linked targets/desired wins

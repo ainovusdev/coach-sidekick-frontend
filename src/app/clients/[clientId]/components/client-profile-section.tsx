@@ -31,6 +31,7 @@ import {
   UserCheck,
   MoreVertical,
   Trash2,
+  XCircle,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 
@@ -45,6 +46,7 @@ interface ClientProfileSectionProps {
   onEdit: () => void
   onInvite: () => void
   onDelete: () => void
+  onCancelInvite?: () => void
   isViewer?: boolean
 }
 
@@ -59,6 +61,7 @@ export function ClientProfileSection({
   onEdit,
   onInvite,
   onDelete,
+  onCancelInvite,
   isViewer = false,
 }: ClientProfileSectionProps) {
   const { data: persona, isLoading: personaLoading } = useClientPersona(
@@ -85,6 +88,14 @@ export function ClientProfileSection({
               <User2 className="h-5 w-5 text-gray-600 dark:text-gray-400" />
               Client Profile
             </CardTitle>
+            {client.invitation_status === 'invited' && (
+              <Badge
+                variant="secondary"
+                className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs"
+              >
+                Invited
+              </Badge>
+            )}
             {client.invitation_status === 'accepted' && (
               <Badge
                 variant="secondary"
@@ -112,6 +123,15 @@ export function ClientProfileSection({
                   <DropdownMenuItem onClick={onInvite}>
                     <Send className="h-4 w-4 mr-2" />
                     Invite to Portal
+                  </DropdownMenuItem>
+                )}
+                {client.invitation_status === 'invited' && onCancelInvite && (
+                  <DropdownMenuItem
+                    onClick={onCancelInvite}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
+                  >
+                    <XCircle className="h-4 w-4 mr-2" />
+                    Cancel Invitation
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />

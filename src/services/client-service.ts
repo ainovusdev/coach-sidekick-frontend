@@ -95,6 +95,23 @@ function transformClient(backendClient: BackendClient): Client {
   }
 }
 
+export interface ClientSignupInvitation {
+  id: string
+  client_id: string
+  email: string
+  accepted_at: string | null
+  expires_at: string
+  created_at: string
+}
+
+export interface ClientAccessInvitation {
+  id: string
+  client_id: string
+  email: string
+  status: 'pending' | 'accepted' | 'expired' | 'cancelled'
+  created_at: string
+}
+
 export class ClientService {
   /**
    * Lightweight client list for dropdowns and dashboard.
@@ -157,5 +174,47 @@ export class ClientService {
 
   static async deleteClient(clientId: string): Promise<void> {
     await ApiClient.delete(`${BACKEND_URL}/clients/${clientId}`)
+  }
+
+  static async getClientSignupInvitations(
+    clientId: string,
+  ): Promise<ClientSignupInvitation[]> {
+    return await ApiClient.get(`${BACKEND_URL}/clients/${clientId}/invitations`)
+  }
+
+  static async getClientAccessInvitations(
+    clientId: string,
+  ): Promise<ClientAccessInvitation[]> {
+    return await ApiClient.get(
+      `${BACKEND_URL}/client-access-invitations/sent?client_id=${clientId}`,
+    )
+  }
+
+  static async cancelInvitation(clientId: string): Promise<void> {
+    // Try signup invitations first
+    const signupInvitations =
+      await ClientService.getClientSignupInvitations(clientId)
+    const pendingSignup = signupInvitations.find(
+      inv => !inv.accepted_at && new Date(inv.expires_at) > new Date(),
+    )
+    if (pendingSignup) {
+      await ApiClient.delete(`${BACKEND_URL}/invitations/${pendingSignup.id}`)
+      return
+    }
+
+    // Try access invitations
+    const accessInvitations =
+      await ClientService.getClientAccessInvitations(clientId)
+    const pendingAccess = accessInvitations.find(
+      inv => inv.status === 'pending',
+    )
+    if (pendingAccess) {
+      await ApiClient.delete(
+        `${BACKEND_URL}/client-access-invitations/${pendingAccess.id}`,
+      )
+      return
+    }
+
+    throw new Error('No pending invitation found for this client')
   }
 }
