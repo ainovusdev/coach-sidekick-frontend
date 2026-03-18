@@ -256,7 +256,7 @@ export function AutoExtractionModal({
             client_id: clientId,
             session_id: sessionId,
             priority: 'medium',
-            type: 'action',
+            type: 'commitment',
             target_date: s.target_date
               ? format(s.target_date, 'yyyy-MM-dd')
               : undefined,

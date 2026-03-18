@@ -42,8 +42,8 @@ interface ClientCommitmentFormProps {
 
 const typeOptions = [
   {
-    value: 'action',
-    label: 'Action',
+    value: 'commitment',
+    label: 'Commitment',
     icon: Zap,
     description: 'One-time task to complete',
   },
@@ -54,16 +54,22 @@ const typeOptions = [
     description: 'Recurring behavior to build',
   },
   {
-    value: 'milestone',
-    label: 'Milestone',
+    value: 'mp_outcome',
+    label: 'MP Outcome',
     icon: Trophy,
-    description: 'Major achievement to reach',
+    description: 'Metaperformance outcome to reach',
   },
   {
     value: 'learning',
     label: 'Learning',
     icon: BookOpen,
     description: 'Skill or knowledge to acquire',
+  },
+  {
+    value: 'sprint',
+    label: 'Sprint',
+    icon: Zap,
+    description: 'Time-bound goal or sprint target',
   },
 ]
 
@@ -87,7 +93,7 @@ export function ClientCommitmentForm({
   const [formData, setFormData] = useState<ClientCommitmentCreate>({
     title: '',
     description: '',
-    type: 'action',
+    type: 'commitment',
     target_date: format(addDays(new Date(), 7), 'yyyy-MM-dd'), // Default to 1 week
   })
 
@@ -108,7 +114,7 @@ export function ClientCommitmentForm({
         setFormData({
           title: '',
           description: '',
-          type: 'action',
+          type: 'commitment',
           target_date: format(addDays(new Date(), 7), 'yyyy-MM-dd'),
         })
         setSelectedTargetIds([])

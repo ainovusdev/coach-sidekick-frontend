@@ -228,7 +228,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
           session_id: sessionId,
           title: data.title,
           target_date: data.target_date,
-          type: 'action',
+          type: 'commitment',
           priority: 'medium',
           assigned_to_id: data.assigned_to_id,
           target_ids: data.target_ids,

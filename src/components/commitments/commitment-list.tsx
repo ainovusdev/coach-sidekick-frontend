@@ -154,10 +154,11 @@ export function CommitmentList({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="action">Action</SelectItem>
+                    <SelectItem value="commitment">Commitment</SelectItem>
                     <SelectItem value="habit">Habit</SelectItem>
-                    <SelectItem value="milestone">Milestone</SelectItem>
+                    <SelectItem value="mp_outcome">MP Outcome</SelectItem>
                     <SelectItem value="learning">Learning</SelectItem>
+                    <SelectItem value="sprint">Sprint</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

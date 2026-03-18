@@ -20,7 +20,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { CommitmentService } from '@/services/commitment-service'
-import type { CommitmentStatus } from '@/types/commitment'
+import { type CommitmentStatus, commitmentTypeLabels } from '@/types/commitment'
 import { toast } from 'sonner'
 import {
   Target,
@@ -324,7 +324,10 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               )}
               {commitment.type && (
                 <span>
-                  Type: <strong>{commitment.type}</strong>
+                  Type:{' '}
+                  <strong>
+                    {commitmentTypeLabels[commitment.type] || commitment.type}
+                  </strong>
                 </span>
               )}
               {commitment.extraction_confidence && (
@@ -510,7 +513,10 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
             )}
             {commitment.type && (
               <span>
-                Type: <strong>{commitment.type}</strong>
+                Type:{' '}
+                <strong>
+                  {commitmentTypeLabels[commitment.type] || commitment.type}
+                </strong>
               </span>
             )}
           </div>
@@ -573,7 +579,7 @@ export function SessionCommitmentsList({
         description: newDescription.trim() || undefined,
         client_id: clientId,
         session_id: sessionId,
-        type: 'action',
+        type: 'commitment',
         priority: 'medium',
       })
       toast.success('Commitment added')

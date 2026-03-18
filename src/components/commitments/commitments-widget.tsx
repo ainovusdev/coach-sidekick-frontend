@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { Commitment } from '@/types/commitment'
+import { Commitment, commitmentTypeLabels } from '@/types/commitment'
 import { CommitmentQuickComplete } from './commitment-quick-complete'
 import {
   ArrowRight,
@@ -203,15 +203,18 @@ export function CommitmentsWidget({
                       <Badge
                         variant="secondary"
                         className={cn(
-                          commitment.type === 'action' &&
+                          commitment.type === 'commitment' &&
                             'bg-blue-100 text-blue-700',
                           commitment.type === 'habit' &&
                             'bg-gray-100 text-gray-700',
-                          commitment.type === 'milestone' &&
+                          commitment.type === 'mp_outcome' &&
                             'bg-green-100 text-green-700',
+                          commitment.type === 'sprint' &&
+                            'bg-indigo-100 text-indigo-700',
                         )}
                       >
-                        {commitment.type}
+                        {commitmentTypeLabels[commitment.type] ||
+                          commitment.type}
                       </Badge>
                       {deadlineStatus && (
                         <span className={deadlineStatus.className}>

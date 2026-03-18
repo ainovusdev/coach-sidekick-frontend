@@ -3,7 +3,21 @@
  * Matches backend schema from implementation plan
  */
 
-export type CommitmentType = 'action' | 'habit' | 'milestone' | 'learning'
+export type CommitmentType =
+  | 'commitment'
+  | 'habit'
+  | 'mp_outcome'
+  | 'learning'
+  | 'sprint'
+
+export const commitmentTypeLabels: Record<string, string> = {
+  commitment: 'Commitment',
+  habit: 'Habit',
+  mp_outcome: 'MP Outcome',
+  learning: 'Learning',
+  sprint: 'Sprint',
+}
+
 export type CommitmentStatus = 'draft' | 'active' | 'completed' | 'abandoned'
 export type CommitmentPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type MilestoneStatus =
