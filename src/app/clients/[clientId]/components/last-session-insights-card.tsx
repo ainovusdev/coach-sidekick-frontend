@@ -17,6 +17,7 @@ import {
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { CommitmentService } from '@/services/commitment-service'
+import { commitmentTypeLabels } from '@/types/commitment'
 import { toast } from 'sonner'
 import {
   TrendingUp,
@@ -271,7 +272,10 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
             )}
             {commitment.type && (
               <span>
-                Type: <strong>{commitment.type}</strong>
+                Type:{' '}
+                <strong>
+                  {commitmentTypeLabels[commitment.type] || commitment.type}
+                </strong>
               </span>
             )}
           </div>

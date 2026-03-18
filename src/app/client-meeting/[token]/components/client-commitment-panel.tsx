@@ -207,7 +207,7 @@ export function ClientCommitmentPanel({
               title: data.title,
               target_date: data.target_date,
               priority: 'medium',
-              type: 'action',
+              type: 'commitment',
               target_ids: data.target_ids,
             },
           )

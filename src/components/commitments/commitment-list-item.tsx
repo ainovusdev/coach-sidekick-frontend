@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Pencil, Sparkles } from 'lucide-react'
-import { Commitment } from '@/types/commitment'
+import { Commitment, commitmentTypeLabels } from '@/types/commitment'
 import { formatDate } from '@/lib/date-utils'
 import { CommitmentForm } from './commitment-form'
 import { useUpdateCommitment } from '@/hooks/mutations/use-commitment-mutations'
@@ -46,7 +46,9 @@ export function CommitmentListItem({
                 </p>
               )}
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant="outline">{commitment.type}</Badge>
+                <Badge variant="outline">
+                  {commitmentTypeLabels[commitment.type] || commitment.type}
+                </Badge>
                 <Badge
                   variant="secondary"
                   className={

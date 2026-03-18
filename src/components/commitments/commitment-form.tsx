@@ -51,10 +51,11 @@ interface CommitmentFormProps {
 }
 
 const typeOptions: { value: CommitmentType; label: string }[] = [
-  { value: 'action', label: 'Action - One-time task' },
+  { value: 'commitment', label: 'Commitment - One-time task' },
   { value: 'habit', label: 'Habit - Recurring behavior' },
-  { value: 'milestone', label: 'Milestone - Major achievement' },
+  { value: 'mp_outcome', label: 'MP Outcome - Major achievement' },
   { value: 'learning', label: 'Learning - Skill/knowledge to acquire' },
+  { value: 'sprint', label: 'Sprint - Time-bound goal' },
 ]
 
 const priorityOptions: { value: CommitmentPriority; label: string }[] = [
@@ -82,7 +83,7 @@ export function CommitmentForm({
     session_id: defaultSessionId,
     title: '',
     description: '',
-    type: 'action',
+    type: 'commitment',
     priority: 'medium',
     start_date: undefined,
     target_date: undefined,
@@ -138,7 +139,7 @@ export function CommitmentForm({
           session_id: defaultSessionId,
           title: '',
           description: '',
-          type: 'action',
+          type: 'commitment',
           priority: 'medium',
           start_date: undefined,
           target_date: undefined,

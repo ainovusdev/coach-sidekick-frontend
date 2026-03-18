@@ -16,7 +16,7 @@ const BACKEND_URL =
 export interface ClientCommitmentCreate {
   title: string
   description?: string
-  type?: 'action' | 'habit' | 'milestone' | 'learning'
+  type?: 'commitment' | 'habit' | 'mp_outcome' | 'learning' | 'sprint'
   target_date: string // Required
   target_ids?: string[]
 }
@@ -24,7 +24,7 @@ export interface ClientCommitmentCreate {
 export interface ClientCommitmentUpdate {
   title?: string
   description?: string
-  type?: 'action' | 'habit' | 'milestone' | 'learning'
+  type?: 'commitment' | 'habit' | 'mp_outcome' | 'learning' | 'sprint'
   target_date?: string
   status?: 'active' | 'completed' | 'abandoned'
   progress_percentage?: number

@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Target, Sparkles, Trophy, Loader2, Link2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { commitmentTypeLabels } from '@/types/commitment'
 
 interface DraftGoal {
   id: string
@@ -306,7 +307,10 @@ export function EnhancedDraftReview({
                           {/* Target Selector for Commitment */}
                           <div className="space-y-2 mt-3">
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">{commitment.type}</Badge>
+                              <Badge variant="outline">
+                                {commitmentTypeLabels[commitment.type] ||
+                                  commitment.type}
+                              </Badge>
                             </div>
                           </div>
 
@@ -466,7 +470,10 @@ export function EnhancedDraftReview({
                           {/* Target Selector */}
                           <div className="space-y-2 mt-3">
                             <div className="flex items-center gap-2 mb-2">
-                              <Badge variant="outline">{commitment.type}</Badge>
+                              <Badge variant="outline">
+                                {commitmentTypeLabels[commitment.type] ||
+                                  commitment.type}
+                              </Badge>
                             </div>
                           </div>
                           {commitment.transcript_context && (

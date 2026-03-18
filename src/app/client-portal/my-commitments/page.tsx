@@ -22,7 +22,7 @@ import {
   ClientCommitmentCreate,
   ClientCommitmentUpdate,
 } from '@/services/client-commitment-service'
-import { Commitment } from '@/types/commitment'
+import { Commitment, commitmentTypeLabels } from '@/types/commitment'
 import {
   useClientOutcomes,
   useClientGoals,
@@ -583,7 +583,10 @@ export default function MyCommitmentsPage() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant="secondary">{commitment.type}</Badge>
+                          <Badge variant="secondary">
+                            {commitmentTypeLabels[commitment.type] ||
+                              commitment.type}
+                          </Badge>
                           {commitment.priority !== 'medium' && (
                             <Badge variant="outline">
                               {commitment.priority}
@@ -648,7 +651,10 @@ export default function MyCommitmentsPage() {
                           <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400">
                             Completed
                           </Badge>
-                          <Badge variant="secondary">{commitment.type}</Badge>
+                          <Badge variant="secondary">
+                            {commitmentTypeLabels[commitment.type] ||
+                              commitment.type}
+                          </Badge>
                         </div>
                       </div>
                     </div>

@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCommitments } from '@/hooks/queries/use-commitments'
+import { commitmentTypeLabels } from '@/types/commitment'
 import {
   Target,
   CheckCircle2,
@@ -134,17 +135,20 @@ export function ActiveCommitmentsCard({
                           variant="outline"
                           className={cn(
                             'text-xs',
-                            commitment.type === 'action' &&
+                            commitment.type === 'commitment' &&
                               'bg-blue-50 border-blue-200 text-blue-700 dark:bg-blue-900/30 dark:border-blue-800 dark:text-blue-400',
                             commitment.type === 'habit' &&
                               'bg-purple-50 border-purple-200 text-purple-700 dark:bg-purple-900/30 dark:border-purple-800 dark:text-purple-400',
-                            commitment.type === 'milestone' &&
+                            commitment.type === 'mp_outcome' &&
                               'bg-orange-50 border-orange-200 text-orange-700 dark:bg-orange-900/30 dark:border-orange-800 dark:text-orange-400',
                             commitment.type === 'learning' &&
                               'bg-green-50 border-green-200 text-green-700 dark:bg-green-900/30 dark:border-green-800 dark:text-green-400',
+                            commitment.type === 'sprint' &&
+                              'bg-indigo-50 border-indigo-200 text-indigo-700 dark:bg-indigo-900/30 dark:border-indigo-800 dark:text-indigo-400',
                           )}
                         >
-                          {commitment.type}
+                          {commitmentTypeLabels[commitment.type] ||
+                            commitment.type}
                         </Badge>
                         {commitment.target_date && (
                           <div
