@@ -131,7 +131,7 @@ export function SessionCardCompact({
           <div>
             <div className="flex items-center gap-2">
               <span className="font-semibold text-gray-900 dark:text-white">
-                {platformName} - {formattedDate}
+                {session.title || `${platformName} - ${formattedDate}`}
               </span>
               {showClient && clientName && (
                 <>

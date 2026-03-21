@@ -11,6 +11,7 @@ interface ClientSession {
   id: string
   bot_id: string
   status: string
+  title?: string | null
   created_at: string
   meeting_summaries?: Array<{
     duration_minutes: number

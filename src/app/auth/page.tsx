@@ -9,10 +9,9 @@ export default function AuthPage() {
   const { isAuthenticated, loading, roles } = useAuth()
   const router = useRouter()
 
-  // Smart redirect for already-authenticated users
+  // Redirect already-authenticated users based on role
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      // Redirect based on roles to avoid loops
       const hasAdmin = roles.some(r => ['admin', 'super_admin'].includes(r))
       const hasCoach = roles.includes('coach')
       const hasClient = roles.includes('client')
