@@ -116,6 +116,8 @@ export interface ClientPersona {
     growth_areas: string[]
     recurring_themes: string[]
     achievements: string[]
+    triggers: string[]
+    breakthrough_moments: string[]
   }
   metadata: {
     sessions_analyzed: number
@@ -238,6 +240,28 @@ class ClientDashboardAPI {
     if (endDate) params.append('end_date', endDate)
 
     const response = await axiosInstance.get(`/client/timeline?${params}`)
+    return response.data
+  }
+
+  // Progress
+  async getProgress(): Promise<any> {
+    const response = await axiosInstance.get('/client-portal/insights/progress')
+    return response.data
+  }
+
+  // Goals
+  async getGoals(): Promise<any[]> {
+    const response = await axiosInstance.get('/client-portal/goals')
+    return response.data
+  }
+
+  // Commitments (client portal)
+  async getClientCommitments(status?: string): Promise<any[]> {
+    const params = new URLSearchParams()
+    if (status) params.append('status', status)
+    const response = await axiosInstance.get(
+      `/client-portal/commitments?${params}`,
+    )
     return response.data
   }
 

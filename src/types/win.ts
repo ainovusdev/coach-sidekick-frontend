@@ -19,7 +19,7 @@ export interface SessionWin {
 
 export interface SessionWinCreate {
   session_id: string
-  client_id: string
+  client_id?: string
   title: string
   description?: string
   is_ai_generated?: boolean

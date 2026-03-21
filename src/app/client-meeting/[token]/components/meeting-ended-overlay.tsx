@@ -5,9 +5,16 @@
 
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { CheckCircle, ExternalLink, FileText, Target } from 'lucide-react'
+import {
+  CheckCircle,
+  ExternalLink,
+  FileText,
+  Target,
+  LayoutDashboard,
+} from 'lucide-react'
 import Link from 'next/link'
 
 interface MeetingEndedOverlayProps {
@@ -21,6 +28,15 @@ export function MeetingEndedOverlay({
   notesCount,
   commitmentsCount,
 }: MeetingEndedOverlayProps) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const token =
+      localStorage.getItem('auth_token') ||
+      localStorage.getItem('client_auth_token')
+    setIsLoggedIn(!!token)
+  }, [])
+
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <Card className="max-w-md w-full border-gray-200 dark:border-gray-700 shadow-2xl dark:bg-gray-800">
@@ -75,39 +91,61 @@ export function MeetingEndedOverlay({
             </div>
           )}
 
-          {/* Message */}
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Your notes and commitments have been saved. You can access them
-            anytime by signing up for the client portal.
-          </p>
-
-          {/* Actions */}
-          <div className="flex flex-col gap-3">
-            <Link href="/client-portal/auth/signup" className="w-full">
-              <Button className="w-full">
-                Sign up for Client Portal
-                <ExternalLink className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-            <Button
-              variant="ghost"
-              className="text-gray-500 dark:text-gray-400"
-              onClick={() => window.close()}
-            >
-              Close this page
-            </Button>
-          </div>
-
-          {/* Note */}
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-            Already have an account?{' '}
-            <Link
-              href="/client-portal/auth/signup"
-              className="text-gray-600 dark:text-gray-300 hover:underline"
-            >
-              Sign in
-            </Link>
-          </p>
+          {/* Message & Actions - different for logged in vs guest */}
+          {isLoggedIn ? (
+            <>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Your notes and commitments have been saved. You can review them
+                in your dashboard.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link href="/client-portal/dashboard" className="w-full">
+                  <Button className="w-full">
+                    <LayoutDashboard className="h-4 w-4 mr-2" />
+                    Go to Dashboard
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="text-gray-500 dark:text-gray-400"
+                  onClick={() => window.close()}
+                >
+                  Close this page
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Your notes and commitments have been saved. You can access them
+                anytime by signing up for the client portal.
+              </p>
+              <div className="flex flex-col gap-3">
+                <Link href="/client-portal/auth/signup" className="w-full">
+                  <Button className="w-full">
+                    Sign up for Client Portal
+                    <ExternalLink className="h-4 w-4 ml-2" />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  className="text-gray-500 dark:text-gray-400"
+                  onClick={() => window.close()}
+                >
+                  Close this page
+                </Button>
+              </div>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+                Already have an account?{' '}
+                <Link
+                  href="/client-portal/auth/signup"
+                  className="text-gray-600 dark:text-gray-300 hover:underline"
+                >
+                  Sign in
+                </Link>
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
     </div>

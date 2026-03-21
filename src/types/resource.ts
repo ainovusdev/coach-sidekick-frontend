@@ -12,7 +12,7 @@ export type ResourceCategory =
   | 'document'
   | 'link'
 
-export type SharingScope = 'session' | 'client' | 'global'
+export type SharingScope = 'personal' | 'session' | 'global'
 
 // Coach-side resource
 export interface SharedResource {
@@ -29,6 +29,8 @@ export interface SharedResource {
   category: ResourceCategory
   tags: string[]
   sharing_scope: SharingScope
+  source_type?: 'shared_resource' | 'knowledge_document'
+  shares?: ResourceShareInfo[]
   session_id?: string
   client_id?: string
   is_active: boolean
@@ -36,6 +38,26 @@ export interface SharedResource {
   download_count: number
   created_at: string
   updated_at: string
+  // Knowledge document fields (populated when resource_type='knowledge')
+  extracted_text?: string
+  original_filename?: string
+  word_count?: number
+  processing_status?: string
+  processing_progress?: number
+  processing_error?: string
+  weaviate_indexed?: boolean
+  weaviate_chunk_count?: number
+}
+
+export interface ResourceShareInfo {
+  id: string
+  resource_id: string
+  shared_by_id: string
+  shared_with_client_id?: string
+  shared_with_id?: string
+  shared_with_name?: string
+  note?: string
+  created_at: string
 }
 
 // Client-side resource view
@@ -83,9 +105,12 @@ export interface SharedResourceUpdate {
 
 // Share request
 export interface ResourceShareRequest {
-  sharing_scope: SharingScope
-  client_id?: string
-  session_id?: string
+  shared_with_client_id: string
+  note?: string
+}
+
+export interface ResourceShareListResponse {
+  shares: ResourceShareInfo[]
 }
 
 // List response
@@ -101,7 +126,7 @@ export interface ClientResourceListResponse {
 
 // Resource filters
 export interface ResourceFilters {
-  scope?: SharingScope
+  scope?: SharingScope | string
   category?: ResourceCategory
   client_id?: string
   session_id?: string

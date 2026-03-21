@@ -235,7 +235,7 @@ export function CurrentSprintWidget({
             const isClientPortal =
               window.location.pathname.includes('/client-portal')
             if (isClientPortal) {
-              router.push('/client-portal/my-commitments')
+              router.push('/client-portal/dashboard')
             } else {
               // For coaches, navigate to a sprint details modal or trigger tab switch
               if (window.location.pathname.includes('/clients/')) {

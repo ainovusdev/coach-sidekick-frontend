@@ -4,12 +4,20 @@ import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { CheckSquare, ArrowRight, AlertCircle } from 'lucide-react'
-import { formatRelativeTime, isPastDate } from '@/lib/date-utils'
-import type { Task } from '@/services/client-dashboard-api'
+import {
+  Target,
+  ArrowRight,
+  AlertCircle,
+  Circle,
+  PlayCircle,
+} from 'lucide-react'
+import { formatDate, isPastDate } from '@/lib/date-utils'
+import { useCommitments } from '@/hooks/queries/use-commitments'
+import { commitmentTypeLabels } from '@/types/commitment'
+import type { Commitment } from '@/types/commitment'
 
-interface UpcomingTasksWidgetProps {
-  tasks: Task[]
+interface UpcomingCommitmentsWidgetProps {
+  clientId?: string
 }
 
 const priorityColors: Record<string, string> = {
@@ -20,13 +28,24 @@ const priorityColors: Record<string, string> = {
   low: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
 }
 
-export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
-  const sortedTasks = [...tasks]
-    .filter(t => t.status !== 'completed' && t.status !== 'cancelled')
-    .sort((a, b) => {
-      if (!a.due_date) return 1
-      if (!b.due_date) return -1
-      return new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+export function UpcomingTasksWidget({
+  clientId,
+}: UpcomingCommitmentsWidgetProps) {
+  const { data: commitmentsData } = useCommitments(
+    clientId ? { client_id: clientId } : undefined,
+    { enabled: !!clientId },
+  )
+
+  const upcoming = (commitmentsData?.commitments ?? [])
+    .filter(
+      (c: Commitment) => c.status === 'active' || c.status === 'in_progress',
+    )
+    .sort((a: Commitment, b: Commitment) => {
+      if (!a.target_date) return 1
+      if (!b.target_date) return -1
+      return (
+        new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
+      )
     })
     .slice(0, 5)
 
@@ -35,10 +54,10 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <CheckSquare className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            Upcoming Tasks
+            <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            Upcoming Commitments
           </CardTitle>
-          <Link href="/client-portal/sessions">
+          <Link href="/client-portal/dashboard">
             <Button variant="ghost" size="sm" className="text-xs h-7">
               View All
               <ArrowRight className="h-3 w-3 ml-1" />
@@ -47,28 +66,45 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
         </div>
       </CardHeader>
       <CardContent className="pt-0">
-        {sortedTasks.length === 0 ? (
+        {upcoming.length === 0 ? (
           <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-            No pending tasks
+            No active commitments
           </p>
         ) : (
           <div className="space-y-2.5">
-            {sortedTasks.map(task => {
-              const isOverdue = task.due_date && isPastDate(task.due_date)
+            {upcoming.map((commitment: Commitment) => {
+              const isOverdue =
+                commitment.target_date && isPastDate(commitment.target_date)
               return (
-                <div key={task.id} className="flex items-start gap-2.5 py-1.5">
+                <div
+                  key={commitment.id}
+                  className="flex items-start gap-2.5 py-1.5"
+                >
+                  <div className="flex-shrink-0 mt-0.5">
+                    {commitment.status === 'in_progress' ? (
+                      <PlayCircle className="h-4 w-4 text-blue-600" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-gray-400" />
+                    )}
+                  </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                      {task.title}
+                      {commitment.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
                       <Badge
                         variant="secondary"
-                        className={`text-[10px] px-1.5 py-0 h-4 ${priorityColors[task.priority] || priorityColors.low}`}
+                        className={`text-[10px] px-1.5 py-0 h-4 ${priorityColors[commitment.priority] || priorityColors.low}`}
                       >
-                        {task.priority}
+                        {commitment.priority}
                       </Badge>
-                      {task.due_date && (
+                      {commitment.type && (
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                          {commitmentTypeLabels[commitment.type] ||
+                            commitment.type}
+                        </span>
+                      )}
+                      {commitment.target_date && (
                         <span
                           className={`text-xs flex items-center gap-1 ${
                             isOverdue
@@ -77,9 +113,7 @@ export function UpcomingTasksWidget({ tasks }: UpcomingTasksWidgetProps) {
                           }`}
                         >
                           {isOverdue && <AlertCircle className="h-3 w-3" />}
-                          {isOverdue
-                            ? 'Overdue'
-                            : formatRelativeTime(task.due_date)}
+                          {formatDate(commitment.target_date, 'MMM d')}
                         </span>
                       )}
                     </div>

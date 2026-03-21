@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useAuth } from '@/contexts/auth-context'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,11 +17,20 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useResources } from '@/hooks/queries/use-resources'
 import {
   useCreateResource,
   useUpdateResource,
   useDeleteResource,
+  useShareResource,
 } from '@/hooks/mutations/use-resource-mutations'
 import {
   BookOpen,
@@ -29,24 +39,29 @@ import {
   RefreshCw,
   AlertCircle,
   Globe,
-  Users,
+  User,
   ClipboardList,
   Download,
   FolderOpen,
   AlertTriangle,
   Loader2,
   Trash2,
+  Share2,
 } from 'lucide-react'
-import type { SharedResource, SharingScope } from '@/types/resource'
+import type { SharedResource } from '@/types/resource'
 import { ResourceCard } from './components/resource-card'
 import { CreateResourceDialog } from './components/create-resource-dialog'
 import { EditResourceDialog } from './components/edit-resource-dialog'
 import { ResourceDetailDialog } from './components/resource-detail-dialog'
 import { useResourceForm } from './hooks/use-resource-form'
+import ClientSelector from '@/components/clients/client-selector'
+import type { Client } from '@/types/meeting'
+import { ResourceChatButton } from '@/components/resources/resource-chat-button'
 
-type ScopeFilter = 'all' | SharingScope
+type ScopeFilter = 'all' | 'global' | 'personal' | 'session' | 'shared'
 
 export default function CoachResourcesPage() {
+  const { user } = useAuth()
   const [scopeFilter, setScopeFilter] = useState<ScopeFilter>('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -62,6 +77,12 @@ export default function CoachResourcesPage() {
   )
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
 
+  // Share dialog state
+  const [sharingResource, setSharingResource] = useState<SharedResource | null>(
+    null,
+  )
+  const [shareClient, setShareClient] = useState<Client | null>(null)
+
   const {
     form,
     setField,
@@ -72,29 +93,54 @@ export default function CoachResourcesPage() {
     fileInputRef,
   } = useResourceForm()
 
-  const { data, isLoading, error, refetch } = useResources({
-    scope: scopeFilter !== 'all' ? scopeFilter : undefined,
-    search: debouncedSearch || undefined,
-  })
-
-  // Also fetch all resources (unfiltered) for stat cards
-  const { data: allData } = useResources({})
+  // Single fetch — all resources including knowledge docs
+  const { data: allData, isLoading, error, refetch } = useResources({})
 
   const createResource = useCreateResource()
   const updateResource = useUpdateResource()
   const deleteResourceMutation = useDeleteResource()
+  const shareResource = useShareResource()
 
-  const resources = data?.resources || []
-  const total = data?.total || 0
   const allResources = allData?.resources || []
+
+  // Local filtering by scope and search
+  const filteredResources = useMemo(() => {
+    let result = allResources
+
+    // Scope filter
+    if (scopeFilter === 'global') {
+      result = result.filter(r => r.sharing_scope === 'global')
+    } else if (scopeFilter === 'personal') {
+      result = result.filter(r => r.sharing_scope === 'personal')
+    } else if (scopeFilter === 'session') {
+      result = result.filter(r => r.sharing_scope === 'session')
+    } else if (scopeFilter === 'shared') {
+      result = result.filter(r => (r.shares?.length ?? 0) > 0)
+    }
+
+    // Search filter
+    if (debouncedSearch) {
+      const term = debouncedSearch.toLowerCase()
+      result = result.filter(
+        r =>
+          r.title.toLowerCase().includes(term) ||
+          r.description?.toLowerCase().includes(term),
+      )
+    }
+
+    return result
+  }, [allResources, scopeFilter, debouncedSearch])
+
+  const resources = filteredResources
+  const total = filteredResources.length
 
   // Stat calculations
   const totalResources = allData?.total || 0
-  const globalCount = allResources.filter(
-    r => r.sharing_scope === 'global',
+  const personalCount = allResources.filter(
+    r => r.sharing_scope === 'personal',
   ).length
-  const clientSpecificCount = allResources.filter(
-    r => r.sharing_scope === 'client',
+  const sharedCount = allResources.filter(
+    r => (r.shares?.length ?? 0) > 0,
   ).length
   const totalDownloads = allResources.reduce(
     (sum, r) => sum + (r.download_count || 0),
@@ -144,6 +190,21 @@ export default function CoachResourcesPage() {
     setDeleteResource(null)
   }
 
+  const handleShareResource = (resource: SharedResource) => {
+    setSharingResource(resource)
+    setShareClient(null)
+  }
+
+  const handleShareConfirm = async () => {
+    if (!sharingResource || !shareClient) return
+    await shareResource.mutateAsync({
+      id: sharingResource.id,
+      data: { shared_with_client_id: shareClient.id },
+    })
+    setSharingResource(null)
+    setShareClient(null)
+  }
+
   const scopeFilters: {
     label: string
     value: ScopeFilter
@@ -151,8 +212,9 @@ export default function CoachResourcesPage() {
   }[] = [
     { label: 'All', value: 'all', icon: BookOpen },
     { label: 'Global', value: 'global', icon: Globe },
-    { label: 'Client', value: 'client', icon: Users },
+    { label: 'Personal', value: 'personal', icon: User },
     { label: 'Session', value: 'session', icon: ClipboardList },
+    { label: 'Shared', value: 'shared', icon: Share2 },
   ]
 
   const statCards = [
@@ -163,16 +225,16 @@ export default function CoachResourcesPage() {
       color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
     },
     {
-      label: 'Global',
-      value: globalCount,
-      icon: Globe,
+      label: 'Personal',
+      value: personalCount,
+      icon: User,
       color:
         'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400',
     },
     {
-      label: 'Client-specific',
-      value: clientSpecificCount,
-      icon: Users,
+      label: 'Shared',
+      value: sharedCount,
+      icon: Share2,
       color:
         'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
     },
@@ -185,7 +247,7 @@ export default function CoachResourcesPage() {
     },
   ]
 
-  if (isLoading) {
+  if (isLoading && allResources.length === 0) {
     return (
       <PageLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -318,7 +380,7 @@ export default function CoachResourcesPage() {
           </p>
         )}
 
-        {/* Resources Grid */}
+        {/* Resources List */}
         {resources.length === 0 ? (
           <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
             <CardContent className="flex flex-col items-center justify-center py-16">
@@ -342,7 +404,7 @@ export default function CoachResourcesPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
             {resources.map(resource => (
               <ResourceCard
                 key={resource.id}
@@ -350,6 +412,8 @@ export default function CoachResourcesPage() {
                 onEdit={handleEdit}
                 onDelete={r => setDeleteResource(r)}
                 onView={r => setViewingResource(r)}
+                onShare={handleShareResource}
+                isOwner={resource.coach_id === user?.id}
               />
             ))}
           </div>
@@ -394,7 +458,64 @@ export default function CoachResourcesPage() {
           }}
           onEdit={handleEdit}
           onDelete={r => setDeleteResource(r)}
+          onShare={handleShareResource}
+          isOwner={viewingResource?.coach_id === user?.id}
         />
+
+        {/* Share Resource Dialog */}
+        <Dialog
+          open={!!sharingResource}
+          onOpenChange={open => {
+            if (!open) {
+              setSharingResource(null)
+              setShareClient(null)
+            }
+          }}
+        >
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Share Resource</DialogTitle>
+              <DialogDescription>
+                Share &quot;{sharingResource?.title}&quot; with a client
+              </DialogDescription>
+            </DialogHeader>
+            <div className="py-4">
+              <ClientSelector
+                selectedClientId={shareClient?.id}
+                onClientSelect={client => setShareClient(client)}
+                placeholder="Search for a client..."
+                allowNone={false}
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setSharingResource(null)
+                  setShareClient(null)
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleShareConfirm}
+                disabled={!shareClient || shareResource.isPending}
+              >
+                {shareResource.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Sharing...
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="h-4 w-4 mr-2" />
+                    Share
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation AlertDialog */}
         <AlertDialog
@@ -447,6 +568,7 @@ export default function CoachResourcesPage() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
+      <ResourceChatButton />
     </PageLayout>
   )
 }

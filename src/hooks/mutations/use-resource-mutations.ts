@@ -76,10 +76,35 @@ export function useShareResource() {
       ResourceService.shareResource(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resources'] })
-      toast.success('Resource sharing updated')
+      queryClient.invalidateQueries({ queryKey: ['client-resources'] })
+      toast.success('Resource shared')
     },
     onError: err => {
-      toast.error('Failed to update sharing', {
+      toast.error('Failed to share resource', {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+  })
+}
+
+export function useUnshareResource() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      resourceId,
+      shareId,
+    }: {
+      resourceId: string
+      shareId: string
+    }) => ResourceService.unshareResource(resourceId, shareId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['resources'] })
+      queryClient.invalidateQueries({ queryKey: ['client-resources'] })
+      toast.success('Share removed')
+    },
+    onError: err => {
+      toast.error('Failed to remove share', {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },

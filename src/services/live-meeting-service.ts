@@ -75,6 +75,29 @@ export interface LiveMeetingTarget {
   goal_titles: string[]
 }
 
+export interface LiveMeetingSprint {
+  id: string
+  title: string
+  status: string
+  start_date: string | null
+  end_date: string | null
+  target_ids: string[]
+}
+
+export interface LiveMeetingResource {
+  id: string
+  title: string
+  description: string | null
+  category: string
+  content_url: string | null
+  file_url: string | null
+  file_type: string | null
+  file_size: number | null
+  content: string | null
+  tags: string[]
+  created_at: string | null
+}
+
 export interface LiveMeetingTokenInfo {
   token: string
   share_url: string
@@ -317,6 +340,24 @@ export class LiveMeetingService {
     return handleResponse<LiveMeetingTarget[]>(response)
   }
 
+  /**
+   * Get the client's active sprints with their linked target IDs
+   */
+  static async getSprints(
+    token: string,
+    guestToken: string,
+  ): Promise<LiveMeetingSprint[]> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/sprints`,
+      {
+        method: 'GET',
+        headers: getGuestHeaders(guestToken),
+      },
+    )
+
+    return handleResponse<LiveMeetingSprint[]>(response)
+  }
+
   // ============ Commitments ============
 
   /**
@@ -454,6 +495,24 @@ export class LiveMeetingService {
       response,
     )
     return result.data
+  }
+
+  /**
+   * Get resources shared with this client
+   */
+  static async getResources(
+    token: string,
+    guestToken: string,
+  ): Promise<LiveMeetingResource[]> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/resources`,
+      {
+        method: 'GET',
+        headers: getGuestHeaders(guestToken),
+      },
+    )
+
+    return handleResponse<LiveMeetingResource[]>(response)
   }
 }
 

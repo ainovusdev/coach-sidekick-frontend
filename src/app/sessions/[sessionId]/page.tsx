@@ -38,12 +38,10 @@ import { SessionService } from '@/services/session-service'
 import { CommitmentService } from '@/services/commitment-service'
 import { CommitmentForm } from '@/components/commitments/commitment-form'
 import { toast } from '@/hooks/use-toast'
-import { AutoExtractionModal } from '@/components/extraction/auto-extraction-modal'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
-import { WinsService } from '@/services/wins-service'
 
 export default function SessionDetailsPage({
   params,
@@ -78,26 +76,14 @@ export default function SessionDetailsPage({
     : baseClientId
 
   // Fetch commitments for this specific session only
-  const { data: commitmentsData } = useCommitments(
-    {
-      session_id: resolvedParams.sessionId,
-      include_drafts: true,
-    },
-    { enabled: !!resolvedParams.sessionId },
-  )
-
-  // Fetch wins for this session (lightweight check for existing data)
-  const { data: winsData } = useQuery({
-    queryKey: ['wins', 'session', resolvedParams.sessionId],
-    queryFn: () => WinsService.getSessionWins(resolvedParams.sessionId),
-    enabled: !!resolvedParams.sessionId,
-    staleTime: 3 * 60 * 1000,
-  })
-
-  // Check if extraction data already exists — skip modal if so
-  const hasExistingExtractionData =
-    (commitmentsData?.commitments?.length ?? 0) > 0 ||
-    (winsData?.wins?.length ?? 0) > 0
+  const { data: commitmentsData, isLoading: commitmentsLoading } =
+    useCommitments(
+      {
+        session_id: resolvedParams.sessionId,
+        include_drafts: true,
+      },
+      { enabled: !!resolvedParams.sessionId },
+    )
 
   // Helper to refresh commitments and wins from cache
   const refreshCommitments = () => {
@@ -133,55 +119,6 @@ export default function SessionDetailsPage({
   // UI state
   const [showQuickNote, setShowQuickNote] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
-  const [showExtractionModal, setShowExtractionModal] = useState(false)
-  const [extractionShown, setExtractionShown] = useState(false)
-  const [checkedFromMeeting, setCheckedFromMeeting] = useState(false)
-
-  // Check if we came from a meeting page (session just completed) and trigger extraction modal
-  React.useEffect(() => {
-    if (
-      checkedFromMeeting ||
-      !sessionData?.session?.id ||
-      !clientId ||
-      isViewer ||
-      hasExistingExtractionData
-    )
-      return
-
-    setCheckedFromMeeting(true)
-
-    // Check if session was recently completed (within last 5 minutes)
-    const sessionCompletedAt =
-      sessionData.session.ended_at || sessionData.session.updated_at
-    if (sessionCompletedAt) {
-      const completedTime = new Date(sessionCompletedAt).getTime()
-      const now = Date.now()
-      const fiveMinutesAgo = now - 5 * 60 * 1000
-
-      // If session completed recently and has transcripts, show extraction modal
-      const hasTranscripts =
-        sessionData.transcript && sessionData.transcript.length > 0
-      const isRecentlyCompleted = completedTime > fiveMinutesAgo
-      const isSessionComplete = sessionData.session.status === 'completed'
-
-      if (
-        isRecentlyCompleted &&
-        hasTranscripts &&
-        isSessionComplete &&
-        !extractionShown
-      ) {
-        setShowExtractionModal(true)
-        setExtractionShown(true)
-      }
-    }
-  }, [
-    sessionData,
-    clientId,
-    isViewer,
-    checkedFromMeeting,
-    extractionShown,
-    hasExistingExtractionData,
-  ])
 
   // Auto-trigger analysis
   React.useEffect(() => {
@@ -263,17 +200,6 @@ export default function SessionDetailsPage({
         description:
           'Session insights and coaching metrics have been generated successfully.',
       })
-
-      // Show extraction modal after analysis completes (skip if data already exists)
-      if (
-        !extractionShown &&
-        clientId &&
-        !isViewer &&
-        !hasExistingExtractionData
-      ) {
-        setShowExtractionModal(true)
-        setExtractionShown(true)
-      }
     } catch (error) {
       // ApiClient already shows error toast, just log it
       console.error('Analysis failed:', error)
@@ -294,8 +220,12 @@ export default function SessionDetailsPage({
         title: 'Session Deleted',
         description: 'The session and all associated data have been deleted.',
       })
-      // Navigate back to sessions list
-      router.push('/sessions')
+      // Navigate to client profile if client exists, otherwise sessions list
+      if (clientId) {
+        router.push(`/clients/${clientId}`)
+      } else {
+        router.push('/sessions')
+      }
     } catch (error) {
       // ApiClient already shows error toast, just log it
       console.error('Failed to delete session:', error)
@@ -483,9 +413,21 @@ export default function SessionDetailsPage({
             }}
             onDelete={!isViewer ? () => setShowDeleteDialog(true) : undefined}
             onTitleUpdate={newTitle => {
-              if (sessionData?.session) {
-                sessionData.session.title = newTitle
-              }
+              // Update the query cache so the title change is reflected everywhere
+              // Must include 'full-details' suffix to match useSessionDetails query key
+              queryClient.setQueryData(
+                [
+                  ...queryKeys.sessions.detail(resolvedParams.sessionId),
+                  'full-details',
+                ],
+                (old: any) => {
+                  if (!old) return old
+                  return {
+                    ...old,
+                    session: { ...old.session, title: newTitle },
+                  }
+                },
+              )
             }}
             onSendEmail={!isViewer ? handleSendSummaryEmail : undefined}
             sendingEmail={sendingEmail}
@@ -690,6 +632,11 @@ export default function SessionDetailsPage({
                           : undefined
                       }
                       generatingClientAnalysis={generatingClientAnalysis}
+                      isCompleted={
+                        session.status === 'completed' ||
+                        session.transcription_status === 'completed'
+                      }
+                      commitmentsLoaded={!commitmentsLoading}
                     />
                   )}
 
@@ -810,17 +757,6 @@ export default function SessionDetailsPage({
             onConfirm={handleDeleteSession}
             variant="destructive"
           />
-
-          {/* Auto-Extraction Modal - Shows after analysis completes */}
-          {clientId && (
-            <AutoExtractionModal
-              open={showExtractionModal}
-              onOpenChange={setShowExtractionModal}
-              sessionId={sessionData?.session?.id || ''}
-              clientId={clientId}
-              onComplete={refreshCommitments}
-            />
-          )}
         </div>
       </PageLayout>
     </ProtectedRoute>

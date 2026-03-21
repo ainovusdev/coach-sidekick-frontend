@@ -25,9 +25,25 @@ import {
   Hash,
   Quote,
   ExternalLink,
+  Circle,
+  PlayCircle,
+  Users,
+  ArrowUpRight,
 } from 'lucide-react'
 import { NotesList } from '@/components/session-notes/notes-list'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
+import { SentimentGauge } from '@/components/sessions/sentiment-gauge'
+import { useCommitments } from '@/hooks/queries/use-commitments'
+import { CommitmentService } from '@/services/commitment-service'
+import { commitmentTypeLabels } from '@/types/commitment'
+import { toast } from 'sonner'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 interface SessionDetail {
   session: {
@@ -39,6 +55,7 @@ interface SessionDetail {
     summary: string | null
     key_topics: string[]
     action_items: any[]
+    is_group_session?: boolean
     coach: {
       id: string
       name: string
@@ -87,8 +104,152 @@ interface SessionDetail {
     go_live_scores: any
     sentiment: any
     engagement: string
-    suggestions: any
+    suggestions: Array<{
+      text?: string
+      suggestion?: string
+      target?: string
+      type?: string
+    }> | null
   } | null
+}
+
+function SessionCommitmentItem({
+  commitment,
+  onUpdate,
+}: {
+  commitment: any
+  onUpdate: () => void
+}) {
+  const [isExpanded, setIsExpanded] = useState(false)
+
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      await CommitmentService.updateCommitment(commitment.id, {
+        status: newStatus as any,
+      })
+      const statusLabels: Record<string, string> = {
+        active: 'Committed',
+        in_progress: 'In Progress',
+        completed: 'Done',
+      }
+      toast.success(`Commitment moved to ${statusLabels[newStatus]}`)
+      onUpdate()
+    } catch {
+      toast.error('Failed to update commitment')
+    }
+  }
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <CheckCircle2 className="h-4 w-4 text-green-600" />
+      case 'in_progress':
+        return <PlayCircle className="h-4 w-4 text-blue-600" />
+      default:
+        return <Circle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
+      case 'in_progress':
+        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
+      default:
+        return 'text-gray-700 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600'
+    }
+  }
+
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="flex-shrink-0">
+            {getStatusIcon(commitment.status)}
+          </div>
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+          >
+            {isExpanded ? (
+              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            ) : (
+              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            )}
+          </button>
+          <p
+            className={`text-sm font-medium flex-1 dark:text-gray-200 ${
+              commitment.status === 'completed'
+                ? 'line-through text-gray-500 dark:text-gray-500'
+                : ''
+            }`}
+          >
+            {commitment.title}
+          </p>
+        </div>
+        <Select value={commitment.status} onValueChange={handleStatusChange}>
+          <SelectTrigger
+            className={`h-8 w-[130px] text-xs border ${getStatusColor(commitment.status)}`}
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">
+              <div className="flex items-center gap-2">
+                <Circle className="h-3 w-3" />
+                Committed
+              </div>
+            </SelectItem>
+            <SelectItem value="in_progress">
+              <div className="flex items-center gap-2">
+                <PlayCircle className="h-3 w-3" />
+                In Progress
+              </div>
+            </SelectItem>
+            <SelectItem value="completed">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-3 w-3" />
+                Done
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      {isExpanded && (
+        <div className="px-3 pb-3 pt-1 space-y-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+          {commitment.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {commitment.description}
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+            {commitment.priority && (
+              <span>
+                Priority: <strong>{commitment.priority}</strong>
+              </span>
+            )}
+            {commitment.target_date && (
+              <span>
+                Due:{' '}
+                <strong>
+                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
+                </strong>
+              </span>
+            )}
+            {commitment.type && (
+              <span>
+                Type:{' '}
+                <strong>
+                  {commitmentTypeLabels[commitment.type] || commitment.type}
+                </strong>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ClientSessionDetailPage() {
@@ -104,7 +265,6 @@ export default function ClientSessionDetailPage() {
     transcript: false,
     notes: false,
   })
-
   useEffect(() => {
     if (sessionId) {
       fetchSessionDetail()
@@ -142,6 +302,12 @@ export default function ClientSessionDetailPage() {
       setIsLoading(false)
     }
   }
+
+  const { data: commitmentData, refetch: refetchCommitments } = useCommitments(
+    { session_id: sessionId },
+    { enabled: !!sessionId },
+  )
+  const structuredCommitments = commitmentData?.commitments ?? []
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -234,6 +400,12 @@ export default function ClientSessionDetailPage() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {session.started_at && formatRelativeTime(session.started_at)}
               </p>
+              {session.is_group_session && (
+                <Badge className="mt-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs">
+                  <Users className="h-3 w-3 mr-1" />
+                  Group Session
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -324,7 +496,8 @@ export default function ClientSessionDetailPage() {
           )}
 
           {/* Commitments / Action Items */}
-          {session.action_items && session.action_items.length > 0 && (
+          {(structuredCommitments.length > 0 ||
+            (session.action_items && session.action_items.length > 0)) && (
             <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
               <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -337,26 +510,40 @@ export default function ClientSessionDetailPage() {
                   variant="secondary"
                   className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
                 >
-                  {session.action_items.length} items
+                  {structuredCommitments.length > 0
+                    ? `${structuredCommitments.filter(c => c.status === 'completed').length}/${structuredCommitments.length} done`
+                    : `${session.action_items?.length || 0} items`}
                 </Badge>
               </div>
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {session.action_items.map((item, index) => (
-                  <div
-                    key={index}
-                    className="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  >
-                    <div className="h-6 w-6 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                      {index + 1}
+              {structuredCommitments.length > 0 ? (
+                <div className="p-4 space-y-2">
+                  {structuredCommitments.map((commitment: any) => (
+                    <SessionCommitmentItem
+                      key={commitment.id}
+                      commitment={commitment}
+                      onUpdate={() => refetchCommitments()}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="divide-y divide-gray-100 dark:divide-gray-800">
+                  {session.action_items?.map((item, index) => (
+                    <div
+                      key={index}
+                      className="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <div className="h-6 w-6 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                        {index + 1}
+                      </div>
+                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        {typeof item === 'string'
+                          ? item
+                          : item.text || item.title}
+                      </span>
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                      {typeof item === 'string'
-                        ? item
-                        : item.text || item.title}
-                    </span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -387,6 +574,37 @@ export default function ClientSessionDetailPage() {
                 </div>
               </div>
             )}
+
+          {/* Recommendations */}
+          {(() => {
+            const suggestions =
+              sessionData.analysis?.suggestions?.filter(
+                (s: any) => s.target !== 'coach_only',
+              ) ?? []
+            return suggestions.length > 0 ? (
+              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
+                  <ArrowUpRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                  <h2 className="font-semibold text-gray-900 dark:text-white">
+                    Recommendations
+                  </h2>
+                </div>
+                <div className="p-5 space-y-3">
+                  {suggestions.map((suggestion: any, index: number) => (
+                    <div
+                      key={index}
+                      className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    >
+                      <Lightbulb className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
+                      <span className="text-sm text-gray-700 dark:text-gray-300">
+                        {suggestion.text || suggestion.suggestion || suggestion}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null
+          })()}
 
           {/* Transcript Preview */}
           {hasTranscript && (
@@ -673,29 +891,18 @@ export default function ClientSessionDetailPage() {
             </div>
           )}
 
-          {/* Emotions */}
-          {sessionData.insights?.sentiment?.emotions &&
-            sessionData.insights.sentiment.emotions.length > 0 && (
+          {/* Session Pulse - Sentiment Gauge */}
+          {sessionData.insights?.sentiment &&
+            sessionData.insights.sentiment.score != null && (
               <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
                 <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
                   <TrendingUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
                   <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Emotions Detected
+                    Session Pulse
                   </h3>
                 </div>
                 <div className="p-5">
-                  <div className="flex flex-wrap gap-2">
-                    {sessionData.insights.sentiment.emotions.map(
-                      (emotion, index) => (
-                        <span
-                          key={index}
-                          className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-lg capitalize"
-                        >
-                          {emotion}
-                        </span>
-                      ),
-                    )}
-                  </div>
+                  <SentimentGauge sentiment={sessionData.insights.sentiment} />
                 </div>
               </div>
             )}

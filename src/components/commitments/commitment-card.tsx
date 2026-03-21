@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +55,10 @@ const statusConfig: Record<
   active: {
     label: 'Active',
     className: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+  },
+  in_progress: {
+    label: 'In Progress',
+    className: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
   },
   completed: {
     label: 'Completed',
@@ -153,12 +156,8 @@ export function CommitmentCard({
               {statusInfo.label}
             </Badge>
           </div>
-          <Progress value={commitment.progress_percentage} className="h-1.5" />
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            {commitment.progress_percentage}%
-          </span>
           {onUpdateProgress && (
             <Button
               size="sm"
@@ -232,17 +231,6 @@ export function CommitmentCard({
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Progress Bar */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Progress</span>
-            <span className="font-medium">
-              {commitment.progress_percentage}%
-            </span>
-          </div>
-          <Progress value={commitment.progress_percentage} className="h-2" />
-        </div>
-
         {/* Deadline */}
         {deadlineInfo && (
           <div className="flex items-center gap-2 text-sm">

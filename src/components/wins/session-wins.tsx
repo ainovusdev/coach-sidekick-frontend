@@ -182,18 +182,21 @@ function WinItem({
 
 interface SessionWinsProps {
   sessionId: string
-  clientId: string
+  clientId?: string
   isViewer?: boolean
+  isCompleted?: boolean
 }
 
 export function SessionWins({
   sessionId,
   clientId,
   isViewer = false,
+  isCompleted = false,
 }: SessionWinsProps) {
   const [wins, setWins] = useState<SessionWin[]>([])
   const [loading, setLoading] = useState(true)
   const [extracting, setExtracting] = useState(false)
+  const [autoExtracted, setAutoExtracted] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingWin, setEditingWin] = useState<SessionWin | null>(null)
   const [approvingWinId, setApprovingWinId] = useState<string | null>(null)
@@ -219,6 +222,28 @@ export function SessionWins({
     loadWins()
   }, [sessionId])
 
+  // Auto-extract wins if none exist for completed sessions
+  useEffect(() => {
+    const storageKey = `auto-extract-wins-${sessionId}`
+    if (
+      !loading &&
+      wins.length === 0 &&
+      !autoExtracted &&
+      isCompleted &&
+      !isViewer &&
+      !sessionStorage.getItem(storageKey)
+    ) {
+      setAutoExtracted(true)
+      sessionStorage.setItem(storageKey, '1')
+      setExtracting(true)
+      WinsService.extractWins(sessionId)
+        .then(() => loadWins())
+        .catch(err => console.error('Auto-extract wins failed:', err))
+        .finally(() => setExtracting(false))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, wins.length, autoExtracted, isCompleted, isViewer, sessionId])
+
   // Extract wins using AI
   const handleExtractWins = async () => {
     setExtracting(true)
@@ -243,7 +268,7 @@ export function SessionWins({
     try {
       const data: SessionWinCreate = {
         session_id: sessionId,
-        client_id: clientId,
+        client_id: clientId || '',
         title: newTitle.trim(),
         description: newDescription.trim() || undefined,
         is_ai_generated: false,

@@ -79,7 +79,6 @@ export function OverviewTab({
 
   // Fetch client-specific resources for the compact card
   const { data: clientResourcesData } = useResources({
-    scope: 'client',
     client_id: client.id,
     limit: 3,
   })

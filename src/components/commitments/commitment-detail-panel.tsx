@@ -14,11 +14,9 @@ import {
   useDeleteAttachment,
 } from '@/hooks/mutations/use-commitment-mutations'
 import { queryKeys } from '@/lib/query-client'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Slider } from '@/components/ui/slider'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Calendar } from '@/components/ui/calendar'
@@ -57,14 +55,11 @@ import { formatDate } from '@/lib/date-utils'
 import {
   X,
   MoreVertical,
-  Briefcase,
-  User,
   Calendar as CalendarIcon,
   Plus,
   Trash2,
   Sparkles,
   Clock,
-  TrendingUp,
   Trophy,
   AlertTriangle,
   ChevronUp,
@@ -76,17 +71,22 @@ import {
   Video,
   File,
   Loader2,
+  Zap,
 } from 'lucide-react'
 import type {
   Commitment,
   CommitmentAttachment,
   Milestone,
 } from '@/types/commitment'
+import { TargetService } from '@/services/target-service'
+import { useTargets } from '@/hooks/queries/use-targets'
+import { useSprints } from '@/hooks/queries/use-sprints'
 import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
 
 interface CommitmentDetailPanelProps {
   commitmentId: string | null
+  clientId?: string
   onClose: () => void
   onCommitmentUpdate?: () => void
 }
@@ -96,15 +96,23 @@ function useCommitment(commitmentId: string | null) {
     queryKey: queryKeys.commitments.detail(commitmentId || ''),
     queryFn: () => CommitmentService.getCommitment(commitmentId!),
     enabled: !!commitmentId,
+    staleTime: 2 * 60 * 1000,
   })
 }
 
 export function CommitmentDetailPanel({
   commitmentId,
+  clientId: clientIdProp,
   onClose,
   onCommitmentUpdate,
 }: CommitmentDetailPanelProps) {
   const { data: commitment, isLoading } = useCommitment(commitmentId)
+  const resolvedClientId = clientIdProp || commitment?.client_id
+
+  // Prefetch targets & sprints immediately using the known clientId
+  // so they're cached before LinkedOutcomesSection mounts
+  useTargets(resolvedClientId ? { client_id: resolvedClientId } : undefined)
+  useSprints(resolvedClientId ? { client_id: resolvedClientId } : undefined)
   const updateCommitment = useUpdateCommitment({ silent: true })
   const discardCommitment = useDiscardCommitment()
   const queryClient = useQueryClient()
@@ -166,7 +174,7 @@ export function CommitmentDetailPanel({
       {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black/50 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[60] bg-black/50 animate-in fade-in duration-200"
           onClick={onClose}
         />
       )}
@@ -175,12 +183,12 @@ export function CommitmentDetailPanel({
       <div
         ref={panelRef}
         className={cn(
-          'fixed right-0 top-0 h-full w-full md:w-[640px] z-40 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl',
+          'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
       >
-        <div className="h-full flex flex-col pt-16">
+        <div className="h-full flex flex-col">
           {isLoading ? (
             <PanelSkeleton />
           ) : commitment ? (
@@ -198,6 +206,13 @@ export function CommitmentDetailPanel({
                 <FieldsGrid
                   commitment={commitment}
                   onFieldUpdate={handleFieldUpdate}
+                />
+
+                {/* Linked Outcomes & Sprints */}
+                <LinkedOutcomesSection
+                  commitment={commitment}
+                  commitmentId={commitmentId!}
+                  onCommitmentUpdate={onCommitmentUpdate}
                 />
 
                 {/* Description */}
@@ -218,7 +233,7 @@ export function CommitmentDetailPanel({
                   commitmentId={commitmentId!}
                 />
 
-                {/* Activity Feed */}
+                {/* Comments */}
                 <ActivitySection
                   commitment={commitment}
                   commitmentId={commitmentId!}
@@ -298,77 +313,58 @@ function PanelHeader({
   }
 
   return (
-    <div className="space-y-3">
-      {/* Top row: close + kebab */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          {commitment.is_coach_commitment ? (
-            <Badge
-              variant="outline"
-              className="bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-400 text-xs"
-            >
-              <Briefcase className="h-3 w-3 mr-1" />
-              Coach Task
-            </Badge>
-          ) : (
-            <Badge
-              variant="outline"
-              className="bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs"
-            >
-              <User className="h-3 w-3 mr-1" />
-              Client Task
-            </Badge>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onDelete} className="text-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="h-8 w-8 p-0"
+    <div className="flex items-center gap-3">
+      {/* Title */}
+      <div className="flex-1 min-w-0">
+        {isEditingTitle ? (
+          <Input
+            ref={titleInputRef}
+            value={titleValue}
+            onChange={e => setTitleValue(e.target.value)}
+            onBlur={saveTitle}
+            onKeyDown={e => {
+              if (e.key === 'Enter') saveTitle()
+              if (e.key === 'Escape') {
+                setTitleValue(commitment.title)
+                setIsEditingTitle(false)
+              }
+            }}
+            className="text-xl font-bold"
+          />
+        ) : (
+          <h2
+            className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 -mx-2 truncate"
+            onClick={() => setIsEditingTitle(true)}
           >
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+            {commitment.title}
+          </h2>
+        )}
       </div>
 
-      {/* Title */}
-      {isEditingTitle ? (
-        <Input
-          ref={titleInputRef}
-          value={titleValue}
-          onChange={e => setTitleValue(e.target.value)}
-          onBlur={saveTitle}
-          onKeyDown={e => {
-            if (e.key === 'Enter') saveTitle()
-            if (e.key === 'Escape') {
-              setTitleValue(commitment.title)
-              setIsEditingTitle(false)
-            }
-          }}
-          className="text-xl font-bold"
-        />
-      ) : (
-        <h2
-          className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 -mx-2"
-          onClick={() => setIsEditingTitle(true)}
+      {/* Actions */}
+      <div className="flex items-center gap-1 shrink-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={onDelete} className="text-red-600">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClose}
+          className="h-8 w-8 p-0"
         >
-          {commitment.title}
-        </h2>
-      )}
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   )
 }
@@ -394,28 +390,6 @@ function FieldsGrid({
 
   return (
     <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-      {/* Status */}
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          Status
-        </label>
-        <Select
-          value={commitment.status}
-          onValueChange={value => onFieldUpdate('status', value)}
-        >
-          <SelectTrigger className="h-9 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="active">To Do</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="completed">Done</SelectItem>
-            <SelectItem value="abandoned">Abandoned</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Priority */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
@@ -453,28 +427,6 @@ function FieldsGrid({
                 Urgent
               </div>
             </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Type */}
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          Type
-        </label>
-        <Select
-          value={commitment.type}
-          onValueChange={value => onFieldUpdate('type', value)}
-        >
-          <SelectTrigger className="h-9 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="commitment">Commitment</SelectItem>
-            <SelectItem value="habit">Habit</SelectItem>
-            <SelectItem value="mp_outcome">MP Outcome</SelectItem>
-            <SelectItem value="learning">Learning</SelectItem>
-            <SelectItem value="sprint">Sprint</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -518,27 +470,210 @@ function FieldsGrid({
           </PopoverContent>
         </Popover>
       </div>
+    </div>
+  )
+}
 
-      {/* Progress - full width */}
-      <div className="col-span-2 space-y-2">
-        <div className="flex items-center justify-between">
-          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Progress
+// === Linked Outcomes & Sprints Section ===
+
+function LinkedOutcomesSection({
+  commitment,
+  commitmentId,
+  onCommitmentUpdate,
+}: {
+  commitment: Commitment
+  commitmentId: string
+  onCommitmentUpdate?: () => void
+}) {
+  const queryClient = useQueryClient()
+  const { data: allTargets = [] } = useTargets(
+    commitment.client_id ? { client_id: commitment.client_id } : undefined,
+  )
+  const { data: allSprints = [] } = useSprints(
+    commitment.client_id ? { client_id: commitment.client_id } : undefined,
+  )
+
+  const linkedTargetIds = new Set(
+    (commitment.target_links || []).map((tl: any) => tl.target_id),
+  )
+
+  // Independent sprint IDs from commitment metadata
+  const linkedSprintIds = new Set<string>(
+    (commitment as any).linked_sprint_ids || [],
+  )
+
+  // Optimistic toggle outcome
+  const handleToggleOutcome = async (targetId: string, isLinked: boolean) => {
+    const detailKey = queryKeys.commitments.detail(commitmentId)
+    const previous = queryClient.getQueryData(detailKey)
+
+    queryClient.setQueryData(detailKey, (old: any) => {
+      if (!old) return old
+      if (isLinked) {
+        return {
+          ...old,
+          target_links: (old.target_links || []).filter(
+            (tl: any) => tl.target_id !== targetId,
+          ),
+          linked_target_ids: (old.linked_target_ids || []).filter(
+            (id: string) => id !== targetId,
+          ),
+        }
+      } else {
+        return {
+          ...old,
+          target_links: [
+            ...(old.target_links || []),
+            {
+              target_id: targetId,
+              commitment_id: commitmentId,
+              created_at: new Date().toISOString(),
+            },
+          ],
+          linked_target_ids: [...(old.linked_target_ids || []), targetId],
+        }
+      }
+    })
+
+    try {
+      if (isLinked) {
+        await TargetService.unlinkCommitment(targetId, commitmentId)
+      } else {
+        await TargetService.linkCommitment(targetId, commitmentId)
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+      onCommitmentUpdate?.()
+    } catch {
+      queryClient.setQueryData(detailKey, previous)
+      toast.error(
+        isLinked ? 'Failed to unlink outcome' : 'Failed to link outcome',
+      )
+    }
+  }
+
+  // Toggle sprint independently via commitment metadata
+  const handleToggleSprint = async (sprintId: string, isLinked: boolean) => {
+    const detailKey = queryKeys.commitments.detail(commitmentId)
+    const previous = queryClient.getQueryData(detailKey)
+
+    const currentIds = [...linkedSprintIds]
+    const newIds = isLinked
+      ? currentIds.filter(id => id !== sprintId)
+      : [...currentIds, sprintId]
+
+    // Optimistic update
+    queryClient.setQueryData(detailKey, (old: any) => {
+      if (!old) return old
+      return { ...old, linked_sprint_ids: newIds }
+    })
+
+    try {
+      await CommitmentService.updateCommitment(commitmentId, {
+        metadata: { linked_sprint_ids: newIds },
+      } as any)
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+      onCommitmentUpdate?.()
+    } catch {
+      queryClient.setQueryData(detailKey, previous)
+      toast.error('Failed to update sprint link')
+    }
+  }
+
+  if (allTargets.length === 0 && allSprints.length === 0) return null
+
+  return (
+    <div className="space-y-4">
+      {/* Outcomes as tags */}
+      {allTargets.length > 0 && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-blue-500" />
+            Outcomes
           </label>
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            {commitment.progress_percentage}%
-          </span>
+          <div className="flex flex-wrap gap-1.5">
+            {allTargets.map((target: any) => {
+              const isLinked = linkedTargetIds.has(target.id)
+              return (
+                <button
+                  key={target.id}
+                  onClick={() => handleToggleOutcome(target.id, isLinked)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
+                    isLinked
+                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400',
+                  )}
+                >
+                  {isLinked && (
+                    <svg
+                      className="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                  {target.title}
+                </button>
+              )
+            })}
+          </div>
         </div>
-        <Slider
-          value={[commitment.progress_percentage]}
-          onValueCommit={([value]) =>
-            onFieldUpdate('progress_percentage', value)
-          }
-          max={100}
-          step={5}
-          className="w-full"
-        />
-      </div>
+      )}
+
+      {/* Sprints as tags */}
+      {allSprints.length > 0 && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+            <CalendarIcon className="h-3.5 w-3.5 text-green-500" />
+            Sprints
+          </label>
+          <div className="flex flex-wrap gap-1.5">
+            {allSprints.map((sprint: any) => {
+              const isLinked = linkedSprintIds.has(sprint.id)
+              return (
+                <button
+                  key={sprint.id}
+                  onClick={() => handleToggleSprint(sprint.id, isLinked)}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
+                    isLinked
+                      ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 hover:text-green-600 dark:hover:text-green-400',
+                  )}
+                >
+                  {isLinked && (
+                    <svg
+                      className="h-3 w-3"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                      strokeWidth={3}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                  )}
+                  {sprint.status === 'active' && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  )}
+                  {sprint.title}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -1022,7 +1157,7 @@ function MilestoneItem({
   )
 }
 
-// === Activity Section ===
+// === Comments Section ===
 
 function ActivitySection({
   commitment,
@@ -1033,12 +1168,12 @@ function ActivitySection({
   commitmentId: string
   onCommitmentUpdate?: () => void
 }) {
-  const [showUpdateForm, setShowUpdateForm] = useState(false)
   const [note, setNote] = useState('')
+  const [showExtras, setShowExtras] = useState(false)
   const [wins, setWins] = useState('')
   const [blockers, setBlockers] = useState('')
-  const [progress, setProgress] = useState<number | null>(null)
-  const [showExtras, setShowExtras] = useState(false)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const _queryClient = useQueryClient()
   const updateProgress = useUpdateCommitmentProgress()
 
   const updates = [...(commitment.updates || [])].sort(
@@ -1046,22 +1181,19 @@ function ActivitySection({
       new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   )
 
-  const handleSubmitUpdate = () => {
+  const handleSubmit = () => {
     const data: any = {}
     if (note.trim()) data.note = note.trim()
     if (wins.trim()) data.wins = wins.trim()
     if (blockers.trim()) data.blockers = blockers.trim()
-    if (progress !== null) data.progress_percentage = progress
 
     if (Object.keys(data).length === 0) return
 
-    // Clear form immediately — optimistic update in the hook shows the entry
+    // Clear form instantly — the mutation hook handles the optimistic update
     setNote('')
     setWins('')
     setBlockers('')
-    setProgress(null)
     setShowExtras(false)
-    setShowUpdateForm(false)
 
     updateProgress.mutate(
       { commitmentId, data },
@@ -1073,53 +1205,33 @@ function ActivitySection({
     )
   }
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault()
+      handleSubmit()
+    }
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Activity
-        </label>
-        {!showUpdateForm && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-7 text-xs"
-            onClick={() => setShowUpdateForm(true)}
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Update
-          </Button>
-        )}
-      </div>
+      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        Comments
+      </label>
 
-      {/* Add update form */}
-      {showUpdateForm && (
-        <div className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg space-y-3">
-          <Textarea
-            value={note}
-            onChange={e => setNote(e.target.value)}
-            placeholder="Write an update..."
-            rows={2}
-            className="resize-none text-sm"
-          />
+      {/* Always-visible comment input */}
+      <div className="space-y-2">
+        <Textarea
+          ref={inputRef}
+          value={note}
+          onChange={e => setNote(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Add a comment..."
+          rows={2}
+          className="resize-none text-sm"
+        />
 
-          {/* Progress slider */}
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-gray-500">Progress</label>
-              <span className="text-xs font-medium">
-                {progress ?? commitment.progress_percentage}%
-              </span>
-            </div>
-            <Slider
-              value={[progress ?? commitment.progress_percentage]}
-              onValueChange={([v]) => setProgress(v)}
-              max={100}
-              step={5}
-            />
-          </div>
-
-          {/* Expandable wins/blockers */}
+        {/* Expandable wins/blockers */}
+        <div className="flex items-center justify-between">
           <button
             type="button"
             className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
@@ -1132,100 +1244,61 @@ function ActivitySection({
             )}
             Wins & Blockers
           </button>
-
-          {showExtras && (
-            <div className="space-y-2">
-              <div>
-                <label className="text-xs text-green-600 font-medium">
-                  Wins
-                </label>
-                <Textarea
-                  value={wins}
-                  onChange={e => setWins(e.target.value)}
-                  placeholder="What went well?"
-                  rows={1}
-                  className="resize-none text-sm mt-1"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-red-600 font-medium">
-                  Blockers
-                </label>
-                <Textarea
-                  value={blockers}
-                  onChange={e => setBlockers(e.target.value)}
-                  placeholder="What's blocking progress?"
-                  rows={1}
-                  className="resize-none text-sm mt-1"
-                />
-              </div>
-            </div>
-          )}
-
-          <div className="flex gap-2 justify-end">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setShowUpdateForm(false)
-                setNote('')
-                setWins('')
-                setBlockers('')
-                setProgress(null)
-                setShowExtras(false)
-              }}
-            >
-              Cancel
-            </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              {navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+            </span>
             <Button
               size="sm"
-              onClick={handleSubmitUpdate}
-              disabled={updateProgress.isPending}
+              className="h-7 text-xs px-3"
+              onClick={handleSubmit}
+              disabled={!note.trim() && !wins.trim() && !blockers.trim()}
             >
-              {updateProgress.isPending ? 'Saving...' : 'Save Update'}
+              Post
             </Button>
           </div>
         </div>
-      )}
 
-      {/* Updates feed */}
+        {showExtras && (
+          <div className="space-y-2">
+            <div>
+              <label className="text-xs text-green-600 font-medium">Wins</label>
+              <Textarea
+                value={wins}
+                onChange={e => setWins(e.target.value)}
+                placeholder="What went well?"
+                rows={1}
+                className="resize-none text-sm mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-red-600 font-medium">
+                Blockers
+              </label>
+              <Textarea
+                value={blockers}
+                onChange={e => setBlockers(e.target.value)}
+                placeholder="What's blocking progress?"
+                rows={1}
+                className="resize-none text-sm mt-1"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Comments feed */}
       {updates.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {updates.map(update => (
             <div
               key={update.id}
-              className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-2"
+              className="pl-3 border-l-2 border-gray-200 dark:border-gray-700 space-y-1.5"
             >
-              {/* Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-6 w-6 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
-                    <TrendingUp className="h-3 w-3 text-gray-500" />
-                  </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400">
-                    {formatRelativeTime(update.created_at)}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  {update.progress_percentage !== null &&
-                    update.progress_percentage !== undefined && (
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                      >
-                        {update.progress_percentage}%
-                      </Badge>
-                    )}
-                  {update.status_change && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800"
-                    >
-                      {update.status_change}
-                    </Badge>
-                  )}
-                </div>
-              </div>
+              {/* Timestamp */}
+              <span className="text-xs text-gray-400 dark:text-gray-500">
+                {formatRelativeTime(update.created_at)}
+              </span>
 
               {/* Note */}
               {update.note && (
@@ -1257,11 +1330,9 @@ function ActivitySection({
           ))}
         </div>
       ) : (
-        !showUpdateForm && (
-          <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-4">
-            No activity yet
-          </p>
-        )
+        <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-2">
+          No comments yet
+        </p>
       )}
     </div>
   )

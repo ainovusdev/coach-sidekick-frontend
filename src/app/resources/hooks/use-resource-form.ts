@@ -26,7 +26,7 @@ const initialState: ResourceFormState = {
   description: '',
   type: 'text',
   category: 'general',
-  scope: 'global',
+  scope: 'personal',
   contentUrl: '',
   content: '',
   tags: '',

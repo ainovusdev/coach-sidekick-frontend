@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { knowledgeService } from '@/services/knowledge-service'
 import type {
   ChatMessage,
   KnowledgeSource,
@@ -43,13 +42,31 @@ import {
 import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/date-utils'
+import axios from 'axios'
+import type {
+  KnowledgeChatResponse,
+  ChatSessionDetail,
+  ChatSessionListResponse,
+} from '@/types/knowledge'
+
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('auth_token')
+  if (!token) throw new Error('No authentication token found')
+  return {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  }
+}
 
 interface Message extends ChatMessage {
   sources?: KnowledgeSource[]
   isLoading?: boolean
 }
 
-export function KnowledgeChatButton() {
+export function ResourceChatButton() {
   const queryClient = useQueryClient()
   const [open, setOpen] = useState(false)
   const [input, setInput] = useState('')
@@ -67,24 +84,35 @@ export function KnowledgeChatButton() {
 
   // Fetch chat sessions
   const { data: sessionsData } = useQuery({
-    queryKey: ['knowledge-chat-sessions'],
-    queryFn: () => knowledgeService.listChatSessions(10),
+    queryKey: ['resource-chat-sessions'],
+    queryFn: async () => {
+      const response = await axios.get<ChatSessionListResponse>(
+        `${API_URL}/resources/chat/sessions?limit=10`,
+        { headers: getAuthHeaders() },
+      )
+      return response.data
+    },
     enabled: open && showHistory,
   })
 
   // Send message mutation
   const sendMutation = useMutation({
     mutationFn: async (question: string) => {
-      return knowledgeService.sendChatMessage(question, {
-        sessionId: sessionId || undefined,
-        categories:
-          selectedCategories.length > 0 ? selectedCategories : undefined,
-        conversationHistory: messages.filter(m => !m.isLoading).slice(-6),
-        provider,
-      })
+      const response = await axios.post<KnowledgeChatResponse>(
+        `${API_URL}/resources/chat`,
+        {
+          question,
+          session_id: sessionId || undefined,
+          categories:
+            selectedCategories.length > 0 ? selectedCategories : undefined,
+          conversation_history: messages.filter(m => !m.isLoading).slice(-6),
+          provider,
+        },
+        { headers: getAuthHeaders() },
+      )
+      return response.data
     },
     onMutate: question => {
-      // Optimistically add user message
       setMessages(prev => [
         ...prev,
         { role: 'user', content: question },
@@ -92,7 +120,6 @@ export function KnowledgeChatButton() {
       ])
     },
     onSuccess: response => {
-      // Update with actual response
       setMessages(prev => {
         const newMessages = prev.filter(m => !m.isLoading)
         return [
@@ -105,19 +132,22 @@ export function KnowledgeChatButton() {
         ]
       })
       setSessionId(response.session_id)
-      queryClient.invalidateQueries({ queryKey: ['knowledge-chat-sessions'] })
+      queryClient.invalidateQueries({ queryKey: ['resource-chat-sessions'] })
     },
     onError: () => {
-      // Remove loading message on error
       setMessages(prev => prev.filter(m => !m.isLoading))
     },
   })
 
   // Delete session mutation
   const deleteSessionMutation = useMutation({
-    mutationFn: (id: string) => knowledgeService.deleteChatSession(id),
+    mutationFn: async (id: string) => {
+      await axios.delete(`${API_URL}/resources/chat/sessions/${id}`, {
+        headers: getAuthHeaders(),
+      })
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['knowledge-chat-sessions'] })
+      queryClient.invalidateQueries({ queryKey: ['resource-chat-sessions'] })
     },
   })
 
@@ -155,7 +185,11 @@ export function KnowledgeChatButton() {
 
   const loadSession = async (id: string) => {
     try {
-      const session = await knowledgeService.getChatSession(id)
+      const response = await axios.get<ChatSessionDetail>(
+        `${API_URL}/resources/chat/sessions/${id}`,
+        { headers: getAuthHeaders() },
+      )
+      const session = response.data
       setSessionId(session.id)
       setMessages(
         session.messages.map(m => ({

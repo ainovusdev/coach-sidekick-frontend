@@ -249,37 +249,6 @@ export function ClientPortalChat() {
     )
   }
 
-  if (!stats || stats.total_chunks === 0) {
-    const hasSessionData = stats && stats.unique_sessions > 0
-
-    return (
-      <div className="flex flex-col h-full p-4">
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center max-w-sm">
-            <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-              AI Assistant Not Available Yet
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-              {hasSessionData
-                ? 'Your coaching sessions are being processed. Please try again in a few moments.'
-                : 'The AI assistant will be available after your coaching sessions are analyzed.'}
-            </p>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => fetchStats()}
-              className="mt-4"
-            >
-              <RotateCw className="h-3 w-3 mr-2" />
-              Retry
-            </Button>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="flex flex-col h-full bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
       {/* Header */}
@@ -319,13 +288,13 @@ export function ClientPortalChat() {
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
                 <div className="h-1.5 w-1.5 rounded-full bg-green-500"></div>
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {stats.unique_sessions} sessions
+                  {stats?.unique_sessions ?? 0} sessions
                 </span>
               </div>
               <div className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-gray-900 rounded-full border border-gray-200 dark:border-gray-700 shadow-sm">
                 <Database className="h-3 w-3 text-gray-500 dark:text-gray-400" />
                 <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  {stats.total_chunks} insights
+                  {stats?.total_chunks ?? 0} insights
                 </span>
               </div>
             </div>

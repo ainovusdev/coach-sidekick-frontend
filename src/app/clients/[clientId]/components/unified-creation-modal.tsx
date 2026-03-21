@@ -60,7 +60,7 @@ export function UnifiedCreationModal({
     {
       type: 'goal' as const,
       icon: Target,
-      title: 'Goal',
+      title: 'Vision',
       description: 'Long-term outcome (3-12 months)',
       color: 'text-gray-600 dark:text-gray-400',
       bgColor:
