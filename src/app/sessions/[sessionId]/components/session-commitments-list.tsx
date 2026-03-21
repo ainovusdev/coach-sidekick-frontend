@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -532,6 +532,8 @@ interface SessionCommitmentsListProps {
   commitments: any[]
   onViewAll?: () => void
   onUpdate: () => void
+  isCompleted?: boolean
+  commitmentsLoaded?: boolean
 }
 
 export function SessionCommitmentsList({
@@ -540,12 +542,35 @@ export function SessionCommitmentsList({
   commitments,
   onViewAll,
   onUpdate,
+  isCompleted = false,
+  commitmentsLoaded = false,
 }: SessionCommitmentsListProps) {
   const [extracting, setExtracting] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [newTitle, setNewTitle] = useState('')
   const [newDescription, setNewDescription] = useState('')
   const [isCreating, setIsCreating] = useState(false)
+
+  // Auto-extract commitments if none exist for completed sessions
+  // Wait for commitmentsLoaded to ensure query has finished before checking length
+  useEffect(() => {
+    if (!commitmentsLoaded) return
+    const storageKey = `auto-extract-commitments-${sessionId}`
+    if (
+      commitments.length === 0 &&
+      !extracting &&
+      isCompleted &&
+      !sessionStorage.getItem(storageKey)
+    ) {
+      sessionStorage.setItem(storageKey, '1')
+      setExtracting(true)
+      CommitmentService.extractFromSession(sessionId, clientId)
+        .then(() => onUpdate())
+        .catch(err => console.error('Auto-extract commitments failed:', err))
+        .finally(() => setExtracting(false))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [commitmentsLoaded, commitments.length, isCompleted, sessionId])
 
   const handleExtractCommitments = async () => {
     setExtracting(true)

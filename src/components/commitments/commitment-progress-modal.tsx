@@ -12,10 +12,8 @@ import {
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { Slider } from '@/components/ui/slider'
 import { Commitment, CommitmentUpdateCreate } from '@/types/commitment'
-import { TrendingUp, PartyPopper } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { TrendingUp } from 'lucide-react'
 
 interface CommitmentProgressModalProps {
   commitment: Commitment | null
@@ -31,14 +29,12 @@ export function CommitmentProgressModal({
   onSubmit,
 }: CommitmentProgressModalProps) {
   const [loading, setLoading] = useState(false)
-  const [progress, setProgress] = useState(commitment?.progress_percentage || 0)
   const [note, setNote] = useState('')
   const [wins, setWins] = useState('')
   const [blockers, setBlockers] = useState('')
 
   React.useEffect(() => {
     if (open && commitment) {
-      setProgress(commitment.progress_percentage)
       setNote('')
       setWins('')
       setBlockers('')
@@ -51,7 +47,6 @@ export function CommitmentProgressModal({
 
     try {
       await onSubmit({
-        progress_percentage: progress,
         note: note || undefined,
         wins: wins || undefined,
         blockers: blockers || undefined,
@@ -66,8 +61,6 @@ export function CommitmentProgressModal({
 
   if (!commitment) return null
 
-  const isCompleting = progress === 100 && commitment.progress_percentage < 100
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl">
@@ -80,52 +73,6 @@ export function CommitmentProgressModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Progress Slider */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Label>Progress</Label>
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'text-2xl font-bold',
-                    isCompleting && 'text-green-600 animate-pulse',
-                  )}
-                >
-                  {progress}%
-                </span>
-                {isCompleting && (
-                  <PartyPopper className="size-5 text-green-600" />
-                )}
-              </div>
-            </div>
-            <Slider
-              value={[progress]}
-              onValueChange={values => setProgress(values[0])}
-              min={0}
-              max={100}
-              step={5}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Not Started</span>
-              <span>In Progress</span>
-              <span>Complete</span>
-            </div>
-          </div>
-
-          {/* Completion Message */}
-          {isCompleting && (
-            <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-              <p className="text-sm font-medium text-green-700">
-                Congratulations! You&apos;re marking this commitment as
-                complete!
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                Share your wins and key learnings below.
-              </p>
-            </div>
-          )}
-
           {/* Update Note */}
           <div className="space-y-2">
             <Label htmlFor="note">Progress Note</Label>
@@ -171,11 +118,7 @@ export function CommitmentProgressModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading
-                ? 'Updating...'
-                : isCompleting
-                  ? 'Complete Commitment'
-                  : 'Update Progress'}
+              {loading ? 'Updating...' : 'Update Progress'}
             </Button>
           </DialogFooter>
         </form>

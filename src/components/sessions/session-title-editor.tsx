@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Pencil, Check, X } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { useRef } from 'react'
+import { Pencil, Check, X, Loader2 } from 'lucide-react'
 import { SessionService } from '@/services/session-service'
 import { toast } from 'sonner'
 
@@ -23,6 +22,14 @@ export function SessionTitleEditor({
   const [isEditing, setIsEditing] = useState(false)
   const [title, setTitle] = useState(initialTitle || '')
   const [isSaving, setIsSaving] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Sync local state when initialTitle prop changes (e.g., after modal edit or cache refetch)
+  useEffect(() => {
+    if (!isEditing) {
+      setTitle(initialTitle || '')
+    }
+  }, [initialTitle, isEditing])
 
   const displayTitle = title || defaultTitle
 
@@ -59,55 +66,68 @@ export function SessionTitleEditor({
     }
   }
 
-  if (!isEditing) {
-    return (
-      <div className="flex items-center gap-2 group">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-          {displayTitle}
-        </h1>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setIsEditing(true)}
-          className="opacity-0 group-hover:opacity-100 transition-opacity"
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
-      </div>
-    )
-  }
-
   return (
-    <div className="flex items-center gap-2">
-      <Input
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        onKeyDown={handleKeyDown}
-        placeholder="Enter session title"
-        className="text-2xl font-bold h-auto py-1 px-2"
-        autoFocus
-        disabled={isSaving}
-      />
-      <div className="flex items-center gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleSave}
-          disabled={isSaving}
-          className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30"
-        >
-          <Check className="h-4 w-4" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleCancel}
-          disabled={isSaving}
-          className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
+    <div className="flex items-center gap-1.5 group min-w-0">
+      {isEditing ? (
+        <>
+          <input
+            ref={inputRef}
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={() => {
+              // Small delay to allow button clicks to register
+              setTimeout(() => {
+                if (isEditing && !isSaving) handleCancel()
+              }, 150)
+            }}
+            placeholder="Enter session title"
+            className="text-lg font-semibold text-gray-900 dark:text-white bg-transparent border-b border-gray-300 dark:border-gray-600 focus:border-gray-900 dark:focus:border-white outline-none w-full min-w-0"
+            autoFocus
+            disabled={isSaving}
+          />
+          <div className="flex items-center shrink-0">
+            {isSaving ? (
+              <div className="p-1">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-gray-400" />
+              </div>
+            ) : (
+              <>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={handleSave}
+                  className="p-1 rounded text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/30 transition-colors"
+                >
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button
+                  onMouseDown={e => e.preventDefault()}
+                  onClick={handleCancel}
+                  className="p-1 rounded text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      ) : (
+        <>
+          <h1
+            className="text-lg font-semibold text-gray-900 dark:text-white truncate cursor-pointer"
+            onClick={() => setIsEditing(true)}
+            title={displayTitle}
+          >
+            {displayTitle}
+          </h1>
+          <button
+            onClick={() => setIsEditing(true)}
+            className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded text-app-secondary hover:text-app-primary"
+          >
+            <Pencil className="h-3 w-3" />
+          </button>
+        </>
+      )}
     </div>
   )
 }

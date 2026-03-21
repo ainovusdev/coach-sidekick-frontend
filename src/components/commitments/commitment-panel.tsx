@@ -37,6 +37,7 @@ import {
   ChevronUp,
   History,
   Sparkles,
+  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -68,6 +69,13 @@ export interface PanelTarget {
   goal_titles?: string[]
 }
 
+export interface PanelSprint {
+  id: string
+  title: string
+  status: string
+  target_ids: string[]
+}
+
 export interface PanelCommitmentGroup {
   date: string | null
   commitments: PanelCommitment[]
@@ -89,6 +97,8 @@ export interface CommitmentPanelProps {
 
   targets: PanelTarget[]
   loadingTargets: boolean
+
+  sprints?: PanelSprint[]
 
   onCreateCommitment: (data: {
     title: string
@@ -113,6 +123,8 @@ export interface CommitmentPanelProps {
     data: { title: string; target_date?: string; target_ids?: string[] },
   ) => void
   onRejectDraft?: (id: string) => void
+
+  onOpenFull?: (commitment: PanelCommitment) => void
 
   currentUserId?: string
 }
@@ -334,6 +346,7 @@ export function CommitmentPanel({
   loadingPast,
   targets,
   loadingTargets,
+  sprints = [],
   onCreateCommitment,
   isSaving = false,
   onToggleComplete,
@@ -343,6 +356,7 @@ export function CommitmentPanel({
   isExtracting = false,
   onConfirmDraft,
   onRejectDraft,
+  onOpenFull,
   currentUserId,
 }: CommitmentPanelProps) {
   const isCoach = variant === 'coach'
@@ -354,6 +368,8 @@ export function CommitmentPanel({
   const [showCalendar, setShowCalendar] = useState(false)
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [showOutcomes, setShowOutcomes] = useState(true)
+  const [selectedSprintIds, setSelectedSprintIds] = useState<string[]>([])
+  const [showSprints, setShowSprints] = useState(true)
 
   // Tab state
   const [activeTab, setActiveTab] = useState<TabType>('session')
@@ -418,6 +434,7 @@ export function CommitmentPanel({
     setTitle('')
     setTargetDate(undefined)
     setSelectedTargetIds([])
+    setSelectedSprintIds([])
     if (isCoach) setAssigneeType('client')
 
     try {
@@ -604,12 +621,17 @@ export function CommitmentPanel({
             : isOverdue
               ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
               : `bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ${accent.itemHover}`,
+          onOpenFull && 'cursor-pointer',
         )}
+        onClick={() => onOpenFull?.(commitment)}
       >
         <div className="flex items-start gap-3">
           {showCompleteToggle && (
             <button
-              onClick={() => onToggleComplete(commitment)}
+              onClick={e => {
+                e.stopPropagation()
+                onToggleComplete(commitment)
+              }}
               className={cn(
                 'mt-0.5 flex-shrink-0 transition-colors',
                 commitment.status === 'completed'
@@ -640,7 +662,10 @@ export function CommitmentPanel({
 
               {/* Edit/Delete (coach only) */}
               {isCoach && onEditCommitment && onDeleteCommitment && (
-                <div className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div
+                  className="flex items-center gap-1 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={e => e.stopPropagation()}
+                >
                   <button
                     onClick={() => handleStartEdit(commitment)}
                     className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
@@ -1062,6 +1087,85 @@ export function CommitmentPanel({
                       )
                     })
                   )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Sprints */}
+          {sprints.length > 0 && (
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowSprints(!showSprints)}
+                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+              >
+                {showSprints ? (
+                  <ChevronUp className="h-3 w-3" />
+                ) : (
+                  <ChevronDown className="h-3 w-3" />
+                )}
+                Link to Sprint
+                {selectedSprintIds.length > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="text-xs px-1.5 py-0 h-4 ml-1"
+                  >
+                    {selectedSprintIds.length}
+                  </Badge>
+                )}
+              </button>
+              {showSprints && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {sprints.map(sprint => {
+                    const isSelected = selectedSprintIds.includes(sprint.id)
+                    return (
+                      <button
+                        key={sprint.id}
+                        type="button"
+                        onClick={() => {
+                          if (isSelected) {
+                            // Deselect sprint and remove its targets
+                            setSelectedSprintIds(prev =>
+                              prev.filter(id => id !== sprint.id),
+                            )
+                            setSelectedTargetIds(prev =>
+                              prev.filter(
+                                id => !sprint.target_ids.includes(id),
+                              ),
+                            )
+                          } else {
+                            // Select sprint and auto-select its targets
+                            setSelectedSprintIds(prev => [...prev, sprint.id])
+                            setSelectedTargetIds(prev => {
+                              const newIds = sprint.target_ids.filter(
+                                id => !prev.includes(id),
+                              )
+                              return [...prev, ...newIds]
+                            })
+                          }
+                        }}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                          isSelected
+                            ? accent.chipSelected
+                            : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 ${accent.chipHover}`,
+                        )}
+                      >
+                        {isSelected ? (
+                          <Check className="h-3 w-3" />
+                        ) : (
+                          <Zap className="h-3 w-3" />
+                        )}
+                        {sprint.title}
+                        {sprint.target_ids.length > 0 && (
+                          <span className="text-[10px] opacity-70">
+                            ({sprint.target_ids.length})
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>

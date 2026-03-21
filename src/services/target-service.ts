@@ -20,12 +20,14 @@ export class TargetService {
   static async listTargets(filters?: {
     goal_id?: string
     sprint_id?: string
+    client_id?: string
     status?: string
   }): Promise<Target[]> {
     const params = new URLSearchParams()
 
     if (filters?.goal_id) params.append('goal_id', filters.goal_id)
     if (filters?.sprint_id) params.append('sprint_id', filters.sprint_id)
+    if (filters?.client_id) params.append('client_id', filters.client_id)
     if (filters?.status) params.append('status', filters.status)
 
     const queryString = params.toString()

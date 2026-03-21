@@ -383,9 +383,10 @@ export function SessionAnalysisMerged({
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {coachingMetrics.map(metric => {
-                  const score = coaching.coaching_scores[
-                    metric.key as keyof typeof coaching.coaching_scores
-                  ] as number
+                  const score =
+                    (coaching.coaching_scores[
+                      metric.key as keyof typeof coaching.coaching_scores
+                    ] as number) ?? 0
                   const level = getScoreLevel(score)
                   const Icon = metric.icon
                   return (
@@ -436,7 +437,7 @@ export function SessionAnalysisMerged({
                   const score =
                     coaching.go_live_scores[
                       value.key as keyof typeof coaching.go_live_scores
-                    ]
+                    ] ?? 0
                   const level = getScoreLevel(score)
                   const Icon = value.icon
                   return (

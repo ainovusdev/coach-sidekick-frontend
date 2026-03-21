@@ -9,8 +9,8 @@ import {
 } from '@/hooks/mutations/use-commitment-mutations'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { useGoals } from '@/hooks/queries/use-goals'
 import { useTargets } from '@/hooks/queries/use-targets'
+import { useSprints } from '@/hooks/queries/use-sprints'
 import { useAuth } from '@/contexts/auth-context'
 import { CommitmentService } from '@/services/commitment-service'
 import { Commitment } from '@/types/commitment'
@@ -20,6 +20,7 @@ import {
   PanelCommitmentGroup,
   groupCommitmentsBySession,
 } from './commitment-panel'
+import { CommitmentDetailPanel } from './commitment-detail-panel'
 
 interface QuickCommitmentProps {
   sessionId: string
@@ -33,6 +34,11 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const updateCommitment = useUpdateCommitment()
   const discardCommitment = useDiscardCommitment()
   const [isExtracting, setIsExtracting] = useState(false)
+
+  // Full detail panel state
+  const [detailCommitmentId, setDetailCommitmentId] = useState<string | null>(
+    null,
+  )
 
   // Optimistic draft overrides: confirmed drafts shown as active, rejected drafts hidden
   const [optimisticUpdates, setOptimisticUpdates] = useState<
@@ -117,6 +123,12 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     [discardCommitment],
   )
 
+  // Handle opening full detail panel for a commitment
+  const handleOpenFull = useCallback((commitment: PanelCommitment) => {
+    if (!commitment.id) return
+    setDetailCommitmentId(commitment.id)
+  }, [])
+
   // Session commitments
   const { data: sessionData, isLoading: loadingSession } = useCommitments(
     {
@@ -129,12 +141,12 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     },
   )
 
-  // Goals and targets for outcome linking
-  const { data: goals = [] } = useGoals(clientId)
-  const { data: allTargets = [] } = useTargets()
-  const clientTargets = (allTargets as any[]).filter((t: any) =>
-    (goals as any[]).some((g: any) => t.goal_ids?.includes(g.id)),
-  )
+  // Targets and sprints for linking
+  const { data: clientTargets = [] } = useTargets({ client_id: clientId })
+  const { data: clientSprints = [] } = useSprints({
+    client_id: clientId,
+    status: 'active',
+  })
 
   // All active commitments
   const [allActiveCommitments, setAllActiveCommitments] = useState<
@@ -208,52 +220,73 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     )
 
   return (
-    <CommitmentPanel
-      variant="coach"
-      sessionCommitments={sessionCommitments as PanelCommitment[]}
-      loadingSession={loadingSession}
-      activeCommitments={allActiveCommitments as PanelCommitment[]}
-      loadingActive={loadingActive}
-      pastGroups={pastGroups}
-      loadingPast={loadingPast}
-      targets={clientTargets.map((t: any) => ({
-        id: t.id,
-        title: t.title,
-        goal_titles: t.goal_titles || [],
-      }))}
-      loadingTargets={false}
-      onCreateCommitment={data => {
-        createCommitment.mutate({
-          client_id: clientId,
-          session_id: sessionId,
-          title: data.title,
-          target_date: data.target_date,
-          type: 'commitment',
-          priority: 'medium',
-          assigned_to_id: data.assigned_to_id,
-          target_ids: data.target_ids,
-        })
-      }}
-      isSaving={createCommitment.isPending}
-      onToggleComplete={async commitment => {
-        const newStatus =
-          commitment.status === 'completed' ? 'active' : 'completed'
-        await updateCommitment.mutateAsync({
-          commitmentId: commitment.id,
-          data: { status: newStatus },
-        })
-      }}
-      onEditCommitment={async (id, data) => {
-        await updateCommitment.mutateAsync({ commitmentId: id, data })
-      }}
-      onDeleteCommitment={async id => {
-        await discardCommitment.mutateAsync(id)
-      }}
-      onExtract={handleExtract}
-      isExtracting={isExtracting}
-      onConfirmDraft={handleConfirmDraft}
-      onRejectDraft={handleRejectDraft}
-      currentUserId={user?.id}
-    />
+    <>
+      <CommitmentPanel
+        variant="coach"
+        sessionCommitments={sessionCommitments as PanelCommitment[]}
+        loadingSession={loadingSession}
+        activeCommitments={allActiveCommitments as PanelCommitment[]}
+        loadingActive={loadingActive}
+        pastGroups={pastGroups}
+        loadingPast={loadingPast}
+        targets={clientTargets.map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          goal_titles: t.goal_titles || [],
+        }))}
+        loadingTargets={false}
+        sprints={(clientSprints as any[]).map((s: any) => ({
+          id: s.id,
+          title: s.title,
+          status: s.status,
+          target_ids: clientTargets
+            .filter((t: any) => t.sprint_ids?.includes(s.id))
+            .map((t: any) => t.id),
+        }))}
+        onCreateCommitment={data => {
+          createCommitment.mutate({
+            client_id: clientId,
+            session_id: sessionId,
+            title: data.title,
+            target_date: data.target_date,
+            type: 'commitment',
+            priority: 'medium',
+            assigned_to_id: data.assigned_to_id,
+            target_ids: data.target_ids,
+          })
+        }}
+        isSaving={createCommitment.isPending}
+        onToggleComplete={async commitment => {
+          const newStatus =
+            commitment.status === 'completed' ? 'active' : 'completed'
+          await updateCommitment.mutateAsync({
+            commitmentId: commitment.id,
+            data: { status: newStatus },
+          })
+        }}
+        onEditCommitment={async (id, data) => {
+          await updateCommitment.mutateAsync({ commitmentId: id, data })
+        }}
+        onDeleteCommitment={async id => {
+          await discardCommitment.mutateAsync(id)
+        }}
+        onExtract={handleExtract}
+        isExtracting={isExtracting}
+        onConfirmDraft={handleConfirmDraft}
+        onRejectDraft={handleRejectDraft}
+        onOpenFull={handleOpenFull}
+        currentUserId={user?.id}
+      />
+
+      {/* Full Commitment Detail Sidebar */}
+      <CommitmentDetailPanel
+        commitmentId={detailCommitmentId}
+        clientId={clientId}
+        onClose={() => setDetailCommitmentId(null)}
+        onCommitmentUpdate={() => {
+          queryClient.invalidateQueries({ queryKey: ['commitments'] })
+        }}
+      />
+    </>
   )
 }

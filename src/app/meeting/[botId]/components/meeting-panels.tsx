@@ -26,6 +26,18 @@ import {
   PanelLeftOpen,
   Info,
   Sparkles,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  Link2,
+  ClipboardList,
+  Dumbbell,
+  FileEdit,
+  Newspaper,
+  Share2,
+  Check,
+  Loader2,
 } from 'lucide-react'
 import { MeetingContextService } from '@/services/meeting-context-service'
 import {
@@ -34,8 +46,25 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { MeetingResourcesPanel } from './meeting-resources-panel'
+import { useResources } from '@/hooks/queries/use-resources'
+import { useShareResource } from '@/hooks/mutations/use-resource-mutations'
+import { CATEGORY_COLORS } from '@/types/resource'
+import type { ResourceCategory } from '@/types/resource'
+
+const RESOURCE_CATEGORY_ICONS: Record<string, typeof FileText> = {
+  general: FileText,
+  document: FileText,
+  worksheet: ClipboardList,
+  exercise: Dumbbell,
+  article: Newspaper,
+  template: FileEdit,
+  video: Video,
+  link: Link2,
+}
 
 interface MeetingPanelsProps {
   transcript: TranscriptEntry[]
@@ -46,7 +75,7 @@ interface MeetingPanelsProps {
   isMeetingEnded?: boolean
 }
 
-type SidebarTab = 'transcript' | 'context'
+type SidebarTab = 'transcript' | 'context' | 'resources'
 
 export default function MeetingPanels({
   transcript,
@@ -62,6 +91,10 @@ export default function MeetingPanels({
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sidebarTab, setSidebarTab] = useState<SidebarTab>('transcript')
   const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true)
+  const [resourcesOpen, setResourcesOpen] = useState(false)
+  const [sharingResourceId, setSharingResourceId] = useState<string | null>(
+    null,
+  )
 
   // Group session participant selection
   const [participants, setParticipants] = useState<GroupSessionParticipant[]>(
@@ -97,6 +130,35 @@ export default function MeetingPanels({
     ? selectedParticipant?.client_id
     : clientId
   const commitmentSessionId = sessionId
+
+  // Resources for the collapsible section
+  const { data: allResourcesData } = useResources({})
+  const allResources = allResourcesData?.resources || []
+  const shareResource = useShareResource()
+
+  const handleQuickShare = async (resourceId: string) => {
+    const targetClientId = commitmentClientId || clientId
+    if (!targetClientId) return
+    setSharingResourceId(resourceId)
+    try {
+      await shareResource.mutateAsync({
+        id: resourceId,
+        data: { shared_with_client_id: targetClientId },
+      })
+    } finally {
+      setSharingResourceId(null)
+    }
+  }
+
+  const isResourceSharedWithClient = (resource: (typeof allResources)[0]) => {
+    const targetClientId = commitmentClientId || clientId
+    if (!targetClientId) return false
+    return resource.shares?.some(
+      s =>
+        s.shared_with_client_id === targetClientId ||
+        s.shared_with_id === targetClientId,
+    )
+  }
 
   const recentTranscript = transcript
 
@@ -196,33 +258,123 @@ export default function MeetingPanels({
         )}
 
         <div className="flex-1 grid grid-cols-1 lg:grid-cols-8 gap-4 min-h-0 overflow-hidden">
-          {/* Left Column - Notes (5/8) */}
-          <div className="lg:col-span-5 h-full overflow-hidden">
-            {sessionId ? (
-              <QuickNote
-                sessionId={sessionId}
-                noteType="coach_private"
-                clientId={commitmentClientId || undefined}
-                isMeetingEnded={isMeetingEnded}
-              />
-            ) : (
-              <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                      <FileText className="h-4 w-4 text-gray-400" />
+          {/* Left Column - Notes + Resources (5/8) */}
+          <div className="lg:col-span-5 h-full overflow-hidden flex flex-col">
+            <div className="flex-1 min-h-0 overflow-hidden">
+              {sessionId ? (
+                <QuickNote
+                  sessionId={sessionId}
+                  noteType="coach_private"
+                  clientId={commitmentClientId || undefined}
+                  isMeetingEnded={isMeetingEnded}
+                />
+              ) : (
+                <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
+                        <FileText className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Notes
+                        </h4>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                          Session loading...
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Notes
-                      </h4>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Session loading...
-                      </p>
-                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Collapsible Resources Section */}
+            {allResources.length > 0 && (
+              <div className="flex-shrink-0 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl mt-2 overflow-hidden">
+                <button
+                  onClick={() => setResourcesOpen(!resourcesOpen)}
+                  className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      Resources
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className="text-xs px-1.5 py-0 h-5"
+                    >
+                      {allResources.length}
+                    </Badge>
                   </div>
-                </CardContent>
-              </Card>
+                  {resourcesOpen ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-gray-400" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-gray-400" />
+                  )}
+                </button>
+
+                {resourcesOpen && (
+                  <div className="px-3 pb-3 max-h-[200px] overflow-y-auto space-y-1">
+                    {allResources.map(resource => {
+                      const Icon =
+                        RESOURCE_CATEGORY_ICONS[resource.category] || FileText
+                      const colors =
+                        CATEGORY_COLORS[
+                          resource.category as ResourceCategory
+                        ] || CATEGORY_COLORS.general
+                      const alreadyShared = isResourceSharedWithClient(resource)
+                      const isSharing = sharingResourceId === resource.id
+                      const targetClientId = commitmentClientId || clientId
+
+                      return (
+                        <div
+                          key={resource.id}
+                          className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                        >
+                          <div
+                            className={`p-1.5 rounded ${colors.bg} shrink-0`}
+                          >
+                            <Icon className={`h-3.5 w-3.5 ${colors.text}`} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                              {resource.title}
+                            </p>
+                          </div>
+                          {targetClientId &&
+                            (alreadyShared ? (
+                              <div className="shrink-0 flex items-center gap-1 text-green-600 dark:text-green-400">
+                                <Check className="h-3 w-3" />
+                                <span className="text-[10px] font-medium">
+                                  Shared
+                                </span>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-6 text-[10px] px-2 shrink-0"
+                                onClick={() => handleQuickShare(resource.id)}
+                                disabled={isSharing}
+                              >
+                                {isSharing ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <>
+                                    <Share2 className="h-3 w-3 mr-1" />
+                                    Share
+                                  </>
+                                )}
+                              </Button>
+                            ))}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -294,6 +446,7 @@ export default function MeetingPanels({
             <div className="flex flex-col items-center gap-1">
               <MessageSquare className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
               <Info className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <BookOpen className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
             </div>
           </div>
         </Button>
@@ -339,6 +492,18 @@ export default function MeetingPanels({
                 <Info className="h-3.5 w-3.5" />
                 Context
               </button>
+              <button
+                onClick={() => setSidebarTab('resources')}
+                className={cn(
+                  'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
+                  sidebarTab === 'resources'
+                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
+                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                )}
+              >
+                <BookOpen className="h-3.5 w-3.5" />
+                Resources
+              </button>
             </div>
           </div>
 
@@ -349,6 +514,11 @@ export default function MeetingPanels({
                 transcript={recentTranscript}
                 mode="sidebar"
                 autoScroll={true}
+              />
+            ) : sidebarTab === 'resources' ? (
+              <MeetingResourcesPanel
+                clientId={commitmentClientId || clientId || ''}
+                clientName={selectedParticipant?.client_name}
               />
             ) : (
               <div className="h-full overflow-y-auto">

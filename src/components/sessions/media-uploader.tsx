@@ -32,7 +32,7 @@ function estimateProcessingTime(file: File): string {
   const sizeMB = file.size / (1024 * 1024)
   const ext = file.name.split('.').pop()?.toLowerCase() || ''
 
-  const docExts = ['txt', 'docx', 'pdf']
+  const docExts = ['txt', 'docx', 'pdf', 'vtt']
   const audioExts = ['mp3', 'wav', 'm4a', 'ogg', 'webm']
   const videoExts = ['mp4', 'mov', 'avi', 'mkv']
 
@@ -83,7 +83,7 @@ export function MediaUploader({
   const supportedFormats = {
     audio: ['.mp3', '.wav', '.m4a', '.ogg', '.webm'],
     video: ['.mp4', '.mov', '.avi', '.mkv'],
-    documents: ['.txt', '.docx', '.pdf'],
+    documents: ['.txt', '.docx', '.pdf', '.vtt'],
   }
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -101,6 +101,7 @@ export function MediaUploader({
         ['.docx'],
       'application/pdf': ['.pdf'],
       'text/plain': ['.txt'],
+      'text/vtt': ['.vtt'],
     },
     maxFiles: 1,
     maxSize: 1024 * 1024 * 1024, // 1GB

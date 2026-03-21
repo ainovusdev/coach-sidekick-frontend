@@ -14,7 +14,6 @@ import {
   ChevronRight,
   Network,
   FolderKanban,
-  BookOpen,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -42,12 +41,6 @@ const menuItems = [
     href: '/admin/clients',
     icon: Users2,
     requiredRole: ['super_admin'],
-  },
-  {
-    title: 'Knowledge Hub',
-    href: '/admin/knowledge',
-    icon: BookOpen,
-    requiredRole: ['admin', 'super_admin'],
   },
   {
     title: 'Access Management',

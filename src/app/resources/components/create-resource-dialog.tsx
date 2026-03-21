@@ -95,10 +95,10 @@ export function CreateResourceDialog({
     }
   }, [open])
 
-  // Pre-set client scope if presetClientId is provided
+  // Pre-set personal scope if presetClientId is provided
   useEffect(() => {
     if (presetClientId && open) {
-      setField('scope', 'client')
+      setField('scope', 'personal')
       setField('clientId', presetClientId)
     }
   }, [presetClientId, open, setField])

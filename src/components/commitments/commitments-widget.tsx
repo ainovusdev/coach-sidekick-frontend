@@ -47,7 +47,7 @@ export function CommitmentsWidget({
   clientId,
   limit = 5,
   showHeader = true,
-  viewAllLink = '/client-portal/my-commitments',
+  viewAllLink = '/client-portal/dashboard',
   className,
   targetId,
   onEdit,

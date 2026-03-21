@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,7 +13,6 @@ import {
 } from '@/components/ui/dialog'
 import {
   BookOpen,
-  ArrowRight,
   Download,
   ExternalLink,
   Eye,
@@ -280,18 +278,10 @@ export function RecentResourcesWidget() {
     <>
       <Card className="border-gray-200">
         <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-              Recent Resources
-            </CardTitle>
-            <Link href="/client-portal/resources">
-              <Button variant="ghost" size="sm" className="text-xs h-7">
-                Browse All
-                <ArrowRight className="h-3 w-3 ml-1" />
-              </Button>
-            </Link>
-          </div>
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <BookOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            Recent Resources
+          </CardTitle>
         </CardHeader>
         <CardContent className="pt-0">
           {isLoading ? (

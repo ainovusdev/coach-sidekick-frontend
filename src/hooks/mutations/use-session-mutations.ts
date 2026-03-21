@@ -29,19 +29,20 @@ export function useUpdateSession() {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: queryKeys.sessions.all })
 
-      // Snapshot previous value
-      const previousDetail = queryClient.getQueryData(
-        queryKeys.sessions.detail(sessionId),
-      )
+      // The full-details query key used by useSessionDetails
+      const fullDetailsKey = [
+        ...queryKeys.sessions.detail(sessionId),
+        'full-details',
+      ]
 
-      // Optimistically update the detail cache
-      queryClient.setQueryData(
-        queryKeys.sessions.detail(sessionId),
-        (old: any) => {
-          if (!old) return old
-          return { ...old, ...data }
-        },
-      )
+      // Snapshot previous value
+      const previousDetail = queryClient.getQueryData(fullDetailsKey)
+
+      // Optimistically update the detail cache (must match useSessionDetails query key)
+      queryClient.setQueryData(fullDetailsKey, (old: any) => {
+        if (!old) return old
+        return { ...old, session: { ...old.session, ...data } }
+      })
 
       return { previousDetail, sessionId }
     },
@@ -49,10 +50,11 @@ export function useUpdateSession() {
     onError: (err, _variables, context) => {
       // Rollback on error
       if (context?.previousDetail && context?.sessionId) {
-        queryClient.setQueryData(
-          queryKeys.sessions.detail(context.sessionId),
-          context.previousDetail,
-        )
+        const fullDetailsKey = [
+          ...queryKeys.sessions.detail(context.sessionId),
+          'full-details',
+        ]
+        queryClient.setQueryData(fullDetailsKey, context.previousDetail)
       }
 
       toast.error('Failed to update session', {

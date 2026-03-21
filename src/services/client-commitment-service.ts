@@ -26,7 +26,7 @@ export interface ClientCommitmentUpdate {
   description?: string
   type?: 'commitment' | 'habit' | 'mp_outcome' | 'learning' | 'sprint'
   target_date?: string
-  status?: 'active' | 'completed' | 'abandoned'
+  status?: 'active' | 'in_progress' | 'completed' | 'abandoned'
   progress_percentage?: number
 }
 

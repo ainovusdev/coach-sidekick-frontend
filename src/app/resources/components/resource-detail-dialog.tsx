@@ -3,11 +3,11 @@
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import {
   FileText,
   Video,
@@ -17,7 +17,8 @@ import {
   Eye,
   Download,
   Globe,
-  Users,
+  User,
+  Share2,
   ClipboardList,
   Dumbbell,
   FileEdit,
@@ -25,10 +26,13 @@ import {
   ExternalLink,
   Calendar,
   Tag,
+  X,
+  Loader2,
 } from 'lucide-react'
 import type { SharedResource, SharingScope } from '@/types/resource'
 import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
+import { useUnshareResource } from '@/hooks/mutations/use-resource-mutations'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
   general: FileText,
@@ -43,14 +47,14 @@ const CATEGORY_ICONS: Record<string, typeof FileText> = {
 
 const SCOPE_ICONS: Record<SharingScope, typeof Globe> = {
   global: Globe,
-  client: Users,
+  personal: User,
   session: Calendar,
 }
 
 const SCOPE_LABELS: Record<SharingScope, string> = {
-  global: 'All Clients',
-  client: 'Specific Client',
-  session: 'Specific Session',
+  global: 'Global (Admin)',
+  personal: 'Personal',
+  session: 'Session',
 }
 
 function formatFileSize(bytes?: number): string {
@@ -66,6 +70,8 @@ interface ResourceDetailDialogProps {
   onOpenChange: (open: boolean) => void
   onEdit: (r: SharedResource) => void
   onDelete: (r: SharedResource) => void
+  onShare?: (r: SharedResource) => void
+  isOwner?: boolean
 }
 
 export function ResourceDetailDialog({
@@ -74,25 +80,31 @@ export function ResourceDetailDialog({
   onOpenChange,
   onEdit,
   onDelete,
+  onShare,
+  isOwner = true,
 }: ResourceDetailDialogProps) {
+  const unshareResource = useUnshareResource()
+
   if (!resource) return null
 
   const Icon = CATEGORY_ICONS[resource.category] || FileText
   const ScopeIcon = SCOPE_ICONS[resource.sharing_scope] || Globe
   const colors = CATEGORY_COLORS[resource.category] || CATEGORY_COLORS.general
 
+  const canShare = isOwner && onShare
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[85vh] overflow-y-auto">
-        <DialogHeader>
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
+        <SheetHeader className="pb-4">
           <div className="flex items-start gap-3">
             <div className={`p-2.5 rounded-lg ${colors.bg} shrink-0`}>
               <Icon className={`h-5 w-5 ${colors.text}`} />
             </div>
             <div className="flex-1 min-w-0">
-              <DialogTitle className="text-xl leading-tight">
+              <SheetTitle className="text-xl leading-tight text-left">
                 {resource.title}
-              </DialogTitle>
+              </SheetTitle>
               {resource.description && (
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                   {resource.description}
@@ -100,9 +112,9 @@ export function ResourceDetailDialog({
               )}
             </div>
           </div>
-        </DialogHeader>
+        </SheetHeader>
 
-        <div className="space-y-4 mt-2">
+        <div className="space-y-5 pt-2">
           {/* Metadata badges */}
           <div className="flex items-center gap-2 flex-wrap">
             <Badge
@@ -123,7 +135,7 @@ export function ResourceDetailDialog({
           </div>
 
           {/* Stats row */}
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 py-2 border-y border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 py-3 border-y border-gray-100 dark:border-gray-700">
             <span className="flex items-center gap-1.5">
               <Eye className="h-4 w-4" />
               {resource.view_count} views
@@ -144,7 +156,7 @@ export function ResourceDetailDialog({
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Content
               </h4>
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap max-h-60 overflow-y-auto leading-relaxed">
+              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
                 {resource.content}
               </div>
             </div>
@@ -226,6 +238,48 @@ export function ResourceDetailDialog({
             </div>
           )}
 
+          {/* Shares */}
+          {resource.shares && resource.shares.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+                <Share2 className="h-4 w-4" />
+                Shared with ({resource.shares.length})
+              </h4>
+              <div className="space-y-1.5">
+                {resource.shares.map(share => (
+                  <div
+                    key={share.id}
+                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
+                  >
+                    <span className="text-gray-700 dark:text-gray-300">
+                      {share.shared_with_name || 'Client'}
+                    </span>
+                    {isOwner && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        onClick={() =>
+                          unshareResource.mutate({
+                            resourceId: resource.id,
+                            shareId: share.id,
+                          })
+                        }
+                        disabled={unshareResource.isPending}
+                      >
+                        {unshareResource.isPending ? (
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                          <X className="h-3.5 w-3.5" />
+                        )}
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Scope details */}
           {(resource.client_id || resource.session_id) && (
             <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
@@ -233,35 +287,50 @@ export function ResourceDetailDialog({
               {resource.session_id && <p>Session ID: {resource.session_id}</p>}
             </div>
           )}
-        </div>
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              onOpenChange(false)
-              onEdit(resource)
-            }}
-          >
-            <Pencil className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-            onClick={() => {
-              onOpenChange(false)
-              onDelete(resource)
-            }}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            Delete
-          </Button>
+          {/* Action buttons */}
+          {isOwner && (
+            <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+              {canShare && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    onOpenChange(false)
+                    onShare(resource)
+                  }}
+                >
+                  <Share2 className="h-4 w-4 mr-1" />
+                  Share
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  onOpenChange(false)
+                  onEdit(resource)
+                }}
+              >
+                <Pencil className="h-4 w-4 mr-1" />
+                Edit
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                onClick={() => {
+                  onOpenChange(false)
+                  onDelete(resource)
+                }}
+              >
+                <Trash2 className="h-4 w-4 mr-1" />
+                Delete
+              </Button>
+            </div>
+          )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

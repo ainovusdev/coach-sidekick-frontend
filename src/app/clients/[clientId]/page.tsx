@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
@@ -18,6 +18,8 @@ import { EmptyStateWelcome } from './components/empty-state-welcome'
 import { useClientData } from './hooks/use-client-data'
 import { useClientModals } from './hooks/use-client-modals'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
+import LiveSessionBanner from '@/app/components/live-session-banner'
+import { useSessions } from '@/hooks/queries/use-sessions'
 import { GoalService } from '@/services/goal-service'
 import { TargetService } from '@/services/target-service'
 import { SprintService } from '@/services/sprint-service'
@@ -85,6 +87,25 @@ export default function ClientDetailPage({
   const [selectedCommitmentId, setSelectedCommitmentId] = useState<
     string | null
   >(null)
+
+  // Query active sessions for this client (for live session banner)
+  const { data: activeSessionsData } = useSessions(
+    { status: 'active', client_id: clientId || undefined },
+    { staleTime: 30 * 1000, enabled: !!clientId },
+  )
+
+  const clientActiveSessions = useMemo(() => {
+    if (!activeSessionsData?.sessions) return []
+    return activeSessionsData.sessions.map((s: any) => ({
+      id: s.id,
+      bot_id: s.bot_id,
+      client_name: s.client_name || client?.name || null,
+      coach_name: s.coach_name || null,
+      is_group_session: s.is_group_session || false,
+      participant_count: s.participant_count || null,
+      created_at: s.created_at,
+    }))
+  }, [activeSessionsData, client?.name])
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -329,6 +350,9 @@ export default function ClientDetailPage({
             <>
               {/* Main Content Area with Tabs */}
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* Live Session Banner */}
+                <LiveSessionBanner sessions={clientActiveSessions} />
+
                 <Tabs
                   value={activeTab}
                   onValueChange={setActiveTab}
@@ -430,6 +454,7 @@ export default function ClientDetailPage({
                     {/* Tree View Only */}
                     <GoalsTreeView
                       clientId={client.id}
+                      clientName={client.name}
                       onCreateNew={() =>
                         modalState.setIsUnifiedCreateModalOpen(true)
                       }
@@ -834,6 +859,7 @@ export default function ClientDetailPage({
         {/* Commitment Detail Panel */}
         <CommitmentDetailPanel
           commitmentId={selectedCommitmentId}
+          clientId={clientId || undefined}
           onClose={() => setSelectedCommitmentId(null)}
           onCommitmentUpdate={refetch}
         />

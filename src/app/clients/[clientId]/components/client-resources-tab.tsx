@@ -35,8 +35,6 @@ import {
   Plus,
   Search,
   Eye,
-  Globe,
-  Users,
   ClipboardList,
   Dumbbell,
   FileEdit,
@@ -90,26 +88,17 @@ export function ClientResourcesTab({
   const { form, setField, resetForm, buildFormData, fileInputRef } =
     useResourceForm()
 
-  // Fetch client-specific resources
-  const { data: clientData, isLoading: loadingClient } = useResources({
-    scope: 'client',
+  // Fetch resources shared with this client
+  const { data, isLoading: loadingResources } = useResources({
     client_id: clientId,
-    search: debouncedSearch || undefined,
-  })
-
-  // Fetch global resources
-  const { data: globalData, isLoading: loadingGlobal } = useResources({
-    scope: 'global',
     search: debouncedSearch || undefined,
   })
 
   const createResource = useCreateResource()
   const deleteResourceMutation = useDeleteResource()
 
-  const clientResources = clientData?.resources || []
-  const globalResources = globalData?.resources || []
-  const allResources = [...clientResources, ...globalResources]
-  const isLoading = loadingClient || loadingGlobal
+  const resources = data?.resources || []
+  const isLoading = loadingResources
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value)
@@ -153,11 +142,10 @@ export function ClientResourcesTab({
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-            Resources ({allResources.length})
+            Resources ({resources.length})
           </h3>
           <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
-            Resources shared with {clientName || 'this client'} and global
-            resources
+            Resources shared with {clientName || 'this client'}
           </p>
         </div>
         <div className="flex gap-2">
@@ -173,7 +161,7 @@ export function ClientResourcesTab({
             size="sm"
             onClick={() => {
               resetForm()
-              setField('scope', 'client')
+              setField('scope', 'personal')
               setField('clientId', clientId)
               setCreateDialogOpen(true)
             }}
@@ -185,7 +173,7 @@ export function ClientResourcesTab({
       </div>
 
       {/* Search */}
-      {allResources.length > 0 && (
+      {resources.length > 0 && (
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
@@ -197,35 +185,15 @@ export function ClientResourcesTab({
         </div>
       )}
 
-      {/* Client-specific resources section */}
-      {clientResources.length > 0 && (
+      {/* Resources */}
+      {resources.length > 0 && (
         <div>
           <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
-            <Users className="h-4 w-4" />
+            <Share2 className="h-4 w-4" />
             Shared with {clientName || 'this client'}
           </h4>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {clientResources.map(resource => (
-              <ResourceMiniCard
-                key={resource.id}
-                resource={resource}
-                onView={r => setViewingResource(r)}
-                onDelete={r => setDeleteResource(r)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Global resources section */}
-      {globalResources.length > 0 && (
-        <div>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
-            <Globe className="h-4 w-4" />
-            Global resources
-          </h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {globalResources.map(resource => (
+            {resources.map(resource => (
               <ResourceMiniCard
                 key={resource.id}
                 resource={resource}
@@ -238,7 +206,7 @@ export function ClientResourcesTab({
       )}
 
       {/* Empty state */}
-      {allResources.length === 0 && (
+      {resources.length === 0 && (
         <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
           <CardContent className="flex flex-col items-center justify-center py-16">
             <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
@@ -252,7 +220,7 @@ export function ClientResourcesTab({
             <Button
               onClick={() => {
                 resetForm()
-                setField('scope', 'client')
+                setField('scope', 'personal')
                 setField('clientId', clientId)
                 setCreateDialogOpen(true)
               }}
@@ -300,7 +268,7 @@ export function ClientResourcesTab({
         onCreateNew={() => {
           setShareDialogOpen(false)
           resetForm()
-          setField('scope', 'client')
+          setField('scope', 'personal')
           setField('clientId', clientId)
           setCreateDialogOpen(true)
         }}

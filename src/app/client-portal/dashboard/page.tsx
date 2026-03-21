@@ -8,23 +8,43 @@ import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
 import { ClientPortalChat } from '@/components/client-portal/client-portal-chat'
-import { NextSessionCard } from '@/components/client-portal/next-session-card'
+import { ClientLastSessionInsights } from '@/components/client-portal/client-last-session-insights'
 import { UpcomingTasksWidget } from '@/components/client-portal/upcoming-tasks-widget'
 import { RecentResourcesWidget } from '@/components/client-portal/recent-resources-widget'
-import { ProgressSummaryWidget } from '@/components/client-portal/progress-summary-widget'
+import { GoalsTreeView } from '@/app/clients/[clientId]/components/goals-tree-view'
+import { GoalFormModal } from '@/components/goals/goal-form-modal'
+import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
+import { TargetFormModal } from '@/components/sprints/target-form-modal'
+import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
+import { UnifiedCreationModal } from '@/app/clients/[clientId]/components/unified-creation-modal'
+import { GoalService } from '@/services/goal-service'
+import { TargetService } from '@/services/target-service'
+import { SprintService } from '@/services/sprint-service'
+import { CommitmentService } from '@/services/commitment-service'
+import { useGoals } from '@/hooks/queries/use-goals'
+import { useSprints } from '@/hooks/queries/use-sprints'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
+import { toast } from 'sonner'
 import {
-  Clock,
-  TrendingUp,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   ArrowRight,
-  FileText,
-  Flame,
   ChevronRight,
-  CalendarDays,
-  CheckCircle2,
-  BarChart3,
-  Target,
+  AlertTriangle,
+  Loader2,
+  Trash2,
 } from 'lucide-react'
-import { formatDate, formatRelativeTime } from '@/lib/date-utils'
+import { formatDate } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
 
 interface DashboardData {
@@ -43,6 +63,7 @@ interface DashboardData {
     summary?: string | null
     key_topics?: string[]
     score?: number
+    action_items?: string[]
   }>
   stats: {
     total_sessions: number
@@ -65,6 +86,38 @@ export default function ClientDashboard() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const queryClient = useQueryClient()
+
+  // Modal state
+  const [unifiedCreateOpen, setUnifiedCreateOpen] = useState(false)
+  const [goalModalOpen, setGoalModalOpen] = useState(false)
+  const [sprintModalOpen, setSprintModalOpen] = useState(false)
+  const [outcomeModalOpen, setOutcomeModalOpen] = useState(false)
+  const [commitmentFormOpen, setCommitmentFormOpen] = useState(false)
+  const [editingGoal, setEditingGoal] = useState<any>(null)
+  const [editingCommitment, setEditingCommitment] = useState<any>(null)
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<
+    string | null
+  >(null)
+
+  // Delete dialog state
+  const [showDeleteGoalDialog, setShowDeleteGoalDialog] = useState(false)
+  const [goalToDelete, setGoalToDelete] = useState<any>(null)
+  const [isDeletingGoal, setIsDeletingGoal] = useState(false)
+  const [showDeleteOutcomeDialog, setShowDeleteOutcomeDialog] = useState(false)
+  const [outcomeToDelete, setOutcomeToDelete] = useState<any>(null)
+  const [isDeletingOutcome, setIsDeletingOutcome] = useState(false)
+  const [showDeleteSprintDialog, setShowDeleteSprintDialog] = useState(false)
+  const [sprintToDelete, setSprintToDelete] = useState<any>(null)
+  const [isDeletingSprint, setIsDeletingSprint] = useState(false)
+
+  const clientId = dashboardData?.client_info?.id
+
+  // Fetch goals and sprints for modal forms
+  const { data: goals = [] } = useGoals(clientId)
+  const { data: sprints = [] } = useSprints(
+    clientId ? { client_id: clientId, status: 'active' } : undefined,
+  )
 
   useEffect(() => {
     fetchDashboardData()
@@ -112,6 +165,95 @@ export default function ClientDashboard() {
     return 'Good evening'
   }
 
+  // --- Delete / Complete Handlers ---
+
+  const handleDeleteGoal = async () => {
+    if (!goalToDelete?.id) return
+    setIsDeletingGoal(true)
+    try {
+      await GoalService.deleteGoal(goalToDelete.id)
+      queryClient.invalidateQueries({ queryKey: queryKeys.goals.all })
+      toast.success('Vision Deleted', {
+        description: `"${goalToDelete.title}" has been deleted successfully`,
+      })
+      setShowDeleteGoalDialog(false)
+      setGoalToDelete(null)
+    } catch {
+      toast.error('Failed to delete vision')
+    } finally {
+      setIsDeletingGoal(false)
+    }
+  }
+
+  const handleDeleteOutcome = async () => {
+    if (!outcomeToDelete?.id) return
+    setIsDeletingOutcome(true)
+    try {
+      await TargetService.deleteTarget(outcomeToDelete.id)
+      queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+      toast.success('Outcome Deleted', {
+        description: `"${outcomeToDelete.title}" has been deleted successfully`,
+      })
+      setShowDeleteOutcomeDialog(false)
+      setOutcomeToDelete(null)
+    } catch {
+      toast.error('Failed to delete outcome')
+    } finally {
+      setIsDeletingOutcome(false)
+    }
+  }
+
+  const handleDeleteSprint = async () => {
+    if (!sprintToDelete?.id) return
+    setIsDeletingSprint(true)
+    try {
+      await SprintService.deleteSprint(sprintToDelete.id)
+      queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+      toast.success('Sprint Deleted', {
+        description: `"${sprintToDelete.title}" has been deleted successfully`,
+      })
+      setShowDeleteSprintDialog(false)
+      setSprintToDelete(null)
+    } catch {
+      toast.error('Failed to delete sprint')
+    } finally {
+      setIsDeletingSprint(false)
+    }
+  }
+
+  const handleCompleteOutcome = async (outcome: any) => {
+    if (!outcome?.id) return
+    try {
+      await TargetService.updateTarget(outcome.id, { status: 'completed' })
+      queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+      toast.success('Outcome Completed', {
+        description: `"${outcome.title}" has been marked as complete`,
+      })
+    } catch {
+      toast.error('Failed to complete outcome')
+    }
+  }
+
+  const handleCompleteSprint = async (sprint: any) => {
+    if (!sprint?.id) return
+    try {
+      await SprintService.updateSprint(sprint.id, { status: 'completed' })
+      queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+      toast.success('Sprint Completed', {
+        description: `"${sprint.title}" has been marked as complete`,
+      })
+    } catch {
+      toast.error('Failed to complete sprint')
+    }
+  }
+
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: queryKeys.goals.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+    queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -142,16 +284,6 @@ export default function ClientDashboard() {
   }
 
   const lastSession = dashboardData.recent_sessions?.[0]
-  const completionRate =
-    dashboardData.stats?.completion_rate ||
-    (dashboardData.stats?.completed_tasks > 0
-      ? Math.round(
-          (dashboardData.stats.completed_tasks /
-            (dashboardData.stats.completed_tasks +
-              dashboardData.stats.pending_tasks)) *
-            100,
-        )
-      : 0)
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -190,194 +322,65 @@ export default function ClientDashboard() {
         <ActiveSessionsCard />
       </div>
 
-      {/* Stat Cards - 4 column grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Sessions */}
-        <Card className="border-gray-200 dark:border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-50 dark:bg-blue-900/30">
-                <CalendarDays className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardData.stats?.total_sessions || 0}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {dashboardData.stats?.sessions_this_month
-                    ? `${dashboardData.stats.sessions_this_month} this month`
-                    : 'Sessions'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Tasks */}
-        <Card className="border-gray-200 dark:border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-50 dark:bg-green-900/30">
-                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardData.stats?.completed_tasks || 0}/
-                  {(dashboardData.stats?.completed_tasks || 0) +
-                    (dashboardData.stats?.pending_tasks || 0)}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {dashboardData.stats?.pending_tasks
-                    ? `${dashboardData.stats.pending_tasks} pending`
-                    : 'Tasks'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Success Rate */}
-        <Card className="border-gray-200 dark:border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-purple-50 dark:bg-purple-900/30">
-                <BarChart3 className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {completionRate}%
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Success rate
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Streak / Active Goals */}
-        <Card className="border-gray-200 dark:border-gray-700">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-orange-50 dark:bg-orange-900/30">
-                {dashboardData.stats?.current_streak_days > 0 ? (
-                  <Flame className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                ) : (
-                  <Target className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                )}
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {dashboardData.stats?.current_streak_days > 0
-                    ? dashboardData.stats.current_streak_days
-                    : dashboardData.stats?.active_goals || 0}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {dashboardData.stats?.current_streak_days > 0
-                    ? 'Day streak'
-                    : 'Active goals'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Vision & Progress Board - Full Width */}
+      {clientId && (
+        <div className="mb-8">
+          <GoalsTreeView
+            clientId={clientId}
+            clientName={dashboardData?.client_info?.name}
+            isClientPortal
+            onCreateNew={() => setUnifiedCreateOpen(true)}
+            onCreateGoal={() => setGoalModalOpen(true)}
+            onCreateSprint={() => setSprintModalOpen(true)}
+            onCreateOutcome={() => setOutcomeModalOpen(true)}
+            onCreateCommitment={() => {
+              setEditingCommitment(null)
+              setCommitmentFormOpen(true)
+            }}
+            onCommitmentClick={c => setSelectedCommitmentId(c.id)}
+            onEditGoal={goal => {
+              setEditingGoal(goal)
+              setGoalModalOpen(true)
+            }}
+            onDeleteGoal={goal => {
+              setGoalToDelete(goal)
+              setShowDeleteGoalDialog(true)
+            }}
+            onEditOutcome={() => {
+              toast.info('Edit Outcome', {
+                description:
+                  'Edit functionality coming soon. For now, you can delete and recreate.',
+              })
+            }}
+            onDeleteOutcome={outcome => {
+              setOutcomeToDelete(outcome)
+              setShowDeleteOutcomeDialog(true)
+            }}
+            onCompleteOutcome={handleCompleteOutcome}
+            onEditSprint={() => {
+              toast.info('Edit Sprint', {
+                description:
+                  'Edit functionality coming soon. For now, you can delete and recreate.',
+              })
+            }}
+            onDeleteSprint={sprint => {
+              setSprintToDelete(sprint)
+              setShowDeleteSprintDialog(true)
+            }}
+            onCompleteSprint={handleCompleteSprint}
+          />
+        </div>
+      )}
 
       {/* Two-Panel Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {/* Left Panel - Coaching Data */}
         <div className="space-y-4">
-          {/* Next Session */}
-          <NextSessionCard nextSession={dashboardData.stats?.next_session} />
+          {/* Last Session Insights */}
+          <ClientLastSessionInsights session={lastSession} />
 
-          {/* Upcoming Tasks */}
-          <UpcomingTasksWidget tasks={dashboardData.upcoming_tasks || []} />
-
-          {/* Last Session Card */}
-          {lastSession ? (
-            <Card className="border-gray-200 dark:border-gray-700">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                    <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                    Last Session
-                  </CardTitle>
-                  <Link href={`/client-portal/sessions/${lastSession.id}`}>
-                    <Button variant="ghost" size="sm" className="text-xs h-7">
-                      View Details
-                      <ArrowRight className="h-3 w-3 ml-1" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {formatDate(lastSession.date, 'EEEE, MMMM d, yyyy')}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {formatRelativeTime(lastSession.date)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge
-                      variant="secondary"
-                      className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
-                    >
-                      <Clock className="h-3 w-3 mr-1" />
-                      {lastSession.duration_minutes} min
-                    </Badge>
-                    {lastSession.score && (
-                      <Badge
-                        variant="secondary"
-                        className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs"
-                      >
-                        <TrendingUp className="h-3 w-3 mr-1" />
-                        {lastSession.score}/10
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {lastSession.summary && (
-                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3 mb-3">
-                    {lastSession.summary}
-                  </p>
-                )}
-
-                {lastSession.key_topics &&
-                  lastSession.key_topics.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5">
-                      {lastSession.key_topics.slice(0, 4).map((topic, idx) => (
-                        <Badge
-                          key={idx}
-                          variant="outline"
-                          className="text-xs border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400"
-                        >
-                          {topic}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-              </CardContent>
-            </Card>
-          ) : (
-            <Card className="border-gray-200 dark:border-gray-700">
-              <CardContent className="py-8 text-center">
-                <FileText className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <h3 className="font-medium text-gray-900 dark:text-white mb-1 text-sm">
-                  No sessions yet
-                </h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Your coaching sessions will appear here after your first call.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Progress Summary (Commitments & Outcomes) */}
-          <ProgressSummaryWidget clientId={dashboardData.client_info?.id} />
+          {/* Upcoming Commitments */}
+          <UpcomingTasksWidget clientId={clientId} />
 
           {/* Recent Resources */}
           <RecentResourcesWidget />
@@ -445,6 +448,223 @@ export default function ClientDashboard() {
             </CardContent>
           </Card>
         )}
+
+      {/* ===== Modals ===== */}
+      {clientId && (
+        <>
+          <UnifiedCreationModal
+            open={unifiedCreateOpen}
+            onOpenChange={setUnifiedCreateOpen}
+            clientId={clientId}
+            goals={goals}
+            sprints={sprints}
+            onSuccess={invalidateAll}
+          />
+
+          <GoalFormModal
+            open={goalModalOpen}
+            onOpenChange={open => {
+              setGoalModalOpen(open)
+              if (!open) setEditingGoal(null)
+            }}
+            clientId={clientId}
+            goal={editingGoal}
+            mode={editingGoal ? 'edit' : 'create'}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.goals.all })
+              setEditingGoal(null)
+            }}
+          />
+
+          <SprintFormModal
+            open={sprintModalOpen}
+            onOpenChange={setSprintModalOpen}
+            clientId={clientId}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+            }}
+          />
+
+          <TargetFormModal
+            open={outcomeModalOpen}
+            onOpenChange={setOutcomeModalOpen}
+            sprintId={sprints[0]?.id}
+            goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
+            onSuccess={() => {
+              queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+            }}
+          />
+
+          <CommitmentForm
+            open={commitmentFormOpen}
+            onOpenChange={open => {
+              setCommitmentFormOpen(open)
+              if (!open) setEditingCommitment(null)
+            }}
+            onSubmit={async data => {
+              try {
+                if (editingCommitment) {
+                  await CommitmentService.updateCommitment(
+                    editingCommitment.id,
+                    data,
+                  )
+                  toast.success('Commitment Updated')
+                } else {
+                  await CommitmentService.createCommitment(data)
+                  toast.success('Commitment Created')
+                }
+                setCommitmentFormOpen(false)
+                setEditingCommitment(null)
+                invalidateAll()
+              } catch {
+                toast.error('Failed to save commitment')
+              }
+            }}
+            commitment={editingCommitment}
+            clientId={clientId}
+          />
+
+          <CommitmentDetailPanel
+            commitmentId={selectedCommitmentId}
+            clientId={clientId}
+            onClose={() => setSelectedCommitmentId(null)}
+            onCommitmentUpdate={invalidateAll}
+          />
+        </>
+      )}
+
+      {/* ===== Delete Dialogs ===== */}
+      <AlertDialog
+        open={showDeleteGoalDialog}
+        onOpenChange={open => {
+          if (!isDeletingGoal) setShowDeleteGoalDialog(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <AlertDialogTitle>Delete Vision</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{goalToDelete?.title}&quot;?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingGoal}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteGoal}
+              disabled={isDeletingGoal}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingGoal ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Vision
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showDeleteOutcomeDialog}
+        onOpenChange={open => {
+          if (!isDeletingOutcome) setShowDeleteOutcomeDialog(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <AlertDialogTitle>Delete Outcome</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{outcomeToDelete?.title}
+              &quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingOutcome}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteOutcome}
+              disabled={isDeletingOutcome}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingOutcome ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Outcome
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showDeleteSprintDialog}
+        onOpenChange={open => {
+          if (!isDeletingSprint) setShowDeleteSprintDialog(open)
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <AlertDialogTitle>Delete Sprint</AlertDialogTitle>
+            </div>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{sprintToDelete?.title}
+              &quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingSprint}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteSprint}
+              disabled={isDeletingSprint}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {isDeletingSprint ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Sprint
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

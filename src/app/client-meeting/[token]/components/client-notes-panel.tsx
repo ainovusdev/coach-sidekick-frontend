@@ -22,10 +22,38 @@ import {
   FileText,
   Loader2,
   Lightbulb,
+  BookOpen,
+  Download,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  Link2,
+  ClipboardList,
+  Dumbbell,
+  FileEdit,
+  Newspaper,
 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/date-utils'
 import { toast } from 'sonner'
-import { LiveMeetingService, ClientNote } from '@/services/live-meeting-service'
+import {
+  LiveMeetingService,
+  ClientNote,
+  LiveMeetingResource,
+} from '@/services/live-meeting-service'
+import { CATEGORY_COLORS } from '@/types/resource'
+import type { ResourceCategory } from '@/types/resource'
+
+const CATEGORY_ICONS: Record<string, typeof FileText> = {
+  general: FileText,
+  document: FileText,
+  worksheet: ClipboardList,
+  exercise: Dumbbell,
+  article: Newspaper,
+  template: FileEdit,
+  video: Video,
+  link: Link2,
+}
 
 interface ClientNotesPanelProps {
   meetingToken: string
@@ -44,6 +72,8 @@ export function ClientNotesPanel({
   const [isSaving, setIsSaving] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
+  const [resources, setResources] = useState<LiveMeetingResource[]>([])
+  const [resourcesOpen, setResourcesOpen] = useState(true)
 
   const hasContent = (html: string) => {
     return htmlToPlainText(html).trim().length > 0
@@ -71,6 +101,27 @@ export function ClientNotesPanel({
     // Poll every 30 seconds for updates
     const interval = setInterval(() => fetchNotes(false), 30000)
 
+    return () => clearInterval(interval)
+  }, [meetingToken, guestToken, refreshKey])
+
+  // Fetch resources with polling
+  useEffect(() => {
+    if (!guestToken) return
+
+    const fetchResources = async () => {
+      try {
+        const data = await LiveMeetingService.getResources(
+          meetingToken,
+          guestToken,
+        )
+        setResources(data)
+      } catch {
+        // Silent — resources are supplementary
+      }
+    }
+
+    fetchResources()
+    const interval = setInterval(fetchResources, 30000)
     return () => clearInterval(interval)
   }, [meetingToken, guestToken, refreshKey])
 
@@ -314,6 +365,97 @@ export function ClientNotesPanel({
                 Use the editor above to capture your thoughts and insights
               </p>
             </div>
+          </div>
+        )}
+        {/* Collapsible Resources Section */}
+        {resources.length > 0 && (
+          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700">
+            <button
+              onClick={() => setResourcesOpen(!resourcesOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Shared Resources
+                </span>
+                <Badge
+                  variant="secondary"
+                  className="text-xs px-1.5 py-0 h-5 dark:bg-gray-700 dark:text-gray-300"
+                >
+                  {resources.length}
+                </Badge>
+              </div>
+              {resourcesOpen ? (
+                <ChevronUp className="h-4 w-4 text-gray-400" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+
+            {resourcesOpen && (
+              <div className="px-4 pb-4 space-y-2">
+                {resources.map(resource => {
+                  const Icon = CATEGORY_ICONS[resource.category] || FileText
+                  const colors =
+                    CATEGORY_COLORS[resource.category as ResourceCategory] ||
+                    CATEGORY_COLORS.general
+
+                  return (
+                    <div
+                      key={resource.id}
+                      className="flex items-center gap-3 p-2.5 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 transition-colors"
+                    >
+                      <div className={`p-1.5 rounded-lg ${colors.bg} shrink-0`}>
+                        <Icon className={`h-3.5 w-3.5 ${colors.text}`} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {resource.title}
+                        </p>
+                        {resource.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {resource.description}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {resource.file_url && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
+                            onClick={() =>
+                              window.open(resource.file_url!, '_blank')
+                            }
+                            title="Download"
+                          >
+                            <Download className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                        {resource.content_url && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600"
+                            onClick={() =>
+                              window.open(
+                                resource.content_url!,
+                                '_blank',
+                                'noopener,noreferrer',
+                              )
+                            }
+                            title="Open link"
+                          >
+                            <ExternalLink className="h-3.5 w-3.5" />
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </CardContent>

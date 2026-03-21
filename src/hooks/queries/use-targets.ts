@@ -16,6 +16,7 @@ export function useTargets(
   filters?: {
     goal_id?: string
     sprint_id?: string
+    client_id?: string
     status?: string
   },
   options?: Omit<UseQueryOptions<Target[]>, 'queryKey' | 'queryFn'>,

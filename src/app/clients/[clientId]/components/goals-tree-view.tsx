@@ -6,12 +6,21 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
+import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
+import { ClientCommitmentService } from '@/services/client-commitment-service'
+import { toast } from 'sonner'
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
+import { useAuth } from '@/contexts/auth-context'
 import { queryKeys } from '@/lib/query-client'
 import {
   Target,
@@ -26,6 +35,10 @@ import {
   CheckCircle2,
   User,
   Briefcase,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Filter,
+  RefreshCw,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -37,6 +50,8 @@ import {
 
 interface GoalsTreeViewProps {
   clientId: string
+  clientName?: string
+  isClientPortal?: boolean
   onCreateNew: () => void
   onCreateGoal?: () => void
   onCreateSprint?: () => void
@@ -222,6 +237,8 @@ function TreeNode({
 
 export function GoalsTreeView({
   clientId,
+  clientName,
+  isClientPortal,
   onCreateNew,
   onCreateGoal,
   onCreateSprint,
@@ -238,6 +255,11 @@ export function GoalsTreeView({
   onCompleteSprint,
 }: GoalsTreeViewProps) {
   const queryClient = useQueryClient()
+  const { user } = useAuth()
+  const clientFirstName = clientName?.split(' ')[0] || 'Client'
+  const coachLabel = isClientPortal
+    ? user?.full_name?.split(' ')[0] || 'Me'
+    : 'Me'
   const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeType, setSelectedNodeType] = useState<
@@ -246,6 +268,9 @@ export function GoalsTreeView({
   const [assigneeFilter, setAssigneeFilter] = useState<
     'all' | 'client' | 'coach'
   >('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [priorityFilter, setPriorityFilter] = useState<string>('all')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Fetch all data
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
@@ -321,6 +346,16 @@ export function GoalsTreeView({
       filtered = filtered.filter((c: any) => !c.is_coach_commitment)
     }
 
+    // Filter by status
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter((c: any) => c.status === statusFilter)
+    }
+
+    // Filter by priority
+    if (priorityFilter !== 'all') {
+      filtered = filtered.filter((c: any) => c.priority === priorityFilter)
+    }
+
     return filtered
   }, [
     allCommitments,
@@ -328,6 +363,8 @@ export function GoalsTreeView({
     selectedNodeType,
     clientTargets,
     assigneeFilter,
+    statusFilter,
+    priorityFilter,
   ])
 
   const toggleGoal = (goalId: string) => {
@@ -354,6 +391,43 @@ export function GoalsTreeView({
     queryClient.invalidateQueries({
       queryKey: queryKeys.targets.all,
     })
+  }
+
+  const handleClientPortalDrop = async (
+    commitmentId: string,
+    newStatus: string,
+  ) => {
+    const statusLabels: Record<string, string> = {
+      active: 'To Do',
+      in_progress: 'In Progress',
+      completed: 'Done',
+    }
+
+    const queryKey = queryKeys.commitments.list({ client_id: clientId })
+    const previousData = queryClient.getQueryData(queryKey)
+
+    queryClient.setQueryData(queryKey, (old: any) => {
+      if (!old?.commitments) return old
+      return {
+        ...old,
+        commitments: old.commitments.map((c: any) =>
+          c.id === commitmentId ? { ...c, status: newStatus } : c,
+        ),
+      }
+    })
+
+    toast.success(`Moved to ${statusLabels[newStatus]}`)
+
+    try {
+      await ClientCommitmentService.updateCommitment(commitmentId, {
+        status: newStatus as any,
+      })
+      handleCommitmentUpdate()
+    } catch (error) {
+      console.error('Error updating commitment:', error)
+      queryClient.setQueryData(queryKey, previousData)
+      toast.error('Failed to update commitment - changes reverted')
+    }
   }
 
   if (isLoading) {
@@ -421,9 +495,19 @@ export function GoalsTreeView({
       </div>
 
       {/* Split Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div
+        className={cn(
+          'grid grid-cols-1 gap-4',
+          sidebarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-3',
+        )}
+      >
         {/* Left Panel: Goals & Sprints */}
-        <Card className="border-gray-200 dark:border-gray-700">
+        <Card
+          className={cn(
+            'border-gray-200 dark:border-gray-700',
+            sidebarCollapsed && 'hidden',
+          )}
+        >
           <CardContent className="p-0">
             <ScrollArea className="h-[600px]">
               <div className="p-3 space-y-6">
@@ -669,31 +753,242 @@ export function GoalsTreeView({
         </Card>
 
         {/* Right Panel: Commitments Kanban */}
-        <div className="lg:col-span-2">
+        <div className={cn(!sidebarCollapsed && 'lg:col-span-2')}>
           <Card className="border-gray-200 dark:border-gray-700">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-sm font-semibold mb-1">
-                    Commitments ({filteredCommitments.length})
-                  </CardTitle>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    {getFilterDescription()}
-                  </p>
-                </div>
-                {selectedNodeId && (
+                <div className="flex items-center gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      setSelectedNodeId(null)
-                      setSelectedNodeType(null)
-                    }}
-                    className="text-xs"
+                    onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                    className="h-8 w-8 p-0"
+                    title={sidebarCollapsed ? 'Show sidebar' : 'Hide sidebar'}
                   >
-                    Clear Filter
+                    {sidebarCollapsed ? (
+                      <PanelLeftOpen className="h-4 w-4" />
+                    ) : (
+                      <PanelLeftClose className="h-4 w-4" />
+                    )}
                   </Button>
-                )}
+                  <div>
+                    <CardTitle className="text-sm font-semibold mb-1">
+                      Commitments ({filteredCommitments.length})
+                    </CardTitle>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                      {getFilterDescription()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1">
+                  {selectedNodeId && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedNodeId(null)
+                        setSelectedNodeType(null)
+                      }}
+                      className="text-xs"
+                    >
+                      Clear Filter
+                    </Button>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    title="Refresh commitments"
+                    onClick={() => {
+                      queryClient.invalidateQueries({
+                        queryKey: queryKeys.commitments.all,
+                      })
+                      queryClient.invalidateQueries({
+                        queryKey: queryKeys.goals.all,
+                      })
+                      queryClient.invalidateQueries({
+                        queryKey: queryKeys.targets.all,
+                      })
+                      queryClient.invalidateQueries({
+                        queryKey: queryKeys.sprints.all,
+                      })
+                      toast.success('Refreshed')
+                    }}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                  </Button>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={cn(
+                          'h-8 text-xs gap-1.5',
+                          (statusFilter !== 'all' ||
+                            priorityFilter !== 'all') &&
+                            'border-primary text-primary',
+                        )}
+                      >
+                        <Filter className="h-3.5 w-3.5" />
+                        Filters
+                        {(statusFilter !== 'all' ||
+                          priorityFilter !== 'all') && (
+                          <Badge
+                            variant="secondary"
+                            className="h-4 px-1 text-[10px] ml-0.5"
+                          >
+                            {(statusFilter !== 'all' ? 1 : 0) +
+                              (priorityFilter !== 'all' ? 1 : 0)}
+                          </Badge>
+                        )}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-3" align="end">
+                      <div className="space-y-3">
+                        {/* Status Filter */}
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Status
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {[
+                              { value: 'all', label: 'All', color: '' },
+                              {
+                                value: 'active',
+                                label: 'To Do',
+                                color: 'bg-blue-400',
+                              },
+                              {
+                                value: 'in_progress',
+                                label: 'In Progress',
+                                color: 'bg-yellow-400',
+                              },
+                              {
+                                value: 'completed',
+                                label: 'Done',
+                                color: 'bg-green-400',
+                              },
+                            ].map(opt => (
+                              <Button
+                                key={opt.value}
+                                variant={
+                                  statusFilter === opt.value
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setStatusFilter(opt.value)}
+                                className={cn(
+                                  'h-7 text-xs px-2.5',
+                                  statusFilter === opt.value
+                                    ? opt.value === 'all'
+                                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                                      : opt.value === 'active'
+                                        ? 'bg-blue-600 text-white'
+                                        : opt.value === 'in_progress'
+                                          ? 'bg-yellow-600 text-white'
+                                          : 'bg-green-600 text-white'
+                                    : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400',
+                                )}
+                              >
+                                {opt.color && (
+                                  <span
+                                    className={cn(
+                                      'w-1.5 h-1.5 rounded-full mr-1',
+                                      opt.color,
+                                    )}
+                                  />
+                                )}
+                                {opt.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Priority Filter */}
+                        <div className="space-y-1.5">
+                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                            Priority
+                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {[
+                              { value: 'all', label: 'All', color: '' },
+                              {
+                                value: 'low',
+                                label: 'Low',
+                                color: 'bg-gray-400',
+                              },
+                              {
+                                value: 'medium',
+                                label: 'Medium',
+                                color: 'bg-yellow-400',
+                              },
+                              {
+                                value: 'high',
+                                label: 'High',
+                                color: 'bg-orange-400',
+                              },
+                              {
+                                value: 'urgent',
+                                label: 'Urgent',
+                                color: 'bg-red-500',
+                              },
+                            ].map(opt => (
+                              <Button
+                                key={opt.value}
+                                variant={
+                                  priorityFilter === opt.value
+                                    ? 'default'
+                                    : 'outline'
+                                }
+                                size="sm"
+                                onClick={() => setPriorityFilter(opt.value)}
+                                className={cn(
+                                  'h-7 text-xs px-2.5',
+                                  priorityFilter === opt.value
+                                    ? opt.value === 'all'
+                                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                                      : opt.value === 'low'
+                                        ? 'bg-gray-600 text-white'
+                                        : opt.value === 'medium'
+                                          ? 'bg-yellow-600 text-white'
+                                          : opt.value === 'high'
+                                            ? 'bg-orange-600 text-white'
+                                            : 'bg-red-600 text-white'
+                                    : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400',
+                                )}
+                              >
+                                {opt.color && (
+                                  <span
+                                    className={cn(
+                                      'w-1.5 h-1.5 rounded-full mr-1',
+                                      opt.color,
+                                    )}
+                                  />
+                                )}
+                                {opt.label}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                        {/* Reset */}
+                        {(statusFilter !== 'all' ||
+                          priorityFilter !== 'all') && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="w-full h-7 text-xs text-gray-500"
+                            onClick={() => {
+                              setStatusFilter('all')
+                              setPriorityFilter('all')
+                            }}
+                          >
+                            Reset filters
+                          </Button>
+                        )}
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
               {/* Assignee Filter Buttons */}
               <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
@@ -725,7 +1020,7 @@ export function GoalsTreeView({
                   )}
                 >
                   <User className="h-3 w-3 mr-1" />
-                  Client
+                  {isClientPortal ? 'Me' : clientFirstName}
                 </Button>
                 <Button
                   variant={assigneeFilter === 'coach' ? 'default' : 'outline'}
@@ -739,19 +1034,28 @@ export function GoalsTreeView({
                   )}
                 >
                   <Briefcase className="h-3 w-3 mr-1" />
-                  Coach
+                  {isClientPortal ? clientFirstName : coachLabel}
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {filteredCommitments.length > 0 ? (
-                <SprintKanbanBoard
-                  commitments={filteredCommitments}
-                  clientId={clientId}
-                  targets={clientTargets}
-                  onCommitmentClick={onCommitmentClick}
-                  onCommitmentUpdate={handleCommitmentUpdate}
-                />
+                isClientPortal ? (
+                  <CommitmentKanbanBoard
+                    commitments={filteredCommitments}
+                    targets={clientTargets}
+                    onDrop={handleClientPortalDrop}
+                    onCommitmentClick={onCommitmentClick}
+                  />
+                ) : (
+                  <SprintKanbanBoard
+                    commitments={filteredCommitments}
+                    clientId={clientId}
+                    targets={clientTargets}
+                    onCommitmentClick={onCommitmentClick}
+                    onCommitmentUpdate={handleCommitmentUpdate}
+                  />
+                )
               ) : (
                 <div className="flex flex-col items-center justify-center py-16">
                   {onCreateCommitment && (

@@ -64,11 +64,17 @@ export default function LiveSessionBanner({
               </div>
 
               <Button
-                onClick={() => router.push(`/meeting/${session.bot_id}`)}
+                onClick={() =>
+                  router.push(
+                    session.bot_id
+                      ? `/meeting/${session.bot_id}`
+                      : `/sessions/${session.id}`,
+                  )
+                }
                 size="sm"
                 className="bg-emerald-600 hover:bg-emerald-700 text-white"
               >
-                Rejoin Session
+                {session.bot_id ? 'Rejoin Session' : 'View Session'}
                 <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </div>

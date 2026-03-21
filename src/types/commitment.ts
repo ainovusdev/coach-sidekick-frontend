@@ -18,7 +18,12 @@ export const commitmentTypeLabels: Record<string, string> = {
   sprint: 'Sprint',
 }
 
-export type CommitmentStatus = 'draft' | 'active' | 'completed' | 'abandoned'
+export type CommitmentStatus =
+  | 'draft'
+  | 'active'
+  | 'in_progress'
+  | 'completed'
+  | 'abandoned'
 export type CommitmentPriority = 'low' | 'medium' | 'high' | 'urgent'
 export type MilestoneStatus =
   | 'pending'

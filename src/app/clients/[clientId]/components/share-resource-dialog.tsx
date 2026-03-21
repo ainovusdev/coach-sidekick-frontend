@@ -59,11 +59,11 @@ export function ShareResourceDialog({
 }: ShareResourceDialogProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  // Fetch global resources that could be shared
-  const { data, isLoading } = useResources({ scope: 'global' })
+  // Fetch personal resources that could be shared
+  const { data, isLoading } = useResources({ scope: 'personal' })
   const shareResource = useShareResource()
 
-  const globalResources = data?.resources || []
+  const personalResources = data?.resources || []
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
@@ -81,7 +81,7 @@ export function ShareResourceDialog({
     const promises = Array.from(selectedIds).map(id =>
       shareResource.mutateAsync({
         id,
-        data: { sharing_scope: 'client', client_id: clientId },
+        data: { shared_with_client_id: clientId },
       }),
     )
     await Promise.all(promises)
@@ -128,20 +128,19 @@ export function ShareResourceDialog({
               <div className="flex justify-center py-8">
                 <LoadingSpinner />
               </div>
-            ) : globalResources.length === 0 ? (
+            ) : personalResources.length === 0 ? (
               <div className="text-center py-8">
                 <BookOpen className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                  No global resources to share. Create one first.
+                  No personal resources to share. Create one first.
                 </p>
               </div>
             ) : (
               <>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                  Select global resources to share with{' '}
-                  {clientName || 'this client'}
+                  Select resources to share with {clientName || 'this client'}
                 </p>
-                {globalResources.map(resource => (
+                {personalResources.map(resource => (
                   <ShareableResourceItem
                     key={resource.id}
                     resource={resource}

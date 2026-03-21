@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'sonner'
 import {
   LiveMeetingService,
   ClientCommitment,
   LiveMeetingTarget,
+  LiveMeetingSprint,
   PastCommitmentGroup as ServicePastGroup,
 } from '@/services/live-meeting-service'
 import {
@@ -13,6 +14,7 @@ import {
   PanelCommitment,
   PanelCommitmentGroup,
 } from '@/components/commitments/commitment-panel'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 
 interface ClientCommitmentPanelProps {
   meetingToken: string
@@ -28,11 +30,20 @@ export function ClientCommitmentPanel({
   const [commitments, setCommitments] = useState<ClientCommitment[]>([])
   const [pastGroups, setPastGroups] = useState<PanelCommitmentGroup[]>([])
   const [targets, setTargets] = useState<LiveMeetingTarget[]>([])
+  const [sprints, setSprints] = useState<LiveMeetingSprint[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [loadingPast, setLoadingPast] = useState(false)
   const [loadingTargets, setLoadingTargets] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isExtracting, setIsExtracting] = useState(false)
+  const [detailCommitmentId, setDetailCommitmentId] = useState<string | null>(
+    null,
+  )
+
+  const handleOpenFull = useCallback((commitment: PanelCommitment) => {
+    if (!commitment.id) return
+    setDetailCommitmentId(commitment.id)
+  }, [])
 
   const handleExtract = async () => {
     if (!guestToken) return
@@ -161,18 +172,21 @@ export function ClientCommitmentPanel({
     fetchPast()
   }, [meetingToken, guestToken, refreshKey])
 
-  // Fetch targets on mount
+  // Fetch targets and sprints on mount
   useEffect(() => {
     if (!guestToken) return
 
     const fetchTargets = async () => {
       setLoadingTargets(true)
       try {
-        const data = await LiveMeetingService.getTargets(
-          meetingToken,
-          guestToken,
-        )
-        setTargets(data)
+        const [targetData, sprintData] = await Promise.all([
+          LiveMeetingService.getTargets(meetingToken, guestToken),
+          LiveMeetingService.getSprints(meetingToken, guestToken).catch(
+            () => [],
+          ),
+        ])
+        setTargets(targetData)
+        setSprints(sprintData)
       } catch (err) {
         console.error('Failed to fetch targets:', err)
       } finally {
@@ -184,68 +198,112 @@ export function ClientCommitmentPanel({
   }, [meetingToken, guestToken])
 
   return (
-    <CommitmentPanel
-      variant="client"
-      sessionCommitments={commitments as PanelCommitment[]}
-      loadingSession={isLoading}
-      pastGroups={pastGroups}
-      loadingPast={loadingPast}
-      targets={targets.map(t => ({
-        id: t.id,
-        title: t.title,
-        goal_titles: t.goal_titles,
-      }))}
-      loadingTargets={loadingTargets}
-      onCreateCommitment={async data => {
-        if (!guestToken) return
-        setIsSaving(true)
-        try {
-          const commitment = await LiveMeetingService.createCommitment(
-            meetingToken,
-            guestToken,
-            {
-              title: data.title,
-              target_date: data.target_date,
-              priority: 'medium',
-              type: 'commitment',
-              target_ids: data.target_ids,
-            },
-          )
-          setCommitments(prev => [commitment, ...prev])
-          toast.success('Commitment added')
-        } catch (err) {
-          toast.error('Failed to create commitment')
-          console.error('Failed to create commitment:', err)
-          throw err
-        } finally {
-          setIsSaving(false)
-        }
-      }}
-      isSaving={isSaving}
-      onExtract={handleExtract}
-      isExtracting={isExtracting}
-      onConfirmDraft={handleConfirmDraft}
-      onRejectDraft={handleRejectDraft}
-      onToggleComplete={async commitment => {
-        if (!guestToken) return
-        const newStatus =
-          commitment.status === 'completed' ? 'active' : 'completed'
-        const newProgress = newStatus === 'completed' ? 100 : 0
-        try {
-          const updated = await LiveMeetingService.updateCommitment(
-            meetingToken,
-            guestToken,
-            commitment.id,
-            { status: newStatus, progress_percentage: newProgress },
-          )
-          setCommitments(prev =>
-            prev.map(c => (c.id === commitment.id ? updated : c)),
-          )
-        } catch (err) {
-          toast.error('Failed to update commitment')
-          console.error('Failed to update commitment:', err)
-        }
-      }}
-    />
+    <>
+      <CommitmentPanel
+        variant="client"
+        sessionCommitments={commitments as PanelCommitment[]}
+        loadingSession={isLoading}
+        pastGroups={pastGroups}
+        loadingPast={loadingPast}
+        targets={targets.map(t => ({
+          id: t.id,
+          title: t.title,
+          goal_titles: t.goal_titles,
+        }))}
+        loadingTargets={loadingTargets}
+        sprints={sprints.map(s => ({
+          id: s.id,
+          title: s.title,
+          status: s.status,
+          target_ids: s.target_ids,
+        }))}
+        onCreateCommitment={async data => {
+          if (!guestToken) return
+          setIsSaving(true)
+          try {
+            const commitment = await LiveMeetingService.createCommitment(
+              meetingToken,
+              guestToken,
+              {
+                title: data.title,
+                target_date: data.target_date,
+                priority: 'medium',
+                type: 'commitment',
+                target_ids: data.target_ids,
+              },
+            )
+            setCommitments(prev => [commitment, ...prev])
+            toast.success('Commitment added')
+          } catch (err) {
+            toast.error('Failed to create commitment')
+            console.error('Failed to create commitment:', err)
+            throw err
+          } finally {
+            setIsSaving(false)
+          }
+        }}
+        isSaving={isSaving}
+        onExtract={handleExtract}
+        isExtracting={isExtracting}
+        onConfirmDraft={handleConfirmDraft}
+        onRejectDraft={handleRejectDraft}
+        onToggleComplete={async commitment => {
+          if (!guestToken) return
+          const newStatus =
+            commitment.status === 'completed' ? 'active' : 'completed'
+          const newProgress = newStatus === 'completed' ? 100 : 0
+          try {
+            const updated = await LiveMeetingService.updateCommitment(
+              meetingToken,
+              guestToken,
+              commitment.id,
+              { status: newStatus, progress_percentage: newProgress },
+            )
+            setCommitments(prev =>
+              prev.map(c => (c.id === commitment.id ? updated : c)),
+            )
+          } catch (err) {
+            toast.error('Failed to update commitment')
+            console.error('Failed to update commitment:', err)
+          }
+        }}
+        onEditCommitment={async (id, data) => {
+          if (!guestToken) return
+          try {
+            const updated = await LiveMeetingService.updateCommitment(
+              meetingToken,
+              guestToken,
+              id,
+              data,
+            )
+            setCommitments(prev => prev.map(c => (c.id === id ? updated : c)))
+          } catch (err) {
+            toast.error('Failed to update commitment')
+            console.error('Failed to update commitment:', err)
+          }
+        }}
+        onDeleteCommitment={async id => {
+          if (!guestToken) return
+          try {
+            await LiveMeetingService.deleteCommitment(
+              meetingToken,
+              guestToken,
+              id,
+            )
+            setCommitments(prev => prev.filter(c => c.id !== id))
+            toast.success('Commitment deleted')
+          } catch (err) {
+            toast.error('Failed to delete commitment')
+            console.error('Failed to delete commitment:', err)
+          }
+        }}
+        onOpenFull={handleOpenFull}
+      />
+
+      <CommitmentDetailPanel
+        commitmentId={detailCommitmentId}
+        onClose={() => setDetailCommitmentId(null)}
+      />
+    </>
   )
 }

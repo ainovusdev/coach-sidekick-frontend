@@ -71,6 +71,8 @@ interface SessionOverviewTabProps {
   clientAnalyses?: Record<string, ClientAnalysis>
   onGenerateClientAnalysis?: () => void
   generatingClientAnalysis?: boolean
+  isCompleted?: boolean
+  commitmentsLoaded?: boolean
 }
 
 export function SessionOverviewTab({
@@ -89,6 +91,8 @@ export function SessionOverviewTab({
   clientAnalyses,
   onGenerateClientAnalysis,
   generatingClientAnalysis = false,
+  isCompleted = false,
+  commitmentsLoaded = false,
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
 
@@ -247,15 +251,16 @@ export function SessionOverviewTab({
                   : commitments || []
               }
               onUpdate={onRefreshCommitments || (() => {})}
+              isCompleted={isCompleted}
+              commitmentsLoaded={commitmentsLoaded}
             />
           ))}
-        {clientId && (
-          <SessionWins
-            sessionId={sessionId}
-            clientId={clientId}
-            isViewer={isViewer}
-          />
-        )}
+        <SessionWins
+          sessionId={sessionId}
+          clientId={clientId || ''}
+          isViewer={isViewer}
+          isCompleted={isCompleted}
+        />
       </div>
 
       {/* Notes and Resources */}
@@ -451,7 +456,7 @@ export function SessionOverviewTab({
             <CollapsibleContent>
               <CardContent className="pt-0">
                 <div className="border-t border-app-border pt-4 space-y-6">
-                  {onRefreshVideoUrl && (
+                  {videoUrl && onRefreshVideoUrl && (
                     <VideoPlayer
                       videoUrl={videoUrl}
                       sessionId={sessionId}
