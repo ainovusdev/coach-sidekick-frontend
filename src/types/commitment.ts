@@ -62,6 +62,7 @@ export interface CommitmentCreate extends CommitmentBase {
   session_id?: string
   assigned_to_id?: string // User ID of assignee. undefined = client, set = coach
   target_ids?: string[] // Target IDs to link to (legacy)
+  metadata?: Record<string, unknown>
 }
 
 // Update commitment request
@@ -77,6 +78,7 @@ export interface CommitmentUpdate {
   goal_id?: string | null
   sprint_id?: string | null
   assigned_to_id?: string | null // User ID of assignee. null = client, set = coach
+  metadata?: Record<string, unknown>
 }
 
 // Full commitment response from backend

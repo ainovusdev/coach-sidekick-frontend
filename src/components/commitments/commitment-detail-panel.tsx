@@ -79,23 +79,47 @@ import type {
   Milestone,
 } from '@/types/commitment'
 import { TargetService } from '@/services/target-service'
+import { LiveMeetingService } from '@/services/live-meeting-service'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
+
+export interface GuestContext {
+  meetingToken: string
+  guestToken: string
+}
 
 interface CommitmentDetailPanelProps {
   commitmentId: string | null
   clientId?: string
   onClose: () => void
   onCommitmentUpdate?: () => void
+  guestContext?: GuestContext
 }
 
-function useCommitment(commitmentId: string | null) {
+// UUID v4 pattern check — prevents sending invalid IDs (e.g. "temp-*", "None") to the API
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+function useCommitment(
+  commitmentId: string | null,
+  guestContext?: GuestContext,
+) {
+  const isValidId = !!commitmentId && UUID_RE.test(commitmentId)
   return useQuery({
     queryKey: queryKeys.commitments.detail(commitmentId || ''),
-    queryFn: () => CommitmentService.getCommitment(commitmentId!),
-    enabled: !!commitmentId,
+    queryFn: () => {
+      if (guestContext) {
+        return LiveMeetingService.getCommitmentDetail(
+          guestContext.meetingToken,
+          guestContext.guestToken,
+          commitmentId!,
+        )
+      }
+      return CommitmentService.getCommitment(commitmentId!)
+    },
+    enabled: isValidId,
     staleTime: 2 * 60 * 1000,
   })
 }
@@ -105,14 +129,29 @@ export function CommitmentDetailPanel({
   clientId: clientIdProp,
   onClose,
   onCommitmentUpdate,
+  guestContext,
 }: CommitmentDetailPanelProps) {
-  const { data: commitment, isLoading } = useCommitment(commitmentId)
+  const { data: commitment, isLoading } = useCommitment(
+    commitmentId,
+    guestContext,
+  )
   const resolvedClientId = clientIdProp || commitment?.client_id
 
   // Prefetch targets & sprints immediately using the known clientId
-  // so they're cached before LinkedOutcomesSection mounts
-  useTargets(resolvedClientId ? { client_id: resolvedClientId } : undefined)
-  useSprints(resolvedClientId ? { client_id: resolvedClientId } : undefined)
+  // so they're cached before LinkedOutcomesSection mounts.
+  // In guest mode, disable fetching (cache is pre-seeded by ClientCommitmentPanel)
+  // to avoid 403 errors from authenticated API calls.
+  const targetFilters = resolvedClientId
+    ? { client_id: resolvedClientId }
+    : undefined
+  const guestQueryOpts = guestContext
+    ? { enabled: false, staleTime: Infinity }
+    : {}
+  useTargets(targetFilters, guestQueryOpts)
+  useSprints(
+    resolvedClientId ? { client_id: resolvedClientId } : undefined,
+    guestQueryOpts,
+  )
   const updateCommitment = useUpdateCommitment({ silent: true })
   const discardCommitment = useDiscardCommitment()
   const queryClient = useQueryClient()
@@ -144,26 +183,56 @@ export function CommitmentDetailPanel({
         },
       )
 
-      updateCommitment.mutate(
-        { commitmentId, data: { [field]: value } },
-        {
-          onSuccess: () => {
-            onCommitmentUpdate?.()
+      if (guestContext) {
+        LiveMeetingService.updateCommitment(
+          guestContext.meetingToken,
+          guestContext.guestToken,
+          commitmentId,
+          { [field]: value },
+        )
+          .then(() => onCommitmentUpdate?.())
+          .catch(() => toast.error('Failed to update commitment'))
+      } else {
+        updateCommitment.mutate(
+          { commitmentId, data: { [field]: value } },
+          {
+            onSuccess: () => {
+              onCommitmentUpdate?.()
+            },
           },
-        },
-      )
+        )
+      }
     },
-    [commitmentId, updateCommitment, queryClient, onCommitmentUpdate],
+    [
+      commitmentId,
+      updateCommitment,
+      queryClient,
+      onCommitmentUpdate,
+      guestContext,
+    ],
   )
 
   const handleDelete = () => {
     if (!commitmentId) return
-    discardCommitment.mutate(commitmentId, {
-      onSuccess: () => {
-        onClose()
-        onCommitmentUpdate?.()
-      },
-    })
+    if (guestContext) {
+      LiveMeetingService.deleteCommitment(
+        guestContext.meetingToken,
+        guestContext.guestToken,
+        commitmentId,
+      )
+        .then(() => {
+          onClose()
+          onCommitmentUpdate?.()
+        })
+        .catch(() => toast.error('Failed to delete commitment'))
+    } else {
+      discardCommitment.mutate(commitmentId, {
+        onSuccess: () => {
+          onClose()
+          onCommitmentUpdate?.()
+        },
+      })
+    }
     setDeleteDialogOpen(false)
   }
 
@@ -213,6 +282,7 @@ export function CommitmentDetailPanel({
                   commitment={commitment}
                   commitmentId={commitmentId!}
                   onCommitmentUpdate={onCommitmentUpdate}
+                  guestContext={guestContext}
                 />
 
                 {/* Description */}
@@ -221,24 +291,30 @@ export function CommitmentDetailPanel({
                   onFieldUpdate={handleFieldUpdate}
                 />
 
-                {/* Attachments */}
-                <AttachmentsSection
-                  commitment={commitment}
-                  commitmentId={commitmentId!}
-                />
+                {/* Attachments - hidden in guest mode (no guest API) */}
+                {!guestContext && (
+                  <AttachmentsSection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                  />
+                )}
 
-                {/* Milestones */}
-                <MilestonesSection
-                  commitment={commitment}
-                  commitmentId={commitmentId!}
-                />
+                {/* Milestones - hidden in guest mode (no guest API) */}
+                {!guestContext && (
+                  <MilestonesSection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                  />
+                )}
 
-                {/* Comments */}
-                <ActivitySection
-                  commitment={commitment}
-                  commitmentId={commitmentId!}
-                  onCommitmentUpdate={onCommitmentUpdate}
-                />
+                {/* Comments - hidden in guest mode (no guest API) */}
+                {!guestContext && (
+                  <ActivitySection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                    onCommitmentUpdate={onCommitmentUpdate}
+                  />
+                )}
 
                 {/* Metadata Footer */}
                 <MetadataFooter commitment={commitment} />
@@ -480,17 +556,25 @@ function LinkedOutcomesSection({
   commitment,
   commitmentId,
   onCommitmentUpdate,
+  guestContext,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
+  guestContext?: GuestContext
 }) {
   const queryClient = useQueryClient()
+  // In guest mode, disable fetching — cache is pre-seeded by ClientCommitmentPanel
+  const guestQueryOpts = guestContext
+    ? { enabled: false, staleTime: Infinity }
+    : {}
   const { data: allTargets = [] } = useTargets(
     commitment.client_id ? { client_id: commitment.client_id } : undefined,
+    guestQueryOpts,
   )
   const { data: allSprints = [] } = useSprints(
     commitment.client_id ? { client_id: commitment.client_id } : undefined,
+    guestQueryOpts,
   )
 
   const linkedTargetIds = new Set(
@@ -536,10 +620,24 @@ function LinkedOutcomesSection({
     })
 
     try {
-      if (isLinked) {
-        await TargetService.unlinkCommitment(targetId, commitmentId)
+      if (guestContext) {
+        // Guest mode: compute new target_ids list and update via LiveMeetingService
+        const currentTargetIds = [...linkedTargetIds]
+        const newTargetIds = isLinked
+          ? currentTargetIds.filter(id => id !== targetId)
+          : [...currentTargetIds, targetId]
+        await LiveMeetingService.updateCommitment(
+          guestContext.meetingToken,
+          guestContext.guestToken,
+          commitmentId,
+          { target_ids: newTargetIds },
+        )
       } else {
-        await TargetService.linkCommitment(targetId, commitmentId)
+        if (isLinked) {
+          await TargetService.unlinkCommitment(targetId, commitmentId)
+        } else {
+          await TargetService.linkCommitment(targetId, commitmentId)
+        }
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
@@ -569,6 +667,13 @@ function LinkedOutcomesSection({
     })
 
     try {
+      if (guestContext) {
+        // Guest mode: we can't update metadata directly, so skip sprint linking
+        // Sprint linking requires coach-level access to metadata
+        toast.info('Sprint linking is not available in guest mode')
+        queryClient.setQueryData(detailKey, previous)
+        return
+      }
       await CommitmentService.updateCommitment(commitmentId, {
         metadata: { linked_sprint_ids: newIds },
       } as any)

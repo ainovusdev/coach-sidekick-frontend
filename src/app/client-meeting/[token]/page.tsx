@@ -190,6 +190,7 @@ export default function ClientMeetingPage() {
               <ClientCommitmentPanel
                 meetingToken={meetingToken}
                 guestToken={guestToken}
+                clientId={sessionInfo?.client_id}
                 refreshKey={refreshKey}
               />
             </div>

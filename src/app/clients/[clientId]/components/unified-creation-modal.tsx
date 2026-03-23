@@ -13,8 +13,6 @@ import { cn } from '@/lib/utils'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
-import { CommitmentForm } from '@/components/commitments/commitment-form'
-import { CommitmentService } from '@/services/commitment-service'
 
 interface UnifiedCreationModalProps {
   open: boolean
@@ -23,6 +21,7 @@ interface UnifiedCreationModalProps {
   goals: any[]
   sprints: any[]
   onSuccess: () => void
+  onCreateCommitment?: () => void
 }
 
 type EntityType = 'goal' | 'outcome' | 'sprint' | 'commitment' | null
@@ -34,11 +33,20 @@ export function UnifiedCreationModal({
   goals,
   sprints,
   onSuccess,
+  onCreateCommitment,
 }: UnifiedCreationModalProps) {
   const [selectedType, setSelectedType] = useState<EntityType>(null)
   const [showForm, setShowForm] = useState(false)
 
   const handleTypeSelect = (type: EntityType) => {
+    if (type === 'commitment') {
+      // Delegate to parent's create panel instead of rendering CommitmentForm
+      onOpenChange(false)
+      setSelectedType(null)
+      setShowForm(false)
+      onCreateCommitment?.()
+      return
+    }
     setSelectedType(type)
     setShowForm(true)
   }
@@ -61,12 +69,23 @@ export function UnifiedCreationModal({
       type: 'goal' as const,
       icon: Target,
       title: 'Vision',
-      description: 'Long-term outcome (3-12 months)',
+      description: 'Long-term outcome',
       color: 'text-gray-600 dark:text-gray-400',
       bgColor:
         'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600',
       selectedColor:
         'bg-gray-100 dark:bg-gray-700 border-gray-400 dark:border-gray-500',
+    },
+    {
+      type: 'outcome' as const,
+      icon: Zap,
+      title: 'Coaching Outcome',
+      description: 'Short-term win',
+      color: 'text-blue-600',
+      bgColor:
+        'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-300 dark:border-blue-700',
+      selectedColor:
+        'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600',
     },
     {
       type: 'sprint' as const,
@@ -78,17 +97,6 @@ export function UnifiedCreationModal({
         'bg-purple-50 dark:bg-purple-900/30 hover:bg-purple-100 dark:hover:bg-purple-900/50 border-purple-300 dark:border-purple-700',
       selectedColor:
         'bg-purple-100 dark:bg-purple-900/40 border-purple-400 dark:border-purple-600',
-    },
-    {
-      type: 'outcome' as const,
-      icon: Zap,
-      title: 'Outcome',
-      description: 'Short-term win (within a sprint)',
-      color: 'text-blue-600',
-      bgColor:
-        'bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 border-blue-300 dark:border-blue-700',
-      selectedColor:
-        'bg-blue-100 dark:bg-blue-900/40 border-blue-400 dark:border-blue-600',
     },
     {
       type: 'commitment' as const,
@@ -141,22 +149,6 @@ export function UnifiedCreationModal({
           sprintId={sprints[0]?.id || ''}
           goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
           onSuccess={handleSuccess}
-        />
-      )
-    }
-
-    if (selectedType === 'commitment') {
-      return (
-        <CommitmentForm
-          open={true}
-          onOpenChange={open => {
-            if (!open) handleClose()
-          }}
-          onSubmit={async data => {
-            await CommitmentService.createCommitment(data)
-            handleSuccess()
-          }}
-          clientId={clientId}
         />
       )
     }

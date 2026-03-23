@@ -261,6 +261,12 @@ export function GoalsTreeView({
     ? user?.full_name?.split(' ')[0] || 'Me'
     : 'Me'
   const [expandedGoalIds, setExpandedGoalIds] = useState<Set<string>>(new Set())
+  const [expandedOutcomeIds, setExpandedOutcomeIds] = useState<Set<string>>(
+    new Set(),
+  )
+  const [expandedSprintIds, setExpandedSprintIds] = useState<Set<string>>(
+    new Set(),
+  )
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null)
   const [selectedNodeType, setSelectedNodeType] = useState<
     'goal' | 'outcome' | 'sprint' | null
@@ -370,11 +376,26 @@ export function GoalsTreeView({
   const toggleGoal = (goalId: string) => {
     setExpandedGoalIds(prev => {
       const next = new Set(prev)
-      if (next.has(goalId)) {
-        next.delete(goalId)
-      } else {
-        next.add(goalId)
-      }
+      if (next.has(goalId)) next.delete(goalId)
+      else next.add(goalId)
+      return next
+    })
+  }
+
+  const toggleOutcome = (outcomeId: string) => {
+    setExpandedOutcomeIds(prev => {
+      const next = new Set(prev)
+      if (next.has(outcomeId)) next.delete(outcomeId)
+      else next.add(outcomeId)
+      return next
+    })
+  }
+
+  const toggleSprint = (sprintId: string) => {
+    setExpandedSprintIds(prev => {
+      const next = new Set(prev)
+      if (next.has(sprintId)) next.delete(sprintId)
+      else next.add(sprintId)
       return next
     })
   }
@@ -572,7 +593,7 @@ export function GoalsTreeView({
                   </div>
                 </div>
 
-                {/* Outcomes Section - with Sprint Badges */}
+                {/* Outcomes Section - with Sprints as children */}
                 <div className="pb-4 border-b">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>OUTCOMES</span>
@@ -588,68 +609,63 @@ export function GoalsTreeView({
                   </div>
                   <div className="space-y-1">
                     {clientTargets.map((outcome: any) => {
-                      // Get sprints linked to this outcome
                       const linkedSprints = allSprints.filter((s: any) =>
                         outcome.sprint_ids?.includes(s.id),
                       )
+                      const hasChildren = linkedSprints.length > 0
 
                       return (
-                        <div key={outcome.id}>
-                          <TreeNode
-                            type="outcome"
-                            data={outcome}
-                            level={0}
-                            isSelected={
-                              selectedNodeId === outcome.id &&
-                              selectedNodeType === 'outcome'
-                            }
-                            isExpanded={false}
-                            onClick={() =>
-                              handleNodeClick(outcome.id, 'outcome')
-                            }
-                            onEdit={() => onEditOutcome?.(outcome)}
-                            onDelete={() => onDeleteOutcome?.(outcome)}
-                            onComplete={() => onCompleteOutcome?.(outcome)}
-                          />
-                          {/* Sprint badges below the outcome */}
-                          {linkedSprints.length > 0 && (
-                            <div className="flex flex-wrap gap-1 pl-9 pb-1">
-                              {linkedSprints.map((sprint: any) => (
-                                <Badge
+                        <TreeNode
+                          key={outcome.id}
+                          type="outcome"
+                          data={outcome}
+                          level={0}
+                          isSelected={
+                            selectedNodeId === outcome.id &&
+                            selectedNodeType === 'outcome'
+                          }
+                          isExpanded={expandedOutcomeIds.has(outcome.id)}
+                          onToggle={
+                            hasChildren
+                              ? () => toggleOutcome(outcome.id)
+                              : undefined
+                          }
+                          onClick={() => handleNodeClick(outcome.id, 'outcome')}
+                          onEdit={() => onEditOutcome?.(outcome)}
+                          onDelete={() => onDeleteOutcome?.(outcome)}
+                          onComplete={() => onCompleteOutcome?.(outcome)}
+                        >
+                          {hasChildren
+                            ? linkedSprints.map((sprint: any) => (
+                                <TreeNode
                                   key={sprint.id}
-                                  variant={
-                                    sprint.status === 'active'
-                                      ? 'default'
-                                      : 'secondary'
+                                  type="sprint"
+                                  data={sprint}
+                                  level={1}
+                                  isSelected={
+                                    selectedNodeId === sprint.id &&
+                                    selectedNodeType === 'sprint'
                                   }
-                                  className={cn(
-                                    'text-[10px] px-1.5 py-0 cursor-pointer hover:opacity-80',
-                                    sprint.status === 'active' &&
-                                      'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-                                  )}
+                                  isExpanded={false}
                                   onClick={() =>
                                     handleNodeClick(sprint.id, 'sprint')
                                   }
-                                >
-                                  <Calendar className="h-2.5 w-2.5 mr-0.5" />
-                                  {sprint.title}
-                                  {sprint.status === 'active' && (
-                                    <span className="ml-0.5 w-1 h-1 rounded-full bg-green-500" />
-                                  )}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                                  onEdit={() => onEditSprint?.(sprint)}
+                                  onDelete={() => onDeleteSprint?.(sprint)}
+                                  onComplete={() => onCompleteSprint?.(sprint)}
+                                />
+                              ))
+                            : undefined}
+                        </TreeNode>
                       )
                     })}
                   </div>
                 </div>
 
-                {/* Sprint Timeline - Simplified */}
+                {/* Sprint Timeline - with Outcomes as children */}
                 <div className="pb-4">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
-                    <span>SPRINT TIMELINE</span>
+                    <span>SPRINTS</span>
                     {onCreateSprint && (
                       <button
                         onClick={onCreateSprint}
@@ -662,87 +678,56 @@ export function GoalsTreeView({
                   </div>
                   <div className="space-y-1">
                     {allSprints.map((sprint: any) => {
-                      const outcomeCount = clientTargets.filter((t: any) =>
+                      const sprintOutcomes = clientTargets.filter((t: any) =>
                         t.sprint_ids?.includes(sprint.id),
-                      ).length
+                      )
+                      const hasChildren = sprintOutcomes.length > 0
 
                       return (
-                        <div
+                        <TreeNode
                           key={sprint.id}
-                          className={cn(
-                            'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
+                          type="sprint"
+                          data={sprint}
+                          level={0}
+                          isSelected={
                             selectedNodeId === sprint.id &&
-                              selectedNodeType === 'sprint' &&
-                              'bg-primary/10 border border-primary/20',
-                          )}
+                            selectedNodeType === 'sprint'
+                          }
+                          isExpanded={expandedSprintIds.has(sprint.id)}
+                          onToggle={
+                            hasChildren
+                              ? () => toggleSprint(sprint.id)
+                              : undefined
+                          }
                           onClick={() => handleNodeClick(sprint.id, 'sprint')}
+                          onEdit={() => onEditSprint?.(sprint)}
+                          onDelete={() => onDeleteSprint?.(sprint)}
+                          onComplete={() => onCompleteSprint?.(sprint)}
                         >
-                          <Calendar
-                            className={cn(
-                              'h-4 w-4',
-                              sprint.status === 'active'
-                                ? 'text-green-600'
-                                : 'text-gray-400',
-                            )}
-                          />
-                          <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {sprint.title}
-                          </span>
-                          <Badge variant="secondary" className="text-[10px]">
-                            {outcomeCount} outcome
-                            {outcomeCount !== 1 ? 's' : ''}
-                          </Badge>
-                          {sprint.status === 'active' && (
-                            <div
-                              className="w-2 h-2 rounded-full bg-green-500"
-                              title="Active"
-                            />
-                          )}
-                          {/* Actions */}
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <button className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded">
-                                <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {sprint.status !== 'completed' && (
-                                <DropdownMenuItem
-                                  onClick={e => {
-                                    e.stopPropagation()
-                                    onCompleteSprint?.(sprint)
-                                  }}
-                                  className="text-green-600 focus:text-green-600"
-                                >
-                                  <CheckCircle2 className="h-4 w-4 mr-2" />
-                                  Mark Complete
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  onEditSprint?.(sprint)
-                                }}
-                              >
-                                <Edit2 className="h-4 w-4 mr-2" />
-                                Edit Sprint
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  onDeleteSprint?.(sprint)
-                                }}
-                                className="text-red-600 focus:text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Sprint
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                          {hasChildren
+                            ? sprintOutcomes.map((outcome: any) => (
+                                <TreeNode
+                                  key={outcome.id}
+                                  type="outcome"
+                                  data={outcome}
+                                  level={1}
+                                  isSelected={
+                                    selectedNodeId === outcome.id &&
+                                    selectedNodeType === 'outcome'
+                                  }
+                                  isExpanded={false}
+                                  onClick={() =>
+                                    handleNodeClick(outcome.id, 'outcome')
+                                  }
+                                  onEdit={() => onEditOutcome?.(outcome)}
+                                  onDelete={() => onDeleteOutcome?.(outcome)}
+                                  onComplete={() =>
+                                    onCompleteOutcome?.(outcome)
+                                  }
+                                />
+                              ))
+                            : undefined}
+                        </TreeNode>
                       )
                     })}
                   </div>

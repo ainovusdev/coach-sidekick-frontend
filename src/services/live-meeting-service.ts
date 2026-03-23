@@ -46,6 +46,7 @@ export interface ClientNote {
 
 export interface ClientCommitment {
   id: string
+  client_id: string | null
   title: string
   description: string | null
   type: string
@@ -59,6 +60,7 @@ export interface ClientCommitment {
   extracted_from_transcript: boolean
   extraction_confidence: number | null
   transcript_context: string | null
+  linked_target_ids: string[]
 }
 
 export interface PastCommitmentGroup {
@@ -359,6 +361,25 @@ export class LiveMeetingService {
   }
 
   // ============ Commitments ============
+
+  /**
+   * Get full commitment detail (for detail panel, guest access)
+   */
+  static async getCommitmentDetail(
+    token: string,
+    guestToken: string,
+    commitmentId: string,
+  ): Promise<any> {
+    const response = await fetch(
+      `${BACKEND_URL}/live-meeting/${token}/commitments/${commitmentId}`,
+      {
+        method: 'GET',
+        headers: getGuestHeaders(guestToken),
+      },
+    )
+
+    return handleResponse<any>(response)
+  }
 
   /**
    * Create a commitment

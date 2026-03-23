@@ -81,6 +81,9 @@ export function useMyCommitments(
  * @example
  * const { data: commitment, isLoading } = useCommitment(commitmentId)
  */
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 export function useCommitment(
   commitmentId: string | undefined,
   options?: Omit<
@@ -88,10 +91,11 @@ export function useCommitment(
     'queryKey' | 'queryFn' | 'enabled'
   >,
 ) {
+  const isValidId = !!commitmentId && UUID_RE.test(commitmentId)
   return useQuery({
     queryKey: queryKeys.commitments.detail(commitmentId!),
     queryFn: () => CommitmentService.getCommitment(commitmentId!),
-    enabled: !!commitmentId,
+    enabled: isValidId,
     staleTime: 3 * 60 * 1000, // 3 minutes
     ...options,
   })

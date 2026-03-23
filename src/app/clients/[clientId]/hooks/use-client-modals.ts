@@ -15,8 +15,8 @@ export function useClientModals() {
   const [showPersona, setShowPersona] = useState(false)
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null)
   const [editingGoal, setEditingGoal] = useState<any>(null)
-  const [editingCommitment, setEditingCommitment] = useState<any>(null)
-  const [showCommitmentForm, setShowCommitmentForm] = useState(false)
+  const [showCommitmentCreatePanel, setShowCommitmentCreatePanel] =
+    useState(false)
   const [endingSprint, setEndingSprint] = useState<any>(null)
 
   return {
@@ -44,10 +44,8 @@ export function useClientModals() {
     setSelectedTargetId,
     editingGoal,
     setEditingGoal,
-    editingCommitment,
-    setEditingCommitment,
-    showCommitmentForm,
-    setShowCommitmentForm,
+    showCommitmentCreatePanel,
+    setShowCommitmentCreatePanel,
     endingSprint,
     setEndingSprint,
   }

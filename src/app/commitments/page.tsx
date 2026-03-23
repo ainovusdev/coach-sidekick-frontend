@@ -17,11 +17,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { CommitmentList } from '@/components/commitments/commitment-list'
-import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { CommitmentProgressModal } from '@/components/commitments/commitment-progress-modal'
 import {
   Commitment,
-  CommitmentCreate,
   CommitmentUpdateCreate,
   CommitmentType,
 } from '@/types/commitment'
@@ -51,10 +50,10 @@ export default function CommitmentsPage() {
     'active',
   )
 
-  // Modal states
-  const [formOpen, setFormOpen] = useState(false)
+  // Panel states
+  const [createPanelOpen, setCreatePanelOpen] = useState(false)
   const [progressModalOpen, setProgressModalOpen] = useState(false)
-  const [selectedCommitment, setSelectedCommitment] =
+  const [selectedCommitment, _setSelectedCommitment] =
     useState<Commitment | null>(null)
   const [selectedCommitmentId, setSelectedCommitmentId] = useState<
     string | null
@@ -122,46 +121,6 @@ export default function CommitmentsPage() {
         : 0,
   }
 
-  const handleCreateCommitment = async (data: CommitmentCreate) => {
-    try {
-      await CommitmentService.createCommitment(data)
-      toast({
-        title: 'Success',
-        description: 'Commitment created successfully',
-      })
-      await loadData()
-    } catch (error) {
-      console.error('Failed to create commitment:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to create commitment',
-        variant: 'destructive',
-      })
-      throw error
-    }
-  }
-
-  const handleUpdateCommitment = async (data: CommitmentCreate) => {
-    if (!selectedCommitment) return
-
-    try {
-      await CommitmentService.updateCommitment(selectedCommitment.id, data)
-      toast({
-        title: 'Success',
-        description: 'Commitment updated successfully',
-      })
-      await loadData()
-    } catch (error) {
-      console.error('Failed to update commitment:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to update commitment',
-        variant: 'destructive',
-      })
-      throw error
-    }
-  }
-
   const handleDeleteCommitment = async (commitmentId: string) => {
     if (!confirm('Are you sure you want to delete this commitment?')) return
 
@@ -203,23 +162,8 @@ export default function CommitmentsPage() {
     }
   }
 
-  const openEditForm = (commitment: Commitment) => {
-    setSelectedCommitment(commitment)
-    setFormOpen(true)
-  }
-
   const openDetailPanel = (commitment: Commitment) => {
     setSelectedCommitmentId(commitment.id)
-  }
-
-  const _openProgressModal = (commitment: Commitment) => {
-    setSelectedCommitment(commitment)
-    setProgressModalOpen(true)
-  }
-
-  const openCreateForm = () => {
-    setSelectedCommitment(null)
-    setFormOpen(true)
   }
 
   if (loading) {
@@ -240,7 +184,7 @@ export default function CommitmentsPage() {
             Track and manage client commitments
           </p>
         </div>
-        <Button onClick={openCreateForm}>
+        <Button onClick={() => setCreatePanelOpen(true)}>
           <Plus className="size-4 mr-2" />
           New Commitment
         </Button>
@@ -361,7 +305,7 @@ export default function CommitmentsPage() {
         <TabsContent value={activeTab} className="mt-6">
           <CommitmentList
             commitments={filteredCommitments}
-            onEdit={openEditForm}
+            onEdit={openDetailPanel}
             onDelete={handleDeleteCommitment}
             onUpdateProgress={openDetailPanel}
             showFilters={false}
@@ -369,15 +313,34 @@ export default function CommitmentsPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Modals */}
-      <CommitmentForm
-        open={formOpen}
-        onOpenChange={setFormOpen}
-        onSubmit={
-          selectedCommitment ? handleUpdateCommitment : handleCreateCommitment
-        }
-        commitment={selectedCommitment}
-      />
+      {/* Create Panel */}
+      {selectedClient !== 'all' ? (
+        <CommitmentCreatePanel
+          isOpen={createPanelOpen}
+          onClose={() => setCreatePanelOpen(false)}
+          clientId={selectedClient}
+          onCreated={commitment => {
+            setCreatePanelOpen(false)
+            setSelectedCommitmentId(commitment.id)
+            loadData()
+          }}
+        />
+      ) : (
+        // When no client is filtered, we still need a clientId.
+        // Use the first client as a fallback, or don't render the panel.
+        clients.length > 0 && (
+          <CommitmentCreatePanel
+            isOpen={createPanelOpen}
+            onClose={() => setCreatePanelOpen(false)}
+            clientId={clients[0].id}
+            onCreated={commitment => {
+              setCreatePanelOpen(false)
+              setSelectedCommitmentId(commitment.id)
+              loadData()
+            }}
+          />
+        )
+      )}
 
       <CommitmentProgressModal
         commitment={selectedCommitment}

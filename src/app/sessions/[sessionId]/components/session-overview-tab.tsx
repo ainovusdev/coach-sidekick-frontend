@@ -73,6 +73,7 @@ interface SessionOverviewTabProps {
   generatingClientAnalysis?: boolean
   isCompleted?: boolean
   commitmentsLoaded?: boolean
+  onCreateCommitment?: () => void
 }
 
 export function SessionOverviewTab({
@@ -93,6 +94,7 @@ export function SessionOverviewTab({
   generatingClientAnalysis = false,
   isCompleted = false,
   commitmentsLoaded = false,
+  onCreateCommitment,
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
 
@@ -253,6 +255,7 @@ export function SessionOverviewTab({
               onUpdate={onRefreshCommitments || (() => {})}
               isCompleted={isCompleted}
               commitmentsLoaded={commitmentsLoaded}
+              onCreateCommitment={onCreateCommitment}
             />
           ))}
         <SessionWins

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   LiveMeetingService,
@@ -15,22 +16,30 @@ import {
   PanelCommitmentGroup,
 } from '@/components/commitments/commitment-panel'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
+import { queryKeys } from '@/lib/query-client'
 
 interface ClientCommitmentPanelProps {
   meetingToken: string
   guestToken: string | null
+  clientId?: string
   refreshKey?: number
 }
 
 export function ClientCommitmentPanel({
   meetingToken,
   guestToken,
+  clientId: clientIdProp,
   refreshKey,
 }: ClientCommitmentPanelProps) {
+  const queryClient = useQueryClient()
   const [commitments, setCommitments] = useState<ClientCommitment[]>([])
   const [pastGroups, setPastGroups] = useState<PanelCommitmentGroup[]>([])
   const [targets, setTargets] = useState<LiveMeetingTarget[]>([])
   const [sprints, setSprints] = useState<LiveMeetingSprint[]>([])
+  const [clientIdFromCommitments, setClientIdFromCommitments] = useState<
+    string | null
+  >(null)
+  const clientId = clientIdProp || clientIdFromCommitments
   const [isLoading, setIsLoading] = useState(false)
   const [loadingPast, setLoadingPast] = useState(false)
   const [loadingTargets, setLoadingTargets] = useState(false)
@@ -172,7 +181,16 @@ export function ClientCommitmentPanel({
     fetchPast()
   }, [meetingToken, guestToken, refreshKey])
 
-  // Fetch targets and sprints on mount
+  // Extract clientId from commitments as fallback for cache seeding
+  useEffect(() => {
+    if (clientIdProp) return // Already have it from props
+    const firstWithClient = commitments.find(c => c.client_id)
+    if (firstWithClient?.client_id) {
+      setClientIdFromCommitments(firstWithClient.client_id)
+    }
+  }, [commitments, clientIdProp])
+
+  // Fetch targets and sprints on mount, and seed TanStack Query cache
   useEffect(() => {
     if (!guestToken) return
 
@@ -187,6 +205,31 @@ export function ClientCommitmentPanel({
         ])
         setTargets(targetData)
         setSprints(sprintData)
+
+        // Pre-seed TanStack Query cache so CommitmentDetailPanel's
+        // useTargets/useSprints hooks find cached data instead of making 403 calls
+        if (clientId) {
+          queryClient.setQueryData(
+            queryKeys.targets.list({ client_id: clientId }),
+            targetData.map(t => ({
+              id: t.id,
+              title: t.title,
+              description: t.description,
+              status: t.status,
+            })),
+          )
+          queryClient.setQueryData(
+            queryKeys.sprints.list({ client_id: clientId }),
+            sprintData.map(s => ({
+              id: s.id,
+              title: s.title,
+              status: s.status,
+              start_date: s.start_date,
+              end_date: s.end_date,
+              target_ids: s.target_ids,
+            })),
+          )
+        }
       } catch (err) {
         console.error('Failed to fetch targets:', err)
       } finally {
@@ -195,7 +238,7 @@ export function ClientCommitmentPanel({
     }
 
     fetchTargets()
-  }, [meetingToken, guestToken])
+  }, [meetingToken, guestToken, clientId, queryClient])
 
   return (
     <>
@@ -302,7 +345,17 @@ export function ClientCommitmentPanel({
 
       <CommitmentDetailPanel
         commitmentId={detailCommitmentId}
+        clientId={clientId || undefined}
         onClose={() => setDetailCommitmentId(null)}
+        onCommitmentUpdate={() => {
+          // Refresh commitments list when detail panel makes changes
+          if (guestToken) {
+            LiveMeetingService.getCommitments(meetingToken, guestToken)
+              .then(data => setCommitments(Array.isArray(data) ? data : []))
+              .catch(() => {})
+          }
+        }}
+        guestContext={guestToken ? { meetingToken, guestToken } : undefined}
       />
     </>
   )

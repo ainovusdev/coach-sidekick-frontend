@@ -15,13 +15,12 @@ import { GoalsTreeView } from '@/app/clients/[clientId]/components/goals-tree-vi
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
 import { TargetFormModal } from '@/components/sprints/target-form-modal'
-import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { UnifiedCreationModal } from '@/app/clients/[clientId]/components/unified-creation-modal'
 import { GoalService } from '@/services/goal-service'
 import { TargetService } from '@/services/target-service'
 import { SprintService } from '@/services/sprint-service'
-import { CommitmentService } from '@/services/commitment-service'
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useQueryClient } from '@tanstack/react-query'
@@ -93,9 +92,9 @@ export default function ClientDashboard() {
   const [goalModalOpen, setGoalModalOpen] = useState(false)
   const [sprintModalOpen, setSprintModalOpen] = useState(false)
   const [outcomeModalOpen, setOutcomeModalOpen] = useState(false)
-  const [commitmentFormOpen, setCommitmentFormOpen] = useState(false)
+  const [showCommitmentCreatePanel, setShowCommitmentCreatePanel] =
+    useState(false)
   const [editingGoal, setEditingGoal] = useState<any>(null)
-  const [editingCommitment, setEditingCommitment] = useState<any>(null)
   const [selectedCommitmentId, setSelectedCommitmentId] = useState<
     string | null
   >(null)
@@ -334,8 +333,7 @@ export default function ClientDashboard() {
             onCreateSprint={() => setSprintModalOpen(true)}
             onCreateOutcome={() => setOutcomeModalOpen(true)}
             onCreateCommitment={() => {
-              setEditingCommitment(null)
-              setCommitmentFormOpen(true)
+              setShowCommitmentCreatePanel(true)
             }}
             onCommitmentClick={c => setSelectedCommitmentId(c.id)}
             onEditGoal={goal => {
@@ -459,6 +457,10 @@ export default function ClientDashboard() {
             goals={goals}
             sprints={sprints}
             onSuccess={invalidateAll}
+            onCreateCommitment={() => {
+              setUnifiedCreateOpen(false)
+              setShowCommitmentCreatePanel(true)
+            }}
           />
 
           <GoalFormModal
@@ -495,33 +497,15 @@ export default function ClientDashboard() {
             }}
           />
 
-          <CommitmentForm
-            open={commitmentFormOpen}
-            onOpenChange={open => {
-              setCommitmentFormOpen(open)
-              if (!open) setEditingCommitment(null)
-            }}
-            onSubmit={async data => {
-              try {
-                if (editingCommitment) {
-                  await CommitmentService.updateCommitment(
-                    editingCommitment.id,
-                    data,
-                  )
-                  toast.success('Commitment Updated')
-                } else {
-                  await CommitmentService.createCommitment(data)
-                  toast.success('Commitment Created')
-                }
-                setCommitmentFormOpen(false)
-                setEditingCommitment(null)
-                invalidateAll()
-              } catch {
-                toast.error('Failed to save commitment')
-              }
-            }}
-            commitment={editingCommitment}
+          <CommitmentCreatePanel
+            isOpen={showCommitmentCreatePanel}
+            onClose={() => setShowCommitmentCreatePanel(false)}
             clientId={clientId}
+            onCreated={commitment => {
+              setShowCommitmentCreatePanel(false)
+              setSelectedCommitmentId(commitment.id)
+              invalidateAll()
+            }}
           />
 
           <CommitmentDetailPanel

@@ -4,7 +4,7 @@
  */
 
 export { CommitmentCard } from './commitment-card'
-export { CommitmentForm } from './commitment-form'
+export { CommitmentCreatePanel } from './commitment-create-panel'
 export { CommitmentList } from './commitment-list'
 export { CommitmentProgressModal } from './commitment-progress-modal'
 export { DraftCommitmentsReview } from './draft-commitments-review'

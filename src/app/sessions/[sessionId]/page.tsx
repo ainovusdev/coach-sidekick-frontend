@@ -35,8 +35,8 @@ import {
   type FullAnalysisResponse,
 } from '@/services/analysis-service'
 import { SessionService } from '@/services/session-service'
-import { CommitmentService } from '@/services/commitment-service'
-import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { toast } from '@/hooks/use-toast'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
@@ -107,7 +107,11 @@ export default function SessionDetailsPage({
     useState(false)
 
   // Commitments state (now from TanStack Query cache)
-  const [showCreateCommitment, setShowCreateCommitment] = useState(false)
+  const [showCommitmentCreatePanel, setShowCommitmentCreatePanel] =
+    useState(false)
+  const [selectedCommitmentId, setSelectedCommitmentId] = useState<
+    string | null
+  >(null)
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
@@ -524,7 +528,7 @@ export default function SessionDetailsPage({
                   {!isViewer && (
                     <div className="flex flex-wrap gap-2">
                       <Button
-                        onClick={() => setShowCreateCommitment(true)}
+                        onClick={() => setShowCommitmentCreatePanel(true)}
                         variant="outline"
                         size="sm"
                         className="border-app-border hover:bg-app-surface text-sm"
@@ -637,6 +641,11 @@ export default function SessionDetailsPage({
                         session.transcription_status === 'completed'
                       }
                       commitmentsLoaded={!commitmentsLoading}
+                      onCreateCommitment={
+                        !isViewer && clientId
+                          ? () => setShowCommitmentCreatePanel(true)
+                          : undefined
+                      }
                     />
                   )}
 
@@ -725,25 +734,27 @@ export default function SessionDetailsPage({
             )}
           </div>
 
-          {/* Create Commitment Modal */}
-          <CommitmentForm
-            open={showCreateCommitment}
-            onOpenChange={setShowCreateCommitment}
-            onSubmit={async data => {
-              try {
-                await CommitmentService.createCommitment(data)
-                toast({
-                  title: 'Commitment Created',
-                  description: 'The commitment has been created successfully.',
-                })
-                setShowCreateCommitment(false)
+          {/* Create Commitment Panel */}
+          {clientId && (
+            <CommitmentCreatePanel
+              isOpen={showCommitmentCreatePanel}
+              onClose={() => setShowCommitmentCreatePanel(false)}
+              clientId={clientId}
+              sessionId={sessionData?.session?.id}
+              onCreated={commitment => {
+                setShowCommitmentCreatePanel(false)
+                setSelectedCommitmentId(commitment.id)
                 refreshCommitments()
-              } catch (error) {
-                console.error('Failed to create commitment:', error)
-              }
-            }}
+              }}
+            />
+          )}
+
+          {/* Commitment Detail Panel */}
+          <CommitmentDetailPanel
+            commitmentId={selectedCommitmentId}
             clientId={clientId || undefined}
-            sessionId={sessionData?.session?.id}
+            onClose={() => setSelectedCommitmentId(null)}
+            onCommitmentUpdate={refreshCommitments}
           />
 
           {/* Delete Confirmation Dialog */}

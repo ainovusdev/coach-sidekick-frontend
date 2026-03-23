@@ -426,8 +426,7 @@ export default function ClientDetailPage({
                       onDeleteClient={() => setShowDeleteDialog(true)}
                       onCancelInvitation={() => setShowCancelInviteDialog(true)}
                       onCreateCommitment={() => {
-                        modalState.setEditingCommitment(null)
-                        modalState.setShowCommitmentForm(true)
+                        modalState.setShowCommitmentCreatePanel(true)
                       }}
                       onEditCommitment={commitment => {
                         setSelectedCommitmentId(commitment.id)
@@ -466,8 +465,7 @@ export default function ClientDetailPage({
                         modalState.setIsOutcomeModalOpen(true)
                       }
                       onCreateCommitment={() => {
-                        modalState.setEditingCommitment(null)
-                        modalState.setShowCommitmentForm(true)
+                        modalState.setShowCommitmentCreatePanel(true)
                       }}
                       onCommitmentClick={commitment => {
                         setSelectedCommitmentId(commitment.id)
@@ -547,11 +545,10 @@ export default function ClientDetailPage({
           setEndingSprint={modalState.setEndingSprint}
           editingGoal={modalState.editingGoal}
           setEditingGoal={modalState.setEditingGoal}
-          showCommitmentForm={modalState.showCommitmentForm}
-          setShowCommitmentForm={modalState.setShowCommitmentForm}
-          editingCommitment={modalState.editingCommitment}
-          setEditingCommitment={modalState.setEditingCommitment}
+          showCommitmentCreatePanel={modalState.showCommitmentCreatePanel}
+          setShowCommitmentCreatePanel={modalState.setShowCommitmentCreatePanel}
           onRefresh={refetch}
+          onCommitmentCreated={id => setSelectedCommitmentId(id)}
         />
 
         {/* Delete Confirmation Dialog */}

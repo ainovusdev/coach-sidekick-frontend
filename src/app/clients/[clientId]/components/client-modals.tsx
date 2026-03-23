@@ -4,17 +4,15 @@ import { ClientInvitationModal } from '@/components/clients/client-invitation-mo
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
 import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import { EndSprintModal } from './end-sprint-modal'
-import { CommitmentForm } from '@/components/commitments/commitment-form'
+import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { StartSessionModal } from './start-session-modal'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { UnifiedCreationModal } from './unified-creation-modal'
-import { CommitmentService } from '@/services/commitment-service'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
-import { toast } from 'sonner'
 
 interface ClientModalsProps {
   client: any
@@ -40,11 +38,10 @@ interface ClientModalsProps {
   setEndingSprint: (sprint: any) => void
   editingGoal: any
   setEditingGoal: (goal: any) => void
-  showCommitmentForm: boolean
-  setShowCommitmentForm: (open: boolean) => void
-  editingCommitment: any
-  setEditingCommitment: (commitment: any) => void
+  showCommitmentCreatePanel: boolean
+  setShowCommitmentCreatePanel: (open: boolean) => void
   onRefresh: () => void
+  onCommitmentCreated?: (commitmentId: string) => void
 }
 
 export function ClientModals({
@@ -71,11 +68,10 @@ export function ClientModals({
   setEndingSprint,
   editingGoal,
   setEditingGoal,
-  showCommitmentForm,
-  setShowCommitmentForm,
-  editingCommitment,
-  setEditingCommitment,
+  showCommitmentCreatePanel,
+  setShowCommitmentCreatePanel,
   onRefresh,
+  onCommitmentCreated,
 }: ClientModalsProps) {
   const queryClient = useQueryClient()
 
@@ -208,107 +204,21 @@ export function ClientModals({
           })
           onRefresh()
         }}
+        onCreateCommitment={() => {
+          setIsUnifiedCreateModalOpen(false)
+          setShowCommitmentCreatePanel(true)
+        }}
       />
 
-      <CommitmentForm
-        open={showCommitmentForm}
-        onOpenChange={open => {
-          setShowCommitmentForm(open)
-          if (!open) setEditingCommitment(null)
-        }}
-        onSubmit={async data => {
-          const optimisticId = `temp-${Date.now()}`
-
-          try {
-            if (editingCommitment) {
-              // Update existing commitment
-              await CommitmentService.updateCommitment(
-                editingCommitment.id,
-                data,
-              )
-              toast.success('Commitment Updated')
-            } else {
-              // Create new commitment with optimistic update
-              const optimisticCommitment = {
-                id: optimisticId,
-                ...data,
-                status: 'active',
-                progress_percentage: 0,
-                extracted_from_transcript: false,
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                updates: [],
-                milestones: [],
-                linked_target_ids: data.target_ids || [],
-                target_links:
-                  data.target_ids?.map((tid: string) => ({
-                    target_id: tid,
-                    commitment_id: optimisticId,
-                    created_at: new Date().toISOString(),
-                  })) || [],
-              }
-
-              // Add to cache immediately
-              queryClient.setQueryData(
-                queryKeys.commitments.list({ client_id: client.id }),
-                (old: any) => {
-                  if (!old?.commitments) return old
-                  return {
-                    ...old,
-                    commitments: [...old.commitments, optimisticCommitment],
-                  }
-                },
-              )
-
-              // Close form and show toast immediately
-              setShowCommitmentForm(false)
-              setEditingCommitment(null)
-              toast.success('Commitment Created')
-
-              // Actual API call in background
-              await CommitmentService.createCommitment(data)
-
-              // Invalidate to get real data from server
-              queryClient.invalidateQueries({
-                queryKey: queryKeys.commitments.all,
-              })
-              queryClient.invalidateQueries({
-                queryKey: queryKeys.targets.all,
-              })
-
-              onRefresh()
-            }
-          } catch (error) {
-            console.error('Failed to save commitment:', error)
-
-            // Rollback optimistic update on error
-            if (!editingCommitment) {
-              queryClient.setQueryData(
-                queryKeys.commitments.list({ client_id: client.id }),
-                (old: any) => {
-                  if (!old?.commitments) return old
-                  return {
-                    ...old,
-                    commitments: old.commitments.filter(
-                      (c: any) => c.id !== optimisticId,
-                    ),
-                  }
-                },
-              )
-            }
-
-            toast.error('Failed to save commitment', {
-              description: 'Please try again',
-            })
-
-            // Invalidate to sync with server
-            queryClient.invalidateQueries({
-              queryKey: queryKeys.commitments.all,
-            })
-          }
-        }}
-        commitment={editingCommitment}
+      <CommitmentCreatePanel
+        isOpen={showCommitmentCreatePanel}
+        onClose={() => setShowCommitmentCreatePanel(false)}
         clientId={client.id}
+        onCreated={commitment => {
+          setShowCommitmentCreatePanel(false)
+          onRefresh()
+          onCommitmentCreated?.(commitment.id)
+        }}
       />
     </>
   )
