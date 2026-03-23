@@ -147,7 +147,9 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
                 <p className="text-2xl font-bold text-gray-900">
                   {outcomes.total_outcomes}
                 </p>
-                <p className="text-sm text-gray-500">Total Outcomes</p>
+                <p className="text-sm text-gray-500">
+                  Total Meta Performance Outcomes
+                </p>
               </div>
             </div>
           </CardContent>
@@ -216,8 +218,8 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
           <Progress value={outcomes.overall_progress} className="h-3" />
           <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
             <span>
-              {outcomes.completed_outcomes} of {outcomes.total_outcomes}{' '}
-              outcomes completed
+              {outcomes.completed_outcomes} of {outcomes.total_outcomes} meta
+              performance outcomes completed
             </span>
           </div>
         </CardContent>
@@ -311,12 +313,12 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
           <CardContent className="flex flex-col items-center justify-center py-12">
             <Target className="h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No outcomes found
+              No meta performance outcomes found
             </h3>
             <p className="text-gray-600 text-center">
               {statusFilter !== 'all'
-                ? 'Try changing the filter to see more outcomes'
-                : 'Outcomes will appear here as clients set them'}
+                ? 'Try changing the filter to see more meta performance outcomes'
+                : 'Meta performance outcomes will appear here as clients set them'}
             </p>
           </CardContent>
         </Card>

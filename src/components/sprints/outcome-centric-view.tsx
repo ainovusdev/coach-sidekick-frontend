@@ -132,7 +132,7 @@ export function OutcomeCentricView({
             <div className="flex items-center gap-2">
               <TargetIcon className="h-5 w-5 text-gray-700" />
               <h3 className="font-semibold text-gray-900">
-                Outcomes & Progress
+                Meta Performance Outcomes & Progress
               </h3>
             </div>
             <div className="flex items-center gap-2">
@@ -164,7 +164,7 @@ export function OutcomeCentricView({
               </div>
               <Button size="sm" onClick={() => setShowCreateModal(true)}>
                 <Plus className="h-4 w-4 mr-1" />
-                New Outcome
+                New Meta Performance Outcome
               </Button>
             </div>
           </div>
@@ -176,8 +176,8 @@ export function OutcomeCentricView({
               <TargetIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
               <p className="text-sm">
                 {viewFilter === 'active_sprint'
-                  ? 'No outcomes in active sprint'
-                  : 'No outcomes yet'}
+                  ? 'No meta performance outcomes in active sprint'
+                  : 'No meta performance outcomes yet'}
               </p>
               <Button
                 variant="outline"
@@ -186,7 +186,7 @@ export function OutcomeCentricView({
                 onClick={() => setShowCreateModal(true)}
               >
                 <Plus className="h-4 w-4 mr-1" />
-                Create Outcome
+                Create Meta Performance Outcome
               </Button>
             </div>
           ) : (
@@ -208,7 +208,7 @@ export function OutcomeCentricView({
                         {group.goal.title}
                       </span>
                       <Badge variant="secondary" className="ml-auto text-xs">
-                        {group.outcomes.length} outcome
+                        {group.outcomes.length} meta performance outcome
                         {group.outcomes.length !== 1 ? 's' : ''}
                       </Badge>
                     </div>

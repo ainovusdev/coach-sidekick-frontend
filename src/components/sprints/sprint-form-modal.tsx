@@ -177,8 +177,8 @@ export function SprintFormModal({
         <DialogHeader>
           <DialogTitle>Create New Sprint</DialogTitle>
           <DialogDescription>
-            Create a 6-8 week sprint to organize outcomes and desired wins. You
-            can run multiple sprints concurrently.
+            Create a 6-8 week sprint to organize meta performance outcomes and
+            desired wins. You can run multiple sprints concurrently.
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +275,9 @@ export function SprintFormModal({
 
             {/* Outcome Selection - Required */}
             <div className="space-y-3">
-              <Label>Link Outcomes * (select at least one)</Label>
+              <Label>
+                Link Meta Performance Outcomes * (select at least one)
+              </Label>
               {clientTargets.length > 0 ? (
                 <div className="max-h-60 overflow-y-auto space-y-2 border rounded-lg p-3">
                   {clientTargets.map((outcome: any) => {
@@ -333,14 +335,16 @@ export function SprintFormModal({
                 </div>
               ) : (
                 <div className="text-sm text-amber-700 dark:text-amber-400 p-4 border border-amber-200 dark:border-amber-800 rounded-lg bg-amber-50 dark:bg-amber-900/30">
-                  <strong>No outcomes available.</strong> You must create at
-                  least one outcome before creating a sprint. Go to the Outcomes
-                  section to create one first.
+                  <strong>No meta performance outcomes available.</strong> You
+                  must create at least one meta performance outcome before
+                  creating a sprint. Go to the Meta Performance Outcomes section
+                  to create one first.
                 </div>
               )}
               {selectedOutcomeIds.length > 0 && (
                 <div className="text-xs text-gray-600 dark:text-gray-400">
-                  {selectedOutcomeIds.length} outcome(s) selected
+                  {selectedOutcomeIds.length} meta performance outcome(s)
+                  selected
                 </div>
               )}
             </div>

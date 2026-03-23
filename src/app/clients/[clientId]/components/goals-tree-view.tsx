@@ -596,12 +596,12 @@ export function GoalsTreeView({
                 {/* Outcomes Section - with Sprints as children */}
                 <div className="pb-4 border-b">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
-                    <span>OUTCOMES</span>
+                    <span>META PERFORMANCE OUTCOMES</span>
                     {onCreateOutcome && (
                       <button
                         onClick={onCreateOutcome}
                         className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
-                        title="Add new outcome"
+                        title="Add new meta performance outcome"
                       >
                         <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
                       </button>

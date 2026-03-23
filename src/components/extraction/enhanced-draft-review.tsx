@@ -121,7 +121,7 @@ export function EnhancedDraftReview({
           <TabsList className="bg-gray-50">
             <TabsTrigger value="all">All ({totalExtracted})</TabsTrigger>
             <TabsTrigger value="goals">
-              Outcomes ({draftGoals.length})
+              Meta Performance Outcomes ({draftGoals.length})
             </TabsTrigger>
             <TabsTrigger value="targets">
               Desired Wins ({draftTargets.length})
@@ -143,9 +143,10 @@ export function EnhancedDraftReview({
                       Extraction Complete
                     </h4>
                     <p className="text-sm text-gray-800">
-                      Found {draftGoals.length} outcomes, {draftTargets.length}{' '}
-                      desired wins, {draftCommitments.length} commitments.
-                      Review and confirm to save.
+                      Found {draftGoals.length} meta performance outcomes,{' '}
+                      {draftTargets.length} desired wins,{' '}
+                      {draftCommitments.length} commitments. Review and confirm
+                      to save.
                     </p>
                   </div>
                 </div>
@@ -176,7 +177,7 @@ export function EnhancedDraftReview({
                 <div className="flex items-center gap-2">
                   <Trophy className="h-4 w-4 text-gray-600" />
                   <h3 className="font-semibold text-gray-900">
-                    New Outcomes ({draftGoals.length})
+                    New Meta Performance Outcomes ({draftGoals.length})
                   </h3>
                 </div>
                 {draftGoals.map(goal => (
@@ -334,7 +335,7 @@ export function EnhancedDraftReview({
           <TabsContent value="goals" className="space-y-3">
             {draftGoals.length === 0 ? (
               <p className="text-center text-gray-500 py-8">
-                No outcomes extracted
+                No meta performance outcomes extracted
               </p>
             ) : (
               <>

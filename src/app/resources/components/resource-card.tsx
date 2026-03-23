@@ -10,6 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   FileText,
   Video,
   Link2,
@@ -111,10 +116,42 @@ export function ResourceCard({
         </Badge>
 
         {shareCount > 0 && (
-          <Badge variant="outline" className="text-xs gap-1">
-            <Share2 className="h-3 w-3" />
-            {shareCount}
-          </Badge>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Badge
+                variant="outline"
+                className="text-xs gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                onClick={e => e.stopPropagation()}
+              >
+                <Share2 className="h-3 w-3" />
+                {shareCount}
+              </Badge>
+            </PopoverTrigger>
+            <PopoverContent
+              align="end"
+              className="w-auto max-w-64 p-3"
+              onClick={e => e.stopPropagation()}
+            >
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+                Shared with
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {resource.shares?.slice(0, 3).map(share => (
+                  <span
+                    key={share.id}
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800"
+                  >
+                    {share.shared_with_name || 'Unknown'}
+                  </span>
+                ))}
+                {shareCount > 3 && (
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700">
+                    +{shareCount - 3} more
+                  </span>
+                )}
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
 
         <span className="text-xs text-gray-400 hidden lg:inline">

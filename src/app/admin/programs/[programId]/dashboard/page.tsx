@@ -362,7 +362,9 @@ export default function ProgramDashboardPage({
               className="relative flex items-center gap-2 px-4 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-b-2 border-transparent data-[state=active]:border-gray-900 data-[state=active]:text-gray-900 dark:data-[state=active]:border-white dark:data-[state=active]:text-white rounded-none bg-transparent shadow-none transition-colors"
             >
               <Target className="h-4 w-4" />
-              <span className="hidden sm:inline">Outcomes</span>
+              <span className="hidden sm:inline">
+                Meta Performance Outcomes
+              </span>
             </TabsTrigger>
             <TabsTrigger
               value="group-sessions"

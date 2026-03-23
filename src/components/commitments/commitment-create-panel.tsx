@@ -308,7 +308,7 @@ export function CommitmentCreatePanel({
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
                     <Zap className="h-3.5 w-3.5 text-blue-500" />
-                    Outcomes
+                    Meta Performance Outcomes
                   </label>
                   <div className="flex flex-wrap gap-1.5">
                     {clientTargets.map((target: any) => {

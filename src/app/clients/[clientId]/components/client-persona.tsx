@@ -231,7 +231,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             {persona.goals.short_term_goals.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Short-term Outcomes (3 months)
+                  Short-term Meta Performance Outcomes (3 months)
                 </h4>
                 <ul className="space-y-1">
                   {persona.goals.short_term_goals.map((goal, index) => (
@@ -249,7 +249,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
             {persona.goals.long_term_goals.length > 0 && (
               <div>
                 <h4 className="text-sm font-medium text-gray-700 mb-2">
-                  Long-term Outcomes (6+ months)
+                  Long-term Meta Performance Outcomes (6+ months)
                 </h4>
                 <ul className="space-y-1">
                   {persona.goals.long_term_goals.map((goal, index) => (

@@ -49,7 +49,7 @@ export function ProgressSummaryWidget({
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
             <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            Commitments & Outcomes
+            Commitments & Meta Performance Outcomes
           </CardTitle>
           <Link href="/client-portal/my-commitments">
             <Button variant="ghost" size="sm" className="text-xs h-7">

@@ -277,7 +277,7 @@ function DraftCommitmentCard({
       {targets.length > 0 && (
         <div className="mb-2">
           <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
-            Link to Outcomes
+            Link to Meta Performance Outcomes
           </span>
           <div className="flex flex-wrap gap-1.5">
             {targets.map(target => {
@@ -1037,7 +1037,7 @@ export function CommitmentPanel({
                 ) : (
                   <ChevronDown className="h-3 w-3" />
                 )}
-                Link to Outcomes
+                Link to Meta Performance Outcomes
                 {selectedTargetIds.length > 0 && (
                   <Badge
                     variant="secondary"
@@ -1051,7 +1051,7 @@ export function CommitmentPanel({
                 <div className="mt-2 flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto">
                   {loadingTargets ? (
                     <span className="text-xs text-gray-400 dark:text-gray-500">
-                      Loading outcomes...
+                      Loading meta performance outcomes...
                     </span>
                   ) : (
                     targets.map(target => {
