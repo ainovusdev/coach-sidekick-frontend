@@ -120,7 +120,8 @@ export function SessionCardCompact({
     session.client_name || session.metadata?.client_name || null
   const meetingSummary = summary?.meeting_summary || session.summary
   const platformName = getPlatformName(session.meeting_url)
-  const formattedDate = formatDate(session.created_at, 'MMM d, yyyy')
+  const sessionDate = session.started_at || session.created_at
+  const formattedDate = formatDate(sessionDate, 'MMM d, yyyy')
 
   return (
     <div className="space-y-3">
@@ -146,8 +147,8 @@ export function SessionCardCompact({
               <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                 <Calendar className="h-3 w-3" />
                 <span>
-                  {formatDate(session.created_at, 'EEEE')} •{' '}
-                  {formatRelativeTime(session.created_at)}
+                  {formatDate(sessionDate, 'EEEE')} •{' '}
+                  {formatRelativeTime(sessionDate)}
                 </span>
               </div>
               {durationMinutes && (
