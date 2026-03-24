@@ -122,11 +122,11 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
                 </div>
                 <div>
                   <h4 className="font-medium text-gray-900">
-                    {formatDate(session.created_at)}
+                    {formatDate(session.started_at || session.created_at)}
                   </h4>
                   <div className="flex items-center gap-2 mt-0.5">
                     <span className="text-sm text-gray-500">
-                      {formatTime(session.created_at)}
+                      {formatTime(session.started_at || session.created_at)}
                     </span>
                     {duration && (
                       <>

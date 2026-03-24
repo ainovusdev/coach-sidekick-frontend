@@ -95,7 +95,10 @@ export function LastSessionCard({
     )
   }
 
-  const sessionDate = formatDate(lastSession.created_at, 'EEE, MMM d, yyyy')
+  const sessionDate = formatDate(
+    lastSession.started_at || lastSession.created_at,
+    'EEE, MMM d, yyyy',
+  )
 
   const summary = sessionDetails?.meeting_summary
   const insights = sessionDetails?.analyses?.insights

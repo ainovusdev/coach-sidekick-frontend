@@ -243,8 +243,13 @@ export default function SessionDetailsPage({
   const handleDownloadTranscript = () => {
     if (!sessionData?.transcript || sessionData.transcript.length === 0) return
 
-    const sessionDate = formatDate(sessionData.session.created_at)
-    const fileDate = formatDate(sessionData.session.created_at, 'yyyy-MM-dd')
+    const sessionDate = formatDate(
+      sessionData.session.started_at || sessionData.session.created_at,
+    )
+    const fileDate = formatDate(
+      sessionData.session.started_at || sessionData.session.created_at,
+      'yyyy-MM-dd',
+    )
 
     const lines: string[] = [
       'Session Transcript',
