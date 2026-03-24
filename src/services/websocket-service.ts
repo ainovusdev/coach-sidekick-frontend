@@ -49,20 +49,12 @@ class WebSocketService {
     if (typeof document !== 'undefined') {
       document.addEventListener('visibilitychange', this.handleVisibilityChange)
     }
-
-    // Only log in development
-    if (process.env.NODE_ENV === 'development') {
-      console.log(
-        '[WebSocketService] Initialized (connection will be attempted when needed)',
-      )
-    }
   }
 
   private handleVisibilityChange = (): void => {
     if (document.visibilityState === 'visible') {
       // Tab became visible - check connection and reconnect if needed
       if (this.currentStatus !== 'connected' && !this.intentionalDisconnect) {
-        console.log('[WebSocket] Tab visible - checking connection...')
         this.reconnectAttempts = 0 // Reset attempts when user returns
         this.connect()
       }
@@ -88,12 +80,10 @@ class WebSocketService {
   connect(): void {
     // Check if already connected or connecting
     if (this.ws?.readyState === WebSocket.OPEN) {
-      console.log('[WebSocket] Already connected')
       return
     }
 
     if (this.ws?.readyState === WebSocket.CONNECTING) {
-      console.log('[WebSocket] Already connecting')
       return
     }
 
@@ -134,19 +124,11 @@ class WebSocketService {
     if (!this.ws) return
 
     this.ws.onopen = () => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[WebSocket] Connected')
-      }
       this.updateStatus('connected')
       this.reconnectAttempts = 0
 
       // Rejoin rooms after reconnection
-      console.log(
-        '[WebSocket] Rejoining rooms after reconnection:',
-        Array.from(this.joinedRooms),
-      )
       this.joinedRooms.forEach(room => {
-        console.log(`[WebSocket] Auto-rejoining room: ${room}`)
         this.send('join', { room })
       })
 
@@ -160,7 +142,6 @@ class WebSocketService {
     this.ws.onmessage = event => {
       try {
         const message = JSON.parse(event.data)
-        console.log('[WebSocket] Received:', message.type, message.data)
 
         // Handle system messages
         if (message.type === 'pong' || message.type === 'PONG') {
@@ -193,7 +174,6 @@ class WebSocketService {
     }
 
     this.ws.onclose = event => {
-      console.log('[WebSocket] Disconnected:', event.code, event.reason)
       this.updateStatus('disconnected')
       this.stopHeartbeat()
 
@@ -202,7 +182,6 @@ class WebSocketService {
         event.code === 1000 && event.reason === 'Client disconnect'
 
       if (!this.intentionalDisconnect && !isIntentionalClose) {
-        console.log('[WebSocket] Unexpected disconnect - scheduling reconnect')
         this.scheduleReconnect()
       }
     }
@@ -218,7 +197,6 @@ class WebSocketService {
   private scheduleReconnect(): void {
     // Don't reconnect if intentionally disconnected
     if (this.intentionalDisconnect) {
-      console.log('[WebSocket] Intentional disconnect - not reconnecting')
       return
     }
 
@@ -244,10 +222,6 @@ class WebSocketService {
     // Add random jitter (0-1000ms) to prevent synchronized reconnects
     const jitter = Math.random() * 1000
     const delay = exponentialDelay + jitter
-
-    console.log(
-      `[WebSocket] Reconnecting in ${Math.round(delay)}ms (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`,
-    )
 
     this.reconnectTimer = setTimeout(() => {
       this.connect()
@@ -284,8 +258,6 @@ class WebSocketService {
   }
 
   disconnect(): void {
-    console.log('[WebSocket] Disconnecting (intentional)')
-
     // Mark as intentional disconnect to prevent auto-reconnect
     this.intentionalDisconnect = true
 
@@ -325,7 +297,6 @@ class WebSocketService {
    * Force reconnect - useful when user manually triggers reconnection
    */
   forceReconnect(): void {
-    console.log('[WebSocket] Force reconnecting...')
     this.intentionalDisconnect = false
     this.reconnectAttempts = 0
 
@@ -352,7 +323,6 @@ class WebSocketService {
       this.ws.send(JSON.stringify(message))
     } else {
       // Queue message if not connected
-      console.log('[WebSocket] Queueing message:', type)
       this.messageQueue.push(message)
 
       // Try to connect if disconnected
@@ -367,18 +337,8 @@ class WebSocketService {
       this.joinedRooms = new Set()
     }
 
-    console.log(`[WebSocketService] joinRoom called for: ${room}`)
-    console.log(
-      `[WebSocketService] Current connection status: ${this.currentStatus}`,
-    )
-    console.log(
-      `[WebSocketService] WebSocket readyState: ${this.ws?.readyState}`,
-    )
-
     this.joinedRooms.add(room)
     this.send('join', { room })
-
-    console.log(`[WebSocketService] Join message sent/queued for room: ${room}`)
   }
 
   leaveRoom(room: string): void {

@@ -11,11 +11,8 @@ export function useBotActions() {
   ): Promise<boolean> => {
     try {
       setIsLoading(true)
-      console.log('Stopping bot:', botId)
-
       // Stop the bot via backend
-      const stopResponse = await MeetingService.stopBot(botId)
-      console.log('Bot stopped successfully:', stopResponse)
+      await MeetingService.stopBot(botId)
 
       // Try to force save transcripts if session exists
       try {
@@ -28,7 +25,6 @@ export function useBotActions() {
 
         if (finalSessionId) {
           await MeetingService.forceSaveTranscripts(finalSessionId)
-          console.log('Transcripts saved for session:', finalSessionId)
         }
       } catch (saveError) {
         console.warn('Failed to force save transcripts:', saveError)

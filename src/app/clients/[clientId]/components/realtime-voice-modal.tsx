@@ -77,15 +77,12 @@ export function RealtimeVoiceModal({
       // This callback receives both user AND AI transcripts from the hook
     },
     onMessage: message => {
-      console.log('Received message:', message.type)
-
       // Handle user speech transcripts
       if (
         message.type === 'conversation.item.input_audio_transcription.completed'
       ) {
         // This is the user's final transcript from VAD
         if (message.transcript) {
-          console.log('User transcript:', message.transcript)
           setCurrentUserTranscript(message.transcript)
           setHasUserSpoken(true)
           // Clear AI transcript when user speaks
@@ -93,11 +90,9 @@ export function RealtimeVoiceModal({
         }
       } else if (message.type === 'input_audio_buffer.speech_started') {
         // User started speaking - clear AI transcript
-        console.log('User started speaking')
         setCurrentAssistantTranscript('')
       } else if (message.type === 'input_audio_buffer.speech_stopped') {
         // User stopped speaking
-        console.log('User stopped speaking')
       }
 
       // Handle assistant responses
@@ -106,7 +101,6 @@ export function RealtimeVoiceModal({
         message.delta
       ) {
         // AI is speaking - accumulate transcript
-        console.log('AI transcript delta:', message.delta)
         // Clear user transcript when AI starts responding
         if (hasUserSpoken) {
           setCurrentUserTranscript('')
@@ -116,12 +110,10 @@ export function RealtimeVoiceModal({
       } else if (message.type === 'response.audio_transcript.done') {
         // AI finished speaking - keep the final transcript visible
         if (message.transcript) {
-          console.log('AI transcript done:', message.transcript)
           setCurrentAssistantTranscript(message.transcript)
         }
       } else if (message.type === 'response.done') {
         // Response completely done
-        console.log('Response complete')
       }
     },
     onError: error => {

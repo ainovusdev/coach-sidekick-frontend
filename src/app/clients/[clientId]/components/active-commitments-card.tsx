@@ -32,16 +32,10 @@ export function ActiveCommitmentsCard({
     include_drafts: true,
   })
 
-  console.log('ActiveCommitmentsCard - clientId:', clientId)
-  console.log('ActiveCommitmentsCard - data:', data)
-  console.log('ActiveCommitmentsCard - isLoading:', isLoading)
-
   const allCommitments = data?.commitments || []
-  console.log('ActiveCommitmentsCard - allCommitments:', allCommitments)
 
   // Show ALL commitments (not filtering by status anymore)
   const displayCommitments = allCommitments.slice(0, 5) // Show max 5
-  console.log('ActiveCommitmentsCard - displayCommitments:', displayCommitments)
 
   if (isLoading) {
     return (

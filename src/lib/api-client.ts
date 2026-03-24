@@ -30,13 +30,10 @@ export class ApiClient {
       console.error('Error parsing error response:', e)
     }
 
-    console.log('API Error:', response.status, errorMessage)
-
     // Show toast notification for user-friendly errors
     // Use setTimeout to ensure toast is rendered before error is thrown
     const showToast = () => {
       if (response.status === 403) {
-        console.log('Showing 403 toast:', errorMessage)
         toast.error('Access Denied', {
           description: errorMessage,
           duration: 5000,
@@ -85,10 +82,6 @@ export class ApiClient {
     }
 
     const token = authService.getToken()
-    console.log(
-      'Auth token retrieved:',
-      token ? `${token.substring(0, 20)}...` : 'No token',
-    )
     if (token) {
       headers['Authorization'] = `Bearer ${token}`
     }
@@ -159,8 +152,6 @@ export class ApiClient {
 
   static async get(url: string, timeout?: number) {
     const headers = await this.getAuthHeaders()
-    console.log('GET request to:', url)
-    console.log('Request headers:', headers)
 
     const response = await this.fetchWithTimeout(
       url,
@@ -171,16 +162,11 @@ export class ApiClient {
       timeout,
     )
 
-    console.log('Response status:', response.status)
-    console.log('Response ok:', response.ok)
-
     if (!response.ok) {
       await this.handleErrorResponse(response)
     }
 
-    const data = await response.json()
-    console.log('Response data:', data)
-    return data
+    return await response.json()
   }
 
   static async put(url: string, data: any, timeout?: number) {

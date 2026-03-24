@@ -38,6 +38,7 @@ interface SessionCardProps {
     bot_id: string
     status: string
     created_at: string
+    started_at?: string
     meeting_summaries?: SessionSummary[]
     summary?: string
     key_topics?: string[]

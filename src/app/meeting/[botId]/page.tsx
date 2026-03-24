@@ -54,9 +54,6 @@ export default function MeetingPage() {
       !hasShownProcessingToast.current
     ) {
       hasShownProcessingToast.current = true
-      console.log(
-        '[MeetingPage] Meeting ended, waiting for session processing...',
-      )
       showToast('Meeting ended. Processing session...', 'success')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,19 +66,12 @@ export default function MeetingPage() {
     if (isSessionCompleted && !hasShownCompletionToast.current) {
       hasShownCompletionToast.current = true
 
-      console.log(
-        '[MeetingPage] Session processing complete, sessionId:',
-        sessionId,
-        'completedSessionId:',
-        completedSessionId,
-      )
       showToast('Session saved! Redirecting to summary...', 'success')
 
       // Short delay before redirect since processing is already done
       setTimeout(() => {
         const redirectSessionId =
           completedSessionIdRef.current || sessionIdRef.current
-        console.log('[MeetingPage] Executing redirect to:', redirectSessionId)
         if (redirectSessionId) {
           if (isGroupSession) {
             router.replace(`/sessions/group/${redirectSessionId}`)
@@ -89,9 +79,6 @@ export default function MeetingPage() {
             router.replace(`/sessions/${redirectSessionId}`)
           }
         } else {
-          console.log(
-            '[MeetingPage] No session ID available, redirecting to home',
-          )
           router.replace('/')
         }
       }, 1500)

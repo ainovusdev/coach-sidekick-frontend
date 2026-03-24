@@ -49,11 +49,8 @@ export function useDashboardData() {
   const handleCreateBotImpl = async (meetingUrl: string, clientId?: string) => {
     // Prevent multiple submissions
     if (loading) {
-      console.log('Already loading, ignoring duplicate submission')
       return
     }
-
-    console.log('Creating bot for URL:', meetingUrl, 'ClientID:', clientId)
     setLoading(true)
     setError(null) // Clear any previous errors
 
@@ -65,8 +62,6 @@ export function useDashboardData() {
         recording_mode: 'raw_transcript',
         bot_name: 'Coach Sidekick Assistant',
       })
-
-      console.log('Bot created successfully:', response)
 
       if (!response.id) {
         throw new Error('Bot was created but no ID was returned')

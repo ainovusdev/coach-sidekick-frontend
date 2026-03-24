@@ -39,15 +39,13 @@ export function useBotData(botId: string): UseBotDataReturn {
           botData.id,
         )
         if (existingSession) {
-          console.log('Session already exists for bot:', botData.id)
           setSessionId(existingSession.id)
           setClientId(existingSession.client_id || null)
           setClientName(existingSession.client?.name || null)
           setIsGroupSession(existingSession.is_group_session || false)
           return existingSession.id
         }
-      } catch (error) {
-        console.log('error', error)
+      } catch {
         // Session doesn't exist, continue to create one
       }
 
@@ -61,7 +59,6 @@ export function useBotData(botId: string): UseBotDataReturn {
           meeting_id: botData.meeting_id,
         },
       })
-      console.log('Created new session for bot:', botData.id)
       setSessionId(newSession.id)
       setClientId(newSession.client_id || null)
       setClientName(newSession.client?.name || null)
@@ -127,8 +124,6 @@ export function useBotData(botId: string): UseBotDataReturn {
 
   // WebSocket event handlers
   const handleTranscriptNew = useCallback((entry: TranscriptEntry) => {
-    console.log('[WebSocket] New transcript entry:', entry)
-
     // Add to transcript map
     if ((entry as any).id) {
       transcriptMapRef.current.set((entry as any).id, entry)
@@ -140,8 +135,6 @@ export function useBotData(botId: string): UseBotDataReturn {
 
   const handleTranscriptUpdate = useCallback(
     (data: { entryId: string; updates: Partial<TranscriptEntry> }) => {
-      console.log('[WebSocket] Transcript update:', data)
-
       // Update in map
       const existing = transcriptMapRef.current.get(data.entryId)
       if (existing) {
@@ -161,8 +154,6 @@ export function useBotData(botId: string): UseBotDataReturn {
 
   const handleBotStatus = useCallback(
     (data: { status: string; timestamp: string }) => {
-      console.log('[WebSocket] Bot status update:', data)
-
       setBot(prev => {
         if (!prev) return null
         return {
@@ -238,7 +229,6 @@ export function useBotData(botId: string): UseBotDataReturn {
   useEffect(() => {
     // Only use polling when WebSocket is disconnected
     if (bot && !loading && !error && !isConnected) {
-      console.log('[Bot Data] Starting polling (WebSocket disconnected)')
       const cleanup = startPolling()
       return cleanup
     }

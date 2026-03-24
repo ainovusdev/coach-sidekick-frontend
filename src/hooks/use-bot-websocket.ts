@@ -38,32 +38,15 @@ export function useBotWebSocket(
     // Wait for: WebSocket connected, botId exists, and bot data is fetched
     if (isConnected && botId && bot) {
       const roomName = `bot:${botId}`
-      console.log(
-        `[useBotWebSocket] Bot data loaded, WebSocket connected, joining room: ${roomName}`,
-      )
-      console.log(
-        `[useBotWebSocket] Bot status: ${bot.status}, Platform: ${bot.platform}`,
-      )
-
       // Small delay to ensure WebSocket is ready
       const joinTimer = setTimeout(() => {
-        console.log(
-          `[useBotWebSocket] Sending join message for room: ${roomName}`,
-        )
         joinRoom(roomName)
       }, 300) // Small delay after bot data is available
 
       return () => {
         clearTimeout(joinTimer)
-        console.log(`[useBotWebSocket] Cleanup - leaving room: ${roomName}`)
         leaveRoom(roomName)
       }
-    } else {
-      // Log why we're not joining yet
-      if (!isConnected)
-        console.log('[useBotWebSocket] Waiting for WebSocket connection...')
-      if (!bot) console.log('[useBotWebSocket] Waiting for bot data to load...')
-      if (!botId) console.log('[useBotWebSocket] No botId provided')
     }
   }, [isConnected, botId, bot, joinRoom, leaveRoom])
 
@@ -130,7 +113,6 @@ export function useBotWebSocket(
 
     const handler = (data: SessionCompletedData) => {
       if (data.botId === botId) {
-        console.log('[useBotWebSocket] Session completed event received:', data)
         events.onSessionCompleted?.(data)
       }
     }

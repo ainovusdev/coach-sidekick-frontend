@@ -74,8 +74,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         const userClientAccess = authService.getClientAccess()
         const userClientId = authService.getOwnClientId() // NEW
 
-        console.log('Auth Context - Loading roles:', userRoles)
-
         setUserId(id)
         setUser(id ? { id, email: email || '', full_name: fullName } : null)
         setRoles(userRoles)

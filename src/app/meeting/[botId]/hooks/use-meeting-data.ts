@@ -54,20 +54,14 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
 
   // Handle meeting state updates
   const handleMeetingState = useCallback((data: any) => {
-    console.log('[MeetingPage] Received meeting state:', data)
     setMeetingState(data)
   }, [])
 
   // Handle bot status change events
   // This provides immediate feedback when the call ends (shows "processing" UI)
   const handleBotStatus = useCallback((data: BotStatusData) => {
-    console.log('[MeetingPage] Bot status changed:', data.status)
-
     // Check if this is a terminal status indicating the meeting ended
     if (TERMINAL_BOT_STATUSES.includes(data.status.toLowerCase())) {
-      console.log(
-        '[MeetingPage] Terminal bot status detected, meeting has ended',
-      )
       setIsMeetingEnded(true)
       // Don't set isSessionCompleted yet - wait for session:completed event
     }
@@ -76,7 +70,6 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
   // Handle session completed event (sent after all processing is done)
   // This is when we should redirect - transcripts are saved and status is updated
   const handleSessionCompleted = useCallback((data: SessionCompletedData) => {
-    console.log('[MeetingPage] Session completed event received:', data)
     setIsMeetingEnded(true) // In case bot:status was missed
     setIsSessionCompleted(true)
     setCompletedSessionId(data.sessionId)

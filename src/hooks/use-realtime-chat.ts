@@ -84,7 +84,6 @@ export function useRealtimeChat(config: RealtimeConfig) {
       wsRef.current?.readyState === WebSocket.OPEN ||
       wsRef.current?.readyState === WebSocket.CONNECTING
     ) {
-      console.log('WebSocket already connected or connecting')
       return
     }
 
@@ -95,11 +94,9 @@ export function useRealtimeChat(config: RealtimeConfig) {
       const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000'
       const url = `${wsUrl}/api/v1/realtime/ws/realtime/${clientId}?token=${encodeURIComponent(token)}&voice=${encodeURIComponent(currentVoice)}`
 
-      console.log('Creating new WebSocket connection to:', url)
       wsRef.current = new WebSocket(url)
 
       wsRef.current.onopen = () => {
-        console.log('Realtime WebSocket connected')
         setIsConnected(true)
         onConnectionChange?.(true)
         isConnectingRef.current = false // Reset connecting flag
@@ -189,7 +186,6 @@ export function useRealtimeChat(config: RealtimeConfig) {
       }
 
       wsRef.current.onclose = event => {
-        console.log('Realtime WebSocket disconnected', event.code, event.reason)
         setIsConnected(false)
         setIsSpeaking(false)
         onConnectionChange?.(false)
@@ -205,10 +201,6 @@ export function useRealtimeChat(config: RealtimeConfig) {
             reconnectDelayRef.current *
               Math.pow(2, reconnectAttemptsRef.current - 1),
             30000,
-          )
-
-          console.log(
-            `Attempting to reconnect (${reconnectAttemptsRef.current}/${maxReconnectAttempts}) in ${delay}ms...`,
           )
 
           reconnectTimeoutRef.current = setTimeout(() => {

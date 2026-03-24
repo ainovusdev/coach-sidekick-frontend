@@ -36,8 +36,6 @@ export class WinsService {
       `${BACKEND_URL}/wins/session/${sessionId}`,
     )
 
-    console.log('WinsService.getSessionWins response:', response)
-
     // Handle case where backend returns array directly
     if (Array.isArray(response)) {
       return {

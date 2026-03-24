@@ -19,27 +19,27 @@ export function useSimpleVoice() {
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null)
 
   // Check if speech recognition is supported
-  const isSupported = typeof window !== 'undefined' && 
+  const isSupported =
+    typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)
 
   useEffect(() => {
     if (!isSupported) return
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition
     const recognition = new SpeechRecognition()
-    
+
     recognition.continuous = true
     recognition.interimResults = true
     recognition.lang = 'en-US'
 
     recognition.onstart = () => {
-      console.log('Speech recognition started')
       setIsListening(true)
       isListeningRef.current = true
     }
 
     recognition.onend = () => {
-      console.log('Speech recognition ended')
       setIsListening(false)
       isListeningRef.current = false
     }
@@ -85,14 +85,11 @@ export function useSimpleVoice() {
   }, [isSupported])
 
   const startListening = useCallback(() => {
-    if (!recognitionRef.current || isListeningRef.current) {
-      console.log('Cannot start: already listening or no recognition')
-      return
-    }
+    if (!recognitionRef.current || isListeningRef.current) return
 
     setTranscript('')
     setInterimTranscript('')
-    
+
     try {
       recognitionRef.current.start()
     } catch (e) {
@@ -101,10 +98,7 @@ export function useSimpleVoice() {
   }, [])
 
   const stopListening = useCallback(() => {
-    if (!recognitionRef.current || !isListeningRef.current) {
-      console.log('Cannot stop: not listening')
-      return
-    }
+    if (!recognitionRef.current || !isListeningRef.current) return
 
     try {
       recognitionRef.current.stop()
@@ -143,6 +137,6 @@ export function useSimpleVoice() {
     speak,
     stopSpeaking,
     isSupported,
-    fullTranscript: transcript + interimTranscript
+    fullTranscript: transcript + interimTranscript,
   }
 }

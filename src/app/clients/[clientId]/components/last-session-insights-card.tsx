@@ -318,15 +318,6 @@ export function LastSessionInsightsCard({
 
   const isLoading = detailsLoading || commitmentsLoading
 
-  // Debug logging
-  console.log('Last Session Insights Debug:', {
-    sessionId: session?.id,
-    sessionDetails,
-    summary: sessionDetails?.summary,
-    meetingSummary: sessionDetails?.meeting_summary,
-    sessionSummary: session?.summary,
-  })
-
   return (
     <Card className="border-gray-200 dark:border-gray-700">
       <CardHeader className="border-b border-gray-200 dark:border-gray-700">

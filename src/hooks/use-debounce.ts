@@ -2,7 +2,7 @@ import { useRef, useCallback } from 'react'
 
 export function useDebounceCallback<T extends (...args: any[]) => any>(
   callback: T,
-  delay: number = 500
+  delay: number = 500,
 ): T {
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
   const pendingRef = useRef(false)
@@ -10,10 +10,7 @@ export function useDebounceCallback<T extends (...args: any[]) => any>(
   const debouncedCallback = useCallback(
     (...args: Parameters<T>) => {
       // If already pending, ignore
-      if (pendingRef.current) {
-        console.log('Debounced: Ignoring duplicate call')
-        return
-      }
+      if (pendingRef.current) return
 
       // Clear any existing timeout
       if (timeoutRef.current) {
@@ -33,7 +30,7 @@ export function useDebounceCallback<T extends (...args: any[]) => any>(
 
       return result
     },
-    [callback, delay]
+    [callback, delay],
   )
 
   return debouncedCallback as T

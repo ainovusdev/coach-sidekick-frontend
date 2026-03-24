@@ -83,12 +83,6 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
       const response = await SessionService.getSessionDetails(sessionId)
 
       // Set session data directly from the comprehensive response
-      console.log('Session data received:', {
-        transcriptCount: response.transcript?.length || 0,
-        firstTranscript: response.transcript?.[0]?.text?.substring(0, 50),
-        sessionId: response.session?.id,
-        status: response.session?.status,
-      })
       setSessionData(response)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unknown error')
@@ -100,23 +94,17 @@ export function useSessionData(sessionId: string): UseSessionDataReturn {
   const generateSummary = async () => {
     try {
       setGeneratingSummary(true)
-      console.log('Starting summary generation for session:', sessionId)
-      console.log('Session status:', sessionData?.session?.status)
-
       const BACKEND_URL =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-      const response = await ApiClient.post(
+      await ApiClient.post(
         `${BACKEND_URL}/sessions/${sessionId}/generate-summary`,
         {},
       )
-
-      console.log('Summary generation response:', response)
 
       // Refresh session data to show new summary
       await fetchSessionDetails()
 
       // Show success message (you can add a toast notification here)
-      console.log('Summary generated successfully')
       alert('Summary generated successfully!')
     } catch (err) {
       console.error('Failed to generate summary:', err)

@@ -127,11 +127,6 @@ export function DraftCommitmentsReview({
     }
   }
 
-  console.log('DraftCommitmentsReview render:', {
-    drafts: drafts.length,
-    loading,
-  })
-
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">

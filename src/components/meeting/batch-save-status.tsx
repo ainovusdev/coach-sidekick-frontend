@@ -103,8 +103,6 @@ export function BatchSaveStatus({
     'save:status',
     (data: any) => {
       if (data.sessionId === sessionId) {
-        console.log('[WebSocket] Save status update:', data)
-
         setSaveStatus({
           totalEntries: data.savedCount || 0,
           savedEntries: data.savedCount || 0,
@@ -123,7 +121,6 @@ export function BatchSaveStatus({
 
       // Poll for updates only when WebSocket is disconnected
       if (!isConnected) {
-        console.log('[Batch Save] Starting polling (WebSocket disconnected)')
         const interval = setInterval(fetchSaveStatus, 10000)
         return () => clearInterval(interval)
       }

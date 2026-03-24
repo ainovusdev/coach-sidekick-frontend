@@ -106,9 +106,7 @@ export function ClientChatUnified({
   const fetchStats = useCallback(async () => {
     setLoadingStats(true)
     try {
-      console.log('Fetching stats for client:', clientId)
       const data = await chatService.getClientKnowledgeStats(clientId)
-      console.log('Stats received:', data)
       setStats(data)
       setSuggestedQuestions(data.suggested_questions || [])
     } catch (error) {
@@ -300,7 +298,6 @@ export function ClientChatUnified({
   }
 
   if (!stats || stats.total_chunks === 0) {
-    console.log('No knowledge base - stats:', stats)
     const hasSessionData = stats && stats.unique_sessions > 0
 
     return (

@@ -107,8 +107,6 @@ export function CoachingPanel({
   })
 
   const handleWebSocketMessage = useCallback((message: any) => {
-    console.log('[WebSocket] Message received:', message)
-
     if (message.type === 'suggestions_update') {
       const data = message.data
       if (data.replace) {
@@ -139,7 +137,6 @@ export function CoachingPanel({
   useCoachingWebSocket(botId, {
     onMessage: handleWebSocketMessage,
     onSuggestionsUpdate: data => {
-      console.log('[WebSocket] Suggestions update:', data)
       if (data.replace && data.suggestions) {
         const newSuggestions = data.suggestions.map((s: any) => ({
           id: s.id || `suggestion_${Date.now()}_${Math.random()}`,
@@ -162,9 +159,7 @@ export function CoachingPanel({
       }
       setLastUpdate(new Date())
     },
-    onMeetingState: state => {
-      console.log('[WebSocket] Meeting state:', state)
-    },
+    onMeetingState: _state => {},
   })
 
   if (error && error.includes('OpenAI API key')) {
