@@ -257,7 +257,6 @@ function DraftCommitmentCard({
                 setEditDate(d)
                 setShowDatePicker(false)
               }}
-              disabled={date => date < new Date()}
               initialFocus
             />
           </PopoverContent>
@@ -1245,7 +1244,6 @@ export function CommitmentPanel({
                   mode="single"
                   selected={targetDate}
                   onSelect={setTargetDate}
-                  disabled={date => date < new Date()}
                   className="mx-auto"
                 />
               </div>
