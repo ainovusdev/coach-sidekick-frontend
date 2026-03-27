@@ -11,6 +11,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from '@/components/ui/tooltip'
 import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
 import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
 import { ClientCommitmentService } from '@/services/client-commitment-service'
@@ -39,6 +44,8 @@ import {
   PanelLeftOpen,
   Filter,
   RefreshCw,
+  EyeOff,
+  Eye,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -97,15 +104,43 @@ function TreeNode({
 }: TreeNodeProps) {
   const hasChildren = !!children
   const indent = level * 16
+  const isCompleted = data.status === 'completed'
 
   const getIcon = () => {
     switch (type) {
       case 'goal':
-        return <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+        return (
+          <Target
+            className={cn(
+              'h-4 w-4',
+              isCompleted
+                ? 'text-gray-400 dark:text-gray-500'
+                : 'text-gray-600 dark:text-gray-400',
+            )}
+          />
+        )
       case 'outcome':
-        return <Zap className="h-4 w-4 text-blue-600" />
+        return (
+          <Zap
+            className={cn(
+              'h-4 w-4',
+              isCompleted
+                ? 'text-gray-400 dark:text-gray-500'
+                : 'text-blue-600',
+            )}
+          />
+        )
       case 'sprint':
-        return <Calendar className="h-4 w-4 text-green-600" />
+        return (
+          <Calendar
+            className={cn(
+              'h-4 w-4',
+              isCompleted
+                ? 'text-gray-400 dark:text-gray-500'
+                : 'text-green-600',
+            )}
+          />
+        )
     }
   }
 
@@ -127,7 +162,7 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          'flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
+          'flex items-start gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
           isSelected && 'bg-primary/10 border border-primary/20',
         )}
         style={{ paddingLeft: `${indent + 12}px` }}
@@ -140,7 +175,7 @@ function TreeNode({
               e.stopPropagation()
               onToggle?.()
             }}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
+            className="flex-shrink-0 p-0.5 mt-0.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
           >
             {isExpanded ? (
               <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
@@ -150,13 +185,20 @@ function TreeNode({
           </button>
         )}
 
-        {!hasChildren && <div className="w-5" />}
+        {!hasChildren && <div className="w-5 mt-0.5" />}
 
         {/* Icon */}
-        <div className="flex-shrink-0">{getIcon()}</div>
+        <div className="flex-shrink-0 mt-0.5">{getIcon()}</div>
 
         {/* Title */}
-        <span className="flex-1 text-sm font-medium text-gray-900 dark:text-white truncate">
+        <span
+          className={cn(
+            'flex-1 text-sm font-medium break-words min-w-0',
+            isCompleted
+              ? 'text-gray-400 dark:text-gray-500 line-through'
+              : 'text-gray-900 dark:text-white',
+          )}
+        >
           {data.title}
         </span>
 
@@ -277,6 +319,9 @@ export function GoalsTreeView({
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [priorityFilter, setPriorityFilter] = useState<string>('all')
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [hideCompletedVisions, setHideCompletedVisions] = useState(false)
+  const [hideCompletedOutcomes, setHideCompletedOutcomes] = useState(false)
+  const [hideCompletedSprints, setHideCompletedSprints] = useState(false)
 
   // Fetch all data
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
@@ -301,6 +346,22 @@ export function GoalsTreeView({
       t.goal_ids?.some((gid: string) => goalIds.includes(gid)),
     )
   }, [allTargets, goals])
+
+  // Filter out completed items when toggle is on
+  const visibleGoals = useMemo(() => {
+    if (!hideCompletedVisions) return goals
+    return goals.filter((g: any) => g.status !== 'completed')
+  }, [goals, hideCompletedVisions])
+
+  const visibleTargets = useMemo(() => {
+    if (!hideCompletedOutcomes) return clientTargets
+    return clientTargets.filter((t: any) => t.status !== 'completed')
+  }, [clientTargets, hideCompletedOutcomes])
+
+  const visibleSprints = useMemo(() => {
+    if (!hideCompletedSprints) return allSprints
+    return allSprints.filter((s: any) => s.status !== 'completed')
+  }, [allSprints, hideCompletedSprints])
 
   // Filter commitments based on selected node and assignee
   const filteredCommitments = useMemo(() => {
@@ -503,7 +564,7 @@ export function GoalsTreeView({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -518,37 +579,71 @@ export function GoalsTreeView({
       {/* Split Panel Layout */}
       <div
         className={cn(
-          'grid grid-cols-1 gap-4',
+          'grid grid-cols-1 gap-4 flex-1 min-h-0',
           sidebarCollapsed ? 'lg:grid-cols-1' : 'lg:grid-cols-3',
         )}
       >
         {/* Left Panel: Goals & Sprints */}
         <Card
           className={cn(
-            'border-gray-200 dark:border-gray-700',
+            'border-gray-200 dark:border-gray-700 flex flex-col min-h-0',
             sidebarCollapsed && 'hidden',
           )}
         >
-          <CardContent className="p-0">
-            <ScrollArea className="h-[600px]">
+          <CardContent className="p-0 flex-1 min-h-0">
+            <ScrollArea className="h-[calc(100vh-220px)]">
               <div className="p-3 space-y-6">
                 {/* Vision Section */}
                 <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>VISION</span>
-                    {onCreateGoal && (
-                      <button
-                        onClick={onCreateGoal}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
-                        title="Add new vision"
-                      >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-0.5">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() =>
+                              setHideCompletedVisions(!hideCompletedVisions)
+                            }
+                            className={cn(
+                              'p-1 rounded transition-colors',
+                              hideCompletedVisions
+                                ? 'text-primary bg-primary/10'
+                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                            )}
+                          >
+                            {hideCompletedVisions ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {hideCompletedVisions
+                            ? 'Show completed'
+                            : 'Hide completed'}
+                        </TooltipContent>
+                      </Tooltip>
+                      {onCreateGoal && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={onCreateGoal}
+                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                            >
+                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            Add new vision
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    {goals.map((goal: any) => {
-                      const goalOutcomes = clientTargets.filter((t: any) =>
+                    {visibleGoals.map((goal: any) => {
+                      const goalOutcomes = visibleTargets.filter((t: any) =>
                         t.goal_ids?.includes(goal.id),
                       )
 
@@ -597,19 +692,53 @@ export function GoalsTreeView({
                 <div className="pb-4 border-b">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>META PERFORMANCE OUTCOMES</span>
-                    {onCreateOutcome && (
-                      <button
-                        onClick={onCreateOutcome}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
-                        title="Add new meta performance outcome"
-                      >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-0.5">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() =>
+                              setHideCompletedOutcomes(!hideCompletedOutcomes)
+                            }
+                            className={cn(
+                              'p-1 rounded transition-colors',
+                              hideCompletedOutcomes
+                                ? 'text-primary bg-primary/10'
+                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                            )}
+                          >
+                            {hideCompletedOutcomes ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {hideCompletedOutcomes
+                            ? 'Show completed'
+                            : 'Hide completed'}
+                        </TooltipContent>
+                      </Tooltip>
+                      {onCreateOutcome && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={onCreateOutcome}
+                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                            >
+                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            Add new outcome
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    {clientTargets.map((outcome: any) => {
-                      const linkedSprints = allSprints.filter((s: any) =>
+                    {visibleTargets.map((outcome: any) => {
+                      const linkedSprints = visibleSprints.filter((s: any) =>
                         outcome.sprint_ids?.includes(s.id),
                       )
                       const hasChildren = linkedSprints.length > 0
@@ -666,19 +795,53 @@ export function GoalsTreeView({
                 <div className="pb-4">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
                     <span>SPRINTS</span>
-                    {onCreateSprint && (
-                      <button
-                        onClick={onCreateSprint}
-                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
-                        title="Add new sprint"
-                      >
-                        <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
-                      </button>
-                    )}
+                    <div className="flex items-center gap-0.5">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            onClick={() =>
+                              setHideCompletedSprints(!hideCompletedSprints)
+                            }
+                            className={cn(
+                              'p-1 rounded transition-colors',
+                              hideCompletedSprints
+                                ? 'text-primary bg-primary/10'
+                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                            )}
+                          >
+                            {hideCompletedSprints ? (
+                              <EyeOff className="h-3.5 w-3.5" />
+                            ) : (
+                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                            )}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom">
+                          {hideCompletedSprints
+                            ? 'Show completed'
+                            : 'Hide completed'}
+                        </TooltipContent>
+                      </Tooltip>
+                      {onCreateSprint && (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={onCreateSprint}
+                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                            >
+                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">
+                            Add new sprint
+                          </TooltipContent>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
                   <div className="space-y-1">
-                    {allSprints.map((sprint: any) => {
-                      const sprintOutcomes = clientTargets.filter((t: any) =>
+                    {visibleSprints.map((sprint: any) => {
+                      const sprintOutcomes = visibleTargets.filter((t: any) =>
                         t.sprint_ids?.includes(sprint.id),
                       )
                       const hasChildren = sprintOutcomes.length > 0
