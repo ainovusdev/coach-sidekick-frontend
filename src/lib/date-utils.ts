@@ -3,7 +3,7 @@
  *
  * Handles date parsing and formatting consistently across the app.
  * All dates from the backend are treated as UTC.
- * All dates displayed to users are converted to their local timezone.
+ * All dates are displayed in UTC to prevent timezone-induced day shifts.
  */
 
 import {
@@ -20,7 +20,7 @@ import {
  * Dates without timezone info are treated as UTC.
  *
  * @param dateString - Date string from the API (ISO format)
- * @returns Date object in local timezone
+ * @returns Date object
  */
 export function parseDate(dateString: string | null | undefined): Date | null {
   if (!dateString) return null
@@ -49,6 +49,15 @@ export function parseDate(dateString: string | null | undefined): Date | null {
 }
 
 /**
+ * Convert a parsed UTC Date to a "fake local" Date that represents the
+ * same calendar date/time in UTC. This allows date-fns format() (which
+ * always uses local time) to render the UTC values.
+ */
+function toUTCLocal(date: Date): Date {
+  return new Date(date.getTime() + date.getTimezoneOffset() * 60000)
+}
+
+/**
  * Format a date for relative display (e.g., "2 hours ago")
  *
  * @param dateString - Date string from the API
@@ -66,11 +75,12 @@ export function formatRelativeTime(
 }
 
 /**
- * Format a date for display (e.g., "Jan 15, 2024")
+ * Format a date for display in UTC (e.g., "Jan 15, 2024").
+ * Prevents timezone-induced day shifts for date-only values.
  *
  * @param dateString - Date string from the API
  * @param formatString - date-fns format string (default: 'PPP')
- * @returns Formatted date string
+ * @returns Formatted date string in UTC
  */
 export function formatDate(
   dateString: string | null | undefined,
@@ -79,7 +89,7 @@ export function formatDate(
   const date = parseDate(dateString)
   if (!date) return 'Unknown'
 
-  return fnsFormat(date, formatString)
+  return fnsFormat(toUTCLocal(date), formatString)
 }
 
 /**
@@ -92,7 +102,7 @@ export function formatTime(dateString: string | null | undefined): string {
   const date = parseDate(dateString)
   if (!date) return 'Unknown'
 
-  return fnsFormat(date, 'p')
+  return fnsFormat(toUTCLocal(date), 'p')
 }
 
 /**
@@ -105,7 +115,7 @@ export function formatDateTime(dateString: string | null | undefined): string {
   const date = parseDate(dateString)
   if (!date) return 'Unknown'
 
-  return fnsFormat(date, "PPP 'at' p")
+  return fnsFormat(toUTCLocal(date), "PPP 'at' p")
 }
 
 /**
