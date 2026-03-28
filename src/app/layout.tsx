@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'
 import { PermissionProvider } from '@/contexts/permission-context'
+import { WebSocketProvider } from '@/contexts/websocket-context'
+import { ProcessingProvider } from '@/contexts/processing-context'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { Toaster } from 'sonner'
@@ -37,19 +39,23 @@ export default function RootLayout({
           <QueryProvider>
             <AuthProvider>
               <PermissionProvider>
-                {children}
-                <Toaster
-                  position="top-right"
-                  richColors
-                  closeButton
-                  duration={5000}
-                  expand={true}
-                  toastOptions={{
-                    style: {
-                      zIndex: 99999,
-                    },
-                  }}
-                />
+                <WebSocketProvider>
+                  <ProcessingProvider>
+                    {children}
+                    <Toaster
+                      position="top-right"
+                      richColors
+                      closeButton
+                      duration={5000}
+                      expand={true}
+                      toastOptions={{
+                        style: {
+                          zIndex: 99999,
+                        },
+                      }}
+                    />
+                  </ProcessingProvider>
+                </WebSocketProvider>
               </PermissionProvider>
             </AuthProvider>
           </QueryProvider>

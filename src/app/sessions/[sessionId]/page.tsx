@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import PageLayout from '@/components/layout/page-layout'
@@ -42,6 +42,8 @@ import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { useOptionalProcessing } from '@/contexts/processing-context'
+import { websocketService } from '@/services/websocket-service'
 
 export default function SessionDetailsPage({
   params,
@@ -92,6 +94,30 @@ export default function SessionDetailsPage({
       queryKey: ['wins', 'session', resolvedParams.sessionId],
     })
   }
+
+  // Auto-refresh when background processing completes
+  const processing = useOptionalProcessing()
+  const processingSession = processing?.processingSessions.get(
+    resolvedParams.sessionId,
+  )
+
+  useEffect(() => {
+    const unsub = websocketService.on(
+      'session:processing_complete',
+      (data: any) => {
+        if (data.session_id === resolvedParams.sessionId) {
+          // Refresh all session data without hard reload
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.sessions.detail(resolvedParams.sessionId),
+          })
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.sessions.all,
+          })
+        }
+      },
+    )
+    return unsub
+  }, [resolvedParams.sessionId, queryClient])
 
   // Analysis state (unified)
   const [analysisData, setAnalysisData] = useState<FullAnalysisResponse | null>(
@@ -452,8 +478,14 @@ export default function SessionDetailsPage({
               <div className="max-w-2xl mx-auto">
                 <MediaUploader
                   sessionId={session.id}
+                  sessionTitle={session.title}
                   onUploadComplete={() => {
-                    window.location.reload()
+                    // Invalidate to pick up the status change to "processing"
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.sessions.detail(
+                        resolvedParams.sessionId,
+                      ),
+                    })
                   }}
                 />
               </div>
@@ -484,19 +516,23 @@ export default function SessionDetailsPage({
                     Processing Recording
                   </h3>
                   <p className="text-app-secondary text-center mb-6 max-w-sm text-sm">
-                    Your file is being transcribed. This may take a few minutes.
+                    Your file is being transcribed. You can navigate away
+                    &mdash; we&apos;ll notify you when it&apos;s ready.
                   </p>
                   <div className="w-full max-w-xs">
                     <div className="h-2 bg-app-surface rounded-full overflow-hidden">
                       <div
                         className="h-full bg-app-primary rounded-full transition-all duration-500"
                         style={{
-                          width: `${session.transcription_progress || 0}%`,
+                          width: `${processingSession?.progress ?? session.transcription_progress ?? 0}%`,
                         }}
                       />
                     </div>
                     <p className="text-xs text-app-secondary mt-2 text-center">
-                      {session.transcription_progress || 0}% complete
+                      {processingSession?.progress ??
+                        session.transcription_progress ??
+                        0}
+                      % complete
                     </p>
                   </div>
                 </CardContent>

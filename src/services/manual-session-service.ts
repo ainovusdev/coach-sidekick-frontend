@@ -78,6 +78,16 @@ export class ManualSessionService {
     })
   }
 
+  static async getProcessingSessions(): Promise<
+    Array<{
+      session_id: string
+      title: string
+      transcription_progress: number
+    }>
+  > {
+    return ApiClient.get(`${BACKEND_URL}/sessions/processing/active`)
+  }
+
   static async getTranscriptionStatus(
     sessionId: string,
   ): Promise<TranscriptionStatus> {
