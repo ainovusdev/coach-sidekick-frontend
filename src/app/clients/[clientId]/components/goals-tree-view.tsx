@@ -901,8 +901,10 @@ export function GoalsTreeView({
         </Card>
 
         {/* Right Panel: Commitments Kanban */}
-        <div className={cn(!sidebarCollapsed && 'lg:col-span-2')}>
-          <Card className="border-gray-200 dark:border-gray-700">
+        <div
+          className={cn('flex flex-col', !sidebarCollapsed && 'lg:col-span-2')}
+        >
+          <Card className="border-gray-200 dark:border-gray-700 flex flex-col h-[calc(100vh-220px)]">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -1186,7 +1188,7 @@ export function GoalsTreeView({
                 </Button>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 min-h-0 overflow-y-auto">
               {filteredCommitments.length > 0 ? (
                 isClientPortal ? (
                   <CommitmentKanbanBoard

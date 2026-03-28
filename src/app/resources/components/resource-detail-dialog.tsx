@@ -72,6 +72,7 @@ interface ResourceDetailDialogProps {
   onDelete: (r: SharedResource) => void
   onShare?: (r: SharedResource) => void
   isOwner?: boolean
+  canShare?: boolean
 }
 
 export function ResourceDetailDialog({
@@ -82,6 +83,7 @@ export function ResourceDetailDialog({
   onDelete,
   onShare,
   isOwner = true,
+  canShare: canShareProp,
 }: ResourceDetailDialogProps) {
   const unshareResource = useUnshareResource()
 
@@ -91,7 +93,8 @@ export function ResourceDetailDialog({
   const ScopeIcon = SCOPE_ICONS[resource.sharing_scope] || Globe
   const colors = CATEGORY_COLORS[resource.category] || CATEGORY_COLORS.general
 
-  const canShare = isOwner && onShare
+  const canShare = (canShareProp ?? isOwner) && !!onShare
+  const canEdit = isOwner && resource.sharing_scope !== 'global'
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -289,9 +292,9 @@ export function ResourceDetailDialog({
           )}
 
           {/* Action buttons */}
-          {isOwner && (
+          {(canShare || canEdit) && (
             <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
-              {canShare && (
+              {canShare && onShare && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -304,29 +307,33 @@ export function ResourceDetailDialog({
                   Share
                 </Button>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  onOpenChange(false)
-                  onEdit(resource)
-                }}
-              >
-                <Pencil className="h-4 w-4 mr-1" />
-                Edit
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
-                onClick={() => {
-                  onOpenChange(false)
-                  onDelete(resource)
-                }}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                Delete
-              </Button>
+              {canEdit && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      onOpenChange(false)
+                      onEdit(resource)
+                    }}
+                  >
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                    onClick={() => {
+                      onOpenChange(false)
+                      onDelete(resource)
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </>
+              )}
             </div>
           )}
         </div>

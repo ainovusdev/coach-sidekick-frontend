@@ -85,14 +85,14 @@ function KanbanColumn({
       </CardHeader>
       <CardContent
         className={cn(
-          'p-0 flex-1 transition-colors',
+          'p-0 flex-1 transition-colors min-h-0',
           isDragOver && 'bg-primary/5',
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <ScrollArea className="h-[500px]">
+        <ScrollArea className="h-full">
           <div className="p-3 space-y-3">
             {commitments.length > 0 ? (
               commitments.map(commitment => (
@@ -140,7 +140,7 @@ export function CommitmentKanbanBoard({
   const doneCommitments = commitments.filter(c => c.status === 'completed')
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
       <KanbanColumn
         title="To Do"
         icon={<Circle className="h-4 w-4" />}

@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Check } from 'lucide-react'
 import { TargetService } from '@/services/target-service'
-import { TargetCreate } from '@/types/sprint'
+import { TargetCreate, TargetUpdate } from '@/types/sprint'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
@@ -28,6 +28,8 @@ interface TargetFormModalProps {
   goals?: Array<{ id: string; title: string }>
   clientId?: string
   onSuccess?: () => void
+  target?: any
+  mode?: 'create' | 'edit'
 }
 
 export function TargetFormModal({
@@ -37,6 +39,8 @@ export function TargetFormModal({
   goals = [],
   clientId: _clientId,
   onSuccess,
+  target,
+  mode = 'create',
 }: TargetFormModalProps) {
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
@@ -47,17 +51,28 @@ export function TargetFormModal({
     status: 'active' as const,
   })
 
-  // Reset form when modal opens
+  const isEdit = mode === 'edit' && !!target
+
+  // Reset form when modal opens — populate for edit
   useEffect(() => {
     if (open) {
-      setFormData({
-        title: '',
-        description: '',
-        status: 'active',
-      })
-      setSelectedGoalIds([])
+      if (isEdit) {
+        setFormData({
+          title: target.title || '',
+          description: target.description || '',
+          status: target.status || 'active',
+        })
+        setSelectedGoalIds(target.goal_ids || [])
+      } else {
+        setFormData({
+          title: '',
+          description: '',
+          status: 'active',
+        })
+        setSelectedGoalIds([])
+      }
     }
-  }, [open, goals])
+  }, [open, goals, isEdit, target])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -74,61 +89,83 @@ export function TargetFormModal({
 
     setLoading(true)
 
-    // Optimistic ID for new outcome
-    const optimisticId = `temp-${Date.now()}`
-
     try {
-      const targetData: TargetCreate = {
-        goal_ids: selectedGoalIds,
-        sprint_ids: sprintId ? [sprintId] : [],
-        title: formData.title,
-        description: formData.description || undefined,
-        status: formData.status,
+      if (isEdit) {
+        const updateData: TargetUpdate = {
+          title: formData.title,
+          description: formData.description || undefined,
+          status: formData.status,
+          goal_ids: selectedGoalIds,
+        }
+
+        await TargetService.updateTarget(target.id, updateData)
+
+        onOpenChange(false)
+        toast.success('Outcome Updated')
+
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.targets.all,
+        })
+
+        onSuccess?.()
+      } else {
+        // Optimistic ID for new outcome
+        const optimisticId = `temp-${Date.now()}`
+
+        const targetData: TargetCreate = {
+          goal_ids: selectedGoalIds,
+          sprint_ids: sprintId ? [sprintId] : [],
+          title: formData.title,
+          description: formData.description || undefined,
+          status: formData.status,
+        }
+
+        // Optimistic update - add outcome immediately
+        const optimisticOutcome = {
+          id: optimisticId,
+          ...targetData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          progress_percentage: 0,
+          order_index: 0,
+          commitment_count: 0,
+          completed_commitment_count: 0,
+          goal_titles: goals
+            .filter(g => selectedGoalIds.includes(g.id))
+            .map(g => g.title),
+        }
+
+        queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
+          return [...old, optimisticOutcome]
+        })
+
+        // Close modal and show immediately
+        onOpenChange(false)
+        toast.success('Outcome Created', {
+          description: `The outcome has been linked to ${selectedGoalIds.length} vision(s)`,
+        })
+
+        // Actual API call
+        await TargetService.createTarget(targetData)
+
+        // Invalidate to get the real data from server
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.targets.all,
+        })
+
+        onSuccess?.()
       }
-
-      // Optimistic update - add outcome immediately
-      const optimisticOutcome = {
-        id: optimisticId,
-        ...targetData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        progress_percentage: 0,
-        order_index: 0,
-        commitment_count: 0,
-        completed_commitment_count: 0,
-        goal_titles: goals
-          .filter(g => selectedGoalIds.includes(g.id))
-          .map(g => g.title),
-      }
-
-      queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
-        return [...old, optimisticOutcome]
-      })
-
-      // Close modal and show immediately
-      onOpenChange(false)
-      toast.success('Outcome Created', {
-        description: `The outcome has been linked to ${selectedGoalIds.length} vision(s)`,
-      })
-
-      // Actual API call
-      await TargetService.createTarget(targetData)
-
-      // Invalidate to get the real data from server
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.targets.all,
-      })
-
-      onSuccess?.()
     } catch (error) {
-      console.error('Failed to create outcome:', error)
+      console.error(`Failed to ${isEdit ? 'update' : 'create'} outcome:`, error)
 
-      // Rollback optimistic update on error
-      queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
-        return old.filter(t => t.id !== optimisticId)
-      })
+      if (!isEdit) {
+        // Rollback optimistic update on error
+        queryClient.setQueryData(queryKeys.targets.all, (old: any[] = []) => {
+          return old.filter(t => !t.id.startsWith('temp-'))
+        })
+      }
 
-      toast.error('Failed to create outcome', {
+      toast.error(`Failed to ${isEdit ? 'update' : 'create'} outcome`, {
         description: 'Please check your inputs and try again',
       })
 
@@ -145,9 +182,13 @@ export function TargetFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add a contract outcome</DialogTitle>
+          <DialogTitle>
+            {isEdit ? 'Edit Outcome' : 'Add a contract outcome'}
+          </DialogTitle>
           <DialogDescription>
-            Add a short-term outcome to track progress toward a vision
+            {isEdit
+              ? 'Update the outcome details'
+              : 'Add a short-term outcome to track progress toward a vision'}
           </DialogDescription>
         </DialogHeader>
 
@@ -247,7 +288,13 @@ export function TargetFormModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Outcome'}
+              {loading
+                ? isEdit
+                  ? 'Saving...'
+                  : 'Creating...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Create Outcome'}
             </Button>
           </DialogFooter>
         </form>

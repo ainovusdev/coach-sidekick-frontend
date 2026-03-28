@@ -24,6 +24,7 @@ import {
 import Image from 'next/image'
 import { useState } from 'react'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const navItems = [
   {
@@ -141,7 +142,9 @@ export function ClientNavigation() {
           </div>
 
           {/* Right Section */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+
             {/* Role Switcher - Only show if user has other roles */}
             {hasOtherRoles && <RoleSwitcher />}
 

@@ -478,23 +478,18 @@ export default function ClientDetailPage({
                         setGoalToDelete(goal)
                         setShowDeleteGoalDialog(true)
                       }}
-                      onEditOutcome={_outcome => {
-                        // TODO: Add edit mode support to TargetFormModal
-                        toast.info('Edit Outcome', {
-                          description:
-                            'Edit functionality coming soon. For now, you can delete and recreate.',
-                        })
+                      onEditOutcome={outcome => {
+                        modalState.setEditingOutcome(outcome)
+                        modalState.setIsOutcomeModalOpen(true)
                       }}
                       onDeleteOutcome={outcome => {
                         setOutcomeToDelete(outcome)
                         setShowDeleteOutcomeDialog(true)
                       }}
                       onCompleteOutcome={handleCompleteOutcome}
-                      onEditSprint={_sprint => {
-                        toast.info('Edit Sprint', {
-                          description:
-                            'Edit functionality coming soon. For now, you can delete and recreate.',
-                        })
+                      onEditSprint={sprint => {
+                        modalState.setEditingSprint(sprint)
+                        modalState.setIsSprintModalOpen(true)
                       }}
                       onDeleteSprint={sprint => {
                         setSprintToDelete(sprint)
@@ -545,6 +540,10 @@ export default function ClientDetailPage({
           setEndingSprint={modalState.setEndingSprint}
           editingGoal={modalState.editingGoal}
           setEditingGoal={modalState.setEditingGoal}
+          editingOutcome={modalState.editingOutcome}
+          setEditingOutcome={modalState.setEditingOutcome}
+          editingSprint={modalState.editingSprint}
+          setEditingSprint={modalState.setEditingSprint}
           showCommitmentCreatePanel={modalState.showCommitmentCreatePanel}
           setShowCommitmentCreatePanel={modalState.setShowCommitmentCreatePanel}
           onRefresh={refetch}

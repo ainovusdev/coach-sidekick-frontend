@@ -64,6 +64,7 @@ interface ResourceCardProps {
   onView: (r: SharedResource) => void
   onShare?: (r: SharedResource) => void
   isOwner?: boolean
+  canShare?: boolean
 }
 
 export function ResourceCard({
@@ -73,6 +74,7 @@ export function ResourceCard({
   onView,
   onShare,
   isOwner = true,
+  canShare,
 }: ResourceCardProps) {
   const Icon = CATEGORY_ICONS[resource.category] || FileText
   const colors = CATEGORY_COLORS[resource.category] || CATEGORY_COLORS.general
@@ -175,13 +177,13 @@ export function ResourceCard({
               <Eye className="h-4 w-4 mr-2" />
               View
             </DropdownMenuItem>
-            {isOwner && onShare && (
+            {(canShare ?? isOwner) && onShare && (
               <DropdownMenuItem onClick={() => onShare(resource)}>
                 <Share2 className="h-4 w-4 mr-2" />
                 Share
               </DropdownMenuItem>
             )}
-            {isOwner && (
+            {isOwner && resource.sharing_scope !== 'global' && (
               <>
                 <DropdownMenuItem onClick={() => onEdit(resource)}>
                   <Pencil className="h-4 w-4 mr-2" />

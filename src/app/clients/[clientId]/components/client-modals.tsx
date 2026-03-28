@@ -38,6 +38,10 @@ interface ClientModalsProps {
   setEndingSprint: (sprint: any) => void
   editingGoal: any
   setEditingGoal: (goal: any) => void
+  editingOutcome: any
+  setEditingOutcome: (outcome: any) => void
+  editingSprint: any
+  setEditingSprint: (sprint: any) => void
   showCommitmentCreatePanel: boolean
   setShowCommitmentCreatePanel: (open: boolean) => void
   onRefresh: () => void
@@ -68,6 +72,10 @@ export function ClientModals({
   setEndingSprint,
   editingGoal,
   setEditingGoal,
+  editingOutcome,
+  setEditingOutcome,
+  editingSprint,
+  setEditingSprint,
   showCommitmentCreatePanel,
   setShowCommitmentCreatePanel,
   onRefresh,
@@ -126,9 +134,18 @@ export function ClientModals({
 
       <SprintFormModal
         open={isSprintModalOpen}
-        onOpenChange={setIsSprintModalOpen}
+        onOpenChange={open => {
+          setIsSprintModalOpen(open)
+          if (!open) setEditingSprint(null)
+        }}
         clientId={client.id}
-        onSuccess={onRefresh}
+        sprint={editingSprint}
+        mode={editingSprint ? 'edit' : 'create'}
+        onSuccess={() => {
+          setEditingSprint(null)
+          queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+          onRefresh()
+        }}
       />
 
       <EndSprintModal
@@ -170,11 +187,16 @@ export function ClientModals({
 
       <TargetFormModal
         open={isOutcomeModalOpen}
-        onOpenChange={setIsOutcomeModalOpen}
+        onOpenChange={open => {
+          setIsOutcomeModalOpen(open)
+          if (!open) setEditingOutcome(null)
+        }}
         sprintId={sprints[0]?.id}
         goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
+        target={editingOutcome}
+        mode={editingOutcome ? 'edit' : 'create'}
         onSuccess={() => {
-          // Invalidate targets query to refresh the tree view
+          setEditingOutcome(null)
           queryClient.invalidateQueries({
             queryKey: queryKeys.targets.all,
           })
