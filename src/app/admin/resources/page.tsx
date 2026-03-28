@@ -20,6 +20,7 @@ import {
   Plus,
   Search,
   Trash2,
+  Pencil,
   AlertTriangle,
   Loader2,
   FileText,
@@ -28,10 +29,12 @@ import {
   RefreshCw,
 } from 'lucide-react'
 import { CreateResourceDialog } from '@/app/resources/components/create-resource-dialog'
+import { EditResourceDialog } from '@/app/resources/components/edit-resource-dialog'
 import { useResourceForm } from '@/app/resources/hooks/use-resource-form'
 import authService from '@/services/auth-service'
 import { toast } from 'sonner'
 import { formatDate } from '@/lib/date-utils'
+import type { ResourceCategory } from '@/types/resource'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -62,6 +65,8 @@ export default function AdminResourcesPage() {
   const [deleteTarget, setDeleteTarget] = useState<AdminResource | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
+  const [editTarget, setEditTarget] = useState<AdminResource | null>(null)
+  const [isEditing, setIsEditing] = useState(false)
 
   const { form, setField, resetForm, buildFormData, fileInputRef } =
     useResourceForm()
@@ -183,6 +188,55 @@ export default function AdminResourcesPage() {
       toast.error(err.message || 'Failed to delete resource')
     } finally {
       setIsDeleting(false)
+    }
+  }
+
+  const handleEditOpen = (resource: AdminResource) => {
+    setEditTarget(resource)
+    setField('title', resource.title)
+    setField('description', resource.description || '')
+    setField('category', (resource.category || 'general') as ResourceCategory)
+    setField('tags', (resource.tags || []).join(', '))
+    setField('scope', 'global')
+  }
+
+  const handleEditSave = async () => {
+    if (!editTarget) return
+    setIsEditing(true)
+    try {
+      const token = authService.getToken()
+      const updateData: Record<string, unknown> = {
+        title: form.title,
+        description: form.description || undefined,
+        category: form.category,
+        tags: form.tags
+          ? form.tags
+              .split(',')
+              .map(t => t.trim())
+              .filter(Boolean)
+          : [],
+      }
+
+      const response = await fetch(
+        `${BACKEND_URL}/admin/resources/${editTarget.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updateData),
+        },
+      )
+      if (!response.ok) throw new Error('Failed to update resource')
+      toast.success('Resource updated')
+      setEditTarget(null)
+      resetForm()
+      fetchResources()
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to update resource')
+    } finally {
+      setIsEditing(false)
     }
   }
 
@@ -359,6 +413,12 @@ export default function AdminResourcesPage() {
                         </a>
                       )}
                       <button
+                        onClick={() => handleEditOpen(resource)}
+                        className="p-1.5 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
                         onClick={() => setDeleteTarget(resource)}
                         className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
                       >
@@ -386,6 +446,21 @@ export default function AdminResourcesPage() {
         onSubmit={handleCreate}
         isPending={false}
         uploadProgress={uploadProgress}
+      />
+
+      {/* Edit Resource Dialog */}
+      <EditResourceDialog
+        open={!!editTarget}
+        onOpenChange={open => {
+          if (!open) {
+            setEditTarget(null)
+            resetForm()
+          }
+        }}
+        form={form}
+        setField={setField}
+        onSubmit={handleEditSave}
+        isPending={isEditing}
       />
 
       {/* Delete Confirmation */}

@@ -414,6 +414,10 @@ export default function CoachResourcesPage() {
                 onView={r => setViewingResource(r)}
                 onShare={handleShareResource}
                 isOwner={resource.coach_id === user?.id}
+                canShare={
+                  resource.sharing_scope === 'global' ||
+                  resource.coach_id === user?.id
+                }
               />
             ))}
           </div>
@@ -460,6 +464,10 @@ export default function CoachResourcesPage() {
           onDelete={r => setDeleteResource(r)}
           onShare={handleShareResource}
           isOwner={viewingResource?.coach_id === user?.id}
+          canShare={
+            viewingResource?.sharing_scope === 'global' ||
+            viewingResource?.coach_id === user?.id
+          }
         />
 
         {/* Share Resource Dialog */}

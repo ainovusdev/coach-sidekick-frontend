@@ -95,6 +95,8 @@ export default function ClientDashboard() {
   const [showCommitmentCreatePanel, setShowCommitmentCreatePanel] =
     useState(false)
   const [editingGoal, setEditingGoal] = useState<any>(null)
+  const [editingOutcome, setEditingOutcome] = useState<any>(null)
+  const [editingSprint, setEditingSprint] = useState<any>(null)
   const [selectedCommitmentId, setSelectedCommitmentId] = useState<
     string | null
   >(null)
@@ -344,22 +346,18 @@ export default function ClientDashboard() {
               setGoalToDelete(goal)
               setShowDeleteGoalDialog(true)
             }}
-            onEditOutcome={() => {
-              toast.info('Edit Outcome', {
-                description:
-                  'Edit functionality coming soon. For now, you can delete and recreate.',
-              })
+            onEditOutcome={outcome => {
+              setEditingOutcome(outcome)
+              setOutcomeModalOpen(true)
             }}
             onDeleteOutcome={outcome => {
               setOutcomeToDelete(outcome)
               setShowDeleteOutcomeDialog(true)
             }}
             onCompleteOutcome={handleCompleteOutcome}
-            onEditSprint={() => {
-              toast.info('Edit Sprint', {
-                description:
-                  'Edit functionality coming soon. For now, you can delete and recreate.',
-              })
+            onEditSprint={sprint => {
+              setEditingSprint(sprint)
+              setSprintModalOpen(true)
             }}
             onDeleteSprint={sprint => {
               setSprintToDelete(sprint)
@@ -480,20 +478,32 @@ export default function ClientDashboard() {
 
           <SprintFormModal
             open={sprintModalOpen}
-            onOpenChange={setSprintModalOpen}
+            onOpenChange={open => {
+              setSprintModalOpen(open)
+              if (!open) setEditingSprint(null)
+            }}
             clientId={clientId}
+            sprint={editingSprint}
+            mode={editingSprint ? 'edit' : 'create'}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: queryKeys.sprints.all })
+              setEditingSprint(null)
             }}
           />
 
           <TargetFormModal
             open={outcomeModalOpen}
-            onOpenChange={setOutcomeModalOpen}
+            onOpenChange={open => {
+              setOutcomeModalOpen(open)
+              if (!open) setEditingOutcome(null)
+            }}
             sprintId={sprints[0]?.id}
             goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
+            target={editingOutcome}
+            mode={editingOutcome ? 'edit' : 'create'}
             onSuccess={() => {
               queryClient.invalidateQueries({ queryKey: queryKeys.targets.all })
+              setEditingOutcome(null)
             }}
           />
 
