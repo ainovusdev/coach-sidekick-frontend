@@ -13,19 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Upload,
-  File,
-  X,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  FileUp,
-  ClipboardPaste,
-  Clock,
-} from 'lucide-react'
+import { Upload, File, X, FileUp, ClipboardPaste, Clock } from 'lucide-react'
 import { ManualSessionService } from '@/services/manual-session-service'
-import { toast } from '@/hooks/use-toast'
+import { useOptionalProcessing } from '@/contexts/processing-context'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 function estimateProcessingTime(file: File): string {
@@ -60,23 +51,24 @@ function estimateTextProcessingTime(textLength: number): string {
 
 interface MediaUploaderProps {
   sessionId: string
+  sessionTitle?: string
   onUploadComplete?: () => void
   className?: string
 }
 
 export function MediaUploader({
   sessionId,
+  sessionTitle,
   onUploadComplete,
   className,
 }: MediaUploaderProps) {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
-  const [transcriptionStatus, setTranscriptionStatus] = useState<string>('')
-  const [transcriptionProgress, setTranscriptionProgress] = useState(0)
   const [activeTab, setActiveTab] = useState<string>('upload')
   const [pastedText, setPastedText] = useState('')
   const [submittingText, setSubmittingText] = useState(false)
+  const processing = useOptionalProcessing()
 
   const isProcessing = uploading || submittingText
 
@@ -108,59 +100,30 @@ export function MediaUploader({
     disabled: isProcessing,
   })
 
-  const subscribeToProgress = () => {
-    return ManualSessionService.subscribeToTranscriptionProgress(
-      sessionId,
-      (status, progress) => {
-        setTranscriptionStatus(status)
-        setTranscriptionProgress(progress)
-
-        if (status === 'completed') {
-          toast({
-            title: 'Success',
-            description: 'File processed successfully!',
-          })
-          if (onUploadComplete) {
-            onUploadComplete()
-          }
-        } else if (status === 'failed') {
-          toast({
-            title: 'Error',
-            description: 'Processing failed. Please try again.',
-            variant: 'destructive',
-          })
-          setUploading(false)
-          setSubmittingText(false)
-        }
-      },
-    )
-  }
-
   const handleUpload = async () => {
     if (!file) return
 
     setUploading(true)
     setUploadProgress(0)
-    setTranscriptionStatus('uploading')
 
     try {
       setUploadProgress(50)
       await ManualSessionService.uploadMediaFile(sessionId, file)
-
       setUploadProgress(100)
-      setTranscriptionStatus('processing')
 
-      const unsubscribe = subscribeToProgress()
-      return () => unsubscribe()
+      // Register with global processing tracker
+      processing?.addProcessingSession(sessionId, sessionTitle || file.name)
+
+      toast.success('Upload started', {
+        description: 'Processing in the background — you can navigate away.',
+      })
+
+      // Signal completion immediately (non-blocking)
+      onUploadComplete?.()
     } catch (error) {
       console.error('Upload failed:', error)
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'Upload failed',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'Upload failed')
       setUploading(false)
-      setTranscriptionStatus('')
     }
   }
 
@@ -168,32 +131,32 @@ export function MediaUploader({
     if (pastedText.length < 50) return
 
     setSubmittingText(true)
-    setTranscriptionStatus('processing')
-    setTranscriptionProgress(0)
 
     try {
       await ManualSessionService.submitPastedText(sessionId, pastedText)
 
-      const unsubscribe = subscribeToProgress()
-      return () => unsubscribe()
+      // Register with global processing tracker
+      processing?.addProcessingSession(
+        sessionId,
+        sessionTitle || 'Pasted transcript',
+      )
+
+      toast.success('Text submitted', {
+        description: 'Processing in the background — you can navigate away.',
+      })
+
+      // Signal completion immediately (non-blocking)
+      onUploadComplete?.()
     } catch (error) {
       console.error('Paste submit failed:', error)
-      toast({
-        title: 'Error',
-        description:
-          error instanceof Error ? error.message : 'Processing failed',
-        variant: 'destructive',
-      })
+      toast.error(error instanceof Error ? error.message : 'Processing failed')
       setSubmittingText(false)
-      setTranscriptionStatus('')
     }
   }
 
   const removeFile = () => {
     setFile(null)
     setUploadProgress(0)
-    setTranscriptionProgress(0)
-    setTranscriptionStatus('')
   }
 
   const formatFileSize = (bytes: number) => {
@@ -201,55 +164,6 @@ export function MediaUploader({
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
-
-  const renderProcessingStatus = (timeEstimate: string) => (
-    <div className="space-y-3">
-      {/* Upload progress (file upload only) */}
-      {uploading && uploadProgress < 100 && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Uploading...</span>
-            <span className="text-gray-900 font-medium">{uploadProgress}%</span>
-          </div>
-          <Progress value={uploadProgress} className="h-2" />
-        </div>
-      )}
-
-      {/* Processing progress */}
-      {transcriptionStatus === 'processing' && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600 flex items-center">
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
-            </span>
-            <span className="text-gray-900 font-medium">
-              {transcriptionProgress}%
-            </span>
-          </div>
-          <Progress value={transcriptionProgress} className="h-2" />
-          <div className="flex items-center gap-1.5 text-xs text-gray-500">
-            <Clock className="w-3 h-3" />
-            <span>Estimated: {timeEstimate}</span>
-          </div>
-        </div>
-      )}
-
-      {transcriptionStatus === 'completed' && (
-        <div className="flex items-center space-x-2 text-gray-900">
-          <CheckCircle className="w-5 h-5" />
-          <span className="font-medium">Processing complete!</span>
-        </div>
-      )}
-
-      {transcriptionStatus === 'failed' && (
-        <div className="flex items-center space-x-2 text-gray-900">
-          <AlertCircle className="w-5 h-5" />
-          <span className="font-medium">Processing failed</span>
-        </div>
-      )}
-    </div>
-  )
 
   return (
     <Card className={className}>
@@ -335,45 +249,39 @@ export function MediaUploader({
                   )}
                 </div>
 
-                {/* Time estimate (before upload) */}
-                {!isProcessing && transcriptionStatus !== 'completed' && (
-                  <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>
-                      Estimated processing time: {estimateProcessingTime(file)}
-                    </span>
+                {/* Upload progress (HTTP upload only) */}
+                {uploading && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-gray-600">Uploading...</span>
+                      <span className="text-gray-900 font-medium">
+                        {uploadProgress}%
+                      </span>
+                    </div>
+                    <Progress value={uploadProgress} className="h-2" />
                   </div>
                 )}
 
-                {/* Processing status */}
-                {isProcessing &&
-                  renderProcessingStatus(estimateProcessingTime(file))}
+                {/* Time estimate + upload button (before upload) */}
+                {!isProcessing && (
+                  <>
+                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span>
+                        Estimated processing time:{' '}
+                        {estimateProcessingTime(file)}
+                      </span>
+                    </div>
 
-                {/* Completed/failed status (not processing) */}
-                {!isProcessing && transcriptionStatus === 'completed' && (
-                  <div className="flex items-center space-x-2 text-gray-900">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Processing complete!</span>
-                  </div>
-                )}
-
-                {!isProcessing && transcriptionStatus === 'failed' && (
-                  <div className="flex items-center space-x-2 text-gray-900">
-                    <AlertCircle className="w-5 h-5" />
-                    <span className="font-medium">Processing failed</span>
-                  </div>
-                )}
-
-                {/* Upload Button */}
-                {!isProcessing && transcriptionStatus !== 'completed' && (
-                  <Button
-                    onClick={handleUpload}
-                    disabled={!file}
-                    className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Upload & Process
-                  </Button>
+                    <Button
+                      onClick={handleUpload}
+                      disabled={!file}
+                      className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      Upload & Process
+                    </Button>
+                  </>
                 )}
               </div>
             )}
@@ -409,29 +317,8 @@ export function MediaUploader({
                 )}
               </div>
 
-              {/* Processing status */}
-              {isProcessing &&
-                renderProcessingStatus(
-                  estimateTextProcessingTime(pastedText.length),
-                )}
-
-              {/* Completed/failed status (not processing) */}
-              {!isProcessing && transcriptionStatus === 'completed' && (
-                <div className="flex items-center space-x-2 text-gray-900">
-                  <CheckCircle className="w-5 h-5" />
-                  <span className="font-medium">Processing complete!</span>
-                </div>
-              )}
-
-              {!isProcessing && transcriptionStatus === 'failed' && (
-                <div className="flex items-center space-x-2 text-gray-900">
-                  <AlertCircle className="w-5 h-5" />
-                  <span className="font-medium">Processing failed</span>
-                </div>
-              )}
-
               {/* Submit Button */}
-              {!isProcessing && transcriptionStatus !== 'completed' && (
+              {!isProcessing && (
                 <Button
                   onClick={handlePasteSubmit}
                   disabled={pastedText.length < 50}
