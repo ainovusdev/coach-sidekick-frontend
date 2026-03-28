@@ -1,307 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { LoadingSpinner } from '@/components/ui/loading-spinner'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   ArrowLeft,
   Clock,
-  Target,
-  TrendingUp,
-  MessageSquare,
-  FileText,
-  CheckCircle2,
-  Lightbulb,
-  BookOpen,
-  ChevronRight,
-  User,
-  ChevronDown,
-  ChevronUp,
-  Zap,
-  Hash,
-  Quote,
-  ExternalLink,
-  Circle,
-  PlayCircle,
   Users,
-  ArrowUpRight,
+  BarChart3,
+  LayoutList,
+  Smile,
+  Meh,
+  Frown,
 } from 'lucide-react'
-import { NotesList } from '@/components/session-notes/notes-list'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
-import { SentimentGauge } from '@/components/sessions/sentiment-gauge'
+import { useClientSessionDetail } from '@/hooks/queries/use-client-sessions'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { CommitmentService } from '@/services/commitment-service'
-import { commitmentTypeLabels } from '@/types/commitment'
-import { toast } from 'sonner'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-
-interface SessionDetail {
-  session: {
-    id: string
-    started_at: string | null
-    ended_at: string | null
-    duration_minutes: number
-    status: string
-    summary: string | null
-    key_topics: string[]
-    action_items: any[]
-    is_group_session?: boolean
-    coach: {
-      id: string
-      name: string
-      email: string
-    } | null
-  }
-  transcript: Array<{
-    speaker: string
-    text: string
-    timestamp: string
-  }>
-  tasks: Array<{
-    id: string
-    title: string
-    description: string
-    status: string
-    priority: string
-    due_date: string | null
-    comment_count: number
-  }>
-  materials: Array<{
-    id: string
-    title: string
-    description: string
-    material_type: string
-    file_url: string
-  }>
-  insights: {
-    summary: string
-    topics: string[]
-    keywords: string[]
-    sentiment: {
-      overall: string
-      score: number
-      emotions: string[]
-      engagement: string
-    }
-    insights: string[]
-    action_items: string[]
-    effectiveness: any
-    patterns: any
-    recommendations: any
-  } | null
-  analysis: {
-    coaching_scores: any
-    go_live_scores: any
-    sentiment: any
-    engagement: string
-    suggestions: Array<{
-      text?: string
-      suggestion?: string
-      target?: string
-      type?: string
-    }> | null
-  } | null
-}
-
-function SessionCommitmentItem({
-  commitment,
-  onUpdate,
-}: {
-  commitment: any
-  onUpdate: () => void
-}) {
-  const [isExpanded, setIsExpanded] = useState(false)
-
-  const handleStatusChange = async (newStatus: string) => {
-    try {
-      await CommitmentService.updateCommitment(commitment.id, {
-        status: newStatus as any,
-      })
-      const statusLabels: Record<string, string> = {
-        active: 'Committed',
-        in_progress: 'In Progress',
-        completed: 'Done',
-      }
-      toast.success(`Commitment moved to ${statusLabels[newStatus]}`)
-      onUpdate()
-    } catch {
-      toast.error('Failed to update commitment')
-    }
-  }
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
-      case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-600" />
-      default:
-        return <Circle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
-      case 'in_progress':
-        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
-      default:
-        return 'text-gray-700 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600'
-    }
-  }
-
-  return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <div className="flex-shrink-0">
-            {getStatusIcon(commitment.status)}
-          </div>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            )}
-          </button>
-          <p
-            className={`text-sm font-medium flex-1 dark:text-gray-200 ${
-              commitment.status === 'completed'
-                ? 'line-through text-gray-500 dark:text-gray-500'
-                : ''
-            }`}
-          >
-            {commitment.title}
-          </p>
-        </div>
-        <Select value={commitment.status} onValueChange={handleStatusChange}>
-          <SelectTrigger
-            className={`h-8 w-[130px] text-xs border ${getStatusColor(commitment.status)}`}
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">
-              <div className="flex items-center gap-2">
-                <Circle className="h-3 w-3" />
-                Committed
-              </div>
-            </SelectItem>
-            <SelectItem value="in_progress">
-              <div className="flex items-center gap-2">
-                <PlayCircle className="h-3 w-3" />
-                In Progress
-              </div>
-            </SelectItem>
-            <SelectItem value="completed">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-3 w-3" />
-                Done
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-      {isExpanded && (
-        <div className="px-3 pb-3 pt-1 space-y-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
-          {commitment.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {commitment.description}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
-            {commitment.priority && (
-              <span>
-                Priority: <strong>{commitment.priority}</strong>
-              </span>
-            )}
-            {commitment.target_date && (
-              <span>
-                Due:{' '}
-                <strong>
-                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
-                </strong>
-              </span>
-            )}
-            {commitment.type && (
-              <span>
-                Type:{' '}
-                <strong>
-                  {commitmentTypeLabels[commitment.type] || commitment.type}
-                </strong>
-              </span>
-            )}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
+import { ClientSessionOverview } from './components/client-session-overview'
+import { ClientSessionAnalysis } from './components/client-session-analysis'
 
 export default function ClientSessionDetailPage() {
   const params = useParams()
   const sessionId = params.id as string
 
-  const [sessionData, setSessionData] = useState<SessionDetail | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState('')
-  const [expandedSections, setExpandedSections] = useState<
-    Record<string, boolean>
-  >({
-    transcript: false,
-    notes: false,
-  })
-  useEffect(() => {
-    if (sessionId) {
-      fetchSessionDetail()
-    }
-  }, [sessionId])
-
-  const fetchSessionDetail = async () => {
-    try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) return
-
-      const apiUrl =
-        process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-      const response = await fetch(`${apiUrl}/client/sessions/${sessionId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      })
-
-      if (!response.ok) {
-        if (response.status === 404) {
-          setError('Session not found')
-          return
-        }
-        throw new Error('Failed to fetch session')
-      }
-
-      const data = await response.json()
-      setSessionData(data)
-    } catch (err: any) {
-      console.error('Session fetch error:', err)
-      setError(err.message || 'Failed to load session')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  const {
+    data: sessionData,
+    isLoading,
+    error,
+  } = useClientSessionDetail(sessionId)
 
   const { data: commitmentData, refetch: refetchCommitments } = useCommitments(
     { session_id: sessionId },
@@ -309,15 +38,38 @@ export default function ClientSessionDetailPage() {
   )
   const structuredCommitments = commitmentData?.commitments ?? []
 
-  const toggleSection = (section: string) => {
-    setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
-  }
-
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex items-center justify-center min-h-[60vh]">
-          <LoadingSpinner />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        {/* Header skeleton */}
+        <div className="flex items-center justify-between mb-6">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-6 w-20" />
+        </div>
+        {/* Hero skeleton */}
+        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <Skeleton className="h-16 w-16 rounded-xl" />
+              <div>
+                <Skeleton className="h-6 w-56 mb-2" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+            <div className="flex items-center gap-6">
+              <Skeleton className="h-14 w-16" />
+              <Skeleton className="h-14 w-16" />
+              <Skeleton className="h-14 w-16" />
+            </div>
+          </div>
+        </div>
+        {/* Tab skeleton */}
+        <Skeleton className="h-10 w-64 mb-6" />
+        {/* Content skeleton */}
+        <div className="space-y-4">
+          <Skeleton className="h-40 w-full rounded-xl" />
+          <Skeleton className="h-32 w-full rounded-xl" />
+          <Skeleton className="h-24 w-full rounded-xl" />
         </div>
       </div>
     )
@@ -328,7 +80,7 @@ export default function ClientSessionDetailPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            {error || 'Session not found'}
+            {error instanceof Error ? error.message : 'Session not found'}
           </p>
           <Link href="/client-portal/sessions">
             <Button variant="outline">
@@ -342,21 +94,30 @@ export default function ClientSessionDetailPage() {
   }
 
   const session = sessionData.session
-  const hasTranscript =
-    sessionData.transcript && sessionData.transcript.length > 0
-  const hasTasks = sessionData.tasks && sessionData.tasks.length > 0
-  const hasMaterials = sessionData.materials && sessionData.materials.length > 0
-  const hasInsights =
-    sessionData.insights &&
-    (sessionData.insights.insights?.length > 0 ||
-      sessionData.insights.topics?.length > 0)
-  const completedTasks =
-    sessionData.tasks?.filter(t => t.status === 'completed').length || 0
-  const totalTasks = sessionData.tasks?.length || 0
+  const hasInsights = sessionData.insights != null
+  const sentimentScore = sessionData.insights?.sentiment?.score
+  const sentimentLabel = sessionData.insights?.sentiment?.overall
+
+  const getSentimentIcon = () => {
+    if (sentimentScore == null) return null
+    if (sentimentScore >= 7)
+      return <Smile className="h-4 w-4 text-emerald-500" />
+    if (sentimentScore >= 4) return <Meh className="h-4 w-4 text-amber-500" />
+    return <Frown className="h-4 w-4 text-gray-400" />
+  }
+
+  const getSentimentBgColor = () => {
+    if (sentimentScore == null) return ''
+    if (sentimentScore >= 7)
+      return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+    if (sentimentScore >= 4)
+      return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Compact Header Bar */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <Link href="/client-portal/sessions">
           <Button
@@ -410,7 +171,7 @@ export default function ClientSessionDetailPage() {
           </div>
 
           {/* Quick Stats */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-5 flex-wrap">
             <div className="text-center">
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {session.duration_minutes || 0}
@@ -429,12 +190,34 @@ export default function ClientSessionDetailPage() {
             <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
             <div className="text-center">
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {session.action_items?.length || 0}
+                {structuredCommitments.length ||
+                  session.action_items?.length ||
+                  0}
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Actions
+                Commitments
               </p>
             </div>
+            {/* Sentiment score chip */}
+            {sentimentScore != null && (
+              <>
+                <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
+                <div
+                  className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getSentimentBgColor()}`}
+                >
+                  {getSentimentIcon()}
+                  <div>
+                    <p className="text-lg font-bold leading-none">
+                      {sentimentScore.toFixed(1)}
+                    </p>
+                    <p className="text-xs capitalize opacity-80">
+                      {sentimentLabel}
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
+            {/* Coach */}
             {session.coach && (
               <>
                 <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
@@ -457,463 +240,62 @@ export default function ClientSessionDetailPage() {
         </div>
       </div>
 
-      {/* Processing Notice */}
-      {session.status === 'processing' && (
-        <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center gap-3">
-          <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center animate-pulse">
-            <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+      {/* Processing Notice — only show if there's no content yet */}
+      {session.status === 'processing' &&
+        !session.summary &&
+        !sessionData.transcript?.length &&
+        !hasInsights && (
+          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center animate-pulse">
+              <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                Session Processing
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Details will appear once processing is complete.
+              </p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              Session Processing
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Details will appear once processing is complete.
-            </p>
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Summary Section */}
-          {session.summary && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <Quote className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  Session Summary
-                </h2>
-              </div>
-              <div className="p-5">
-                <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                  {session.summary}
-                </p>
-              </div>
-            </div>
-          )}
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="mb-6 bg-gray-100 dark:bg-gray-800">
+          <TabsTrigger value="overview" className="gap-2">
+            <LayoutList className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger
+            value="analysis"
+            className="gap-2"
+            disabled={!hasInsights}
+          >
+            <BarChart3 className="h-4 w-4" />
+            Insights & Analysis
+          </TabsTrigger>
+        </TabsList>
 
-          {/* Commitments / Action Items */}
-          {(structuredCommitments.length > 0 ||
-            (session.action_items && session.action_items.length > 0)) && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h2 className="font-semibold text-gray-900 dark:text-white">
-                    Commitments
-                  </h2>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                >
-                  {structuredCommitments.length > 0
-                    ? `${structuredCommitments.filter(c => c.status === 'completed').length}/${structuredCommitments.length} done`
-                    : `${session.action_items?.length || 0} items`}
-                </Badge>
-              </div>
-              {structuredCommitments.length > 0 ? (
-                <div className="p-4 space-y-2">
-                  {structuredCommitments.map((commitment: any) => (
-                    <SessionCommitmentItem
-                      key={commitment.id}
-                      commitment={commitment}
-                      onUpdate={() => refetchCommitments()}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                  {session.action_items?.map((item, index) => (
-                    <div
-                      key={index}
-                      className="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <div className="h-6 w-6 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
-                        {index + 1}
-                      </div>
-                      <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
-                        {typeof item === 'string'
-                          ? item
-                          : item.text || item.title}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+        <TabsContent value="overview">
+          <ClientSessionOverview
+            sessionData={sessionData}
+            sessionId={sessionId}
+            commitments={structuredCommitments}
+            onRefetchCommitments={() => refetchCommitments()}
+          />
+        </TabsContent>
 
-          {/* Key Insights */}
-          {sessionData.insights?.insights &&
-            sessionData.insights.insights.length > 0 && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                  <Lightbulb className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h2 className="font-semibold text-gray-900 dark:text-white">
-                    Key Insights
-                  </h2>
-                </div>
-                <div className="p-5 space-y-3">
-                  {sessionData.insights.insights
-                    .slice(0, 4)
-                    .map((insight, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                      >
-                        <Zap className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {insight}
-                        </span>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
+        <TabsContent value="analysis">
+          <ClientSessionAnalysis sessionData={sessionData} />
+        </TabsContent>
+      </Tabs>
 
-          {/* Recommendations */}
-          {(() => {
-            const suggestions =
-              sessionData.analysis?.suggestions?.filter(
-                (s: any) => s.target !== 'coach_only',
-              ) ?? []
-            return suggestions.length > 0 ? (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                  <ArrowUpRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h2 className="font-semibold text-gray-900 dark:text-white">
-                    Recommendations
-                  </h2>
-                </div>
-                <div className="p-5 space-y-3">
-                  {suggestions.map((suggestion: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                    >
-                      <Lightbulb className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-                      <span className="text-sm text-gray-700 dark:text-gray-300">
-                        {suggestion.text || suggestion.suggestion || suggestion}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null
-          })()}
-
-          {/* Transcript Preview */}
-          {hasTranscript && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <button
-                onClick={() => toggleSection('transcript')}
-                className="w-full px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h2 className="font-semibold text-gray-900 dark:text-white">
-                    Conversation Transcript
-                  </h2>
-                  <Badge
-                    variant="secondary"
-                    className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs ml-2"
-                  >
-                    {sessionData.transcript.length} messages
-                  </Badge>
-                </div>
-                {expandedSections.transcript ? (
-                  <ChevronUp className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-                )}
-              </button>
-
-              {expandedSections.transcript ? (
-                <ScrollArea className="h-[400px]">
-                  <div className="p-5 space-y-4">
-                    {sessionData.transcript.map((entry, index) => {
-                      const isCoach = entry.speaker
-                        ?.toLowerCase()
-                        .includes('coach')
-                      return (
-                        <div
-                          key={index}
-                          className={`flex gap-3 ${isCoach ? '' : 'flex-row-reverse'}`}
-                        >
-                          <div
-                            className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                              isCoach
-                                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                                : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                            }`}
-                          >
-                            <User className="h-4 w-4" />
-                          </div>
-                          <div
-                            className={`max-w-[80%] ${isCoach ? '' : 'text-right'}`}
-                          >
-                            <div
-                              className={`flex items-center gap-2 mb-1 ${isCoach ? '' : 'justify-end'}`}
-                            >
-                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                {entry.speaker}
-                              </span>
-                              {entry.timestamp && (
-                                <span className="text-xs text-gray-400 dark:text-gray-500">
-                                  {formatDate(entry.timestamp, 'h:mm a')}
-                                </span>
-                              )}
-                            </div>
-                            <div
-                              className={`inline-block px-4 py-2 rounded-2xl text-sm ${
-                                isCoach
-                                  ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-tl-sm'
-                                  : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-tr-sm'
-                              }`}
-                            >
-                              {entry.text}
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                </ScrollArea>
-              ) : (
-                <div className="p-5">
-                  <div className="space-y-2">
-                    {sessionData.transcript.slice(0, 3).map((entry, index) => (
-                      <div key={index} className="flex items-center gap-3">
-                        <div
-                          className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${
-                            entry.speaker?.toLowerCase().includes('coach')
-                              ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                              : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
-                          }`}
-                        >
-                          {entry.speaker?.charAt(0).toUpperCase()}
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate flex-1">
-                          {entry.text}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                  <button
-                    onClick={() => toggleSection('transcript')}
-                    className="mt-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium flex items-center gap-1"
-                  >
-                    View full transcript
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Notes Section */}
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-            <button
-              onClick={() => toggleSection('notes')}
-              className="w-full px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <FileText className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h2 className="font-semibold text-gray-900 dark:text-white">
-                  Session Notes
-                </h2>
-              </div>
-              {expandedSections.notes ? (
-                <ChevronUp className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-              ) : (
-                <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
-              )}
-            </button>
-            {expandedSections.notes && (
-              <div className="p-5">
-                <NotesList sessionId={sessionId} isClientPortal={true} />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div className="space-y-6">
-          {/* Topics & Keywords Card */}
-          {((session.key_topics?.length ?? 0) > 0 ||
-            (sessionData.insights?.keywords?.length ?? 0) > 0) && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <Hash className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Topics Discussed
-                </h3>
-              </div>
-              <div className="p-5">
-                <div className="flex flex-wrap gap-2">
-                  {session.key_topics?.map((topic, index) => (
-                    <span
-                      key={index}
-                      className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-lg"
-                    >
-                      {topic}
-                    </span>
-                  ))}
-                </div>
-                {sessionData.insights?.keywords &&
-                  sessionData.insights.keywords.length > 0 && (
-                    <>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 mb-2">
-                        Keywords
-                      </p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {sessionData.insights.keywords
-                          .slice(0, 8)
-                          .map((keyword, index) => (
-                            <span
-                              key={index}
-                              className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 text-xs rounded"
-                            >
-                              {keyword}
-                            </span>
-                          ))}
-                      </div>
-                    </>
-                  )}
-              </div>
-            </div>
-          )}
-
-          {/* Tasks Quick View */}
-          {hasTasks && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Commitments
-                  </h3>
-                </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs"
-                >
-                  {completedTasks}/{totalTasks} done
-                </Badge>
-              </div>
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {sessionData.tasks.slice(0, 4).map(task => {
-                  const isCompleted = task.status === 'completed'
-                  return (
-                    <div
-                      key={task.id}
-                      className="px-5 py-3 flex items-start gap-3"
-                    >
-                      <div
-                        className={`h-5 w-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                          isCompleted
-                            ? 'border-gray-900 bg-gray-900 dark:border-white dark:bg-white'
-                            : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                      >
-                        {isCompleted && (
-                          <CheckCircle2 className="h-3 w-3 text-white" />
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-sm ${isCompleted ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}
-                        >
-                          {task.title}
-                        </p>
-                        {task.due_date && (
-                          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                            Due {formatDate(task.due_date, 'MMM d')}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-                {sessionData.tasks.length > 4 && (
-                  <div className="px-5 py-3 text-center">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      +{sessionData.tasks.length - 4} more commitments
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Materials Quick View */}
-          {hasMaterials && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <BookOpen className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Materials
-                </h3>
-              </div>
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
-                {sessionData.materials.slice(0, 3).map(material => (
-                  <div key={material.id} className="px-5 py-3">
-                    <div className="flex items-start gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                        <FileText className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                          {material.title}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
-                          {material.material_type}
-                        </p>
-                      </div>
-                      {material.file_url && (
-                        <a
-                          href={material.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Session Pulse - Sentiment Gauge */}
-          {sessionData.insights?.sentiment &&
-            sessionData.insights.sentiment.score != null && (
-              <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Session Pulse
-                  </h3>
-                </div>
-                <div className="p-5">
-                  <SentimentGauge sentiment={sessionData.insights.sentiment} />
-                </div>
-              </div>
-            )}
-        </div>
-      </div>
-
-      {/* Empty State for Sessions with No Content */}
+      {/* Empty State — only when session has absolutely no content */}
       {!session.summary &&
         (!session.action_items || session.action_items.length === 0) &&
-        !hasTranscript &&
-        !hasTasks &&
+        !sessionData.transcript?.length &&
+        !sessionData.tasks?.length &&
         !hasInsights && (
           <div className="mt-6 text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
             <div className="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">

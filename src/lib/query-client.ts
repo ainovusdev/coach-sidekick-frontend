@@ -205,6 +205,18 @@ export const queryKeys = {
       [...queryKeys.groupSessions.detail(id), 'participants'] as const,
   },
 
+  // Client portal keys
+  clientPortal: {
+    all: ['client-portal'] as const,
+    sessions: () => [...queryKeys.clientPortal.all, 'sessions'] as const,
+    sessionList: (page?: number) =>
+      [...queryKeys.clientPortal.sessions(), 'list', { page }] as const,
+    sessionDetail: (id: string) =>
+      [...queryKeys.clientPortal.sessions(), 'detail', id] as const,
+    dashboardStats: () =>
+      [...queryKeys.clientPortal.all, 'dashboard-stats'] as const,
+  },
+
   // Admin keys
   admin: {
     // User management keys
