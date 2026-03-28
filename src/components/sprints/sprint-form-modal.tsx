@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,7 +21,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { SprintService } from '@/services/sprint-service'
-import { SprintCreate } from '@/types/sprint'
+import { SprintCreate, SprintUpdate } from '@/types/sprint'
 import { toast } from 'sonner'
 import { addWeeks, format } from 'date-fns'
 import { CalendarIcon, Check } from 'lucide-react'
@@ -35,6 +35,8 @@ interface SprintFormModalProps {
   onOpenChange: (open: boolean) => void
   clientId: string
   onSuccess?: () => void
+  sprint?: any
+  mode?: 'create' | 'edit'
 }
 
 export function SprintFormModal({
@@ -42,6 +44,8 @@ export function SprintFormModal({
   onOpenChange,
   clientId,
   onSuccess,
+  sprint,
+  mode = 'create',
 }: SprintFormModalProps) {
   const queryClient = useQueryClient()
   const [loading, setLoading] = useState(false)
@@ -51,8 +55,29 @@ export function SprintFormModal({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    status: 'active' as const, // Always default to active
+    status: 'active' as const,
   })
+
+  const isEdit = mode === 'edit' && !!sprint
+
+  // Populate form for edit mode
+  useEffect(() => {
+    if (open && isEdit) {
+      setFormData({
+        title: sprint.title || '',
+        description: sprint.description || '',
+        status: sprint.status || 'active',
+      })
+      if (sprint.start_date) setStartDate(new Date(sprint.start_date))
+      if (sprint.end_date) setEndDate(new Date(sprint.end_date))
+      setSelectedOutcomeIds(sprint.target_ids || [])
+    } else if (open && !isEdit) {
+      setFormData({ title: '', description: '', status: 'active' })
+      setStartDate(new Date())
+      setEndDate(addWeeks(new Date(), 6))
+      setSelectedOutcomeIds([])
+    }
+  }, [open, isEdit, sprint])
 
   // Fetch goals and targets for the client
   const { data: goals = [] } = useGoals(clientId)
@@ -86,79 +111,105 @@ export function SprintFormModal({
 
     setLoading(true)
 
-    // Optimistic ID for new sprint
-    const optimisticId = `temp-${Date.now()}`
-
     try {
-      const sprintData: SprintCreate = {
-        client_id: clientId,
-        title: formData.title,
-        description: formData.description || undefined,
-        start_date: format(startDate, 'yyyy-MM-dd'),
-        end_date: format(endDate, 'yyyy-MM-dd'),
-        status: formData.status,
-        target_ids: selectedOutcomeIds, // Required - linked outcomes
+      if (isEdit) {
+        const updateData: SprintUpdate = {
+          title: formData.title,
+          description: formData.description || undefined,
+          start_date: format(startDate, 'yyyy-MM-dd'),
+          end_date: format(endDate, 'yyyy-MM-dd'),
+          status: formData.status,
+        }
+
+        await SprintService.updateSprint(sprint.id, updateData)
+
+        onOpenChange(false)
+        toast.success('Sprint Updated')
+
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.sprints.all,
+        })
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.targets.all,
+        })
+
+        onSuccess?.()
+      } else {
+        // Optimistic ID for new sprint
+        const optimisticId = `temp-${Date.now()}`
+
+        const sprintData: SprintCreate = {
+          client_id: clientId,
+          title: formData.title,
+          description: formData.description || undefined,
+          start_date: format(startDate, 'yyyy-MM-dd'),
+          end_date: format(endDate, 'yyyy-MM-dd'),
+          status: formData.status,
+          target_ids: selectedOutcomeIds,
+        }
+
+        // Optimistic update - add sprint immediately
+        const optimisticSprint = {
+          id: optimisticId,
+          ...sprintData,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          progress_percentage: 0,
+        }
+
+        queryClient.setQueryData(
+          queryKeys.sprints.list({ client_id: clientId }),
+          (old: any[] = []) => {
+            return [...old, optimisticSprint]
+          },
+        )
+
+        // Close modal and show immediately
+        onOpenChange(false)
+        toast.success('Sprint Created', {
+          description: 'The sprint has been created successfully',
+        })
+
+        // Reset form
+        setFormData({
+          title: '',
+          description: '',
+          status: 'active',
+        })
+        setStartDate(new Date())
+        setEndDate(addWeeks(new Date(), 6))
+        setSelectedOutcomeIds([])
+
+        // Create sprint with linked outcomes (handled atomically by backend)
+        await SprintService.createSprint(sprintData)
+
+        // Invalidate sprint queries to get real data from server
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.sprints.all,
+        })
+
+        // Also invalidate targets since we updated their sprint links
+        await queryClient.invalidateQueries({
+          queryKey: queryKeys.targets.all,
+        })
+
+        // Trigger success callback for any additional refresh needs
+        onSuccess?.()
       }
-
-      // Optimistic update - add sprint immediately
-      const optimisticSprint = {
-        id: optimisticId,
-        ...sprintData,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        progress_percentage: 0,
-      }
-
-      queryClient.setQueryData(
-        queryKeys.sprints.list({ client_id: clientId }),
-        (old: any[] = []) => {
-          return [...old, optimisticSprint]
-        },
-      )
-
-      // Close modal and show immediately
-      onOpenChange(false)
-      toast.success('Sprint Created', {
-        description: 'The sprint has been created successfully',
-      })
-
-      // Reset form
-      setFormData({
-        title: '',
-        description: '',
-        status: 'active',
-      })
-      setStartDate(new Date())
-      setEndDate(addWeeks(new Date(), 6))
-      setSelectedOutcomeIds([])
-
-      // Create sprint with linked outcomes (handled atomically by backend)
-      await SprintService.createSprint(sprintData)
-
-      // Invalidate sprint queries to get real data from server
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.sprints.all,
-      })
-
-      // Also invalidate targets since we updated their sprint links
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.targets.all,
-      })
-
-      // Trigger success callback for any additional refresh needs
-      onSuccess?.()
     } catch (error) {
-      console.error('Failed to create sprint:', error)
+      console.error(`Failed to ${isEdit ? 'update' : 'create'} sprint:`, error)
 
-      // Rollback optimistic update on error
-      queryClient.setQueryData(
-        queryKeys.sprints.list({ client_id: clientId }),
-        (old: any[] = []) => {
-          return old.filter(s => s.id !== optimisticId)
-        },
-      )
+      if (!isEdit) {
+        // Rollback optimistic update on error
+        queryClient.setQueryData(
+          queryKeys.sprints.list({ client_id: clientId }),
+          (old: any[] = []) => {
+            return old.filter(s => !s.id.startsWith('temp-'))
+          },
+        )
+      }
 
-      toast.error('Failed to create sprint', {
+      toast.error(`Failed to ${isEdit ? 'update' : 'create'} sprint`, {
         description: 'Please try again',
       })
 
@@ -175,10 +226,13 @@ export function SprintFormModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Sprint</DialogTitle>
+          <DialogTitle>
+            {isEdit ? 'Edit Sprint' : 'Create New Sprint'}
+          </DialogTitle>
           <DialogDescription>
-            Create a 6-8 week sprint to organize meta performance outcomes and
-            desired wins. You can run multiple sprints concurrently.
+            {isEdit
+              ? 'Update the sprint details'
+              : 'Create a 6-8 week sprint to organize meta performance outcomes and desired wins. You can run multiple sprints concurrently.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -366,7 +420,13 @@ export function SprintFormModal({
                 clientTargets.length === 0 ? 'Create outcomes first' : undefined
               }
             >
-              {loading ? 'Creating...' : 'Create Sprint'}
+              {loading
+                ? isEdit
+                  ? 'Saving...'
+                  : 'Creating...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Create Sprint'}
             </Button>
           </DialogFooter>
         </form>
