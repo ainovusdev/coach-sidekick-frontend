@@ -261,6 +261,71 @@ export function ProcessingProvider({ children }: ProcessingProviderProps) {
     return unsub
   }, [isAuthenticated])
 
+  // Polling fallback — ensures progress updates even when WebSocket is unreliable
+  useEffect(() => {
+    const hasProcessing = Array.from(processingSessions.values()).some(
+      s => s.status === 'processing',
+    )
+    if (!hasProcessing || !isAuthenticated) return
+
+    const interval = setInterval(async () => {
+      // Poll each processing session's individual status
+      for (const [sessionId, session] of processingSessions) {
+        if (session.status !== 'processing') continue
+        try {
+          const status =
+            await ManualSessionService.getTranscriptionStatus(sessionId)
+          if (
+            status.transcription_status === 'completed' ||
+            status.transcription_status === 'failed'
+          ) {
+            const isComplete = status.transcription_status === 'completed'
+            setProcessingSessions(prev => {
+              const next = new Map(prev)
+              const existing = next.get(sessionId)
+              if (existing) {
+                next.set(sessionId, {
+                  ...existing,
+                  progress: isComplete ? 100 : 0,
+                  status: status.transcription_status as 'completed' | 'failed',
+                })
+              }
+              return next
+            })
+            if (isComplete) {
+              queryClient.invalidateQueries({
+                queryKey: queryKeys.sessions.all,
+              })
+              scheduleAutoRemove(sessionId, 15000)
+            } else {
+              scheduleAutoRemove(sessionId, 10000)
+            }
+          } else {
+            // Update progress
+            setProcessingSessions(prev => {
+              const next = new Map(prev)
+              const existing = next.get(sessionId)
+              if (
+                existing &&
+                status.transcription_progress > existing.progress
+              ) {
+                next.set(sessionId, {
+                  ...existing,
+                  progress: status.transcription_progress,
+                })
+              }
+              return next
+            })
+          }
+        } catch {
+          // Silently fail — polling is best-effort
+        }
+      }
+    }, 3000)
+
+    return () => clearInterval(interval)
+  }, [processingSessions, isAuthenticated, queryClient, scheduleAutoRemove])
+
   // Cleanup timers on unmount
   useEffect(() => {
     return () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import PageLayout from '@/components/layout/page-layout'
@@ -118,6 +118,23 @@ export default function SessionDetailsPage({
     )
     return unsub
   }, [resolvedParams.sessionId, queryClient])
+
+  // Also auto-refresh when ProcessingContext detects completion (polling fallback)
+  const prevProcessingStatus = useRef(processingSession?.status)
+  useEffect(() => {
+    if (
+      prevProcessingStatus.current === 'processing' &&
+      processingSession?.status === 'completed'
+    ) {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.detail(resolvedParams.sessionId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.all,
+      })
+    }
+    prevProcessingStatus.current = processingSession?.status
+  }, [processingSession?.status, resolvedParams.sessionId, queryClient])
 
   // Analysis state (unified)
   const [analysisData, setAnalysisData] = useState<FullAnalysisResponse | null>(
