@@ -124,7 +124,7 @@ export function ManualSessionModal({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="text-xl">Add Past Session</DialogTitle>
-          <DialogDescription className="text-gray-600">
+          <DialogDescription className="text-muted-foreground">
             Create a session to upload and analyze recorded audio or video files
           </DialogDescription>
         </DialogHeader>
@@ -134,7 +134,7 @@ export function ManualSessionModal({
           <div className="space-y-2">
             <Label
               htmlFor="client"
-              className="text-base font-medium text-gray-900"
+              className="text-base font-medium text-foreground"
             >
               Client <span className="text-red-500">*</span>
             </Label>
@@ -167,7 +167,7 @@ export function ManualSessionModal({
           <div className="space-y-2">
             <Label
               htmlFor="date"
-              className="text-base font-medium text-gray-900"
+              className="text-base font-medium text-foreground"
             >
               Session Date
             </Label>
@@ -176,8 +176,8 @@ export function ManualSessionModal({
                 <Button
                   variant="outline"
                   className={cn(
-                    'w-full justify-start text-left font-normal border-gray-200',
-                    !sessionDate && 'text-gray-400',
+                    'w-full justify-start text-left font-normal border-input',
+                    !sessionDate && 'text-muted-foreground',
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -203,10 +203,12 @@ export function ManualSessionModal({
           <div className="space-y-2">
             <Label
               htmlFor="notes"
-              className="text-base font-medium text-gray-900"
+              className="text-base font-medium text-foreground"
             >
               Notes{' '}
-              <span className="text-gray-500 font-normal">(Optional)</span>
+              <span className="text-muted-foreground font-normal">
+                (Optional)
+              </span>
             </Label>
             <Textarea
               id="notes"
@@ -216,18 +218,18 @@ export function ManualSessionModal({
                 setFormData({ ...formData, notes: e.target.value })
               }
               rows={3}
-              className="border-gray-200"
+              className="border-input"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
             <Button
               type="button"
               variant="outline"
               onClick={handleClose}
               disabled={creating}
-              className="border-gray-300 hover:bg-gray-50"
+              className="border-input hover:bg-accent"
             >
               Cancel
             </Button>
