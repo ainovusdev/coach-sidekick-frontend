@@ -45,7 +45,15 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
 
   const draftCount = draftCommitmentsData?.commitments?.length ?? 0
 
-  const items = [
+  type AttentionItem = {
+    label: string
+    icon: typeof Clock
+    href: string
+    color: string
+    iconColor: string
+  }
+
+  const items: AttentionItem[] = [
     overdueCount > 0
       ? {
           label: `${overdueCount} overdue`,
@@ -76,7 +84,7 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
           iconColor: 'text-blue-500',
         }
       : null,
-  ].filter(Boolean) as NonNullable<(typeof items)[number]>[]
+  ].filter((item): item is AttentionItem => item !== null)
 
   if (items.length === 0) return null
 
