@@ -68,6 +68,7 @@ export interface SimpleClient {
   email?: string
   is_my_client?: boolean
   coach_name?: string
+  last_session_date?: string | null
 }
 
 export interface SimpleClientListResponse {

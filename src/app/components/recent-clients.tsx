@@ -119,6 +119,7 @@ export default function RecentClients({
                   onClick={() => router.push(`/clients/${client.id}`)}
                   isMyClient={client.is_my_client}
                   coachName={client.coach_name}
+                  lastSessionDate={client.last_session_date}
                 />
               ))}
             </div>

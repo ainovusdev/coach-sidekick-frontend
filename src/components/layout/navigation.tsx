@@ -6,14 +6,7 @@ import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import {
-  BarChart3,
-  UserCheck,
-  History,
-  BookOpen,
-  Sparkles,
-  Shield,
-} from 'lucide-react'
+import { BarChart3, UserCheck, History, BookOpen, Shield } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 
@@ -100,12 +93,6 @@ export default function Navigation() {
                   <h1 className="text-xl font-bold text-gray-900 dark:text-white">
                     Coach Sidekick
                   </h1>
-                </div>
-                <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-                  <Sparkles className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                    Novus Global Powered AI
-                  </span>
                 </div>
               </div>
             </button>

@@ -12,9 +12,20 @@ export function MyCommitments() {
   const { data, isLoading } = useMyCommitments()
   const commitments = data?.commitments ?? []
 
-  // Show only active commitments, limited to 5
+  // Show only active commitments, sorted with overdue first, limited to 5
+  const now = new Date()
   const activeCommitments = commitments
     .filter(c => c.status !== 'completed' && c.status !== 'abandoned')
+    .sort((a, b) => {
+      const aOverdue = a.target_date && new Date(a.target_date) < now ? 1 : 0
+      const bOverdue = b.target_date && new Date(b.target_date) < now ? 1 : 0
+      if (aOverdue !== bOverdue) return bOverdue - aOverdue // overdue first
+      if (a.target_date && b.target_date)
+        return (
+          new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
+        )
+      return 0
+    })
     .slice(0, 5)
 
   if (isLoading) {
@@ -102,15 +113,16 @@ export function MyCommitments() {
                           |
                         </span>
                         <Calendar className="h-3 w-3" />
-                        <span
-                          className={
-                            new Date(commitment.target_date) < new Date()
-                              ? 'text-red-500'
-                              : ''
-                          }
-                        >
-                          {formatDate(commitment.target_date, 'MMM d')}
-                        </span>
+                        {new Date(commitment.target_date) < now ? (
+                          <span className="text-red-500 font-medium">
+                            Overdue -{' '}
+                            {formatDate(commitment.target_date, 'MMM d')}
+                          </span>
+                        ) : (
+                          <span>
+                            {formatDate(commitment.target_date, 'MMM d')}
+                          </span>
+                        )}
                       </>
                     )}
                   </div>

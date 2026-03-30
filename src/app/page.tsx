@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useMyCommitments } from '@/hooks/queries/use-commitments'
 import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
 import { CoachRoute } from '@/components/auth/coach-route'
@@ -12,8 +13,7 @@ import RecentClients from './components/recent-clients'
 import RecentSessions from './components/recent-sessions'
 import LiveSessionBanner from './components/live-session-banner'
 import StartRecording from './components/start-recording'
-import SystemStatus from './components/system-status'
-import { MyCommitments } from './components/my-commitments'
+import { AttentionNeeded } from './components/attention-needed'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
@@ -47,6 +47,38 @@ export default function CoachDashboard() {
     debouncedCreateBot,
     refetch,
   } = useDashboardData()
+
+  // Commitments data for contextual greeting
+  const { data: myCommitmentsData } = useMyCommitments()
+
+  // Contextual greeting
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 17) return 'Good afternoon'
+    return 'Good evening'
+  }, [])
+
+  const { overdueCount, staleClientCount } = useMemo(() => {
+    const now = new Date()
+    const overdueCount = (myCommitmentsData?.commitments ?? []).filter(
+      c =>
+        c.status !== 'completed' &&
+        c.status !== 'abandoned' &&
+        c.target_date &&
+        new Date(c.target_date) < now,
+    ).length
+
+    const thirtyDaysAgo = new Date()
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+    const staleClientCount = clients.filter(c => {
+      if (c.is_my_client === false) return false
+      if (!c.last_session_date) return false
+      return new Date(c.last_session_date) < thirtyDaysAgo
+    }).length
+
+    return { overdueCount, staleClientCount }
+  }, [myCommitmentsData, clients])
 
   // Dedicated query for active sessions - independent of the paginated recent sessions list
   const { data: activeSessionsData } = useSessions(
@@ -210,10 +242,28 @@ export default function CoachDashboard() {
           {/* Page Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Dashboard
+              {greeting}, {firstName}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              Welcome back! Manage your clients and coaching sessions.
+              {overdueCount > 0 || staleClientCount > 0 ? (
+                <>
+                  {overdueCount > 0 && (
+                    <span>
+                      {overdueCount} overdue item{overdueCount !== 1 && 's'}
+                    </span>
+                  )}
+                  {overdueCount > 0 && staleClientCount > 0 && ' and '}
+                  {staleClientCount > 0 && (
+                    <span>
+                      {staleClientCount} client
+                      {staleClientCount !== 1 && 's'} need
+                      {staleClientCount === 1 && 's'} follow-up
+                    </span>
+                  )}
+                </>
+              ) : (
+                'All caught up. Manage your clients and coaching sessions.'
+              )}
             </p>
           </div>
 
@@ -299,8 +349,8 @@ export default function CoachDashboard() {
             )}
           </div>
 
-          {/* My Commitments Section (Coach Action Items) */}
-          <MyCommitments />
+          {/* Attention Needed Alerts */}
+          <AttentionNeeded clients={clients} />
 
           {/* Bottom Section: Recent Sessions (Full Width) */}
           <RecentSessions
@@ -310,8 +360,6 @@ export default function CoachDashboard() {
             totalSessions={totalSessions}
             onRefetch={refetch}
           />
-
-          <SystemStatus />
         </div>
 
         {/* Client Modal */}
