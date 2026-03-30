@@ -1,7 +1,6 @@
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import {
   MessageSquare,
@@ -9,8 +8,11 @@ import {
   AlertCircle,
   Lock,
   Video,
+  Clock,
+  User,
 } from 'lucide-react'
 import { usePermissions } from '@/contexts/permission-context'
+import { cn } from '@/lib/utils'
 
 interface RecentSessionsProps {
   meetingHistory: any
@@ -31,71 +33,11 @@ export default function RecentSessions({
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <Badge className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800 text-xs font-medium">
-            Completed
-          </Badge>
-        )
-      case 'in_progress':
-      case 'recording':
-        return (
-          <Badge className="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800 text-xs font-medium animate-pulse">
-            Recording
-          </Badge>
-        )
-      case 'error':
-        return (
-          <Badge className="bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800 text-xs font-medium">
-            Error
-          </Badge>
-        )
-      default:
-        return (
-          <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 text-xs font-medium">
-            {status.replace('_', ' ')}
-          </Badge>
-        )
-    }
+  const onViewDetails = (sessionId: string) => {
+    router.push(`/sessions/${sessionId}`)
   }
 
-  const _getPlatformIcon = (url: string | null | undefined) => {
-    if (!url) return <Video className="h-4 w-4" />
-    if (url.includes('zoom.us')) {
-      return (
-        <div className="h-4 w-4 flex items-center justify-center">
-          <span className="text-blue-600 font-bold text-xs">Z</span>
-        </div>
-      )
-    }
-    if (url.includes('meet.google.com')) {
-      return (
-        <div className="h-4 w-4 flex items-center justify-center">
-          <span className="text-green-600 font-bold text-xs">G</span>
-        </div>
-      )
-    }
-    if (url.includes('teams.microsoft.com')) {
-      return (
-        <div className="h-4 w-4 flex items-center justify-center">
-          <span className="text-purple-600 font-bold text-xs">T</span>
-        </div>
-      )
-    }
-    return <Video className="h-4 w-4" />
-  }
-
-  const _getPlatformName = (url: string | null | undefined) => {
-    if (!url) return 'Meeting'
-    if (url.includes('zoom.us')) return 'Zoom'
-    if (url.includes('meet.google.com')) return 'Google Meet'
-    if (url.includes('teams.microsoft.com')) return 'Teams'
-    return 'Meeting'
-  }
-
-  const SessionCardModern = ({ session }: { session: any }) => {
+  const SessionRow = ({ session }: { session: any }) => {
     const summary = session.meeting_summaries
     const durationMinutes =
       summary?.duration_minutes ||
@@ -104,178 +46,158 @@ export default function RecentSessions({
         : null)
     const clientName =
       session.client_name || session.metadata?.client_name || null
-    const coachName = session.coach_name || null
     const meetingSummary = summary?.meeting_summary || session.summary
-    const formattedDate = formatDate(session.created_at, 'MMM d')
     const isLive =
       session.status === 'in_progress' || session.status === 'recording'
     const isCompleted = session.status === 'completed'
+    const isError = session.status === 'error'
 
-    // Build session title
-    const getSessionTitle = () => {
-      if (coachName && clientName) {
-        return `Session between ${coachName} and ${clientName}`
-      } else if (clientName) {
-        return `Session with ${clientName}`
-      } else {
-        return `Session`
-      }
-    }
+    const statusDot = isLive
+      ? 'bg-emerald-500'
+      : isCompleted
+        ? 'bg-gray-900 dark:bg-white'
+        : isError
+          ? 'bg-red-500'
+          : 'bg-amber-500'
 
     return (
       <div
-        className="group relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
-        onClick={() => onViewDetails && onViewDetails(session.id)}
+        className="flex items-start gap-4 px-5 py-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer group"
+        onClick={() => onViewDetails(session.id)}
       >
-        {/* Accent bar */}
-        <div
-          className={`absolute left-0 top-0 bottom-0 w-1 ${
-            isLive
-              ? 'bg-emerald-500'
-              : isCompleted
-                ? 'bg-gray-900 dark:bg-white'
-                : 'bg-gray-300 dark:bg-gray-600'
-          }`}
-        />
+        {/* Client avatar */}
+        <div className="relative flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+            <User className="h-5 w-5 text-gray-400" />
+          </div>
+          {/* Status dot */}
+          <span
+            className={cn(
+              'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-gray-900',
+              statusDot,
+            )}
+          />
+          {/* Live ping */}
+          {isLive && (
+            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 animate-ping" />
+          )}
+        </div>
 
-        <div className="p-5 pl-6">
-          {/* Top row: Title + Badge + Date */}
-          <div className="flex items-start justify-between gap-4 mb-3">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-1">
-                <h3 className="font-semibold text-gray-900 dark:text-white truncate">
-                  {getSessionTitle()}
-                </h3>
-                {getStatusBadge(session.status)}
-              </div>
-
-              {/* Date and metadata row */}
-              <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-medium text-gray-700 dark:text-gray-300">
-                  {formattedDate}
-                </span>
-                <span className="text-gray-300 dark:text-gray-600">•</span>
-                <span>{formatDate(session.created_at, 'EEEE')}</span>
-                {durationMinutes && (
-                  <>
-                    <span className="text-gray-300 dark:text-gray-600">•</span>
-                    <span>{durationMinutes} min</span>
-                  </>
-                )}
-                <span className="text-gray-300 dark:text-gray-600">•</span>
-                <span className="text-gray-400">
-                  {formatRelativeTime(session.created_at)}
-                </span>
-              </div>
-            </div>
-
-            {/* Arrow indicator */}
-            <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-              <ArrowRight className="h-5 w-5 text-gray-400" />
-            </div>
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <h4 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
+              {clientName || 'Coaching Session'}
+            </h4>
+            {isLive && (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                Live
+              </span>
+            )}
           </div>
 
-          {/* Summary Content */}
-          {isViewer ? (
-            <div className="flex items-center gap-2 text-sm text-gray-400 mt-3">
-              <Lock className="h-4 w-4" />
-              <span className="italic">Content restricted</span>
-            </div>
-          ) : meetingSummary ? (
-            <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 leading-relaxed mt-3">
+          {/* Meta line */}
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <span>{formatDate(session.created_at, 'MMM d')}</span>
+            <span className="text-gray-300 dark:text-gray-600">&middot;</span>
+            <span>{formatRelativeTime(session.created_at)}</span>
+            {durationMinutes && (
+              <>
+                <span className="text-gray-300 dark:text-gray-600">
+                  &middot;
+                </span>
+                <span className="inline-flex items-center gap-0.5">
+                  <Clock className="h-3 w-3" />
+                  {durationMinutes}m
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* Summary — single line */}
+          {!isViewer && meetingSummary && (
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate">
               {meetingSummary}
             </p>
-          ) : isCompleted ? (
-            <p className="text-sm text-gray-400 italic mt-3">
+          )}
+          {isViewer && (
+            <p className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+              <Lock className="h-3 w-3" />
+              Content restricted
+            </p>
+          )}
+          {!isViewer && !meetingSummary && isCompleted && (
+            <p className="text-xs text-gray-400 italic mt-1">
               Processing summary...
             </p>
-          ) : isLive ? (
-            <div className="flex items-center gap-2 mt-3">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <p className="text-sm text-emerald-600 font-medium">
-                Live recording in progress
-              </p>
-            </div>
-          ) : null}
+          )}
+          {isLive && !meetingSummary && (
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mt-1">
+              Recording in progress
+            </p>
+          )}
         </div>
+
+        {/* Arrow */}
+        <ArrowRight className="h-4 w-4 text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1 opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     )
   }
 
-  const onViewDetails = (sessionId: string) => {
-    router.push(`/sessions/${sessionId}`)
-  }
-
   return (
-    <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+    <Card className="border-gray-200 dark:border-gray-700 overflow-hidden">
       {/* Header */}
-      <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Recent Sessions
-            </h2>
-            {totalSessions > 0 && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                Showing {Math.min(5, totalSessions)} of {totalSessions} sessions
-              </p>
-            )}
+      <CardHeader className="pb-0 pt-5 px-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gray-900 dark:bg-white rounded-lg">
+              <Video className="h-4 w-4 text-white dark:text-gray-900" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+                Recent Sessions
+              </h3>
+              {totalSessions > 0 && (
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  {totalSessions} total session{totalSessions !== 1 && 's'}
+                </p>
+              )}
+            </div>
           </div>
-          {totalSessions > 5 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => router.push('/sessions')}
-              className="border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 flex-shrink-0"
-            >
-              View All
-              <ArrowRight className="h-4 w-4 ml-1.5" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => router.push('/sessions')}
+            className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          >
+            View All
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
         </div>
       </CardHeader>
 
       {/* Content */}
-      <CardContent className="p-6">
+      <CardContent className="p-0 mt-4">
         {historyError && (
-          <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 bg-red-100 dark:bg-red-900/30 rounded-full mb-4">
-              <AlertCircle className="h-7 w-7 text-red-600" />
-            </div>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
+          <div className="text-center py-10 px-5">
+            <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-2" />
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
               Failed to load sessions
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">
-              Something went wrong while fetching your sessions
             </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onRefetch}
-              className="border-gray-300"
-            >
+            <Button variant="outline" size="sm" onClick={onRefetch}>
               Try Again
             </Button>
           </div>
         )}
 
         {historyLoading && !meetingHistory && (
-          <div className="space-y-3">
+          <div className="divide-y divide-gray-100 dark:divide-gray-800">
             {[1, 2, 3].map(i => (
-              <div
-                key={i}
-                className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4"
-              >
-                <div className="flex items-start gap-4">
-                  <div className="h-10 w-10 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse" />
-                  <div className="flex-1 space-y-3">
-                    <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded-md w-1/3 animate-pulse" />
-                    <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded-md w-1/2 animate-pulse" />
-                    <div className="h-12 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />
-                  </div>
+              <div key={i} className="flex items-start gap-4 px-5 py-4">
+                <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse flex-shrink-0" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 animate-pulse" />
+                  <div className="h-3 bg-gray-100 dark:bg-gray-800 rounded w-1/2 animate-pulse" />
                 </div>
               </div>
             ))}
@@ -285,67 +207,24 @@ export default function RecentSessions({
         {!historyLoading &&
           !historyError &&
           meetingHistory?.meetings.length === 0 && (
-            <div className="text-center py-12">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-                <MessageSquare className="h-8 w-8 text-gray-400" />
+            <div className="text-center py-12 px-5">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full mb-3">
+                <MessageSquare className="h-6 w-6 text-gray-400" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">
+              <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
                 No sessions yet
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
                 Start your first coaching session to see it here
               </p>
-              <Button
-                onClick={() => router.push('/')}
-                className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
-              >
-                Start Recording
-                <Video className="h-4 w-4 ml-2" />
-              </Button>
             </div>
           )}
 
         {meetingHistory && meetingHistory.meetings.length > 0 && (
-          <div className="space-y-3">
+          <div>
             {meetingHistory.meetings.map((session: any) => (
-              <SessionCardModern key={session.id} session={session} />
+              <SessionRow key={session.id} session={session} />
             ))}
-
-            {/* Stats Summary */}
-            {meetingHistory.meetings.length >= 3 && (
-              <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-600 dark:text-gray-400">
-                    Session Summary
-                  </span>
-                  <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400">
-                    <div className="flex items-center gap-1">
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {
-                          meetingHistory.meetings.filter(
-                            (s: any) => s.status === 'completed',
-                          ).length
-                        }
-                      </span>
-                      <span>completed</span>
-                    </div>
-                    <span>•</span>
-                    <div className="flex items-center gap-1">
-                      <span className="font-semibold text-gray-900 dark:text-white">
-                        {
-                          meetingHistory.meetings.filter(
-                            (s: any) =>
-                              s.status === 'in_progress' ||
-                              s.status === 'recording',
-                          ).length
-                        }
-                      </span>
-                      <span>active</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         )}
       </CardContent>

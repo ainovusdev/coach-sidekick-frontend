@@ -115,11 +115,12 @@ export function useCommitment(
  */
 export function useCommitmentStats(
   clientId?: string,
+  myClientsOnly?: boolean,
   options?: Omit<UseQueryOptions<CommitmentStats>, 'queryKey' | 'queryFn'>,
 ) {
   return useQuery({
-    queryKey: [...queryKeys.commitments.all, 'stats', clientId],
-    queryFn: () => CommitmentService.getStats(clientId),
+    queryKey: [...queryKeys.commitments.all, 'stats', clientId, myClientsOnly],
+    queryFn: () => CommitmentService.getStats(clientId, myClientsOnly),
     staleTime: 5 * 60 * 1000, // 5 minutes for stats
     ...options,
   })

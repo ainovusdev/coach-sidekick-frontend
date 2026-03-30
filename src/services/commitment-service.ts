@@ -66,6 +66,7 @@ export class CommitmentService {
       params.append('assigned_to_id', filters.assigned_to_id)
     if (filters?.assigned_to_type)
       params.append('assigned_to_type', filters.assigned_to_type)
+    if (filters?.my_clients_only) params.append('my_clients_only', 'true')
 
     const queryString = params.toString()
     const url = `${BACKEND_URL}/commitments/${queryString ? `?${queryString}` : ''}`
@@ -211,10 +212,15 @@ export class CommitmentService {
   /**
    * Get commitment statistics (for dashboard)
    */
-  static async getStats(clientId?: string): Promise<CommitmentStats> {
-    const url = clientId
-      ? `${BACKEND_URL}/commitments/stats?client_id=${clientId}`
-      : `${BACKEND_URL}/commitments/stats`
+  static async getStats(
+    clientId?: string,
+    myClientsOnly?: boolean,
+  ): Promise<CommitmentStats> {
+    const params = new URLSearchParams()
+    if (clientId) params.append('client_id', clientId)
+    if (myClientsOnly) params.append('my_clients_only', 'true')
+    const qs = params.toString()
+    const url = `${BACKEND_URL}/commitments/stats${qs ? `?${qs}` : ''}`
 
     const response = await ApiClient.get(url)
     return response

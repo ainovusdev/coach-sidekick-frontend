@@ -182,6 +182,7 @@ export interface CommitmentFilters {
   session_id?: string
   assigned_to_id?: string
   assigned_to_type?: 'coach' | 'client'
+  my_clients_only?: boolean
 }
 
 // Commitment list response
