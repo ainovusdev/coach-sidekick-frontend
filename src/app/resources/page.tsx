@@ -26,6 +26,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useResources } from '@/hooks/queries/use-resources'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
 import {
   useCreateResource,
   useUpdateResource,
@@ -47,6 +48,7 @@ import {
   Loader2,
   Trash2,
   Share2,
+  X,
 } from 'lucide-react'
 import type { SharedResource } from '@/types/resource'
 import { ResourceCard } from './components/resource-card'
@@ -54,8 +56,7 @@ import { CreateResourceDialog } from './components/create-resource-dialog'
 import { EditResourceDialog } from './components/edit-resource-dialog'
 import { ResourceDetailDialog } from './components/resource-detail-dialog'
 import { useResourceForm } from './hooks/use-resource-form'
-import ClientSelector from '@/components/clients/client-selector'
-import type { Client } from '@/types/meeting'
+import { cn } from '@/lib/utils'
 import { ResourceChatButton } from '@/components/resources/resource-chat-button'
 
 type ScopeFilter = 'all' | 'global' | 'personal' | 'session' | 'shared'
@@ -81,7 +82,11 @@ export default function CoachResourcesPage() {
   const [sharingResource, setSharingResource] = useState<SharedResource | null>(
     null,
   )
-  const [shareClient, setShareClient] = useState<Client | null>(null)
+  const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(
+    new Set(),
+  )
+  const [clientSearch, setClientSearch] = useState('')
+  const [isSharing, setIsSharing] = useState(false)
 
   const {
     form,
@@ -95,6 +100,7 @@ export default function CoachResourcesPage() {
 
   // Single fetch — all resources including knowledge docs
   const { data: allData, isLoading, error, refetch } = useResources({})
+  const { data: clientsData } = useClientsSimple()
 
   const createResource = useCreateResource()
   const updateResource = useUpdateResource()
@@ -190,19 +196,79 @@ export default function CoachResourcesPage() {
     setDeleteResource(null)
   }
 
+  const allClients = clientsData?.clients || []
+
+  // Exclude clients already shared with
+  const alreadySharedIds = useMemo(() => {
+    const ids = new Set<string>()
+    sharingResource?.shares?.forEach(s => {
+      if (s.shared_with_client_id) ids.add(s.shared_with_client_id)
+    })
+    return ids
+  }, [sharingResource])
+
+  const shareableClients = useMemo(
+    () => allClients.filter((c: any) => !alreadySharedIds.has(c.id)),
+    [allClients, alreadySharedIds],
+  )
+
+  const filteredShareClients = useMemo(() => {
+    if (!clientSearch.trim()) return shareableClients
+    const q = clientSearch.toLowerCase()
+    return shareableClients.filter(
+      (c: any) =>
+        c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q),
+    )
+  }, [shareableClients, clientSearch])
+
+  const selectedClients = useMemo(
+    () => shareableClients.filter((c: any) => selectedClientIds.has(c.id)),
+    [shareableClients, selectedClientIds],
+  )
+
   const handleShareResource = (resource: SharedResource) => {
     setSharingResource(resource)
-    setShareClient(null)
+    setSelectedClientIds(new Set())
+    setClientSearch('')
+  }
+
+  const toggleClient = (id: string) => {
+    setSelectedClientIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const toggleAllClients = () => {
+    if (selectedClientIds.size === shareableClients.length) {
+      setSelectedClientIds(new Set())
+    } else {
+      setSelectedClientIds(new Set(shareableClients.map((c: any) => c.id)))
+    }
   }
 
   const handleShareConfirm = async () => {
-    if (!sharingResource || !shareClient) return
-    await shareResource.mutateAsync({
-      id: sharingResource.id,
-      data: { shared_with_client_id: shareClient.id },
-    })
-    setSharingResource(null)
-    setShareClient(null)
+    if (!sharingResource || selectedClientIds.size === 0) return
+    setIsSharing(true)
+    try {
+      await Promise.all(
+        Array.from(selectedClientIds).map(cId =>
+          shareResource
+            .mutateAsync({
+              id: sharingResource.id,
+              data: { shared_with_client_id: cId },
+            })
+            .catch(() => {}),
+        ),
+      )
+    } finally {
+      setIsSharing(false)
+      setSharingResource(null)
+      setSelectedClientIds(new Set())
+      setClientSearch('')
+    }
   }
 
   const scopeFilters: {
@@ -476,52 +542,150 @@ export default function CoachResourcesPage() {
           onOpenChange={open => {
             if (!open) {
               setSharingResource(null)
-              setShareClient(null)
+              setSelectedClientIds(new Set())
+              setClientSearch('')
             }
           }}
         >
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md max-h-[85vh] overflow-hidden flex flex-col">
             <DialogHeader>
               <DialogTitle>Share Resource</DialogTitle>
               <DialogDescription>
-                Share &quot;{sharingResource?.title}&quot; with a client
+                Share &quot;{sharingResource?.title}&quot; with clients
               </DialogDescription>
             </DialogHeader>
-            <div className="py-4">
-              <ClientSelector
-                selectedClientId={shareClient?.id}
-                onClientSelect={client => setShareClient(client)}
-                placeholder="Search for a client..."
-                allowNone={false}
-              />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSharingResource(null)
-                  setShareClient(null)
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                onClick={handleShareConfirm}
-                disabled={!shareClient || shareResource.isPending}
-              >
-                {shareResource.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Sharing...
-                  </>
-                ) : (
-                  <>
-                    <Share2 className="h-4 w-4 mr-2" />
-                    Share
-                  </>
+
+            <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
+              {/* Selected client tags */}
+              {selectedClients.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedClients.map((client: any) => (
+                    <span
+                      key={client.id}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                    >
+                      {client.name}
+                      <button
+                        type="button"
+                        onClick={() => toggleClient(client.id)}
+                        className="hover:bg-white/20 dark:hover:bg-black/20 rounded-full p-0.5"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Search + Select All */}
+              <div className="flex items-center gap-2">
+                <div className="relative flex-1">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                  <Input
+                    value={clientSearch}
+                    onChange={e => setClientSearch(e.target.value)}
+                    placeholder="Search clients..."
+                    className="h-8 text-sm pl-8"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={toggleAllClients}
+                  className="h-8 text-xs whitespace-nowrap"
+                >
+                  {selectedClientIds.size === shareableClients.length &&
+                  shareableClients.length > 0
+                    ? 'Deselect All'
+                    : 'Select All'}
+                </Button>
+              </div>
+
+              {/* Client list */}
+              <div className="flex-1 overflow-y-auto space-y-1 min-h-0 max-h-[300px]">
+                {filteredShareClients.map((client: any) => {
+                  const isSelected = selectedClientIds.has(client.id)
+                  return (
+                    <button
+                      key={client.id}
+                      type="button"
+                      onClick={() => toggleClient(client.id)}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors',
+                        isSelected
+                          ? 'bg-gray-100 dark:bg-gray-800'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                      )}
+                    >
+                      <div
+                        className={cn(
+                          'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0',
+                          isSelected
+                            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white'
+                            : 'border-gray-300 dark:border-gray-500',
+                        )}
+                      >
+                        {isSelected && (
+                          <svg
+                            className="h-2.5 w-2.5 text-white dark:text-gray-900"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                            strokeWidth={3}
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {client.name}
+                        </p>
+                        {client.email && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                            {client.email}
+                          </p>
+                        )}
+                      </div>
+                    </button>
+                  )
+                })}
+                {filteredShareClients.length === 0 && clientSearch.trim() && (
+                  <p className="text-sm text-gray-400 text-center py-4">
+                    No clients found
+                  </p>
                 )}
-              </Button>
-            </DialogFooter>
+              </div>
+            </div>
+
+            {selectedClientIds.size > 0 && (
+              <DialogFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedClientIds(new Set())}
+                >
+                  Clear
+                </Button>
+                <Button onClick={handleShareConfirm} disabled={isSharing}>
+                  {isSharing ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Sharing...
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share with {selectedClientIds.size} client
+                      {selectedClientIds.size > 1 ? 's' : ''}
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            )}
           </DialogContent>
         </Dialog>
 
