@@ -154,7 +154,7 @@ export function ResourceDetailDialog({
           </div>
 
           {/* Content preview */}
-          {resource.content && (
+          {resource.content ? (
             <div className="space-y-2">
               <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Content
@@ -163,7 +163,14 @@ export function ResourceDetailDialog({
                 {resource.content}
               </div>
             </div>
-          )}
+          ) : !resource.file_url && !resource.content_url ? (
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
+              <FileText className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
+              <p className="text-sm text-gray-400 dark:text-gray-500">
+                No content added yet
+              </p>
+            </div>
+          ) : null}
 
           {/* File details */}
           {resource.file_url && (
