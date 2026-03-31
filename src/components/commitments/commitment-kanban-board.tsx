@@ -140,7 +140,7 @@ export function CommitmentKanbanBoard({
   const doneCommitments = commitments.filter(c => c.status === 'completed')
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-full">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[500px]">
       <KanbanColumn
         title="To Do"
         icon={<Circle className="h-4 w-4" />}

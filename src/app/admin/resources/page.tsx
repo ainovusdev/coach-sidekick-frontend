@@ -27,7 +27,14 @@ import {
   Link2,
   ExternalLink,
   RefreshCw,
+  Eye,
 } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { CreateResourceDialog } from '@/app/resources/components/create-resource-dialog'
 import { EditResourceDialog } from '@/app/resources/components/edit-resource-dialog'
 import { useResourceForm } from '@/app/resources/hooks/use-resource-form'
@@ -66,6 +73,9 @@ export default function AdminResourcesPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [editTarget, setEditTarget] = useState<AdminResource | null>(null)
+  const [viewingResource, setViewingResource] = useState<AdminResource | null>(
+    null,
+  )
   const [isEditing, setIsEditing] = useState(false)
 
   const { form, setField, resetForm, buildFormData, fileInputRef } =
@@ -402,6 +412,13 @@ export default function AdminResourcesPage() {
                   </td>
                   <td className="px-4 py-3 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setViewingResource(resource)}
+                        className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
+                        title="View"
+                      >
+                        <Eye className="h-4 w-4" />
+                      </button>
                       {(resource.file_url || resource.content_url) && (
                         <a
                           href={resource.file_url || resource.content_url || ''}
@@ -508,6 +525,72 @@ export default function AdminResourcesPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* View Resource Dialog */}
+      <Dialog
+        open={!!viewingResource}
+        onOpenChange={open => {
+          if (!open) setViewingResource(null)
+        }}
+      >
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{viewingResource?.title}</DialogTitle>
+          </DialogHeader>
+          {viewingResource?.description && (
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              {viewingResource.description}
+            </p>
+          )}
+          {viewingResource?.content ? (
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed max-h-[60vh] overflow-y-auto">
+              {viewingResource.content}
+            </div>
+          ) : viewingResource?.file_url ? (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <FileText className="h-5 w-5 text-gray-500" />
+              <span className="flex-1 text-sm truncate">
+                {viewingResource.file_url}
+              </span>
+              <a
+                href={viewingResource.file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                Open
+              </a>
+            </div>
+          ) : viewingResource?.content_url ? (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <Link2 className="h-5 w-5 text-gray-500" />
+              <span className="flex-1 text-sm text-blue-600 truncate">
+                {viewingResource.content_url}
+              </span>
+              <a
+                href={viewingResource.content_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 text-sm font-medium hover:underline"
+              >
+                Open
+              </a>
+            </div>
+          ) : (
+            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center text-sm text-gray-400">
+              No content
+            </div>
+          )}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <Badge variant="outline" className="text-xs capitalize">
+              {viewingResource?.sharing_scope}
+            </Badge>
+            <Badge variant="outline" className="text-xs capitalize">
+              {viewingResource?.category}
+            </Badge>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
