@@ -27,6 +27,18 @@ axiosInstance.interceptors.request.use(
       }
     }
 
+    // Impersonation headers
+    if (typeof window !== 'undefined') {
+      const viewAsClient = sessionStorage.getItem('view_as_client_id')
+      if (viewAsClient) {
+        config.headers['X-View-As-Client'] = viewAsClient
+      }
+      const viewAsCoach = sessionStorage.getItem('view_as_coach_id')
+      if (viewAsCoach && !config.url?.includes('/admin/')) {
+        config.headers['X-View-As-Coach'] = viewAsCoach
+      }
+    }
+
     return config
   },
   error => {

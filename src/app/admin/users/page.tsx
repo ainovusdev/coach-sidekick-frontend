@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { User } from '@/services/admin-service'
 import { useAdminUsers } from '@/hooks/queries/use-admin-users'
 import { useAvailableRoles } from '@/hooks/queries/use-admin-roles'
@@ -71,6 +72,8 @@ import { CoachInvitationModal } from '@/components/admin/coach-invitation-modal'
 import { formatDate } from '@/lib/date-utils'
 
 export default function UsersPage() {
+  const router = useRouter()
+
   // Filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedRole, setSelectedRole] = useState<string>('all')
@@ -640,6 +643,24 @@ export default function UsersPage() {
                                 <LockKeyhole className="h-4 w-4 mr-2" />
                                 Client Access
                               </DropdownMenuItem>
+                              {user.roles.includes('coach') && (
+                                <DropdownMenuItem
+                                  onClick={() => {
+                                    sessionStorage.setItem(
+                                      'view_as_coach_id',
+                                      user.id,
+                                    )
+                                    sessionStorage.setItem(
+                                      'view_as_coach_name',
+                                      user.full_name || user.email,
+                                    )
+                                    router.push('/')
+                                  }}
+                                >
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View as Coach
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 onClick={() => {

@@ -40,8 +40,10 @@ export function ClientRoute({ children }: ClientRouteProps) {
     return null
   }
 
-  // Check if user has client role
-  if (!hasRole('client')) {
+  // Check if user has client role (or is impersonating as super_admin)
+  const isImpersonating =
+    typeof window !== 'undefined' && sessionStorage.getItem('view_as_client_id')
+  if (!hasRole('client') && !isImpersonating) {
     // Not a client - show friendly message instead of redirecting
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">

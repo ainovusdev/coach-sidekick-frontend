@@ -18,6 +18,13 @@ export default function ClientPortalLayout({
     return <>{children}</>
   }
 
+  // Super admin impersonation bypasses ClientRoute
+  const isImpersonating =
+    typeof window !== 'undefined' && sessionStorage.getItem('view_as_client_id')
+  if (isImpersonating) {
+    return <ClientPageLayout>{children}</ClientPageLayout>
+  }
+
   return (
     <ClientRoute>
       <ClientPageLayout>{children}</ClientPageLayout>
