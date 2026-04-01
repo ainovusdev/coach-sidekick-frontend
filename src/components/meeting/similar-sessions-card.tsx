@@ -406,7 +406,13 @@ export function SimilarSessionsCard({
                             className="flex items-start gap-3 p-3 bg-blue-50 border border-blue-100 rounded-lg"
                           >
                             <TrendingUp className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-                            <p className="text-sm text-blue-900">{item}</p>
+                            <p className="text-sm text-blue-900">
+                              {typeof item === 'string'
+                                ? item
+                                : (item as any).item ||
+                                  (item as any).text ||
+                                  String(item)}
+                            </p>
                           </div>
                         ))}
                       </div>
