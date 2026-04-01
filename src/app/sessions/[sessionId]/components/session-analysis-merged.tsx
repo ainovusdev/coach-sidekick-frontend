@@ -493,7 +493,11 @@ export function SessionAnalysisMerged({
                     >
                       <CheckCircle2 className="h-4 w-4 text-app-secondary mt-0.5 flex-shrink-0" />
                       <span className="text-sm text-app-secondary">
-                        {suggestion}
+                        {typeof suggestion === 'string'
+                          ? suggestion
+                          : (suggestion as any).suggestion ||
+                            (suggestion as any).text ||
+                            String(suggestion)}
                       </span>
                     </li>
                   ))}

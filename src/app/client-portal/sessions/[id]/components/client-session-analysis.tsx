@@ -232,7 +232,11 @@ export function ClientSessionAnalysis({
                       {index + 1}
                     </div>
                     <span className="text-sm text-gray-700 dark:text-gray-300">
-                      {suggestion.text || suggestion.suggestion || suggestion}
+                      {typeof suggestion === 'string'
+                        ? suggestion
+                        : suggestion.text ||
+                          suggestion.suggestion ||
+                          String(suggestion)}
                     </span>
                   </div>
                 ))}

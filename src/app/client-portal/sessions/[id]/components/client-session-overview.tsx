@@ -507,7 +507,7 @@ export function ClientSessionOverview({
                     <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                       {typeof item === 'string'
                         ? item
-                        : item.text || item.title}
+                        : item.item || item.text || item.title || String(item)}
                     </span>
                   </div>
                 ))}

@@ -107,11 +107,28 @@ export function SessionOverviewTab({
   // Use per-client data when available, otherwise fall back to session-level insights
   const displaySummary = clientAnalysis?.summary || insights?.summary
   const displayTopics = clientAnalysis?.key_topics || insights?.topics || []
-  const displayActionItems =
+  const normalizeAIString = (item: unknown): string => {
+    if (typeof item === 'string') return item
+    if (item && typeof item === 'object') {
+      const obj = item as Record<string, unknown>
+      return String(
+        obj.item ||
+          obj.text ||
+          obj.suggestion ||
+          obj.title ||
+          JSON.stringify(item),
+      )
+    }
+    return String(item)
+  }
+  const displayActionItems = (
     clientAnalysis?.action_items?.slice(0, 3) ||
     insights?.action_items?.slice(0, 3) ||
     []
-  const displaySuggestions = clientAnalysis?.suggestions?.slice(0, 3) || []
+  ).map(normalizeAIString)
+  const displaySuggestions = (
+    clientAnalysis?.suggestions?.slice(0, 3) || []
+  ).map(normalizeAIString)
   const topInsights = clientAnalysis
     ? []
     : insights?.insights?.slice(0, 3) || []
