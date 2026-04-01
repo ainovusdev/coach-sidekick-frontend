@@ -132,18 +132,31 @@ export class ClientService {
   /**
    * Full client list with all details (session stats, invitation status, etc.)
    * Use only on dedicated clients page where all data is needed.
-   * Fetches all clients (up to 100) to avoid pagination issues.
+   * Paginates through all pages to fetch every client.
    */
   static async listClients(): Promise<ClientListResponse> {
-    const response: BackendClientListResponse = await ApiClient.get(
-      `${BACKEND_URL}/clients/?per_page=100`,
-    )
+    const allClients: Client[] = []
+    let page = 1
+    let total = 0
+
+    while (true) {
+      const response: BackendClientListResponse = await ApiClient.get(
+        `${BACKEND_URL}/clients/?per_page=100&page=${page}`,
+      )
+      total = response.total
+      allClients.push(...response.clients.map(transformClient))
+
+      if (allClients.length >= total || response.clients.length < 100) {
+        break
+      }
+      page++
+    }
 
     return {
-      clients: response.clients.map(transformClient),
-      total: response.total,
-      page: response.page,
-      per_page: response.per_page,
+      clients: allClients,
+      total,
+      page: 1,
+      per_page: total,
     }
   }
 
