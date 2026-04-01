@@ -4,13 +4,20 @@ import { queryKeys } from '@/lib/query-client'
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-function getAuthHeaders() {
+function getAuthHeaders(): Record<string, string> {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
-  return {
+  const headers: Record<string, string> = {
     Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
   }
+  if (typeof window !== 'undefined') {
+    const viewAsClient = sessionStorage.getItem('view_as_client_id')
+    if (viewAsClient) {
+      headers['X-View-As-Client'] = viewAsClient
+    }
+  }
+  return headers
 }
 
 async function clientFetch<T>(path: string): Promise<T> {

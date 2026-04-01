@@ -108,11 +108,14 @@ export default function ClientProfilePage() {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-      const response = await fetch(`${apiUrl}/client/dashboard`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
+      const headers: Record<string, string> = {
+        Authorization: `Bearer ${token}`,
+      }
+      const viewAsClient = sessionStorage.getItem('view_as_client_id')
+      if (viewAsClient) {
+        headers['X-View-As-Client'] = viewAsClient
+      }
+      const response = await fetch(`${apiUrl}/client/dashboard`, { headers })
 
       if (!response.ok) return
 

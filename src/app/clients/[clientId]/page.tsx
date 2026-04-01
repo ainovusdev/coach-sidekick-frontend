@@ -39,6 +39,7 @@ import {
   Trophy,
   BookOpen,
   XCircle,
+  Eye,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -59,7 +60,7 @@ export default function ClientDetailPage({
 }: {
   params: Promise<{ clientId: string }>
 }) {
-  const { userId } = useAuth()
+  const { userId, isSuperAdmin } = useAuth()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
   const router = useRouter()
@@ -319,7 +320,7 @@ export default function ClientDetailPage({
         <div className="min-h-screen bg-white dark:bg-gray-900">
           {/* Simple Back Link */}
           <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="sm"
@@ -329,6 +330,20 @@ export default function ClientDetailPage({
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
               </Button>
+              {isSuperAdmin() && client && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    sessionStorage.setItem('view_as_client_id', client.id)
+                    sessionStorage.setItem('view_as_client_name', client.name)
+                    router.push('/client-portal/dashboard')
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Client Portal
+                </Button>
+              )}
             </div>
           </div>
 

@@ -86,6 +86,18 @@ export class ApiClient {
       headers['Authorization'] = `Bearer ${token}`
     }
 
+    // Impersonation headers
+    if (typeof window !== 'undefined') {
+      const viewAsClient = sessionStorage.getItem('view_as_client_id')
+      if (viewAsClient) {
+        headers['X-View-As-Client'] = viewAsClient
+      }
+      const viewAsCoach = sessionStorage.getItem('view_as_coach_id')
+      if (viewAsCoach) {
+        headers['X-View-As-Coach'] = viewAsCoach
+      }
+    }
+
     return headers
   }
 

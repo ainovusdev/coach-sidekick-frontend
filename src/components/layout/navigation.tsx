@@ -6,8 +6,16 @@ import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { BarChart3, UserCheck, History, BookOpen, Shield } from 'lucide-react'
+import {
+  BarChart3,
+  UserCheck,
+  History,
+  BookOpen,
+  Shield,
+  Eye,
+} from 'lucide-react'
 import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
 export default function Navigation() {
@@ -18,6 +26,21 @@ export default function Navigation() {
 
   // NEW: Check if user is client-only (no coach/admin/viewer roles)
   const isClientOnly = roles.length === 1 && roles.includes('client')
+
+  // Coach impersonation state
+  const [impersonatedCoachName, setImpersonatedCoachName] = useState<
+    string | null
+  >(null)
+  useEffect(() => {
+    const name = sessionStorage.getItem('view_as_coach_name')
+    setImpersonatedCoachName(name)
+  }, [])
+
+  const exitCoachImpersonation = () => {
+    sessionStorage.removeItem('view_as_coach_id')
+    sessionStorage.removeItem('view_as_coach_name')
+    router.push('/admin/users')
+  }
 
   const isActivePath = (path: string) => {
     if (path === '/' && pathname === '/') return true
@@ -67,48 +90,63 @@ export default function Navigation() {
   }
 
   return (
-    <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo Section */}
-          <div className="flex items-center gap-10">
-            <button
-              onClick={() => router.push('/')}
-              className="flex items-center gap-3 group"
-            >
-              <div className="relative">
-                <div className="absolute inset-0 bg-gray-900 rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                <div className="relative w-11 h-11 bg-gray-900 rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Image
-                    src="/novus-global-logo.webp"
-                    alt="Novus Global Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain filter brightness-0 invert"
-                  />
+    <>
+      {impersonatedCoachName && (
+        <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-3 sticky top-0 z-[60]">
+          <Eye className="h-4 w-4 shrink-0" />
+          <span>Viewing as coach: {impersonatedCoachName}</span>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={exitCoachImpersonation}
+            className="h-7 text-xs"
+          >
+            Exit Preview
+          </Button>
+        </div>
+      )}
+      <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            {/* Logo Section */}
+            <div className="flex items-center gap-10">
+              <button
+                onClick={() => router.push('/')}
+                className="flex items-center gap-3 group"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gray-900 rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="relative w-11 h-11 bg-gray-900 rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    <Image
+                      src="/novus-global-logo.webp"
+                      alt="Novus Global Logo"
+                      width={32}
+                      height={32}
+                      className="object-contain filter brightness-0 invert"
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Coach Sidekick
-                  </h1>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Coach Sidekick
+                    </h1>
+                  </div>
                 </div>
-              </div>
-            </button>
+              </button>
 
-            {/* Navigation Links */}
-            <nav className="hidden md:flex items-center">
-              <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
-                {navItems.map(item => {
-                  const Icon = item.icon
-                  const isActive = isActivePath(item.path)
+              {/* Navigation Links */}
+              <nav className="hidden md:flex items-center">
+                <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
+                  {navItems.map(item => {
+                    const Icon = item.icon
+                    const isActive = isActivePath(item.path)
 
-                  return (
-                    <button
-                      key={item.path}
-                      onClick={() => router.push(item.path)}
-                      className={`
+                    return (
+                      <button
+                        key={item.path}
+                        onClick={() => router.push(item.path)}
+                        className={`
                         flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
                         transition-all duration-200 cursor-pointer
                         ${
@@ -117,61 +155,63 @@ export default function Navigation() {
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-white dark:hover:bg-gray-700 hover:shadow-sm'
                         }
                       `}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {item.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </nav>
-          </div>
-
-          {/* Right Section */}
-          <div className="flex items-center gap-4">
-            {isAuthenticated && (
-              <>
-                <div className="hidden lg:flex items-center">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <div className="relative">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
-                    </div>
-                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Active
-                    </span>
-                  </div>
+                      >
+                        <Icon className="h-4 w-4" />
+                        {item.label}
+                      </button>
+                    )
+                  })}
                 </div>
+              </nav>
+            </div>
 
-                {/* Theme Toggle */}
-                <ThemeToggle />
+            {/* Right Section */}
+            <div className="flex items-center gap-4">
+              {isAuthenticated && (
+                <>
+                  <div className="hidden lg:flex items-center">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping"></div>
+                      </div>
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Active
+                      </span>
+                    </div>
+                  </div>
 
-                {/* Role Switcher */}
-                <RoleSwitcher />
+                  {/* Theme Toggle */}
+                  <ThemeToggle />
 
-                {/* Admin Button - Only show for admin and super_admin roles */}
-                {hasAnyRole(['admin', 'super_admin']) && (
-                  <Button
-                    onClick={() => router.push('/admin/dashboard')}
-                    variant={
-                      pathname.startsWith('/admin') ? 'default' : 'outline'
-                    }
-                    size="sm"
-                    className="flex items-center gap-2"
-                  >
-                    <Shield className="h-4 w-4" />
-                    <span className="hidden sm:inline">Admin</span>
-                  </Button>
-                )}
-              </>
-            )}
+                  {/* Role Switcher */}
+                  <RoleSwitcher />
 
-            <UserNav />
+                  {/* Admin Button - Only show for admin and super_admin roles, hide during coach impersonation */}
+                  {hasAnyRole(['admin', 'super_admin']) &&
+                    !impersonatedCoachName && (
+                      <Button
+                        onClick={() => router.push('/admin/dashboard')}
+                        variant={
+                          pathname.startsWith('/admin') ? 'default' : 'outline'
+                        }
+                        size="sm"
+                        className="flex items-center gap-2"
+                      >
+                        <Shield className="h-4 w-4" />
+                        <span className="hidden sm:inline">Admin</span>
+                      </Button>
+                    )}
+                </>
+              )}
+
+              <UserNav />
+            </div>
+
+            {/* Mobile Navigation Toggle - could be added if needed */}
           </div>
-
-          {/* Mobile Navigation Toggle - could be added if needed */}
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   )
 }
