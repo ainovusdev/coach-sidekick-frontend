@@ -118,10 +118,10 @@ class AuthService {
 
   async login(credentials: LoginCredentials): Promise<TokenResponse> {
     try {
-      const response = await axiosInstance.post<TokenResponse>(
-        '/auth/login',
-        credentials,
-      )
+      const response = await axiosInstance.post<TokenResponse>('/auth/login', {
+        ...credentials,
+        email: credentials.email.toLowerCase(),
+      })
 
       // Store auth data including roles from response
       const tokenData = response.data
@@ -140,7 +140,10 @@ class AuthService {
   async signup(credentials: SignupCredentials): Promise<void> {
     try {
       // Register doesn't return a token, user needs to login after
-      await axiosInstance.post('/auth/register', credentials)
+      await axiosInstance.post('/auth/register', {
+        ...credentials,
+        email: credentials.email.toLowerCase(),
+      })
     } catch (error) {
       console.error('Signup error:', error)
       throw error
