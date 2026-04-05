@@ -5,7 +5,8 @@
 
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -25,15 +26,10 @@ interface ActiveSession {
 export function ActiveSessionsCard() {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
+  const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  useEffect(() => {
-    fetchActiveSessions()
-    // Poll every 30 seconds
-    const interval = setInterval(fetchActiveSessions, 30000)
-    return () => clearInterval(interval)
-  }, [])
-
-  const fetchActiveSessions = async () => {
+  const fetchActiveSessions = useCallback(async () => {
     try {
       const token = localStorage.getItem('auth_token')
       if (!token) return
@@ -52,6 +48,14 @@ export function ActiveSessionsCard() {
         headers,
       })
 
+      if (response.status === 401) {
+        // Token expired — stop polling and redirect to login
+        if (intervalRef.current) clearInterval(intervalRef.current)
+        localStorage.removeItem('auth_token')
+        router.push('/login')
+        return
+      }
+
       if (response.ok) {
         const data = await response.json()
         setActiveSessions(data)
@@ -61,7 +65,16 @@ export function ActiveSessionsCard() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    fetchActiveSessions()
+    // Poll every 30 seconds
+    intervalRef.current = setInterval(fetchActiveSessions, 30000)
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+    }
+  }, [fetchActiveSessions])
 
   const formatDuration = (seconds: number) => {
     const mins = Math.floor(seconds / 60)
