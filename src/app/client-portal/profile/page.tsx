@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import { useAuth } from '@/contexts/auth-context'
 import {
   Card,
@@ -79,6 +80,10 @@ export default function ClientProfilePage() {
 
   const fetchProfileData = async () => {
     try {
+      if (!isTokenValid()) {
+        handleAuthExpired()
+        return
+      }
       const token = localStorage.getItem('auth_token')
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -89,6 +94,10 @@ export default function ClientProfilePage() {
         },
       })
 
+      if (response.status === 401) {
+        handleAuthExpired()
+        return
+      }
       if (!response.ok) throw new Error('Failed to fetch profile')
 
       const data = await response.json()
@@ -104,6 +113,7 @@ export default function ClientProfilePage() {
 
   const fetchClientInfo = async () => {
     try {
+      if (!isTokenValid()) return
       const token = localStorage.getItem('auth_token')
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -117,6 +127,10 @@ export default function ClientProfilePage() {
       }
       const response = await fetch(`${apiUrl}/client/dashboard`, { headers })
 
+      if (response.status === 401) {
+        handleAuthExpired()
+        return
+      }
       if (!response.ok) return
 
       const data = await response.json()

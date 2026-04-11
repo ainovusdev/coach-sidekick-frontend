@@ -84,6 +84,7 @@ import { useTargets } from '@/hooks/queries/use-targets'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
+import { useConfetti } from '@/hooks/use-confetti'
 
 export interface GuestContext {
   meetingToken: string
@@ -1110,6 +1111,7 @@ function MilestonesSection({
   const addMilestone = useAddMilestone(commitmentId)
   const updateMilestone = useUpdateMilestone(commitmentId)
   const deleteMilestone = useDeleteMilestone(commitmentId)
+  const { fireConfetti } = useConfetti()
 
   const milestones = commitment.milestones || []
   const completedCount = milestones.filter(m => m.status === 'completed').length
@@ -1122,11 +1124,16 @@ function MilestonesSection({
   }
 
   const toggleMilestoneStatus = (milestone: Milestone) => {
+    // Don't toggle temp milestones that haven't been saved yet
+    if (milestone.id.startsWith('temp-')) return
     const newStatus = milestone.status === 'completed' ? 'pending' : 'completed'
     updateMilestone.mutate({
       milestoneId: milestone.id,
       data: { status: newStatus },
     })
+    if (newStatus === 'completed') {
+      fireConfetti({ intensity: 'subtle' })
+    }
   }
 
   return (

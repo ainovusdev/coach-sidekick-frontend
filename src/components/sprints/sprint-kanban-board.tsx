@@ -6,6 +6,7 @@ import { CommitmentService } from '@/services/commitment-service'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
 import type { CommitmentStatus } from '@/types/commitment'
+import { useConfetti } from '@/hooks/use-confetti'
 
 interface SprintKanbanBoardProps {
   commitments: any[]
@@ -29,6 +30,7 @@ export function SprintKanbanBoard({
   onDelete,
 }: SprintKanbanBoardProps) {
   const queryClient = useQueryClient()
+  const { fireConfetti } = useConfetti()
 
   const handleDrop = async (commitmentId: string, newStatus: string) => {
     const statusLabels: Record<string, string> = {
@@ -51,6 +53,9 @@ export function SprintKanbanBoard({
     })
 
     toast.success(`Moved to ${statusLabels[newStatus]}`)
+    if (newStatus === 'completed') {
+      fireConfetti({ intensity: 'medium' })
+    }
 
     try {
       await CommitmentService.updateCommitment(commitmentId, {

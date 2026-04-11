@@ -6,13 +6,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Radio, Clock } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/date-utils'
+import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 
 interface ActiveSession {
   session_id: string
@@ -26,14 +26,24 @@ interface ActiveSession {
 export function ActiveSessionsCard() {
   const [activeSessions, setActiveSessions] = useState<ActiveSession[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
 
+  const stopPolling = useCallback(() => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current)
+      intervalRef.current = null
+    }
+  }, [])
+
   const fetchActiveSessions = useCallback(async () => {
+    // Check token validity client-side before making the request
+    if (!isTokenValid()) {
+      stopPolling()
+      return
+    }
+
     try {
       const token = localStorage.getItem('auth_token')
-      if (!token) return
-
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
       const headers: Record<string, string> = {
@@ -49,10 +59,8 @@ export function ActiveSessionsCard() {
       })
 
       if (response.status === 401) {
-        // Token expired — stop polling and redirect to login
-        if (intervalRef.current) clearInterval(intervalRef.current)
-        localStorage.removeItem('auth_token')
-        router.push('/login')
+        stopPolling()
+        handleAuthExpired()
         return
       }
 
@@ -65,7 +73,7 @@ export function ActiveSessionsCard() {
     } finally {
       setIsLoading(false)
     }
-  }, [router])
+  }, [stopPolling])
 
   useEffect(() => {
     fetchActiveSessions()

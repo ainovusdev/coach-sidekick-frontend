@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -126,12 +127,12 @@ export default function ClientDashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
-        console.error('No auth token found')
+      if (!isTokenValid()) {
+        handleAuthExpired()
         return
       }
 
+      const token = localStorage.getItem('auth_token')
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
       const headers: Record<string, string> = {
@@ -146,7 +147,7 @@ export default function ClientDashboard() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          console.error('Unauthorized - token may be expired')
+          handleAuthExpired()
           return
         }
         throw new Error('Failed to fetch dashboard')
