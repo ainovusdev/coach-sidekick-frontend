@@ -29,7 +29,7 @@ import { SessionNotesCompact } from './session-notes-compact'
 import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import TranscriptViewer from './transcript-viewer'
-import { VideoPlayer } from '@/components/sessions/video-player'
+// import { VideoPlayer } from '@/components/sessions/video-player'
 
 interface TranscriptEntry {
   id: string
@@ -83,10 +83,10 @@ export function SessionOverviewTab({
   clientId,
   transcript,
   isViewer = false,
-  videoUrl,
+  videoUrl: _videoUrl,
   onViewAnalysis,
   onRefreshCommitments,
-  onRefreshVideoUrl,
+  onRefreshVideoUrl: _onRefreshVideoUrl,
   isGroupSession = false,
   selectedClientId = null,
   clientAnalyses,
@@ -253,14 +253,14 @@ export function SessionOverviewTab({
         </Card>
       )}
 
-      {/* Session Recording */}
-      {videoUrl && onRefreshVideoUrl && !isViewer && (
+      {/* Session Recording — hidden for now */}
+      {/* {videoUrl && onRefreshVideoUrl && !isViewer && (
         <VideoPlayer
           videoUrl={videoUrl}
           sessionId={sessionId}
           onRefresh={onRefreshVideoUrl}
         />
-      )}
+      )} */}
 
       {/* Commitments and Wins */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

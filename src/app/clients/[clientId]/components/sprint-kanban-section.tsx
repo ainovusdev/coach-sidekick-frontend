@@ -23,6 +23,7 @@ import {
 import { differenceInDays, isAfter, isBefore } from 'date-fns'
 import { formatDate } from '@/lib/date-utils'
 import { toast } from 'sonner'
+import { useConfetti } from '@/hooks/use-confetti'
 
 interface SprintKanbanSectionProps {
   clientId: string
@@ -53,6 +54,7 @@ function SprintAccordionItem({
   clientId,
 }: SprintAccordionItemProps) {
   const queryClient = useQueryClient()
+  const { fireConfetti } = useConfetti()
 
   // Calculate sprint stats
   const totalCommitments = commitments.length
@@ -248,6 +250,9 @@ function SprintAccordionItem({
                 }
               })
               toast.success(`Moved to ${statusLabels[newStatus]}`)
+              if (newStatus === 'completed') {
+                fireConfetti({ intensity: 'medium' })
+              }
               try {
                 await CommitmentService.updateCommitment(commitmentId, {
                   status: newStatus as any,

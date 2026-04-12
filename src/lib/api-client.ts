@@ -11,14 +11,28 @@ export class ApiClient {
       const contentType = response.headers.get('content-type')
       if (contentType && contentType.includes('application/json')) {
         const errorData = await response.json()
-        errorMessage = errorData.detail || errorData.message || errorMessage
+        const detail = errorData.detail
+        if (typeof detail === 'string') {
+          errorMessage = detail
+        } else if (Array.isArray(detail)) {
+          errorMessage = detail.map((d: any) => d.msg || String(d)).join('; ')
+        } else {
+          errorMessage = errorData.message || errorMessage
+        }
       } else {
         const errorText = await response.text()
         // Try to parse as JSON if it looks like JSON
         if (errorText.startsWith('{')) {
           try {
             const errorData = JSON.parse(errorText)
-            errorMessage = errorData.detail || errorData.message || errorText
+            const det = errorData.detail
+            if (typeof det === 'string') {
+              errorMessage = det
+            } else if (Array.isArray(det)) {
+              errorMessage = det.map((d: any) => d.msg || String(d)).join('; ')
+            } else {
+              errorMessage = errorData.message || errorText
+            }
           } catch {
             errorMessage = errorText || errorMessage
           }

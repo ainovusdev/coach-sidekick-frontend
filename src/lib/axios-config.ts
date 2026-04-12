@@ -1,5 +1,42 @@
 import axios from 'axios'
 
+/**
+ * Check if the stored JWT token is present and not expired.
+ * Used by both axios interceptor and raw fetch() callers to avoid
+ * sending requests with expired tokens (which generate 401 noise).
+ */
+export function isTokenValid(): boolean {
+  if (typeof window === 'undefined') return false
+  const token =
+    localStorage.getItem('auth_token') ||
+    localStorage.getItem('client_auth_token')
+  if (!token) return false
+  try {
+    const payload = token.split('.')[1]
+    const decoded = JSON.parse(atob(payload))
+    return decoded.exp > Date.now() / 1000
+  } catch {
+    return false
+  }
+}
+
+/**
+ * Clear all auth data and redirect to login.
+ * Shared between axios interceptor and raw fetch() callers.
+ */
+export function handleAuthExpired() {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('auth_token')
+  localStorage.removeItem('user_roles')
+  localStorage.removeItem('client_access')
+  localStorage.removeItem('user_email')
+  localStorage.removeItem('user_full_name')
+  localStorage.removeItem('user_client_id')
+  localStorage.removeItem('client_auth_token')
+  localStorage.removeItem('client_user_data')
+  window.location.href = '/auth'
+}
+
 // Create axios instance with default config
 const axiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
@@ -51,22 +88,7 @@ axiosInstance.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401) {
-      // NEW: Clear ALL auth data (including legacy keys)
-      localStorage.removeItem('auth_token')
-      localStorage.removeItem('user_roles')
-      localStorage.removeItem('client_access')
-      localStorage.removeItem('user_email')
-      localStorage.removeItem('user_full_name')
-      localStorage.removeItem('user_client_id')
-
-      // Also clear legacy keys
-      localStorage.removeItem('client_auth_token')
-      localStorage.removeItem('client_user_data')
-
-      // Redirect to login page
-      if (typeof window !== 'undefined') {
-        window.location.href = '/auth'
-      }
+      handleAuthExpired()
     }
     return Promise.reject(error)
   },

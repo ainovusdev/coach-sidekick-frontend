@@ -20,6 +20,7 @@ import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
 import { CommitmentKanbanBoard } from '@/components/commitments/commitment-kanban-board'
 import { ClientCommitmentService } from '@/services/client-commitment-service'
 import { toast } from 'sonner'
+import { useConfetti } from '@/hooks/use-confetti'
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useSprints } from '@/hooks/queries/use-sprints'
@@ -322,6 +323,7 @@ export function GoalsTreeView({
   const [hideCompletedVisions, setHideCompletedVisions] = useState(false)
   const [hideCompletedOutcomes, setHideCompletedOutcomes] = useState(false)
   const [hideCompletedSprints, setHideCompletedSprints] = useState(false)
+  const { fireConfetti } = useConfetti()
 
   // Fetch all data
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
@@ -499,6 +501,9 @@ export function GoalsTreeView({
     })
 
     toast.success(`Moved to ${statusLabels[newStatus]}`)
+    if (newStatus === 'completed') {
+      fireConfetti({ intensity: 'medium' })
+    }
 
     try {
       await ClientCommitmentService.updateCommitment(commitmentId, {
