@@ -35,6 +35,7 @@ import {
   Loader2,
   Trash2,
   Mic,
+  CalendarClock,
   Target,
   Trophy,
   BookOpen,
@@ -423,6 +424,16 @@ export default function ClientDetailPage({
                           <Mic className="h-4 w-4 mr-2" />
                           Start Live Session
                         </Button>
+                        <Button
+                          onClick={() =>
+                            modalState.setIsScheduleSessionModalOpen(true)
+                          }
+                          variant="outline"
+                          className="border-gray-300 dark:border-gray-600"
+                        >
+                          <CalendarClock className="h-4 w-4 mr-2" />
+                          Schedule Session
+                        </Button>
                       </div>
                     )}
                   </div>
@@ -543,6 +554,10 @@ export default function ClientDetailPage({
           setIsSprintModalOpen={modalState.setIsSprintModalOpen}
           isStartSessionModalOpen={modalState.isStartSessionModalOpen}
           setIsStartSessionModalOpen={modalState.setIsStartSessionModalOpen}
+          isScheduleSessionModalOpen={modalState.isScheduleSessionModalOpen}
+          setIsScheduleSessionModalOpen={
+            modalState.setIsScheduleSessionModalOpen
+          }
           isGoalModalOpen={modalState.isGoalModalOpen}
           setIsGoalModalOpen={modalState.setIsGoalModalOpen}
           isOutcomeModalOpen={modalState.isOutcomeModalOpen}

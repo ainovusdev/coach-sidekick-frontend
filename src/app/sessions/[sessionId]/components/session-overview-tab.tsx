@@ -28,6 +28,7 @@ import { GroupAggregatedCommitments } from './group-aggregated-commitments'
 import { SessionNotesCompact } from './session-notes-compact'
 import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
+import { PreSessionResponses } from './pre-session-responses'
 import TranscriptViewer from './transcript-viewer'
 // import { VideoPlayer } from '@/components/sessions/video-player'
 
@@ -137,6 +138,9 @@ export function SessionOverviewTab({
 
   return (
     <div className="space-y-6">
+      {/* Pre-Session Questionnaire Responses */}
+      <PreSessionResponses sessionId={sessionId} clientId={clientId} />
+
       {/* Per-Client Analysis Pending State */}
       {isGroupSession && selectedClientId && !clientAnalysis && (
         <Card className="border-dashed border-2 border-app-border">

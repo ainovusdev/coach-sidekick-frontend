@@ -7,6 +7,8 @@ export function useClientModals() {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [isSprintModalOpen, setIsSprintModalOpen] = useState(false)
   const [isStartSessionModalOpen, setIsStartSessionModalOpen] = useState(false)
+  const [isScheduleSessionModalOpen, setIsScheduleSessionModalOpen] =
+    useState(false)
   const [isGoalModalOpen, setIsGoalModalOpen] = useState(false)
   const [isOutcomeModalOpen, setIsOutcomeModalOpen] = useState(false)
   const [isUnifiedCreateModalOpen, setIsUnifiedCreateModalOpen] =
@@ -32,6 +34,8 @@ export function useClientModals() {
     setIsSprintModalOpen,
     isStartSessionModalOpen,
     setIsStartSessionModalOpen,
+    isScheduleSessionModalOpen,
+    setIsScheduleSessionModalOpen,
     isGoalModalOpen,
     setIsGoalModalOpen,
     isOutcomeModalOpen,

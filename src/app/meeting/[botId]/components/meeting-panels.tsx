@@ -50,6 +50,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MeetingResourcesPanel } from './meeting-resources-panel'
+import { PreSessionResponsesCompact } from '@/components/meeting/pre-session-responses-compact'
 import { useResources } from '@/hooks/queries/use-resources'
 import { useShareResource } from '@/hooks/mutations/use-resource-mutations'
 import { CATEGORY_COLORS } from '@/types/resource'
@@ -75,7 +76,7 @@ interface MeetingPanelsProps {
   isMeetingEnded?: boolean
 }
 
-type SidebarTab = 'transcript' | 'context' | 'resources'
+type SidebarTab = 'transcript' | 'context' | 'resources' | 'questionnaire'
 
 export default function MeetingPanels({
   transcript,
@@ -504,6 +505,18 @@ export default function MeetingPanels({
                 <BookOpen className="h-3.5 w-3.5" />
                 Resources
               </button>
+              <button
+                onClick={() => setSidebarTab('questionnaire')}
+                className={cn(
+                  'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
+                  sidebarTab === 'questionnaire'
+                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
+                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                )}
+              >
+                <ClipboardList className="h-3.5 w-3.5" />
+                Q&A
+              </button>
             </div>
           </div>
 
@@ -514,6 +527,11 @@ export default function MeetingPanels({
                 transcript={recentTranscript}
                 mode="sidebar"
                 autoScroll={true}
+              />
+            ) : sidebarTab === 'questionnaire' ? (
+              <PreSessionResponsesCompact
+                sessionId={sessionId}
+                clientId={commitmentClientId || clientId}
               />
             ) : sidebarTab === 'resources' ? (
               <MeetingResourcesPanel

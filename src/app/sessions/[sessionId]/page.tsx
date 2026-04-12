@@ -35,6 +35,8 @@ import {
   type FullAnalysisResponse,
 } from '@/services/analysis-service'
 import { SessionService } from '@/services/session-service'
+import { StartBotCard } from './components/start-bot-card'
+import { PreSessionResponses } from './components/pre-session-responses'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { toast } from '@/hooks/use-toast'
@@ -166,6 +168,8 @@ export default function SessionDetailsPage({
   // UI state
   const [showQuickNote, setShowQuickNote] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
+  const [showUploaderForScheduled, setShowUploaderForScheduled] =
+    useState(false)
 
   // Auto-trigger analysis
   React.useEffect(() => {
@@ -446,7 +450,15 @@ export default function SessionDetailsPage({
       meeting_summary.total_transcript_entries > 0)
   const isPendingUpload = session.status === 'pending_upload'
   const isProcessing = session.transcription_status === 'processing'
-  const needsUpload = (isPendingUpload || !transcriptsExist) && !isProcessing
+  // A session is "scheduled" (show StartBotCard) if:
+  // - status is explicitly "scheduled", OR
+  // - it was originally scheduled (has scheduled_for) and has no transcripts yet
+  //   (covers the case where a previous bot was kicked/failed)
+  const isScheduled =
+    session.status === 'scheduled' ||
+    (session.scheduled_for && !transcriptsExist && !isProcessing)
+  const needsUpload =
+    (isPendingUpload || !transcriptsExist) && !isProcessing && !isScheduled
 
   return (
     <ProtectedRoute loadingMessage="Loading session details...">
@@ -490,8 +502,52 @@ export default function SessionDetailsPage({
 
           {/* Main Content */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            {/* Upload Required State */}
-            {needsUpload && !isViewer ? (
+            {/* Scheduled Session State */}
+            {isScheduled && !showUploaderForScheduled ? (
+              <div className="space-y-6">
+                {/* Pre-Session Responses */}
+                <PreSessionResponses
+                  sessionId={session.id}
+                  clientId={clientId}
+                />
+
+                {/* Quick Note */}
+                {!isViewer && <QuickNote sessionId={session.id} />}
+
+                {/* Start Bot Card */}
+                {!isViewer && (
+                  <StartBotCard
+                    sessionId={session.id}
+                    clientId={clientId}
+                    clientName={session.client_name || session.client?.name}
+                    scheduledFor={session.scheduled_for}
+                    meetingUrl={session.meeting_url}
+                    questionnaireSent={session.questionnaire_sent}
+                    onShowUploader={() => setShowUploaderForScheduled(true)}
+                  />
+                )}
+              </div>
+            ) : isScheduled && showUploaderForScheduled ? (
+              <div className="max-w-2xl mx-auto space-y-4">
+                <button
+                  onClick={() => setShowUploaderForScheduled(false)}
+                  className="text-sm text-app-secondary hover:text-app-primary transition-colors mb-2"
+                >
+                  &larr; Back to session
+                </button>
+                <MediaUploader
+                  sessionId={session.id}
+                  sessionTitle={session.title}
+                  onUploadComplete={() => {
+                    queryClient.invalidateQueries({
+                      queryKey: queryKeys.sessions.detail(
+                        resolvedParams.sessionId,
+                      ),
+                    })
+                  }}
+                />
+              </div>
+            ) : needsUpload && !isViewer ? (
               <div className="max-w-2xl mx-auto">
                 <MediaUploader
                   sessionId={session.id}

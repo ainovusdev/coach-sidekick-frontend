@@ -16,8 +16,17 @@ import StartRecording from './components/start-recording'
 import { AttentionNeeded } from './components/attention-needed'
 import ClientModal from '@/components/clients/client-modal'
 import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
+import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
 import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
-import { Eye, Plus, PlayCircle, FileText, Users } from 'lucide-react'
+import { UpcomingSessions } from '@/components/dashboard/upcoming-sessions'
+import {
+  Eye,
+  Plus,
+  PlayCircle,
+  FileText,
+  Users,
+  CalendarClock,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -31,6 +40,8 @@ export default function CoachDashboard() {
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
   const [isGroupSessionModalOpen, setIsGroupSessionModalOpen] = useState(false)
+  const [isScheduleSessionModalOpen, setIsScheduleSessionModalOpen] =
+    useState(false)
 
   // Get first name for personalized greeting
   const firstName = user?.full_name?.split(' ')[0] || 'there'
@@ -298,6 +309,9 @@ export default function CoachDashboard() {
           {/* Live Session Banner */}
           <LiveSessionBanner sessions={activeSessions} />
 
+          {/* Upcoming Scheduled Sessions */}
+          {canCreateMeeting && <UpcomingSessions />}
+
           {/* Top Section: Clients (2/3) and Start Session (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:items-stretch">
             {/* Left: Clients (2/3 width) */}
@@ -332,6 +346,15 @@ export default function CoachDashboard() {
                       >
                         <Users className="h-4 w-4 mr-2" />
                         Start Group Session
+                      </Button>
+                      <Button
+                        onClick={() => setIsScheduleSessionModalOpen(true)}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                      >
+                        <CalendarClock className="h-4 w-4 mr-2" />
+                        Schedule Session
                       </Button>
                       <Button
                         onClick={() => setIsManualSessionModalOpen(true)}
@@ -376,6 +399,12 @@ export default function CoachDashboard() {
         <ManualSessionModal
           isOpen={isManualSessionModalOpen}
           onClose={() => setIsManualSessionModalOpen(false)}
+        />
+
+        {/* Schedule Session Modal */}
+        <ScheduleSessionModal
+          isOpen={isScheduleSessionModalOpen}
+          onClose={() => setIsScheduleSessionModalOpen(false)}
         />
 
         {/* Group Session Modal */}
