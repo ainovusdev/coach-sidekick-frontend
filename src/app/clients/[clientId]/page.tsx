@@ -55,6 +55,7 @@ import {
 import { ClientService } from '@/services/client-service'
 import { ClientWinsTimeline } from '@/components/wins/client-wins-timeline'
 import { ClientResourcesTab } from './components/client-resources-tab'
+import { ClientUpcomingSessions } from './components/client-upcoming-sessions'
 
 export default function ClientDetailPage({
   params,
@@ -368,6 +369,9 @@ export default function ClientDetailPage({
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 {/* Live Session Banner */}
                 <LiveSessionBanner sessions={clientActiveSessions} />
+
+                {/* Upcoming Scheduled Sessions */}
+                <ClientUpcomingSessions clientId={client.id} />
 
                 <Tabs
                   value={activeTab}

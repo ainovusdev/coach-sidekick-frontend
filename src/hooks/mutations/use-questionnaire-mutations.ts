@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { QuestionnaireService } from '@/services/questionnaire-service'
-import { questionnaireKeys } from '@/hooks/queries/use-questionnaire'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
 import type { ScheduleSessionRequest } from '@/types/questionnaire'
@@ -12,7 +11,11 @@ export function useScheduleSession() {
     mutationFn: (data: ScheduleSessionRequest) =>
       QuestionnaireService.scheduleSession(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: questionnaireKeys.upcoming })
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'questionnaire' &&
+          query.queryKey[1] === 'upcoming',
+      })
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all })
       toast.success('Session scheduled successfully')
     },
@@ -34,11 +37,41 @@ export function useSendQuestionnaire() {
       clientId: string
     }) => QuestionnaireService.sendQuestionnaire(sessionId, clientId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: questionnaireKeys.upcoming })
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'questionnaire' &&
+          query.queryKey[1] === 'upcoming',
+      })
       toast.success('Questionnaire sent successfully')
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to send questionnaire')
+    },
+  })
+}
+
+export function useRescheduleSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      scheduledFor,
+    }: {
+      sessionId: string
+      scheduledFor: string
+    }) => QuestionnaireService.rescheduleSession(sessionId, scheduledFor),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'questionnaire' &&
+          query.queryKey[1] === 'upcoming',
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all })
+      toast.success('Session rescheduled')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to reschedule session')
     },
   })
 }

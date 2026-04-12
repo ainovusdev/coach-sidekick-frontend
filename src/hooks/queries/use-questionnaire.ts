@@ -6,15 +6,16 @@ import type {
 } from '@/types/questionnaire'
 
 export const questionnaireKeys = {
-  upcoming: ['questionnaire', 'upcoming'] as const,
+  upcoming: (clientId?: string) =>
+    ['questionnaire', 'upcoming', clientId] as const,
   responses: (sessionId: string, clientId?: string) =>
     ['questionnaire', 'responses', sessionId, clientId] as const,
 }
 
-export function useUpcomingSessions() {
+export function useUpcomingSessions(clientId?: string) {
   return useQuery<ScheduledSession[]>({
-    queryKey: questionnaireKeys.upcoming,
-    queryFn: () => QuestionnaireService.getUpcomingSessions(),
+    queryKey: questionnaireKeys.upcoming(clientId),
+    queryFn: () => QuestionnaireService.getUpcomingSessions(clientId),
     staleTime: 30 * 1000, // 30 seconds
   })
 }
