@@ -346,7 +346,7 @@ export function ClientProfileSection({
               <div className="flex items-center gap-2 mt-3 p-2 bg-primary/5 rounded-lg">
                 <Target className="h-4 w-4 text-primary" />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
-                  <strong>{activeGoals}</strong> active goal
+                  <strong>{activeGoals}</strong> active vision
                   {activeGoals !== 1 ? 's' : ''}
                 </span>
               </div>

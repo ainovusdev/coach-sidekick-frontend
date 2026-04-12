@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardHeader, CardTitle } from '@/components/ui/card'
 import { CommitmentKanbanCard } from '@/components/commitments/commitment-kanban-card'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Circle, PlayCircle, CheckCircle2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Commitment } from '@/types/commitment'
@@ -71,9 +70,12 @@ function KanbanColumn({
   }
 
   return (
-    <Card className="border-gray-200 dark:border-gray-700 flex flex-col h-full">
+    <Card className="border-gray-200 dark:border-gray-700 flex flex-col h-full min-h-0 overflow-hidden">
       <CardHeader
-        className={cn('py-3 pt-4 -mt-2 rounded-t-xl border-b', headerBgColor)}
+        className={cn(
+          'py-3 pt-4 -mt-2 rounded-t-xl border-b flex-shrink-0',
+          headerBgColor,
+        )}
       >
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <div className={iconColor}>{icon}</div>
@@ -83,39 +85,37 @@ function KanbanColumn({
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent
+      <div
         className={cn(
-          'p-0 flex-1 transition-colors min-h-0',
+          'p-0 flex-1 transition-colors min-h-0 overflow-y-auto',
           isDragOver && 'bg-primary/5',
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        <ScrollArea className="h-full">
-          <div className="p-3 space-y-3">
-            {commitments.length > 0 ? (
-              commitments.map(commitment => (
-                <CommitmentKanbanCard
-                  key={commitment.id}
-                  commitment={commitment}
-                  targets={targets}
-                  outcomeMap={outcomeMap}
-                  onClick={() => onCommitmentClick?.(commitment)}
-                  onEdit={onEdit ? () => onEdit(commitment) : undefined}
-                  onDelete={onDelete ? () => onDelete(commitment) : undefined}
-                />
-              ))
-            ) : (
-              <div className="text-center py-8 px-4">
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {emptyMessage}
-                </p>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
+        <div className="p-3 space-y-3">
+          {commitments.length > 0 ? (
+            commitments.map(commitment => (
+              <CommitmentKanbanCard
+                key={commitment.id}
+                commitment={commitment}
+                targets={targets}
+                outcomeMap={outcomeMap}
+                onClick={() => onCommitmentClick?.(commitment)}
+                onEdit={onEdit ? () => onEdit(commitment) : undefined}
+                onDelete={onDelete ? () => onDelete(commitment) : undefined}
+              />
+            ))
+          ) : (
+            <div className="text-center py-8 px-4">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {emptyMessage}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </Card>
   )
 }
@@ -140,7 +140,7 @@ export function CommitmentKanbanBoard({
   const doneCommitments = commitments.filter(c => c.status === 'completed')
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[500px]">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 h-[600px] max-h-[70vh]">
       <KanbanColumn
         title="To Do"
         icon={<Circle className="h-4 w-4" />}

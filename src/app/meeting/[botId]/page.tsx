@@ -146,7 +146,7 @@ export default function MeetingPage() {
         />
       </div>
       <div className="flex-1 flex flex-col overflow-hidden">
-        <div className="flex-1 flex flex-col max-w-[1600px] w-full mx-auto px-4 py-3 overflow-hidden">
+        <div className="flex-1 flex flex-col w-full px-4 py-3 overflow-hidden">
           <div className="flex-1 overflow-hidden">
             <MeetingPanels
               transcript={transcript}
