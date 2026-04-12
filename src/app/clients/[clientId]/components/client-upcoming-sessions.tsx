@@ -30,9 +30,15 @@ import {
 } from '@/hooks/mutations/use-questionnaire-mutations'
 import { useUpdateSession } from '@/hooks/mutations/use-session-mutations'
 
-export function UpcomingSessions() {
+interface ClientUpcomingSessionsProps {
+  clientId: string
+}
+
+export function ClientUpcomingSessions({
+  clientId,
+}: ClientUpcomingSessionsProps) {
   const router = useRouter()
-  const { data: sessions, isLoading } = useUpcomingSessions()
+  const { data: sessions, isLoading } = useUpcomingSessions(clientId)
   const sendQuestionnaire = useSendQuestionnaire()
   const reschedule = useRescheduleSession()
   const updateSession = useUpdateSession()
@@ -115,14 +121,10 @@ export function UpcomingSessions() {
                 ) : (
                   <button
                     onClick={() => startEditingTitle(session)}
-                    className="text-sm font-medium text-gray-900 dark:text-white truncate block text-left hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                    className="text-sm font-medium text-gray-900 dark:text-white truncate block text-left group/title hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
                     title="Click to edit title"
                   >
-                    {session.client_name && session.title
-                      ? session.title
-                      : session.client_name ||
-                        session.title ||
-                        'Scheduled Session'}
+                    {session.title || 'Scheduled Session'}
                     <Pencil className="h-2.5 w-2.5 ml-1.5 inline opacity-0 group-hover:opacity-40 transition-opacity" />
                   </button>
                 )}

@@ -21,8 +21,21 @@ export class QuestionnaireService {
     return ApiClient.post(`${BACKEND_URL}/questionnaire/schedule`, data)
   }
 
-  static async getUpcomingSessions(): Promise<ScheduledSession[]> {
-    return ApiClient.get(`${BACKEND_URL}/questionnaire/upcoming`)
+  static async getUpcomingSessions(
+    clientId?: string,
+  ): Promise<ScheduledSession[]> {
+    const params = clientId ? `?client_id=${clientId}` : ''
+    return ApiClient.get(`${BACKEND_URL}/questionnaire/upcoming${params}`)
+  }
+
+  static async rescheduleSession(
+    sessionId: string,
+    scheduledFor: string,
+  ): Promise<{ id: string; scheduled_for: string }> {
+    return ApiClient.patch(
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/reschedule`,
+      { scheduled_for: scheduledFor },
+    )
   }
 
   static async sendQuestionnaire(

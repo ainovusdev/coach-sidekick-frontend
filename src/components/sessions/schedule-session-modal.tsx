@@ -87,11 +87,25 @@ export function ScheduleSessionModal({
   const [minute, setMinute] = useState('00')
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM')
   const [title, setTitle] = useState('')
+  const [titleManuallySet, setTitleManuallySet] = useState(false)
   const [meetingUrl, setMeetingUrl] = useState('')
   const [sendQuestionnaire, setSendQuestionnaire] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
 
   const quickDates = useMemo(() => getQuickDates(), [])
+
+  // Auto-populate title when client or date changes (unless manually edited)
+  const selectedClient = clients.find(c => c.id === clientId)
+  React.useEffect(() => {
+    if (titleManuallySet) return
+    if (selectedClient && sessionDate) {
+      setTitle(
+        `${selectedClient.name} - ${format(sessionDate, 'MMMM d, yyyy')}`,
+      )
+    } else {
+      setTitle('')
+    }
+  }, [clientId, sessionDate, selectedClient, titleManuallySet])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -125,6 +139,7 @@ export function ScheduleSessionModal({
     setMinute('00')
     setPeriod('AM')
     setTitle('')
+    setTitleManuallySet(false)
     setMeetingUrl('')
     setSendQuestionnaire(true)
     onClose()
@@ -303,7 +318,10 @@ export function ScheduleSessionModal({
             <Input
               placeholder="e.g., Weekly Check-in"
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={e => {
+                setTitle(e.target.value)
+                setTitleManuallySet(true)
+              }}
             />
           </div>
 
