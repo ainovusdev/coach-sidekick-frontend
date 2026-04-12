@@ -6,6 +6,7 @@ import { TargetFormModal } from '@/components/sprints/target-form-modal'
 import { EndSprintModal } from './end-sprint-modal'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { StartSessionModal } from './start-session-modal'
+import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { UnifiedCreationModal } from './unified-creation-modal'
 import { useCommitments } from '@/hooks/queries/use-commitments'
@@ -26,6 +27,8 @@ interface ClientModalsProps {
   setIsSprintModalOpen: (open: boolean) => void
   isStartSessionModalOpen: boolean
   setIsStartSessionModalOpen: (open: boolean) => void
+  isScheduleSessionModalOpen: boolean
+  setIsScheduleSessionModalOpen: (open: boolean) => void
   isGoalModalOpen: boolean
   setIsGoalModalOpen: (open: boolean) => void
   isOutcomeModalOpen: boolean
@@ -60,6 +63,8 @@ export function ClientModals({
   setIsSprintModalOpen,
   isStartSessionModalOpen,
   setIsStartSessionModalOpen,
+  isScheduleSessionModalOpen,
+  setIsScheduleSessionModalOpen,
   isGoalModalOpen,
   setIsGoalModalOpen,
   isOutcomeModalOpen,
@@ -164,6 +169,12 @@ export function ClientModals({
         onClose={() => setIsStartSessionModalOpen(false)}
         clientId={client.id}
         clientName={client.name}
+      />
+
+      <ScheduleSessionModal
+        isOpen={isScheduleSessionModalOpen}
+        onClose={() => setIsScheduleSessionModalOpen(false)}
+        preselectedClientId={client.id}
       />
 
       <GoalFormModal
