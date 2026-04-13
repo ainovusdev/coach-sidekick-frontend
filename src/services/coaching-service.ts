@@ -1,7 +1,8 @@
 import { ApiClient } from '@/lib/api-client'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://coach-sidekick-backend-production.up.railway.app/api/v1'
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
 export interface CoachingAnalysis {
   bot_id: string
@@ -21,18 +22,14 @@ export interface CoachingAnalysis {
       energy: number
     }
     criteria_scores: {
-      active_listening: number
-      powerful_questions: number
-      creating_awareness: number
-      designing_actions: number
-      planning_goal_setting: number
-      managing_progress: number
-      emotional_intelligence: number
-      communication_skills: number
-      trust_safety: number
-      empowerment: number
-      flexibility: number
-      goal_achievement: number
+      maximum_value: number
+      intuitive_fence: number
+      integrity: number
+      inquiry_vs_insight: number
+      listening: number
+      reinvention: number
+      energy: number
+      disruption: number
     }
     suggestions: string[]
     summary: string
