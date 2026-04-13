@@ -54,19 +54,18 @@ export interface SessionInsights {
 }
 
 export interface CoachingScores {
-  active_listening: number
-  powerful_questions: number
-  direct_communication: number
-  creating_awareness: number
-  designing_actions: number
-  planning_goal_setting: number
-  managing_progress: number
-  trust_intimacy: number
-  coaching_presence: number
-  self_management: number
-  establishing_agreement: number
-  accountability: number
+  // Meta Performance Framework criteria
+  maximum_value: number
+  intuitive_fence: number
+  integrity: number
+  inquiry_vs_insight: number
+  listening: number
+  reinvention: number
+  energy: number
+  disruption: number
   overall?: number
+  // Legacy fields (backward compat with old analyses)
+  [key: string]: number | undefined
 }
 
 export interface GOLIVEScores {
@@ -91,6 +90,11 @@ export interface CoachingAnalysis {
   }
   suggestions: string[]
   personal_ai_suggestions?: string[]
+  score_justifications?: Record<string, string>
+  overall_assessment?: string
+  key_strengths?: string[]
+  areas_for_growth?: string[]
+  breakthrough_moments?: string[]
   analysis_version: string
   processing_time_ms: number
 }

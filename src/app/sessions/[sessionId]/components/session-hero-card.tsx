@@ -98,7 +98,7 @@ export function SessionHeroCard({
                 <p className="text-sm font-semibold text-app-primary">
                   Overall Score
                 </p>
-                <p className="text-xs text-app-secondary">ICF Competencies</p>
+                <p className="text-xs text-app-secondary">Meta Performance</p>
               </div>
             </div>
           )}

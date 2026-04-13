@@ -628,13 +628,14 @@ export default function SessionDetailsPage({
                         <LayoutGrid className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
-                      <TabsTrigger
+                      {/* Analysis tab hidden temporarily during Meta Performance migration */}
+                      {/* <TabsTrigger
                         value="analysis"
                         className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
                       >
                         <Brain className="h-4 w-4 mr-2" />
                         Analysis
-                      </TabsTrigger>
+                      </TabsTrigger> */}
                     </TabsList>
                   </Tabs>
 
@@ -782,13 +783,16 @@ export default function SessionDetailsPage({
                         <SessionHeroCard
                           overallScore={
                             analysisData.coaching?.coaching_scores?.overall ||
-                            Object.values(
-                              analysisData.coaching?.coaching_scores || {},
-                            ).reduce(
-                              (sum, score) =>
-                                sum + (typeof score === 'number' ? score : 0),
-                              0,
-                            ) / 12
+                            (() => {
+                              const vals = Object.values(
+                                analysisData.coaching?.coaching_scores || {},
+                              ).filter(
+                                (v): v is number => typeof v === 'number',
+                              )
+                              return vals.length > 0
+                                ? vals.reduce((a, b) => a + b, 0) / vals.length
+                                : 0
+                            })()
                           }
                           sentiment={analysisData.coaching?.sentiment}
                           wordCount={
