@@ -20,6 +20,7 @@ interface Session {
   id: string
   title?: string | null
   summary?: string | null
+  coach_notes?: string | null
 }
 
 interface EditSessionModalProps {
@@ -38,7 +39,7 @@ export function EditSessionModal({
   const updateSession = useUpdateSession()
   const [formData, setFormData] = useState({
     title: '',
-    summary: '',
+    coach_notes: '',
   })
 
   // Populate form when modal opens with session data
@@ -46,7 +47,7 @@ export function EditSessionModal({
     if (open && session) {
       setFormData({
         title: session.title || '',
-        summary: session.summary || '',
+        coach_notes: session.coach_notes || '',
       })
     }
   }, [open, session])
@@ -61,7 +62,7 @@ export function EditSessionModal({
         sessionId: session.id,
         data: {
           title: formData.title.trim() || undefined,
-          summary: formData.summary.trim() || undefined,
+          coach_notes: formData.coach_notes.trim() || undefined,
         },
       })
 
@@ -85,7 +86,7 @@ export function EditSessionModal({
         <DialogHeader>
           <DialogTitle>Edit Session</DialogTitle>
           <DialogDescription>
-            Update the session title and summary
+            Update the session title and notes
           </DialogDescription>
         </DialogHeader>
 
@@ -105,13 +106,13 @@ export function EditSessionModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="summary">Summary</Label>
+              <Label htmlFor="coach_notes">Note</Label>
               <Textarea
-                id="summary"
-                placeholder="Brief summary of the session..."
-                value={formData.summary}
+                id="coach_notes"
+                placeholder="Add your notes about this session..."
+                value={formData.coach_notes}
                 onChange={e =>
-                  setFormData({ ...formData, summary: e.target.value })
+                  setFormData({ ...formData, coach_notes: e.target.value })
                 }
                 rows={4}
                 disabled={updateSession.isPending}

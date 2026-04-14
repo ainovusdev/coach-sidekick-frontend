@@ -36,6 +36,7 @@ interface SessionHeaderProps {
     session_type?: string
     title?: string | null
     summary?: string | null
+    coach_notes?: string | null
     client_id?: string | null
     is_group_session?: boolean
     participant_client_ids?: string[]
