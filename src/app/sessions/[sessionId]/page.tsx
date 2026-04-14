@@ -628,14 +628,13 @@ export default function SessionDetailsPage({
                         <LayoutGrid className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
-                      {/* Analysis tab hidden temporarily during Meta Performance migration */}
-                      {/* <TabsTrigger
+                      <TabsTrigger
                         value="analysis"
                         className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
                       >
                         <Brain className="h-4 w-4 mr-2" />
                         Analysis
-                      </TabsTrigger> */}
+                      </TabsTrigger>
                     </TabsList>
                   </Tabs>
 

@@ -364,6 +364,7 @@ export function SessionCard({
             id: session.id,
             title: session.title,
             summary: session.summary,
+            coach_notes: (session as any).coach_notes,
           }}
           onSuccess={() => {
             // Trigger callback if title was updated

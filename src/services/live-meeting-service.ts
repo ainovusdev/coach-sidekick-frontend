@@ -276,7 +276,8 @@ export class LiveMeetingService {
       headers: getGuestHeaders(guestToken),
     })
 
-    return handleResponse<ClientNote[]>(response)
+    const result = await handleResponse<{ data: ClientNote[] }>(response)
+    return result.data
   }
 
   /**

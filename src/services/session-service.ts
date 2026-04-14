@@ -17,6 +17,7 @@ export interface SessionUpdateDto {
   status?: string
   ended_at?: string
   summary?: string
+  coach_notes?: string
   key_topics?: string[]
   action_items?: string[]
   session_metadata?: Record<string, any>
