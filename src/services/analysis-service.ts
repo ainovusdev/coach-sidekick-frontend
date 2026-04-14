@@ -113,6 +113,11 @@ export interface FullAnalysisResponse {
       engagement: string
     }
     suggestions: string[]
+    score_justifications?: Record<string, string>
+    overall_assessment?: string
+    key_strengths?: string[]
+    areas_for_growth?: string[]
+    breakthrough_moments?: string[]
     analysis_version: string
     processing_time_ms: number
   } | null
