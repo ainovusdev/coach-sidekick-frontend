@@ -139,7 +139,7 @@ export class AnalysisService {
         force ? '?force=true' : ''
       }`,
       {},
-      120000, // 2 minute timeout for analysis
+      300000, // 5 minute timeout for analysis
     )
     return response
   }
