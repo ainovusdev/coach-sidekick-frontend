@@ -1,10 +1,17 @@
 'use client'
 
-import { Mic, FileText, Target, ChevronRight } from 'lucide-react'
+import {
+  Mic,
+  FileText,
+  Target,
+  CalendarClock,
+  ChevronRight,
+} from 'lucide-react'
 
 interface EmptyStateWelcomeProps {
   client: any
   onStartSession: () => void
+  onScheduleSession: () => void
   onAddPastSession: () => void
   onSetGoals: () => void
 }
@@ -12,6 +19,7 @@ interface EmptyStateWelcomeProps {
 export function EmptyStateWelcome({
   client,
   onStartSession,
+  onScheduleSession,
   onAddPastSession,
   onSetGoals,
 }: EmptyStateWelcomeProps) {
@@ -55,6 +63,26 @@ export function EmptyStateWelcome({
         <p className="text-xs font-medium text-gray-400 uppercase tracking-wide mb-3">
           Or choose another option
         </p>
+
+        <button
+          onClick={onScheduleSession}
+          className="w-full group flex items-center justify-between p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+              <CalendarClock className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+            </div>
+            <div className="text-left">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                Schedule Session
+              </h4>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Book a future session and send a questionnaire
+              </p>
+            </div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+        </button>
 
         <button
           onClick={onAddPastSession}

@@ -202,7 +202,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     checkRoles.some(role => roles.includes(role))
   const isAdmin = () => hasAnyRole(['super_admin', 'admin'])
   const isSuperAdmin = () => hasRole('super_admin')
-  const isCoach = () => hasRole('coach')
+  const isCoach = () => hasRole('coach') || hasRole('trainee')
   const isViewer = () => hasRole('viewer')
   const isClient = () => hasRole('client') // NEW
 

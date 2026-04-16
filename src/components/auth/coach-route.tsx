@@ -21,7 +21,7 @@ export function CoachRoute({ children }: CoachRouteProps) {
       } else {
         // Check if user has coach, admin, super_admin, or viewer role
         const hasCoachAccess = roles.some(role =>
-          ['coach', 'admin', 'super_admin', 'viewer'].includes(role),
+          ['coach', 'trainee', 'admin', 'super_admin', 'viewer'].includes(role),
         )
 
         if (!hasCoachAccess) {
@@ -47,7 +47,7 @@ export function CoachRoute({ children }: CoachRouteProps) {
 
   // Check if user has coach access
   const hasCoachAccess = roles.some(role =>
-    ['coach', 'admin', 'super_admin', 'viewer'].includes(role),
+    ['coach', 'trainee', 'admin', 'super_admin', 'viewer'].includes(role),
   )
 
   if (!hasCoachAccess) {

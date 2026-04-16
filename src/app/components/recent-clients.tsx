@@ -43,7 +43,11 @@ export default function RecentClients({
     )
   }
 
-  if (clients.length === 0) {
+  // Show empty state when the coach has no owned clients. Users who only
+  // see clients via ClientAccess (assigned clients or their own client-portal
+  // profile) also land here, because the dashboard "My Clients" card is
+  // scoped to clients they own.
+  if (myClients.length === 0) {
     return (
       <Card className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
         <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">

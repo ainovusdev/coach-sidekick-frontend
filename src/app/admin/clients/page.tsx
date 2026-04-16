@@ -73,6 +73,7 @@ import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import axiosInstance from '@/lib/axios-config'
 import { formatDate } from '@/lib/date-utils'
+import { isCoachRole } from '@/lib/roles'
 
 interface Program {
   id: string
@@ -121,7 +122,7 @@ export default function AdminClientsPage() {
   const { data: users = [] } = useAdminUsers({ limit: 100 })
   const coaches = users.filter(
     u =>
-      u.roles.includes('coach') ||
+      isCoachRole(u.roles) ||
       u.roles.includes('admin') ||
       u.roles.includes('super_admin'),
   )

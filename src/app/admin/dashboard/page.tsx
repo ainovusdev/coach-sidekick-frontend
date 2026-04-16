@@ -121,6 +121,7 @@ export default function AdminDashboard() {
       super_admin: 0,
       admin: 0,
       coach: 0,
+      trainee: 0,
       viewer: 0,
     }
 
@@ -236,7 +237,7 @@ export default function AdminDashboard() {
         />
         <StatCard
           title="Active Coaches"
-          value={stats.roleDistribution.coach}
+          value={stats.roleDistribution.coach + stats.roleDistribution.trainee}
           description="Coaching users"
           icon={
             <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
@@ -285,9 +286,11 @@ export default function AdminDashboard() {
                               ? 'bg-blue-500'
                               : role === 'coach'
                                 ? 'bg-green-500'
-                                : role === 'viewer'
-                                  ? 'bg-gray-500'
-                                  : ''
+                                : role === 'trainee'
+                                  ? 'bg-emerald-400'
+                                  : role === 'viewer'
+                                    ? 'bg-gray-500'
+                                    : ''
                         }`}
                       />
                       <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">

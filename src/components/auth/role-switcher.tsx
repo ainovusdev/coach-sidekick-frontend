@@ -41,7 +41,7 @@ export function RoleSwitcher() {
     })
   }
 
-  if (hasRole('coach')) {
+  if (hasRole('coach') || hasRole('trainee')) {
     roleViews.push({
       role: 'coach',
       label: 'Coach Dashboard',

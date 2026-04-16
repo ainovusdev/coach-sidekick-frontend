@@ -293,7 +293,7 @@ class AuthService {
   }
 
   isCoach(): boolean {
-    return this.hasRole('coach')
+    return this.hasRole('coach') || this.hasRole('trainee')
   }
 
   isViewer(): boolean {

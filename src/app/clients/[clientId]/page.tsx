@@ -357,6 +357,9 @@ export default function ClientDetailPage({
                 onStartSession={() =>
                   modalState.setIsStartSessionModalOpen(true)
                 }
+                onScheduleSession={() =>
+                  modalState.setIsScheduleSessionModalOpen(true)
+                }
                 onAddPastSession={() =>
                   modalState.setIsManualSessionModalOpen(true)
                 }

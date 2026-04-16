@@ -460,7 +460,9 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Show client access for coaches and viewers */}
-                {(hasRole('coach') || hasRole('viewer')) &&
+                {(hasRole('coach') ||
+                  hasRole('trainee') ||
+                  hasRole('viewer')) &&
                   profile?.client_access &&
                   profile.client_access.length > 0 && (
                     <div className="border-t pt-4">
