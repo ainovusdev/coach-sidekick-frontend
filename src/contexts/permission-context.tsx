@@ -166,7 +166,7 @@ export function PermissionProvider({
       effectivePermissions = ROLE_PERMISSIONS.super_admin
     } else if (hasRole('admin')) {
       effectivePermissions = ROLE_PERMISSIONS.admin
-    } else if (hasRole('coach')) {
+    } else if (hasRole('coach') || hasRole('trainee')) {
       effectivePermissions = ROLE_PERMISSIONS.coach
     } else if (hasRole('viewer')) {
       effectivePermissions = ROLE_PERMISSIONS.viewer
@@ -200,7 +200,7 @@ export function PermissionProvider({
           // This would need to be checked against actual data
           return true // For now, assume admin has access
         }
-        if (hasRole('coach')) {
+        if (hasRole('coach') || hasRole('trainee')) {
           // Coach needs to own the client
           // This would need to be checked against actual data
           return true // For now, assume coach has access
@@ -220,7 +220,7 @@ export function PermissionProvider({
       if (!permissions.client.edit) return false
 
       // Additional checks for specific client could go here
-      if (clientId && hasRole('coach')) {
+      if (clientId && (hasRole('coach') || hasRole('trainee'))) {
         // Coach can only edit their own clients
         // This would need to be checked against actual data
         return true
@@ -233,7 +233,7 @@ export function PermissionProvider({
       if (!permissions.client.delete) return false
 
       // Additional checks for specific client could go here
-      if (clientId && hasRole('coach')) {
+      if (clientId && (hasRole('coach') || hasRole('trainee'))) {
         // Coach can only delete their own clients
         // This would need to be checked against actual data
         return true
@@ -275,7 +275,10 @@ export function PermissionProvider({
     },
 
     isViewerOnly: () => {
-      return hasRole('viewer') && !hasAnyRole(['super_admin', 'admin', 'coach'])
+      return (
+        hasRole('viewer') &&
+        !hasAnyRole(['super_admin', 'admin', 'coach', 'trainee'])
+      )
     },
 
     isViewer: () => {
@@ -283,7 +286,7 @@ export function PermissionProvider({
     },
 
     isCoach: () => {
-      return hasRole('coach')
+      return hasRole('coach') || hasRole('trainee')
     },
 
     isAdmin: () => {

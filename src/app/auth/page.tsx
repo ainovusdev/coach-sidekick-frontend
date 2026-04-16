@@ -13,7 +13,7 @@ export default function AuthPage() {
   useEffect(() => {
     if (isAuthenticated && !loading) {
       const hasAdmin = roles.some(r => ['admin', 'super_admin'].includes(r))
-      const hasCoach = roles.includes('coach')
+      const hasCoach = roles.includes('coach') || roles.includes('trainee')
       const hasClient = roles.includes('client')
       const isClientOnly = roles.length === 1 && hasClient
 

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CSVImportRow } from '@/types/admin-client'
 import { useAdminUsers } from '@/hooks/queries/use-admin-users'
 import { useImportClients } from '@/hooks/mutations/use-admin-client-mutations'
+import { isCoachRole } from '@/lib/roles'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -67,7 +68,7 @@ export default function ImportClientsPage() {
   const { data: users = [] } = useAdminUsers({ limit: 100 })
   const coaches = users.filter(
     u =>
-      u.roles.includes('coach') ||
+      isCoachRole(u.roles) ||
       u.roles.includes('admin') ||
       u.roles.includes('super_admin'),
   )

@@ -135,7 +135,6 @@ export default function MeetingPage() {
       <div className="flex-shrink-0 z-10">
         <MeetingHeader
           bot={bot}
-          transcriptLength={transcript.length}
           isStoppingBot={isStoppingBot}
           sessionId={sessionId}
           clientId={clientId}

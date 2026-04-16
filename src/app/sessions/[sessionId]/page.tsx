@@ -36,6 +36,7 @@ import {
 } from '@/services/analysis-service'
 import { SessionService } from '@/services/session-service'
 import { StartBotCard } from './components/start-bot-card'
+import { AnalysisPrintView } from './components/analysis-print-view'
 import { PreSessionResponses } from './components/pre-session-responses'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
@@ -511,9 +512,6 @@ export default function SessionDetailsPage({
                   clientId={clientId}
                 />
 
-                {/* Quick Note */}
-                {!isViewer && <QuickNote sessionId={session.id} />}
-
                 {/* Start Bot Card */}
                 {!isViewer && (
                   <StartBotCard
@@ -526,6 +524,9 @@ export default function SessionDetailsPage({
                     onShowUploader={() => setShowUploaderForScheduled(true)}
                   />
                 )}
+
+                {/* Quick Note */}
+                {!isViewer && <QuickNote sessionId={session.id} />}
               </div>
             ) : isScheduled && showUploaderForScheduled ? (
               <div className="max-w-2xl mx-auto space-y-4">
@@ -805,7 +806,33 @@ export default function SessionDetailsPage({
                           }
                         />
 
-                        {/* Detailed Analysis */}
+                        {/* Print Button + Detailed Analysis */}
+                        <div className="flex justify-end">
+                          <AnalysisPrintView
+                            insights={analysisData.insights || undefined}
+                            coaching={
+                              analysisData.coaching
+                                ? {
+                                    ...analysisData.coaching,
+                                    session_id: analysisData.session_id,
+                                    timestamp: analysisData.timestamp,
+                                  }
+                                : undefined
+                            }
+                            sessionTitle={
+                              session.title ||
+                              `Session ${formatDate(session.started_at || session.created_at)}`
+                            }
+                            clientName={
+                              session.client_name || session.client?.name
+                            }
+                            coachName={session.coach_name}
+                            sessionDate={
+                              session.started_at || session.created_at
+                            }
+                          />
+                        </div>
+
                         <SessionAnalysisMerged
                           insights={analysisData.insights || undefined}
                           coaching={

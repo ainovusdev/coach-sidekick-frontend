@@ -124,9 +124,13 @@ export default function CoachDashboard() {
     }
   }
 
-  // Determine if this is a new coach (no clients and no sessions)
+  // Determine if this is a new coach (no owned clients and no sessions).
+  // We count only owned clients — a user may see assigned or self-portal
+  // clients via ClientAccess, but "new coach" guidance is about getting
+  // started with your own clients.
+  const ownedClientsCount = clients.filter(c => c.is_my_client !== false).length
   const isNewCoach =
-    !clientsLoading && clients.length === 0 && totalSessions === 0
+    !clientsLoading && ownedClientsCount === 0 && totalSessions === 0
 
   // Show empty state with guidance for new coaches
   if (isNewCoach && canCreateMeeting) {

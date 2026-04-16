@@ -35,6 +35,7 @@ import {
 } from 'lucide-react'
 import { ClientAccessMatrix, User as UserType } from '@/services/admin-service'
 import { useRouter } from 'next/navigation'
+import { isCoachRole } from '@/lib/roles'
 
 interface HierarchyNode {
   type: 'admin' | 'coach' | 'client'
@@ -80,7 +81,7 @@ export default function HierarchyView({
       const admins = usersList.filter(
         u => u.roles.includes('admin') || u.roles.includes('super_admin'),
       )
-      const coaches = usersList.filter(u => u.roles.includes('coach'))
+      const coaches = usersList.filter(u => isCoachRole(u.roles))
 
       // Build admin -> coach -> client hierarchy
       admins.forEach(admin => {

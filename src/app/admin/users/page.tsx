@@ -69,6 +69,7 @@ import {
   Send,
 } from 'lucide-react'
 import { CoachInvitationModal } from '@/components/admin/coach-invitation-modal'
+import { isCoachRole } from '@/lib/roles'
 import { formatDate } from '@/lib/date-utils'
 
 export default function UsersPage() {
@@ -286,7 +287,7 @@ export default function UsersPage() {
       admins: users.filter(
         u => u.roles.includes('admin') || u.roles.includes('super_admin'),
       ).length,
-      coaches: users.filter(u => u.roles.includes('coach')).length,
+      coaches: users.filter(u => isCoachRole(u.roles)).length,
     }),
     [users],
   )
@@ -643,7 +644,7 @@ export default function UsersPage() {
                                 <LockKeyhole className="h-4 w-4 mr-2" />
                                 Client Access
                               </DropdownMenuItem>
-                              {user.roles.includes('coach') && (
+                              {isCoachRole(user.roles) && (
                                 <DropdownMenuItem
                                   onClick={() => {
                                     sessionStorage.setItem(
@@ -917,6 +918,8 @@ export default function UsersPage() {
                         'Full system access and control'}
                       {role === 'admin' && 'User and client management'}
                       {role === 'coach' && 'Access to coaching sessions'}
+                      {role === 'trainee' &&
+                        'Coach in training — full coach access; AI suggestions hidden during live meetings'}
                       {role === 'viewer' && 'Read-only access'}
                     </p>
                   </div>
@@ -927,6 +930,7 @@ export default function UsersPage() {
                   )}
                   {role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
                   {role === 'coach' && <UserCheck className="h-3 w-3 mr-1" />}
+                  {role === 'trainee' && <UserCheck className="h-3 w-3 mr-1" />}
                   {role === 'viewer' && <Eye className="h-3 w-3 mr-1" />}
                   {formatRoleName(role)}
                 </Badge>

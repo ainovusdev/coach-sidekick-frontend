@@ -53,6 +53,7 @@ import { MeetingResourcesPanel } from './meeting-resources-panel'
 import { PreSessionResponsesCompact } from '@/components/meeting/pre-session-responses-compact'
 import { useResources } from '@/hooks/queries/use-resources'
 import { useShareResource } from '@/hooks/mutations/use-resource-mutations'
+import { useAuth } from '@/contexts/auth-context'
 import { CATEGORY_COLORS } from '@/types/resource'
 import type { ResourceCategory } from '@/types/resource'
 
@@ -86,6 +87,8 @@ export default function MeetingPanels({
   isGroupSession,
   isMeetingEnded,
 }: MeetingPanelsProps) {
+  const { hasRole } = useAuth()
+  const isTrainee = hasRole('trainee')
   const [fullContext, setFullContext] = useState<any>(null)
   const [patterns, setPatterns] = useState<any[]>([])
   const [contextLoading, setContextLoading] = useState(true)
@@ -207,128 +210,136 @@ export default function MeetingPanels({
 
   return (
     <div className="h-full flex overflow-hidden">
-      {/* AI Suggestions Toggle Button */}
-      <div className="flex-shrink-0 flex items-start pt-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
-          className={cn(
-            'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r-lg rounded-l-none border-l-0',
-            aiSuggestionsOpen && 'bg-gray-100 dark:bg-gray-700',
-          )}
-        >
-          <div className="flex flex-col items-center gap-2">
-            {aiSuggestionsOpen ? (
-              <PanelLeftClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            ) : (
-              <PanelLeftOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            )}
-            <Sparkles className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-          </div>
-        </Button>
-      </div>
-
-      {/* Collapsible AI Suggestions Panel + Resources */}
-      <div
-        className={cn(
-          'flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
-          aiSuggestionsOpen ? 'w-72 xl:w-80 2xl:w-96' : 'w-0',
-        )}
-      >
-        <div className="w-72 xl:w-80 2xl:w-96 h-full flex flex-col">
-          <div className="flex-1 min-h-0 overflow-hidden">
-            <CoachingPanel
-              botId={botId}
-              className="h-full shadow-sm"
-              simplified={true}
-            />
-          </div>
-
-          {/* Resources section below AI suggestions */}
-          {allResources.length > 0 && (
-            <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
-              <button
-                onClick={() => setResourcesOpen(!resourcesOpen)}
-                className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                  <span className="text-xs font-semibold text-gray-900 dark:text-white">
-                    Resources
-                  </span>
-                  <Badge
-                    variant="secondary"
-                    className="text-[10px] px-1 py-0 h-4"
-                  >
-                    {allResources.length}
-                  </Badge>
-                </div>
-                {resourcesOpen ? (
-                  <ChevronUp className="h-3 w-3 text-gray-400" />
+      {!isTrainee && (
+        <>
+          {/* AI Suggestions Toggle Button */}
+          <div className="flex-shrink-0 flex items-start pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
+              className={cn(
+                'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r-lg rounded-l-none border-l-0',
+                aiSuggestionsOpen && 'bg-gray-100 dark:bg-gray-700',
+              )}
+            >
+              <div className="flex flex-col items-center gap-2">
+                {aiSuggestionsOpen ? (
+                  <PanelLeftClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 ) : (
-                  <ChevronDown className="h-3 w-3 text-gray-400" />
+                  <PanelLeftOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
                 )}
-              </button>
+                <Sparkles className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              </div>
+            </Button>
+          </div>
 
-              {resourcesOpen && (
-                <div className="px-3 pb-2 max-h-[180px] overflow-y-auto space-y-0.5">
-                  {allResources.map(resource => {
-                    const Icon =
-                      RESOURCE_CATEGORY_ICONS[resource.category] || FileText
-                    const colors =
-                      CATEGORY_COLORS[resource.category as ResourceCategory] ||
-                      CATEGORY_COLORS.general
-                    const alreadyShared = isResourceSharedWithClient(resource)
-                    const isSharing = sharingResourceId === resource.id
-                    const targetClientId = commitmentClientId || clientId
+          {/* Collapsible AI Suggestions Panel + Resources */}
+          <div
+            className={cn(
+              'flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
+              aiSuggestionsOpen ? 'w-72 xl:w-80 2xl:w-96' : 'w-0',
+            )}
+          >
+            <div className="w-72 xl:w-80 2xl:w-96 h-full flex flex-col">
+              <div className="flex-1 min-h-0 overflow-hidden">
+                <CoachingPanel
+                  botId={botId}
+                  className="h-full shadow-sm"
+                  simplified={true}
+                />
+              </div>
 
-                    return (
-                      <div
-                        key={resource.id}
-                        className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50"
+              {/* Resources section below AI suggestions */}
+              {allResources.length > 0 && (
+                <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+                  <button
+                    onClick={() => setResourcesOpen(!resourcesOpen)}
+                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                      <span className="text-xs font-semibold text-gray-900 dark:text-white">
+                        Resources
+                      </span>
+                      <Badge
+                        variant="secondary"
+                        className="text-[10px] px-1 py-0 h-4"
                       >
-                        <div className={`p-1 rounded ${colors.bg} shrink-0`}>
-                          <Icon className={`h-3 w-3 ${colors.text}`} />
-                        </div>
-                        <p className="flex-1 min-w-0 text-[11px] font-medium text-gray-900 dark:text-white truncate">
-                          {resource.title}
-                        </p>
-                        {targetClientId &&
-                          (alreadyShared ? (
-                            <div className="shrink-0 flex items-center gap-0.5 text-green-600 dark:text-green-400">
-                              <Check className="h-2.5 w-2.5" />
-                              <span className="text-[9px] font-medium">
-                                Shared
-                              </span>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="h-5 text-[9px] px-1.5 shrink-0"
-                              onClick={() => handleQuickShare(resource.id)}
-                              disabled={isSharing}
+                        {allResources.length}
+                      </Badge>
+                    </div>
+                    {resourcesOpen ? (
+                      <ChevronUp className="h-3 w-3 text-gray-400" />
+                    ) : (
+                      <ChevronDown className="h-3 w-3 text-gray-400" />
+                    )}
+                  </button>
+
+                  {resourcesOpen && (
+                    <div className="px-3 pb-2 max-h-[180px] overflow-y-auto space-y-0.5">
+                      {allResources.map(resource => {
+                        const Icon =
+                          RESOURCE_CATEGORY_ICONS[resource.category] || FileText
+                        const colors =
+                          CATEGORY_COLORS[
+                            resource.category as ResourceCategory
+                          ] || CATEGORY_COLORS.general
+                        const alreadyShared =
+                          isResourceSharedWithClient(resource)
+                        const isSharing = sharingResourceId === resource.id
+                        const targetClientId = commitmentClientId || clientId
+
+                        return (
+                          <div
+                            key={resource.id}
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                          >
+                            <div
+                              className={`p-1 rounded ${colors.bg} shrink-0`}
                             >
-                              {isSharing ? (
-                                <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                              <Icon className={`h-3 w-3 ${colors.text}`} />
+                            </div>
+                            <p className="flex-1 min-w-0 text-[11px] font-medium text-gray-900 dark:text-white truncate">
+                              {resource.title}
+                            </p>
+                            {targetClientId &&
+                              (alreadyShared ? (
+                                <div className="shrink-0 flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                                  <Check className="h-2.5 w-2.5" />
+                                  <span className="text-[9px] font-medium">
+                                    Shared
+                                  </span>
+                                </div>
                               ) : (
-                                <>
-                                  <Share2 className="h-2.5 w-2.5 mr-0.5" />
-                                  Share
-                                </>
-                              )}
-                            </Button>
-                          ))}
-                      </div>
-                    )
-                  })}
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-5 text-[9px] px-1.5 shrink-0"
+                                  onClick={() => handleQuickShare(resource.id)}
+                                  disabled={isSharing}
+                                >
+                                  {isSharing ? (
+                                    <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                                  ) : (
+                                    <>
+                                      <Share2 className="h-2.5 w-2.5 mr-0.5" />
+                                      Share
+                                    </>
+                                  )}
+                                </Button>
+                              ))}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-1">

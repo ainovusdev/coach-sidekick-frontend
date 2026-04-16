@@ -26,6 +26,7 @@ import {
   useAssignCoachToAdmin,
   useRemoveCoachFromAdmin,
 } from '@/hooks/mutations/use-admin-coach-access-mutations'
+import { isCoachRole } from '@/lib/roles'
 import {
   UserCheck,
   Link2,
@@ -65,7 +66,7 @@ export default function CoachDelegationView({
 
   // Separate users by role with memoization
   const { coaches, admins } = useMemo(() => {
-    const coaches = users.filter(u => u.roles.includes('coach'))
+    const coaches = users.filter(u => isCoachRole(u.roles))
     const admins = users.filter(
       u => u.roles.includes('admin') || u.roles.includes('super_admin'),
     )

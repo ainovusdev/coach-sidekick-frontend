@@ -12,6 +12,7 @@ import HierarchyView from './components/hierarchy-view'
 import CoachDelegationView from './components/coach-delegation-view'
 import ClientAccessView from './components/client-access-view'
 import ListView from './components/list-view'
+import { isCoachRole } from '@/lib/roles'
 
 export default function UnifiedAccessManagementPage() {
   const [activeTab, setActiveTab] = useState('hierarchy')
@@ -40,7 +41,7 @@ export default function UnifiedAccessManagementPage() {
   const stats = useMemo(() => {
     if (isInitialLoading) return null
 
-    const coaches = users.filter(u => u.roles.includes('coach'))
+    const coaches = users.filter(u => isCoachRole(u.roles))
     const admins = users.filter(
       u => u.roles.includes('admin') || u.roles.includes('super_admin'),
     )

@@ -8,19 +8,11 @@ import { BotStatus } from '@/components/meeting/bot-status'
 import { WebSocketStatus } from '@/components/meeting/websocket-status'
 import { ClientMeetingLink } from '@/components/meeting/client-meeting-link'
 import { Bot } from '@/types/meeting'
-import {
-  ArrowLeft,
-  ExternalLink,
-  Users,
-  MessageSquare,
-  Moon,
-  Sun,
-} from 'lucide-react'
+import { ArrowLeft, ExternalLink, Moon, Sun } from 'lucide-react'
 import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
 
 interface MeetingHeaderProps {
   bot: Bot | null
-  transcriptLength: number
   isStoppingBot: boolean
   sessionId?: string | null
   clientId?: string | null
@@ -32,7 +24,6 @@ interface MeetingHeaderProps {
 
 export default function MeetingHeader({
   bot,
-  transcriptLength,
   isStoppingBot,
   sessionId,
   clientId,
@@ -91,19 +82,6 @@ export default function MeetingHeader({
 
           {bot && (
             <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
-                <div className="flex items-center gap-1">
-                  <Users className="h-4 w-4" />
-                  <span className="capitalize">
-                    {bot.platform || 'Unknown'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>{transcriptLength} entries</span>
-                </div>
-              </div>
-
               {/* Client Meeting Link - inline with actions */}
               {sessionId && (
                 <>
