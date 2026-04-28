@@ -57,10 +57,6 @@ import { ClientWinsTimeline } from '@/components/wins/client-wins-timeline'
 import { ClientResourcesTab } from './components/client-resources-tab'
 import { ClientUpcomingSessions } from './components/client-upcoming-sessions'
 
-// Feature flag: hides the "View Client Portal" button while the feature is gated off.
-// Backend already authorizes coaches with client access — flip to true to expose the UI.
-const SHOW_VIEW_AS_CLIENT = false
-
 export default function ClientDetailPage({
   params,
 }: {
@@ -336,8 +332,7 @@ export default function ClientDetailPage({
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
               </Button>
-              {/* View Client Portal hidden for now — backend authorizes it, flip SHOW_VIEW_AS_CLIENT to enable. */}
-              {SHOW_VIEW_AS_CLIENT && client && hasClientAccess(client.id) && (
+              {client && hasClientAccess(client.id) && (
                 <Button
                   variant="outline"
                   size="sm"
