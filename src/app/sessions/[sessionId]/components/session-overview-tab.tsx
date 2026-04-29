@@ -257,14 +257,6 @@ export function SessionOverviewTab({
         </Card>
       )}
 
-      {videoUrl && onRefreshVideoUrl && !isViewer && (
-        <VideoPlayer
-          videoUrl={videoUrl}
-          sessionId={sessionId}
-          onRefresh={onRefreshVideoUrl}
-        />
-      )}
-
       {/* Commitments and Wins */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {!isViewer &&
@@ -522,6 +514,15 @@ export function SessionOverviewTab({
             </CardContent>
           </Card>
         )}
+
+      {/* Session Recording */}
+      {videoUrl && onRefreshVideoUrl && !isViewer && (
+        <VideoPlayer
+          videoUrl={videoUrl}
+          sessionId={sessionId}
+          onRefresh={onRefreshVideoUrl}
+        />
+      )}
     </div>
   )
 }
