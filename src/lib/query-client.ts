@@ -74,6 +74,8 @@ export const queryKeys = {
       [...queryKeys.sessions.detail(id), 'analysis'] as const,
     transcript: (id: string) =>
       [...queryKeys.sessions.detail(id), 'transcript'] as const,
+    review: (id: string) =>
+      [...queryKeys.sessions.detail(id), 'review'] as const,
     notes: (id: string, clientId?: string) =>
       [
         ...queryKeys.sessions.detail(id),
@@ -117,6 +119,26 @@ export const queryKeys = {
     list: (filters?: Record<string, any>) =>
       [...queryKeys.sprints.lists(), { filters }] as const,
     detail: (id: string) => [...queryKeys.sprints.all, id] as const,
+  },
+
+  // Video comment keys
+  videoComments: {
+    all: ['video-comments'] as const,
+    list: (sessionId: string) =>
+      [...queryKeys.videoComments.all, sessionId] as const,
+  },
+
+  // Session share keys
+  sessionShares: {
+    all: ['session-shares'] as const,
+    list: (sessionId: string) =>
+      [...queryKeys.sessionShares.all, sessionId] as const,
+  },
+
+  // Coach typeahead search
+  coachSearch: {
+    all: ['coach-search'] as const,
+    query: (q: string) => [...queryKeys.coachSearch.all, q] as const,
   },
 
   // Persona keys

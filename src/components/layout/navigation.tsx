@@ -13,6 +13,7 @@ import {
   BookOpen,
   Shield,
   Eye,
+  Users,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -61,6 +62,12 @@ export default function Navigation() {
       path: '/sessions',
       label: 'Sessions',
       icon: History,
+      permission: { resource: 'sessions', action: 'view' },
+    },
+    {
+      path: '/sessions/shared',
+      label: 'Shared with me',
+      icon: Users,
       permission: { resource: 'sessions', action: 'view' },
     },
     {
@@ -140,7 +147,16 @@ export default function Navigation() {
                 <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
                   {navItems.map(item => {
                     const Icon = item.icon
-                    const isActive = isActivePath(item.path)
+                    // Only the longest-matching nav item lights up — avoids
+                    // both /sessions and /sessions/shared appearing active at once.
+                    const isActive =
+                      isActivePath(item.path) &&
+                      !navItems.some(
+                        other =>
+                          other.path !== item.path &&
+                          other.path.length > item.path.length &&
+                          isActivePath(other.path),
+                      )
 
                     return (
                       <button

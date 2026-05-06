@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Search,
   Check,
+  Activity,
 } from 'lucide-react'
 
 interface Client {
@@ -30,6 +31,30 @@ interface Coach {
 
 export type SessionTypeFilter = 'all' | '1:1' | 'group'
 
+export type SessionStatusFilter =
+  | 'all'
+  | 'completed'
+  | 'processing'
+  | 'scheduled'
+  | 'pending_upload'
+  | 'active'
+
+const STATUS_OPTIONS: {
+  value: SessionStatusFilter
+  label: string
+  dot: string
+}[] = [
+  { value: 'all', label: 'All Statuses', dot: 'bg-slate-400' },
+  { value: 'completed', label: 'Completed', dot: 'bg-emerald-500' },
+  { value: 'active', label: 'Active', dot: 'bg-rose-500' },
+  { value: 'processing', label: 'Processing', dot: 'bg-amber-500' },
+  { value: 'scheduled', label: 'Scheduled', dot: 'bg-sky-500' },
+  { value: 'pending_upload', label: 'Pending Upload', dot: 'bg-violet-500' },
+]
+
+const getStatusOption = (value: SessionStatusFilter) =>
+  STATUS_OPTIONS.find(o => o.value === value) ?? STATUS_OPTIONS[0]
+
 interface SessionsFiltersProps {
   clients: Client[]
   coaches: Coach[]
@@ -40,10 +65,12 @@ interface SessionsFiltersProps {
   selectedCoachId: string | null
   selectedCoach: Coach | undefined
   sessionType: SessionTypeFilter
+  selectedStatus: SessionStatusFilter
   hasActiveFilters: boolean
   onClientFilter: (clientId: string | null) => void
   onCoachFilter: (coachId: string | null) => void
   onSessionTypeFilter: (type: SessionTypeFilter) => void
+  onStatusFilter: (status: SessionStatusFilter) => void
   onClearFilters: () => void
 }
 
@@ -57,16 +84,20 @@ export default function SessionsFilters({
   selectedCoachId,
   selectedCoach,
   sessionType,
+  selectedStatus,
   hasActiveFilters,
   onClientFilter,
   onCoachFilter,
   onSessionTypeFilter,
+  onStatusFilter,
   onClearFilters,
 }: SessionsFiltersProps) {
   const [clientSearch, setClientSearch] = useState('')
   const [coachSearch, setCoachSearch] = useState('')
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false)
   const [coachPopoverOpen, setCoachPopoverOpen] = useState(false)
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false)
+  const activeStatus = getStatusOption(selectedStatus)
 
   // Filter clients based on search
   const filteredClients = clients.filter(client =>
@@ -297,6 +328,60 @@ export default function SessionsFilters({
               </button>
             ))}
           </div>
+        </div>
+
+        {/* Status Filter */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Activity className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+              Status:
+            </span>
+          </div>
+
+          <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[180px] justify-between text-xs"
+              >
+                <div className="flex items-center gap-2">
+                  <span
+                    className={`h-2 w-2 rounded-full ${activeStatus.dot}`}
+                    aria-hidden="true"
+                  />
+                  {activeStatus.label}
+                </div>
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-1" align="start">
+              {STATUS_OPTIONS.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onStatusFilter(option.value)
+                    setStatusPopoverOpen(false)
+                  }}
+                  className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-slate-100 dark:hover:bg-slate-800 ${
+                    selectedStatus === option.value
+                      ? 'bg-slate-100 dark:bg-slate-800 font-medium'
+                      : ''
+                  }`}
+                >
+                  <span
+                    className={`h-2 w-2 rounded-full ${option.dot}`}
+                    aria-hidden="true"
+                  />
+                  <span className="flex-1 text-left">{option.label}</span>
+                  {selectedStatus === option.value && (
+                    <Check className="h-3 w-3 text-slate-600 dark:text-slate-400" />
+                  )}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Clear All Filters - inline */}

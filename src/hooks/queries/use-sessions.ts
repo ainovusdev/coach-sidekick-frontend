@@ -33,6 +33,7 @@ export function useSessions(
     client_id?: string
     coach_id?: string
     status?: string
+    scope?: 'mine' | 'shared' | 'all'
   },
   options?: Omit<UseQueryOptions<SessionListResponse>, 'queryKey' | 'queryFn'>,
 ) {

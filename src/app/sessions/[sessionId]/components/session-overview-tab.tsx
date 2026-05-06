@@ -30,7 +30,6 @@ import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import { PreSessionResponses } from './pre-session-responses'
 import TranscriptViewer from './transcript-viewer'
-import { VideoPlayer } from '@/components/sessions/video-player'
 
 interface TranscriptEntry {
   id: string
@@ -63,10 +62,8 @@ interface SessionOverviewTabProps {
   clientId?: string
   transcript?: TranscriptEntry[]
   isViewer?: boolean
-  videoUrl?: string | null
   onViewAnalysis: () => void
   onRefreshCommitments?: () => void
-  onRefreshVideoUrl?: () => Promise<void>
   isGroupSession?: boolean
   selectedClientId?: string | null
   clientAnalyses?: Record<string, ClientAnalysis>
@@ -84,10 +81,8 @@ export function SessionOverviewTab({
   clientId,
   transcript,
   isViewer = false,
-  videoUrl,
   onViewAnalysis,
   onRefreshCommitments,
-  onRefreshVideoUrl,
   isGroupSession = false,
   selectedClientId = null,
   clientAnalyses,
@@ -515,14 +510,7 @@ export function SessionOverviewTab({
           </Card>
         )}
 
-      {/* Session Recording */}
-      {videoUrl && onRefreshVideoUrl && !isViewer && (
-        <VideoPlayer
-          videoUrl={videoUrl}
-          sessionId={sessionId}
-          onRefresh={onRefreshVideoUrl}
-        />
-      )}
+      {/* Recording lives in its own "Recording" tab on the page; not rendered here. */}
     </div>
   )
 }

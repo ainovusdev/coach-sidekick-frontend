@@ -20,6 +20,7 @@ import {
   LayoutGrid,
   Plus,
   StickyNote,
+  Video,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,6 +29,9 @@ import SessionHeader from './components/session-header'
 import { SessionHeroCard } from './components/session-hero-card'
 import { SessionOverviewTab } from './components/session-overview-tab'
 import { SessionAnalysisMerged } from './components/session-analysis-merged'
+import { VideoReviewPanel } from '@/components/sessions/video-review-panel'
+import { useAuth } from '@/contexts/auth-context'
+import { isPresignedUrlExpired } from '@/lib/presigned-url'
 import { GroupParticipantBar } from './components/group-participant-bar'
 import { QuickNote } from '@/components/session-notes/quick-note'
 import {
@@ -48,6 +52,30 @@ import { queryKeys } from '@/lib/query-client'
 import { useOptionalProcessing } from '@/contexts/processing-context'
 import { websocketService } from '@/services/websocket-service'
 
+/**
+ * Choose the wall-clock time that maps to t=0 of the recording.
+ *
+ * `recording_started_at` is when the Recall.ai bot started capturing video
+ * (when it fires, the video file's t=0 is at this moment). It is the
+ * authoritative anchor when present. Some transcripts may fire a few seconds
+ * BEFORE this — those are partial captures from before recording actually
+ * began, and the synced-transcript hook is responsible for dropping them so
+ * they don't appear ahead of the video.
+ *
+ * Fall back to the first transcript timestamp when recording_started_at is
+ * missing, and to session.started_at as a last resort (least reliable —
+ * it's when the DB row was created, ~60-90s before the bot actually joined).
+ */
+function pickVideoAnchor(
+  recordingStartedAt: string | null | undefined,
+  transcript: Array<{ timestamp: string; is_partial?: boolean }> | undefined,
+  sessionStartedAt: string | null | undefined,
+): string | null {
+  if (recordingStartedAt) return recordingStartedAt
+  const firstFinal = transcript?.find(t => !t.is_partial)?.timestamp
+  return firstFinal ?? transcript?.[0]?.timestamp ?? sessionStartedAt ?? null
+}
+
 export default function SessionDetailsPage({
   params,
 }: {
@@ -56,6 +84,7 @@ export default function SessionDetailsPage({
   const router = useRouter()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
+  const { userId: currentUserId } = useAuth()
   const resolvedParams = React.use(params)
   const queryClient = useQueryClient()
 
@@ -66,6 +95,32 @@ export default function SessionDetailsPage({
     error: queryError,
   } = useSessionDetails(resolvedParams.sessionId)
   const error = queryError ? String(queryError) : null
+
+  // Share recipients land on the owner URL (`/sessions/[id]`) but `/details`
+  // is owner-only. On a /details error, probe /review — if accessible and
+  // we're not the owner, redirect to the narrow review surface.
+  const reviewProbedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!queryError) return
+    const sid = resolvedParams.sessionId
+    if (reviewProbedRef.current === sid) return
+    reviewProbedRef.current = sid
+    let cancelled = false
+    ;(async () => {
+      try {
+        const review = await SessionService.getSessionReview(sid)
+        if (cancelled) return
+        if (!review.is_owner) {
+          router.replace(`/sessions/${sid}/review`)
+        }
+      } catch {
+        // /review also failed — leave the existing not-found UI alone.
+      }
+    })()
+    return () => {
+      cancelled = true
+    }
+  }, [queryError, resolvedParams.sessionId, router])
 
   // Group session state
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
@@ -379,15 +434,46 @@ export default function SessionDetailsPage({
 
     try {
       await SessionService.refreshVideoUrl(sessionData.session.id)
-      // Invalidate session details to refetch with new video URL
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.detail(sessionData.session.id),
-      })
     } catch (error) {
       console.error('Failed to refresh video URL:', error)
       throw error // Re-throw so VideoPlayer can handle the error state
+    } finally {
+      // Refetch either way: on success to pick up the new presigned URL,
+      // on failure to pick up the `video_unavailable` flag the backend
+      // writes when Recall.ai no longer has the file.
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sessions.detail(sessionData.session.id),
+      })
     }
   }
+
+  // Auto-refresh an expired presigned video URL exactly once per landing.
+  // Without this, the user has to click "Refresh" themselves before they can
+  // play a recording older than the URL's 7-day signed window.
+  const autoRefreshedSessionRef = useRef<string | null>(null)
+  useEffect(() => {
+    const sid = sessionData?.session?.id
+    if (!sid) return
+    if (autoRefreshedSessionRef.current === sid) return
+    if (isViewer) return
+    if (sessionData?.session?.video_unavailable) return
+    const url = sessionData?.session?.video_url
+    if (!url || !isPresignedUrlExpired(url)) return
+
+    autoRefreshedSessionRef.current = sid
+    handleRefreshVideoUrl().catch(() => {
+      // Errors are already toasted/logged inside handleRefreshVideoUrl;
+      // swallowing here keeps the effect from triggering React error boundary.
+    })
+    // We intentionally don't include handleRefreshVideoUrl in deps —
+    // it's stable enough and we guard against re-runs via the ref.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    sessionData?.session?.id,
+    sessionData?.session?.video_url,
+    sessionData?.session?.video_unavailable,
+    isViewer,
+  ])
 
   if (loading) {
     return (
@@ -636,6 +722,18 @@ export default function SessionDetailsPage({
                         <Brain className="h-4 w-4 mr-2" />
                         Analysis
                       </TabsTrigger>
+                      {!isViewer &&
+                        (session.bot_id ||
+                          session.video_url ||
+                          session.video_unavailable) && (
+                          <TabsTrigger
+                            value="recording"
+                            className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-800 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Recording
+                          </TabsTrigger>
+                        )}
                     </TabsList>
                   </Tabs>
 
@@ -736,12 +834,8 @@ export default function SessionDetailsPage({
                       clientId={clientId}
                       transcript={transcript}
                       isViewer={isViewer}
-                      videoUrl={session.video_url}
                       onViewAnalysis={() => setActiveTab('analysis')}
                       onRefreshCommitments={refreshCommitments}
-                      onRefreshVideoUrl={
-                        !isViewer ? handleRefreshVideoUrl : undefined
-                      }
                       isGroupSession={isGroupSession}
                       selectedClientId={selectedClientId}
                       clientAnalyses={session.client_analyses}
@@ -873,6 +967,27 @@ export default function SessionDetailsPage({
                         </CardContent>
                       </Card>
                     ))}
+
+                  {/* Recording Tab — video player + synced transcript + comments */}
+                  {activeTab === 'recording' && !isViewer && (
+                    <VideoReviewPanel
+                      sessionId={sessionData.session.id}
+                      videoUrl={session.video_url ?? null}
+                      videoUnavailable={session.video_unavailable}
+                      videoAnchorAt={pickVideoAnchor(
+                        (session.metadata as any)?.recording_started_at,
+                        transcript,
+                        session.started_at,
+                      )}
+                      transcript={(transcript ?? []) as any}
+                      isOwner={
+                        !!currentUserId &&
+                        !!session.coach_id &&
+                        currentUserId === session.coach_id
+                      }
+                      onRefreshVideoUrl={handleRefreshVideoUrl}
+                    />
+                  )}
                 </div>
               </div>
             )}

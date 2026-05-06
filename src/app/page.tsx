@@ -11,6 +11,7 @@ import { useDashboardData } from './hooks/use-dashboard-data'
 import { useSessions } from '@/hooks/queries/use-sessions'
 import RecentClients from './components/recent-clients'
 import RecentSessions from './components/recent-sessions'
+import { RecentSessionsToReview } from './components/recent-sessions-to-review'
 import LiveSessionBanner from './components/live-session-banner'
 import StartRecording from './components/start-recording'
 import { AttentionNeeded } from './components/attention-needed'
@@ -378,6 +379,9 @@ export default function CoachDashboard() {
 
           {/* Attention Needed Alerts */}
           <AttentionNeeded clients={clients} />
+
+          {/* Sessions other coaches have shared for review (hidden when none) */}
+          <RecentSessionsToReview />
 
           {/* Bottom Section: Recent Sessions (Full Width) */}
           <RecentSessions
