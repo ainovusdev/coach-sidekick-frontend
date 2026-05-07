@@ -82,12 +82,12 @@ const ADMIN_ITEMS: Array<AppShellNavItem & { roles: string[] }> = [
 ]
 
 const ROLE_TO_BADGE: Record<string, BadgeVariant> = {
-  super_admin: 'bad',
-  admin: 'info',
-  coach: 'ok',
-  viewer: 'neutral',
-  client: 'neutral',
-  trainee: 'ok',
+  super_admin: 'destructive',
+  admin: 'default',
+  coach: 'secondary',
+  viewer: 'outline',
+  client: 'outline',
+  trainee: 'secondary',
 }
 
 const formatRoleName = (role: string) =>
@@ -113,7 +113,7 @@ export function AdminShell({ children }: AdminShellProps) {
     <>
       <div className="hidden md:flex items-center gap-2">
         {roles.map(role => (
-          <Badge key={role} variant={ROLE_TO_BADGE[role] ?? 'neutral'}>
+          <Badge key={role} variant={ROLE_TO_BADGE[role] ?? 'outline'}>
             <Shield className="h-3 w-3" />
             {formatRoleName(role)}
           </Badge>
