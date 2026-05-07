@@ -10,7 +10,7 @@ import {
   useState,
   forwardRef,
 } from 'react'
-import { Search, X, MessageSquarePlus } from 'lucide-react'
+import { Search, X, MessageSquarePlus, Crosshair } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
@@ -30,6 +30,7 @@ export interface TranscriptPaneEntry {
 
 export type TranscriptPaneHandle = {
   focusSearch: () => void
+  scrollToActive: () => void
 }
 
 interface TranscriptPaneProps {
@@ -95,14 +96,7 @@ export const TranscriptPane = forwardRef<
   const [matchIndex, setMatchIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
-  const lastManualScrollRef = useRef<number>(0)
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({})
-
-  useImperativeHandle(
-    ref,
-    () => ({ focusSearch: () => searchRef.current?.focus() }),
-    [],
-  )
 
   const getTimestamp = useCallback((e: TranscriptPaneEntry) => e.timestamp, [])
 
@@ -112,6 +106,29 @@ export const TranscriptPane = forwardRef<
     currentTimeSec,
     getTimestamp,
   })
+
+  // Center the active row inside the transcript's own scroll container.
+  // Container-scoped (no scrollIntoView) so the page itself never scrolls.
+  const scrollToActive = useCallback(() => {
+    const container = containerRef.current
+    if (!container || activeIndex < 0) return
+    const activeEntry = entries[activeIndex]
+    if (!activeEntry) return
+    const node = rowRefs.current[activeEntry.entry.id]
+    if (!node) return
+    const target =
+      node.offsetTop - container.clientHeight / 2 + node.clientHeight / 2
+    container.scrollTo({ top: Math.max(0, target), behavior: 'smooth' })
+  }, [activeIndex, entries])
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      focusSearch: () => searchRef.current?.focus(),
+      scrollToActive,
+    }),
+    [scrollToActive],
+  )
 
   const matches = useMemo(() => {
     if (!search.trim()) return [] as number[]
@@ -149,22 +166,6 @@ export const TranscriptPane = forwardRef<
     [entries, matches, matchIndex, onSeek],
   )
 
-  // Track manual scroll so we can pause auto-scroll for 3 seconds.
-  const handleScroll = useCallback(() => {
-    lastManualScrollRef.current = Date.now()
-  }, [])
-
-  // Auto-scroll to active row.
-  useEffect(() => {
-    if (activeIndex < 0) return
-    const since = Date.now() - lastManualScrollRef.current
-    if (since < 3000) return
-    const activeEntry = entries[activeIndex]
-    if (!activeEntry) return
-    const node = rowRefs.current[activeEntry.entry.id]
-    node?.scrollIntoView({ block: 'center', behavior: 'smooth' })
-  }, [activeIndex, entries])
-
   const visibleMatchSet = useMemo(() => new Set(matches), [matches])
 
   return (
@@ -174,9 +175,24 @@ export const TranscriptPane = forwardRef<
           <CardTitle className="text-base font-semibold text-gray-900">
             Transcript
           </CardTitle>
-          <Badge variant="secondary" className="text-xs">
-            {entries.length} {entries.length === 1 ? 'line' : 'lines'}
-          </Badge>
+          <div className="flex items-center gap-2">
+            {activeIndex >= 0 && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={scrollToActive}
+                title="Scroll the transcript to where the video is"
+                className="h-7 px-2 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+              >
+                <Crosshair className="h-3.5 w-3.5 mr-1" />
+                Jump to current
+              </Button>
+            )}
+            <Badge variant="secondary" className="text-xs">
+              {entries.length} {entries.length === 1 ? 'line' : 'lines'}
+            </Badge>
+          </div>
         </div>
         <div className="relative mt-2">
           <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -215,7 +231,6 @@ export const TranscriptPane = forwardRef<
         ) : (
           <div
             ref={containerRef}
-            onScroll={handleScroll}
             className="max-h-[28rem] overflow-y-auto divide-y divide-gray-100"
             role="list"
             aria-label="Transcript synced with video"

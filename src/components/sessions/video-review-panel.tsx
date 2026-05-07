@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useRef, useState } from 'react'
-import { Share2, Keyboard } from 'lucide-react'
+import { Share2, Keyboard, ChevronDown, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,6 +43,9 @@ interface VideoReviewPanelProps {
   transcript: TranscriptPaneEntry[]
   isOwner: boolean
   onRefreshVideoUrl?: () => Promise<void>
+  /** When true, the transcript section starts collapsed and renders as a
+   *  toggleable disclosure. Used on /review where video focus matters most. */
+  transcriptCollapsedByDefault?: boolean
   className?: string
 }
 
@@ -54,6 +57,7 @@ export function VideoReviewPanel({
   transcript,
   isOwner,
   onRefreshVideoUrl,
+  transcriptCollapsedByDefault = false,
   className,
 }: VideoReviewPanelProps) {
   const { userId } = useAuth()
@@ -68,6 +72,9 @@ export function VideoReviewPanel({
   const [currentTime, setCurrentTime] = useState(0)
   const [shareOpen, setShareOpen] = useState(false)
   const [helpOpen, setHelpOpen] = useState(false)
+  const [transcriptOpen, setTranscriptOpen] = useState(
+    !transcriptCollapsedByDefault,
+  )
 
   const commentsQuery = useVideoComments(sessionId)
   const createCommentMut = useCreateVideoComment(sessionId)
@@ -261,7 +268,48 @@ export function VideoReviewPanel({
         <div className="hidden lg:block">{commentsPane}</div>
       </div>
 
-      <div className="hidden lg:block">{transcriptPane}</div>
+      <div className="hidden lg:block">
+        {transcriptCollapsedByDefault ? (
+          transcriptOpen ? (
+            <div className="space-y-2">
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTranscriptOpen(false)}
+                  className="h-7 px-2 text-xs text-gray-600 hover:text-gray-900"
+                >
+                  <ChevronDown className="h-3.5 w-3.5 mr-1" />
+                  Hide transcript
+                </Button>
+              </div>
+              {transcriptPane}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setTranscriptOpen(true)}
+              className="flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-left hover:bg-gray-50"
+              aria-expanded={false}
+            >
+              <div className="flex items-center gap-2">
+                <ChevronRight className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-semibold text-gray-900">
+                  Transcript
+                </span>
+                <span className="text-xs text-gray-500">
+                  {transcript.length}{' '}
+                  {transcript.length === 1 ? 'line' : 'lines'}
+                </span>
+              </div>
+              <span className="text-xs text-indigo-600">Show</span>
+            </button>
+          )
+        ) : (
+          transcriptPane
+        )}
+      </div>
 
       <div className="lg:hidden">
         <Tabs defaultValue="transcript">
