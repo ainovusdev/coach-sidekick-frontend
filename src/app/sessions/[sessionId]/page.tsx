@@ -30,6 +30,8 @@ import { SessionHeroCard } from './components/session-hero-card'
 import { SessionOverviewTab } from './components/session-overview-tab'
 import { SessionAnalysisMerged } from './components/session-analysis-merged'
 import { VideoReviewPanel } from '@/components/sessions/video-review-panel'
+import { EvaluationsList } from '@/components/sessions/evaluations-list'
+import { useCoachEvaluations } from '@/hooks/queries/use-coach-evaluations'
 import { useAuth } from '@/contexts/auth-context'
 import { isPresignedUrlExpired } from '@/lib/presigned-url'
 import { GroupParticipantBar } from './components/group-participant-bar'
@@ -84,9 +86,13 @@ export default function SessionDetailsPage({
   const router = useRouter()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
+  const isAdmin = permissions.isAdmin() || permissions.isSuperAdmin()
   const { userId: currentUserId } = useAuth()
   const resolvedParams = React.use(params)
   const queryClient = useQueryClient()
+  const { data: evaluations = [] } = useCoachEvaluations(
+    resolvedParams.sessionId,
+  )
 
   // Use TanStack Query for instant caching
   const {
@@ -970,23 +976,31 @@ export default function SessionDetailsPage({
 
                   {/* Recording Tab — video player + synced transcript + comments */}
                   {activeTab === 'recording' && !isViewer && (
-                    <VideoReviewPanel
-                      sessionId={sessionData.session.id}
-                      videoUrl={session.video_url ?? null}
-                      videoUnavailable={session.video_unavailable}
-                      videoAnchorAt={pickVideoAnchor(
-                        (session.metadata as any)?.recording_started_at,
-                        transcript,
-                        session.started_at,
-                      )}
-                      transcript={(transcript ?? []) as any}
-                      isOwner={
-                        !!currentUserId &&
-                        !!session.coach_id &&
-                        currentUserId === session.coach_id
-                      }
-                      onRefreshVideoUrl={handleRefreshVideoUrl}
-                    />
+                    <>
+                      <VideoReviewPanel
+                        sessionId={sessionData.session.id}
+                        videoUrl={session.video_url ?? null}
+                        videoUnavailable={session.video_unavailable}
+                        videoAnchorAt={pickVideoAnchor(
+                          (session.metadata as any)?.recording_started_at,
+                          transcript,
+                          session.started_at,
+                        )}
+                        transcript={(transcript ?? []) as any}
+                        isOwner={
+                          !!currentUserId &&
+                          !!session.coach_id &&
+                          currentUserId === session.coach_id
+                        }
+                        onRefreshVideoUrl={handleRefreshVideoUrl}
+                      />
+                      <EvaluationsList
+                        sessionId={sessionData.session.id}
+                        evaluations={evaluations}
+                        currentUserId={currentUserId}
+                        isAdmin={isAdmin}
+                      />
+                    </>
                   )}
                 </div>
               </div>

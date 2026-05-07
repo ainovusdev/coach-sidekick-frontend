@@ -135,6 +135,13 @@ export const queryKeys = {
       [...queryKeys.sessionShares.all, sessionId] as const,
   },
 
+  // Coach evaluation keys
+  coachEvaluations: {
+    all: ['coach-evaluations'] as const,
+    list: (sessionId: string) =>
+      [...queryKeys.coachEvaluations.all, sessionId] as const,
+  },
+
   // Coach typeahead search
   coachSearch: {
     all: ['coach-search'] as const,

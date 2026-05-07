@@ -1,19 +1,24 @@
 'use client'
 
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, AlertCircle } from 'lucide-react'
+import { ArrowLeft, AlertCircle, ClipboardCheck } from 'lucide-react'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import PageLayout from '@/components/layout/page-layout'
 import { LoadingState } from '@/components/ui/loading-state'
 import { EmptyState } from '@/components/ui/empty-state'
+import { Button } from '@/components/ui/button'
 import { VideoReviewPanel } from '@/components/sessions/video-review-panel'
+import { CoachEvaluationDialog } from '@/components/sessions/coach-evaluation-dialog'
+import { EvaluationsList } from '@/components/sessions/evaluations-list'
 import { useSessionReview } from '@/hooks/queries/use-session-review'
+import { useCoachEvaluations } from '@/hooks/queries/use-coach-evaluations'
 import { SessionService } from '@/services/session-service'
 import { isPresignedUrlExpired } from '@/lib/presigned-url'
 import { formatDate } from '@/lib/date-utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { useAuth } from '@/contexts/auth-context'
 
 function pickVideoAnchor(
   recordingStartedAt: string | null | undefined,
@@ -40,8 +45,18 @@ export default function SessionReviewPage({
   const router = useRouter()
   const resolvedParams = React.use(params)
   const queryClient = useQueryClient()
+  const { userId } = useAuth()
+  const [evalDialogOpen, setEvalDialogOpen] = useState(false)
 
   const { data, isLoading, error } = useSessionReview(resolvedParams.sessionId)
+  const { data: evaluations = [] } = useCoachEvaluations(data?.id, {
+    enabled: !!data?.id,
+  })
+
+  const myEvaluation = useMemo(
+    () => evaluations.find(e => e.reviewer_id === userId) ?? null,
+    [evaluations, userId],
+  )
 
   const handleRefreshVideoUrl = async () => {
     if (!data?.id) return
@@ -138,6 +153,19 @@ export default function SessionReviewPage({
                   </p>
                 )}
               </div>
+              <div className="shrink-0">
+                <Button
+                  type="button"
+                  variant={myEvaluation ? 'outline' : 'default'}
+                  size="sm"
+                  onClick={() => setEvalDialogOpen(true)}
+                >
+                  <ClipboardCheck className="h-4 w-4 mr-1.5" />
+                  {myEvaluation
+                    ? 'View / edit your evaluation'
+                    : 'Evaluate session'}
+                </Button>
+              </div>
             </div>
 
             <VideoReviewPanel
@@ -152,9 +180,26 @@ export default function SessionReviewPage({
               transcript={data.transcript}
               isOwner={data.is_owner}
               onRefreshVideoUrl={handleRefreshVideoUrl}
+              transcriptCollapsedByDefault
             />
+
+            {(data.is_owner || data.is_admin) && (
+              <EvaluationsList
+                sessionId={data.id}
+                evaluations={evaluations}
+                currentUserId={userId}
+                isAdmin={data.is_admin}
+              />
+            )}
           </div>
         </div>
+
+        <CoachEvaluationDialog
+          sessionId={data.id}
+          open={evalDialogOpen}
+          onOpenChange={setEvalDialogOpen}
+          existingEvaluation={myEvaluation}
+        />
       </PageLayout>
     </ProtectedRoute>
   )
