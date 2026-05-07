@@ -51,6 +51,8 @@ interface BackendSession {
   client_name?: string
   is_group_session?: boolean
   participant_count?: number | null
+  video_url?: string | null
+  video_unavailable?: boolean
 }
 
 // Transform backend session to UI format
@@ -62,6 +64,8 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
   coach_id?: string
   coach_name?: string
   client_name?: string
+  video_url?: string | null
+  video_unavailable?: boolean
 } {
   return {
     id: backendSession.id,
@@ -81,6 +85,8 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     client_name: backendSession.client_name,
     is_group_session: backendSession.is_group_session,
     participant_count: backendSession.participant_count,
+    video_url: backendSession.video_url,
+    video_unavailable: backendSession.video_unavailable,
   }
 }
 
@@ -91,6 +97,7 @@ export class SessionService {
     client_id?: string
     coach_id?: string
     status?: string
+    scope?: 'mine' | 'shared' | 'all'
   }): Promise<SessionListResponse> {
     const queryParams = new URLSearchParams()
     if (params?.page) queryParams.append('page', params.page.toString())
@@ -99,6 +106,7 @@ export class SessionService {
     if (params?.client_id) queryParams.append('client_id', params.client_id)
     if (params?.coach_id) queryParams.append('coach_id', params.coach_id)
     if (params?.status) queryParams.append('status', params.status)
+    if (params?.scope) queryParams.append('scope', params.scope)
 
     const response = await ApiClient.get(
       `${BACKEND_URL}/sessions/?${queryParams}`,
@@ -171,6 +179,29 @@ export class SessionService {
 
   static async getSessionDetails(sessionId: string): Promise<any> {
     return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/details`)
+  }
+
+  static async getSessionReview(sessionId: string): Promise<{
+    id: string
+    title: string | null
+    duration_seconds: number | null
+    started_at: string | null
+    recording_started_at: string | null
+    video_url: string | null
+    video_unavailable: boolean
+    coach_name: string | null
+    is_owner: boolean
+    is_admin: boolean
+    is_shared_with_all_coaches: boolean
+    transcript: Array<{
+      id: string
+      speaker: string
+      text: string
+      timestamp: string
+      confidence: number | null
+    }>
+  }> {
+    return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/review`)
   }
 
   static async deleteSession(sessionId: string): Promise<{

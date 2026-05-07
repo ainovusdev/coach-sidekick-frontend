@@ -2,7 +2,10 @@ import { useState, useMemo } from 'react'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useClients } from '@/hooks/queries/use-clients'
 import { useCoaches } from '@/hooks/queries/use-coaches'
-import type { SessionTypeFilter } from '../components/sessions-filters'
+import type {
+  SessionStatusFilter,
+  SessionTypeFilter,
+} from '../components/sessions-filters'
 
 /**
  * Custom hook for sessions page data management
@@ -14,6 +17,8 @@ export function useSessionsData(pageSize: number = 12) {
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null)
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null)
   const [sessionType, setSessionType] = useState<SessionTypeFilter>('all')
+  const [selectedStatus, setSelectedStatus] =
+    useState<SessionStatusFilter>('all')
 
   // Pass filters to useMeetingHistory for server-side filtering
   const {
@@ -25,6 +30,7 @@ export function useSessionsData(pageSize: number = 12) {
   } = useMeetingHistory(pageSize, {
     client_id: selectedClientId,
     coach_id: selectedCoachId,
+    status: selectedStatus === 'all' ? null : selectedStatus,
     page: currentPage + 1, // API uses 1-based pagination
   })
 
@@ -71,10 +77,16 @@ export function useSessionsData(pageSize: number = 12) {
     setCurrentPage(0)
   }
 
+  const handleStatusFilter = (status: SessionStatusFilter) => {
+    setSelectedStatus(status)
+    setCurrentPage(0)
+  }
+
   const handleClearFilters = () => {
     setSelectedClientId(null)
     setSelectedCoachId(null)
     setSessionType('all')
+    setSelectedStatus('all')
     setCurrentPage(0)
     // TanStack Query auto-refetches when queryKey changes (filters are part of queryKey)
   }
@@ -94,7 +106,8 @@ export function useSessionsData(pageSize: number = 12) {
   const hasActiveFilters =
     selectedClientId !== null ||
     selectedCoachId !== null ||
-    sessionType !== 'all'
+    sessionType !== 'all' ||
+    selectedStatus !== 'all'
 
   return {
     currentPage,
@@ -111,6 +124,7 @@ export function useSessionsData(pageSize: number = 12) {
     selectedCoachId,
     selectedCoach,
     sessionType,
+    selectedStatus,
     hasActiveFilters,
     hasNextPage,
     hasPrevPage,
@@ -120,6 +134,7 @@ export function useSessionsData(pageSize: number = 12) {
     handleClientFilter,
     handleCoachFilter,
     handleSessionTypeFilter,
+    handleStatusFilter,
     handleClearFilters,
     refetch,
   }

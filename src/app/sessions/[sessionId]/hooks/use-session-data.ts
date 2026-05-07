@@ -45,10 +45,15 @@ interface SessionDetails {
     title?: string | null
     transcription_status?: string
     transcription_progress?: number
+    started_at?: string | null
+    ended_at?: string | null
     created_at: string
     updated_at: string
     metadata: any
     client_id?: string
+    coach_id?: string | null
+    video_url?: string | null
+    video_unavailable?: boolean
     client?: {
       id: string
       name: string
