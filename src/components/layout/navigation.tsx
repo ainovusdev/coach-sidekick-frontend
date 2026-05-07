@@ -13,7 +13,6 @@ import {
   BookOpen,
   Shield,
   Eye,
-  Users,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -62,12 +61,6 @@ export default function Navigation() {
       path: '/sessions',
       label: 'Sessions',
       icon: History,
-      permission: { resource: 'sessions', action: 'view' },
-    },
-    {
-      path: '/sessions/shared',
-      label: 'Shared with me',
-      icon: Users,
       permission: { resource: 'sessions', action: 'view' },
     },
     {
