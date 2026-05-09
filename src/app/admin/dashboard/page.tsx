@@ -3,8 +3,6 @@
 import { useMemo } from 'react'
 import { useAdminUsers } from '@/hooks/queries/use-admin-users'
 import { useAccessMatrix } from '@/hooks/queries/use-admin-access'
-import { useAuth } from '@/contexts/auth-context'
-import { StaleSessionProcessor } from '@/components/admin/stale-session-processor'
 import {
   Card,
   CardContent,
@@ -96,11 +94,6 @@ function StatCard({
 
 export default function AdminDashboard() {
   const router = useRouter()
-  const { user } = useAuth()
-
-  // Check if user is the special admin account
-  const isSpecialAdmin = user?.email === 'ai@novus.global'
-
   // React Query hooks - automatic caching and deduplication!
   const { data: users = [], isLoading: usersLoading } = useAdminUsers({
     limit: 1000,
@@ -433,13 +426,6 @@ export default function AdminDashboard() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Stale Session Processor - Only visible to ai@novus.global */}
-      {isSpecialAdmin && (
-        <div className="mt-6">
-          <StaleSessionProcessor />
-        </div>
-      )}
     </div>
   )
 }
