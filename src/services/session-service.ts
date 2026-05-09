@@ -21,6 +21,8 @@ export interface SessionUpdateDto {
   key_topics?: string[]
   action_items?: string[]
   session_metadata?: Record<string, any>
+  // null detaches the client from a solo session.
+  client_id?: string | null
 }
 
 export interface SessionListResponse {
