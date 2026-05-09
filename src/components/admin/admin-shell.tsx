@@ -134,7 +134,9 @@ export function AdminShell({ children }: AdminShellProps) {
         <DropdownMenuContent align="end" className="w-48">
           <DropdownMenuLabel>My Account</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onSelect={() => router.push('/profile')}>
+          <DropdownMenuItem
+            onSelect={() => router.push('/settings?tab=profile')}
+          >
             <User className="h-4 w-4 mr-2" />
             Profile
           </DropdownMenuItem>

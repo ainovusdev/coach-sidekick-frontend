@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Radio, ArrowRight, Users } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/date-utils'
@@ -23,6 +25,38 @@ export default function LiveSessionBanner({
   sessions,
 }: LiveSessionBannerProps) {
   const router = useRouter()
+
+  // Phase 1.6: surface a one-shot toast the moment a session goes live, so
+  // coaches mid-task on the dashboard get an unmissable nudge alongside the
+  // banner. Tracks the previously-known set of bot ids to fire only on
+  // genuinely new live sessions, not on re-renders of an existing one.
+  // Initial mount silently seeds the set so we don't toast for sessions
+  // that were already running before the coach loaded the page.
+  const seenBotIdsRef = useRef<Set<string>>(new Set())
+  const seededRef = useRef(false)
+  useEffect(() => {
+    const seen = seenBotIdsRef.current
+    if (!seededRef.current) {
+      sessions.forEach(s => s.bot_id && seen.add(s.bot_id))
+      seededRef.current = true
+      return
+    }
+    sessions.forEach(s => {
+      if (!s.bot_id || seen.has(s.bot_id)) return
+      seen.add(s.bot_id)
+      const who = s.is_group_session
+        ? 'Group session'
+        : s.client_name
+          ? `Session with ${s.client_name}`
+          : 'Session'
+      toast.success(`${who} is live now`, {
+        action: {
+          label: 'Open live view',
+          onClick: () => router.push(`/meeting/${s.bot_id}`),
+        },
+      })
+    })
+  }, [sessions, router])
 
   if (sessions.length === 0) return null
 
