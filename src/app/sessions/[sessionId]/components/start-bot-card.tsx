@@ -11,6 +11,7 @@ import {
   Loader2,
   Bot,
   Send,
+  User as UserIcon,
 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,8 +19,11 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useStartSessionBot } from '@/hooks/mutations/use-questionnaire-mutations'
 import { useSendQuestionnaire } from '@/hooks/mutations/use-questionnaire-mutations'
+import { useUpdateSession } from '@/hooks/mutations/use-session-mutations'
 import { useQuestionnaireResponses } from '@/hooks/queries/use-questionnaire'
 import { toast } from '@/hooks/use-toast'
+import ClientSelector from '@/components/clients/client-selector'
+import type { Client } from '@/types/meeting'
 
 interface StartBotCardProps {
   sessionId: string
@@ -43,13 +47,27 @@ export function StartBotCard({
   const router = useRouter()
   const startBot = useStartSessionBot()
   const sendQuestionnaire = useSendQuestionnaire()
+  const updateSession = useUpdateSession()
   const { data: responses } = useQuestionnaireResponses(sessionId)
   const [meetingUrl, setMeetingUrl] = useState(initialMeetingUrl || '')
   const [botName, setBotName] = useState('Coach Sidekick')
+  const [editingClient, setEditingClient] = useState(false)
 
   const hasResponses =
     responses && responses.length > 0 && responses[0].responses.length > 0
   const showSendButton = !hasResponses && clientId
+
+  const handleClientChange = async (client: Client | null) => {
+    try {
+      await updateSession.mutateAsync({
+        sessionId,
+        data: { client_id: client?.id ?? null },
+      })
+      setEditingClient(false)
+    } catch {
+      // toast handled by the mutation
+    }
+  }
 
   const handleStartBot = async () => {
     if (!meetingUrl.trim()) {
@@ -94,11 +112,48 @@ export function StartBotCard({
             Ready to Start
           </h2>
 
-          {clientName && (
+          {clientName && !editingClient && (
             <p className="text-app-secondary mb-1">
               Session with{' '}
               <span className="font-medium text-app-primary">{clientName}</span>
+              <button
+                type="button"
+                onClick={() => setEditingClient(true)}
+                className="ml-2 text-xs text-app-secondary underline hover:text-app-primary"
+              >
+                Change
+              </button>
             </p>
+          )}
+
+          {(!clientId || editingClient) && (
+            <div className="mb-4 mt-4 mx-auto max-w-sm text-left">
+              <Label className="text-sm font-medium mb-2 flex items-center gap-1.5">
+                <UserIcon className="h-4 w-4 text-gray-400" />
+                Client {clientId ? '' : '(optional)'}
+              </Label>
+              <ClientSelector
+                selectedClientId={clientId}
+                onClientSelect={handleClientChange}
+                placeholder="Select a client to attach…"
+                allowNone={!!clientId}
+              />
+              {updateSession.isPending && (
+                <p className="mt-2 text-xs text-app-secondary flex items-center gap-1.5">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  Saving…
+                </p>
+              )}
+              {editingClient && !updateSession.isPending && (
+                <button
+                  type="button"
+                  onClick={() => setEditingClient(false)}
+                  className="mt-2 text-xs text-app-secondary underline hover:text-app-primary"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
           )}
 
           {scheduledFor && (
