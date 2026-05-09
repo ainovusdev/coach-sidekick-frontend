@@ -191,6 +191,12 @@ export const queryKeys = {
     preferences: () => ['user', 'preferences'] as const,
   },
 
+  // Calendar integration keys
+  calendar: {
+    all: ['calendar'] as const,
+    status: () => [...queryKeys.calendar.all, 'status'] as const,
+  },
+
   // Resource keys (coach side)
   resources: {
     all: ['resources'] as const,

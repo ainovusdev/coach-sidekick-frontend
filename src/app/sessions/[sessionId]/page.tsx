@@ -94,13 +94,44 @@ export default function SessionDetailsPage({
     resolvedParams.sessionId,
   )
 
-  // Use TanStack Query for instant caching
+  // Use TanStack Query for instant caching.
+  //
+  // Phase 1.6: when this session has an auto-deployed bot waiting to join
+  // (status='scheduled' AND bot_id is set), poll so we can auto-redirect to
+  // the live page the moment the bot's status flips. For all other states
+  // (manual sessions with no bot_id, already-active, completed, etc.) we
+  // don't poll — TanStack Query's refetchInterval=false skips it.
   const {
     data: sessionData,
     isLoading: loading,
     error: queryError,
-  } = useSessionDetails(resolvedParams.sessionId)
+  } = useSessionDetails(resolvedParams.sessionId, {
+    refetchInterval: query => {
+      const s: any = (query.state.data as any)?.session
+      if (!s || s.status !== 'scheduled' || !s.bot_id) return false
+      if (!s.scheduled_for) return 30_000
+      const startMs = new Date(s.scheduled_for).getTime()
+      const fiveMin = 5 * 60 * 1000
+      return startMs - Date.now() <= fiveMin ? 10_000 : 30_000
+    },
+  })
   const error = queryError ? String(queryError) : null
+
+  // Phase 1.6: once an auto-deployed bot joins, the bot.in_call_recording
+  // webhook flips the session to status='active' on the backend. Detect
+  // that here and bounce the coach over to the live transcript page.
+  // Replace (not push) so the back button doesn't trap them on the stale
+  // pre-session view. Guarded so we don't redirect repeatedly.
+  const liveRedirectFiredRef = useRef(false)
+  useEffect(() => {
+    const s: any = (sessionData as any)?.session
+    if (!s) return
+    if (liveRedirectFiredRef.current) return
+    if (s.status === 'active' && s.bot_id) {
+      liveRedirectFiredRef.current = true
+      router.replace(`/meeting/${s.bot_id}`)
+    }
+  }, [sessionData, router])
 
   // Share recipients land on the owner URL (`/sessions/[id]`) but `/details`
   // is owner-only. On a /details error, probe /review — if accessible and

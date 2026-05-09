@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { LogOut, User, Settings, Palette } from 'lucide-react'
+import { Calendar, LogOut, Palette, User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +24,6 @@ export function UserNav() {
     await signOut()
   }
 
-  // Get initials from email or full name
   const getInitials = () => {
     if (user?.full_name) {
       return user.full_name
@@ -58,38 +57,29 @@ export function UserNav() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onSelect={() => {
-            router.push('/profile')
-          }}
+        <DropdownMenuItem
+          onSelect={() => router.push('/settings?tab=profile')}
           className="cursor-pointer"
         >
           <User className="mr-2 h-4 w-4" />
           <span>Profile</span>
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onSelect={() => {
-            router.push('/settings/preferences')
-          }}
+        <DropdownMenuItem
+          onSelect={() => router.push('/settings?tab=preferences')}
           className="cursor-pointer"
         >
           <Palette className="mr-2 h-4 w-4" />
           <span>Coaching Preferences</span>
         </DropdownMenuItem>
-        <DropdownMenuItem 
-          onSelect={() => {
-            router.push('/settings')
-          }}
+        <DropdownMenuItem
+          onSelect={() => router.push('/settings?tab=profile#integrations')}
           className="cursor-pointer"
         >
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
+          <Calendar className="mr-2 h-4 w-4" />
+          <span>Integrations</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          onSelect={handleSignOut}
-          className="cursor-pointer"
-        >
+        <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

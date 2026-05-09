@@ -124,6 +124,14 @@ export function UpcomingSessions() {
                         session.title ||
                         'Scheduled Session'}
                     <Pencil className="h-2.5 w-2.5 ml-1.5 inline opacity-0 group-hover:opacity-40 transition-opacity" />
+                    {session.google_calendar_event_id && (
+                      <span
+                        title="Synced from Google Calendar"
+                        className="ml-1.5 inline-flex items-center rounded-sm border border-gray-200 dark:border-gray-700 px-1 py-[1px] text-[10px] font-normal text-gray-500 dark:text-gray-400 align-middle"
+                      >
+                        Calendar
+                      </span>
+                    )}
                   </button>
                 )}
               </div>

@@ -18,6 +18,7 @@ export interface ScheduledSession {
   questionnaire_sent: boolean
   questionnaire_completed: boolean
   created_at: string
+  google_calendar_event_id?: string | null
 }
 
 export interface QuestionnaireValidation {
