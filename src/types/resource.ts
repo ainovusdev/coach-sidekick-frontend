@@ -29,7 +29,7 @@ export interface SharedResource {
   category: ResourceCategory
   tags: string[]
   sharing_scope: SharingScope
-  source_type?: 'shared_resource' | 'knowledge_document'
+  source_type?: 'shared_resource'
   shares?: ResourceShareInfo[]
   session_id?: string
   client_id?: string
@@ -38,15 +38,6 @@ export interface SharedResource {
   download_count: number
   created_at: string
   updated_at: string
-  // Knowledge document fields (populated when resource_type='knowledge')
-  extracted_text?: string
-  original_filename?: string
-  word_count?: number
-  processing_status?: string
-  processing_progress?: number
-  processing_error?: string
-  weaviate_indexed?: boolean
-  weaviate_chunk_count?: number
 }
 
 export interface ResourceShareInfo {

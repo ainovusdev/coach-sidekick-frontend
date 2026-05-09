@@ -57,7 +57,6 @@ import { EditResourceDialog } from './components/edit-resource-dialog'
 import { ResourceDetailDialog } from './components/resource-detail-dialog'
 import { useResourceForm } from './hooks/use-resource-form'
 import { cn } from '@/lib/utils'
-import { ResourceChatButton } from '@/components/resources/resource-chat-button'
 
 type ScopeFilter = 'all' | 'global' | 'personal' | 'session' | 'shared'
 
@@ -98,7 +97,6 @@ export default function CoachResourcesPage() {
     fileInputRef,
   } = useResourceForm()
 
-  // Single fetch — all resources including knowledge docs
   const { data: allData, isLoading, error, refetch } = useResources({})
   const { data: clientsData } = useClientsSimple()
 
@@ -740,7 +738,6 @@ export default function CoachResourcesPage() {
           </AlertDialogContent>
         </AlertDialog>
       </div>
-      <ResourceChatButton />
     </PageLayout>
   )
 }
