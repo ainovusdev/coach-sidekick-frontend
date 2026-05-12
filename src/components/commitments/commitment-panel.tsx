@@ -842,13 +842,41 @@ export function CommitmentPanel({
             </div>
             <div className="space-y-2 pl-3 border-l-2 border-gray-100 dark:border-gray-700">
               {(group.commitments || []).map(commitment => (
-                <div key={commitment.id} className="flex items-start gap-2">
-                  {commitment.status === 'completed' ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
-                  ) : commitment.status === 'abandoned' ? (
+                <div
+                  key={commitment.id}
+                  className={cn(
+                    'flex items-start gap-2 rounded px-1 -mx-1',
+                    onOpenFull &&
+                      'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50',
+                  )}
+                  onClick={() => onOpenFull?.(commitment)}
+                >
+                  {commitment.status === 'abandoned' ? (
                     <X className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
                   ) : (
-                    <Circle className="h-4 w-4 text-gray-300 dark:text-gray-500 flex-shrink-0 mt-0.5" />
+                    <button
+                      onClick={e => {
+                        e.stopPropagation()
+                        onToggleComplete(commitment)
+                      }}
+                      className={cn(
+                        'mt-0.5 flex-shrink-0 transition-colors',
+                        commitment.status === 'completed'
+                          ? 'text-green-500'
+                          : 'text-gray-300 dark:text-gray-500 hover:text-green-500',
+                      )}
+                      title={
+                        commitment.status === 'completed'
+                          ? 'Mark as active'
+                          : 'Mark as completed'
+                      }
+                    >
+                      {commitment.status === 'completed' ? (
+                        <CheckCircle2 className="h-4 w-4" />
+                      ) : (
+                        <Circle className="h-4 w-4" />
+                      )}
+                    </button>
                   )}
                   <div className="flex-1 min-w-0">
                     <p
