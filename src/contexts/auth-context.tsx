@@ -2,8 +2,30 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 import authService from '@/services/auth-service'
+import axios from '@/lib/axios-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner' // NEW: Add Sonner toasts
+
+const TZ_SYNCED_FLAG = 'tz_synced'
+
+async function syncBrowserTimezone() {
+  // Fire-and-forget: tell the backend the browser-detected IANA zone so
+  // session emails render with the recipient's local wall-clock time. Runs
+  // at most once per browser session; safe to call when current value
+  // already matches (backend no-ops). Failures are silent — this is a
+  // background nicety, not a critical-path call.
+  if (typeof window === 'undefined') return
+  if (sessionStorage.getItem(TZ_SYNCED_FLAG) === '1') return
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    if (!tz) return
+    sessionStorage.setItem(TZ_SYNCED_FLAG, '1')
+    await axios.put('/auth/me', { timezone: tz })
+  } catch (err) {
+    sessionStorage.removeItem(TZ_SYNCED_FLAG)
+    console.warn('Timezone auto-sync failed (non-fatal):', err)
+  }
+}
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -79,6 +101,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setRoles(userRoles)
         setClientAccess(userClientAccess)
         setOwnClientId(userClientId) // NEW
+
+        // Sync browser tz to backend so session emails render in the
+        // recipient's local zone. Fire-and-forget.
+        void syncBrowserTimezone()
       }
 
       setLoading(false)
@@ -130,6 +156,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setClientAccess(authService.getClientAccess())
       setOwnClientId(authService.getOwnClientId())
 
+      // Sync browser tz to backend so session emails render in the
+      // recipient's local zone. Fire-and-forget.
+      void syncBrowserTimezone()
+
       // NEW: Success toast
       toast.success('Welcome Back!', {
         description: `Logged in as ${fullName || email}`,
@@ -173,6 +203,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setRoles([])
       setClientAccess([])
       setOwnClientId(null)
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem(TZ_SYNCED_FLAG)
+      }
 
       // NEW: Success toast
       toast.success('Logged Out', {
