@@ -48,13 +48,27 @@ export class QuestionnaireService {
     })
   }
 
+  static async sendThrillForm(
+    sessionId: string,
+    clientId: string,
+  ): Promise<QuestionnaireTokenResponse> {
+    return ApiClient.post(
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/send-thrill-form`,
+      { session_id: sessionId, client_id: clientId },
+    )
+  }
+
   static async getResponses(
     sessionId: string,
     clientId?: string,
+    kind?: 'pre_session' | 'post_session',
   ): Promise<QuestionnaireResponseView[]> {
-    const params = clientId ? `?client_id=${clientId}` : ''
+    const search = new URLSearchParams()
+    if (clientId) search.set('client_id', clientId)
+    if (kind) search.set('kind', kind)
+    const qs = search.toString()
     return ApiClient.get(
-      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/responses${params}`,
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/responses${qs ? `?${qs}` : ''}`,
     )
   }
 

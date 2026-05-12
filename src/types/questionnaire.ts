@@ -21,8 +21,18 @@ export interface ScheduledSession {
   google_calendar_event_id?: string | null
 }
 
+export type QuestionnaireKind = 'pre_session' | 'post_session'
+export type QuestionType = 'text' | 'scale' | 'yes_no'
+
+export interface QuestionCondition {
+  depends_on: number
+  show_if?: string
+  show_if_not?: string
+}
+
 export interface QuestionnaireValidation {
   valid: boolean
+  kind?: QuestionnaireKind
   client_name: string
   coach_name: string
   session_title: string | null
@@ -34,6 +44,13 @@ export interface QuestionnaireValidation {
 export interface QuestionItem {
   index: number
   text: string
+  type?: QuestionType
+  optional?: boolean
+  scale_min?: number | null
+  scale_max?: number | null
+  scale_min_label?: string | null
+  scale_max_label?: string | null
+  condition?: QuestionCondition | null
 }
 
 export interface QuestionnaireAnswerItem {

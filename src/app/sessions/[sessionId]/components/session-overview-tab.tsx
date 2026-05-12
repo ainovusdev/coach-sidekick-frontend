@@ -29,6 +29,8 @@ import { SessionNotesCompact } from './session-notes-compact'
 import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import { PreSessionResponses } from './pre-session-responses'
+import { ThrillFormResponses } from './thrill-form-responses'
+import { THRILL_FORM_ENABLED } from '@/lib/features'
 import TranscriptViewer from './transcript-viewer'
 
 interface TranscriptEntry {
@@ -135,6 +137,11 @@ export function SessionOverviewTab({
     <div className="space-y-6">
       {/* Pre-Session Questionnaire Responses */}
       <PreSessionResponses sessionId={sessionId} clientId={clientId} />
+
+      {/* Thrill Form (post-session reflection) Responses */}
+      {THRILL_FORM_ENABLED && (
+        <ThrillFormResponses sessionId={sessionId} clientId={clientId} />
+      )}
 
       {/* Per-Client Analysis Pending State */}
       {isGroupSession && selectedClientId && !clientAnalysis && (

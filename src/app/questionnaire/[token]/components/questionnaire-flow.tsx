@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -8,6 +8,7 @@ import { QuestionnaireService } from '@/services/questionnaire-service'
 import type {
   QuestionItem,
   QuestionnaireAnswerItem,
+  QuestionnaireKind,
 } from '@/types/questionnaire'
 
 interface QuestionnaireFlowProps {
@@ -16,6 +17,7 @@ interface QuestionnaireFlowProps {
   existingAnswers: QuestionnaireAnswerItem[]
   clientName: string
   coachName: string
+  kind?: QuestionnaireKind
   onComplete: () => void
 }
 
@@ -48,14 +50,39 @@ function clearStorage(token: string) {
   }
 }
 
+function isQuestionVisible(
+  question: QuestionItem,
+  answers: Record<number, string>,
+): boolean {
+  const cond = question.condition
+  if (!cond) return true
+  const dep = answers[cond.depends_on]
+  if (dep === undefined || dep === null || dep === '') {
+    // Hide conditional questions until the controlling answer exists.
+    return false
+  }
+  if (cond.show_if !== undefined && cond.show_if !== null) {
+    return (
+      String(dep).trim().toLowerCase() === String(cond.show_if).toLowerCase()
+    )
+  }
+  if (cond.show_if_not !== undefined && cond.show_if_not !== null) {
+    return (
+      String(dep).trim().toLowerCase() !==
+      String(cond.show_if_not).toLowerCase()
+    )
+  }
+  return true
+}
+
 export function QuestionnaireFlow({
   token,
   questions,
   existingAnswers,
+  kind = 'pre_session',
   onComplete,
 }: QuestionnaireFlowProps) {
   const [answers, setAnswers] = useState<Record<number, string>>(() => {
-    // Priority: localStorage > existingAnswers from API
     const stored = loadFromStorage(token)
     if (Object.keys(stored).length > 0) return stored
 
@@ -65,10 +92,17 @@ export function QuestionnaireFlow({
     })
     return initial
   })
-  const [currentIndex, setCurrentIndex] = useState(() => {
-    // Resume at the first unanswered question
+
+  // Visible questions update as answers change (conditional skipping).
+  const visibleQuestions = useMemo(
+    () => questions.filter(q => isQuestionVisible(q, answers)),
+    [questions, answers],
+  )
+
+  const [position, setPosition] = useState(() => {
+    // Resume at the first unanswered visible question.
     const stored = loadFromStorage(token)
-    const answeredKeys =
+    const seed =
       Object.keys(stored).length > 0
         ? stored
         : existingAnswers.reduce<Record<number, string>>((acc, a) => {
@@ -76,32 +110,52 @@ export function QuestionnaireFlow({
             return acc
           }, {})
 
-    for (let i = 0; i < questions.length; i++) {
-      if (!answeredKeys[i] || !String(answeredKeys[i]).trim()) return i
+    const visible = questions.filter(q => isQuestionVisible(q, seed))
+    for (let i = 0; i < visible.length; i++) {
+      const ans = seed[visible[i].index]
+      const empty = !ans || !String(ans).trim()
+      if (empty && !visible[i].optional) return i
     }
-    // All answered — go to last question so user can review/submit
-    return Object.keys(answeredKeys).length > 0 ? questions.length - 1 : 0
+    return Math.max(visible.length - 1, 0)
   })
+
   const [direction, setDirection] = useState<'forward' | 'backward'>('forward')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isAnimating, setIsAnimating] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  const currentQuestion = questions[currentIndex]
-  const currentAnswer = answers[currentIndex] || ''
-  const isFirst = currentIndex === 0
-  const isLast = currentIndex === questions.length - 1
-  const progress = ((currentIndex + 1) / questions.length) * 100
-
-  // Auto-focus textarea
+  // Clamp position when conditional skipping changes the visible list length.
   useEffect(() => {
-    const timer = setTimeout(() => {
-      textareaRef.current?.focus()
-    }, 400)
-    return () => clearTimeout(timer)
-  }, [currentIndex])
+    if (position > visibleQuestions.length - 1) {
+      setPosition(Math.max(visibleQuestions.length - 1, 0))
+    }
+  }, [visibleQuestions.length, position])
 
-  // Auto-resize textarea
+  const currentQuestion = visibleQuestions[position]
+  const currentAnswer = currentQuestion
+    ? answers[currentQuestion.index] || ''
+    : ''
+  const isFirst = position === 0
+  const isLast = position === visibleQuestions.length - 1
+  const progress =
+    visibleQuestions.length > 0
+      ? ((position + 1) / visibleQuestions.length) * 100
+      : 0
+
+  // Auto-focus textarea (only relevant for text questions).
+  useEffect(() => {
+    if (
+      currentQuestion?.type !== 'scale' &&
+      currentQuestion?.type !== 'yes_no'
+    ) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 400)
+      return () => clearTimeout(timer)
+    }
+  }, [position, currentQuestion?.type])
+
+  // Auto-resize textarea.
   useEffect(() => {
     const textarea = textareaRef.current
     if (textarea) {
@@ -111,19 +165,29 @@ export function QuestionnaireFlow({
   }, [currentAnswer])
 
   const updateAnswer = (value: string) => {
-    const updated = { ...answers, [currentIndex]: value }
+    if (!currentQuestion) return
+    const updated = { ...answers, [currentQuestion.index]: value }
     setAnswers(updated)
     saveToStorage(token, updated)
   }
 
+  const canAdvance = (() => {
+    if (!currentQuestion) return false
+    if (currentQuestion.optional) return true
+    return currentAnswer.trim().length > 0
+  })()
+
   const goNext = async () => {
-    if (isAnimating) return
+    if (isAnimating || !currentQuestion) return
 
     if (isLast) {
-      // Submit all answers in one API call
       setIsSubmitting(true)
       try {
+        // Only submit answers for currently-visible questions; conditional
+        // branches that the user routed around shouldn't carry stale text.
+        const visibleIndexes = new Set(visibleQuestions.map(q => q.index))
         const allAnswers = questions
+          .filter(q => visibleIndexes.has(q.index))
           .map(q => ({
             question_index: q.index,
             answer: (answers[q.index] || '').trim(),
@@ -140,11 +204,10 @@ export function QuestionnaireFlow({
       return
     }
 
-    // Instant navigation — no API call
     setDirection('forward')
     setIsAnimating(true)
     setTimeout(() => {
-      setCurrentIndex(prev => prev + 1)
+      setPosition(prev => prev + 1)
       setIsAnimating(false)
     }, 300)
   }
@@ -155,7 +218,7 @@ export function QuestionnaireFlow({
     setDirection('backward')
     setIsAnimating(true)
     setTimeout(() => {
-      setCurrentIndex(prev => prev - 1)
+      setPosition(prev => prev - 1)
       setIsAnimating(false)
     }, 300)
   }
@@ -166,6 +229,9 @@ export function QuestionnaireFlow({
       goNext()
     }
   }
+
+  const headerCaption =
+    kind === 'post_session' ? 'Thrill Form' : 'Pre-Session Questionnaire'
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-100">
@@ -190,14 +256,13 @@ export function QuestionnaireFlow({
           priority
         />
         <p className="text-xs uppercase tracking-widest text-gray-400 font-medium">
-          Pre-Session Questionnaire
+          {headerCaption}
         </p>
       </div>
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-2xl">
-          {/* Question (counter + text + input all animate together) */}
           <div
             className={`transition-all duration-300 ease-out ${
               isAnimating
@@ -210,8 +275,10 @@ export function QuestionnaireFlow({
             {/* Question Counter */}
             <div className="mb-8">
               <span className="text-sm text-gray-400 font-medium">
-                {currentIndex + 1}{' '}
-                <span className="text-gray-300">/ {questions.length}</span>
+                {position + 1}{' '}
+                <span className="text-gray-300">
+                  / {visibleQuestions.length}
+                </span>
               </span>
             </div>
 
@@ -219,17 +286,36 @@ export function QuestionnaireFlow({
               {currentQuestion?.text}
             </h2>
 
-            {/* Answer Input */}
-            <textarea
-              ref={textareaRef}
-              value={currentAnswer}
-              onChange={e => updateAnswer(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={isSubmitting}
-              placeholder="Type your answer here..."
-              className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 text-lg text-gray-800 placeholder-gray-300 resize-none outline-none pb-3 transition-colors duration-200 min-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
-              rows={3}
-            />
+            {/* Answer Input — switches by question type */}
+            {currentQuestion?.type === 'scale' ? (
+              <ScaleInput
+                question={currentQuestion}
+                value={currentAnswer}
+                onChange={updateAnswer}
+                disabled={isSubmitting}
+              />
+            ) : currentQuestion?.type === 'yes_no' ? (
+              <YesNoInput
+                value={currentAnswer}
+                onChange={updateAnswer}
+                disabled={isSubmitting}
+              />
+            ) : (
+              <textarea
+                ref={textareaRef}
+                value={currentAnswer}
+                onChange={e => updateAnswer(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={isSubmitting}
+                placeholder={
+                  currentQuestion?.optional
+                    ? 'Optional — leave blank if you have nothing to add'
+                    : 'Type your answer here...'
+                }
+                className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 text-lg text-gray-800 placeholder-gray-300 resize-none outline-none pb-3 transition-colors duration-200 min-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+                rows={3}
+              />
+            )}
           </div>
 
           {/* Navigation */}
@@ -249,9 +335,9 @@ export function QuestionnaireFlow({
 
             <button
               onClick={goNext}
-              disabled={!currentAnswer.trim() || isAnimating || isSubmitting}
+              disabled={!canAdvance || isAnimating || isSubmitting}
               className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
-                currentAnswer.trim()
+                canAdvance
                   ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
                   : 'bg-gray-100 text-gray-400 cursor-not-allowed'
               }`}
@@ -277,24 +363,29 @@ export function QuestionnaireFlow({
                     : 'hidden'
                 }
               >
-                Next
+                {currentQuestion?.optional && !currentAnswer.trim()
+                  ? 'Skip'
+                  : 'Next'}
                 <ArrowRight className="h-4 w-4" />
               </span>
             </button>
           </div>
 
-          {/* Keyboard hint */}
-          <p className="text-center text-xs text-gray-300 mt-8">
-            Press{' '}
-            <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
-              ⌘
-            </kbd>{' '}
-            +{' '}
-            <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
-              Enter
-            </kbd>{' '}
-            to continue
-          </p>
+          {/* Keyboard hint — only useful for text inputs */}
+          {currentQuestion?.type !== 'scale' &&
+            currentQuestion?.type !== 'yes_no' && (
+              <p className="text-center text-xs text-gray-300 mt-8">
+                Press{' '}
+                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
+                  ⌘
+                </kbd>{' '}
+                +{' '}
+                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
+                  Enter
+                </kbd>{' '}
+                to continue
+              </p>
+            )}
         </div>
       </div>
 
@@ -302,6 +393,94 @@ export function QuestionnaireFlow({
       <div className="pb-6 text-center">
         <p className="text-xs text-gray-300">Powered by Novus Global</p>
       </div>
+    </div>
+  )
+}
+
+// ---------- Sub-components ----------
+
+interface ScaleInputProps {
+  question: QuestionItem
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}
+
+function ScaleInput({ question, value, onChange, disabled }: ScaleInputProps) {
+  const min = question.scale_min ?? 1
+  const max = question.scale_max ?? 10
+  const numbers = Array.from({ length: max - min + 1 }, (_, i) => min + i)
+  const selected = value ? Number(value) : null
+
+  return (
+    <div>
+      <div className="grid grid-cols-5 sm:grid-cols-10 gap-2 sm:gap-3">
+        {numbers.map(n => {
+          const isSelected = selected === n
+          return (
+            <button
+              key={n}
+              type="button"
+              disabled={disabled}
+              onClick={() => onChange(String(n))}
+              className={`aspect-square min-h-[44px] flex items-center justify-center rounded-lg border-2 text-base sm:text-lg font-semibold transition-all ${
+                isSelected
+                  ? 'bg-gray-900 text-white border-gray-900 shadow-sm scale-105'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:text-gray-900'
+              } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              aria-label={`Rate ${n}`}
+              aria-pressed={isSelected}
+            >
+              {n}
+            </button>
+          )
+        })}
+      </div>
+      {(question.scale_min_label || question.scale_max_label) && (
+        <div className="flex justify-between mt-3 text-xs text-gray-400">
+          <span>
+            {min}
+            {question.scale_min_label ? ` — ${question.scale_min_label}` : ''}
+          </span>
+          <span>
+            {max}
+            {question.scale_max_label ? ` — ${question.scale_max_label}` : ''}
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+interface YesNoInputProps {
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}
+
+function YesNoInput({ value, onChange, disabled }: YesNoInputProps) {
+  const normalized = value.trim().toLowerCase()
+  return (
+    <div className="flex gap-3 sm:gap-4">
+      {(['yes', 'no'] as const).map(opt => {
+        const isSelected = normalized === opt
+        return (
+          <button
+            key={opt}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(opt)}
+            className={`flex-1 py-4 sm:py-5 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all capitalize ${
+              isSelected
+                ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
+                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:text-gray-900'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-pressed={isSelected}
+          >
+            {opt}
+          </button>
+        )
+      })}
     </div>
   )
 }

@@ -76,6 +76,32 @@ export function useRescheduleSession() {
   })
 }
 
+export function useSendThrillForm() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      clientId,
+    }: {
+      sessionId: string
+      clientId: string
+    }) => QuestionnaireService.sendThrillForm(sessionId, clientId),
+    onSuccess: (_data, { sessionId }) => {
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'questionnaire' &&
+          query.queryKey[1] === 'thrill-form-responses' &&
+          query.queryKey[2] === sessionId,
+      })
+      toast.success('Thrill Form sent')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to send Thrill Form')
+    },
+  })
+}
+
 export function useStartSessionBot() {
   return useMutation({
     mutationFn: ({
