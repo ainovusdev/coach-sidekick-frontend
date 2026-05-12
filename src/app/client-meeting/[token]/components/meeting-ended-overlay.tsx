@@ -14,6 +14,7 @@ import {
   FileText,
   Target,
   LayoutDashboard,
+  Sparkles,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -21,12 +22,14 @@ interface MeetingEndedOverlayProps {
   coachName: string | null
   notesCount: number
   commitmentsCount: number
+  thrillFormToken?: string | null
 }
 
 export function MeetingEndedOverlay({
   coachName,
   notesCount,
   commitmentsCount,
+  thrillFormToken,
 }: MeetingEndedOverlayProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
 
@@ -88,6 +91,28 @@ export function MeetingEndedOverlay({
                   </p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Thrill Form CTA — shown above all other actions when available.
+              The form auto-opens in a new tab on session end; this button is
+              the always-available fallback for popup-blocked browsers. */}
+          {thrillFormToken && (
+            <div className="mb-6">
+              <a
+                href={`/questionnaire/${thrillFormToken}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block"
+              >
+                <Button className="w-full" size="lg">
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Open Thrill Form
+                </Button>
+              </a>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+                We&apos;ve also emailed you the link.
+              </p>
             </div>
           )}
 

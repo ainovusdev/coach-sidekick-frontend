@@ -25,6 +25,7 @@ export interface SessionStatus {
   is_ended: boolean
   duration_seconds: number | null
   ended_at: string | null
+  thrill_form_token: string | null
 }
 
 export interface GuestIdentifier {

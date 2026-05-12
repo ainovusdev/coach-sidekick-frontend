@@ -6,7 +6,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import Image from 'next/image'
 import { useLiveMeetingData } from './hooks/use-live-meeting-data'
@@ -17,6 +17,7 @@ import { ClientNotesPanel } from './components/client-notes-panel'
 import { ClientCommitmentPanel } from './components/client-commitment-panel'
 import { MeetingEndedOverlay } from './components/meeting-ended-overlay'
 import { LiveMeetingService } from '@/services/live-meeting-service'
+import { THRILL_FORM_ENABLED } from '@/lib/features'
 
 export default function ClientMeetingPage() {
   const params = useParams()
@@ -35,7 +36,8 @@ export default function ClientMeetingPage() {
     error: _guestError,
   } = useGuestAuth(meetingToken)
 
-  const { isEnded, durationSeconds } = useMeetingStatus(meetingToken)
+  const { isEnded, durationSeconds, thrillFormToken } =
+    useMeetingStatus(meetingToken)
 
   // Track notes and commitments count for the ended overlay
   const [notesCount, setNotesCount] = useState(0)
@@ -44,6 +46,21 @@ export default function ClientMeetingPage() {
   // Refresh key to trigger manual refresh of data
   const [refreshKey, setRefreshKey] = useState(0)
   const handleRefresh = () => setRefreshKey(k => k + 1)
+
+  // Auto-open the Thrill Form in a new tab once when the meeting ends.
+  // The ref guards against React strict-mode / double effect runs and against
+  // the polling cycle delivering the token across multiple renders.
+  const autoOpenedRef = useRef(false)
+  useEffect(() => {
+    if (!THRILL_FORM_ENABLED) return
+    if (!isEnded || !thrillFormToken || autoOpenedRef.current) return
+    autoOpenedRef.current = true
+    window.open(
+      `/questionnaire/${thrillFormToken}`,
+      '_blank',
+      'noopener,noreferrer',
+    )
+  }, [isEnded, thrillFormToken])
 
   // Fetch counts when meeting ends
   useEffect(() => {
@@ -227,6 +244,7 @@ export default function ClientMeetingPage() {
           coachName={sessionInfo.coach_name}
           notesCount={notesCount}
           commitmentsCount={commitmentsCount}
+          thrillFormToken={THRILL_FORM_ENABLED ? thrillFormToken : null}
         />
       )}
     </div>

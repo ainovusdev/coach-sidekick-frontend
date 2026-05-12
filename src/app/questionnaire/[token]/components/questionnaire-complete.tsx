@@ -9,12 +9,14 @@ interface QuestionnaireCompleteProps {
   clientName: string
   coachName: string
   scheduledFor: string | null
+  kind?: 'pre_session' | 'post_session'
 }
 
 export function QuestionnaireComplete({
   clientName,
   coachName,
   scheduledFor,
+  kind = 'pre_session',
 }: QuestionnaireCompleteProps) {
   const [showCheck, setShowCheck] = useState(false)
   const [showText, setShowText] = useState(false)
@@ -28,9 +30,11 @@ export function QuestionnaireComplete({
     }
   }, [])
 
-  const dateInfo = scheduledFor
-    ? format(new Date(scheduledFor), "EEEE, MMMM d 'at' h:mm a")
-    : null
+  const dateInfo =
+    kind === 'pre_session' && scheduledFor
+      ? format(new Date(scheduledFor), "EEEE, MMMM d 'at' h:mm a")
+      : null
+  const isThrillForm = kind === 'post_session'
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-100">
@@ -70,7 +74,9 @@ export function QuestionnaireComplete({
               Thank you, {clientName}!
             </h1>
             <p className="text-gray-500 text-lg leading-relaxed mb-6">
-              Your responses have been shared with {coachName}.
+              {isThrillForm
+                ? `Your Thrill Form has been shared with ${coachName}.`
+                : `Your responses have been shared with ${coachName}.`}
               {dateInfo && (
                 <>
                   <br />

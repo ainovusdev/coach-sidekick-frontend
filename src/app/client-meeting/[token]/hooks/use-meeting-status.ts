@@ -15,6 +15,7 @@ interface UseMeetingStatusReturn {
   isEnded: boolean
   durationSeconds: number
   isPolling: boolean
+  thrillFormToken: string | null
 }
 
 const POLL_INTERVAL = 10000 // 10 seconds
@@ -104,6 +105,7 @@ export function useMeetingStatus(meetingToken: string): UseMeetingStatusReturn {
     isEnded,
     durationSeconds,
     isPolling,
+    thrillFormToken: status?.thrill_form_token ?? null,
   }
 }
 

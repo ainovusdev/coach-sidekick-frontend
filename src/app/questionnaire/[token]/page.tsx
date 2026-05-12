@@ -67,6 +67,7 @@ export default function QuestionnairePage() {
         clientName={data.client_name}
         coachName={data.coach_name}
         scheduledFor={data.scheduled_for}
+        kind={data.kind}
       />
     )
   }
@@ -79,6 +80,7 @@ export default function QuestionnairePage() {
         existingAnswers={data.existing_answers}
         clientName={data.client_name}
         coachName={data.coach_name}
+        kind={data.kind}
         onComplete={() => setState('complete')}
       />
     )
