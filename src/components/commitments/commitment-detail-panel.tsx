@@ -465,87 +465,162 @@ function FieldsGrid({
     low: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
   }
 
+  const statusOptions: {
+    value: string
+    label: string
+    selected: string
+    unselected: string
+  }[] = [
+    {
+      value: 'active',
+      label: 'Active',
+      selected:
+        'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800',
+      unselected:
+        'bg-transparent text-gray-500 border-gray-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300',
+    },
+    {
+      value: 'completed',
+      label: 'Completed',
+      selected:
+        'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800',
+      unselected:
+        'bg-transparent text-gray-500 border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-green-900/30 dark:hover:text-green-300',
+    },
+    {
+      value: 'abandoned',
+      label: 'Abandoned',
+      selected:
+        'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800',
+      unselected:
+        'bg-transparent text-gray-500 border-gray-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:text-red-300',
+    },
+  ]
+
   return (
-    <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-      {/* Priority */}
-      <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          Priority
-        </label>
-        <Select
-          value={commitment.priority}
-          onValueChange={value => onFieldUpdate('priority', value)}
-        >
-          <SelectTrigger className="h-9 text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', 'bg-gray-400')} />
-                Low
-              </div>
-            </SelectItem>
-            <SelectItem value="medium">
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', 'bg-yellow-400')} />
-                Medium
-              </div>
-            </SelectItem>
-            <SelectItem value="high">
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', 'bg-orange-400')} />
-                High
-              </div>
-            </SelectItem>
-            <SelectItem value="urgent">
-              <div className="flex items-center gap-2">
-                <div className={cn('w-2 h-2 rounded-full', 'bg-red-500')} />
-                Urgent
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        {/* Priority */}
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            Priority
+          </label>
+          <Select
+            value={commitment.priority}
+            onValueChange={value => onFieldUpdate('priority', value)}
+          >
+            <SelectTrigger className="h-9 text-sm">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-2 h-2 rounded-full', 'bg-gray-400')} />
+                  Low
+                </div>
+              </SelectItem>
+              <SelectItem value="medium">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn('w-2 h-2 rounded-full', 'bg-yellow-400')}
+                  />
+                  Medium
+                </div>
+              </SelectItem>
+              <SelectItem value="high">
+                <div className="flex items-center gap-2">
+                  <div
+                    className={cn('w-2 h-2 rounded-full', 'bg-orange-400')}
+                  />
+                  High
+                </div>
+              </SelectItem>
+              <SelectItem value="urgent">
+                <div className="flex items-center gap-2">
+                  <div className={cn('w-2 h-2 rounded-full', 'bg-red-500')} />
+                  Urgent
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Due Date */}
+        <div className="space-y-1">
+          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            Due Date
+          </label>
+          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  'h-9 w-full justify-start text-left text-sm font-normal',
+                  !commitment.target_date && 'text-gray-500',
+                )}
+              >
+                <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                {commitment.target_date
+                  ? formatDate(commitment.target_date, 'MMM d, yyyy')
+                  : 'Set date'}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  commitment.target_date
+                    ? new Date(commitment.target_date)
+                    : undefined
+                }
+                onSelect={date => {
+                  onFieldUpdate(
+                    'target_date',
+                    date ? date.toISOString().split('T')[0] : null,
+                  )
+                  setCalendarOpen(false)
+                }}
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
-      {/* Due Date */}
+      {/* Status */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          Due Date
+          Status
         </label>
-        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                'h-9 w-full justify-start text-left text-sm font-normal',
-                !commitment.target_date && 'text-gray-500',
-              )}
-            >
-              <CalendarIcon className="h-3.5 w-3.5 mr-2" />
-              {commitment.target_date
-                ? formatDate(commitment.target_date, 'MMM d, yyyy')
-                : 'Set date'}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
-            <Calendar
-              mode="single"
-              selected={
-                commitment.target_date
-                  ? new Date(commitment.target_date)
-                  : undefined
-              }
-              onSelect={date => {
-                onFieldUpdate(
-                  'target_date',
-                  date ? date.toISOString().split('T')[0] : null,
-                )
-                setCalendarOpen(false)
-              }}
-            />
-          </PopoverContent>
-        </Popover>
+        <div className="flex flex-wrap gap-1.5">
+          {statusOptions.map(opt => {
+            const isSelected = commitment.status === opt.value
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  if (isSelected) return
+                  onFieldUpdate('status', opt.value)
+                  if (opt.value === 'completed') {
+                    onFieldUpdate('progress_percentage', 100)
+                  } else if (
+                    commitment.status === 'completed' &&
+                    opt.value === 'active'
+                  ) {
+                    onFieldUpdate('progress_percentage', 0)
+                  }
+                }}
+                aria-pressed={isSelected}
+                className={cn(
+                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                  isSelected ? opt.selected : opt.unselected,
+                )}
+              >
+                {opt.label}
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )
