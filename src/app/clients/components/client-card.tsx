@@ -13,12 +13,14 @@ import {
   UserCheck,
   MoreHorizontal,
   XCircle,
+  Trash2,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
@@ -30,6 +32,7 @@ interface ClientCardProps {
   onEdit: () => void
   onInvite: () => void
   onCancelInvite?: () => void
+  onDelete: () => void
 }
 
 export default function ClientCard({
@@ -40,6 +43,7 @@ export default function ClientCard({
   onEdit,
   onInvite,
   onCancelInvite,
+  onDelete,
 }: ClientCardProps) {
   const stats = client.client_session_stats?.[0]
 
@@ -198,6 +202,17 @@ export default function ClientCard({
                           Cancel Invitation
                         </DropdownMenuItem>
                       )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={e => {
+                        e.stopPropagation()
+                        onDelete()
+                      }}
+                      className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Delete Client
+                    </DropdownMenuItem>
                   </>
                 )}
               </DropdownMenuContent>

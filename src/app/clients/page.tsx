@@ -48,6 +48,8 @@ export default function ClientsPage() {
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [showCancelInviteDialog, setShowCancelInviteDialog] = useState(false)
   const [isCancellingInvite, setIsCancellingInvite] = useState(false)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   // Use the data hook
   const {
@@ -109,6 +111,33 @@ export default function ClientsPage() {
   const openCancelInvitationDialog = (client: Client) => {
     setSelectedClient(client)
     setShowCancelInviteDialog(true)
+  }
+
+  const openDeleteDialog = (client: Client) => {
+    setSelectedClient(client)
+    setShowDeleteDialog(true)
+  }
+
+  const handleDeleteClient = async () => {
+    if (!selectedClient) return
+    setIsDeleting(true)
+    try {
+      await ClientService.deleteClient(selectedClient.id)
+      toast.success('Client deleted', {
+        description: `${selectedClient.name} has been permanently deleted.`,
+      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+      setShowDeleteDialog(false)
+      setSelectedClient(null)
+    } catch (error) {
+      console.error('Error deleting client:', error)
+      toast.error('Failed to delete client', {
+        description:
+          error instanceof Error ? error.message : 'Please try again later',
+      })
+    } finally {
+      setIsDeleting(false)
+    }
   }
 
   const handleCancelInvitation = async () => {
@@ -264,6 +293,7 @@ export default function ClientsPage() {
               onEditClient={openEditModal}
               onInviteClient={openInviteModal}
               onCancelInvitation={openCancelInvitationDialog}
+              onDeleteClient={openDeleteDialog}
               onCreateClient={() => setIsCreateModalOpen(true)}
             />
           </div>
@@ -319,6 +349,21 @@ export default function ClientsPage() {
           }
           variant="destructive"
           onConfirm={handleCancelInvitation}
+        />
+
+        {/* Delete Client Dialog */}
+        <ConfirmationDialog
+          open={showDeleteDialog}
+          onOpenChange={open => {
+            if (!isDeleting) {
+              setShowDeleteDialog(open)
+            }
+          }}
+          title="Delete Client"
+          description={`Permanently delete ${selectedClient?.name}? This will also delete all sessions, transcripts, insights, sprints, commitments, tasks, and portal access for this client. This cannot be undone.`}
+          confirmText={isDeleting ? 'Deleting...' : 'Delete Client'}
+          variant="destructive"
+          onConfirm={handleDeleteClient}
         />
       </PageLayout>
     </ProtectedRoute>
