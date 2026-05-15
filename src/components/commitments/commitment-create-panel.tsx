@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
 import { formatDate } from '@/lib/date-utils'
 import { useCreateCommitment } from '@/hooks/mutations/use-commitment-mutations'
-import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useAuth } from '@/contexts/auth-context'
@@ -64,15 +63,9 @@ export function CommitmentCreatePanel({
   const [selectedSprintIds, setSelectedSprintIds] = useState<string[]>([])
   const [dueDateOpen, setDueDateOpen] = useState(false)
 
-  // Fetch goals, sprints, and targets for linking
-  const { data: goals = [] } = useGoals(clientId)
+  // Fetch sprints and targets for linking
   const { data: allSprints = [] } = useSprints({ client_id: clientId })
-  const { data: allTargets = [] } = useTargets()
-
-  // Filter targets by client's goals
-  const clientTargets = allTargets.filter((t: any) =>
-    goals.some((g: any) => t.goal_ids?.includes(g.id)),
-  )
+  const { data: clientTargets = [] } = useTargets({ client_id: clientId })
 
   // Reset form when panel opens
   useEffect(() => {
