@@ -327,7 +327,9 @@ export function GoalsTreeView({
 
   // Fetch all data
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
-  const { data: allTargets = [], isLoading: targetsLoading } = useTargets()
+  const { data: clientTargets = [], isLoading: targetsLoading } = useTargets({
+    client_id: clientId,
+  })
   const { data: allSprints = [], isLoading: sprintsLoading } = useSprints({
     client_id: clientId,
   })
@@ -339,15 +341,6 @@ export function GoalsTreeView({
   const allCommitments = commitmentsData?.commitments || []
   const isLoading =
     goalsLoading || targetsLoading || sprintsLoading || commitmentsLoading
-
-  // Filter targets by client (through goals)
-  const clientTargets = useMemo(() => {
-    const goalIds = goals.map((g: any) => g.id)
-    return allTargets.filter((t: any) =>
-      // Check if any of the target's goals match client goals
-      t.goal_ids?.some((gid: string) => goalIds.includes(gid)),
-    )
-  }, [allTargets, goals])
 
   // Filter out completed items when toggle is on
   const visibleGoals = useMemo(() => {

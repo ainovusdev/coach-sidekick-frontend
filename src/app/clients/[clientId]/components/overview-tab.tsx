@@ -75,18 +75,13 @@ export function OverviewTab({
   })
 
   const { data: goalsData } = useGoals(client.id)
-  const { data: allTargets = [] } = useTargets()
+  const { data: clientTargets = [] } = useTargets({ client_id: client.id })
 
   // Fetch client-specific resources for the compact card
   const { data: clientResourcesData } = useResources({
     client_id: client.id,
     limit: 3,
   })
-
-  // Filter targets by client's goals
-  const clientTargets = allTargets.filter((t: any) =>
-    goalsData?.some((g: any) => t.goal_ids?.includes(g.id)),
-  )
 
   // Filter commitments based on selection
   const filteredCommitments = useMemo(() => {

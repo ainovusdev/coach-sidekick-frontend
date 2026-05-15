@@ -28,7 +28,6 @@ import { CalendarIcon, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { queryKeys } from '@/lib/query-client'
 import { useTargets } from '@/hooks/queries/use-targets'
-import { useGoals } from '@/hooks/queries/use-goals'
 
 interface SprintFormModalProps {
   open: boolean
@@ -79,14 +78,8 @@ export function SprintFormModal({
     }
   }, [open, isEdit, sprint])
 
-  // Fetch goals and targets for the client
-  const { data: goals = [] } = useGoals(clientId)
-  const { data: allTargets = [] } = useTargets()
-
-  // Filter targets that belong to this client (via goals)
-  const clientTargets = allTargets.filter((t: any) =>
-    t.goal_ids?.some((gid: string) => goals.some((g: any) => g.id === gid)),
-  )
+  // Fetch targets for the client
+  const { data: clientTargets = [] } = useTargets({ client_id: clientId })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

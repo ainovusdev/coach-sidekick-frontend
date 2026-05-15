@@ -32,7 +32,9 @@ export function useOutcomesGroupedByGoal(
   clientId: string | undefined,
 ): GroupedOutcomesResult {
   const { data: goals = [], isLoading: goalsLoading } = useGoals(clientId)
-  const { data: allTargets = [], isLoading: targetsLoading } = useTargets()
+  const { data: clientTargets = [], isLoading: targetsLoading } = useTargets({
+    client_id: clientId,
+  })
   const { data: allSprints = [], isLoading: sprintsLoading } = useSprints({
     client_id: clientId,
   })
@@ -40,7 +42,7 @@ export function useOutcomesGroupedByGoal(
   const isLoading = goalsLoading || targetsLoading || sprintsLoading
 
   const { groupedOutcomes, ungroupedOutcomes, clientOutcomes } = useMemo(() => {
-    if (!clientId || goals.length === 0) {
+    if (!clientId) {
       return {
         groupedOutcomes: [],
         ungroupedOutcomes: [],
@@ -48,15 +50,10 @@ export function useOutcomesGroupedByGoal(
       }
     }
 
-    // Get goal IDs for this client
     const goalIds = new Set(goals.map(g => g.id))
 
-    // Filter targets that belong to this client (via goals)
-    const clientTargets = allTargets.filter((t: Target) =>
-      t.goal_ids?.some((gid: string) => goalIds.has(gid)),
-    )
-
-    // Group by first linked goal (primary goal)
+    // Group by first linked goal (primary goal). Outcomes with no vision
+    // or whose primary vision belongs to another client land in ungrouped.
     const grouped: Map<string, Target[]> = new Map()
     const ungrouped: Target[] = []
 
@@ -74,7 +71,6 @@ export function useOutcomesGroupedByGoal(
       }
     }
 
-    // Convert to array of OutcomeGroup
     const result: OutcomeGroup[] = goals
       .map(goal => ({
         goal,
@@ -87,7 +83,7 @@ export function useOutcomesGroupedByGoal(
       ungroupedOutcomes: ungrouped,
       clientOutcomes: clientTargets,
     }
-  }, [clientId, goals, allTargets])
+  }, [clientId, goals, clientTargets])
 
   return {
     groupedOutcomes,
