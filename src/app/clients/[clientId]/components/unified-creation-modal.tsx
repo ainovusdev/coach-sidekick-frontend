@@ -146,6 +146,7 @@ export function UnifiedCreationModal({
           onOpenChange={open => {
             if (!open) handleClose()
           }}
+          clientId={clientId}
           sprintId={sprints[0]?.id || ''}
           goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
           onSuccess={handleSuccess}

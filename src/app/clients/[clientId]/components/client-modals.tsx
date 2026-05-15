@@ -202,6 +202,7 @@ export function ClientModals({
           setIsOutcomeModalOpen(open)
           if (!open) setEditingOutcome(null)
         }}
+        clientId={client.id}
         sprintId={sprints[0]?.id}
         goals={goals.map((g: any) => ({ id: g.id, title: g.title }))}
         target={editingOutcome}

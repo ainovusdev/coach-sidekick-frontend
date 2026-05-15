@@ -55,7 +55,8 @@ export interface TargetBase {
 }
 
 export interface TargetCreate extends TargetBase {
-  goal_ids: string[] // Many-to-many with goals
+  client_id: string
+  goal_ids: string[] // Many-to-many with goals (optional — can be empty)
   sprint_ids: string[] // Many-to-many with sprints
   status?: TargetStatus
 }
@@ -72,7 +73,8 @@ export interface TargetUpdate {
 
 export interface Target extends TargetBase {
   id: string
-  goal_ids: string[] // All linked goals (many-to-many)
+  client_id: string
+  goal_ids: string[] // All linked goals (many-to-many, may be empty)
   sprint_ids: string[] // All linked sprints (many-to-many)
   status: TargetStatus
   progress_percentage: number
