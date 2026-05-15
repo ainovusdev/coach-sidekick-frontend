@@ -3,6 +3,8 @@
 import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
+import { queryKeys } from '@/lib/query-client'
 import { Toast, useToast } from '@/components/ui/toast'
 import { MeetingLoading } from '@/components/meeting/meeting-loading'
 import { MeetingError } from '@/components/meeting/meeting-error'
@@ -14,6 +16,7 @@ import MeetingPanels from './components/meeting-panels'
 export default function MeetingPage() {
   const params = useParams()
   const router = useRouter()
+  const queryClient = useQueryClient()
   const botId = params.botId as string
   const { toast, showToast, closeToast } = useToast()
   const hasShownProcessingToast = useRef(false)
@@ -73,6 +76,9 @@ export default function MeetingPage() {
         const redirectSessionId =
           completedSessionIdRef.current || sessionIdRef.current
         if (redirectSessionId) {
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.sessions.detail(redirectSessionId),
+          })
           if (isGroupSession) {
             router.replace(`/sessions/group/${redirectSessionId}`)
           } else {
@@ -100,6 +106,9 @@ export default function MeetingPage() {
           // Navigate to session details page if sessionId exists, otherwise go to dashboard
           // Use replace() so the meeting page is not in the history stack
           if (sessionId) {
+            queryClient.invalidateQueries({
+              queryKey: queryKeys.sessions.detail(sessionId),
+            })
             if (isGroupSession) {
               router.replace(`/sessions/group/${sessionId}`)
             } else {
