@@ -24,9 +24,9 @@ import { queryKeys } from '@/lib/query-client'
 interface TargetFormModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
+  clientId: string
   sprintId?: string
   goals?: Array<{ id: string; title: string }>
-  clientId?: string
   onSuccess?: () => void
   target?: any
   mode?: 'create' | 'edit'
@@ -35,9 +35,9 @@ interface TargetFormModalProps {
 export function TargetFormModal({
   open,
   onOpenChange,
+  clientId,
   sprintId,
   goals = [],
-  clientId: _clientId,
   onSuccess,
   target,
   mode = 'create',
@@ -82,11 +82,6 @@ export function TargetFormModal({
       return
     }
 
-    if (selectedGoalIds.length === 0) {
-      toast.error('Please select at least one vision for this outcome')
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -113,6 +108,7 @@ export function TargetFormModal({
         const optimisticId = `temp-${Date.now()}`
 
         const targetData: TargetCreate = {
+          client_id: clientId,
           goal_ids: selectedGoalIds,
           sprint_ids: sprintId ? [sprintId] : [],
           title: formData.title,
@@ -142,7 +138,10 @@ export function TargetFormModal({
         // Close modal and show immediately
         onOpenChange(false)
         toast.success('Outcome Created', {
-          description: `The outcome has been linked to ${selectedGoalIds.length} vision(s)`,
+          description:
+            selectedGoalIds.length > 0
+              ? `The outcome has been linked to ${selectedGoalIds.length} vision(s)`
+              : undefined,
         })
 
         // Actual API call
@@ -195,7 +194,7 @@ export function TargetFormModal({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4 py-4">
             <div className="space-y-3">
-              <Label>Link to Vision * (select one or more)</Label>
+              <Label>Link to Vision (optional)</Label>
               {goals.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {goals.map(goal => {
