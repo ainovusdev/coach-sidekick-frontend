@@ -155,36 +155,36 @@ export const CATEGORY_COLORS: Record<
   { bg: string; text: string }
 > = {
   general: {
-    bg: 'bg-gray-100 dark:bg-gray-800',
-    text: 'text-gray-700 dark:text-gray-300',
+    bg: 'bg-surface-3 ',
+    text: 'text-ink-2 ',
   },
   worksheet: {
-    bg: 'bg-blue-100 dark:bg-blue-900/30',
-    text: 'text-blue-700 dark:text-blue-400',
+    bg: 'bg-ds-accent-bg ',
+    text: 'text-ds-accent ',
   },
   exercise: {
-    bg: 'bg-green-100 dark:bg-green-900/30',
-    text: 'text-green-700 dark:text-green-400',
+    bg: 'bg-forest-bg ',
+    text: 'text-forest ',
   },
   article: {
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
-    text: 'text-purple-700 dark:text-purple-400',
+    bg: 'bg-indigo-bg ',
+    text: 'text-indigo ',
   },
   template: {
-    bg: 'bg-orange-100 dark:bg-orange-900/30',
-    text: 'text-orange-700 dark:text-orange-400',
+    bg: 'bg-amber-token-bg ',
+    text: 'text-amber-token ',
   },
   video: {
-    bg: 'bg-red-100 dark:bg-red-900/30',
-    text: 'text-red-700 dark:text-red-400',
+    bg: 'bg-vermillion-bg ',
+    text: 'text-vermillion ',
   },
   document: {
-    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
-    text: 'text-indigo-700 dark:text-indigo-400',
+    bg: 'bg-indigo-bg ',
+    text: 'text-indigo ',
   },
   link: {
-    bg: 'bg-teal-100 dark:bg-teal-900/30',
-    text: 'text-teal-700 dark:text-teal-400',
+    bg: 'bg-forest-bg ',
+    text: 'text-forest ',
   },
 }
 

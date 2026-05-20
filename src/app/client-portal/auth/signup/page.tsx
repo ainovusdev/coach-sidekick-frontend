@@ -127,7 +127,7 @@ function ClientSignupContent() {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+      <div className="min-h-screen flex items-center justify-center  ">
         <LoadingSpinner />
       </div>
     )
@@ -135,7 +135,7 @@ function ClientSignupContent() {
 
   if (!invitationInfo?.valid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+      <div className="min-h-screen flex items-center justify-center  p-4">
         <Alert className="max-w-md">
           <AlertDescription>
             {error || 'This invitation link is invalid or has expired.'}
@@ -148,7 +148,7 @@ function ClientSignupContent() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50 p-4">
+    <div className="min-h-screen flex items-center justify-center  p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle>
@@ -161,11 +161,11 @@ function ClientSignupContent() {
           </p>
           {/* NEW: Show message if user already exists */}
           {invitationInfo.existing_user && invitationInfo.existing_roles && (
-            <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-sm text-blue-800">
+            <div className="mt-3 p-3 bg-ds-accent-bg border border-ds-accent rounded-lg">
+              <p className="text-sm text-ds-accent">
                 <strong>Existing Account Detected</strong>
               </p>
-              <p className="text-xs text-blue-600 mt-1">
+              <p className="text-xs text-ds-accent mt-1">
                 You already have an account as a{' '}
                 {invitationInfo.existing_roles
                   .map(r => r.replace('_', ' '))
@@ -188,7 +188,7 @@ function ClientSignupContent() {
                 className="bg-muted"
               />
               {invitationInfo.existing_user && (
-                <p className="text-xs text-blue-600 mt-1">
+                <p className="text-xs text-ds-accent mt-1">
                   This email is already registered in our system
                 </p>
               )}

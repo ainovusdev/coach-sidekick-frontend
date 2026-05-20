@@ -40,7 +40,7 @@ export function EvaluationsList({
   const avg = useMemo(() => averageScore(evaluations), [evaluations])
 
   return (
-    <section className="mt-6 rounded-lg border border-app-border bg-white dark:bg-gray-900 p-4">
+    <section className="mt-6 rounded-lg border border-app-border bg-surface-1 p-4">
       <header className="flex items-baseline justify-between mb-3">
         <h2 className="text-base font-semibold text-app-primary">
           Peer evaluations{' '}
@@ -120,16 +120,16 @@ function EvaluationRow({
   }
 
   return (
-    <li className="rounded-md border border-app-border bg-white dark:bg-gray-800">
+    <li className="rounded-md border border-app-border bg-surface-1 ">
       <button
         type="button"
         onClick={() => setExpanded(prev => !prev)}
-        className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-gray-50 dark:hover:bg-gray-800/60"
+        className="flex w-full items-start gap-2 px-3 py-2 text-left hover:bg-paper "
       >
         {expanded ? (
-          <ChevronDown className="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
+          <ChevronDown className="h-4 w-4 mt-0.5 text-ink-4 shrink-0" />
         ) : (
-          <ChevronRight className="h-4 w-4 mt-0.5 text-gray-400 shrink-0" />
+          <ChevronRight className="h-4 w-4 mt-0.5 text-ink-4 shrink-0" />
         )}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
@@ -137,7 +137,7 @@ function EvaluationRow({
               {reviewerLabel}
             </span>
             {isOwn && (
-              <span className="text-[10px] uppercase tracking-wide rounded bg-indigo-50 text-indigo-700 px-1.5 py-0.5">
+              <span className="text-[10px] uppercase tracking-wide rounded bg-indigo-bg text-indigo px-1.5 py-0.5">
                 you
               </span>
             )}
@@ -199,7 +199,7 @@ function EvaluationRow({
             })}
           </ol>
           {evaluation.feedback && (
-            <div className="rounded bg-gray-50 dark:bg-gray-900/40 p-2 mt-2">
+            <div className="rounded bg-paper p-2 mt-2">
               <p className="text-[10px] uppercase tracking-wide text-app-secondary mb-1">
                 Feedback
               </p>
@@ -214,7 +214,7 @@ function EvaluationRow({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="text-vermillion hover:bg-vermillion-bg hover:text-vermillion"
                 onClick={() => setConfirmOpen(true)}
                 disabled={deleteMut.isPending}
               >
@@ -244,7 +244,7 @@ function EvaluationRow({
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleteMut.isPending}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-vermillion hover:bg-vermillion focus:ring-vermillion"
             >
               Delete
             </AlertDialogAction>

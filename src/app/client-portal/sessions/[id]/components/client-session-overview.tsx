@@ -69,29 +69,23 @@ const CATEGORY_ICONS: Record<string, any> = {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  document: 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-  worksheet:
-    'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
-  exercise:
-    'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400',
-  article:
-    'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-  template: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
-  video: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-  link: 'bg-cyan-100 text-cyan-600 dark:bg-cyan-900/30 dark:text-cyan-400',
+  document: 'bg-ds-accent-bg text-ds-accent ',
+  worksheet: 'bg-indigo-bg text-indigo ',
+  exercise: 'bg-amber-token-bg text-amber-token ',
+  article: 'bg-forest-bg text-forest ',
+  template: 'bg-surface-3 text-ink-3 ',
+  video: 'bg-vermillion-bg text-vermillion ',
+  link: 'bg-ds-accent-bg text-ds-accent ',
 }
 
 const CATEGORY_BADGE_COLORS: Record<string, string> = {
-  document: 'bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300',
-  worksheet:
-    'bg-purple-50 text-purple-700 dark:bg-purple-900/20 dark:text-purple-300',
-  exercise:
-    'bg-orange-50 text-orange-700 dark:bg-orange-900/20 dark:text-orange-300',
-  article:
-    'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300',
-  template: 'bg-gray-50 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
-  video: 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-300',
-  link: 'bg-cyan-50 text-cyan-700 dark:bg-cyan-900/20 dark:text-cyan-300',
+  document: 'bg-ds-accent-bg text-ds-accent ',
+  worksheet: 'bg-indigo-bg text-indigo ',
+  exercise: 'bg-amber-token-bg text-amber-token ',
+  article: 'bg-forest-bg text-forest ',
+  template: 'bg-paper text-ink-2 ',
+  video: 'bg-vermillion-bg text-vermillion ',
+  link: 'bg-ds-accent-bg text-ds-accent ',
 }
 
 // ---- Commitment Item with inline editing ----
@@ -158,46 +152,46 @@ function CommitmentItem({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
+        return <CheckCircle2 className="h-4 w-4 text-forest" />
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-600" />
+        return <PlayCircle className="h-4 w-4 text-ds-accent" />
       default:
-        return <Circle className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+        return <Circle className="h-4 w-4 text-ink-3 " />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
+        return 'text-forest bg-forest-bg border-forest '
       case 'in_progress':
-        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
+        return 'text-ds-accent bg-ds-accent-bg border-ds-accent '
       default:
-        return 'text-gray-700 bg-gray-50 border-gray-200 dark:text-gray-300 dark:bg-gray-800 dark:border-gray-600'
+        return 'text-ink-2 bg-paper border-line '
     }
   }
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-      <div className="flex items-center justify-between gap-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+    <div className="border border-line rounded-lg overflow-hidden">
+      <div className="flex items-center justify-between gap-2 p-3 hover:bg-paper transition-colors">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex-shrink-0">
             {getStatusIcon(commitment.status)}
           </div>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="flex-shrink-0 p-0.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+            className="flex-shrink-0 p-0.5 hover:bg-surface-3 rounded transition-colors"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-ink-3 " />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <ChevronRight className="h-4 w-4 text-ink-3 " />
             )}
           </button>
           <p
-            className={`text-sm font-medium flex-1 dark:text-gray-200 ${
+            className={`text-sm font-medium flex-1 ${
               commitment.status === 'completed'
-                ? 'line-through text-gray-500 dark:text-gray-500'
+                ? 'line-through text-ink-3 '
                 : ''
             }`}
           >
@@ -233,14 +227,12 @@ function CommitmentItem({
         </Select>
       </div>
       {isExpanded && (
-        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+        <div className="px-3 pb-3 pt-1 space-y-3 border-t border-line bg-paper ">
           {isEditing ? (
             /* Inline edit form */
             <div className="space-y-3">
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
-                  Title
-                </label>
+                <label className="text-xs text-ink-3 mb-1 block">Title</label>
                 <Input
                   value={editTitle}
                   onChange={e => setEditTitle(e.target.value)}
@@ -248,7 +240,7 @@ function CommitmentItem({
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                <label className="text-xs text-ink-3 mb-1 block">
                   Description
                 </label>
                 <Textarea
@@ -259,7 +251,7 @@ function CommitmentItem({
                 />
               </div>
               <div>
-                <label className="text-xs text-gray-500 dark:text-gray-400 mb-1 block">
+                <label className="text-xs text-ink-3 mb-1 block">
                   Priority
                 </label>
                 <Select value={editPriority} onValueChange={setEditPriority}>
@@ -299,12 +291,10 @@ function CommitmentItem({
             /* Read view */
             <>
               {commitment.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  {commitment.description}
-                </p>
+                <p className="text-sm text-ink-3 ">{commitment.description}</p>
               )}
               <div className="flex items-center justify-between">
-                <div className="flex flex-wrap gap-3 text-xs text-gray-600 dark:text-gray-400">
+                <div className="flex flex-wrap gap-3 text-xs text-ink-3 ">
                   {commitment.priority && (
                     <span>
                       Priority: <strong>{commitment.priority}</strong>
@@ -332,7 +322,7 @@ function CommitmentItem({
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsEditing(true)}
-                  className="h-7 text-xs gap-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  className="h-7 text-xs gap-1 text-ink-3 hover:text-ink-2 "
                 >
                   <Pencil className="h-3 w-3" />
                   Edit
@@ -388,15 +378,13 @@ export function ClientSessionOverview({
     <div className="space-y-6">
       {/* Summary Section with Topics & Keywords inline */}
       {(session.summary || (insights?.topics?.length ?? 0) > 0) && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <Quote className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="font-semibold text-gray-900 dark:text-white">
-              Session Summary
-            </h2>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <Quote className="h-4 w-4 text-ink-3 " />
+            <h2 className="font-semibold text-ink ">Session Summary</h2>
             <Badge
               variant="secondary"
-              className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs ml-auto"
+              className="bg-surface-3 text-ink-3 text-xs ml-auto"
             >
               <Sparkles className="h-3 w-3 mr-1" />
               AI Generated
@@ -404,17 +392,15 @@ export function ClientSessionOverview({
           </div>
           <div className="p-5 space-y-4">
             {session.summary && (
-              <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                {session.summary}
-              </p>
+              <p className="text-ink-3 leading-relaxed">{session.summary}</p>
             )}
             {/* Topics inline */}
             {((insights?.topics?.length ?? 0) > 0 ||
               (session.key_topics?.length ?? 0) > 0) && (
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <Hash className="h-3.5 w-3.5 text-gray-400" />
-                  <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  <Hash className="h-3.5 w-3.5 text-ink-4" />
+                  <span className="text-xs font-medium text-ink-3 uppercase tracking-wide">
                     Topics Discussed
                   </span>
                 </div>
@@ -425,7 +411,7 @@ export function ClientSessionOverview({
                   ).map((topic: string, idx: number) => (
                     <span
                       key={idx}
-                      className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-sm rounded-lg"
+                      className="px-3 py-1.5 bg-surface-3 text-ink-2 text-sm rounded-lg"
                     >
                       {topic}
                     </span>
@@ -441,7 +427,7 @@ export function ClientSessionOverview({
                   .map((keyword: string, idx: number) => (
                     <span
                       key={idx}
-                      className="px-2 py-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded"
+                      className="px-2 py-1 border border-line text-ink-3 text-xs rounded"
                     >
                       {keyword}
                     </span>
@@ -457,19 +443,14 @@ export function ClientSessionOverview({
         {/* Commitments */}
         {(commitments.length > 0 ||
           (session.action_items && session.action_items.length > 0)) && (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800">
+          <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-line ">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <h2 className="font-semibold text-gray-900 dark:text-white">
-                    Commitments
-                  </h2>
+                  <CheckCircle2 className="h-4 w-4 text-ink-3 " />
+                  <h2 className="font-semibold text-ink ">Commitments</h2>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-                >
+                <Badge variant="secondary" className="bg-surface-3 text-ink-3 ">
                   {commitments.length > 0
                     ? `${completedCommitments}/${totalCommitments} done`
                     : `${session.action_items?.length || 0} items`}
@@ -478,7 +459,7 @@ export function ClientSessionOverview({
               {commitments.length > 0 && (
                 <div className="mt-3 flex items-center gap-3">
                   <Progress value={completionPct} className="flex-1 h-2" />
-                  <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                  <span className="text-xs text-ink-3 font-medium">
                     {completionPct}%
                   </span>
                 </div>
@@ -495,16 +476,16 @@ export function ClientSessionOverview({
                 ))}
               </div>
             ) : (
-              <div className="divide-y divide-gray-100 dark:divide-gray-800">
+              <div className="divide-y divide-line ">
                 {session.action_items?.map((item: any, index: number) => (
                   <div
                     key={index}
-                    className="px-5 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="px-5 py-3 flex items-start gap-3 hover:bg-paper transition-colors"
                   >
-                    <div className="h-6 w-6 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                    <div className="h-6 w-6 rounded-full bg-ink text-ink-on-dark flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                       {index + 1}
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                    <span className="text-sm text-ink-2 leading-relaxed">
                       {typeof item === 'string'
                         ? item
                         : item.item || item.text || item.title || String(item)}
@@ -518,15 +499,13 @@ export function ClientSessionOverview({
 
         {/* Wins */}
         {wins.length > 0 && (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-amber-500" />
-              <h2 className="font-semibold text-gray-900 dark:text-white">
-                Wins & Achievements
-              </h2>
+          <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-amber-token" />
+              <h2 className="font-semibold text-ink ">Wins & Achievements</h2>
               <Badge
                 variant="secondary"
-                className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-xs ml-auto"
+                className="bg-amber-token-bg text-amber-token text-xs ml-auto"
               >
                 {wins.length}
               </Badge>
@@ -535,17 +514,15 @@ export function ClientSessionOverview({
               {wins.map((win: any, index: number) => (
                 <div
                   key={win.id || index}
-                  className="flex items-start gap-3 p-3 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 rounded-lg"
+                  className="flex items-start gap-3 p-3 bg-amber-token-bg/50 border border-amber-token rounded-lg"
                 >
-                  <div className="h-6 w-6 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="h-6 w-6 rounded-full bg-amber-token-bg text-amber-token flex items-center justify-center flex-shrink-0 mt-0.5">
                     <Trophy className="h-3 w-3" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {win.title}
-                    </p>
+                    <p className="text-sm font-medium text-ink ">{win.title}</p>
                     {win.description && (
-                      <p className="text-xs text-gray-600 dark:text-gray-400 mt-0.5 line-clamp-2">
+                      <p className="text-xs text-ink-3 mt-0.5 line-clamp-2">
                         {win.description}
                       </p>
                     )}
@@ -559,12 +536,10 @@ export function ClientSessionOverview({
 
       {/* Key Insights — Bento Grid */}
       {insights?.insights && insights.insights.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="font-semibold text-gray-900 dark:text-white">
-              Key Insights
-            </h2>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 text-ink-3 " />
+            <h2 className="font-semibold text-ink ">Key Insights</h2>
           </div>
           <div className="p-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -573,17 +548,15 @@ export function ClientSessionOverview({
                 .map((insight: string, index: number) => (
                   <div
                     key={index}
-                    className="relative p-4 bg-gray-50 dark:bg-gray-800 rounded-lg hover:shadow-sm transition-shadow"
+                    className="relative p-4 bg-paper rounded-lg hover:shadow-sm transition-shadow"
                   >
                     <div className="absolute top-3 right-3">
-                      <span className="text-2xl font-bold text-gray-200 dark:text-gray-700">
+                      <span className="text-2xl font-bold text-ink-2 ">
                         {String(index + 1).padStart(2, '0')}
                       </span>
                     </div>
-                    <Zap className="h-4 w-4 text-gray-500 dark:text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-700 dark:text-gray-300 pr-8">
-                      {insight}
-                    </p>
+                    <Zap className="h-4 w-4 text-ink-3 mb-2" />
+                    <p className="text-sm text-ink-2 pr-8">{insight}</p>
                   </div>
                 ))}
             </div>
@@ -593,23 +566,21 @@ export function ClientSessionOverview({
 
       {/* Recommendations */}
       {suggestions.length > 0 && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <ArrowUpRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="font-semibold text-gray-900 dark:text-white">
-              Recommendations
-            </h2>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <ArrowUpRight className="h-4 w-4 text-ink-3 " />
+            <h2 className="font-semibold text-ink ">Recommendations</h2>
           </div>
           <div className="p-5 space-y-3">
             {suggestions.map((suggestion: any, index: number) => (
               <div
                 key={index}
-                className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                className="flex items-start gap-3 p-3 bg-paper rounded-lg"
               >
-                <div className="h-5 w-5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                <div className="h-5 w-5 rounded-full bg-ink text-ink-on-dark flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                   {index + 1}
                 </div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-ink-2 ">
                   {typeof suggestion === 'string'
                     ? suggestion
                     : suggestion.text || suggestion.suggestion || ''}
@@ -623,12 +594,10 @@ export function ClientSessionOverview({
       {/* Notes & Resources — 2 column on lg */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Session Notes — always visible with type badges */}
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <StickyNote className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h2 className="font-semibold text-gray-900 dark:text-white">
-              Session Notes
-            </h2>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <StickyNote className="h-4 w-4 text-ink-3 " />
+            <h2 className="font-semibold text-ink ">Session Notes</h2>
           </div>
           <div className="p-4">
             <NotesList sessionId={sessionId} isClientPortal={true} />
@@ -637,20 +606,18 @@ export function ClientSessionOverview({
 
         {/* Materials & Resources — with category icons/colors */}
         {hasMaterials && (
-          <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              <h2 className="font-semibold text-gray-900 dark:text-white">
-                Resources
-              </h2>
+          <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-ink-3 " />
+              <h2 className="font-semibold text-ink ">Resources</h2>
               <Badge
                 variant="secondary"
-                className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs ml-auto"
+                className="bg-surface-3 text-ink-3 text-xs ml-auto"
               >
                 {sessionData.materials.length}
               </Badge>
             </div>
-            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="divide-y divide-line ">
               {sessionData.materials.map(material => {
                 const IconComponent =
                   CATEGORY_ICONS[material.material_type] || FileText
@@ -663,7 +630,7 @@ export function ClientSessionOverview({
                 return (
                   <div
                     key={material.id}
-                    className="px-5 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                    className="px-5 py-3 hover:bg-paper transition-colors"
                   >
                     <div className="flex items-start gap-3">
                       <div
@@ -672,11 +639,11 @@ export function ClientSessionOverview({
                         <IconComponent className="h-4 w-4" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        <p className="text-sm font-medium text-ink ">
                           {material.title}
                         </p>
                         {material.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                          <p className="text-xs text-ink-3 mt-0.5 line-clamp-1">
                             {material.description}
                           </p>
                         )}
@@ -692,7 +659,7 @@ export function ClientSessionOverview({
                           href={material.file_url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 p-1"
+                          className="text-ink-4 hover:text-ink-3 p-1"
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
@@ -708,27 +675,27 @@ export function ClientSessionOverview({
 
       {/* Transcript */}
       {hasTranscript && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
           <button
             onClick={() => toggleSection('transcript')}
-            className="w-full px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+            className="w-full px-5 py-4 border-b border-line flex items-center justify-between hover:bg-paper transition-colors"
           >
             <div className="flex items-center gap-2">
-              <MessageSquare className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-              <h2 className="font-semibold text-gray-900 dark:text-white">
+              <MessageSquare className="h-4 w-4 text-ink-3 " />
+              <h2 className="font-semibold text-ink ">
                 Conversation Transcript
               </h2>
               <Badge
                 variant="secondary"
-                className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs ml-2"
+                className="bg-surface-3 text-ink-3 text-xs ml-2"
               >
                 {sessionData.transcript.length} messages
               </Badge>
             </div>
             {expandedSections.transcript ? (
-              <ChevronUp className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <ChevronUp className="h-4 w-4 text-ink-4 " />
             ) : (
-              <ChevronDown className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="h-4 w-4 text-ink-4 " />
             )}
           </button>
 
@@ -745,8 +712,8 @@ export function ClientSessionOverview({
                       <div
                         className={`h-8 w-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                           isCoach
-                            ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                            : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                            ? 'bg-ink text-ink-on-dark '
+                            : 'bg-surface-3 text-ink-3 '
                         }`}
                       >
                         <User className="h-4 w-4" />
@@ -757,11 +724,11 @@ export function ClientSessionOverview({
                         <div
                           className={`flex items-center gap-2 mb-1 ${isCoach ? '' : 'justify-end'}`}
                         >
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-xs font-medium text-ink-2 ">
                             {entry.speaker}
                           </span>
                           {entry.timestamp && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                            <span className="text-xs text-ink-4 ">
                               {formatDate(entry.timestamp, 'h:mm a')}
                             </span>
                           )}
@@ -769,8 +736,8 @@ export function ClientSessionOverview({
                         <div
                           className={`inline-block px-4 py-2 rounded-2xl text-sm ${
                             isCoach
-                              ? 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-tl-sm'
-                              : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-tr-sm'
+                              ? 'bg-surface-3 text-ink-2 rounded-tl-sm'
+                              : 'bg-ink text-ink-on-dark rounded-tr-sm'
                           }`}
                         >
                           {entry.text}
@@ -789,13 +756,13 @@ export function ClientSessionOverview({
                     <div
                       className={`h-6 w-6 rounded-full flex items-center justify-center flex-shrink-0 text-xs ${
                         entry.speaker?.toLowerCase().includes('coach')
-                          ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                          : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400'
+                          ? 'bg-ink text-ink-on-dark '
+                          : 'bg-surface-3 text-ink-3 '
                       }`}
                     >
                       {entry.speaker?.charAt(0).toUpperCase()}
                     </div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate flex-1">
+                    <p className="text-sm text-ink-3 truncate flex-1">
                       {entry.text}
                     </p>
                   </div>
@@ -803,7 +770,7 @@ export function ClientSessionOverview({
               </div>
               <button
                 onClick={() => toggleSection('transcript')}
-                className="mt-3 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 font-medium flex items-center gap-1"
+                className="mt-3 text-sm text-ink-3 hover:text-ink-2 font-medium flex items-center gap-1"
               >
                 View full transcript
                 <ChevronRight className="h-4 w-4" />

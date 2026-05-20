@@ -28,7 +28,6 @@ export default function SharedSessionsPage() {
             title="Shared with me"
             description="Coaching sessions other coaches have shared with you for review."
             icon={Users}
-            iconVariant="gradient"
           />
 
           <div className="mt-6">

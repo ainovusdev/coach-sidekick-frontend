@@ -46,15 +46,15 @@ export function SprintsTab({
 
         {/* Right: Commitments */}
         <div>
-          <Card className="border-gray-200 shadow-sm">
+          <Card className="border-line shadow-sm">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="flex items-center gap-2">
                     <Activity className="h-5 w-5" />
-                    <h3 className="font-semibold text-gray-900">Commitments</h3>
+                    <h3 className="font-semibold text-ink">Commitments</h3>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-ink-3 mt-1">
                     {selectedTargetId
                       ? 'Filtered by selected outcome'
                       : 'All active commitments'}

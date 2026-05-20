@@ -81,27 +81,27 @@ function SprintAccordionItem({
   const getStatusBadge = () => {
     if (isUpcoming) {
       return (
-        <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+        <Badge variant="secondary" className="bg-ds-accent-bg text-ds-accent">
           Upcoming
         </Badge>
       )
     }
     if (isEnded) {
       return (
-        <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+        <Badge variant="secondary" className="bg-surface-3 text-ink-2">
           Ended
         </Badge>
       )
     }
     return (
-      <Badge variant="default" className="bg-green-100 text-green-700">
+      <Badge variant="default" className="bg-forest-bg text-forest">
         Active
       </Badge>
     )
   }
 
   return (
-    <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+    <Card className="border-line shadow-sm hover:shadow-md transition-shadow">
       {/* Sprint Header - Always Visible */}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-4">
@@ -111,9 +111,9 @@ function SprintAccordionItem({
           >
             <div className="flex-shrink-0 mt-1">
               {isExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
+                <ChevronDown className="h-5 w-5 text-ink-3" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
+                <ChevronRight className="h-5 w-5 text-ink-3" />
               )}
             </div>
 
@@ -129,7 +129,7 @@ function SprintAccordionItem({
                 {sprint.goal && (
                   <Badge
                     variant="outline"
-                    className="bg-gray-50 border-gray-200 text-gray-700 text-xs"
+                    className="bg-paper border-line text-ink-2 text-xs"
                   >
                     <Target className="h-3 w-3 mr-1" />
                     {sprint.goal.title}
@@ -138,7 +138,7 @@ function SprintAccordionItem({
               </div>
 
               {/* Date Range */}
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              <div className="flex items-center gap-2 text-sm text-ink-3 mb-2">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>
                   {formatDate(sprint.start_date, 'MMM d')} -{' '}
@@ -161,9 +161,9 @@ function SprintAccordionItem({
 
               {/* Quick Stats (Collapsed View) */}
               {!isExpanded && (
-                <div className="flex items-center gap-4 text-xs text-gray-600">
+                <div className="flex items-center gap-4 text-xs text-ink-3">
                   <div className="flex items-center gap-1">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-forest" />
                     <span>
                       {completedCommitments}/{totalCommitments} Done
                     </span>
@@ -191,7 +191,7 @@ function SprintAccordionItem({
                   e.stopPropagation()
                   onEndSprint(sprint)
                 }}
-                className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                className="border-amber-token text-amber-token hover:bg-amber-token-bg"
               >
                 End Sprint
               </Button>
@@ -205,16 +205,16 @@ function SprintAccordionItem({
         <CardContent className="pt-0 space-y-4">
           {/* Progress Bar */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs text-gray-600">
+            <div className="flex items-center justify-between text-xs text-ink-3">
               <span>Commitment Progress</span>
               <span className="font-semibold">
                 {completedCommitments}/{totalCommitments} ({progressPercentage}
                 %)
               </span>
             </div>
-            <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-3 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500"
+                className="h-full  rounded-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -222,7 +222,7 @@ function SprintAccordionItem({
 
           {/* Description */}
           {sprint.description && (
-            <p className="text-sm text-gray-600 bg-gray-50 rounded-lg p-3">
+            <p className="text-sm text-ink-3 bg-paper rounded-lg p-3">
               {sprint.description}
             </p>
           )}
@@ -332,16 +332,16 @@ export function SprintKanbanSection({
   // No active sprints
   if (sprintsArray.length === 0) {
     return (
-      <Card className="border-gray-200">
+      <Card className="border-line">
         <CardContent className="p-12 text-center">
           <div className="max-w-md mx-auto">
             <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <Target className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-ink mb-2">
               No Active Sprints
             </h3>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-sm text-ink-3 mb-6">
               Create a sprint to organize commitments and track progress over a
               6-8 week period. You can run multiple sprints concurrently.
             </p>
@@ -368,10 +368,10 @@ export function SprintKanbanSection({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">
+          <h3 className="text-lg font-semibold text-ink">
             Active Sprints ({sprintsArray.length})
           </h3>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-ink-3">
             Organize commitments into time-boxed sprints
           </p>
         </div>

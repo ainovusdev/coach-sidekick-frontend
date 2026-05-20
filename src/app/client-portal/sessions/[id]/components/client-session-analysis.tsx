@@ -24,12 +24,12 @@ export function ClientSessionAnalysis({
   const insights = sessionData.insights
   if (!insights) {
     return (
-      <div className="text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-        <Brain className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+      <div className="text-center py-16 bg-paper rounded-xl border border-line ">
+        <Brain className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-ink mb-2">
           No Analysis Available
         </h3>
-        <p className="text-sm text-gray-500 dark:text-gray-400">
+        <p className="text-sm text-ink-3 ">
           Analysis will appear here once your session has been processed.
         </p>
       </div>
@@ -52,12 +52,10 @@ export function ClientSessionAnalysis({
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Sentiment Gauge */}
           {hasSentiment && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Session Pulse
-                </h3>
+            <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-ink-3 " />
+                <h3 className="font-semibold text-ink ">Session Pulse</h3>
               </div>
               <div className="p-5">
                 <SentimentGauge sentiment={insights.sentiment} />
@@ -67,12 +65,10 @@ export function ClientSessionAnalysis({
 
           {/* Word Cloud */}
           {hasTopics && (
-            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-              <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <Brain className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Topics & Keywords
-                </h3>
+            <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+              <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+                <Brain className="h-4 w-4 text-ink-3 " />
+                <h3 className="font-semibold text-ink ">Topics & Keywords</h3>
               </div>
               <div className="p-5">
                 <WordCloud
@@ -90,38 +86,32 @@ export function ClientSessionAnalysis({
 
       {/* Engagement & Emotions Badges */}
       {hasSentiment && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Session Metrics
-            </h3>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-ink-3 " />
+            <h3 className="font-semibold text-ink ">Session Metrics</h3>
           </div>
           <div className="p-5">
             <div className="flex flex-wrap gap-3">
               {insights.sentiment.engagement && (
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <TrendingUp className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Engagement
-                  </span>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-paper rounded-lg">
+                  <TrendingUp className="h-4 w-4 text-ink-3" />
+                  <span className="text-sm text-ink-3 ">Engagement</span>
                   <Badge
                     variant="secondary"
-                    className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize"
+                    className="bg-surface-1 text-ink-2 capitalize"
                   >
                     {insights.sentiment.engagement}
                   </Badge>
                 </div>
               )}
               {insights.sentiment.overall && (
-                <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                  <Target className="h-4 w-4 text-gray-500" />
-                  <span className="text-sm text-gray-600 dark:text-gray-400">
-                    Overall Sentiment
-                  </span>
+                <div className="flex items-center gap-2 px-4 py-2.5 bg-paper rounded-lg">
+                  <Target className="h-4 w-4 text-ink-3" />
+                  <span className="text-sm text-ink-3 ">Overall Sentiment</span>
                   <Badge
                     variant="secondary"
-                    className="bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 capitalize"
+                    className="bg-surface-1 text-ink-2 capitalize"
                   >
                     {insights.sentiment.overall}
                   </Badge>
@@ -129,10 +119,8 @@ export function ClientSessionAnalysis({
               )}
               {insights.sentiment.emotions &&
                 insights.sentiment.emotions.length > 0 && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      Emotions
-                    </span>
+                  <div className="flex items-center gap-2 px-4 py-2.5 bg-paper rounded-lg">
+                    <span className="text-sm text-ink-3 ">Emotions</span>
                     <div className="flex gap-1.5">
                       {insights.sentiment.emotions
                         .slice(0, 4)
@@ -155,15 +143,13 @@ export function ClientSessionAnalysis({
 
       {/* Full Insights List */}
       {hasInsights && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <Lightbulb className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              All Insights
-            </h3>
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 text-ink-3 " />
+            <h3 className="font-semibold text-ink ">All Insights</h3>
             <Badge
               variant="secondary"
-              className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs ml-auto"
+              className="bg-surface-3 text-ink-3 text-xs ml-auto"
             >
               {insights.insights!.length}
             </Badge>
@@ -171,19 +157,14 @@ export function ClientSessionAnalysis({
           <div className="p-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {insights.insights!.map((insight, index) => (
-                <div
-                  key={index}
-                  className="relative p-4 bg-gray-50 dark:bg-gray-800 rounded-lg"
-                >
+                <div key={index} className="relative p-4 bg-paper rounded-lg">
                   <div className="absolute top-3 right-3">
-                    <span className="text-2xl font-bold text-gray-200 dark:text-gray-700">
+                    <span className="text-2xl font-bold text-ink-2 ">
                       {String(index + 1).padStart(2, '0')}
                     </span>
                   </div>
-                  <Zap className="h-4 w-4 text-gray-500 dark:text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-700 dark:text-gray-300 pr-8">
-                    {insight}
-                  </p>
+                  <Zap className="h-4 w-4 text-ink-3 mb-2" />
+                  <p className="text-sm text-ink-2 pr-8">{insight}</p>
                 </div>
               ))}
             </div>
@@ -193,10 +174,10 @@ export function ClientSessionAnalysis({
 
       {/* Suggestions & Next Steps */}
       {(suggestions.length > 0 || nextSessionFocus.length > 0) && (
-        <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-          <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2">
-            <ArrowUpRight className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
+        <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
+          <div className="px-5 py-4 border-b border-line flex items-center gap-2">
+            <ArrowUpRight className="h-4 w-4 text-ink-3 " />
+            <h3 className="font-semibold text-ink ">
               Next Steps & Recommendations
             </h3>
           </div>
@@ -204,7 +185,7 @@ export function ClientSessionAnalysis({
             {/* Next session focus tags */}
             {nextSessionFocus.length > 0 && (
               <div>
-                <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2 block">
+                <span className="text-xs font-medium text-ink-3 uppercase tracking-wide mb-2 block">
                   Focus Areas for Next Session
                 </span>
                 <div className="flex flex-wrap gap-2">
@@ -212,7 +193,7 @@ export function ClientSessionAnalysis({
                     <Badge
                       key={idx}
                       variant="secondary"
-                      className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300"
+                      className="bg-surface-3 text-ink-2 "
                     >
                       {focus}
                     </Badge>
@@ -226,12 +207,12 @@ export function ClientSessionAnalysis({
                 {suggestions.map((suggestion: any, index: number) => (
                   <div
                     key={index}
-                    className="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                    className="flex items-start gap-3 p-3 bg-paper rounded-lg"
                   >
-                    <div className="h-5 w-5 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
+                    <div className="h-5 w-5 rounded-full bg-ink text-ink-on-dark flex items-center justify-center text-xs font-medium flex-shrink-0 mt-0.5">
                       {index + 1}
                     </div>
-                    <span className="text-sm text-gray-700 dark:text-gray-300">
+                    <span className="text-sm text-ink-2 ">
                       {typeof suggestion === 'string'
                         ? suggestion
                         : suggestion.text ||

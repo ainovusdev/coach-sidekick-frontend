@@ -32,13 +32,13 @@ interface ClientGroup {
 function getStatusColor(status: string) {
   switch (status) {
     case 'completed':
-      return 'bg-green-50 text-green-700 border-green-200'
+      return 'bg-forest-bg text-forest border-forest'
     case 'in_progress':
-      return 'bg-blue-50 text-blue-700 border-blue-200'
+      return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
     case 'draft':
-      return 'bg-amber-50 text-amber-700 border-amber-200'
+      return 'bg-amber-token-bg text-amber-token border-amber-token'
     default:
-      return 'bg-gray-50 text-gray-700 border-gray-200'
+      return 'bg-paper text-ink-2 border-line'
   }
 }
 

@@ -71,7 +71,7 @@ export function AIProviderSelector({
     return (
       <div className={className}>
         <Select value={value} onValueChange={v => onChange(v as AIProvider)}>
-          <SelectTrigger className="w-full bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+          <SelectTrigger className="w-full bg-surface-1 border-line ">
             <SelectValue>
               {(() => {
                 const provider = providers.find(p => p.id === value)
@@ -105,7 +105,7 @@ export function AIProviderSelector({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-ink-3 mt-0.5">
                       {provider.description}
                     </p>
                   </div>
@@ -138,12 +138,12 @@ export function AIProviderSelector({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger>
-                        <Info className="h-3 w-3 text-gray-400" />
+                        <Info className="h-3 w-3 text-ink-4" />
                       </TooltipTrigger>
                       <TooltipContent>
                         <p className="text-xs">{provider.description}</p>
                         {provider.models && (
-                          <p className="text-xs text-gray-400 mt-1">
+                          <p className="text-xs text-ink-4 mt-1">
                             Models: {provider.models.join(', ')}
                           </p>
                         )}
@@ -151,7 +151,7 @@ export function AIProviderSelector({
                     </Tooltip>
                   </TooltipProvider>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-ink-3 mt-1">
                   {provider.description}
                 </p>
               </Label>

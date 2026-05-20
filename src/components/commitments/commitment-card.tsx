@@ -50,23 +50,23 @@ const statusConfig: Record<
 > = {
   draft: {
     label: 'Draft',
-    className: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+    className: 'bg-ink-4/10 text-ink-3 border-line-strong/20',
   },
   active: {
     label: 'Active',
-    className: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    className: 'bg-ds-accent/10 text-ds-accent border-ds-accent/20',
   },
   in_progress: {
     label: 'In Progress',
-    className: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+    className: 'bg-amber-token/10 text-amber-token border-amber-token/20',
   },
   completed: {
     label: 'Completed',
-    className: 'bg-green-500/10 text-green-500 border-green-500/20',
+    className: 'bg-forest/10 text-forest border-forest/20',
   },
   abandoned: {
     label: 'Abandoned',
-    className: 'bg-red-500/10 text-red-500 border-red-500/20',
+    className: 'bg-vermillion/10 text-vermillion border-vermillion/20',
   },
 }
 
@@ -76,19 +76,19 @@ const priorityConfig: Record<
 > = {
   low: {
     label: 'Low',
-    className: 'bg-gray-500/10 text-gray-600 border-gray-500/20',
+    className: 'bg-ink-4/10 text-ink-3 border-line-strong/20',
   },
   medium: {
     label: 'Medium',
-    className: 'bg-yellow-500/10 text-yellow-600 border-yellow-500/20',
+    className: 'bg-amber-token/10 text-amber-token border-amber-token/20',
   },
   high: {
     label: 'High',
-    className: 'bg-orange-500/10 text-orange-600 border-orange-500/20',
+    className: 'bg-amber-token/10 text-amber-token border-amber-token/20',
   },
   urgent: {
     label: 'Urgent',
-    className: 'bg-red-500/10 text-red-600 border-red-500/20',
+    className: 'bg-vermillion/10 text-vermillion border-vermillion/20',
   },
 }
 
@@ -121,13 +121,13 @@ export function CommitmentCard({
     if (isOverdue) {
       return {
         text: `Overdue by ${Math.abs(daysUntil)} days`,
-        className: 'text-red-600',
+        className: 'text-vermillion',
         icon: AlertCircle,
       }
     } else if (daysUntil <= 7) {
       return {
         text: `Due in ${daysUntil} days`,
-        className: 'text-orange-600',
+        className: 'text-amber-token',
         icon: Clock,
       }
     } else {
@@ -186,10 +186,7 @@ export function CommitmentCard({
               </Badge>
               <Badge variant="outline">{typeLabels[commitment.type]}</Badge>
               {commitment.extracted_from_transcript && (
-                <Badge
-                  variant="outline"
-                  className="bg-gray-500/10 text-gray-600"
-                >
+                <Badge variant="outline" className="bg-ink-4/10 text-ink-3">
                   AI Extracted
                 </Badge>
               )}

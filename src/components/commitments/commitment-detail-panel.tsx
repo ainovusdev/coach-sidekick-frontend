@@ -244,7 +244,7 @@ export function CommitmentDetailPanel({
       {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/50 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[60] bg-overlay animate-in fade-in duration-200"
           onClick={onClose}
         />
       )}
@@ -253,7 +253,7 @@ export function CommitmentDetailPanel({
       <div
         ref={panelRef}
         className={cn(
-          'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl',
+          'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-surface-1 border-l border-line shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
@@ -322,7 +322,7 @@ export function CommitmentDetailPanel({
               </div>
             </ScrollArea>
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
+            <div className="flex items-center justify-center h-full text-ink-3">
               Commitment not found
             </div>
           )}
@@ -343,7 +343,7 @@ export function CommitmentDetailPanel({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               Delete
             </AlertDialogAction>
@@ -410,7 +410,7 @@ function PanelHeader({
           />
         ) : (
           <h2
-            className="text-xl font-bold text-gray-900 dark:text-white cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded px-2 py-1 -mx-2 truncate"
+            className="text-xl font-bold text-ink cursor-pointer hover:bg-surface-3 rounded px-2 py-1 -mx-2 truncate"
             onClick={() => setIsEditingTitle(true)}
           >
             {commitment.title}
@@ -427,7 +427,7 @@ function PanelHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onDelete} className="text-red-600">
+            <DropdownMenuItem onClick={onDelete} className="text-vermillion">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
             </DropdownMenuItem>
@@ -458,11 +458,10 @@ function FieldsGrid({
   const [calendarOpen, setCalendarOpen] = useState(false)
 
   const _priorityColors: Record<string, string> = {
-    urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-    high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-    medium:
-      'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-    low: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+    urgent: 'bg-vermillion-bg text-vermillion ',
+    high: 'bg-amber-token-bg text-amber-token ',
+    medium: 'bg-amber-token-bg text-amber-token ',
+    low: 'bg-surface-3 text-ink-2 ',
   }
 
   const statusOptions: {
@@ -474,37 +473,32 @@ function FieldsGrid({
     {
       value: 'active',
       label: 'Active',
-      selected:
-        'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/50 dark:text-blue-300 dark:border-blue-800',
+      selected: 'bg-ds-accent-bg text-ds-accent border-ds-accent ',
       unselected:
-        'bg-transparent text-gray-500 border-gray-200 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-blue-900/30 dark:hover:text-blue-300',
+        'bg-transparent text-ink-3 border-line hover:bg-ds-accent-bg hover:text-ds-accent hover:border-ds-accent ',
     },
     {
       value: 'completed',
       label: 'Completed',
-      selected:
-        'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/50 dark:text-green-300 dark:border-green-800',
+      selected: 'bg-forest-bg text-forest border-forest ',
       unselected:
-        'bg-transparent text-gray-500 border-gray-200 hover:bg-green-50 hover:text-green-700 hover:border-green-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-green-900/30 dark:hover:text-green-300',
+        'bg-transparent text-ink-3 border-line hover:bg-forest-bg hover:text-forest hover:border-forest ',
     },
     {
       value: 'abandoned',
       label: 'Abandoned',
-      selected:
-        'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/50 dark:text-red-300 dark:border-red-800',
+      selected: 'bg-vermillion-bg text-vermillion border-vermillion ',
       unselected:
-        'bg-transparent text-gray-500 border-gray-200 hover:bg-red-50 hover:text-red-700 hover:border-red-200 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-red-900/30 dark:hover:text-red-300',
+        'bg-transparent text-ink-3 border-line hover:bg-vermillion-bg hover:text-vermillion hover:border-vermillion ',
     },
   ]
 
   return (
-    <div className="p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg space-y-4">
+    <div className="p-4 bg-paper rounded-lg space-y-4">
       <div className="grid grid-cols-2 gap-4">
         {/* Priority */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Priority
-          </label>
+          <label className="text-xs font-medium text-ink-3 ">Priority</label>
           <Select
             value={commitment.priority}
             onValueChange={value => onFieldUpdate('priority', value)}
@@ -515,14 +509,14 @@ function FieldsGrid({
             <SelectContent>
               <SelectItem value="low">
                 <div className="flex items-center gap-2">
-                  <div className={cn('w-2 h-2 rounded-full', 'bg-gray-400')} />
+                  <div className={cn('w-2 h-2 rounded-full', 'bg-line')} />
                   Low
                 </div>
               </SelectItem>
               <SelectItem value="medium">
                 <div className="flex items-center gap-2">
                   <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-yellow-400')}
+                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
                   />
                   Medium
                 </div>
@@ -530,14 +524,16 @@ function FieldsGrid({
               <SelectItem value="high">
                 <div className="flex items-center gap-2">
                   <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-orange-400')}
+                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
                   />
                   High
                 </div>
               </SelectItem>
               <SelectItem value="urgent">
                 <div className="flex items-center gap-2">
-                  <div className={cn('w-2 h-2 rounded-full', 'bg-red-500')} />
+                  <div
+                    className={cn('w-2 h-2 rounded-full', 'bg-vermillion')}
+                  />
                   Urgent
                 </div>
               </SelectItem>
@@ -547,16 +543,14 @@ function FieldsGrid({
 
         {/* Due Date */}
         <div className="space-y-1">
-          <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-            Due Date
-          </label>
+          <label className="text-xs font-medium text-ink-3 ">Due Date</label>
           <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
                 className={cn(
                   'h-9 w-full justify-start text-left text-sm font-normal',
-                  !commitment.target_date && 'text-gray-500',
+                  !commitment.target_date && 'text-ink-3',
                 )}
               >
                 <CalendarIcon className="h-3.5 w-3.5 mr-2" />
@@ -588,9 +582,7 @@ function FieldsGrid({
 
       {/* Status */}
       <div className="space-y-1">
-        <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
-          Status
-        </label>
+        <label className="text-xs font-medium text-ink-3 ">Status</label>
         <div className="flex flex-wrap gap-1.5">
           {statusOptions.map(opt => {
             const isSelected = commitment.status === opt.value
@@ -768,8 +760,8 @@ function LinkedOutcomesSection({
       {/* Outcomes as tags */}
       {allTargets.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            <Zap className="h-3.5 w-3.5 text-blue-500" />
+          <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
+            <Zap className="h-3.5 w-3.5 text-ds-accent" />
             Meta Performance Outcomes
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -782,8 +774,8 @@ function LinkedOutcomesSection({
                   className={cn(
                     'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
                     isLinked
-                      ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400',
+                      ? 'bg-ds-accent-bg text-ds-accent border-ds-accent '
+                      : 'bg-surface-1 text-ink-3 border-line hover:border-ds-accent hover:text-ds-accent ',
                   )}
                 >
                   {isLinked && (
@@ -812,8 +804,8 @@ function LinkedOutcomesSection({
       {/* Sprints as tags */}
       {allSprints.length > 0 && (
         <div className="space-y-2">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            <CalendarIcon className="h-3.5 w-3.5 text-green-500" />
+          <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
+            <CalendarIcon className="h-3.5 w-3.5 text-forest" />
             Sprints
           </label>
           <div className="flex flex-wrap gap-1.5">
@@ -826,8 +818,8 @@ function LinkedOutcomesSection({
                   className={cn(
                     'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
                     isLinked
-                      ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 hover:text-green-600 dark:hover:text-green-400',
+                      ? 'bg-forest-bg text-forest border-forest '
+                      : 'bg-surface-1 text-ink-3 border-line hover:border-forest hover:text-forest ',
                   )}
                 >
                   {isLinked && (
@@ -846,7 +838,7 @@ function LinkedOutcomesSection({
                     </svg>
                   )}
                   {sprint.status === 'active' && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-forest" />
                   )}
                   {sprint.title}
                 </button>
@@ -887,9 +879,7 @@ function DescriptionSection({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Description
-      </label>
+      <label className="text-sm font-medium text-ink-2 ">Description</label>
       {isEditing ? (
         <div className="space-y-2">
           <RichTextEditor
@@ -909,18 +899,16 @@ function DescriptionSection({
         </div>
       ) : (
         <div
-          className="min-h-[40px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          className="min-h-[40px] p-3 rounded-lg border border-line cursor-pointer hover:bg-paper transition-colors"
           onClick={() => setIsEditing(true)}
         >
           {commitment.description ? (
             <div
-              className="prose prose-sm dark:prose-invert max-w-none text-gray-700 dark:text-gray-300"
+              className="prose prose-sm dark:prose-invert max-w-none text-ink-2 "
               dangerouslySetInnerHTML={{ __html: commitment.description }}
             />
           ) : (
-            <p className="text-sm text-gray-400 dark:text-gray-500 italic">
-              Add a description...
-            </p>
+            <p className="text-sm text-ink-4 italic">Add a description...</p>
           )}
         </div>
       )}
@@ -1030,13 +1018,11 @@ function AttachmentsSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+        <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
           <Paperclip className="h-3.5 w-3.5" />
           Attachments
           {attachments.length > 0 && (
-            <span className="text-xs text-gray-400">
-              ({attachments.length})
-            </span>
+            <span className="text-xs text-ink-4">({attachments.length})</span>
           )}
         </label>
         <Button
@@ -1069,29 +1055,25 @@ function AttachmentsSection({
         onDragLeave={handleDragLeave}
         className={cn(
           'border-2 border-dashed rounded-lg p-3 transition-colors text-center',
-          isDragging
-            ? 'border-blue-400 bg-blue-50 dark:bg-blue-900/20'
-            : 'border-gray-200 dark:border-gray-700',
+          isDragging ? 'border-ds-accent bg-ds-accent-bg ' : 'border-line ',
           attachments.length === 0 && !uploadProgress ? 'py-6' : 'py-2',
         )}
       >
         {uploadProgress !== null ? (
           <div className="space-y-2 px-2">
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-sm text-ink-3 ">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
               Uploading... {uploadProgress}%
             </div>
             <Progress value={uploadProgress} className="h-1.5" />
           </div>
         ) : attachments.length === 0 ? (
-          <div className="text-sm text-gray-400 dark:text-gray-500">
+          <div className="text-sm text-ink-4 ">
             <p>Drop files here or click &ldquo;Attach file&rdquo;</p>
             <p className="text-xs mt-1">Max 25MB per file</p>
           </div>
         ) : (
-          <p className="text-xs text-gray-400 dark:text-gray-500">
-            Drop files to attach
-          </p>
+          <p className="text-xs text-ink-4 ">Drop files to attach</p>
         )}
       </div>
 
@@ -1105,15 +1087,15 @@ function AttachmentsSection({
             return (
               <div
                 key={attachment.id}
-                className="flex items-center gap-2 group py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800"
+                className="flex items-center gap-2 group py-1.5 px-2 rounded hover:bg-paper "
               >
                 {isUploading ? (
-                  <Loader2 className="h-4 w-4 text-gray-400 animate-spin flex-shrink-0" />
+                  <Loader2 className="h-4 w-4 text-ink-4 animate-spin flex-shrink-0" />
                 ) : (
-                  <Icon className="h-4 w-4 text-gray-400 flex-shrink-0" />
+                  <Icon className="h-4 w-4 text-ink-4 flex-shrink-0" />
                 )}
                 <button
-                  className="text-sm text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 truncate flex-1 text-left"
+                  className="text-sm text-ink-2 hover:text-ds-accent truncate flex-1 text-left"
                   onClick={() =>
                     !isUploading && handleOpenAttachment(attachment)
                   }
@@ -1121,7 +1103,7 @@ function AttachmentsSection({
                 >
                   {attachment.filename}
                 </button>
-                <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0">
+                <span className="text-xs text-ink-4 flex-shrink-0">
                   {formatFileSize(attachment.file_size)}
                 </span>
                 {!isUploading && (
@@ -1162,7 +1144,7 @@ function AttachmentsSection({
                   setDeleteConfirmId(null)
                 }
               }}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               Delete
             </AlertDialogAction>
@@ -1214,11 +1196,9 @@ function MilestonesSection({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Subtasks
-        </label>
+        <label className="text-sm font-medium text-ink-2 ">Subtasks</label>
         {milestones.length > 0 && (
-          <span className="text-xs text-gray-500 dark:text-gray-400">
+          <span className="text-xs text-ink-3 ">
             {completedCount}/{milestones.length}
           </span>
         )}
@@ -1244,7 +1224,7 @@ function MilestonesSection({
 
       {/* Add milestone input */}
       <div className="flex items-center gap-2">
-        <Plus className="h-4 w-4 text-gray-400 flex-shrink-0" />
+        <Plus className="h-4 w-4 text-ink-4 flex-shrink-0" />
         <Input
           value={newMilestoneTitle}
           onChange={e => setNewMilestoneTitle(e.target.value)}
@@ -1295,7 +1275,7 @@ function MilestoneItem({
   const isCompleted = milestone.status === 'completed'
 
   return (
-    <div className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800">
+    <div className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-paper ">
       <Checkbox
         checked={isCompleted}
         onCheckedChange={onToggle}
@@ -1320,7 +1300,7 @@ function MilestoneItem({
         <span
           className={cn(
             'text-sm flex-1 cursor-pointer',
-            isCompleted && 'line-through text-gray-400 dark:text-gray-500',
+            isCompleted && 'line-through text-ink-4 ',
           )}
           onClick={() => setIsEditing(true)}
         >
@@ -1328,7 +1308,7 @@ function MilestoneItem({
         </span>
       )}
       {milestone.target_date && (
-        <span className="text-xs text-gray-400 dark:text-gray-500">
+        <span className="text-xs text-ink-4 ">
           {formatDate(milestone.target_date, 'MMM d')}
         </span>
       )}
@@ -1401,9 +1381,7 @@ function ActivitySection({
 
   return (
     <div className="space-y-3">
-      <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Comments
-      </label>
+      <label className="text-sm font-medium text-ink-2 ">Comments</label>
 
       {/* Always-visible comment input */}
       <div className="space-y-2">
@@ -1421,7 +1399,7 @@ function ActivitySection({
         <div className="flex items-center justify-between">
           <button
             type="button"
-            className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 flex items-center gap-1"
+            className="text-xs text-ink-3 hover:text-ink-2 flex items-center gap-1"
             onClick={() => setShowExtras(!showExtras)}
           >
             {showExtras ? (
@@ -1432,7 +1410,7 @@ function ActivitySection({
             Wins & Blockers
           </button>
           <div className="flex items-center gap-2">
-            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+            <span className="text-[10px] text-ink-4 ">
               {navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
             </span>
             <Button
@@ -1449,7 +1427,7 @@ function ActivitySection({
         {showExtras && (
           <div className="space-y-2">
             <div>
-              <label className="text-xs text-green-600 font-medium">Wins</label>
+              <label className="text-xs text-forest font-medium">Wins</label>
               <Textarea
                 value={wins}
                 onChange={e => setWins(e.target.value)}
@@ -1459,7 +1437,7 @@ function ActivitySection({
               />
             </div>
             <div>
-              <label className="text-xs text-red-600 font-medium">
+              <label className="text-xs text-vermillion font-medium">
                 Blockers
               </label>
               <Textarea
@@ -1480,46 +1458,38 @@ function ActivitySection({
           {updates.map(update => (
             <div
               key={update.id}
-              className="pl-3 border-l-2 border-gray-200 dark:border-gray-700 space-y-1.5"
+              className="pl-3 border-l-2 border-line space-y-1.5"
             >
               {/* Timestamp */}
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-ink-4 ">
                 {formatRelativeTime(update.created_at)}
               </span>
 
               {/* Note */}
               {update.note && (
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {update.note}
-                </p>
+                <p className="text-sm text-ink-2 ">{update.note}</p>
               )}
 
               {/* Wins */}
               {update.wins && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-green-50 dark:bg-green-900/20 rounded text-sm">
-                  <Trophy className="h-3.5 w-3.5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-green-800 dark:text-green-300">
-                    {update.wins}
-                  </span>
+                <div className="flex items-start gap-2 px-2 py-1.5 bg-forest-bg rounded text-sm">
+                  <Trophy className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
+                  <span className="text-forest ">{update.wins}</span>
                 </div>
               )}
 
               {/* Blockers */}
               {update.blockers && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-red-50 dark:bg-red-900/20 rounded text-sm">
-                  <AlertTriangle className="h-3.5 w-3.5 text-red-600 mt-0.5 flex-shrink-0" />
-                  <span className="text-red-800 dark:text-red-300">
-                    {update.blockers}
-                  </span>
+                <div className="flex items-start gap-2 px-2 py-1.5 bg-vermillion-bg rounded text-sm">
+                  <AlertTriangle className="h-3.5 w-3.5 text-vermillion mt-0.5 flex-shrink-0" />
+                  <span className="text-vermillion ">{update.blockers}</span>
                 </div>
               )}
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-2">
-          No comments yet
-        </p>
+        <p className="text-sm text-ink-4 text-center py-2">No comments yet</p>
       )}
     </div>
   )
@@ -1529,17 +1499,17 @@ function ActivitySection({
 
 function MetadataFooter({ commitment }: { commitment: Commitment }) {
   return (
-    <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-1">
-      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+    <div className="pt-4 border-t border-line space-y-1">
+      <div className="flex items-center gap-2 text-xs text-ink-4 ">
         <Clock className="h-3 w-3" />
         Created {formatDate(commitment.created_at, 'MMM d, yyyy')}
       </div>
-      <div className="flex items-center gap-2 text-xs text-gray-400 dark:text-gray-500">
+      <div className="flex items-center gap-2 text-xs text-ink-4 ">
         <Clock className="h-3 w-3" />
         Updated {formatRelativeTime(commitment.updated_at)}
       </div>
       {commitment.extracted_from_transcript && (
-        <div className="flex items-center gap-2 text-xs text-purple-500 dark:text-purple-400">
+        <div className="flex items-center gap-2 text-xs text-indigo ">
           <Sparkles className="h-3 w-3" />
           AI Extracted
           {commitment.extraction_confidence &&

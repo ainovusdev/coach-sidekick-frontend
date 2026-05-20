@@ -38,7 +38,7 @@ export function PreSessionResponses({
           {isCompleted ? (
             <Badge
               variant="secondary"
-              className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs"
+              className="bg-forest-bg text-forest border-forest text-xs"
             >
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Completed
@@ -48,7 +48,7 @@ export function PreSessionResponses({
           ) : (
             <Badge
               variant="secondary"
-              className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 text-xs"
+              className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
             >
               <Clock className="h-3 w-3 mr-1" />
               In Progress

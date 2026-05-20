@@ -97,9 +97,9 @@ export default function ClientSessionsPage() {
 
   const getSentimentColor = (score?: number) => {
     if (score == null) return null
-    if (score >= 7) return 'bg-emerald-500'
-    if (score >= 4) return 'bg-amber-500'
-    return 'bg-gray-400'
+    if (score >= 7) return 'bg-forest'
+    if (score >= 4) return 'bg-amber-token'
+    return 'bg-line'
   }
 
   const getSentimentLabel = (score?: number) => {
@@ -141,9 +141,9 @@ export default function ClientSessionsPage() {
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-stretch border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 overflow-hidden"
+              className="flex items-stretch border border-line rounded-xl bg-surface-1 overflow-hidden"
             >
-              <div className="w-24 md:w-32 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col items-center justify-center border-r border-gray-100 dark:border-gray-800">
+              <div className="w-24 md:w-32 bg-paper p-4 flex flex-col items-center justify-center border-r border-line ">
                 <Skeleton className="h-8 w-10 mb-1" />
                 <Skeleton className="h-3 w-14" />
               </div>
@@ -172,7 +172,7 @@ export default function ClientSessionsPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-red-500 mb-4">
+          <p className="text-vermillion mb-4">
             Error:{' '}
             {error instanceof Error ? error.message : 'Failed to load sessions'}
           </p>
@@ -189,10 +189,8 @@ export default function ClientSessionsPage() {
       {/* Header with Stats */}
       <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Your Sessions
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-3xl font-bold text-ink ">Your Sessions</h1>
+          <p className="text-ink-3 mt-1">
             Review your coaching sessions and track your progress
           </p>
         </div>
@@ -200,34 +198,26 @@ export default function ClientSessionsPage() {
         {/* Stats — from dashboard for accuracy */}
         <div className="flex items-center gap-6 md:gap-8">
           <div className="text-center">
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">
-              {totalSessions}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Sessions</p>
+            <p className="text-2xl font-bold text-ink ">{totalSessions}</p>
+            <p className="text-xs text-ink-3 ">Sessions</p>
           </div>
-          <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
+          <div className="h-8 w-px bg-surface-3 " />
           <div className="text-center">
             <div className="flex items-center justify-center gap-1">
-              <Timer className="h-3.5 w-3.5 text-gray-400" />
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                {avgDuration}
-              </p>
+              <Timer className="h-3.5 w-3.5 text-ink-4" />
+              <p className="text-2xl font-bold text-ink ">{avgDuration}</p>
             </div>
-            <p className="text-xs text-gray-500 dark:text-gray-400">Avg Min</p>
+            <p className="text-xs text-ink-3 ">Avg Min</p>
           </div>
           {streakDays > 0 && (
             <>
-              <div className="h-8 w-px bg-gray-200 dark:bg-gray-700" />
+              <div className="h-8 w-px bg-surface-3 " />
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1">
-                  <Flame className="h-3.5 w-3.5 text-orange-500" />
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {streakDays}
-                  </p>
+                  <Flame className="h-3.5 w-3.5 text-amber-token" />
+                  <p className="text-2xl font-bold text-ink ">{streakDays}</p>
                 </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Week Streak
-                </p>
+                <p className="text-xs text-ink-3 ">Week Streak</p>
               </div>
             </>
           )}
@@ -237,18 +227,18 @@ export default function ClientSessionsPage() {
       {/* Search & Sort Bar */}
       <div className="flex items-center gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4 " />
           <Input
             type="text"
             placeholder="Search by date, topic, or summary..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+            className="pl-10 h-11 bg-surface-1 border-line text-ink placeholder:text-ink-4 "
           />
         </div>
         <Select value={sortBy} onValueChange={v => setSortBy(v as SortOption)}>
-          <SelectTrigger className="w-[160px] h-11 bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-            <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-gray-400" />
+          <SelectTrigger className="w-[160px] h-11 bg-surface-1 border-line ">
+            <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-ink-4" />
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -261,24 +251,20 @@ export default function ClientSessionsPage() {
 
       {/* Sessions List */}
       {sortedSessions.length === 0 ? (
-        <Card className="border-gray-200 dark:border-gray-700">
+        <Card className="border-line ">
           <CardContent className="py-16 text-center">
-            <MessageSquare className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <MessageSquare className="h-12 w-12 text-ink-2 mx-auto mb-4" />
             {searchTerm ? (
               <>
-                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                  No sessions found
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="font-medium text-ink mb-2">No sessions found</h3>
+                <p className="text-sm text-ink-3 ">
                   No sessions matching &quot;{searchTerm}&quot;
                 </p>
               </>
             ) : (
               <>
-                <h3 className="font-medium text-gray-900 dark:text-white mb-2">
-                  No sessions yet
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <h3 className="font-medium text-ink mb-2">No sessions yet</h3>
+                <p className="text-sm text-ink-3 ">
                   Your coaching sessions will appear here after your first call.
                 </p>
               </>
@@ -299,16 +285,16 @@ export default function ClientSessionsPage() {
                   className="block group"
                 >
                   <div
-                    className={`flex items-stretch rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all overflow-hidden ${getStatusBorder(session)}`}
+                    className={`flex items-stretch rounded-xl bg-surface-1 border border-line hover:border-line-strong hover:shadow-sm transition-all overflow-hidden ${getStatusBorder(session)}`}
                   >
                     {/* Date Column */}
-                    <div className="w-24 md:w-32 flex-shrink-0 bg-gray-50 dark:bg-gray-800 p-4 flex flex-col items-center justify-center border-r border-gray-100 dark:border-gray-800">
-                      <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                    <div className="w-24 md:w-32 flex-shrink-0 bg-paper p-4 flex flex-col items-center justify-center border-r border-line ">
+                      <span className="text-2xl font-bold text-ink ">
                         {session.session_date
                           ? formatDate(session.session_date, 'd')
                           : '-'}
                       </span>
-                      <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                      <span className="text-xs text-ink-3 uppercase tracking-wide">
                         {session.session_date
                           ? formatDate(session.session_date, 'MMM yyyy')
                           : ''}
@@ -320,12 +306,12 @@ export default function ClientSessionsPage() {
                       {/* Top Row */}
                       <div className="flex items-start justify-between gap-4 mb-2">
                         <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          <span className="text-sm font-medium text-ink ">
                             {session.session_date
                               ? formatDate(session.session_date, 'EEEE')
                               : 'Session'}
                           </span>
-                          <span className="text-xs text-gray-400 dark:text-gray-500">
+                          <span className="text-xs text-ink-4 ">
                             {formatRelativeTime(session.session_date)}
                           </span>
                           {/* Sentiment dot */}
@@ -348,7 +334,7 @@ export default function ClientSessionsPage() {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <Badge
                             variant="secondary"
-                            className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs"
+                            className="bg-surface-3 text-ink-3 text-xs"
                           >
                             <Clock className="h-3 w-3 mr-1" />
                             {session.duration_minutes || 0} min
@@ -356,7 +342,7 @@ export default function ClientSessionsPage() {
                           {session.engagement_level && (
                             <Badge
                               variant="secondary"
-                              className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs capitalize"
+                              className="bg-surface-3 text-ink-3 text-xs capitalize"
                             >
                               {session.engagement_level}
                             </Badge>
@@ -364,7 +350,7 @@ export default function ClientSessionsPage() {
                           {session.is_group_session && (
                             <Badge
                               variant="secondary"
-                              className="bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 text-xs"
+                              className="bg-indigo-bg text-indigo text-xs"
                             >
                               <Users className="h-3 w-3 mr-1" />
                               Group
@@ -375,11 +361,11 @@ export default function ClientSessionsPage() {
 
                       {/* Summary */}
                       {session.summary ? (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-3">
+                        <p className="text-sm text-ink-3 line-clamp-2 mb-3">
                           {session.summary}
                         </p>
                       ) : (
-                        <p className="text-sm text-gray-400 dark:text-gray-500 italic mb-3">
+                        <p className="text-sm text-ink-4 italic mb-3">
                           No summary available
                         </p>
                       )}
@@ -396,13 +382,13 @@ export default function ClientSessionsPage() {
                                 .map((topic, idx) => (
                                   <span
                                     key={idx}
-                                    className="inline-flex px-2.5 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs rounded-md"
+                                    className="inline-flex px-2.5 py-1 bg-surface-3 text-ink-3 text-xs rounded-md"
                                   >
                                     {topic}
                                   </span>
                                 ))}
                               {session.key_topics.length > 3 && (
-                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                <span className="text-xs text-ink-4 ">
                                   +{session.key_topics.length - 3} more
                                 </span>
                               )}
@@ -411,7 +397,7 @@ export default function ClientSessionsPage() {
                         </div>
 
                         {/* Stats */}
-                        <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 flex-shrink-0">
+                        <div className="flex items-center gap-4 text-xs text-ink-3 flex-shrink-0">
                           {session.tasks_assigned > 0 && (
                             <span className="flex items-center gap-1">
                               <FileText className="h-3.5 w-3.5" />
@@ -430,8 +416,8 @@ export default function ClientSessionsPage() {
                     </div>
 
                     {/* Arrow */}
-                    <div className="flex items-center px-4 bg-gray-50 dark:bg-gray-800 border-l border-gray-100 dark:border-gray-800 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors">
-                      <ArrowRight className="h-4 w-4 text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors" />
+                    <div className="flex items-center px-4 bg-paper border-l border-line group-hover:bg-surface-3 transition-colors">
+                      <ArrowRight className="h-4 w-4 text-ink-4 group-hover:text-ink-3 transition-colors" />
                     </div>
                   </div>
                 </Link>
@@ -443,26 +429,24 @@ export default function ClientSessionsPage() {
 
       {/* Pagination */}
       {sessions.length > 0 && (
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
+        <div className="flex items-center justify-between mt-8 pt-6 border-t border-line ">
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="text-ink-3 hover:text-ink "
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
             Previous
           </Button>
 
-          <span className="text-sm text-gray-500 dark:text-gray-400">
-            Page {currentPage}
-          </span>
+          <span className="text-sm text-ink-3 ">Page {currentPage}</span>
 
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={sortedSessions.length < itemsPerPage}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="text-ink-3 hover:text-ink "
           >
             Next
             <ChevronRight className="ml-1 h-4 w-4" />

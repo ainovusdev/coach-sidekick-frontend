@@ -40,11 +40,11 @@ export default function SessionsList({
   const router = useRouter()
 
   return (
-    <Card className="shadow-lg border-slate-200 dark:border-gray-700">
-      <CardHeader className="border-b border-slate-200 bg-slate-50 dark:border-gray-700 dark:bg-gray-800">
+    <Card className="shadow-lg border-line ">
+      <CardHeader className="border-b border-line bg-paper ">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-3 text-slate-800 dark:text-white">
-            <MessageSquare className="h-5 w-5 text-slate-600 dark:text-gray-400" />
+          <CardTitle className="flex items-center gap-3 text-ink-2 ">
+            <MessageSquare className="h-5 w-5 text-ink-3 " />
             {selectedClientName
               ? `${selectedClientName}'s Sessions`
               : 'All Sessions'}
@@ -52,7 +52,7 @@ export default function SessionsList({
 
           {/* Pagination Info */}
           <div className="flex items-center gap-4">
-            <div className="text-sm text-slate-600 dark:text-gray-400">
+            <div className="text-sm text-ink-3 ">
               {totalSessions > 0 && (
                 <span>
                   Showing {Math.min(pageSize, totalSessions)} of {totalSessions}
@@ -69,7 +69,7 @@ export default function SessionsList({
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                <span className="text-sm text-slate-600 dark:text-gray-400 px-2">
+                <span className="text-sm text-ink-3 px-2">
                   {currentPage + 1}
                 </span>
                 <Button
@@ -97,7 +97,7 @@ export default function SessionsList({
               label: 'Try Again',
               onClick: onRefetch,
             }}
-            iconClassName="bg-red-100"
+            iconClassName="bg-vermillion-bg"
           />
         )}
 
@@ -105,10 +105,7 @@ export default function SessionsList({
         {loading && !sessions.length && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <Card
-                key={i}
-                className="border border-slate-200 dark:border-gray-700"
-              >
+              <Card key={i} className="border border-line ">
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -158,7 +155,7 @@ export default function SessionsList({
                 : undefined
             }
             className="py-16"
-            iconClassName="w-16 h-16 bg-slate-100 dark:bg-gray-800"
+            iconClassName="w-16 h-16 bg-surface-3 "
           />
         )}
 

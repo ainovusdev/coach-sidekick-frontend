@@ -36,37 +36,37 @@ export default function SessionsList({
   onSessionDeleted,
 }: SessionsListProps) {
   return (
-    <Card className="border-gray-200 shadow-sm rounded-xl overflow-hidden">
-      <CardHeader className="border-b border-gray-100 flex flex-row items-center justify-between bg-gray-50">
-        <CardTitle className="text-lg font-medium text-gray-900">
+    <Card className="border-line shadow-sm rounded-xl overflow-hidden">
+      <CardHeader className="border-b border-line flex flex-row items-center justify-between bg-paper">
+        <CardTitle className="text-lg font-medium text-ink">
           Coaching Sessions
         </CardTitle>
         <Button
           onClick={onUploadClick}
           size="sm"
           variant="outline"
-          className="border-gray-300 hover:bg-gray-100 text-gray-700"
+          className="border-line-strong hover:bg-surface-3 text-ink-2"
         >
           <Upload className="h-4 w-4 mr-2" />
           Upload Recording
         </Button>
       </CardHeader>
-      <CardContent className="p-0 bg-white">
+      <CardContent className="p-0 bg-surface-1">
         {sessions.length === 0 ? (
           <div className="text-center py-16">
-            <div className="mx-auto w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <Activity className="h-6 w-6 text-gray-400" />
+            <div className="mx-auto w-12 h-12 bg-surface-3 rounded-full flex items-center justify-center mb-4">
+              <Activity className="h-6 w-6 text-ink-4" />
             </div>
-            <h3 className="text-base font-medium text-gray-900 mb-2">
+            <h3 className="text-base font-medium text-ink mb-2">
               No sessions yet
             </h3>
-            <p className="text-sm text-gray-500 max-w-sm mx-auto mb-4">
+            <p className="text-sm text-ink-3 max-w-sm mx-auto mb-4">
               Start your first coaching session with {clientName}.
             </p>
             <Button
               onClick={onUploadClick}
               size="sm"
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 text-ink-on-dark "
             >
               <Upload className="h-4 w-4 mr-2" />
               Upload First Recording
@@ -83,11 +83,11 @@ export default function SessionsList({
             ))}
 
             {sessions.length >= 10 && (
-              <div className="p-4 text-center border-t border-gray-100 bg-gray-50">
+              <div className="p-4 text-center border-t border-line bg-paper">
                 <Link href={`/sessions?client=${clientId}`}>
                   <Button
                     variant="outline"
-                    className="border-gray-300 hover:bg-white text-gray-700"
+                    className="border-line-strong hover:bg-surface-1 text-ink-2"
                   >
                     View All Sessions
                   </Button>

@@ -70,15 +70,15 @@ export function SharedSessionRow({ session, onOpen }: SharedSessionRowProps) {
       }}
       className={cn(
         'group flex flex-col sm:flex-row gap-4 p-4 cursor-pointer',
-        'border border-app-border bg-white dark:bg-gray-900',
-        'hover:border-indigo-300 hover:shadow-md transition-all duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:ring-offset-2',
+        'border border-app-border bg-surface-1 ',
+        'hover:border-indigo hover:shadow-md transition-all duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-indigo focus:ring-offset-2',
       )}
     >
       {/* Thumbnail */}
       <div
         className={cn(
-          'relative flex-shrink-0 overflow-hidden rounded-lg bg-gray-900',
+          'relative flex-shrink-0 overflow-hidden rounded-lg bg-ink',
           'w-full sm:w-64 aspect-video',
         )}
       >
@@ -98,26 +98,26 @@ export function SharedSessionRow({ session, onOpen }: SharedSessionRowProps) {
               )}
             />
             {!thumbReady && (
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
-                <Video className="h-8 w-8 text-gray-500 animate-pulse" />
+              <div className="absolute inset-0 flex items-center justify-center bg-ink-2">
+                <Video className="h-8 w-8 text-ink-3 animate-pulse" />
               </div>
             )}
             {/* Play overlay */}
-            <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-colors">
-              <div className="rounded-full bg-white/90 p-3 shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform">
-                <Play className="h-5 w-5 text-gray-900 fill-current" />
+            <div className="absolute inset-0 flex items-center justify-center bg-overlay group-hover:bg-overlay transition-colors">
+              <div className="rounded-full bg-surface-1/90 p-3 shadow-lg opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-transform">
+                <Play className="h-5 w-5 text-ink fill-current" />
               </div>
             </div>
             {duration && (
-              <div className="absolute bottom-2 right-2 rounded bg-black/70 px-1.5 py-0.5 text-xs font-medium text-white">
+              <div className="absolute bottom-2 right-2 rounded bg-overlay px-1.5 py-0.5 text-xs font-medium text-ink-on-dark">
                 {duration}
               </div>
             )}
           </>
         ) : (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-gray-100 dark:bg-gray-800">
-            <Video className="h-8 w-8 text-gray-400" />
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-surface-3 ">
+            <Video className="h-8 w-8 text-ink-4" />
+            <span className="text-xs text-ink-3 ">
               {session.video_unavailable
                 ? 'Recording unavailable'
                 : 'No recording yet'}
@@ -165,7 +165,7 @@ export function SharedSessionRow({ session, onOpen }: SharedSessionRowProps) {
               {dateLabel} · {relative}
             </span>
           </div>
-          <span className="flex items-center gap-1.5 text-xs font-medium text-indigo-600 group-hover:text-indigo-700">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-indigo group-hover:text-indigo">
             <MessageSquare className="h-3.5 w-3.5" />
             Open review
           </span>

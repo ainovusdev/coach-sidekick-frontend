@@ -161,24 +161,22 @@ export function QuickNote({
   )
 
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-800 overflow-hidden h-full flex flex-col">
+    <div className="border border-line rounded-xl bg-surface-1 overflow-hidden h-full flex flex-col">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+      <div className="px-4 py-3 border-b border-line flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <FileText className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            Notes
-          </span>
+          <FileText className="h-4 w-4 text-ink-2 " />
+          <span className="text-sm font-semibold text-ink ">Notes</span>
         </div>
 
         {/* Note type toggle */}
-        <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5">
+        <div className="flex items-center gap-0.5 bg-surface-3 rounded-md p-0.5">
           <button
             onClick={() => setSelectedType('coach_private')}
             className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'coach_private'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                ? 'bg-surface-1 text-ink shadow-sm'
+                : 'text-ink-3 hover:text-ink-2 '
             }`}
           >
             <Lock className="h-3 w-3" />
@@ -188,8 +186,8 @@ export function QuickNote({
             onClick={() => setSelectedType('shared')}
             className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'shared'
-                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                ? 'bg-surface-1 text-ink shadow-sm'
+                : 'text-ink-3 hover:text-ink-2 '
             }`}
           >
             <Users className="h-3 w-3" />
@@ -216,7 +214,7 @@ export function QuickNote({
             disabled={!hasContent(content)}
             size="sm"
             title="Save Note (Shift+Enter)"
-            className="bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+            className="bg-ink hover:bg-ink-2 "
           >
             <Check className="h-3.5 w-3.5 mr-1.5" />
             Save Note
@@ -230,13 +228,13 @@ export function QuickNote({
       {/* Session Notes List - collapsible */}
       {sortedNotes.length > 0 && (
         <div
-          className={`${notesListOpen ? 'flex-[2]' : 'flex-shrink-0'} min-h-0 border-t border-gray-100 dark:border-gray-700 flex flex-col`}
+          className={`${notesListOpen ? 'flex-[2]' : 'flex-shrink-0'} min-h-0 border-t border-line flex flex-col`}
         >
           <button
             onClick={() => setNotesListOpen(!notesListOpen)}
-            className="px-4 py-2 bg-gray-50 dark:bg-gray-700/50 flex items-center justify-between flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors w-full"
+            className="px-4 py-2 bg-paper flex items-center justify-between flex-shrink-0 hover:bg-surface-3 transition-colors w-full"
           >
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            <span className="text-xs font-medium text-ink-3 ">
               Session Notes
             </span>
             <div className="flex items-center gap-1.5">
@@ -244,9 +242,9 @@ export function QuickNote({
                 {sortedNotes.length}
               </Badge>
               {notesListOpen ? (
-                <ChevronUp className="h-3 w-3 text-gray-400" />
+                <ChevronUp className="h-3 w-3 text-ink-4" />
               ) : (
-                <ChevronDown className="h-3 w-3 text-gray-400" />
+                <ChevronDown className="h-3 w-3 text-ink-4" />
               )}
             </div>
           </button>
@@ -255,7 +253,7 @@ export function QuickNote({
               {sortedNotes.map(note => (
                 <div
                   key={note.id}
-                  className="px-4 py-3 border-b border-gray-50 dark:border-gray-700 last:border-b-0 hover:bg-gray-50/50 dark:hover:bg-gray-700/50"
+                  className="px-4 py-3 border-b border-line last:border-b-0 hover:bg-paper/50 "
                 >
                   {editingNoteId === note.id ? (
                     // Edit mode
@@ -281,7 +279,7 @@ export function QuickNote({
                           disabled={
                             !hasContent(editContent) || updateNote.isPending
                           }
-                          className="h-7 text-xs bg-gray-900 hover:bg-gray-800 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-gray-200"
+                          className="h-7 text-xs bg-ink hover:bg-ink-2 "
                         >
                           {updateNote.isPending ? (
                             <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -297,13 +295,13 @@ export function QuickNote({
                     <div>
                       <div className="flex items-start justify-between gap-2">
                         <div
-                          className="text-sm text-gray-700 dark:text-gray-300 line-clamp-3 flex-1 prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
+                          className="text-sm text-ink-2 line-clamp-3 flex-1 prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
                           dangerouslySetInnerHTML={{ __html: note.content }}
                         />
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button
                             onClick={() => handleStartEdit(note)}
-                            className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                            className="p-1 text-ink-4 hover:text-ink-3 hover:bg-surface-3 rounded"
                             title="Edit note"
                           >
                             <Pencil className="h-3.5 w-3.5" />
@@ -316,17 +314,14 @@ export function QuickNote({
                           >
                             <PopoverTrigger asChild>
                               <button
-                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                                className="p-1 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg rounded"
                                 title="Delete note"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto p-3 dark:bg-gray-800 dark:border-gray-700"
-                              align="end"
-                            >
-                              <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                            <PopoverContent className="w-auto p-3 " align="end">
+                              <p className="text-sm text-ink-2 mb-2">
                                 Delete this note?
                               </p>
                               <div className="flex items-center gap-2">
@@ -361,8 +356,8 @@ export function QuickNote({
                           variant="outline"
                           className={`text-xs px-1.5 py-0 h-5 ${
                             note.note_type === 'coach_private'
-                              ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
-                              : 'border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30'
+                              ? 'border-line-strong text-ink-2 bg-paper '
+                              : 'border-ds-accent text-ds-accent bg-ds-accent-bg '
                           }`}
                         >
                           {note.note_type === 'coach_private' ? (
@@ -374,7 +369,7 @@ export function QuickNote({
                             ? 'Private'
                             : 'Shared'}
                         </Badge>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-ink-4">
                           {formatRelativeTime(note.created_at)}
                         </span>
                       </div>
@@ -389,10 +384,10 @@ export function QuickNote({
 
       {/* Empty state for notes (only show after loading) */}
       {!notesLoading && sortedNotes.length === 0 && (
-        <div className="flex-shrink-0 border-t border-gray-100 dark:border-gray-700 px-4 py-3 flex items-center justify-center">
+        <div className="flex-shrink-0 border-t border-line px-4 py-3 flex items-center justify-center">
           <div className="text-center">
-            <FileText className="h-6 w-6 text-gray-300 dark:text-gray-600 mx-auto mb-1" />
-            <p className="text-xs text-gray-400">No notes captured yet</p>
+            <FileText className="h-6 w-6 text-ink-2 mx-auto mb-1" />
+            <p className="text-xs text-ink-4">No notes captured yet</p>
           </div>
         </div>
       )}

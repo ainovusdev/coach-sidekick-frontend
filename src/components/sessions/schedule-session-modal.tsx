@@ -161,7 +161,7 @@ export function ScheduleSessionModal({
           {!preselectedClientId && (
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Client <span className="text-red-500">*</span>
+                Client <span className="text-vermillion">*</span>
               </Label>
               {loadingClients ? (
                 <div className="flex items-center justify-center p-3 border rounded-md">
@@ -187,7 +187,7 @@ export function ScheduleSessionModal({
           {/* Date Selection */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
-              Date <span className="text-red-500">*</span>
+              Date <span className="text-vermillion">*</span>
             </Label>
 
             {/* Quick date pills */}
@@ -200,8 +200,8 @@ export function ScheduleSessionModal({
                   className={cn(
                     'px-3 py-1.5 text-xs font-medium rounded-full border transition-all',
                     sessionDate && isSameDay(sessionDate, qd.date)
-                      ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:border-gray-500',
+                      ? 'bg-ink text-ink-on-dark border-line '
+                      : 'bg-surface-1 text-ink-3 border-line hover:border-line-strong hover:text-ink ',
                   )}
                 >
                   {qd.label}
@@ -285,8 +285,8 @@ export function ScheduleSessionModal({
                   className={cn(
                     'px-3 py-2 text-sm font-medium transition-colors',
                     period === 'AM'
-                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                      : 'bg-white text-gray-500 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400',
+                      ? 'bg-ink text-ink-on-dark '
+                      : 'bg-surface-1 text-ink-3 hover:text-ink ',
                   )}
                 >
                   AM
@@ -297,8 +297,8 @@ export function ScheduleSessionModal({
                   className={cn(
                     'px-3 py-2 text-sm font-medium transition-colors',
                     period === 'PM'
-                      ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900'
-                      : 'bg-white text-gray-500 hover:text-gray-900 dark:bg-gray-800 dark:text-gray-400',
+                      ? 'bg-ink text-ink-on-dark '
+                      : 'bg-surface-1 text-ink-3 hover:text-ink ',
                   )}
                 >
                   PM
@@ -383,7 +383,7 @@ export function ScheduleSessionModal({
                 !sessionDate ||
                 loadingClients
               }
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 text-ink-on-dark "
             >
               {scheduleSession.isPending ? (
                 <>

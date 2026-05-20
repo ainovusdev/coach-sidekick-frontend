@@ -52,18 +52,18 @@ interface SessionHeaderProps {
 function getStatusDot(status: string) {
   switch (status) {
     case 'completed':
-      return 'bg-green-500'
+      return 'bg-forest'
     case 'in_progress':
     case 'active':
-      return 'bg-black animate-pulse'
+      return 'bg-ink animate-pulse'
     case 'pending_upload':
-      return 'bg-amber-500'
+      return 'bg-amber-token'
     case 'processing':
-      return 'bg-gray-400 animate-pulse'
+      return 'bg-line animate-pulse'
     case 'failed':
-      return 'bg-red-500'
+      return 'bg-vermillion'
     default:
-      return 'bg-gray-400'
+      return 'bg-line'
   }
 }
 
@@ -155,7 +155,7 @@ export default function SessionHeader({
 
               {/* Group badge */}
               {session.is_group_session && (
-                <Badge className="bg-purple-50 text-purple-700 border-purple-200 px-2 py-0.5 text-xs font-medium flex items-center gap-1">
+                <Badge className="bg-indigo-bg text-indigo border-indigo px-2 py-0.5 text-xs font-medium flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   {session.participant_client_ids?.length || 0}
                 </Badge>
@@ -200,7 +200,7 @@ export default function SessionHeader({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={onDelete}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                          className="text-vermillion focus:text-vermillion focus:bg-vermillion-bg"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete Session

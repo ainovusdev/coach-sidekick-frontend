@@ -67,8 +67,8 @@ export function EnhancedDraftReview({
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Sparkles className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-600">No drafts to review</p>
+          <Sparkles className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+          <p className="text-ink-3">No drafts to review</p>
         </CardContent>
       </Card>
     )
@@ -90,22 +90,22 @@ export function EnhancedDraftReview({
   }
 
   const getConfidenceBadge = (confidence: number) => {
-    if (confidence >= 0.85) return 'bg-green-100 text-green-800'
-    if (confidence >= 0.75) return 'bg-blue-100 text-blue-800'
-    if (confidence >= 0.6) return 'bg-yellow-100 text-yellow-800'
-    return 'bg-gray-100 text-gray-800'
+    if (confidence >= 0.85) return 'bg-forest-bg text-forest'
+    if (confidence >= 0.75) return 'bg-ds-accent-bg text-ds-accent'
+    if (confidence >= 0.6) return 'bg-amber-token-bg text-amber-token'
+    return 'bg-surface-3 text-ink-2'
   }
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-line">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-gray-600" />
+            <Sparkles className="h-5 w-5 text-ink-3" />
             AI Extraction Results
           </CardTitle>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-gray-50">
+            <Badge variant="outline" className="bg-paper">
               {totalExtracted} items found
             </Badge>
           </div>
@@ -113,7 +113,7 @@ export function EnhancedDraftReview({
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="all" className="space-y-4">
-          <TabsList className="bg-gray-50">
+          <TabsList className="bg-paper">
             <TabsTrigger value="all">All ({totalExtracted})</TabsTrigger>
             <TabsTrigger value="goals">
               Meta Performance Outcomes ({draftGoals.length})
@@ -129,15 +129,15 @@ export function EnhancedDraftReview({
           {/* All Tab */}
           <TabsContent value="all" className="space-y-6">
             {/* Summary & Action */}
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+            <div className="bg-paper border border-line rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-start gap-3 flex-1">
-                  <Sparkles className="h-5 w-5 text-gray-600 mt-0.5" />
+                  <Sparkles className="h-5 w-5 text-ink-3 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-gray-900 mb-1">
+                    <h4 className="font-semibold text-ink mb-1">
                       Extraction Complete
                     </h4>
-                    <p className="text-sm text-gray-800">
+                    <p className="text-sm text-ink-2">
                       Found {draftGoals.length} meta performance outcomes,{' '}
                       {draftTargets.length} desired wins,{' '}
                       {draftCommitments.length} commitments. Review and confirm
@@ -149,7 +149,7 @@ export function EnhancedDraftReview({
                   onClick={handleConfirmAll}
                   disabled={confirming}
                   size="lg"
-                  className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 flex-shrink-0"
+                  className="bg-ink hover:bg-ink-2 text-ink-on-dark flex-shrink-0"
                 >
                   {confirming ? (
                     <>
@@ -170,23 +170,23 @@ export function EnhancedDraftReview({
             {draftGoals.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-gray-600" />
-                  <h3 className="font-semibold text-gray-900">
+                  <Trophy className="h-4 w-4 text-ink-3" />
+                  <h3 className="font-semibold text-ink">
                     New Meta Performance Outcomes ({draftGoals.length})
                   </h3>
                 </div>
                 {draftGoals.map(goal => (
-                  <Card key={goal.id} className="border-gray-200">
+                  <Card key={goal.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {goal.title}
                               </h4>
                               {goal.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {goal.description}
                                 </p>
                               )}
@@ -201,7 +201,7 @@ export function EnhancedDraftReview({
                             <Badge variant="outline">{goal.category}</Badge>
                           </div>
                           {goal.transcript_context && (
-                            <div className="bg-gray-50 border border-gray-200 rounded p-2 text-sm italic text-gray-700">
+                            <div className="bg-paper border border-line rounded p-2 text-sm italic text-ink-2">
                               &quot;{goal.transcript_context}&quot;
                             </div>
                           )}
@@ -219,23 +219,23 @@ export function EnhancedDraftReview({
             {draftTargets.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-blue-600" />
-                  <h3 className="font-semibold text-gray-900">
+                  <Target className="h-4 w-4 text-ds-accent" />
+                  <h3 className="font-semibold text-ink">
                     New Desired Wins ({draftTargets.length})
                   </h3>
                 </div>
                 {draftTargets.map(target => (
-                  <Card key={target.id} className="border-gray-200">
+                  <Card key={target.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {target.title}
                               </h4>
                               {target.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {target.description}
                                 </p>
                               )}
@@ -246,12 +246,12 @@ export function EnhancedDraftReview({
                               {Math.round(target.confidence * 100)}%
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                          <div className="flex items-center gap-2 text-sm text-ink-3">
                             <Link2 className="h-3 w-3" />
                             <span>Links to outcome</span>
                           </div>
                           {target.transcript_context && (
-                            <div className="bg-gray-50 border border-gray-200 rounded p-2 text-sm italic text-gray-700">
+                            <div className="bg-paper border border-line rounded p-2 text-sm italic text-ink-2">
                               &quot;{target.transcript_context}&quot;
                             </div>
                           )}
@@ -270,23 +270,23 @@ export function EnhancedDraftReview({
             {draftCommitments.length > 0 && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Target className="h-4 w-4 text-green-600" />
-                  <h3 className="font-semibold text-gray-900">
+                  <Target className="h-4 w-4 text-forest" />
+                  <h3 className="font-semibold text-ink">
                     New Commitments ({draftCommitments.length})
                   </h3>
                 </div>
                 {draftCommitments.map(commitment => (
-                  <Card key={commitment.id} className="border-gray-200">
+                  <Card key={commitment.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {commitment.title}
                               </h4>
                               {commitment.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {commitment.description}
                                 </p>
                               )}
@@ -311,7 +311,7 @@ export function EnhancedDraftReview({
                           </div>
 
                           {commitment.transcript_context && (
-                            <div className="bg-gray-50 border border-gray-200 rounded p-2 text-sm italic text-gray-700">
+                            <div className="bg-paper border border-line rounded p-2 text-sm italic text-ink-2">
                               &quot;{commitment.transcript_context}&quot;
                             </div>
                           )}
@@ -329,23 +329,23 @@ export function EnhancedDraftReview({
           {/* Goals Tab */}
           <TabsContent value="goals" className="space-y-3">
             {draftGoals.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-ink-3 py-8">
                 No meta performance outcomes extracted
               </p>
             ) : (
               <>
                 {draftGoals.map(goal => (
-                  <Card key={goal.id} className="border-gray-200">
+                  <Card key={goal.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {goal.title}
                               </h4>
                               {goal.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {goal.description}
                                 </p>
                               )}
@@ -358,11 +358,11 @@ export function EnhancedDraftReview({
                           </div>
                           <Badge variant="outline">{goal.category}</Badge>
                           {goal.transcript_context && (
-                            <div className="bg-gray-50 border border-gray-200 rounded p-3">
-                              <p className="text-xs font-medium text-gray-900 mb-1">
+                            <div className="bg-paper border border-line rounded p-3">
+                              <p className="text-xs font-medium text-ink mb-1">
                                 From transcript:
                               </p>
-                              <p className="text-sm italic text-gray-800">
+                              <p className="text-sm italic text-ink-2">
                                 &quot;{goal.transcript_context}&quot;
                               </p>
                             </div>
@@ -379,23 +379,23 @@ export function EnhancedDraftReview({
           {/* Targets Tab */}
           <TabsContent value="targets" className="space-y-3">
             {draftTargets.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-ink-3 py-8">
                 No desired wins extracted
               </p>
             ) : (
               <>
                 {draftTargets.map(target => (
-                  <Card key={target.id} className="border-gray-200">
+                  <Card key={target.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {target.title}
                               </h4>
                               {target.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {target.description}
                                 </p>
                               )}
@@ -406,16 +406,16 @@ export function EnhancedDraftReview({
                               {Math.round(target.confidence * 100)}% confidence
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-2 text-sm text-blue-600">
+                          <div className="flex items-center gap-2 text-sm text-ds-accent">
                             <Link2 className="h-3 w-3" />
                             <span>Linked to goal</span>
                           </div>
                           {target.transcript_context && (
-                            <div className="bg-blue-50 border border-blue-200 rounded p-3">
-                              <p className="text-xs font-medium text-blue-900 mb-1">
+                            <div className="bg-ds-accent-bg border border-ds-accent rounded p-3">
+                              <p className="text-xs font-medium text-ds-accent mb-1">
                                 From transcript:
                               </p>
-                              <p className="text-sm italic text-blue-800">
+                              <p className="text-sm italic text-ds-accent">
                                 &quot;{target.transcript_context}&quot;
                               </p>
                             </div>
@@ -432,23 +432,23 @@ export function EnhancedDraftReview({
           {/* Commitments Tab */}
           <TabsContent value="commitments" className="space-y-3">
             {draftCommitments.length === 0 ? (
-              <p className="text-center text-gray-500 py-8">
+              <p className="text-center text-ink-3 py-8">
                 No commitments extracted
               </p>
             ) : (
               <>
                 {draftCommitments.map(commitment => (
-                  <Card key={commitment.id} className="border-gray-200">
+                  <Card key={commitment.id} className="border-line">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <div className="flex-1 space-y-2">
                           <div className="flex items-start justify-between">
                             <div>
-                              <h4 className="font-medium text-gray-900">
+                              <h4 className="font-medium text-ink">
                                 {commitment.title}
                               </h4>
                               {commitment.description && (
-                                <p className="text-sm text-gray-600 mt-1">
+                                <p className="text-sm text-ink-3 mt-1">
                                   {commitment.description}
                                 </p>
                               )}
@@ -473,11 +473,11 @@ export function EnhancedDraftReview({
                             </div>
                           </div>
                           {commitment.transcript_context && (
-                            <div className="bg-green-50 border border-green-200 rounded p-3">
-                              <p className="text-xs font-medium text-green-900 mb-1">
+                            <div className="bg-forest-bg border border-forest rounded p-3">
+                              <p className="text-xs font-medium text-forest mb-1">
                                 From transcript:
                               </p>
-                              <p className="text-sm italic text-green-800">
+                              <p className="text-sm italic text-forest">
                                 &quot;{commitment.transcript_context}&quot;
                               </p>
                             </div>
@@ -498,7 +498,7 @@ export function EnhancedDraftReview({
             onClick={handleConfirmAll}
             disabled={confirming}
             size="lg"
-            className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 px-8"
+            className="bg-ink hover:bg-ink-2 text-ink-on-dark px-8"
           >
             {confirming ? (
               <>

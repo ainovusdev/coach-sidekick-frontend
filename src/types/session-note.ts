@@ -112,33 +112,33 @@ export const NOTE_TYPE_COLORS: Record<
   { bg: string; text: string; border: string }
 > = {
   coach_private: {
-    bg: 'bg-gray-50',
-    text: 'text-gray-700',
-    border: 'border-gray-200',
+    bg: 'bg-paper',
+    text: 'text-ink-2',
+    border: 'border-line',
   },
   shared: {
-    bg: 'bg-blue-50',
-    text: 'text-blue-700',
-    border: 'border-blue-200',
+    bg: 'bg-ds-accent-bg',
+    text: 'text-ds-accent',
+    border: 'border-ds-accent',
   },
   client_reflection: {
-    bg: 'bg-green-50',
-    text: 'text-green-700',
-    border: 'border-green-200',
+    bg: 'bg-forest-bg',
+    text: 'text-forest',
+    border: 'border-forest',
   },
   client_private: {
-    bg: 'bg-teal-50',
-    text: 'text-teal-700',
-    border: 'border-teal-200',
+    bg: 'bg-forest-bg',
+    text: 'text-forest',
+    border: 'border-forest',
   },
   pre_session: {
-    bg: 'bg-orange-50',
-    text: 'text-orange-700',
-    border: 'border-orange-200',
+    bg: 'bg-amber-token-bg',
+    text: 'text-amber-token',
+    border: 'border-amber-token',
   },
   post_session: {
-    bg: 'bg-indigo-50',
-    text: 'text-indigo-700',
-    border: 'border-indigo-200',
+    bg: 'bg-indigo-bg',
+    text: 'text-indigo',
+    border: 'border-indigo',
   },
 }

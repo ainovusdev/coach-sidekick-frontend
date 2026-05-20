@@ -72,26 +72,24 @@ export default function LiveSessionBanner({
         return (
           <div
             key={session.id}
-            className="relative overflow-hidden rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-white dark:from-emerald-950/30 dark:to-gray-800 dark:border-emerald-800"
+            className="relative overflow-hidden rounded-xl border border-forest  "
           >
             <div className="flex items-center justify-between px-5 py-4">
               <div className="flex items-center gap-4">
                 {/* Pulsing live indicator */}
-                <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
-                  <Radio className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="absolute inset-0 rounded-full bg-emerald-400/30 animate-ping" />
+                <div className="relative flex items-center justify-center w-10 h-10 rounded-full bg-forest-bg ">
+                  <Radio className="h-5 w-5 text-forest " />
+                  <span className="absolute inset-0 rounded-full bg-forest/30 animate-ping" />
                 </div>
 
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {title}
-                    </h3>
+                    <h3 className="text-sm font-semibold text-ink ">{title}</h3>
                     {session.is_group_session && (
-                      <Users className="h-3.5 w-3.5 text-gray-500" />
+                      <Users className="h-3.5 w-3.5 text-ink-3" />
                     )}
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                  <p className="text-xs text-ink-3 mt-0.5">
                     Started {formatRelativeTime(session.created_at)}
                   </p>
                 </div>
@@ -106,7 +104,7 @@ export default function LiveSessionBanner({
                   )
                 }
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                className="bg-forest hover:bg-forest text-ink-on-dark"
               >
                 {session.bot_id ? 'Rejoin Session' : 'View Session'}
                 <ArrowRight className="h-4 w-4 ml-1.5" />

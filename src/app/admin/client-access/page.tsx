@@ -373,15 +373,15 @@ export default function ClientAccessPage() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'super_admin':
-        return 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800'
+        return 'bg-vermillion-bg text-vermillion border-vermillion '
       case 'admin':
-        return 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800'
+        return 'bg-ds-accent-bg text-ds-accent border-ds-accent '
       case 'coach':
-        return 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
+        return 'bg-forest-bg text-forest border-forest '
       case 'viewer':
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700'
+        return 'bg-surface-3 text-ink-2 border-line '
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700'
+        return 'bg-surface-3 text-ink-2 border-line '
     }
   }
 
@@ -408,13 +408,13 @@ export default function ClientAccessPage() {
   const getNodeColor = (type: string) => {
     switch (type) {
       case 'admin':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+        return 'bg-indigo-bg text-indigo '
       case 'coach':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        return 'bg-ds-accent-bg text-ds-accent '
       case 'client':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+        return 'bg-forest-bg text-forest '
       default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-surface-3 text-ink-2 '
     }
   }
 
@@ -423,19 +423,15 @@ export default function ClientAccessPage() {
 
     return (
       <div key={node.id} className={`${level > 0 ? 'ml-8' : ''}`}>
-        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+        <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-paper transition-colors">
           <div className={`p-2 rounded-lg ${getNodeColor(node.type)}`}>
             {getNodeIcon(node.type)}
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-2">
-              <span className="font-medium text-gray-900 dark:text-white">
-                {node.name}
-              </span>
+              <span className="font-medium text-ink ">{node.name}</span>
               {node.email && (
-                <span className="text-xs text-gray-500 dark:text-gray-400">
-                  ({node.email})
-                </span>
+                <span className="text-xs text-ink-3 ">({node.email})</span>
               )}
               {isSuper && (
                 <Badge variant="destructive" className="text-xs">
@@ -453,8 +449,8 @@ export default function ClientAccessPage() {
                   className={cn(
                     'text-xs',
                     node.access_level === 'full'
-                      ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                      : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+                      ? 'bg-forest-bg text-forest border-forest '
+                      : 'bg-amber-token-bg text-amber-token border-amber-token ',
                   )}
                 >
                   {node.access_level === 'full' ? 'Full Access' : 'Read Only'}
@@ -462,20 +458,18 @@ export default function ClientAccessPage() {
               )}
             </div>
             {node.type === 'client' && (
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                Client Account
-              </p>
+              <p className="text-xs text-ink-3 mt-0.5">Client Account</p>
             )}
           </div>
           {node.children.length > 0 && (
-            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-1 text-xs text-ink-3 ">
               <Network className="h-3 w-3" />
               <span>{node.children.length}</span>
             </div>
           )}
         </div>
         {node.children.length > 0 && (
-          <div className="ml-4 border-l-2 border-gray-200 dark:border-gray-700 pl-4 mt-2">
+          <div className="ml-4 border-l-2 border-line pl-4 mt-2">
             {node.children.map(child => renderHierarchyNode(child, level + 1))}
           </div>
         )}
@@ -488,12 +482,8 @@ export default function ClientAccessPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Client Access
-          </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
-            Manage client access assignments
-          </p>
+          <h1 className="text-3xl font-bold text-ink ">Client Access</h1>
+          <p className="text-ink-3 mt-2">Manage client access assignments</p>
         </div>
         <div className="flex gap-2">
           <Button
@@ -530,7 +520,7 @@ export default function ClientAccessPage() {
               </TabsList>
             </Tabs>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4 " />
               <Input
                 placeholder="Search..."
                 value={searchQuery}
@@ -561,10 +551,8 @@ export default function ClientAccessPage() {
               </div>
             ) : hierarchyData.length === 0 ? (
               <div className="text-center py-12">
-                <Building className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">
-                  No hierarchy data available
-                </p>
+                <Building className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+                <p className="text-ink-3 ">No hierarchy data available</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -616,14 +604,14 @@ export default function ClientAccessPage() {
                 <TableRow key={client.client_id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <div className="h-10 w-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                      <div className="h-10 w-10 rounded-full bg-surface-3 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-ink-3 " />
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">
+                        <p className="font-medium text-ink ">
                           {client.client_name}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                        <p className="text-xs text-ink-3 ">
                           ID: {client.client_id}
                         </p>
                       </div>
@@ -639,11 +627,11 @@ export default function ClientAccessPage() {
                           >
                             <div className="flex items-center gap-2">
                               <div>
-                                <p className="text-sm font-medium text-gray-900 dark:text-white">
+                                <p className="text-sm font-medium text-ink ">
                                   {user.email}
                                 </p>
                                 {user.full_name && (
-                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                  <p className="text-xs text-ink-3 ">
                                     {user.full_name}
                                   </p>
                                 )}
@@ -667,8 +655,8 @@ export default function ClientAccessPage() {
                                 className={cn(
                                   'text-xs',
                                   user.access_level === 'full'
-                                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800'
-                                    : 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
+                                    ? 'bg-forest-bg text-forest border-forest '
+                                    : 'bg-amber-token-bg text-amber-token border-amber-token ',
                                 )}
                               >
                                 {user.access_level === 'full' ? (
@@ -691,15 +679,13 @@ export default function ClientAccessPage() {
                                 )
                               }
                             >
-                              <UserMinus className="h-4 w-4 text-red-600" />
+                              <UserMinus className="h-4 w-4 text-vermillion" />
                             </Button>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-gray-400 dark:text-gray-500">
-                        No users assigned
-                      </p>
+                      <p className="text-sm text-ink-4 ">No users assigned</p>
                     )}
                   </TableCell>
                   <TableCell className="text-right">
@@ -735,9 +721,9 @@ export default function ClientAccessPage() {
             <div>
               <Label htmlFor="client">Client</Label>
               {selectedClient ? (
-                <div className="mt-2 p-2 bg-gray-50 dark:bg-gray-800 rounded">
+                <div className="mt-2 p-2 bg-paper rounded">
                   <p className="font-medium">{selectedClient.client_name}</p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <p className="text-xs text-ink-3 ">
                     ID: {selectedClient.client_id}
                   </p>
                 </div>
@@ -894,7 +880,7 @@ export default function ClientAccessPage() {
                   {accessMatrix.map(client => (
                     <div
                       key={client.client_id}
-                      className="flex items-center space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded"
+                      className="flex items-center space-x-2 p-2 hover:bg-paper rounded"
                     >
                       <Checkbox
                         id={`client-${client.client_id}`}
@@ -926,7 +912,7 @@ export default function ClientAccessPage() {
                       >
                         {client.client_name}
                         {client.assigned_users.length > 0 && (
-                          <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
+                          <span className="text-xs text-ink-3 ml-2">
                             ({client.assigned_users.length} users assigned)
                           </span>
                         )}
@@ -935,7 +921,7 @@ export default function ClientAccessPage() {
                   ))}
                 </div>
               </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs text-ink-3 mt-2">
                 {bulkAssignForm.client_ids.length} clients selected
               </p>
             </div>

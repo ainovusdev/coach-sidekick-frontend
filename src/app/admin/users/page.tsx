@@ -298,10 +298,10 @@ export default function UsersPage() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold  bg-clip-text text-transparent">
               User Management
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-ink-3 mt-2">
               Manage user accounts, roles, and permissions
             </p>
           </div>
@@ -329,10 +329,10 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Total
                 </CardTitle>
-                <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Users className="h-4 w-4 text-ink-4 " />
               </div>
             </CardHeader>
             <CardContent>
@@ -342,14 +342,14 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Active
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-forest" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-2xl font-bold text-forest ">
                 {stats.active}
               </div>
             </CardContent>
@@ -357,14 +357,14 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Inactive
                 </CardTitle>
-                <XCircle className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <XCircle className="h-4 w-4 text-ink-4 " />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-gray-400 dark:text-gray-500">
+              <div className="text-2xl font-bold text-ink-4 ">
                 {stats.inactive}
               </div>
             </CardContent>
@@ -372,14 +372,14 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Deleted
                 </CardTitle>
-                <Archive className="h-4 w-4 text-red-400" />
+                <Archive className="h-4 w-4 text-vermillion" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+              <div className="text-2xl font-bold text-vermillion ">
                 {stats.deleted}
               </div>
             </CardContent>
@@ -387,14 +387,14 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Admins
                 </CardTitle>
-                <Shield className="h-4 w-4 text-blue-500" />
+                <Shield className="h-4 w-4 text-ds-accent" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+              <div className="text-2xl font-bold text-ds-accent ">
                 {stats.admins}
               </div>
             </CardContent>
@@ -402,14 +402,14 @@ export default function UsersPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Coaches
                 </CardTitle>
-                <UserCheck className="h-4 w-4 text-purple-500" />
+                <UserCheck className="h-4 w-4 text-indigo" />
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-2xl font-bold text-indigo ">
                 {stats.coaches}
               </div>
             </CardContent>
@@ -423,7 +423,7 @@ export default function UsersPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4 flex-1">
               <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4 " />
                 <Input
                   placeholder="Search by name or email..."
                   value={searchQuery}
@@ -459,10 +459,7 @@ export default function UsersPage() {
             </div>
             {/* NEW: Toggle for showing deleted users */}
             <div className="flex items-center gap-2">
-              <Label
-                htmlFor="show-deleted"
-                className="text-sm text-gray-600 dark:text-gray-400"
-              >
+              <Label htmlFor="show-deleted" className="text-sm text-ink-3 ">
                 Show Deleted
               </Label>
               <Switch
@@ -493,9 +490,9 @@ export default function UsersPage() {
             </div>
           ) : users.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">No users found</p>
-              <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+              <Users className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+              <p className="text-ink-3 ">No users found</p>
+              <p className="text-sm text-ink-4 mt-1">
                 Try adjusting your search or filters
               </p>
             </div>
@@ -515,7 +512,7 @@ export default function UsersPage() {
                 {users.map(user => (
                   <TableRow
                     key={user.id}
-                    className={`hover:bg-gray-50 dark:hover:bg-gray-800 ${user.deleted_at ? 'bg-red-50 dark:bg-red-900/30 opacity-60' : ''}`}
+                    className={`hover:bg-paper ${user.deleted_at ? 'bg-vermillion-bg opacity-60' : ''}`}
                   >
                     <TableCell>
                       <div className="flex items-center gap-3">
@@ -525,14 +522,14 @@ export default function UsersPage() {
                           <AvatarImage
                             src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`}
                           />
-                          <AvatarFallback className="bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 text-gray-700 dark:text-gray-300 font-medium">
+                          <AvatarFallback className=" text-ink-2 font-medium">
                             {getUserInitials(user.email, user.full_name)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="flex items-center gap-2">
                             <p
-                              className={`font-medium ${user.deleted_at ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-white'}`}
+                              className={`font-medium ${user.deleted_at ? 'text-ink-3 line-through' : 'text-ink '}`}
                             >
                               {user.full_name || user.email}
                             </p>
@@ -543,13 +540,13 @@ export default function UsersPage() {
                             )}
                           </div>
                           {user.full_name && (
-                            <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                            <p className="text-sm text-ink-3 flex items-center gap-1">
                               <Mail className="h-3 w-3" />
                               {user.email}
                             </p>
                           )}
                           {user.deleted_at && (
-                            <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                            <p className="text-xs text-vermillion mt-1">
                               Deleted {formatDate(user.deleted_at)}
                             </p>
                           )}
@@ -569,9 +566,7 @@ export default function UsersPage() {
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-sm text-gray-400 dark:text-gray-500">
-                            No roles
-                          </span>
+                          <span className="text-sm text-ink-4 ">No roles</span>
                         )}
                       </div>
                     </TableCell>
@@ -580,24 +575,20 @@ export default function UsersPage() {
                         <span className="text-sm font-medium">
                           {user.client_count}
                         </span>
-                        <span className="text-sm text-gray-500 dark:text-gray-400">
-                          clients
-                        </span>
+                        <span className="text-sm text-ink-3 ">clients</span>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         {user.is_active ? (
                           <>
-                            <div className="h-2 w-2 bg-green-500 rounded-full" />
-                            <span className="text-sm text-green-700 dark:text-green-400">
-                              Active
-                            </span>
+                            <div className="h-2 w-2 bg-forest rounded-full" />
+                            <span className="text-sm text-forest ">Active</span>
                           </>
                         ) : (
                           <>
-                            <div className="h-2 w-2 bg-gray-400 rounded-full" />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
+                            <div className="h-2 w-2 bg-line rounded-full" />
+                            <span className="text-sm text-ink-3 ">
                               Inactive
                             </span>
                           </>
@@ -605,7 +596,7 @@ export default function UsersPage() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1 text-sm text-ink-3 ">
                         <Calendar className="h-3 w-3" />
                         {formatDate(user.created_at, 'MMM d, yyyy')}
                       </div>
@@ -667,7 +658,7 @@ export default function UsersPage() {
                                 onClick={() => {
                                   openDeleteDialog(user)
                                 }}
-                                className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
+                                className="text-vermillion focus:text-vermillion "
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete User
@@ -679,7 +670,7 @@ export default function UsersPage() {
                                 onClick={() => {
                                   openRestoreDialog(user)
                                 }}
-                                className="text-green-600 dark:text-green-400 focus:text-green-600 dark:focus:text-green-400"
+                                className="text-forest focus:text-forest "
                               >
                                 <RotateCcw className="h-4 w-4 mr-2" />
                                 Restore User
@@ -913,7 +904,7 @@ export default function UsersPage() {
                     >
                       {formatRoleName(role)}
                     </Label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-ink-3 mt-1">
                       {role === 'super_admin' &&
                         'Full system access and control'}
                       {role === 'admin' && 'User and client management'}
@@ -961,14 +952,14 @@ export default function UsersPage() {
           <DialogHeader>
             <DialogTitle>Delete User</DialogTitle>
             <DialogDescription className="space-y-2">
-              <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
+              <AlertCircle className="h-12 w-12 text-vermillion mx-auto" />
               <p>Are you sure you want to delete this user?</p>
               <p className="font-semibold">{selectedUser?.email}</p>
-              <p className="text-amber-600 dark:text-amber-400">
+              <p className="text-amber-token ">
                 This will soft delete the user. They will be deactivated and
                 hidden from the user list.
               </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ink-3 ">
                 You can restore deleted users later from the deleted users view.
               </p>
             </DialogDescription>
@@ -999,10 +990,10 @@ export default function UsersPage() {
           <DialogHeader>
             <DialogTitle>Restore User</DialogTitle>
             <DialogDescription className="space-y-2">
-              <RotateCcw className="h-12 w-12 text-green-500 mx-auto" />
+              <RotateCcw className="h-12 w-12 text-forest mx-auto" />
               <p>Are you sure you want to restore this user?</p>
               <p className="font-semibold">{selectedUser?.email}</p>
-              <p className="text-green-600 dark:text-green-400">
+              <p className="text-forest ">
                 This will reactivate the user and restore their access.
               </p>
             </DialogDescription>
@@ -1016,7 +1007,7 @@ export default function UsersPage() {
               Cancel
             </Button>
             <Button
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-forest hover:bg-forest"
               onClick={handleRestoreUser}
               disabled={isRestoring}
             >

@@ -112,27 +112,27 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
 
   return (
     <>
-      <div className="bg-white border-b border-gray-100 hover:bg-gray-50 transition-colors relative group">
+      <div className="bg-surface-1 border-b border-line hover:bg-paper transition-colors relative group">
         <Link href={`/sessions/${session.id}`} className="block p-6">
           <div className="space-y-4">
             {/* Header with date and status */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gray-100 rounded-lg">
-                  <Calendar className="h-4 w-4 text-gray-600" />
+                <div className="p-2 bg-surface-3 rounded-lg">
+                  <Calendar className="h-4 w-4 text-ink-3" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900">
+                  <h4 className="font-medium text-ink">
                     {formatDate(session.started_at || session.created_at)}
                   </h4>
                   <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-ink-3">
                       {formatTime(session.started_at || session.created_at)}
                     </span>
                     {duration && (
                       <>
-                        <span className="text-gray-300">•</span>
-                        <span className="text-sm text-gray-500 flex items-center gap-1">
+                        <span className="text-ink-2">•</span>
+                        <span className="text-sm text-ink-3 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
                           {duration} min
                         </span>
@@ -142,17 +142,17 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <ChevronRight className="h-5 w-5 text-gray-400" />
+                <ChevronRight className="h-5 w-5 text-ink-4" />
               </div>
             </div>
 
             {/* Summary Section */}
             {(session.summary || meetingSummary?.meeting_summary) && (
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-100">
+              <div className="bg-paper rounded-lg p-4 border border-line">
                 <div className="flex items-start gap-2">
-                  <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                  <FileText className="h-4 w-4 text-ink-3 mt-0.5 flex-shrink-0" />
                   <div className="flex-1 space-y-2">
-                    <p className="text-sm text-gray-700 line-clamp-3">
+                    <p className="text-sm text-ink-2 line-clamp-3">
                       {session.summary || meetingSummary?.meeting_summary}
                     </p>
                   </div>
@@ -169,7 +169,7 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
                     <Badge
                       key={index}
                       variant="secondary"
-                      className="bg-gray-100 text-gray-700 border-0 text-xs"
+                      className="bg-surface-3 text-ink-2 border-0 text-xs"
                     >
                       {topic}
                     </Badge>
@@ -177,7 +177,7 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
                 {session.key_topics.length > 5 && (
                   <Badge
                     variant="outline"
-                    className="border-gray-200 text-gray-500 text-xs"
+                    className="border-line text-ink-3 text-xs"
                   >
                     +{session.key_topics.length - 5} more
                   </Badge>
@@ -189,8 +189,8 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
             {session.action_items && session.action_items.length > 0 && (
               <div className="space-y-1.5">
                 <div className="flex items-center gap-1.5">
-                  <Brain className="h-3.5 w-3.5 text-gray-500" />
-                  <span className="text-xs font-medium text-gray-600 uppercase tracking-wider">
+                  <Brain className="h-3.5 w-3.5 text-ink-3" />
+                  <span className="text-xs font-medium text-ink-3 uppercase tracking-wider">
                     Commitments
                   </span>
                 </div>
@@ -200,14 +200,14 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
                     .map((item: string, index: number) => (
                       <li
                         key={index}
-                        className="text-sm text-gray-600 flex items-start gap-1.5"
+                        className="text-sm text-ink-3 flex items-start gap-1.5"
                       >
-                        <span className="text-gray-400 mt-0.5">•</span>
+                        <span className="text-ink-4 mt-0.5">•</span>
                         <span className="line-clamp-1">{item}</span>
                       </li>
                     ))}
                   {session.action_items.length > 2 && (
-                    <li className="text-sm text-gray-500 italic">
+                    <li className="text-sm text-ink-3 italic">
                       +{session.action_items.length - 2} more commitments
                     </li>
                   )}
@@ -218,9 +218,9 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
             {/* Score if available */}
             {meetingSummary?.final_overall_score && (
               <div className="flex items-center gap-2 pt-2">
-                <div className="px-2.5 py-1 bg-gray-100 rounded-md">
-                  <span className="text-xs text-gray-500">Score: </span>
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="px-2.5 py-1 bg-surface-3 rounded-md">
+                  <span className="text-xs text-ink-3">Score: </span>
+                  <span className="text-sm font-medium text-ink">
                     {meetingSummary.final_overall_score.toFixed(1)}/10
                   </span>
                 </div>
@@ -264,7 +264,7 @@ export default function SessionCard({ session, onDelete }: SessionCardProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                className="text-red-600 focus:text-red-700"
+                className="text-vermillion focus:text-vermillion"
                 onClick={e => {
                   e.preventDefault()
                   setShowDeleteDialog(true)

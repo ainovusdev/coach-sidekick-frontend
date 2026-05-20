@@ -272,13 +272,13 @@ export function NotesList({
       return (
         <div
           key={note.id}
-          className="border border-gray-300 rounded-xl p-4 bg-gray-50"
+          className="border border-line-strong rounded-xl p-4 bg-paper"
         >
           <Textarea
             value={editContent}
             onChange={e => setEditContent(e.target.value)}
             placeholder="Note content"
-            className="min-h-[120px] mb-3 border-gray-200 bg-white resize-none"
+            className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
             autoFocus
           />
           <div className="flex items-center justify-end gap-2">
@@ -295,7 +295,7 @@ export function NotesList({
               size="sm"
               onClick={saveEdit}
               disabled={saving || !editContent.trim()}
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 "
             >
               {saving ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -312,16 +312,16 @@ export function NotesList({
     return (
       <div
         key={note.id}
-        className="group border border-gray-200 rounded-xl p-4 hover:border-gray-300 hover:shadow-sm transition-all bg-white"
+        className="group border border-line rounded-xl p-4 hover:border-line-strong hover:shadow-sm transition-all bg-surface-1"
       >
         {/* Header with type badge and actions */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <Icon className="h-3.5 w-3.5 text-gray-600" />
+            <div className="h-7 w-7 rounded-lg bg-surface-3 flex items-center justify-center flex-shrink-0">
+              <Icon className="h-3.5 w-3.5 text-ink-3" />
             </div>
-            <div className="flex items-center gap-2 text-xs text-gray-500">
-              <span className="font-medium text-gray-700">
+            <div className="flex items-center gap-2 text-xs text-ink-3">
+              <span className="font-medium text-ink-2">
                 {config.shortLabel}
               </span>
               <span>•</span>
@@ -329,7 +329,7 @@ export function NotesList({
               {note.updated_at !== note.created_at && (
                 <>
                   <span>•</span>
-                  <span className="text-gray-400">edited</span>
+                  <span className="text-ink-4">edited</span>
                 </>
               )}
             </div>
@@ -341,7 +341,7 @@ export function NotesList({
               variant="ghost"
               size="sm"
               onClick={() => startEditing(note)}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900"
+              className="h-8 w-8 p-0 text-ink-3 hover:text-ink"
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
@@ -349,7 +349,7 @@ export function NotesList({
               variant="ghost"
               size="sm"
               onClick={() => setNoteToDelete(note)}
-              className="h-8 w-8 p-0 text-gray-500 hover:text-red-600"
+              className="h-8 w-8 p-0 text-ink-3 hover:text-vermillion"
             >
               <Trash2 className="h-3.5 w-3.5" />
             </Button>
@@ -358,7 +358,7 @@ export function NotesList({
 
         {/* Content */}
         <div
-          className="text-sm text-gray-700 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1"
+          className="text-sm text-ink-2 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1"
           dangerouslySetInnerHTML={{ __html: note.content }}
         />
       </div>
@@ -371,14 +371,14 @@ export function NotesList({
       <div className="space-y-3">
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-ink-4" />
           </div>
         ) : displayedNotes.length > 0 ? (
           displayedNotes.map(renderNoteCard)
         ) : (
           <div className="text-center py-8">
-            <StickyNote className="h-10 w-10 mx-auto mb-3 text-gray-300" />
-            <p className="text-sm text-gray-500">No notes yet</p>
+            <StickyNote className="h-10 w-10 mx-auto mb-3 text-ink-2" />
+            <p className="text-sm text-ink-3">No notes yet</p>
           </div>
         )}
 
@@ -387,7 +387,7 @@ export function NotesList({
           open={!!noteToDelete}
           onOpenChange={open => !open && setNoteToDelete(null)}
         >
-          <AlertDialogContent className="bg-white">
+          <AlertDialogContent className="bg-surface-1">
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Note?</AlertDialogTitle>
               <AlertDialogDescription>
@@ -400,7 +400,7 @@ export function NotesList({
               <AlertDialogAction
                 onClick={handleDeleteNote}
                 disabled={deleting}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 {deleting ? 'Deleting...' : 'Delete'}
               </AlertDialogAction>
@@ -421,8 +421,8 @@ export function NotesList({
             onClick={() => setActiveFilter('all')}
             className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
               activeFilter === 'all'
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? 'bg-ink text-ink-on-dark '
+                : 'bg-surface-3 text-ink-3 hover:bg-surface-3'
             }`}
           >
             All
@@ -439,8 +439,8 @@ export function NotesList({
                 onClick={() => setActiveFilter(type)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
                   activeFilter === type
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-ink text-ink-on-dark '
+                    : 'bg-surface-3 text-ink-3 hover:bg-surface-3'
                 }`}
               >
                 {config.shortLabel}
@@ -456,7 +456,7 @@ export function NotesList({
         <Button
           onClick={() => setShowCreateForm(true)}
           size="sm"
-          className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+          className="bg-ink hover:bg-ink-2 "
         >
           <Plus className="h-4 w-4 mr-1" />
           Add Note
@@ -465,13 +465,11 @@ export function NotesList({
 
       {/* Create note form */}
       {showCreateForm && (
-        <div className="border border-gray-200 rounded-xl p-4 bg-gray-50">
+        <div className="border border-line rounded-xl p-4 bg-paper">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <StickyNote className="h-4 w-4 text-gray-600" />
-              <span className="text-sm font-medium text-gray-900">
-                New Note
-              </span>
+              <StickyNote className="h-4 w-4 text-ink-3" />
+              <span className="text-sm font-medium text-ink">New Note</span>
             </div>
             {/* Note type selector - compact */}
             <div className="flex items-center gap-1">
@@ -485,8 +483,8 @@ export function NotesList({
                     title={config.description}
                     className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-colors ${
                       newNoteType === type
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                        : 'bg-white border border-gray-200 text-gray-600 hover:border-gray-300'
+                        ? 'bg-ink text-ink-on-dark '
+                        : 'bg-surface-1 border border-line text-ink-3 hover:border-line-strong'
                     }`}
                   >
                     <TypeIcon className="h-3 w-3" />
@@ -501,7 +499,7 @@ export function NotesList({
             value={newNoteContent}
             onChange={e => setNewNoteContent(e.target.value)}
             placeholder="Capture your thoughts, observations, or action items..."
-            className="min-h-[120px] mb-3 border-gray-200 bg-white resize-none"
+            className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
             autoFocus
           />
           <div className="flex items-center justify-end gap-2">
@@ -520,7 +518,7 @@ export function NotesList({
               size="sm"
               onClick={handleCreateNote}
               disabled={creating || !newNoteContent.trim()}
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 "
             >
               {creating ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
@@ -536,19 +534,19 @@ export function NotesList({
       {/* Notes list */}
       {loading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-ink-4" />
         </div>
       ) : displayedNotes.length > 0 ? (
         <div className="space-y-3">{displayedNotes.map(renderNoteCard)}</div>
       ) : (
-        <div className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-          <StickyNote className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-          <h3 className="font-medium text-gray-900 mb-1">
+        <div className="text-center py-12 bg-paper rounded-xl border border-line">
+          <StickyNote className="h-12 w-12 mx-auto mb-4 text-ink-2" />
+          <h3 className="font-medium text-ink mb-1">
             {activeFilter === 'all'
               ? 'No notes yet'
               : `No ${NOTE_TYPE_CONFIG[activeFilter as NoteType]?.label.toLowerCase() || 'notes'} yet`}
           </h3>
-          <p className="text-sm text-gray-500 mb-4">
+          <p className="text-sm text-ink-3 mb-4">
             {isClientPortal
               ? 'Add your reflections and thoughts about this session'
               : 'Capture important observations and insights'}
@@ -557,7 +555,7 @@ export function NotesList({
             onClick={() => setShowCreateForm(true)}
             size="sm"
             variant="outline"
-            className="border-gray-300"
+            className="border-line-strong"
           >
             <Plus className="h-4 w-4 mr-1" />
             Add your first note
@@ -567,7 +565,7 @@ export function NotesList({
 
       {/* Show more indicator */}
       {maxNotes && filteredNotes.length > maxNotes && (
-        <p className="text-center text-sm text-gray-500">
+        <p className="text-center text-sm text-ink-3">
           +{filteredNotes.length - maxNotes} more notes
         </p>
       )}
@@ -577,19 +575,19 @@ export function NotesList({
         open={!!noteToDelete}
         onOpenChange={open => !open && setNoteToDelete(null)}
       >
-        <AlertDialogContent className="bg-white border-gray-200">
+        <AlertDialogContent className="bg-surface-1 border-line">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-gray-900">
+            <AlertDialogTitle className="text-ink">
               Delete Note
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600">
+            <AlertDialogDescription className="text-ink-3">
               Are you sure you want to delete &quot;{noteToDelete?.title}&quot;?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel
-              className="border-gray-300 text-gray-900 hover:bg-gray-100"
+              className="border-line-strong text-ink hover:bg-surface-3"
               disabled={deleting}
             >
               Cancel
@@ -597,7 +595,7 @@ export function NotesList({
             <AlertDialogAction
               onClick={handleDeleteNote}
               disabled={deleting}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              className="bg-vermillion hover:bg-vermillion text-ink-on-dark"
             >
               {deleting ? (
                 <>

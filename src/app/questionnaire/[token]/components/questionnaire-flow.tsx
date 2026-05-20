@@ -234,12 +234,12 @@ export function QuestionnaireFlow({
     kind === 'post_session' ? 'Thrill Form' : 'Pre-Session Questionnaire'
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen flex flex-col  ">
       {/* Progress Bar */}
       <div className="fixed top-0 left-0 right-0 z-50">
-        <div className="h-1 bg-gray-100">
+        <div className="h-1 bg-surface-3">
           <div
-            className="h-full bg-gray-900 transition-all duration-500 ease-out"
+            className="h-full bg-ink transition-all duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -255,7 +255,7 @@ export function QuestionnaireFlow({
           className="opacity-80"
           priority
         />
-        <p className="text-xs uppercase tracking-widest text-gray-400 font-medium">
+        <p className="text-xs uppercase tracking-widest text-ink-4 font-medium">
           {headerCaption}
         </p>
       </div>
@@ -274,15 +274,13 @@ export function QuestionnaireFlow({
           >
             {/* Question Counter */}
             <div className="mb-8">
-              <span className="text-sm text-gray-400 font-medium">
+              <span className="text-sm text-ink-4 font-medium">
                 {position + 1}{' '}
-                <span className="text-gray-300">
-                  / {visibleQuestions.length}
-                </span>
+                <span className="text-ink-2">/ {visibleQuestions.length}</span>
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-light text-gray-900 leading-relaxed mb-8">
+            <h2 className="text-2xl sm:text-3xl font-light text-ink leading-relaxed mb-8">
               {currentQuestion?.text}
             </h2>
 
@@ -312,7 +310,7 @@ export function QuestionnaireFlow({
                     ? 'Optional — leave blank if you have nothing to add'
                     : 'Type your answer here...'
                 }
-                className="w-full bg-transparent border-0 border-b-2 border-gray-200 focus:border-gray-900 text-lg text-gray-800 placeholder-gray-300 resize-none outline-none pb-3 transition-colors duration-200 min-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-transparent border-0 border-b-2 border-line focus:border-line text-lg text-ink-2 placeholder-ink-2 resize-none outline-none pb-3 transition-colors duration-200 min-h-[120px] disabled:opacity-50 disabled:cursor-not-allowed"
                 rows={3}
               />
             )}
@@ -325,8 +323,8 @@ export function QuestionnaireFlow({
               disabled={isFirst || isAnimating}
               className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                 isFirst
-                  ? 'text-gray-300 cursor-not-allowed'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  ? 'text-ink-2 cursor-not-allowed'
+                  : 'text-ink-3 hover:text-ink hover:bg-surface-3'
               }`}
             >
               <ArrowLeft className="h-4 w-4" />
@@ -338,8 +336,8 @@ export function QuestionnaireFlow({
               disabled={!canAdvance || isAnimating || isSubmitting}
               className={`flex items-center gap-2 px-6 py-3 text-sm font-semibold rounded-lg transition-all ${
                 canAdvance
-                  ? 'bg-gray-900 text-white hover:bg-gray-800 shadow-sm'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                  ? 'bg-ink text-ink-on-dark hover:bg-ink-2 shadow-sm'
+                  : 'bg-surface-3 text-ink-4 cursor-not-allowed'
               }`}
             >
               <span
@@ -374,13 +372,13 @@ export function QuestionnaireFlow({
           {/* Keyboard hint — only useful for text inputs */}
           {currentQuestion?.type !== 'scale' &&
             currentQuestion?.type !== 'yes_no' && (
-              <p className="text-center text-xs text-gray-300 mt-8">
+              <p className="text-center text-xs text-ink-2 mt-8">
                 Press{' '}
-                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
+                <kbd className="px-1.5 py-0.5 bg-surface-3 rounded text-ink-4 font-mono">
                   ⌘
                 </kbd>{' '}
                 +{' '}
-                <kbd className="px-1.5 py-0.5 bg-gray-100 rounded text-gray-400 font-mono">
+                <kbd className="px-1.5 py-0.5 bg-surface-3 rounded text-ink-4 font-mono">
                   Enter
                 </kbd>{' '}
                 to continue
@@ -391,7 +389,7 @@ export function QuestionnaireFlow({
 
       {/* Footer */}
       <div className="pb-6 text-center">
-        <p className="text-xs text-gray-300">Powered by Novus Global</p>
+        <p className="text-xs text-ink-2">Powered by Novus Global</p>
       </div>
     </div>
   )
@@ -425,8 +423,8 @@ function ScaleInput({ question, value, onChange, disabled }: ScaleInputProps) {
               onClick={() => onChange(String(n))}
               className={`aspect-square min-h-[44px] flex items-center justify-center rounded-lg border-2 text-base sm:text-lg font-semibold transition-all ${
                 isSelected
-                  ? 'bg-gray-900 text-white border-gray-900 shadow-sm scale-105'
-                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:text-gray-900'
+                  ? 'bg-ink text-ink-on-dark border-line shadow-sm scale-105'
+                  : 'bg-surface-1 text-ink-2 border-line hover:border-line-strong hover:text-ink'
               } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
               aria-label={`Rate ${n}`}
               aria-pressed={isSelected}
@@ -437,7 +435,7 @@ function ScaleInput({ question, value, onChange, disabled }: ScaleInputProps) {
         })}
       </div>
       {(question.scale_min_label || question.scale_max_label) && (
-        <div className="flex justify-between mt-3 text-xs text-gray-400">
+        <div className="flex justify-between mt-3 text-xs text-ink-4">
           <span>
             {min}
             {question.scale_min_label ? ` — ${question.scale_min_label}` : ''}
@@ -472,8 +470,8 @@ function YesNoInput({ value, onChange, disabled }: YesNoInputProps) {
             onClick={() => onChange(opt)}
             className={`flex-1 py-4 sm:py-5 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all capitalize ${
               isSelected
-                ? 'bg-gray-900 text-white border-gray-900 shadow-sm'
-                : 'bg-white text-gray-700 border-gray-200 hover:border-gray-400 hover:text-gray-900'
+                ? 'bg-ink text-ink-on-dark border-line shadow-sm'
+                : 'bg-surface-1 text-ink-2 border-line hover:border-line-strong hover:text-ink'
             } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
             aria-pressed={isSelected}
           >

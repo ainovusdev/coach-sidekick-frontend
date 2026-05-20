@@ -236,16 +236,14 @@ export function VideoReviewPanel({
   return (
     <div className={cn('space-y-4', className)}>
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-base font-semibold text-gray-900">
-          Session review
-        </h3>
+        <h3 className="text-base font-semibold text-ink">Session review</h3>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setHelpOpen(true)}
             title="Keyboard shortcuts"
-            className="text-gray-500 hover:text-gray-700"
+            className="text-ink-3 hover:text-ink-2"
           >
             <Keyboard className="h-4 w-4" />
           </Button>
@@ -254,7 +252,7 @@ export function VideoReviewPanel({
               variant="outline"
               size="sm"
               onClick={() => setShareOpen(true)}
-              className="border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+              className="border-indigo text-indigo hover:bg-indigo-bg"
             >
               <Share2 className="h-4 w-4 mr-1.5" />
               Share
@@ -278,7 +276,7 @@ export function VideoReviewPanel({
                   variant="ghost"
                   size="sm"
                   onClick={() => setTranscriptOpen(false)}
-                  className="h-7 px-2 text-xs text-gray-600 hover:text-gray-900"
+                  className="h-7 px-2 text-xs text-ink-3 hover:text-ink"
                 >
                   <ChevronDown className="h-3.5 w-3.5 mr-1" />
                   Hide transcript
@@ -290,20 +288,20 @@ export function VideoReviewPanel({
             <button
               type="button"
               onClick={() => setTranscriptOpen(true)}
-              className="flex w-full items-center justify-between gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-left hover:bg-gray-50"
+              className="flex w-full items-center justify-between gap-2 rounded-lg border border-line bg-surface-1 px-4 py-2.5 text-left hover:bg-paper"
               aria-expanded={false}
             >
               <div className="flex items-center gap-2">
-                <ChevronRight className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-semibold text-gray-900">
+                <ChevronRight className="h-4 w-4 text-ink-3" />
+                <span className="text-sm font-semibold text-ink">
                   Transcript
                 </span>
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-ink-3">
                   {transcript.length}{' '}
                   {transcript.length === 1 ? 'line' : 'lines'}
                 </span>
               </div>
-              <span className="text-xs text-indigo-600">Show</span>
+              <span className="text-xs text-indigo">Show</span>
             </button>
           )
         ) : (
@@ -362,8 +360,8 @@ export function VideoReviewPanel({
 function ShortcutRow({ keys, label }: { keys: string; label: string }) {
   return (
     <li className="flex items-center justify-between gap-3 py-1">
-      <span className="text-gray-700">{label}</span>
-      <kbd className="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-700">
+      <span className="text-ink-2">{label}</span>
+      <kbd className="rounded bg-surface-3 px-2 py-0.5 font-mono text-xs text-ink-2">
         {keys}
       </kbd>
     </li>

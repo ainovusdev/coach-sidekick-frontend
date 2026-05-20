@@ -104,7 +104,7 @@ export default function SessionReviewPage({
   if (error || !data) {
     return (
       <div className="min-h-screen bg-app-surface flex items-center justify-center p-4">
-        <div className="text-center max-w-md mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-sm p-8 border border-app-border">
+        <div className="text-center max-w-md mx-auto bg-surface-1 rounded-lg shadow-sm p-8 border border-app-border">
           <EmptyState
             icon={AlertCircle}
             title="Session not available"
@@ -133,7 +133,7 @@ export default function SessionReviewPage({
   return (
     <ProtectedRoute loadingMessage="Loading review...">
       <PageLayout>
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-surface-1 ">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div className="min-w-0">

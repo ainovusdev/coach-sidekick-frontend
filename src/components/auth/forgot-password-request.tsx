@@ -71,15 +71,15 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
 
   if (submitted) {
     return (
-      <Card className="border-green-200 dark:border-green-900/50 bg-green-50/50 dark:bg-green-950/20">
+      <Card className="border-forest bg-forest-bg/50 ">
         <CardHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-100 dark:bg-green-900/40 rounded-full">
-              <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />
+            <div className="p-2 bg-forest-bg rounded-full">
+              <CheckCircle className="h-6 w-6 text-forest " />
             </div>
             <div>
               <CardTitle className="text-lg">Check Your Email</CardTitle>
-              <CardDescription className="text-green-700 dark:text-green-400">
+              <CardDescription className="text-forest ">
                 Password reset instructions sent
               </CardDescription>
             </div>
@@ -92,7 +92,7 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
             receive password reset instructions within a few minutes.
           </p>
 
-          <div className="bg-card rounded-lg p-4 border border-green-200 dark:border-green-900/50">
+          <div className="bg-card rounded-lg p-4 border border-forest ">
             <h4 className="font-medium text-sm text-foreground mb-2">
               Next steps:
             </h4>
@@ -174,7 +174,7 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
           </div>
 
           {error && (
-            <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+            <div className="flex items-start gap-2 text-vermillion text-sm bg-vermillion-bg p-3 rounded-lg border border-vermillion ">
               <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
               <span>{error}</span>
             </div>
@@ -182,7 +182,7 @@ export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
 
           <Button
             type="submit"
-            className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
+            className="w-full bg-app-accent hover:bg-app-accent/90 text-ink-on-dark font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
             disabled={loading || !email.trim()}
           >
             {loading ? (

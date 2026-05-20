@@ -224,10 +224,10 @@ export function CoachEvaluationDialog({
                   className={cn(
                     'block w-full h-1.5 rounded-full transition',
                     active
-                      ? 'bg-indigo-500'
+                      ? 'bg-indigo'
                       : answered
-                        ? 'bg-indigo-300 hover:bg-indigo-400'
-                        : 'bg-gray-200 hover:bg-gray-300',
+                        ? 'bg-indigo hover:bg-indigo'
+                        : 'bg-surface-3 hover:bg-line',
                   )}
                 />
               </li>
@@ -242,10 +242,10 @@ export function CoachEvaluationDialog({
               className={cn(
                 'block h-1.5 w-6 rounded-full transition',
                 onReview
-                  ? 'bg-indigo-500'
+                  ? 'bg-indigo'
                   : allAnswered
-                    ? 'bg-indigo-300 hover:bg-indigo-400'
-                    : 'bg-gray-100',
+                    ? 'bg-indigo hover:bg-indigo'
+                    : 'bg-surface-3',
               )}
             />
           </li>
@@ -267,7 +267,7 @@ export function CoachEvaluationDialog({
                     onClick={() => handleSelect(opt.value)}
                     disabled={isPending}
                     className={cn(
-                      'h-12 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo-400',
+                      'h-12 rounded-lg text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-indigo',
                       'flex flex-col items-center justify-center px-1',
                       isSelected ? opt.selectedClass : opt.unselectedClass,
                     )}
@@ -279,23 +279,23 @@ export function CoachEvaluationDialog({
             </div>
             <p className="mt-5 text-xs text-app-secondary">
               Press{' '}
-              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-gray-50 dark:bg-gray-800 text-[10px] font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-paper text-[10px] font-mono">
                 1
               </kbd>
               –
-              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-gray-50 dark:bg-gray-800 text-[10px] font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-paper text-[10px] font-mono">
                 4
               </kbd>{' '}
               ·{' '}
-              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-gray-50 dark:bg-gray-800 text-[10px] font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-paper text-[10px] font-mono">
                 N
               </kbd>{' '}
               for Not Observed ·{' '}
-              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-gray-50 dark:bg-gray-800 text-[10px] font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-paper text-[10px] font-mono">
                 ←
               </kbd>
               /
-              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-gray-50 dark:bg-gray-800 text-[10px] font-mono">
+              <kbd className="px-1.5 py-0.5 rounded border border-app-border bg-paper text-[10px] font-mono">
                 →
               </kbd>{' '}
               to navigate
@@ -318,7 +318,7 @@ export function CoachEvaluationDialog({
                       type="button"
                       onClick={() => setStep(i)}
                       title={q.text}
-                      className="flex items-center gap-2 rounded-md border border-app-border px-2 py-1.5 text-left hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                      className="flex items-center gap-2 rounded-md border border-app-border px-2 py-1.5 text-left hover:bg-paper "
                     >
                       <span className="text-[10px] font-medium text-app-secondary shrink-0">
                         Q{i + 1}
@@ -376,7 +376,7 @@ export function CoachEvaluationDialog({
                 type="button"
                 variant="ghost"
                 size="sm"
-                className="text-red-600 hover:bg-red-50 hover:text-red-700"
+                className="text-vermillion hover:bg-vermillion-bg hover:text-vermillion"
                 onClick={() => setConfirmDeleteOpen(true)}
                 disabled={isPending}
               >
@@ -434,7 +434,7 @@ export function CoachEvaluationDialog({
             <AlertDialogAction
               onClick={handleDelete}
               disabled={isPending}
-              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              className="bg-vermillion hover:bg-vermillion focus:ring-vermillion"
             >
               Delete
             </AlertDialogAction>

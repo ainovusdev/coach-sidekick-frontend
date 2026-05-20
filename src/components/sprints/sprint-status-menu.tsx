@@ -57,25 +57,25 @@ export function SprintStatusMenu({
       value: 'planning' as SprintStatus,
       label: 'Planning',
       icon: Edit,
-      color: 'text-yellow-600',
+      color: 'text-amber-token',
     },
     {
       value: 'active' as SprintStatus,
       label: 'Active',
       icon: Play,
-      color: 'text-green-600',
+      color: 'text-forest',
     },
     {
       value: 'completed' as SprintStatus,
       label: 'Completed',
       icon: CheckCircle,
-      color: 'text-blue-600',
+      color: 'text-ds-accent',
     },
     {
       value: 'cancelled' as SprintStatus,
       label: 'Cancelled',
       icon: X,
-      color: 'text-gray-600',
+      color: 'text-ink-3',
     },
   ]
 
@@ -98,12 +98,12 @@ export function SprintStatusMenu({
               key={option.value}
               onClick={() => !isCurrent && handleStatusChange(option.value)}
               disabled={isCurrent || updating}
-              className={isCurrent ? 'bg-gray-50' : ''}
+              className={isCurrent ? 'bg-paper' : ''}
             >
               <Icon className={`h-4 w-4 mr-2 ${option.color}`} />
               <span>{option.label}</span>
               {isCurrent && (
-                <span className="ml-auto text-xs text-gray-500">(Current)</span>
+                <span className="ml-auto text-xs text-ink-3">(Current)</span>
               )}
             </DropdownMenuItem>
           )

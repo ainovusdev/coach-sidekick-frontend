@@ -22,38 +22,34 @@ export function ClientSummaryCard({
     : null
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="border-b border-gray-100">
+    <Card className="border-line shadow-sm">
+      <CardHeader className="border-b border-line">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-blue-50 rounded-lg">
-            <User className="h-5 w-5 text-blue-600" />
+          <div className="p-2 bg-ds-accent-bg rounded-lg">
+            <User className="h-5 w-5 text-ds-accent" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900">
-              Client Summary
-            </h2>
-            <p className="text-sm text-gray-500">
-              Overall insights and progress
-            </p>
+            <h2 className="text-lg font-semibold text-ink">Client Summary</h2>
+            <p className="text-sm text-ink-3">Overall insights and progress</p>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
         {/* Quick Stats Grid */}
         <div className="grid grid-cols-2 gap-4">
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-paper rounded-lg">
             <div className="flex items-center gap-2 mb-1">
-              <MessageSquare className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">Total Sessions</span>
+              <MessageSquare className="h-4 w-4 text-ink-3" />
+              <span className="text-sm text-ink-3">Total Sessions</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">{totalSessions}</p>
+            <p className="text-2xl font-bold text-ink">{totalSessions}</p>
           </div>
-          <div className="p-4 bg-gray-50 rounded-lg">
+          <div className="p-4 bg-paper rounded-lg">
             <div className="flex items-center gap-2 mb-1">
-              <TrendingUp className="h-4 w-4 text-gray-500" />
-              <span className="text-sm text-gray-600">Avg Score</span>
+              <TrendingUp className="h-4 w-4 text-ink-3" />
+              <span className="text-sm text-ink-3">Avg Score</span>
             </div>
-            <p className="text-2xl font-bold text-gray-900">
+            <p className="text-2xl font-bold text-ink">
               {avgScore ? avgScore.toFixed(1) : 'N/A'}
             </p>
           </div>
@@ -61,12 +57,10 @@ export function ClientSummaryCard({
 
         {/* Last Session Date */}
         {lastSessionDate && (
-          <div className="pt-2 border-t border-gray-100">
-            <p className="text-sm text-gray-600">
+          <div className="pt-2 border-t border-line">
+            <p className="text-sm text-ink-3">
               Last session:{' '}
-              <span className="font-medium text-gray-900">
-                {lastSessionDate}
-              </span>
+              <span className="font-medium text-ink">{lastSessionDate}</span>
             </p>
           </div>
         )}
@@ -75,17 +69,15 @@ export function ClientSummaryCard({
         {focusAreas.length > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Target className="h-4 w-4 text-gray-500" />
-              <h3 className="text-sm font-medium text-gray-900">
-                Key Focus Areas
-              </h3>
+              <Target className="h-4 w-4 text-ink-3" />
+              <h3 className="text-sm font-medium text-ink">Key Focus Areas</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {focusAreas.slice(0, 6).map((area, index) => (
                 <Badge
                   key={index}
                   variant="outline"
-                  className="bg-blue-50 border-blue-200 text-blue-700 text-xs"
+                  className="bg-ds-accent-bg border-ds-accent text-ds-accent text-xs"
                 >
                   {area}
                 </Badge>
@@ -96,9 +88,9 @@ export function ClientSummaryCard({
 
         {/* Notes if available */}
         {client.notes && (
-          <div className="pt-2 border-t border-gray-100">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Notes</h3>
-            <p className="text-sm text-gray-600 line-clamp-3">{client.notes}</p>
+          <div className="pt-2 border-t border-line">
+            <h3 className="text-sm font-medium text-ink mb-2">Notes</h3>
+            <p className="text-sm text-ink-3 line-clamp-3">{client.notes}</p>
           </div>
         )}
       </CardContent>

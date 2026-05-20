@@ -141,7 +141,7 @@ function TopNavShell({
   const pathname = usePathname() ?? ''
 
   return (
-    <div className="min-h-screen bg-bg flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {banner}
       <header className="bg-paper border-b border-line sticky top-0 z-50">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-8">
@@ -199,7 +199,7 @@ function SidebarShell({
   return (
     <>
       {banner}
-      <div className="flex h-screen bg-bg">
+      <div className="flex h-screen bg-background">
         <aside
           className={cn(
             'bg-sidebar text-sidebar-foreground flex flex-col transition-[width] duration-200 ease-in-out shrink-0',

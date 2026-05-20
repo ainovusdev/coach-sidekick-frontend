@@ -298,11 +298,11 @@ export function AutoExtractionModal({
   const pendingCount = suggestions.filter(s => s.status === 'pending').length
 
   const getConfidenceColor = (confidence?: number) => {
-    if (!confidence) return 'bg-gray-100 text-gray-600'
-    if (confidence >= 0.85) return 'bg-green-100 text-green-700'
-    if (confidence >= 0.7) return 'bg-blue-100 text-blue-700'
-    if (confidence >= 0.5) return 'bg-yellow-100 text-yellow-700'
-    return 'bg-gray-100 text-gray-600'
+    if (!confidence) return 'bg-surface-3 text-ink-3'
+    if (confidence >= 0.85) return 'bg-forest-bg text-forest'
+    if (confidence >= 0.7) return 'bg-ds-accent-bg text-ds-accent'
+    if (confidence >= 0.5) return 'bg-amber-token-bg text-amber-token'
+    return 'bg-surface-3 text-ink-3'
   }
 
   return (
@@ -310,14 +310,14 @@ export function AutoExtractionModal({
       <DialogContent className="max-w-lg max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-black rounded-xl">
-              <Sparkles className="h-5 w-5 text-white" />
+            <div className="p-2.5 bg-ink rounded-xl">
+              <Sparkles className="h-5 w-5 text-ink-on-dark" />
             </div>
             <div>
               <DialogTitle className="text-lg font-semibold">
                 Session Insights
               </DialogTitle>
-              <DialogDescription className="text-sm text-gray-500">
+              <DialogDescription className="text-sm text-ink-3">
                 {step === 'loading' && 'Analyzing session for key takeaways...'}
                 {step === 'review' && 'Review and confirm suggested items'}
                 {step === 'complete' && 'All done!'}
@@ -331,11 +331,11 @@ export function AutoExtractionModal({
           {step === 'loading' && (
             <div className="flex flex-col items-center justify-center py-12">
               <div className="relative">
-                <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Loader2 className="h-6 w-6 text-gray-900 animate-spin" />
+                <div className="w-12 h-12 bg-surface-3 rounded-full flex items-center justify-center">
+                  <Loader2 className="h-6 w-6 text-ink animate-spin" />
                 </div>
               </div>
-              <p className="text-sm text-gray-600 mt-4">
+              <p className="text-sm text-ink-3 mt-4">
                 Extracting commitments and wins...
               </p>
             </div>
@@ -351,7 +351,7 @@ export function AutoExtractionModal({
                     size="sm"
                     variant="outline"
                     onClick={handleRejectAll}
-                    className="text-gray-600 hover:text-red-600 hover:border-red-200 hover:bg-red-50"
+                    className="text-ink-3 hover:text-vermillion hover:border-vermillion hover:bg-vermillion-bg"
                   >
                     <XCircle className="h-4 w-4 mr-1" />
                     Reject All
@@ -360,7 +360,7 @@ export function AutoExtractionModal({
                     size="sm"
                     variant="outline"
                     onClick={handleAcceptAll}
-                    className="text-gray-600 hover:text-green-600 hover:border-green-200 hover:bg-green-50"
+                    className="text-ink-3 hover:text-forest hover:border-forest hover:bg-forest-bg"
                   >
                     <CheckCheck className="h-4 w-4 mr-1" />
                     Accept All
@@ -373,10 +373,10 @@ export function AutoExtractionModal({
                   key={item.id}
                   className={`p-4 rounded-xl border transition-all ${
                     item.status === 'accepted'
-                      ? 'border-green-200 bg-green-50'
+                      ? 'border-forest bg-forest-bg'
                       : item.status === 'rejected'
-                        ? 'border-gray-200 bg-gray-50 opacity-50'
-                        : 'border-gray-200 bg-white hover:border-gray-300'
+                        ? 'border-line bg-paper opacity-50'
+                        : 'border-line bg-surface-1 hover:border-line-strong'
                   }`}
                 >
                   {editingItem === item.id ? (
@@ -386,21 +386,19 @@ export function AutoExtractionModal({
                         value={editTitle}
                         onChange={e => setEditTitle(e.target.value)}
                         placeholder="Title"
-                        className="border-gray-200"
+                        className="border-line"
                         autoFocus
                       />
                       <Textarea
                         value={editDescription}
                         onChange={e => setEditDescription(e.target.value)}
                         placeholder="Description (optional)"
-                        className="border-gray-200 resize-none min-h-[60px]"
+                        className="border-line resize-none min-h-[60px]"
                       />
                       {/* Date picker for commitments */}
                       {item.type === 'commitment' && (
                         <div className="flex items-center gap-2">
-                          <span className="text-sm text-gray-500">
-                            Due date:
-                          </span>
+                          <span className="text-sm text-ink-3">Due date:</span>
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button
@@ -440,7 +438,7 @@ export function AutoExtractionModal({
                           size="sm"
                           onClick={() => handleSaveEdit(item.id)}
                           disabled={!editTitle.trim()}
-                          className="bg-green-600 hover:bg-green-700"
+                          className="bg-forest hover:bg-forest"
                         >
                           <Check className="h-4 w-4 mr-1" />
                           Save
@@ -454,21 +452,21 @@ export function AutoExtractionModal({
                       <div
                         className={`p-2 rounded-lg flex-shrink-0 ${
                           item.type === 'win'
-                            ? 'bg-amber-100'
-                            : 'bg-emerald-100'
+                            ? 'bg-amber-token-bg'
+                            : 'bg-forest-bg'
                         }`}
                       >
                         {item.type === 'win' ? (
-                          <Trophy className="h-4 w-4 text-amber-600" />
+                          <Trophy className="h-4 w-4 text-amber-token" />
                         ) : (
-                          <Target className="h-4 w-4 text-emerald-600" />
+                          <Target className="h-4 w-4 text-forest" />
                         )}
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
-                          <span className="text-xs font-medium text-gray-500 uppercase">
+                          <span className="text-xs font-medium text-ink-3 uppercase">
                             {item.type === 'win' ? 'Win' : 'Commitment'}
                           </span>
                           {item.confidence && (
@@ -480,16 +478,16 @@ export function AutoExtractionModal({
                             </Badge>
                           )}
                           {item.status === 'accepted' && (
-                            <Badge className="bg-green-600 text-white text-xs">
+                            <Badge className="bg-forest text-ink-on-dark text-xs">
                               Accepted
                             </Badge>
                           )}
                         </div>
-                        <h4 className="font-medium text-gray-900 text-sm">
+                        <h4 className="font-medium text-ink text-sm">
                           {item.title}
                         </h4>
                         {item.description && (
-                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                          <p className="text-sm text-ink-3 mt-1 line-clamp-2">
                             {item.description}
                           </p>
                         )}
@@ -502,7 +500,7 @@ export function AutoExtractionModal({
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-7 text-xs justify-start text-left font-normal border-gray-200 hover:border-gray-300"
+                                    className="h-7 text-xs justify-start text-left font-normal border-line hover:border-line-strong"
                                   >
                                     <CalendarIcon className="h-3 w-3 mr-1.5" />
                                     {item.target_date
@@ -534,7 +532,7 @@ export function AutoExtractionModal({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                            className="h-8 w-8 p-0 text-ink-3 hover:text-ink hover:bg-surface-3"
                             onClick={() => handleStartEdit(item)}
                             title="Edit"
                           >
@@ -543,7 +541,7 @@ export function AutoExtractionModal({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                            className="h-8 w-8 p-0 text-ink-3 hover:text-vermillion hover:bg-vermillion-bg"
                             onClick={() => handleReject(item.id)}
                             title="Reject"
                           >
@@ -552,7 +550,7 @@ export function AutoExtractionModal({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0 text-gray-500 hover:text-green-600 hover:bg-green-50"
+                            className="h-8 w-8 p-0 text-ink-3 hover:text-forest hover:bg-forest-bg"
                             onClick={() => handleAccept(item.id)}
                             title="Accept"
                           >
@@ -566,11 +564,11 @@ export function AutoExtractionModal({
               ))}
 
               {/* Summary and Actions */}
-              <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-                <p className="text-sm text-gray-500">
+              <div className="pt-4 border-t border-line flex items-center justify-between">
+                <p className="text-sm text-ink-3">
                   {acceptedCount > 0 ? (
                     <>
-                      <span className="font-medium text-green-600">
+                      <span className="font-medium text-forest">
                         {acceptedCount}
                       </span>{' '}
                       item{acceptedCount !== 1 ? 's' : ''} selected
@@ -594,7 +592,7 @@ export function AutoExtractionModal({
                     size="sm"
                     onClick={handleConfirmAll}
                     disabled={isSaving || acceptedCount === 0}
-                    className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+                    className="bg-ink hover:bg-ink-2 "
                   >
                     {isSaving ? (
                       <>
@@ -616,13 +614,13 @@ export function AutoExtractionModal({
           {/* Complete State */}
           {step === 'complete' && suggestions.length === 0 && (
             <div className="text-center py-10">
-              <div className="w-14 h-14 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-7 w-7 text-gray-400" />
+              <div className="w-14 h-14 bg-surface-3 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-7 w-7 text-ink-4" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">
+              <h3 className="font-semibold text-ink mb-2">
                 No suggestions found
               </h3>
-              <p className="text-sm text-gray-500 mb-6 max-w-xs mx-auto">
+              <p className="text-sm text-ink-3 mb-6 max-w-xs mx-auto">
                 We couldn&apos;t find any commitments or wins to extract from
                 this session.
               </p>
@@ -634,11 +632,11 @@ export function AutoExtractionModal({
 
           {step === 'complete' && suggestions.length > 0 && (
             <div className="text-center py-10">
-              <div className="w-14 h-14 bg-green-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <Check className="h-7 w-7 text-green-600" />
+              <div className="w-14 h-14 bg-forest-bg rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <Check className="h-7 w-7 text-forest" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2">Items Saved</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="font-semibold text-ink mb-2">Items Saved</h3>
+              <p className="text-sm text-ink-3">
                 Your session insights have been saved successfully.
               </p>
             </div>

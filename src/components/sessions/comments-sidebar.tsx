@@ -311,11 +311,11 @@ export const CommentsSidebar = forwardRef<
   )
 
   return (
-    <Card className={cn('border-gray-200 flex flex-col', className)}>
-      <CardHeader className="border-b border-gray-200 py-3">
+    <Card className={cn('border-line flex flex-col', className)}>
+      <CardHeader className="border-b border-line py-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <MessageSquare className="h-4 w-4 text-gray-500" />
+            <MessageSquare className="h-4 w-4 text-ink-3" />
             Comments
           </CardTitle>
           <Badge variant="secondary" className="text-xs">
@@ -324,16 +324,16 @@ export const CommentsSidebar = forwardRef<
         </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="border-b border-gray-100 p-3">
+        <div className="border-b border-line p-3">
           <div className="mb-2 flex items-center gap-2">
-            <span className="text-[11px] font-medium uppercase tracking-wide text-gray-500">
+            <span className="text-[11px] font-medium uppercase tracking-wide text-ink-3">
               At
             </span>
             {offsetEditValue === null ? (
               <button
                 type="button"
                 onClick={startEditingOffset}
-                className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 font-mono text-xs text-indigo-700 ring-1 ring-indigo-100 hover:bg-indigo-100"
+                className="inline-flex items-center gap-1 rounded-full bg-indigo-bg px-2 py-0.5 font-mono text-xs text-indigo ring-1 ring-indigo hover:bg-indigo-bg"
                 title="Click to edit timestamp"
               >
                 <Clock className="h-3 w-3" />
@@ -364,7 +364,7 @@ export const CommentsSidebar = forwardRef<
               <button
                 type="button"
                 onClick={() => setDraftOffsetSec(getCurrentTime())}
-                className="text-[11px] text-gray-500 hover:text-indigo-600 hover:underline"
+                className="text-[11px] text-ink-3 hover:text-indigo hover:underline"
                 title="Pin to current playback time"
               >
                 use current
@@ -382,7 +382,7 @@ export const CommentsSidebar = forwardRef<
             className="min-h-[72px] resize-none text-sm"
           />
           <div className="mt-2 flex items-center justify-between">
-            <span className="text-[11px] text-gray-400">
+            <span className="text-[11px] text-ink-4">
               ⌘/Ctrl + Enter to send
             </span>
             <div className="flex items-center gap-2">
@@ -402,7 +402,7 @@ export const CommentsSidebar = forwardRef<
                 size="sm"
                 onClick={handleSubmit}
                 disabled={!draftContent.trim()}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                className="bg-indigo hover:bg-indigo text-ink-on-dark"
               >
                 Comment
               </Button>
@@ -416,20 +416,20 @@ export const CommentsSidebar = forwardRef<
               {[0, 1, 2].map(i => (
                 <div
                   key={i}
-                  className="h-16 animate-pulse rounded-md bg-gray-100"
+                  className="h-16 animate-pulse rounded-md bg-surface-3"
                 />
               ))}
             </div>
           ) : threads.length === 0 ? (
-            <div className="px-4 py-10 text-center text-sm text-gray-500">
-              <p className="font-medium text-gray-700">No comments yet.</p>
-              <p className="mt-1 text-gray-500">
+            <div className="px-4 py-10 text-center text-sm text-ink-3">
+              <p className="font-medium text-ink-2">No comments yet.</p>
+              <p className="mt-1 text-ink-3">
                 Click any line in the transcript or the button above to leave
                 the first one.
               </p>
             </div>
           ) : (
-            <ul className="divide-y divide-gray-100">
+            <ul className="divide-y divide-line">
               {threads.map(thread => (
                 <ThreadItem
                   key={thread.id}
@@ -510,8 +510,8 @@ function ThreadItem({
       className={cn(
         'transition-colors',
         isActive
-          ? 'bg-indigo-50/60 ring-inset ring-1 ring-indigo-200'
-          : 'hover:bg-gray-50',
+          ? 'bg-indigo-bg/60 ring-inset ring-1 ring-indigo'
+          : 'hover:bg-paper',
       )}
     >
       <CommentBody
@@ -531,7 +531,7 @@ function ThreadItem({
       />
 
       {(replyCount > 0 || showingReplyComposer) && (
-        <div className="ml-7 border-l-2 border-indigo-100 pl-3 pb-3 pr-3 space-y-2">
+        <div className="ml-7 border-l-2 border-indigo pl-3 pb-3 pr-3 space-y-2">
           {thread.replies.map(reply => (
             <CommentBody
               key={reply.id}
@@ -549,7 +549,7 @@ function ThreadItem({
             />
           ))}
           {showingReplyComposer && (
-            <div className="rounded-md border border-gray-200 bg-white p-2">
+            <div className="rounded-md border border-line bg-surface-1 p-2">
               <Textarea
                 ref={replyTextareaRef}
                 value={replyValue}
@@ -567,7 +567,7 @@ function ThreadItem({
                 className="min-h-[56px] resize-none text-sm"
               />
               <div className="mt-1.5 flex items-center justify-between">
-                <span className="text-[11px] text-gray-400">
+                <span className="text-[11px] text-ink-4">
                   ⌘/Ctrl + Enter to send · Esc to cancel
                 </span>
                 <div className="flex items-center gap-1">
@@ -578,7 +578,7 @@ function ThreadItem({
                     size="sm"
                     onClick={onSubmitReply}
                     disabled={!replyValue.trim()}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="bg-indigo hover:bg-indigo text-ink-on-dark"
                   >
                     Reply
                   </Button>
@@ -647,7 +647,7 @@ function CommentBody({
         <Button
           variant="ghost"
           size="sm"
-          className="h-5 w-5 p-0 text-gray-500 hover:text-indigo-700"
+          className="h-5 w-5 p-0 text-ink-3 hover:text-indigo"
           title="Edit"
           onClick={() => {
             setEditingId(comment.id)
@@ -663,7 +663,7 @@ function CommentBody({
             <Button
               variant="ghost"
               size="sm"
-              className="h-5 w-5 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+              className="h-5 w-5 p-0 text-ink-3 hover:text-vermillion hover:bg-vermillion-bg"
               title="Delete"
             >
               <Trash2 className="h-3 w-3" />
@@ -678,7 +678,7 @@ function CommentBody({
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => onDelete(comment.id)}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 Delete
               </AlertDialogAction>
@@ -702,20 +702,20 @@ function CommentBody({
               e.stopPropagation()
               onSeek()
             }}
-            className="rounded-full bg-gray-100 px-2 py-0.5 font-mono text-[11px] text-gray-700 hover:bg-indigo-100 hover:text-indigo-700"
+            className="rounded-full bg-surface-3 px-2 py-0.5 font-mono text-[11px] text-ink-2 hover:bg-indigo-bg hover:text-indigo"
           >
             {formatVideoOffset(comment.video_offset_seconds)}
           </button>
         ) : (
-          <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
+          <span className="inline-flex items-center gap-1 text-[11px] text-ink-3">
             <CornerDownRight className="h-3 w-3" />
-            <span className="font-medium text-gray-700">{authorLabel}</span>
+            <span className="font-medium text-ink-2">{authorLabel}</span>
           </span>
         )}
-        <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
+        <span className="inline-flex items-center gap-1 text-[11px] text-ink-3">
           {showOffsetChip && (
             <>
-              <span className="font-medium text-gray-700">{authorLabel}</span>
+              <span className="font-medium text-ink-2">{authorLabel}</span>
               <span className="mx-1">·</span>
             </>
           )}
@@ -757,7 +757,7 @@ function CommentBody({
                 setEditingId(null)
                 setEditValue('')
               }}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-indigo hover:bg-indigo text-ink-on-dark"
             >
               <Check className="h-3.5 w-3.5 mr-1" />
               Save
@@ -767,7 +767,7 @@ function CommentBody({
       ) : (
         <p
           className={cn(
-            'whitespace-pre-wrap text-sm leading-relaxed text-gray-800',
+            'whitespace-pre-wrap text-sm leading-relaxed text-ink-2',
             compact ? 'mt-0.5' : 'mt-1',
           )}
         >
@@ -783,13 +783,13 @@ function CommentBody({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 px-2 text-xs text-gray-600 hover:text-indigo-700"
+              className="h-6 px-2 text-xs text-ink-3 hover:text-indigo"
               onClick={onReply}
             >
               <Reply className="h-3 w-3 mr-1" />
               Reply
               {replyCount > 0 && (
-                <span className="ml-1 text-[10px] text-gray-500">
+                <span className="ml-1 text-[10px] text-ink-3">
                   ({replyCount})
                 </span>
               )}
@@ -816,7 +816,7 @@ function CommentBody({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-6 px-2 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                    className="h-6 px-2 text-xs text-vermillion hover:bg-vermillion-bg hover:text-vermillion"
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
                     Delete
@@ -833,7 +833,7 @@ function CommentBody({
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => onDelete(comment.id)}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-vermillion hover:bg-vermillion"
                     >
                       Delete
                     </AlertDialogAction>

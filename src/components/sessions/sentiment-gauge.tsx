@@ -29,31 +29,26 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
 
   // Get sentiment icon
   const getSentimentIcon = () => {
-    if (sentiment.score >= 7)
-      return <Smile className="h-8 w-8 text-gray-700 dark:text-gray-300" />
-    if (sentiment.score >= 4)
-      return <Meh className="h-8 w-8 text-gray-600 dark:text-gray-400" />
-    return <Frown className="h-8 w-8 text-gray-500 dark:text-gray-400" />
+    if (sentiment.score >= 7) return <Smile className="h-8 w-8 text-ink-2 " />
+    if (sentiment.score >= 4) return <Meh className="h-8 w-8 text-ink-3 " />
+    return <Frown className="h-8 w-8 text-ink-3 " />
   }
 
   // Get energy icon
   const getEnergyIcon = () => {
     const energy = sentiment.energy_level?.toLowerCase()
-    if (energy?.includes('high'))
-      return <Zap className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+    if (energy?.includes('high')) return <Zap className="h-4 w-4 text-ink-2 " />
     if (energy?.includes('low'))
-      return <BatteryLow className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-    return <Battery className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+      return <BatteryLow className="h-4 w-4 text-ink-3 " />
+    return <Battery className="h-4 w-4 text-ink-3 " />
   }
 
   // Get engagement color
   const getEngagementColor = () => {
     const engagement = sentiment.engagement?.toLowerCase()
-    if (engagement === 'high')
-      return 'text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700'
-    if (engagement === 'medium')
-      return 'text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
-    return 'text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700'
+    if (engagement === 'high') return 'text-ink bg-surface-3 '
+    if (engagement === 'medium') return 'text-ink-2 bg-paper '
+    return 'text-ink-3 bg-paper '
   }
 
   return (
@@ -66,7 +61,7 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
             <path
               d="M 20 90 A 80 80 0 0 1 180 90"
               fill="none"
-              className="stroke-gray-200 dark:stroke-gray-700"
+              className="stroke-ink-2 "
               strokeWidth="12"
               strokeLinecap="round"
             />
@@ -74,7 +69,7 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
             <path
               d="M 20 90 A 80 80 0 0 1 73 30"
               fill="none"
-              className="stroke-gray-400 dark:stroke-gray-600"
+              className="stroke-ink-4 "
               strokeWidth="10"
               strokeLinecap="round"
               opacity="0.3"
@@ -82,7 +77,7 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
             <path
               d="M 73 30 A 80 80 0 0 1 127 30"
               fill="none"
-              className="stroke-gray-500 dark:stroke-gray-500"
+              className="stroke-ink-3 "
               strokeWidth="10"
               strokeLinecap="round"
               opacity="0.3"
@@ -90,7 +85,7 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
             <path
               d="M 127 30 A 80 80 0 0 1 180 90"
               fill="none"
-              className="stroke-gray-700 dark:stroke-gray-300"
+              className="stroke-ink-2 "
               strokeWidth="10"
               strokeLinecap="round"
               opacity="0.3"
@@ -99,7 +94,7 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
 
           {/* Needle */}
           <div
-            className="absolute bottom-0 left-1/2 origin-bottom bg-gray-900 dark:bg-gray-100"
+            className="absolute bottom-0 left-1/2 origin-bottom bg-ink "
             style={{
               transform: `translateX(-50%) rotate(${rotation}deg)`,
               transition: 'transform 1s ease-out',
@@ -107,21 +102,21 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
               height: '75px',
             }}
           >
-            <div className="absolute -top-1 -left-1 w-3 h-3 bg-gray-900 dark:bg-gray-100 rounded-full" />
+            <div className="absolute -top-1 -left-1 w-3 h-3 bg-ink rounded-full" />
           </div>
 
           {/* Center dot */}
-          <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-gray-900 dark:bg-gray-100 rounded-full transform -translate-x-1/2 translate-y-1/2" />
+          <div className="absolute bottom-0 left-1/2 w-4 h-4 bg-ink rounded-full transform -translate-x-1/2 translate-y-1/2" />
         </div>
 
         {/* Score and Icon */}
         <div className="flex items-center gap-3">
           {getSentimentIcon()}
           <div className="text-center">
-            <div className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            <div className="text-3xl font-bold text-ink ">
               {sentiment.score.toFixed(1)}
             </div>
-            <div className="text-sm font-medium text-gray-600 dark:text-gray-400 capitalize">
+            <div className="text-sm font-medium text-ink-3 capitalize">
               {sentiment.overall}
             </div>
           </div>
@@ -130,16 +125,14 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
 
       {/* Progression */}
       {sentiment.progression && (
-        <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3">
+        <div className="bg-paper rounded-lg p-3">
           <div className="flex items-start gap-2">
-            <Activity className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5" />
+            <Activity className="h-4 w-4 text-ink-3 mt-0.5" />
             <div className="flex-1">
-              <p className="text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <p className="text-xs font-medium text-ink-2 mb-1">
                 Session Progression
               </p>
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {sentiment.progression}
-              </p>
+              <p className="text-xs text-ink-3 ">{sentiment.progression}</p>
             </div>
           </div>
         </div>
@@ -149,12 +142,12 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
       <div className="grid grid-cols-2 gap-3">
         {/* Engagement */}
         {sentiment.engagement && (
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+          <div className="bg-surface-1 border border-line rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              <span className="text-xs font-medium text-ink-3 ">
                 Engagement
               </span>
-              <TrendingUp className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+              <TrendingUp className="h-3 w-3 text-ink-4 " />
             </div>
             <span
               className={`inline-block px-2 py-0.5 rounded text-xs font-medium capitalize ${getEngagementColor()}`}
@@ -166,14 +159,12 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
 
         {/* Energy */}
         {sentiment.energy_level && (
-          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+          <div className="bg-surface-1 border border-line rounded-lg p-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                Energy
-              </span>
+              <span className="text-xs font-medium text-ink-3 ">Energy</span>
               {getEnergyIcon()}
             </div>
-            <span className="text-xs font-medium text-gray-700 dark:text-gray-300 capitalize">
+            <span className="text-xs font-medium text-ink-2 capitalize">
               {sentiment.energy_level}
             </span>
           </div>
@@ -183,14 +174,14 @@ export function SentimentGauge({ sentiment }: SentimentGaugeProps) {
       {/* Emotions */}
       {sentiment.emotions && sentiment.emotions.length > 0 && (
         <div>
-          <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
+          <p className="text-xs font-medium text-ink-3 mb-2">
             Detected Emotions
           </p>
           <div className="flex flex-wrap gap-1.5">
             {sentiment.emotions.map((emotion, idx) => (
               <span
                 key={idx}
-                className="inline-block px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded text-xs capitalize"
+                className="inline-block px-2 py-1 bg-surface-3 text-ink-2 rounded text-xs capitalize"
               >
                 {emotion}
               </span>

@@ -27,8 +27,8 @@ export default function ClientFilter({
     <div className="mb-6">
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-slate-600" />
-          <span className="text-sm font-medium text-slate-700">
+          <Filter className="h-4 w-4 text-ink-3" />
+          <span className="text-sm font-medium text-ink-2">
             Filter by client:
           </span>
         </div>
@@ -46,9 +46,7 @@ export default function ClientFilter({
             {clients.map(client => (
               <Button
                 key={client.id}
-                variant={
-                  selectedClientId === client.id ? 'default' : 'outline'
-                }
+                variant={selectedClientId === client.id ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => onClientFilter(client.id)}
                 className="text-xs"
@@ -65,7 +63,7 @@ export default function ClientFilter({
             variant="ghost"
             size="sm"
             onClick={() => onClientFilter(null)}
-            className="text-slate-500 hover:text-slate-700 text-xs"
+            className="text-ink-3 hover:text-ink-2 text-xs"
           >
             <X className="h-3 w-3 mr-1" />
             Clear filter
@@ -74,14 +72,14 @@ export default function ClientFilter({
       </div>
 
       {selectedClient && (
-        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-2 p-3 bg-ds-accent-bg border border-ds-accent rounded-lg">
           <div className="flex items-center gap-2">
-            <User className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-900">
+            <User className="h-4 w-4 text-ds-accent" />
+            <span className="text-sm font-medium text-ds-accent">
               Showing sessions for: {selectedClient.name}
             </span>
             {selectedClient.company && (
-              <span className="text-xs text-blue-600">
+              <span className="text-xs text-ds-accent">
                 • {selectedClient.company}
               </span>
             )}

@@ -58,20 +58,20 @@ export function TranscriptViewer({
     return (
       <>
         <div
-          className="h-full flex items-center gap-3 px-4 bg-gray-50 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"
+          className="h-full flex items-center gap-3 px-4 bg-paper rounded-lg cursor-pointer hover:bg-surface-3 transition-colors"
           onClick={() => setShowFullTranscript(true)}
         >
           <div className="flex items-center gap-2 flex-shrink-0">
-            <MessageSquare className="h-4 w-4 text-gray-400" />
-            <span className="text-xs font-medium text-gray-500">
+            <MessageSquare className="h-4 w-4 text-ink-4" />
+            <span className="text-xs font-medium text-ink-3">
               {transcript.length} entries
             </span>
           </div>
 
-          <div className="h-4 w-px bg-gray-300" />
+          <div className="h-4 w-px bg-line" />
 
           {recentEntries.length === 0 ? (
-            <span className="text-xs text-gray-400 italic">
+            <span className="text-xs text-ink-4 italic">
               Waiting for conversation...
             </span>
           ) : (
@@ -80,19 +80,19 @@ export function TranscriptViewer({
                 <div
                   key={i}
                   className={`flex-shrink-0 max-w-[200px] px-2 py-1 rounded text-xs ${
-                    entry.is_final ? 'bg-white' : 'bg-blue-50'
+                    entry.is_final ? 'bg-surface-1' : 'bg-ds-accent-bg'
                   }`}
                 >
-                  <span className="font-medium text-gray-700">
+                  <span className="font-medium text-ink-2">
                     {entry.speaker}:
                   </span>{' '}
-                  <span className="text-gray-600 truncate">{entry.text}</span>
+                  <span className="text-ink-3 truncate">{entry.text}</span>
                 </div>
               ))}
             </div>
           )}
 
-          <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
+          <ChevronRight className="h-4 w-4 text-ink-4 flex-shrink-0" />
         </div>
 
         {/* Full Transcript Modal */}
@@ -110,11 +110,11 @@ export function TranscriptViewer({
                   <div
                     key={index}
                     className={`p-3 rounded-lg ${
-                      entry.is_final ? 'bg-gray-50' : 'bg-blue-50'
+                      entry.is_final ? 'bg-paper' : 'bg-ds-accent-bg'
                     }`}
                   >
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="font-medium text-sm text-gray-700">
+                      <span className="font-medium text-sm text-ink-2">
                         {entry.speaker}
                       </span>
                       {!entry.is_final && (
@@ -125,11 +125,11 @@ export function TranscriptViewer({
                           Live
                         </Badge>
                       )}
-                      <span className="text-xs text-gray-400 ml-auto">
+                      <span className="text-xs text-ink-4 ml-auto">
                         {formatTime(entry.timestamp)}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700">{entry.text}</p>
+                    <p className="text-sm text-ink-2">{entry.text}</p>
                   </div>
                 ))}
               </div>
@@ -147,10 +147,8 @@ export function TranscriptViewer({
         <div ref={containerRef} className="p-3 space-y-2">
           {transcript.length === 0 ? (
             <div className="text-center py-8">
-              <div className="text-gray-400 text-lg mb-2">🎤</div>
-              <p className="text-gray-500 dark:text-gray-400 text-sm">
-                Waiting for conversation...
-              </p>
+              <div className="text-ink-4 text-lg mb-2">🎤</div>
+              <p className="text-ink-3 text-sm">Waiting for conversation...</p>
             </div>
           ) : (
             transcript.map((entry, index) => (
@@ -158,12 +156,12 @@ export function TranscriptViewer({
                 key={index}
                 className={`p-2.5 rounded-lg transition-all duration-300 ${
                   entry.is_final
-                    ? 'bg-gray-50 dark:bg-gray-700 border border-gray-100 dark:border-gray-600'
-                    : 'bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800'
+                    ? 'bg-paper border border-line '
+                    : 'bg-ds-accent-bg border border-ds-accent '
                 }`}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="font-medium text-xs text-gray-700 dark:text-gray-300">
+                  <span className="font-medium text-xs text-ink-2 ">
                     {entry.speaker}
                   </span>
                   {!entry.is_final && (
@@ -174,11 +172,11 @@ export function TranscriptViewer({
                       Live
                     </Badge>
                   )}
-                  <span className="text-xs text-gray-400 ml-auto">
+                  <span className="text-xs text-ink-4 ml-auto">
                     {formatTime(entry.timestamp)}
                   </span>
                 </div>
-                <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-xs text-ink-2 leading-relaxed">
                   {entry.text}
                 </p>
               </div>
@@ -200,18 +198,14 @@ export function TranscriptViewer({
         <div
           className={
             mode === 'compact'
-              ? 'text-gray-400 text-base mb-1'
-              : 'text-gray-400 text-lg mb-2'
+              ? 'text-ink-4 text-base mb-1'
+              : 'text-ink-4 text-lg mb-2'
           }
         >
           🎤
         </div>
         <p
-          className={
-            mode === 'compact'
-              ? 'text-gray-500 dark:text-gray-400 text-xs'
-              : 'text-gray-500 dark:text-gray-400'
-          }
+          className={mode === 'compact' ? 'text-ink-3 text-xs' : 'text-ink-3 '}
         >
           {mode === 'compact'
             ? 'Waiting for conversation...'
@@ -228,13 +222,11 @@ export function TranscriptViewer({
           <div
             key={index}
             className={`p-2 rounded-lg transition-all duration-300 ${
-              entry.is_final
-                ? 'bg-gray-50 dark:bg-gray-700'
-                : 'bg-blue-50 dark:bg-blue-900/30 opacity-80'
+              entry.is_final ? 'bg-paper ' : 'bg-ds-accent-bg opacity-80'
             }`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-xs text-gray-700 dark:text-gray-300">
+              <span className="font-medium text-xs text-ink-2 ">
                 {entry.speaker}
               </span>
               {!entry.is_final && (
@@ -242,13 +234,11 @@ export function TranscriptViewer({
                   Live
                 </Badge>
               )}
-              <span className="text-xs text-gray-400 ml-auto">
+              <span className="text-xs text-ink-4 ml-auto">
                 {formatTime(entry.timestamp)}
               </span>
             </div>
-            <p className="text-xs text-gray-700 dark:text-gray-300 leading-relaxed">
-              {entry.text}
-            </p>
+            <p className="text-xs text-ink-2 leading-relaxed">{entry.text}</p>
           </div>
         ))}
         {autoScroll && <div ref={bottomRef} className="h-1" />}
@@ -263,16 +253,14 @@ export function TranscriptViewer({
           key={index}
           className={`transition-all duration-300 ${
             entry.is_final
-              ? 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700'
-              : 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 border-dashed'
+              ? 'bg-surface-1 border-line '
+              : 'bg-ds-accent-bg border-ds-accent border-dashed'
           }`}
         >
           <CardContent className="pt-4">
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2">
-                <span className="font-medium text-gray-900 dark:text-white">
-                  {entry.speaker}
-                </span>
+                <span className="font-medium text-ink ">{entry.speaker}</span>
                 <Badge
                   variant={entry.is_final ? 'default' : 'secondary'}
                   className="text-xs"
@@ -283,13 +271,11 @@ export function TranscriptViewer({
                   {Math.round(entry.confidence * 100)}% confidence
                 </Badge>
               </div>
-              <span className="text-xs text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-ink-3 ">
                 {formatTime(entry.timestamp)}
               </span>
             </div>
-            <p className="text-gray-800 dark:text-gray-200 leading-relaxed">
-              {entry.text}
-            </p>
+            <p className="text-ink-2 leading-relaxed">{entry.text}</p>
           </CardContent>
         </Card>
       ))}

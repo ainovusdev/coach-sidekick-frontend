@@ -167,15 +167,15 @@ export function ProfileSection() {
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'super_admin':
-        return 'bg-red-100 text-red-800 border-red-200'
+        return 'bg-vermillion-bg text-vermillion border-vermillion'
       case 'admin':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
       case 'coach':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-forest-bg text-forest border-forest'
       case 'viewer':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-surface-3 text-ink-2 border-line'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-surface-3 text-ink-2 border-line'
     }
   }
 
@@ -257,19 +257,19 @@ export function ProfileSection() {
             <div>
               <Label htmlFor="email">Email</Label>
               <div className="flex items-center gap-2 mt-1">
-                <Mail className="h-4 w-4 text-gray-400" />
+                <Mail className="h-4 w-4 text-ink-4" />
                 <Input
                   id="email"
                   value={profile?.email || ''}
                   disabled
-                  className="bg-gray-50"
+                  className="bg-paper"
                 />
               </div>
             </div>
             <div>
               <Label htmlFor="full_name">Full Name</Label>
               <div className="flex items-center gap-2 mt-1">
-                <User className="h-4 w-4 text-gray-400" />
+                <User className="h-4 w-4 text-ink-4" />
                 <Input
                   id="full_name"
                   value={formData.full_name}
@@ -288,10 +288,10 @@ export function ProfileSection() {
 
           {isEditing && (
             <div className="border-t pt-4">
-              <h3 className="text-sm font-medium text-gray-900 mb-3">
+              <h3 className="text-sm font-medium text-ink mb-3">
                 Change Password
               </h3>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-ink-3 mb-4">
                 Leave blank to keep current password
               </p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -361,17 +361,17 @@ export function ProfileSection() {
                   {profile?.is_active ? (
                     <Badge
                       variant="outline"
-                      className="bg-green-50 text-green-700 border-green-200"
+                      className="bg-forest-bg text-forest border-forest"
                     >
-                      <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                      <div className="w-2 h-2 bg-forest rounded-full mr-2" />
                       Active
                     </Badge>
                   ) : (
                     <Badge
                       variant="outline"
-                      className="bg-red-50 text-red-700 border-red-200"
+                      className="bg-vermillion-bg text-vermillion border-vermillion"
                     >
-                      <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
+                      <div className="w-2 h-2 bg-vermillion rounded-full mr-2" />
                       Inactive
                     </Badge>
                   )}
@@ -380,8 +380,8 @@ export function ProfileSection() {
               <div>
                 <Label>Member Since</Label>
                 <div className="flex items-center gap-2 mt-1">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-700">
+                  <Calendar className="h-4 w-4 text-ink-4" />
+                  <span className="text-sm text-ink-2">
                     {profile?.created_at
                       ? formatDate(profile.created_at, 'MMMM d, yyyy')
                       : '-'}
@@ -423,9 +423,7 @@ export function ProfileSection() {
                     )
                   })
                 ) : (
-                  <span className="text-sm text-gray-500">
-                    No roles assigned
-                  </span>
+                  <span className="text-sm text-ink-3">No roles assigned</span>
                 )}
               </div>
             </div>
@@ -439,17 +437,17 @@ export function ProfileSection() {
                     {profile.client_access.map(access => (
                       <div
                         key={access.client_id}
-                        className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center justify-between p-3 bg-paper rounded-lg"
                       >
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-gray-200 rounded-full flex items-center justify-center">
-                            <Users className="h-4 w-4 text-gray-600" />
+                          <div className="h-8 w-8 bg-surface-3 rounded-full flex items-center justify-center">
+                            <Users className="h-4 w-4 text-ink-3" />
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-gray-900">
+                            <p className="text-sm font-medium text-ink">
                               {access.client_name}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-ink-3">
                               ID: {access.client_id}
                             </p>
                           </div>
@@ -459,8 +457,8 @@ export function ProfileSection() {
                           className={cn(
                             'text-xs',
                             access.access_level === 'full'
-                              ? 'bg-green-50 text-green-700 border-green-200'
-                              : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                              ? 'bg-forest-bg text-forest border-forest'
+                              : 'bg-amber-token-bg text-amber-token border-amber-token',
                           )}
                         >
                           <LockKeyhole className="h-3 w-3 mr-1" />
@@ -497,8 +495,8 @@ export function ProfileSection() {
 
       <div id="integrations" className="scroll-mt-24 space-y-3">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">Integrations</h2>
-          <p className="text-sm text-gray-500">
+          <h2 className="text-lg font-semibold text-ink">Integrations</h2>
+          <p className="text-sm text-ink-3">
             Connect external services to automate scheduling and recording.
           </p>
         </div>

@@ -18,8 +18,8 @@ export default function Error({
   return (
     <div className="flex items-center justify-center min-h-[60vh] px-4">
       <div className="text-center max-w-md">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
-          <AlertCircle className="h-6 w-6 text-red-500" />
+        <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-vermillion-bg flex items-center justify-center">
+          <AlertCircle className="h-6 w-6 text-vermillion" />
         </div>
         <h2 className="text-lg font-semibold text-app-primary mb-2">
           Something went wrong

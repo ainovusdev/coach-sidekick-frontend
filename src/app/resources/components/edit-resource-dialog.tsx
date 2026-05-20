@@ -73,7 +73,7 @@ export function EditResourceDialog({
               onChange={e =>
                 setField('category', e.target.value as ResourceCategory)
               }
-              className="w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 dark:focus:ring-gray-400 focus:border-transparent"
+              className="w-full rounded-md border border-line-strong bg-surface-1 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-line focus:border-transparent"
             >
               <option value="general">General</option>
               <option value="worksheet">Worksheet</option>
@@ -100,14 +100,14 @@ export function EditResourceDialog({
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
-            className="border-gray-300 dark:border-gray-600"
+            className="border-line-strong "
           >
             Cancel
           </Button>
           <Button
             onClick={onSubmit}
             disabled={!form.title.trim() || isPending}
-            className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+            className="bg-ink hover:bg-ink-2 "
           >
             {isPending ? 'Saving...' : 'Save Changes'}
           </Button>

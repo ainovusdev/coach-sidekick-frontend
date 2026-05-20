@@ -81,11 +81,9 @@ export function UpcomingSessions() {
   return (
     <div className="mb-6">
       <div className="flex items-center gap-2 mb-3">
-        <CalendarClock className="h-4 w-4 text-gray-400" />
-        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-          Upcoming Sessions
-        </h3>
-        <span className="text-xs text-gray-400 font-medium">
+        <CalendarClock className="h-4 w-4 text-ink-4" />
+        <h3 className="text-sm font-semibold text-ink ">Upcoming Sessions</h3>
+        <span className="text-xs text-ink-4 font-medium">
           {sessions.length}
         </span>
       </div>
@@ -101,7 +99,7 @@ export function UpcomingSessions() {
             return (
               <div
                 key={session.id}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/30 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-line bg-paper/50 hover:bg-paper transition-colors group"
               >
                 {/* Title (editable) */}
                 <div className="flex-1 min-w-0">
@@ -115,12 +113,12 @@ export function UpcomingSessions() {
                         if (e.key === 'Enter') handleTitleSave(session.id)
                         if (e.key === 'Escape') setEditingTitleId(null)
                       }}
-                      className="w-full text-sm font-medium bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 outline-none focus:border-gray-900 dark:focus:border-white"
+                      className="w-full text-sm font-medium bg-surface-1 border border-line-strong rounded px-2 py-0.5 outline-none focus:border-line "
                     />
                   ) : (
                     <button
                       onClick={() => startEditingTitle(session)}
-                      className="text-sm font-medium text-gray-900 dark:text-white truncate block text-left hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="text-sm font-medium text-ink truncate block text-left hover:text-ink-3 transition-colors"
                       title="Click to edit title"
                     >
                       {session.client_name && session.title
@@ -132,7 +130,7 @@ export function UpcomingSessions() {
                       {session.google_calendar_event_id && (
                         <span
                           title="Synced from Google Calendar"
-                          className="ml-1.5 inline-flex items-center rounded-sm border border-gray-200 dark:border-gray-700 px-1 py-[1px] text-[10px] font-normal text-gray-500 dark:text-gray-400 align-middle"
+                          className="ml-1.5 inline-flex items-center rounded-sm border border-line px-1 py-[1px] text-[10px] font-normal text-ink-3 align-middle"
                         >
                           Calendar
                         </span>
@@ -151,9 +149,7 @@ export function UpcomingSessions() {
                   <PopoverTrigger asChild>
                     <button
                       className={`flex items-center gap-1 text-xs shrink-0 hover:underline ${
-                        isOverdue
-                          ? 'text-red-500'
-                          : 'text-gray-500 dark:text-gray-400'
+                        isOverdue ? 'text-vermillion' : 'text-ink-3 '
                       }`}
                       title="Click to reschedule"
                     >
@@ -180,7 +176,7 @@ export function UpcomingSessions() {
                   {session.questionnaire_completed ? (
                     <Badge
                       variant="secondary"
-                      className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-[10px] px-1.5 py-0 h-5"
+                      className="bg-forest-bg text-forest border-forest text-[10px] px-1.5 py-0 h-5"
                     >
                       <CheckCircle2 className="h-2.5 w-2.5 mr-0.5" />
                       Answered
@@ -189,7 +185,7 @@ export function UpcomingSessions() {
                     <>
                       <Badge
                         variant="secondary"
-                        className="bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-blue-800 text-[10px] px-1.5 py-0 h-5"
+                        className="bg-ds-accent-bg text-ds-accent border-ds-accent text-[10px] px-1.5 py-0 h-5"
                       >
                         <Mail className="h-2.5 w-2.5 mr-0.5" />
                         Sent
@@ -205,7 +201,7 @@ export function UpcomingSessions() {
                           }
                         }}
                         disabled={sendQuestionnaire.isPending}
-                        className="text-[10px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                        className="text-[10px] text-ink-4 hover:text-ink-3 transition-colors disabled:opacity-50"
                         title="Resend questionnaire"
                       >
                         {sendQuestionnaire.isPending ? (
@@ -227,7 +223,7 @@ export function UpcomingSessions() {
                         }
                       }}
                       disabled={sendQuestionnaire.isPending}
-                      className="flex items-center gap-1 text-[10px] font-medium text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors disabled:opacity-50"
+                      className="flex items-center gap-1 text-[10px] font-medium text-ink-3 hover:text-ink-2 transition-colors disabled:opacity-50"
                     >
                       <Send className="h-2.5 w-2.5" />
                       Send Q&A
@@ -239,7 +235,7 @@ export function UpcomingSessions() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs px-2 shrink-0 text-gray-500 hover:text-gray-900 dark:hover:text-white"
+                  className="h-7 text-xs px-2 shrink-0 text-ink-3 hover:text-ink "
                   onClick={() => router.push(`/sessions/${session.id}`)}
                 >
                   Open
@@ -254,7 +250,7 @@ export function UpcomingSessions() {
       {sessions.length > COLLAPSE_THRESHOLD && (
         <button
           onClick={() => setExpanded(v => !v)}
-          className="mt-2 flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors"
+          className="mt-2 flex items-center gap-1 text-xs font-medium text-ink-3 hover:text-ink transition-colors"
         >
           {expanded ? (
             <>

@@ -140,25 +140,25 @@ export function CoachInvitationModal({
                 </Alert>
               )}
 
-              <div className="rounded-lg bg-gray-50 p-4 border">
-                <h4 className="text-sm font-medium text-gray-900 mb-3">
+              <div className="rounded-lg bg-paper p-4 border">
+                <h4 className="text-sm font-medium text-ink mb-3">
                   New coaches will have access to:
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Users className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-ink-3">
+                    <Users className="h-4 w-4 text-ink-4" />
                     <span>Client Management</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Brain className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-ink-3">
+                    <Brain className="h-4 w-4 text-ink-4" />
                     <span>AI Coaching Insights</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <BarChart3 className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-ink-3">
+                    <BarChart3 className="h-4 w-4 text-ink-4" />
                     <span>Progress Analytics</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Sparkles className="h-4 w-4 text-gray-400" />
+                  <div className="flex items-center gap-2 text-sm text-ink-3">
+                    <Sparkles className="h-4 w-4 text-ink-4" />
                     <span>Session Recording</span>
                   </div>
                 </div>
@@ -199,16 +199,16 @@ export function CoachInvitationModal({
         ) : (
           <div className="py-8">
             <div className="text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-100 animate-in fade-in zoom-in duration-500">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-forest-bg animate-in fade-in zoom-in duration-500">
+                <CheckCircle className="h-10 w-10 text-forest" />
               </div>
-              <h3 className="mt-4 text-xl font-semibold text-gray-900">
+              <h3 className="mt-4 text-xl font-semibold text-ink">
                 Invitation Sent Successfully!
               </h3>
               <div className="mt-4 space-y-2">
-                <p className="text-sm font-medium text-gray-700">
+                <p className="text-sm font-medium text-ink-2">
                   <Mail className="inline-block h-4 w-4 mr-1" />
-                  Sent to: <span className="text-gray-900">{email}</span>
+                  Sent to: <span className="text-ink">{email}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
                   The new coach will receive an email with instructions to set
@@ -216,11 +216,11 @@ export function CoachInvitationModal({
                 </p>
               </div>
 
-              <div className="mt-6 rounded-lg bg-blue-50 p-4 text-left">
-                <h4 className="text-sm font-medium text-blue-900 mb-2">
+              <div className="mt-6 rounded-lg bg-ds-accent-bg p-4 text-left">
+                <h4 className="text-sm font-medium text-ds-accent mb-2">
                   What happens next:
                 </h4>
-                <ul className="space-y-1.5 text-xs text-blue-700">
+                <ul className="space-y-1.5 text-xs text-ds-accent">
                   <li className="flex items-start">
                     <span className="mr-2">1.</span>
                     <span>

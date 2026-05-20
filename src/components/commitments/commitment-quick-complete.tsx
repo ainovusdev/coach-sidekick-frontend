@@ -56,7 +56,7 @@ export function CommitmentQuickComplete({
 
   if (updating) {
     return (
-      <Loader2 className={`${sizeClasses[size]} animate-spin text-gray-400`} />
+      <Loader2 className={`${sizeClasses[size]} animate-spin text-ink-4`} />
     )
   }
 
@@ -68,11 +68,11 @@ export function CommitmentQuickComplete({
     >
       {isComplete ? (
         <CheckCircle
-          className={`${sizeClasses[size]} text-green-600 fill-green-100`}
+          className={`${sizeClasses[size]} text-forest fill-forest`}
         />
       ) : (
         <div
-          className={`${sizeClasses[size]} rounded-full border-2 border-gray-300 hover:border-gray-400 transition-colors`}
+          className={`${sizeClasses[size]} rounded-full border-2 border-line-strong hover:border-line-strong transition-colors`}
         />
       )}
     </button>

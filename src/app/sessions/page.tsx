@@ -61,7 +61,6 @@ export default function SessionsHistoryPage() {
             title="Session History"
             description="Track your coaching progress and performance over time"
             icon={History}
-            iconVariant="gradient"
             actions={
               <div className="flex items-center gap-2">
                 {!isViewer && (
@@ -70,7 +69,7 @@ export default function SessionsHistoryPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsGroupSessionModalOpen(true)}
-                      className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
+                      className="flex items-center gap-2 border-line-strong hover:bg-paper "
                     >
                       <Users className="h-4 w-4" />
                       Start Group Session
@@ -79,7 +78,7 @@ export default function SessionsHistoryPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setIsManualSessionModalOpen(true)}
-                      className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
+                      className="flex items-center gap-2 border-line-strong hover:bg-paper "
                     >
                       <Upload className="h-4 w-4" />
                       Upload Recording
@@ -93,7 +92,7 @@ export default function SessionsHistoryPage() {
                     refetch()
                   }}
                   disabled={historyLoading}
-                  className="flex items-center gap-2 border-slate-300 dark:border-gray-600 hover:bg-slate-50 dark:hover:bg-gray-800"
+                  className="flex items-center gap-2 border-line-strong hover:bg-paper "
                 >
                   <RefreshCw
                     className={`h-4 w-4 ${historyLoading ? 'animate-spin' : ''}`}

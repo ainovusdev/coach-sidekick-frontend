@@ -121,11 +121,11 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
-          <AlertCircle className="h-12 w-12 text-gray-400 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          <AlertCircle className="h-12 w-12 text-ink-4 mb-4" />
+          <h3 className="text-lg font-semibold text-ink mb-2">
             Unable to Load Outcomes
           </h3>
-          <p className="text-gray-600 text-center">
+          <p className="text-ink-3 text-center">
             There was an error loading the sandbox outcomes.
           </p>
         </CardContent>
@@ -140,14 +140,14 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Target className="h-5 w-5 text-gray-600" />
+              <div className="p-2 bg-surface-3 rounded-lg">
+                <Target className="h-5 w-5 text-ink-3" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-ink">
                   {outcomes.total_outcomes}
                 </p>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-ink-3">
                   Total Meta Performance Outcomes
                 </p>
               </div>
@@ -158,14 +158,14 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <Clock className="h-5 w-5 text-gray-600" />
+              <div className="p-2 bg-surface-3 rounded-lg">
+                <Clock className="h-5 w-5 text-ink-3" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-ink">
                   {outcomes.active_outcomes}
                 </p>
-                <p className="text-sm text-gray-500">Active</p>
+                <p className="text-sm text-ink-3">Active</p>
               </div>
             </div>
           </CardContent>
@@ -174,14 +174,14 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-gray-600" />
+              <div className="p-2 bg-surface-3 rounded-lg">
+                <CheckCircle2 className="h-5 w-5 text-ink-3" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-ink">
                   {outcomes.completed_outcomes}
                 </p>
-                <p className="text-sm text-gray-500">Completed</p>
+                <p className="text-sm text-ink-3">Completed</p>
               </div>
             </div>
           </CardContent>
@@ -190,14 +190,14 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-gray-600" />
+              <div className="p-2 bg-surface-3 rounded-lg">
+                <TrendingUp className="h-5 w-5 text-ink-3" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-ink">
                   {Math.round(outcomes.overall_progress)}%
                 </p>
-                <p className="text-sm text-gray-500">Overall Progress</p>
+                <p className="text-sm text-ink-3">Overall Progress</p>
               </div>
             </div>
           </CardContent>
@@ -208,15 +208,15 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-ink-2">
               Sandbox Progress
             </span>
-            <span className="text-sm font-semibold text-gray-900">
+            <span className="text-sm font-semibold text-ink">
               {Math.round(outcomes.overall_progress)}%
             </span>
           </div>
           <Progress value={outcomes.overall_progress} className="h-3" />
-          <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
+          <div className="flex items-center justify-between mt-2 text-xs text-ink-3">
             <span>
               {outcomes.completed_outcomes} of {outcomes.total_outcomes} meta
               performance outcomes completed
@@ -233,8 +233,8 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
             onClick={() => setStatusFilter('all')}
             className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
               statusFilter === 'all'
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                ? 'bg-ink text-ink-on-dark border-line '
+                : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line-strong hover:bg-paper'
             }`}
           >
             All ({statusCounts.all})
@@ -243,33 +243,33 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
             onClick={() => setStatusFilter('active')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
               statusFilter === 'active'
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                ? 'bg-ink text-ink-on-dark border-line '
+                : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line-strong hover:bg-paper'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-blue-500" />
+            <span className="w-2 h-2 rounded-full bg-ds-accent" />
             Active ({statusCounts.active})
           </button>
           <button
             onClick={() => setStatusFilter('completed')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
               statusFilter === 'completed'
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                ? 'bg-ink text-ink-on-dark border-line '
+                : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line-strong hover:bg-paper'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-green-500" />
+            <span className="w-2 h-2 rounded-full bg-forest" />
             Completed ({statusCounts.completed})
           </button>
           <button
             onClick={() => setStatusFilter('deferred')}
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
               statusFilter === 'deferred'
-                ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                ? 'bg-ink text-ink-on-dark border-line '
+                : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line-strong hover:bg-paper'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-yellow-500" />
+            <span className="w-2 h-2 rounded-full bg-amber-token" />
             Deferred ({statusCounts.deferred})
           </button>
         </div>
@@ -278,7 +278,7 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
           {/* Client Filter */}
           <Select value={selectedClient} onValueChange={setSelectedClient}>
             <SelectTrigger className="w-[180px]">
-              <User className="h-4 w-4 mr-2 text-gray-500" />
+              <User className="h-4 w-4 mr-2 text-ink-3" />
               <SelectValue placeholder="All Clients" />
             </SelectTrigger>
             <SelectContent>
@@ -311,11 +311,11 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
       {filteredOutcomes.length === 0 && (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <Target className="h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <Target className="h-12 w-12 text-ink-4 mb-4" />
+            <h3 className="text-lg font-semibold text-ink mb-2">
               No meta performance outcomes found
             </h3>
-            <p className="text-gray-600 text-center">
+            <p className="text-ink-3 text-center">
               {statusFilter !== 'all'
                 ? 'Try changing the filter to see more meta performance outcomes'
                 : 'Meta performance outcomes will appear here as clients set them'}
@@ -346,8 +346,8 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-gray-100 rounded-full">
-                        <User className="h-4 w-4 text-gray-600" />
+                      <div className="p-2 bg-surface-3 rounded-full">
+                        <User className="h-4 w-4 text-ink-3" />
                       </div>
                       <div>
                         <CardTitle className="text-lg">{clientName}</CardTitle>
@@ -362,7 +362,7 @@ export function ProgramOutcomes({ programId }: ProgramOutcomesProps) {
                         const clientId = clientOutcomes[0]?.client_id
                         if (clientId) router.push(`/clients/${clientId}`)
                       }}
-                      className="text-sm font-medium text-gray-600 hover:text-gray-900 flex items-center gap-1"
+                      className="text-sm font-medium text-ink-3 hover:text-ink flex items-center gap-1"
                     >
                       View Client <ChevronRight className="h-4 w-4" />
                     </button>
@@ -400,15 +400,15 @@ function OutcomeCard({
   const getStatusStyles = (status: string) => {
     switch (status) {
       case 'completed':
-        return { dot: 'bg-green-500', badge: 'bg-gray-100 text-gray-700' }
+        return { dot: 'bg-forest', badge: 'bg-surface-3 text-ink-2' }
       case 'active':
-        return { dot: 'bg-blue-500', badge: 'bg-gray-100 text-gray-700' }
+        return { dot: 'bg-ds-accent', badge: 'bg-surface-3 text-ink-2' }
       case 'deferred':
-        return { dot: 'bg-yellow-500', badge: 'bg-gray-100 text-gray-700' }
+        return { dot: 'bg-amber-token', badge: 'bg-surface-3 text-ink-2' }
       case 'abandoned':
-        return { dot: 'bg-red-500', badge: 'bg-gray-100 text-gray-700' }
+        return { dot: 'bg-vermillion', badge: 'bg-surface-3 text-ink-2' }
       default:
-        return { dot: 'bg-gray-400', badge: 'bg-gray-100 text-gray-700' }
+        return { dot: 'bg-line', badge: 'bg-surface-3 text-ink-2' }
     }
   }
 
@@ -423,12 +423,12 @@ function OutcomeCard({
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <Target className="h-4 w-4 text-gray-400 shrink-0" />
-              <h3 className="font-semibold text-gray-900 truncate">
+              <Target className="h-4 w-4 text-ink-4 shrink-0" />
+              <h3 className="font-semibold text-ink truncate">
                 {outcome.title}
               </h3>
             </div>
-            <p className="text-sm text-gray-500 flex items-center gap-1">
+            <p className="text-sm text-ink-3 flex items-center gap-1">
               <User className="h-3 w-3" />
               {outcome.client_name}
             </p>
@@ -440,7 +440,7 @@ function OutcomeCard({
         </div>
 
         {outcome.description && (
-          <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+          <p className="text-sm text-ink-3 line-clamp-2 mb-3">
             {outcome.description}
           </p>
         )}
@@ -448,15 +448,15 @@ function OutcomeCard({
         {/* Progress */}
         <div className="mb-3">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-xs text-gray-500">Progress</span>
-            <span className="text-xs font-semibold text-gray-700">
+            <span className="text-xs text-ink-3">Progress</span>
+            <span className="text-xs font-semibold text-ink-2">
               {outcome.progress_percentage}%
             </span>
           </div>
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-surface-3 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                outcome.status === 'completed' ? 'bg-green-500' : 'bg-gray-400'
+                outcome.status === 'completed' ? 'bg-forest' : 'bg-line'
               }`}
               style={{
                 width: `${Math.min(100, outcome.progress_percentage)}%`,
@@ -467,8 +467,8 @@ function OutcomeCard({
 
         {/* Commitments */}
         <div className="flex items-center justify-between text-sm border-t pt-3">
-          <span className="text-gray-500">Commitments</span>
-          <span className="font-medium text-gray-900">
+          <span className="text-ink-3">Commitments</span>
+          <span className="font-medium text-ink">
             {outcome.completed_commitment_count} / {outcome.commitment_count}
           </span>
         </div>
@@ -504,22 +504,22 @@ function OutcomeRow({
   const getStatusStyles = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-500'
+        return 'bg-forest'
       case 'active':
-        return 'bg-blue-500'
+        return 'bg-ds-accent'
       case 'deferred':
-        return 'bg-yellow-500'
+        return 'bg-amber-token'
       case 'abandoned':
-        return 'bg-red-500'
+        return 'bg-vermillion'
       default:
-        return 'bg-gray-400'
+        return 'bg-line'
     }
   }
 
   return (
     <div
       onClick={onClick}
-      className="flex items-center gap-4 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors"
+      className="flex items-center gap-4 p-3 rounded-lg border border-line hover:bg-paper cursor-pointer transition-colors"
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
@@ -528,12 +528,10 @@ function OutcomeRow({
               outcome.status,
             )}`}
           />
-          <h4 className="font-medium text-gray-900 truncate">
-            {outcome.title}
-          </h4>
+          <h4 className="font-medium text-ink truncate">{outcome.title}</h4>
         </div>
         {outcome.vision_titles.length > 0 && (
-          <p className="text-xs text-gray-500 mt-1 ml-4 truncate">
+          <p className="text-xs text-ink-3 mt-1 ml-4 truncate">
             Vision: {outcome.vision_titles.join(', ')}
           </p>
         )}
@@ -542,10 +540,10 @@ function OutcomeRow({
       {/* Progress */}
       <div className="flex items-center gap-3 shrink-0">
         <div className="w-24">
-          <div className="h-2 w-full bg-gray-100 rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-surface-3 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${
-                outcome.status === 'completed' ? 'bg-green-500' : 'bg-gray-400'
+                outcome.status === 'completed' ? 'bg-forest' : 'bg-line'
               }`}
               style={{
                 width: `${Math.min(100, outcome.progress_percentage)}%`,
@@ -553,12 +551,12 @@ function OutcomeRow({
             />
           </div>
         </div>
-        <span className="text-sm font-medium text-gray-700 w-10 text-right">
+        <span className="text-sm font-medium text-ink-2 w-10 text-right">
           {outcome.progress_percentage}%
         </span>
       </div>
 
-      <ChevronRight className="h-4 w-4 text-gray-400 shrink-0" />
+      <ChevronRight className="h-4 w-4 text-ink-4 shrink-0" />
     </div>
   )
 }

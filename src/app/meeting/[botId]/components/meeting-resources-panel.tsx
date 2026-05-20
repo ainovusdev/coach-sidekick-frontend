@@ -82,14 +82,14 @@ export function MeetingResourcesPanel({
   return (
     <div className="h-full flex flex-col">
       {/* Search */}
-      <div className="p-3 border-b border-gray-100 dark:border-gray-700">
+      <div className="p-3 border-b border-line ">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
           <Input
             placeholder="Search resources..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="h-8 text-xs pl-8 border-gray-200 dark:border-gray-600"
+            className="h-8 text-xs pl-8 border-line "
           />
         </div>
       </div>
@@ -97,19 +97,19 @@ export function MeetingResourcesPanel({
       {/* List */}
       <div className="flex-1 overflow-y-auto">
         {isLoading ? (
-          <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
+          <div className="p-4 flex items-center justify-center gap-2 text-ink-4">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-xs">Loading resources...</span>
           </div>
         ) : filtered.length === 0 ? (
           <div className="p-6 text-center">
-            <BookOpen className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <BookOpen className="h-8 w-8 text-ink-2 mx-auto mb-2" />
+            <p className="text-xs text-ink-3 ">
               {search ? 'No matching resources' : 'No resources yet'}
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-line ">
             {filtered.map(resource => {
               const Icon = CATEGORY_ICONS[resource.category] || FileText
               const colors =
@@ -120,14 +120,14 @@ export function MeetingResourcesPanel({
               return (
                 <div
                   key={resource.id}
-                  className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                  className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-paper "
                 >
                   <div className={`p-1.5 rounded ${colors.bg} shrink-0`}>
                     <Icon className={`h-3.5 w-3.5 ${colors.text}`} />
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-900 dark:text-white truncate">
+                    <p className="text-xs font-medium text-ink truncate">
                       {resource.title}
                     </p>
                     <Badge
@@ -139,7 +139,7 @@ export function MeetingResourcesPanel({
                   </div>
 
                   {alreadyShared ? (
-                    <div className="shrink-0 flex items-center gap-1 text-green-600 dark:text-green-400">
+                    <div className="shrink-0 flex items-center gap-1 text-forest ">
                       <Check className="h-3.5 w-3.5" />
                       <span className="text-[10px] font-medium">Shared</span>
                     </div>

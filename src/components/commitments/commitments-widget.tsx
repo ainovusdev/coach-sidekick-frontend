@@ -99,22 +99,22 @@ export function CommitmentsWidget({
     if (isOverdue) {
       return {
         text: 'Overdue',
-        className: 'text-red-600',
+        className: 'text-vermillion',
       }
     }
 
     return {
       text: `Due ${formatRelativeTime(commitment.target_date)}`,
-      className: 'text-zinc-400',
+      className: 'text-ink-4',
     }
   }
 
   if (loading) {
     return (
-      <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
+      <Card className={cn('bg-surface-1 border-line shadow-sm', className)}>
         <CardContent className="py-12">
           <div className="flex items-center justify-center">
-            <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+            <Loader2 className="h-6 w-6 animate-spin text-ink-4" />
           </div>
         </CardContent>
       </Card>
@@ -123,11 +123,11 @@ export function CommitmentsWidget({
 
   if (error) {
     return (
-      <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
+      <Card className={cn('bg-surface-1 border-line shadow-sm', className)}>
         <CardContent className="py-12">
           <div className="text-center">
-            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-red-600" />
-            <p className="text-gray-600">{error}</p>
+            <AlertCircle className="h-8 w-8 mx-auto mb-2 text-vermillion" />
+            <p className="text-ink-3">{error}</p>
             <Button
               variant="outline"
               size="sm"
@@ -143,11 +143,11 @@ export function CommitmentsWidget({
   }
 
   return (
-    <Card className={cn('bg-white border-gray-200 shadow-sm', className)}>
+    <Card className={cn('bg-surface-1 border-line shadow-sm', className)}>
       {showHeader && (
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-gray-900 flex items-center gap-2">
+            <CardTitle className="text-ink flex items-center gap-2">
               <Target className="h-5 w-5" />
               My Active Commitments
             </CardTitle>
@@ -155,7 +155,7 @@ export function CommitmentsWidget({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+                className="text-ink-3 hover:text-ink hover:bg-surface-3"
               >
                 View All
                 <ArrowRight className="ml-2 h-4 w-4" />
@@ -168,9 +168,9 @@ export function CommitmentsWidget({
       <CardContent>
         {displayCommitments.length === 0 ? (
           <div className="text-center py-8">
-            <Target className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-            <p className="text-gray-600">No active commitments</p>
-            <p className="text-sm text-gray-500 mt-1">
+            <Target className="h-12 w-12 mx-auto mb-3 text-ink-2" />
+            <p className="text-ink-3">No active commitments</p>
+            <p className="text-sm text-ink-3 mt-1">
               Commitments from your coaching sessions will appear here
             </p>
           </div>
@@ -181,7 +181,7 @@ export function CommitmentsWidget({
               return (
                 <div
                   key={commitment.id}
-                  className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors group"
+                  className="flex items-start gap-3 p-3 border border-line rounded-lg hover:bg-paper transition-colors group"
                 >
                   {/* Quick Complete Checkbox */}
                   <div className="pt-0.5">
@@ -194,7 +194,7 @@ export function CommitmentsWidget({
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm text-gray-900 line-clamp-1">
+                    <h4 className="font-medium text-sm text-ink line-clamp-1">
                       {commitment.title}
                     </h4>
 
@@ -204,13 +204,13 @@ export function CommitmentsWidget({
                         variant="secondary"
                         className={cn(
                           commitment.type === 'commitment' &&
-                            'bg-blue-100 text-blue-700',
+                            'bg-ds-accent-bg text-ds-accent',
                           commitment.type === 'habit' &&
-                            'bg-gray-100 text-gray-700',
+                            'bg-surface-3 text-ink-2',
                           commitment.type === 'mp_outcome' &&
-                            'bg-green-100 text-green-700',
+                            'bg-forest-bg text-forest',
                           commitment.type === 'sprint' &&
-                            'bg-indigo-100 text-indigo-700',
+                            'bg-indigo-bg text-indigo',
                         )}
                       >
                         {commitmentTypeLabels[commitment.type] ||
@@ -223,7 +223,7 @@ export function CommitmentsWidget({
                       )}
                       {commitment.progress_percentage > 0 &&
                         commitment.progress_percentage < 100 && (
-                          <span className="text-gray-600">
+                          <span className="text-ink-3">
                             {commitment.progress_percentage}%
                           </span>
                         )}
@@ -257,7 +257,7 @@ export function CommitmentsWidget({
             })}
 
             <Link href={viewAllLink}>
-              <Button className="w-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100 mt-2">
+              <Button className="w-full bg-ink text-ink-on-dark hover:bg-ink-2 mt-2">
                 View All Commitments
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>

@@ -109,7 +109,7 @@ export function ResourceDetailDialog({
                 {resource.title}
               </SheetTitle>
               {resource.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                <p className="text-sm text-ink-3 mt-1">
                   {resource.description}
                 </p>
               )}
@@ -138,7 +138,7 @@ export function ResourceDetailDialog({
           </div>
 
           {/* Stats row */}
-          <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 py-3 border-y border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-4 text-sm text-ink-3 py-3 border-y border-line ">
             <span className="flex items-center gap-1.5">
               <Eye className="h-4 w-4" />
               {resource.view_count} views
@@ -156,36 +156,30 @@ export function ResourceDetailDialog({
           {/* Content preview */}
           {resource.content ? (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Content
-              </h4>
-              <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+              <h4 className="text-sm font-medium text-ink-2 ">Content</h4>
+              <div className="p-4 bg-paper rounded-lg text-sm text-ink-2 whitespace-pre-wrap leading-relaxed">
                 {resource.content}
               </div>
             </div>
           ) : !resource.file_url && !resource.content_url ? (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center">
-              <FileText className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-400 dark:text-gray-500">
-                No content added yet
-              </p>
+            <div className="p-4 bg-paper rounded-lg text-center">
+              <FileText className="h-8 w-8 text-ink-2 mx-auto mb-2" />
+              <p className="text-sm text-ink-4 ">No content added yet</p>
             </div>
           ) : null}
 
           {/* File details */}
           {resource.file_url && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                File
-              </h4>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <h4 className="text-sm font-medium text-ink-2 ">File</h4>
+              <div className="flex items-center gap-3 p-3 bg-paper rounded-lg">
+                <FileText className="h-5 w-5 text-ink-3 " />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  <p className="text-sm font-medium text-ink truncate">
                     {resource.file_type || 'File'}
                   </p>
                   {resource.file_size && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-ink-3 ">
                       {formatFileSize(resource.file_size)}
                     </p>
                   )}
@@ -205,12 +199,10 @@ export function ResourceDetailDialog({
           {/* Link details */}
           {resource.content_url && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Link
-              </h4>
-              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <Link2 className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                <p className="flex-1 text-sm text-blue-600 truncate">
+              <h4 className="text-sm font-medium text-ink-2 ">Link</h4>
+              <div className="flex items-center gap-3 p-3 bg-paper rounded-lg">
+                <Link2 className="h-5 w-5 text-ink-3 " />
+                <p className="flex-1 text-sm text-ds-accent truncate">
                   {resource.content_url}
                 </p>
                 <Button
@@ -234,7 +226,7 @@ export function ResourceDetailDialog({
           {/* Tags */}
           {resource.tags && resource.tags.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+              <h4 className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
                 <Tag className="h-4 w-4" />
                 Tags
               </h4>
@@ -251,7 +243,7 @@ export function ResourceDetailDialog({
           {/* Shares */}
           {resource.shares && resource.shares.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
+              <h4 className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
                 <Share2 className="h-4 w-4" />
                 Shared with ({resource.shares.length})
               </h4>
@@ -259,16 +251,16 @@ export function ResourceDetailDialog({
                 {resource.shares.map(share => (
                   <div
                     key={share.id}
-                    className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm"
+                    className="flex items-center justify-between p-2 bg-paper rounded-lg text-sm"
                   >
-                    <span className="text-gray-700 dark:text-gray-300">
+                    <span className="text-ink-2 ">
                       {share.shared_with_name || 'Client'}
                     </span>
                     {isOwner && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30"
+                        className="h-6 w-6 p-0 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg "
                         onClick={() =>
                           unshareResource.mutate({
                             resourceId: resource.id,
@@ -292,7 +284,7 @@ export function ResourceDetailDialog({
 
           {/* Scope details */}
           {(resource.client_id || resource.session_id) && (
-            <div className="space-y-1 text-sm text-gray-500 dark:text-gray-400">
+            <div className="space-y-1 text-sm text-ink-3 ">
               {resource.client_id && <p>Client ID: {resource.client_id}</p>}
               {resource.session_id && <p>Session ID: {resource.session_id}</p>}
             </div>
@@ -300,7 +292,7 @@ export function ResourceDetailDialog({
 
           {/* Action buttons */}
           {(canShare || canEdit) && (
-            <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-700">
+            <div className="flex gap-2 pt-4 border-t border-line ">
               {canShare && onShare && (
                 <Button
                   variant="outline"
@@ -330,7 +322,7 @@ export function ResourceDetailDialog({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
+                    className="text-vermillion hover:text-vermillion hover:bg-vermillion-bg "
                     onClick={() => {
                       onOpenChange(false)
                       onDelete(resource)

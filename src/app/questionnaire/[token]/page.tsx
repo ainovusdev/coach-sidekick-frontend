@@ -38,8 +38,8 @@ export default function QuestionnairePage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400 mx-auto mb-4" />
-          <p className="text-gray-500 text-sm">Loading questionnaire...</p>
+          <Loader2 className="h-8 w-8 animate-spin text-ink-4 mx-auto mb-4" />
+          <p className="text-ink-3 text-sm">Loading questionnaire...</p>
         </div>
       </div>
     )
@@ -49,13 +49,13 @@ export default function QuestionnairePage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-8 w-8 text-gray-400" />
+          <div className="w-16 h-16 bg-surface-3 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="h-8 w-8 text-ink-4" />
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-3">
+          <h1 className="text-xl font-semibold text-ink mb-3">
             Questionnaire Unavailable
           </h1>
-          <p className="text-gray-500 leading-relaxed">{errorMessage}</p>
+          <p className="text-ink-3 leading-relaxed">{errorMessage}</p>
         </div>
       </div>
     )

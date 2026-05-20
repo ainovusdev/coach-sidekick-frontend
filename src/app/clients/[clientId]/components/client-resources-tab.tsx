@@ -141,10 +141,10 @@ export function ClientResourcesTab({
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+          <h3 className="text-lg font-semibold text-ink ">
             Resources ({resources.length})
           </h3>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+          <p className="text-sm text-ink-3 mt-0.5">
             Resources shared with {clientName || 'this client'}
           </p>
         </div>
@@ -175,7 +175,7 @@ export function ClientResourcesTab({
       {/* Search */}
       {resources.length > 0 && (
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-4" />
           <Input
             placeholder="Search resources..."
             value={searchQuery}
@@ -188,7 +188,7 @@ export function ClientResourcesTab({
       {/* Resources */}
       {resources.length > 0 && (
         <div>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1.5">
+          <h4 className="text-sm font-medium text-ink-3 mb-3 flex items-center gap-1.5">
             <Share2 className="h-4 w-4" />
             Shared with {clientName || 'this client'}
           </h4>
@@ -207,13 +207,13 @@ export function ClientResourcesTab({
 
       {/* Empty state */}
       {resources.length === 0 && (
-        <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+        <Card className="border-2 border-dashed border-line-strong ">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <BookOpen className="h-12 w-12 text-gray-300 dark:text-gray-600 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <BookOpen className="h-12 w-12 text-ink-2 mb-4" />
+            <h3 className="text-lg font-semibold text-ink mb-2">
               No Resources Shared
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 text-center max-w-md mb-4">
+            <p className="text-ink-3 text-center max-w-md mb-4">
               No resources have been shared with {clientName || 'this client'}{' '}
               yet.
             </p>
@@ -286,8 +286,8 @@ export function ClientResourcesTab({
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-vermillion-bg rounded-full">
+                <AlertTriangle className="h-5 w-5 text-vermillion" />
               </div>
               <AlertDialogTitle>Delete Resource</AlertDialogTitle>
             </div>
@@ -306,7 +306,7 @@ export function ClientResourcesTab({
                 handleDeleteConfirm()
               }}
               disabled={deleteResourceMutation.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {deleteResourceMutation.isPending ? (
                 <>
@@ -342,7 +342,7 @@ function ResourceMiniCard({
 
   return (
     <Card
-      className="border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+      className="border-line shadow-sm hover:shadow-md transition-shadow cursor-pointer"
       onClick={() => onView(resource)}
     >
       <CardContent className="py-3 px-4">
@@ -351,7 +351,7 @@ function ResourceMiniCard({
             <Icon className={`h-4 w-4 ${colors.text}`} />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+            <h4 className="text-sm font-medium text-ink truncate">
               {resource.title}
             </h4>
             <div className="flex items-center gap-2 mt-0.5">
@@ -361,12 +361,12 @@ function ResourceMiniCard({
               >
                 {CATEGORY_LABELS[resource.category]}
               </Badge>
-              <span className="text-xs text-gray-400">
+              <span className="text-xs text-ink-4">
                 {formatDate(resource.created_at)}
               </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs text-gray-400">
+          <div className="flex items-center gap-1 text-xs text-ink-4">
             <Eye className="h-3 w-3" />
             {resource.view_count}
           </div>
@@ -388,7 +388,7 @@ function ResourceMiniCard({
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => onDelete(resource)}
-                className="text-red-600"
+                className="text-vermillion"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete

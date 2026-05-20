@@ -44,12 +44,12 @@ interface TranscriptPaneProps {
 }
 
 const SPEAKER_PALETTE = [
-  'bg-indigo-50 text-indigo-700 ring-indigo-100',
-  'bg-emerald-50 text-emerald-700 ring-emerald-100',
-  'bg-amber-50 text-amber-700 ring-amber-100',
-  'bg-rose-50 text-rose-700 ring-rose-100',
-  'bg-sky-50 text-sky-700 ring-sky-100',
-  'bg-violet-50 text-violet-700 ring-violet-100',
+  'bg-indigo-bg text-indigo ring-indigo',
+  'bg-forest-bg text-forest ring-forest',
+  'bg-amber-token-bg text-amber-token ring-amber-token',
+  'bg-vermillion-bg text-vermillion ring-vermillion',
+  'bg-ds-accent-bg text-ds-accent ring-ds-accent',
+  'bg-indigo-bg text-indigo ring-indigo',
 ]
 
 function speakerSwatch(speaker: string): string {
@@ -70,9 +70,7 @@ function highlightMatch(text: string, needle: string): React.ReactNode {
   return (
     <>
       {before}
-      <mark className="rounded bg-yellow-200 px-0.5 text-gray-900">
-        {match}
-      </mark>
+      <mark className="rounded bg-amber-token-bg px-0.5 text-ink">{match}</mark>
       {after}
     </>
   )
@@ -169,10 +167,10 @@ export const TranscriptPane = forwardRef<
   const visibleMatchSet = useMemo(() => new Set(matches), [matches])
 
   return (
-    <Card className={cn('border-gray-200 flex flex-col', className)}>
-      <CardHeader className="border-b border-gray-200 py-3">
+    <Card className={cn('border-line flex flex-col', className)}>
+      <CardHeader className="border-b border-line py-3">
         <div className="flex items-center justify-between gap-3">
-          <CardTitle className="text-base font-semibold text-gray-900">
+          <CardTitle className="text-base font-semibold text-ink">
             Transcript
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -183,7 +181,7 @@ export const TranscriptPane = forwardRef<
                 size="sm"
                 onClick={scrollToActive}
                 title="Scroll the transcript to where the video is"
-                className="h-7 px-2 text-xs text-indigo-600 hover:bg-indigo-50 hover:text-indigo-700"
+                className="h-7 px-2 text-xs text-indigo hover:bg-indigo-bg hover:text-indigo"
               >
                 <Crosshair className="h-3.5 w-3.5 mr-1" />
                 Jump to current
@@ -195,7 +193,7 @@ export const TranscriptPane = forwardRef<
           </div>
         </div>
         <div className="relative mt-2">
-          <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-4" />
           <Input
             ref={searchRef}
             value={search}
@@ -208,14 +206,14 @@ export const TranscriptPane = forwardRef<
             <button
               type="button"
               onClick={() => setSearch('')}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-4 hover:text-ink-3"
               aria-label="Clear search"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
           {search && matches.length > 0 && (
-            <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[11px] text-gray-500">
+            <span className="absolute right-7 top-1/2 -translate-y-1/2 text-[11px] text-ink-3">
               {matchIndex + 1}/{matches.length}
             </span>
           )}
@@ -223,7 +221,7 @@ export const TranscriptPane = forwardRef<
       </CardHeader>
       <CardContent className="p-0">
         {entries.length === 0 ? (
-          <div className="px-4 py-12 text-center text-sm text-gray-500">
+          <div className="px-4 py-12 text-center text-sm text-ink-3">
             {videoAnchorAt
               ? 'Transcript not available yet — usually ready a minute or two after the session ends.'
               : 'Session timing data is not available, so the transcript cannot be synced with the video.'}
@@ -231,7 +229,7 @@ export const TranscriptPane = forwardRef<
         ) : (
           <div
             ref={containerRef}
-            className="max-h-[28rem] overflow-y-auto divide-y divide-gray-100"
+            className="max-h-[28rem] overflow-y-auto divide-y divide-line"
             role="list"
             aria-label="Transcript synced with video"
           >
@@ -249,16 +247,16 @@ export const TranscriptPane = forwardRef<
                   className={cn(
                     'group relative px-4 py-3 transition-colors',
                     isActive
-                      ? 'bg-indigo-50/70 border-l-4 border-l-indigo-500 pl-3'
-                      : 'border-l-4 border-l-transparent hover:bg-gray-50',
-                    isMatch && !isActive && 'bg-yellow-50/60',
+                      ? 'bg-indigo-bg/70 border-l-4 border-l-indigo-500 pl-3'
+                      : 'border-l-4 border-l-transparent hover:bg-paper',
+                    isMatch && !isActive && 'bg-amber-token-bg/60',
                   )}
                 >
                   <div className="flex items-start gap-3">
                     <button
                       type="button"
                       onClick={() => onSeek(offsetSec)}
-                      className="shrink-0 rounded font-mono text-[11px] text-gray-500 hover:text-indigo-600 hover:underline"
+                      className="shrink-0 rounded font-mono text-[11px] text-ink-3 hover:text-indigo hover:underline"
                       title="Jump to this moment"
                     >
                       {formatVideoOffset(offsetSec)}
@@ -274,7 +272,7 @@ export const TranscriptPane = forwardRef<
                     <p
                       className={cn(
                         'flex-1 text-sm leading-relaxed cursor-pointer',
-                        isActive ? 'text-gray-900' : 'text-gray-700',
+                        isActive ? 'text-ink' : 'text-ink-2',
                       )}
                       onClick={() => onSeek(offsetSec)}
                     >

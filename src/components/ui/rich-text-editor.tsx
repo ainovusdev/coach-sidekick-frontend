@@ -48,9 +48,8 @@ function ToolbarButton({
       title={title}
       className={cn(
         'p-1.5 rounded-md transition-colors',
-        'hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 dark:focus:ring-offset-gray-800',
-        isActive &&
-          'bg-gray-200 dark:bg-gray-600 text-blue-600 dark:text-blue-400',
+        'hover:bg-surface-3 focus:outline-none focus:ring-2 focus:ring-ds-accent focus:ring-offset-1 ',
+        isActive && 'bg-surface-3 text-ds-accent ',
         disabled && 'opacity-50 cursor-not-allowed',
       )}
     >
@@ -92,7 +91,7 @@ export function RichTextEditor({
       Placeholder.configure({
         placeholder,
         emptyEditorClass:
-          'before:content-[attr(data-placeholder)] before:text-gray-400 dark:before:text-gray-500 before:float-left before:h-0 before:pointer-events-none',
+          'before:content-[attr(data-placeholder)] before:text-ink-4 before:float-left before:h-0 before:pointer-events-none',
       }),
     ],
     content,
@@ -157,22 +156,22 @@ export function RichTextEditor({
     return (
       <div
         className={cn(
-          'border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 overflow-hidden',
+          'border border-line rounded-lg bg-surface-1 overflow-hidden',
           className,
         )}
       >
         {/* Toolbar placeholder */}
-        <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
-          <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded-md animate-pulse" />
-          <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
-          <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-gray-200 dark:bg-gray-600 rounded-md animate-pulse" />
+        <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper ">
+          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+          <div className="w-px h-5 bg-line mx-1" />
+          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
         </div>
         {/* Content placeholder */}
         <div className="px-3 py-2" style={{ minHeight }}>
-          <div className="h-4 bg-gray-100 dark:bg-gray-600 rounded w-3/4 animate-pulse" />
+          <div className="h-4 bg-surface-3 rounded w-3/4 animate-pulse" />
         </div>
       </div>
     )
@@ -181,15 +180,15 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        'border border-gray-200 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-700 flex flex-col',
-        'focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-blue-500',
-        disabled && 'opacity-60 bg-gray-50 dark:bg-gray-800',
+        'border border-line rounded-lg overflow-hidden bg-surface-1 flex flex-col',
+        'focus-within:ring-2 focus-within:ring-ds-accent focus-within:border-ds-accent',
+        disabled && 'opacity-60 bg-paper ',
         className,
       )}
       onKeyDown={onKeyDown}
     >
       {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 flex-shrink-0">
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper flex-shrink-0">
         <ToolbarButton
           onClick={toggleBold}
           isActive={editor.isActive('bold')}
@@ -217,7 +216,7 @@ export function RichTextEditor({
           <UnderlineIcon className="h-4 w-4" />
         </ToolbarButton>
 
-        <div className="w-px h-5 bg-gray-300 dark:bg-gray-500 mx-1" />
+        <div className="w-px h-5 bg-line mx-1" />
 
         <ToolbarButton
           onClick={toggleBulletList}
@@ -239,7 +238,7 @@ export function RichTextEditor({
       </div>
 
       {/* Editor Content */}
-      <div className="px-3 py-2 flex-1 overflow-y-auto text-gray-900 dark:text-gray-100">
+      <div className="px-3 py-2 flex-1 overflow-y-auto text-ink ">
         <EditorContent editor={editor} />
       </div>
     </div>

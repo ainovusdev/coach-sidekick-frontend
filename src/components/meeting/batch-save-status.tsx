@@ -131,16 +131,16 @@ export function BatchSaveStatus({
     if (minimal) {
       return (
         <div className="flex items-center gap-2">
-          <Loader2 className="h-3 w-3 animate-spin text-gray-400" />
-          <span className="text-xs text-gray-500">Loading...</span>
+          <Loader2 className="h-3 w-3 animate-spin text-ink-4" />
+          <span className="text-xs text-ink-3">Loading...</span>
         </div>
       )
     }
     return (
-      <Card className="border-gray-200">
+      <Card className="border-line">
         <CardContent className="flex items-center gap-2 p-3">
-          <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
-          <span className="text-xs text-gray-600">Checking save status...</span>
+          <Loader2 className="h-4 w-4 animate-spin text-ink-4" />
+          <span className="text-xs text-ink-3">Checking save status...</span>
         </CardContent>
       </Card>
     )
@@ -150,16 +150,18 @@ export function BatchSaveStatus({
     if (minimal) {
       return (
         <div className="flex items-center gap-2">
-          <CloudOff className="h-3 w-3 text-red-500" />
-          <span className="text-xs text-red-600">Save error</span>
+          <CloudOff className="h-3 w-3 text-vermillion" />
+          <span className="text-xs text-vermillion">Save error</span>
         </div>
       )
     }
     return (
-      <Card className="border-red-200 bg-red-50">
+      <Card className="border-vermillion bg-vermillion-bg">
         <CardContent className="flex items-center gap-2 p-3">
-          <CloudOff className="h-4 w-4 text-red-600" />
-          <span className="text-xs text-red-700">Save status unavailable</span>
+          <CloudOff className="h-4 w-4 text-vermillion" />
+          <span className="text-xs text-vermillion">
+            Save status unavailable
+          </span>
         </CardContent>
       </Card>
     )
@@ -170,18 +172,18 @@ export function BatchSaveStatus({
   const getSaveStatusIcon = () => {
     const size = minimal ? 'h-3 w-3' : 'h-4 w-4'
     if (saveStatus.batchSaveInProgress) {
-      return <Loader2 className={`${size} animate-spin text-blue-600`} />
+      return <Loader2 className={`${size} animate-spin text-ds-accent`} />
     }
 
     if (saveStatus.unsavedEntries === 0) {
-      return <CheckCircle2 className={`${size} text-green-600`} />
+      return <CheckCircle2 className={`${size} text-forest`} />
     }
 
     if (saveStatus.unsavedEntries > 20) {
-      return <AlertTriangle className={`${size} text-yellow-600`} />
+      return <AlertTriangle className={`${size} text-amber-token`} />
     }
 
-    return <Cloud className={`${size} text-blue-600`} />
+    return <Cloud className={`${size} text-ds-accent`} />
   }
 
   const getSaveStatusText = () => {
@@ -198,18 +200,18 @@ export function BatchSaveStatus({
 
   const getSaveStatusColor = () => {
     if (saveStatus.batchSaveInProgress) {
-      return 'bg-blue-100 text-blue-800 border-blue-200'
+      return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
     }
 
     if (saveStatus.unsavedEntries === 0) {
-      return 'bg-green-100 text-green-800 border-green-200'
+      return 'bg-forest-bg text-forest border-forest'
     }
 
     if (saveStatus.unsavedEntries > 20) {
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+      return 'bg-amber-token-bg text-amber-token border-amber-token'
     }
 
-    return 'bg-blue-100 text-blue-800 border-blue-200'
+    return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
   }
 
   const formatLastSave = (dateString: string | null) => {
@@ -230,10 +232,10 @@ export function BatchSaveStatus({
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           {getSaveStatusIcon()}
-          <span className="text-xs text-gray-600">{getSaveStatusText()}</span>
+          <span className="text-xs text-ink-3">{getSaveStatusText()}</span>
         </div>
         {saveStatus.lastBatchSave && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-ink-4">
             Last save: {formatLastSave(saveStatus.lastBatchSave)}
           </span>
         )}
@@ -247,7 +249,7 @@ export function BatchSaveStatus({
   }
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-line">
       <CardContent className="p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -257,11 +259,11 @@ export function BatchSaveStatus({
                 <Badge className={getSaveStatusColor()}>
                   {getSaveStatusText()}
                 </Badge>
-                <span className="text-xs text-gray-600">
+                <span className="text-xs text-ink-3">
                   {saveStatus.savedEntries}/{saveStatus.totalEntries} saved
                 </span>
               </div>
-              <span className="text-xs text-gray-500 mt-1">
+              <span className="text-xs text-ink-3 mt-1">
                 Last save: {formatLastSave(saveStatus.lastBatchSave)}
               </span>
             </div>

@@ -87,10 +87,10 @@ export function ChatModeSelector({
     <>
       <Card className="p-6">
         <div className="text-center mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+          <h3 className="text-lg font-semibold text-ink mb-2">
             Choose Your Chat Experience
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
+          <p className="text-sm text-ink-3 ">
             Select how you&apos;d like to interact with{' '}
             {clientName || 'your client'}
             &apos;s AI assistant
@@ -100,19 +100,17 @@ export function ChatModeSelector({
         <div className="grid md:grid-cols-2 gap-4">
           {/* Classic Chat Mode */}
           <Card
-            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-gray-300 dark:hover:border-gray-500"
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-line-strong "
             onClick={() => handleModeSelect('classic')}
           >
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 flex items-center justify-center">
-                <MessageSquare className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+              <div className="h-12 w-12 rounded-lg bg-surface-3 flex items-center justify-center">
+                <MessageSquare className="h-6 w-6 text-ink-2 " />
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  Classic Chat
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                <h4 className="font-semibold text-ink mb-1">Classic Chat</h4>
+                <p className="text-xs text-ink-3 mb-2">
                   Text-based conversation with optional voice input
                 </p>
               </div>
@@ -129,16 +127,14 @@ export function ChatModeSelector({
                 </Badge>
               </div>
 
-              <div className="w-full pt-3 border-t dark:border-gray-700">
+              <div className="w-full pt-3 border-t ">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Response time
-                  </span>
+                  <span className="text-ink-3 ">Response time</span>
                   <span className="font-medium">2-3 seconds</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500 dark:text-gray-400">Cost</span>
-                  <span className="font-medium text-green-600">Low</span>
+                  <span className="text-ink-3 ">Cost</span>
+                  <span className="font-medium text-forest">Low</span>
                 </div>
               </div>
 
@@ -151,17 +147,14 @@ export function ChatModeSelector({
 
           {/* Realtime Voice Mode */}
           <Card
-            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-violet-300 relative"
+            className="p-4 cursor-pointer hover:shadow-lg transition-shadow border-2 hover:border-indigo relative"
             onClick={() => handleModeSelect('realtime')}
           >
             <div className="absolute top-2 right-2">
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Badge
-                      variant="default"
-                      className="text-xs bg-gradient-to-r from-violet-500 to-purple-600"
-                    >
+                    <Badge variant="default" className="text-xs  ">
                       <Zap className="h-3 w-3 mr-1" />
                       Premium
                     </Badge>
@@ -174,51 +167,44 @@ export function ChatModeSelector({
             </div>
 
             <div className="flex flex-col items-center text-center space-y-3">
-              <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <Headphones className="h-6 w-6 text-white" />
+              <div className="h-12 w-12 rounded-lg bg-surface-3 flex items-center justify-center shadow-lg">
+                <Headphones className="h-6 w-6 text-ink-on-dark" />
               </div>
 
               <div>
-                <h4 className="font-semibold text-gray-900 dark:text-white mb-1">
-                  Realtime Voice
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                <h4 className="font-semibold text-ink mb-1">Realtime Voice</h4>
+                <p className="text-xs text-ink-3 mb-2">
                   Natural speech-to-speech conversation
                 </p>
               </div>
 
               <div className="flex flex-wrap gap-1 justify-center">
-                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
+                <Badge className="text-xs bg-indigo-bg text-indigo border-indigo ">
                   <Sparkles className="h-3 w-3 mr-1" />
                   GPT-4o
                 </Badge>
-                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
+                <Badge className="text-xs bg-indigo-bg text-indigo border-indigo ">
                   Native Audio
                 </Badge>
-                <Badge className="text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-400 border-violet-200 dark:border-violet-800">
+                <Badge className="text-xs bg-indigo-bg text-indigo border-indigo ">
                   Live RAG
                 </Badge>
               </div>
 
-              <div className="w-full pt-3 border-t dark:border-gray-700">
+              <div className="w-full pt-3 border-t ">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-gray-500 dark:text-gray-400">
-                    Response time
-                  </span>
-                  <span className="font-medium text-violet-600 dark:text-violet-400">
-                    ~300ms
-                  </span>
+                  <span className="text-ink-3 ">Response time</span>
+                  <span className="font-medium text-indigo ">~300ms</span>
                 </div>
                 <div className="flex items-center justify-between text-xs mt-1">
-                  <span className="text-gray-500 dark:text-gray-400">Cost</span>
-                  <span className="font-medium text-orange-600">$0.06/min</span>
+                  <span className="text-ink-3 ">Cost</span>
+                  <span className="font-medium text-amber-token">
+                    $0.06/min
+                  </span>
                 </div>
               </div>
 
-              <Button
-                className="w-full mt-2 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
-                size="sm"
-              >
+              <Button className="w-full mt-2  hover:" size="sm">
                 <Headphones className="h-4 w-4 mr-2" />
                 Start Voice Chat
               </Button>
@@ -232,17 +218,17 @@ export function ChatModeSelector({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-violet-600" />
+              <Headphones className="h-5 w-5 text-indigo" />
               Enable Realtime Voice Chat
             </DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="bg-violet-50 dark:bg-violet-900/30 border border-violet-200 dark:border-violet-800 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-violet-900 dark:text-violet-300 mb-2">
+            <div className="bg-indigo-bg border border-indigo rounded-lg p-3">
+              <h4 className="font-medium text-sm text-indigo mb-2">
                 Premium Features
               </h4>
-              <ul className="space-y-1 text-xs text-violet-700 dark:text-violet-300">
+              <ul className="space-y-1 text-xs text-indigo ">
                 <li className="flex items-start gap-2">
                   <Sparkles className="h-3 w-3 mt-0.5 flex-shrink-0" />
                   <span>Ultra-low latency (~300ms) responses</span>
@@ -262,27 +248,27 @@ export function ChatModeSelector({
               </ul>
             </div>
 
-            <div className="bg-orange-50 dark:bg-orange-900/30 border border-orange-200 dark:border-orange-800 rounded-lg p-3">
+            <div className="bg-amber-token-bg border border-amber-token rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <DollarSign className="h-4 w-4 text-orange-600 dark:text-orange-400 mt-0.5 flex-shrink-0" />
+                <DollarSign className="h-4 w-4 text-amber-token mt-0.5 flex-shrink-0" />
                 <div className="text-xs">
-                  <p className="font-medium text-orange-900 dark:text-orange-300 mb-1">
+                  <p className="font-medium text-amber-token mb-1">
                     Usage Costs
                   </p>
-                  <p className="text-orange-700 dark:text-orange-400">
+                  <p className="text-amber-token ">
                     Voice input: $0.06/minute • Voice output: $0.24/minute
                   </p>
-                  <p className="text-orange-600 dark:text-orange-400 mt-1">
+                  <p className="text-amber-token mt-1">
                     Typical 5-minute conversation: ~$0.30-$0.50
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3">
+            <div className="bg-paper border border-line rounded-lg p-3">
               <div className="flex items-start gap-2">
-                <Info className="h-4 w-4 text-gray-600 dark:text-gray-400 mt-0.5 flex-shrink-0" />
-                <div className="text-xs text-gray-600 dark:text-gray-400">
+                <Info className="h-4 w-4 text-ink-3 mt-0.5 flex-shrink-0" />
+                <div className="text-xs text-ink-3 ">
                   <p className="mb-1">
                     Requires microphone access and a stable internet connection.
                   </p>
@@ -299,10 +285,7 @@ export function ChatModeSelector({
               >
                 Cancel
               </Button>
-              <Button
-                onClick={confirmRealtimeMode}
-                className="flex-1 bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700"
-              >
+              <Button onClick={confirmRealtimeMode} className="flex-1  hover:">
                 <Headphones className="h-4 w-4 mr-2" />
                 Enable Voice Chat
               </Button>

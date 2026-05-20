@@ -98,7 +98,7 @@ export function ClientNavigation() {
   return (
     <>
       {impersonatedClientName && (
-        <div className="bg-amber-500 text-white px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-3 sticky top-0 z-[60]">
+        <div className="bg-amber-token text-ink-on-dark px-4 py-2 text-center text-sm font-medium flex items-center justify-center gap-3 sticky top-0 z-[60]">
           <Eye className="h-4 w-4 shrink-0" />
           <span>Viewing portal as: {impersonatedClientName}</span>
           <Button
@@ -111,7 +111,7 @@ export function ClientNavigation() {
           </Button>
         </div>
       )}
-      <header className="bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 sticky top-0 z-50">
+      <header className="bg-surface-1 border-b border-line sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo Section */}
@@ -121,8 +121,8 @@ export function ClientNavigation() {
                 className="flex items-center gap-3 group"
               >
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gray-900 rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                  <div className="relative w-11 h-11 bg-gray-900 rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
+                  <div className="absolute inset-0 bg-ink rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                  <div className="relative w-11 h-11 bg-ink rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
                     <Image
                       src="/novus-global-logo.webp"
                       alt="Novus Global Logo"
@@ -134,13 +134,13 @@ export function ClientNavigation() {
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+                    <h1 className="text-xl font-bold text-ink ">
                       Client Portal
                     </h1>
                   </div>
-                  <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-800 rounded-full">
-                    <Sparkles className="w-3 h-3 text-gray-600 dark:text-gray-400" />
-                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                  <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-surface-3 rounded-full">
+                    <Sparkles className="w-3 h-3 text-ink-3 " />
+                    <span className="text-xs font-medium text-ink-3 ">
                       Novus Global
                     </span>
                   </div>
@@ -149,7 +149,7 @@ export function ClientNavigation() {
 
               {/* Desktop Navigation Links */}
               <nav className="hidden md:flex items-center">
-                <div className="flex items-center bg-gray-50 dark:bg-gray-800 rounded-lg p-1">
+                <div className="flex items-center bg-paper rounded-lg p-1">
                   {navItems.map(item => {
                     const Icon = item.icon
                     const isActive = isActivePath(item.path)
@@ -163,8 +163,8 @@ export function ClientNavigation() {
                         transition-all duration-200 cursor-pointer
                         ${
                           isActive
-                            ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-white hover:shadow-sm dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700'
+                            ? 'bg-surface-1 text-ink shadow-sm '
+                            : 'text-ink-3 hover:text-ink hover:bg-surface-1 hover:shadow-sm '
                         }
                       `}
                       >
@@ -192,7 +192,7 @@ export function ClientNavigation() {
                     className="relative h-8 w-8 rounded-full"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <AvatarFallback className="bg-ds-accent-bg text-ds-accent ">
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>
@@ -220,7 +220,7 @@ export function ClientNavigation() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onSelect={handleSignOut}
-                    className="cursor-pointer text-red-600"
+                    className="cursor-pointer text-vermillion"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
@@ -246,7 +246,7 @@ export function ClientNavigation() {
 
           {/* Mobile Navigation */}
           {mobileMenuOpen && (
-            <div className="md:hidden py-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="md:hidden py-4 border-t border-line ">
               <nav className="flex flex-col gap-1">
                 {navItems.map(item => {
                   const Icon = item.icon
@@ -264,8 +264,8 @@ export function ClientNavigation() {
                       transition-all duration-200
                       ${
                         isActive
-                          ? 'bg-gray-100 text-gray-900 dark:bg-gray-800 dark:text-white'
-                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-800'
+                          ? 'bg-surface-3 text-ink '
+                          : 'text-ink-3 hover:text-ink hover:bg-paper '
                       }
                     `}
                     >

@@ -168,17 +168,15 @@ function DraftCommitmentCard({
   }
 
   return (
-    <div className="border border-dashed border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50 rounded-lg p-3">
+    <div className="border border-dashed border-line-strong bg-paper/50 rounded-lg p-3">
       {/* Header row */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          <Sparkles className="h-3 w-3 text-violet-600 dark:text-violet-400" />
-          <span className="text-xs font-medium text-violet-600 dark:text-violet-400">
-            Suggested
-          </span>
+          <Sparkles className="h-3 w-3 text-indigo " />
+          <span className="text-xs font-medium text-indigo ">Suggested</span>
         </div>
         {commitment.extraction_confidence != null && (
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-ink-4">
             {Math.round(commitment.extraction_confidence * 100)}% confidence
           </span>
         )}
@@ -188,13 +186,13 @@ function DraftCommitmentCard({
       <Input
         value={editTitle}
         onChange={e => setEditTitle(e.target.value)}
-        className="h-8 text-sm border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 mb-2"
+        className="h-8 text-sm border-line bg-surface-1 mb-2"
         placeholder="Commitment title"
       />
 
       {/* Transcript context */}
       {commitment.transcript_context && (
-        <p className="text-xs italic text-gray-500 dark:text-gray-400 bg-white/80 dark:bg-gray-700/50 rounded px-2 py-1 mb-2">
+        <p className="text-xs italic text-ink-3 bg-surface-1/80 rounded px-2 py-1 mb-2">
           &ldquo;{commitment.transcript_context}&rdquo;
         </p>
       )}
@@ -218,8 +216,8 @@ function DraftCommitmentCard({
             className={cn(
               'h-6 text-xs px-2',
               editDate?.toDateString() === option.date.toDateString()
-                ? 'bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900'
-                : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400',
+                ? 'bg-ink hover:bg-ink-2 text-ink-on-dark '
+                : 'border-line text-ink-3 ',
             )}
           >
             {option.label}
@@ -232,12 +230,12 @@ function DraftCommitmentCard({
               size="sm"
               variant="outline"
               className={cn(
-                'h-6 text-xs px-2 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400',
+                'h-6 text-xs px-2 border-line text-ink-3 ',
                 editDate &&
                   ![addWeeks(new Date(), 1), addWeeks(new Date(), 2)].some(
                     d => d.toDateString() === editDate.toDateString(),
                   ) &&
-                  'bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-white',
+                  'bg-ink hover:bg-ink-2 text-ink-on-dark border-line ',
               )}
             >
               <CalendarIcon className="h-3 w-3 mr-1" />
@@ -265,7 +263,7 @@ function DraftCommitmentCard({
           <button
             type="button"
             onClick={() => setEditDate(undefined)}
-            className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+            className="text-xs text-ink-4 hover:text-ink-3 "
           >
             <X className="h-3 w-3" />
           </button>
@@ -275,7 +273,7 @@ function DraftCommitmentCard({
       {/* Outcome chips */}
       {targets.length > 0 && (
         <div className="mb-2">
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 block">
+          <span className="text-xs font-medium text-ink-3 mb-1 block">
             Link to Meta Performance Outcomes
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -298,7 +296,7 @@ function DraftCommitmentCard({
                     'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium border transition-colors',
                     isSelected
                       ? accentChipSelected
-                      : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 ${accentChipHover}`,
+                      : `bg-surface-1 text-ink-2 border-line ${accentChipHover}`,
                   )}
                 >
                   {isSelected && <Check className="h-2.5 w-2.5" />}
@@ -316,7 +314,7 @@ function DraftCommitmentCard({
           size="sm"
           variant="ghost"
           onClick={() => onReject(commitment.id)}
-          className="h-7 text-xs text-gray-500 hover:text-red-500"
+          className="h-7 text-xs text-ink-3 hover:text-vermillion"
         >
           <X className="h-3 w-3 mr-1" />
           Dismiss
@@ -325,7 +323,7 @@ function DraftCommitmentCard({
           size="sm"
           onClick={handleAccept}
           disabled={!editTitle.trim()}
-          className="h-7 text-xs bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900"
+          className="h-7 text-xs bg-ink hover:bg-ink-2 text-ink-on-dark "
         >
           <Check className="h-3 w-3 mr-1" />
           Accept
@@ -384,33 +382,24 @@ export function CommitmentPanel({
   // Accent classes
   const accent = isCoach
     ? {
-        button:
-          'bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600',
-        tabActive:
-          'text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400 bg-blue-50/50 dark:bg-blue-900/20',
-        chipSelected:
-          'bg-blue-600 text-white border-blue-600 dark:bg-blue-500 dark:border-blue-500',
-        chipHover: 'hover:border-blue-300 dark:hover:border-blue-600',
-        dateText: 'text-blue-600 dark:text-blue-400',
-        dateButtonActive: 'bg-blue-600 hover:bg-blue-700 text-white',
-        inputFocus: 'focus:border-blue-400',
-        itemHover:
-          'hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm',
+        button: 'bg-ds-accent hover:bg-ds-accent ',
+        tabActive: 'text-ds-accent border-ds-accent bg-ds-accent-bg/50 ',
+        chipSelected: 'bg-ds-accent text-ink-on-dark border-ds-accent ',
+        chipHover: 'hover:border-ds-accent ',
+        dateText: 'text-ds-accent ',
+        dateButtonActive: 'bg-ds-accent hover:bg-ds-accent text-ink-on-dark',
+        inputFocus: 'focus:border-ds-accent',
+        itemHover: 'hover:border-ds-accent hover:shadow-sm',
       }
     : {
-        button:
-          'bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900',
-        tabActive:
-          'text-gray-900 dark:text-white border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-700/50',
-        chipSelected:
-          'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white',
-        chipHover: 'hover:border-gray-400 dark:hover:border-gray-500',
-        dateText: 'text-gray-700 dark:text-gray-300',
-        dateButtonActive:
-          'bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900',
-        inputFocus: 'focus:border-gray-400',
-        itemHover:
-          'hover:border-gray-300 dark:hover:border-gray-500 hover:shadow-sm',
+        button: 'bg-ink hover:bg-ink-2 text-ink-on-dark ',
+        tabActive: 'text-ink border-line bg-paper ',
+        chipSelected: 'bg-ink text-ink-on-dark border-line ',
+        chipHover: 'hover:border-line-strong ',
+        dateText: 'text-ink-2 ',
+        dateButtonActive: 'bg-ink hover:bg-ink-2 text-ink-on-dark ',
+        inputFocus: 'focus:border-line-strong',
+        itemHover: 'hover:border-line-strong hover:shadow-sm',
       }
 
   // ─── Handlers ───
@@ -510,13 +499,13 @@ export function CommitmentPanel({
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800'
+        return 'bg-vermillion-bg text-vermillion border-vermillion '
       case 'high':
-        return 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400 border-orange-200 dark:border-orange-800'
+        return 'bg-amber-token-bg text-amber-token border-amber-token '
       case 'medium':
-        return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800'
+        return 'bg-amber-token-bg text-amber-token border-amber-token '
       default:
-        return 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-600'
+        return 'bg-surface-3 text-ink-3 border-line '
     }
   }
 
@@ -549,11 +538,11 @@ export function CommitmentPanel({
     // Inline edit mode (coach only)
     if (isCoach && editingId === commitment.id) {
       return (
-        <div className="space-y-2 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
+        <div className="space-y-2 p-3 bg-ds-accent-bg rounded-lg">
           <Input
             value={editTitle}
             onChange={e => setEditTitle(e.target.value)}
-            className="h-9 text-sm border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800"
+            className="h-9 text-sm border-line bg-surface-1 "
             placeholder="Commitment title"
             autoFocus
           />
@@ -562,7 +551,7 @@ export function CommitmentPanel({
               <Button
                 variant="outline"
                 className={cn(
-                  'w-full justify-start text-left font-normal h-8 text-xs border-gray-200 bg-white',
+                  'w-full justify-start text-left font-normal h-8 text-xs border-line bg-surface-1',
                   !editDate && 'text-muted-foreground',
                 )}
               >
@@ -597,7 +586,7 @@ export function CommitmentPanel({
               size="sm"
               onClick={() => handleSaveEdit(commitment.id)}
               disabled={!editTitle.trim() || isEditSaving}
-              className="h-7 text-xs bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+              className="h-7 text-xs bg-ds-accent hover:bg-ds-accent "
             >
               {isEditSaving ? (
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -616,10 +605,10 @@ export function CommitmentPanel({
         className={cn(
           'group p-3 rounded-lg border transition-all',
           commitment.status === 'completed'
-            ? 'bg-gray-50 dark:bg-gray-700/50 border-gray-200 dark:border-gray-600'
+            ? 'bg-paper border-line '
             : isOverdue
-              ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
-              : `bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 ${accent.itemHover}`,
+              ? 'bg-vermillion-bg border-vermillion '
+              : `bg-surface-1 border-line ${accent.itemHover}`,
           onOpenFull && 'cursor-pointer',
         )}
         onClick={() => onOpenFull?.(commitment)}
@@ -634,8 +623,8 @@ export function CommitmentPanel({
               className={cn(
                 'mt-0.5 flex-shrink-0 transition-colors',
                 commitment.status === 'completed'
-                  ? 'text-green-500'
-                  : 'text-gray-300 hover:text-green-500',
+                  ? 'text-forest'
+                  : 'text-ink-2 hover:text-forest',
               )}
             >
               {commitment.status === 'completed' ? (
@@ -652,8 +641,8 @@ export function CommitmentPanel({
                 className={cn(
                   'text-sm font-medium line-clamp-2',
                   commitment.status === 'completed'
-                    ? 'text-gray-500 dark:text-gray-400 line-through'
-                    : 'text-gray-900 dark:text-white',
+                    ? 'text-ink-3 line-through'
+                    : 'text-ink ',
                 )}
               >
                 {commitment.title}
@@ -667,7 +656,7 @@ export function CommitmentPanel({
                 >
                   <button
                     onClick={() => handleStartEdit(commitment)}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                    className="p-1 text-ink-4 hover:text-ink-3 hover:bg-surface-3 rounded"
                     title="Edit"
                   >
                     <Pencil className="h-3.5 w-3.5" />
@@ -680,17 +669,14 @@ export function CommitmentPanel({
                   >
                     <PopoverTrigger asChild>
                       <button
-                        className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded"
+                        className="p-1 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg rounded"
                         title="Delete"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </PopoverTrigger>
-                    <PopoverContent
-                      className="w-auto p-3 dark:bg-gray-800 dark:border-gray-700"
-                      align="end"
-                    >
-                      <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    <PopoverContent className="w-auto p-3 " align="end">
+                      <p className="text-sm text-ink-2 mb-2">
                         Delete this commitment?
                       </p>
                       <div className="flex items-center gap-2">
@@ -730,8 +716,8 @@ export function CommitmentPanel({
                   className={cn(
                     'text-xs px-1.5 py-0 h-5',
                     commitment.is_coach_commitment
-                      ? 'border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-700'
-                      : 'border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30',
+                      ? 'border-line-strong text-ink-2 bg-paper '
+                      : 'border-ds-accent text-ds-accent bg-ds-accent-bg ',
                   )}
                 >
                   {commitment.is_coach_commitment ? (
@@ -758,7 +744,7 @@ export function CommitmentPanel({
                 )}
 
               {progress > 0 && commitment.status !== 'completed' && (
-                <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                <span className="flex items-center gap-1 text-xs text-forest ">
                   <TrendingUp className="h-3 w-3" />
                   {progress}%
                 </span>
@@ -768,9 +754,7 @@ export function CommitmentPanel({
                 <span
                   className={cn(
                     'flex items-center gap-1 text-xs',
-                    isOverdue
-                      ? 'text-red-600 dark:text-red-400 font-medium'
-                      : 'text-gray-500 dark:text-gray-400',
+                    isOverdue ? 'text-vermillion font-medium' : 'text-ink-3 ',
                   )}
                 >
                   <CalendarIcon className="h-3 w-3" />
@@ -780,7 +764,7 @@ export function CommitmentPanel({
               )}
 
               {isCoach && (
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-ink-4">
                   {formatRelativeTime(commitment.created_at)}
                 </span>
               )}
@@ -789,9 +773,9 @@ export function CommitmentPanel({
             {progress > 0 &&
               progress < 100 &&
               commitment.status !== 'completed' && (
-                <div className="mt-2 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
+                <div className="mt-2 w-full bg-surface-3 rounded-full h-1.5">
                   <div
-                    className="bg-gradient-to-r from-blue-500 to-blue-600 h-1.5 rounded-full transition-all"
+                    className=" h-1.5 rounded-full transition-all"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
@@ -807,7 +791,7 @@ export function CommitmentPanel({
   const renderPastGroups = () => {
     if (loadingPast) {
       return (
-        <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
+        <div className="p-4 flex items-center justify-center gap-2 text-ink-4">
           <Loader2 className="h-4 w-4 animate-spin" />
           <span className="text-xs">Loading...</span>
         </div>
@@ -817,11 +801,9 @@ export function CommitmentPanel({
     if (pastGroups.length === 0) {
       return (
         <div className="p-6 text-center">
-          <History className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            No past commitments
-          </p>
-          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+          <History className="h-8 w-8 text-ink-2 mx-auto mb-2" />
+          <p className="text-sm text-ink-3 ">No past commitments</p>
+          <p className="text-xs text-ink-4 mt-1">
             {isCoach
               ? 'Completed and abandoned commitments will appear here'
               : 'Previous session commitments will appear here'}
@@ -834,25 +816,24 @@ export function CommitmentPanel({
       <div className="p-3 space-y-4">
         {pastGroups.map((group, idx) => (
           <div key={idx}>
-            <div className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-1">
+            <div className="text-xs font-medium text-ink-3 mb-2 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" />
               {group.date
                 ? formatDate(group.date, 'MMM d, yyyy')
                 : 'Previous Sessions'}
             </div>
-            <div className="space-y-2 pl-3 border-l-2 border-gray-100 dark:border-gray-700">
+            <div className="space-y-2 pl-3 border-l-2 border-line ">
               {(group.commitments || []).map(commitment => (
                 <div
                   key={commitment.id}
                   className={cn(
                     'flex items-start gap-2 rounded px-1 -mx-1',
-                    onOpenFull &&
-                      'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/50',
+                    onOpenFull && 'cursor-pointer hover:bg-paper ',
                   )}
                   onClick={() => onOpenFull?.(commitment)}
                 >
                   {commitment.status === 'abandoned' ? (
-                    <X className="h-4 w-4 text-red-400 flex-shrink-0 mt-0.5" />
+                    <X className="h-4 w-4 text-vermillion flex-shrink-0 mt-0.5" />
                   ) : (
                     <button
                       onClick={e => {
@@ -862,8 +843,8 @@ export function CommitmentPanel({
                       className={cn(
                         'mt-0.5 flex-shrink-0 transition-colors',
                         commitment.status === 'completed'
-                          ? 'text-green-500'
-                          : 'text-gray-300 dark:text-gray-500 hover:text-green-500',
+                          ? 'text-forest'
+                          : 'text-ink-2 hover:text-forest',
                       )}
                       title={
                         commitment.status === 'completed'
@@ -883,10 +864,10 @@ export function CommitmentPanel({
                       className={cn(
                         'text-xs',
                         commitment.status === 'completed'
-                          ? 'text-gray-500 dark:text-gray-400 line-through'
+                          ? 'text-ink-3 line-through'
                           : commitment.status === 'abandoned'
-                            ? 'text-gray-400 dark:text-gray-500 line-through'
-                            : 'text-gray-700 dark:text-gray-300',
+                            ? 'text-ink-4 line-through'
+                            : 'text-ink-2 ',
                       )}
                     >
                       {commitment.title}
@@ -897,18 +878,18 @@ export function CommitmentPanel({
                         className={cn(
                           'text-[10px] px-1.5 py-0',
                           commitment.status === 'completed'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
+                            ? 'bg-forest-bg text-forest '
                             : commitment.status === 'abandoned'
-                              ? 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                              ? 'bg-vermillion-bg text-vermillion '
                               : commitment.status === 'active'
-                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
-                                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400',
+                                ? 'bg-ds-accent-bg text-ds-accent '
+                                : 'bg-surface-3 text-ink-2 ',
                         )}
                       >
                         {commitment.status}
                       </Badge>
                       {commitment.target_date && (
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500 flex items-center gap-0.5">
+                        <span className="text-[10px] text-ink-4 flex items-center gap-0.5">
                           <CalendarIcon className="h-2.5 w-2.5" />
                           {formatDate(commitment.target_date, 'MMM d')}
                         </span>
@@ -916,7 +897,7 @@ export function CommitmentPanel({
                       {isCoach && commitment.is_coach_commitment && (
                         <Badge
                           variant="outline"
-                          className="text-[10px] px-1 py-0 border-gray-300 dark:border-gray-600"
+                          className="text-[10px] px-1 py-0 border-line-strong "
                         >
                           <Briefcase className="h-2 w-2 mr-0.5" />
                           Coach
@@ -974,21 +955,19 @@ export function CommitmentPanel({
   // ─── Main Render ───
 
   return (
-    <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full">
+    <Card className="bg-surface-1 rounded-xl shadow-sm border border-line flex flex-col h-full">
       {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+      <div className="px-4 py-3 border-b border-line flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2">
-          <Target className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-          <span className="text-sm font-semibold text-gray-900 dark:text-white">
-            Commitments
-          </span>
+          <Target className="h-4 w-4 text-ink-2 " />
+          <span className="text-sm font-semibold text-ink ">Commitments</span>
           {onExtract && (
             <Button
               size="sm"
               variant="outline"
               onClick={onExtract}
               disabled={isExtracting}
-              className="h-7 text-xs border-gray-300 dark:border-gray-600 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20"
+              className="h-7 text-xs border-line-strong text-indigo hover:bg-indigo-bg "
             >
               {isExtracting ? (
                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
@@ -1001,14 +980,14 @@ export function CommitmentPanel({
         </div>
 
         {isCoach && (
-          <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5">
+          <div className="flex items-center gap-0.5 bg-surface-3 rounded-md p-0.5">
             <button
               onClick={() => setAssigneeType('client')}
               className={cn(
                 'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
                 assigneeType === 'client'
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                  ? 'bg-surface-1 text-ink shadow-sm'
+                  : 'text-ink-3 hover:text-ink-2 ',
               )}
             >
               <User className="h-3 w-3" />
@@ -1019,8 +998,8 @@ export function CommitmentPanel({
               className={cn(
                 'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
                 assigneeType === 'coach'
-                  ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                  ? 'bg-surface-1 text-ink shadow-sm'
+                  : 'text-ink-3 hover:text-ink-2 ',
               )}
             >
               <Briefcase className="h-3 w-3" />
@@ -1044,10 +1023,7 @@ export function CommitmentPanel({
             value={title}
             onChange={e => setTitle(e.target.value)}
             onKeyDown={handleKeyDown}
-            className={cn(
-              'border-gray-200 dark:border-gray-600 dark:bg-gray-700 text-sm h-10',
-              accent.inputFocus,
-            )}
+            className={cn('border-line text-sm h-10', accent.inputFocus)}
             maxLength={200}
           />
 
@@ -1057,7 +1033,7 @@ export function CommitmentPanel({
               <button
                 type="button"
                 onClick={() => setShowOutcomes(!showOutcomes)}
-                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-ink-3 hover:text-ink-2 transition-colors"
               >
                 {showOutcomes ? (
                   <ChevronUp className="h-3 w-3" />
@@ -1077,7 +1053,7 @@ export function CommitmentPanel({
               {showOutcomes && (
                 <div className="mt-2 flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto">
                   {loadingTargets ? (
-                    <span className="text-xs text-gray-400 dark:text-gray-500">
+                    <span className="text-xs text-ink-4 ">
                       Loading meta performance outcomes...
                     </span>
                   ) : (
@@ -1100,7 +1076,7 @@ export function CommitmentPanel({
                             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                             isSelected
                               ? accent.chipSelected
-                              : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 ${accent.chipHover}`,
+                              : `bg-surface-1 text-ink-2 border-line ${accent.chipHover}`,
                           )}
                           title={
                             target.goal_titles && target.goal_titles.length > 0
@@ -1125,7 +1101,7 @@ export function CommitmentPanel({
               <button
                 type="button"
                 onClick={() => setShowSprints(!showSprints)}
-                className="flex items-center gap-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                className="flex items-center gap-1.5 text-xs font-medium text-ink-3 hover:text-ink-2 transition-colors"
               >
                 {showSprints ? (
                   <ChevronUp className="h-3 w-3" />
@@ -1176,7 +1152,7 @@ export function CommitmentPanel({
                           'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
                           isSelected
                             ? accent.chipSelected
-                            : `bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-600 ${accent.chipHover}`,
+                            : `bg-surface-1 text-ink-2 border-line ${accent.chipHover}`,
                         )}
                       >
                         {isSelected ? (
@@ -1201,7 +1177,7 @@ export function CommitmentPanel({
           {/* Due Date */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
+              <label className="text-xs font-medium text-ink-3 ">
                 Due Date
               </label>
               <Button
@@ -1209,7 +1185,7 @@ export function CommitmentPanel({
                 size="sm"
                 variant="ghost"
                 onClick={() => setShowCalendar(!showCalendar)}
-                className="h-6 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                className="h-6 px-2 text-xs text-ink-3 hover:text-ink-2 "
               >
                 {showCalendar ? (
                   <>
@@ -1246,7 +1222,7 @@ export function CommitmentPanel({
                     'h-7 text-xs',
                     targetDate?.toDateString() === option.date.toDateString()
                       ? accent.dateButtonActive
-                      : `border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 ${accent.chipHover}`,
+                      : `border-line text-ink-3 ${accent.chipHover}`,
                   )}
                 >
                   {option.label}
@@ -1258,7 +1234,7 @@ export function CommitmentPanel({
                   size="sm"
                   variant="ghost"
                   onClick={() => setTargetDate(undefined)}
-                  className="h-7 text-xs text-gray-400 hover:text-gray-600"
+                  className="h-7 text-xs text-ink-4 hover:text-ink-3"
                 >
                   <X className="h-3 w-3 mr-1" />
                   Clear
@@ -1267,7 +1243,7 @@ export function CommitmentPanel({
             </div>
 
             {showCalendar && (
-              <div className="rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 overflow-hidden">
+              <div className="rounded-lg border border-line bg-surface-1 overflow-hidden">
                 <Calendar
                   mode="single"
                   selected={targetDate}
@@ -1307,7 +1283,7 @@ export function CommitmentPanel({
       </CardContent>
 
       {/* Tabs */}
-      <div className="border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+      <div className="border-t border-line flex-shrink-0">
         <div className="flex">
           {tabs.map(tab => (
             <button
@@ -1317,7 +1293,7 @@ export function CommitmentPanel({
                 'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2',
                 activeTab === tab.id
                   ? accent.tabActive
-                  : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700',
+                  : 'text-ink-3 border-transparent hover:text-ink-2 hover:bg-paper ',
               )}
             >
               <tab.icon className="h-3.5 w-3.5 inline mr-1.5" />
@@ -1339,17 +1315,15 @@ export function CommitmentPanel({
       <div className="flex-1 overflow-y-auto min-h-0">
         {activeTab === 'session' ? (
           loadingSession ? (
-            <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
+            <div className="p-4 flex items-center justify-center gap-2 text-ink-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-xs">Loading...</span>
             </div>
           ) : sessionCommitments.length === 0 ? (
             <div className="p-6 text-center">
-              <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No commitments this session
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <Target className="h-8 w-8 text-ink-2 mx-auto mb-2" />
+              <p className="text-sm text-ink-3 ">No commitments this session</p>
+              <p className="text-xs text-ink-4 mt-1">
                 Add one above to get started
               </p>
             </div>
@@ -1365,7 +1339,7 @@ export function CommitmentPanel({
                 <div className="p-3 space-y-2">
                   {drafts.length > 0 && (
                     <>
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-ink-3 ">
                         <Sparkles className="h-3 w-3" />
                         AI Suggestions
                       </div>
@@ -1373,7 +1347,7 @@ export function CommitmentPanel({
                         <div key={c.id}>{renderCommitmentItem(c, false)}</div>
                       ))}
                       {nonDrafts.length > 0 && (
-                        <div className="border-t border-gray-200 dark:border-gray-600 my-2" />
+                        <div className="border-t border-line my-2" />
                       )}
                     </>
                   )}
@@ -1386,17 +1360,15 @@ export function CommitmentPanel({
           )
         ) : activeTab === 'active' ? (
           loadingActive ? (
-            <div className="p-4 flex items-center justify-center gap-2 text-gray-400">
+            <div className="p-4 flex items-center justify-center gap-2 text-ink-4">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-xs">Loading...</span>
             </div>
           ) : activeCommitments.length === 0 ? (
             <div className="p-6 text-center">
-              <Target className="h-8 w-8 text-gray-300 dark:text-gray-600 mx-auto mb-2" />
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                No active commitments
-              </p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+              <Target className="h-8 w-8 text-ink-2 mx-auto mb-2" />
+              <p className="text-sm text-ink-3 ">No active commitments</p>
+              <p className="text-xs text-ink-4 mt-1">
                 All commitments have been completed!
               </p>
             </div>

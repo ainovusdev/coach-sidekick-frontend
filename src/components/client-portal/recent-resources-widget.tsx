@@ -53,9 +53,7 @@ function ResourceDetailDialog({
             {resource.title}
           </DialogTitle>
           {resource.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              {resource.description}
-            </p>
+            <p className="text-sm text-ink-3 mt-1">{resource.description}</p>
           )}
         </DialogHeader>
 
@@ -73,24 +71,24 @@ function ResourceDetailDialog({
                 {CATEGORY_LABELS[resource.category as ResourceCategory] ||
                   resource.category}
               </Badge>
-              <span className="text-xs text-gray-400 dark:text-gray-500">
+              <span className="text-xs text-ink-4 ">
                 {formatDate(resource.created_at)}
               </span>
             </div>
 
             {resource.content && (
-              <div className="prose prose-sm max-w-none p-6 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="whitespace-pre-wrap text-gray-800 dark:text-gray-200 leading-relaxed">
+              <div className="prose prose-sm max-w-none p-6 bg-paper rounded-lg">
+                <div className="whitespace-pre-wrap text-ink-2 leading-relaxed">
                   {resource.content}
                 </div>
               </div>
             )}
 
             {resource.file_url && (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <FileText className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <div className="flex items-center gap-3 p-4 bg-paper rounded-lg">
+                <FileText className="h-5 w-5 text-ink-3 " />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                  <p className="text-sm font-medium text-ink ">
                     {resource.file_type || 'File'}
                   </p>
                 </div>
@@ -106,9 +104,9 @@ function ResourceDetailDialog({
             )}
 
             {resource.content_url && (
-              <div className="flex items-center gap-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <Link2 className="h-5 w-5 text-gray-500 dark:text-gray-400" />
-                <p className="flex-1 text-sm text-blue-600 dark:text-blue-400 truncate">
+              <div className="flex items-center gap-3 p-4 bg-paper rounded-lg">
+                <Link2 className="h-5 w-5 text-ink-3 " />
+                <p className="flex-1 text-sm text-ds-accent truncate">
                   {resource.content_url}
                 </p>
                 <Button
@@ -181,13 +179,13 @@ function ResourceRow({
     <div className="flex items-center gap-3 py-2.5 group">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          <p className="text-sm font-medium text-ink truncate">
             {resource.title}
           </p>
           {!resource.is_viewed && (
             <Badge
               variant="secondary"
-              className="text-[10px] px-1.5 py-0 h-4 bg-blue-100 text-blue-700 font-semibold shrink-0"
+              className="text-[10px] px-1.5 py-0 h-4 bg-ds-accent-bg text-ds-accent font-semibold shrink-0"
             >
               NEW
             </Badge>
@@ -200,7 +198,7 @@ function ResourceRow({
           >
             {resource.category}
           </Badge>
-          <span className="text-[11px] text-gray-400 dark:text-gray-500">
+          <span className="text-[11px] text-ink-4 ">
             {formatDate(resource.created_at)}
           </span>
         </div>
@@ -212,7 +210,7 @@ function ResourceRow({
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+            className="h-7 w-7 p-0 text-ink-4 hover:text-ink-2 "
             onClick={handleDownload}
             title="Download"
           >
@@ -223,7 +221,7 @@ function ResourceRow({
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+            className="h-7 w-7 p-0 text-ink-4 hover:text-ink-2 "
             onClick={handleOpenLink}
             title="Open link"
           >
@@ -234,7 +232,7 @@ function ResourceRow({
           <Button
             size="sm"
             variant="ghost"
-            className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+            className="h-7 w-7 p-0 text-ink-4 hover:text-ink-2 "
             onClick={e => {
               e.preventDefault()
               e.stopPropagation()
@@ -250,7 +248,7 @@ function ResourceRow({
             <Button
               size="sm"
               variant="ghost"
-              className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300"
+              className="h-7 w-7 p-0 text-ink-4 hover:text-ink-2 "
               onClick={e => {
                 e.preventDefault()
                 e.stopPropagation()
@@ -276,10 +274,10 @@ export function RecentResourcesWidget() {
 
   return (
     <>
-      <Card className="border-gray-200">
+      <Card className="border-line">
         <CardHeader className="pb-3">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <BookOpen className="h-4 w-4 text-ink-3 " />
             Recent Resources
           </CardTitle>
         </CardHeader>
@@ -289,16 +287,16 @@ export function RecentResourcesWidget() {
               {[1, 2, 3].map(i => (
                 <div
                   key={i}
-                  className="h-12 bg-gray-100 dark:bg-gray-800 rounded animate-pulse"
+                  className="h-12 bg-surface-3 rounded animate-pulse"
                 />
               ))}
             </div>
           ) : resources.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+            <p className="text-sm text-ink-3 text-center py-4">
               No resources shared yet
             </p>
           ) : (
-            <div className="divide-y divide-gray-100 dark:divide-gray-800">
+            <div className="divide-y divide-line ">
               {resources.map(resource => (
                 <ResourceRow
                   key={resource.id}

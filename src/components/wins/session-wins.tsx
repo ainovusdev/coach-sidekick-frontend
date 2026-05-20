@@ -68,7 +68,7 @@ function WinItem({
             <p className="text-sm font-medium flex-1 text-app-primary truncate">
               {win.title}
             </p>
-            <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse flex-shrink-0" />
+            <span className="w-1.5 h-1.5 bg-amber-token rounded-full animate-pulse flex-shrink-0" />
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
             <Button
@@ -100,7 +100,7 @@ function WinItem({
               size="sm"
               variant="ghost"
               disabled={isApproving || isDeleting}
-              className="h-7 px-2 text-app-secondary hover:text-red-600"
+              className="h-7 px-2 text-app-secondary hover:text-vermillion"
               title="Reject win"
             >
               {isDeleting ? (
@@ -160,7 +160,7 @@ function WinItem({
               size="sm"
               variant="ghost"
               disabled={isDeleting}
-              className="h-7 px-2 text-app-secondary hover:text-red-600"
+              className="h-7 px-2 text-app-secondary hover:text-vermillion"
             >
               {isDeleting ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -414,7 +414,7 @@ export function SessionWins({
             {pendingWins.length > 0 && !isViewer && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                  <span className="w-1.5 h-1.5 bg-amber-token rounded-full animate-pulse" />
                   <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
                     Pending ({pendingWins.length})
                   </span>
@@ -442,7 +442,7 @@ export function SessionWins({
               <div className="space-y-2">
                 {pendingWins.length > 0 && !isViewer && (
                   <div className="flex items-center gap-2">
-                    <span className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
+                    <span className="w-1.5 h-1.5 bg-line rounded-full" />
                     <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
                       Confirmed ({approvedWins.length})
                     </span>

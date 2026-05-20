@@ -252,16 +252,12 @@ export default function AdminResourcesPage() {
 
   const getCategoryBadge = (category: string) => {
     const colors: Record<string, string> = {
-      document:
-        'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-      worksheet:
-        'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-      video:
-        'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
-      template:
-        'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
-      link: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-400',
-      general: 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300',
+      document: 'bg-ds-accent-bg text-ds-accent ',
+      worksheet: 'bg-forest-bg text-forest ',
+      video: 'bg-indigo-bg text-indigo ',
+      template: 'bg-amber-token-bg text-amber-token ',
+      link: 'bg-ds-accent-bg text-ds-accent ',
+      general: 'bg-surface-3 text-ink-2 ',
     }
     return colors[category] || colors.general
   }
@@ -279,10 +275,8 @@ export default function AdminResourcesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Global Resources
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <h1 className="text-2xl font-bold text-ink ">Global Resources</h1>
+          <p className="text-sm text-ink-3 mt-1">
             Manage resources available to all coaches
           </p>
         </div>
@@ -304,7 +298,7 @@ export default function AdminResourcesPage() {
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-4" />
         <Input
           placeholder="Search global resources..."
           value={searchQuery}
@@ -314,18 +308,18 @@ export default function AdminResourcesPage() {
       </div>
 
       {/* Count */}
-      <p className="text-sm text-gray-500 dark:text-gray-400">
+      <p className="text-sm text-ink-3 ">
         {total} global resource{total !== 1 ? 's' : ''}
       </p>
 
       {/* Resources List */}
       {resources.length === 0 ? (
-        <div className="text-center py-16 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg">
-          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+        <div className="text-center py-16 border-2 border-dashed border-line-strong rounded-lg">
+          <BookOpen className="h-12 w-12 text-ink-4 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-ink mb-2">
             No Global Resources
           </h3>
-          <p className="text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-ink-3 mb-4">
             Add resources that will be available to all coaches.
           </p>
           <Button
@@ -339,50 +333,50 @@ export default function AdminResourcesPage() {
           </Button>
         </div>
       ) : (
-        <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+        <div className="border border-line rounded-lg overflow-hidden bg-surface-1 ">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+              <tr className="border-b border-line bg-paper ">
+                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">
                   Title
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">
                   Category
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">
                   Type
                 </th>
-                <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="text-left px-4 py-3 text-xs font-medium text-ink-3 uppercase">
                   Created
                 </th>
-                <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                <th className="text-right px-4 py-3 text-xs font-medium text-ink-3 uppercase">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+            <tbody className="divide-y divide-line ">
               {resources.map(resource => (
                 <tr
                   key={resource.id}
-                  className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                  className="hover:bg-paper transition-colors"
                 >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      <div className="h-8 w-8 rounded-lg bg-surface-3 flex items-center justify-center flex-shrink-0">
                         {resource.file_url ? (
-                          <FileText className="h-4 w-4 text-gray-500" />
+                          <FileText className="h-4 w-4 text-ink-3" />
                         ) : resource.content_url ? (
-                          <Link2 className="h-4 w-4 text-gray-500" />
+                          <Link2 className="h-4 w-4 text-ink-3" />
                         ) : (
-                          <BookOpen className="h-4 w-4 text-gray-500" />
+                          <BookOpen className="h-4 w-4 text-ink-3" />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium text-ink truncate">
                           {resource.title}
                         </p>
                         {resource.description && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-xs">
+                          <p className="text-xs text-ink-3 truncate max-w-xs">
                             {resource.description}
                           </p>
                         )}
@@ -395,7 +389,7 @@ export default function AdminResourcesPage() {
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-gray-600 dark:text-gray-400 capitalize">
+                    <span className="text-sm text-ink-3 capitalize">
                       {resource.file_url
                         ? 'File'
                         : resource.content_url
@@ -404,7 +398,7 @@ export default function AdminResourcesPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span className="text-sm text-gray-500 dark:text-gray-400">
+                    <span className="text-sm text-ink-3 ">
                       {resource.created_at
                         ? formatDate(resource.created_at, 'MMM d, yyyy')
                         : '-'}
@@ -414,7 +408,7 @@ export default function AdminResourcesPage() {
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => setViewingResource(resource)}
-                        className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
+                        className="p-1.5 text-ink-4 hover:text-ink-3 rounded transition-colors"
                         title="View"
                       >
                         <Eye className="h-4 w-4" />
@@ -424,20 +418,20 @@ export default function AdminResourcesPage() {
                           href={resource.file_url || resource.content_url || ''}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded transition-colors"
+                          className="p-1.5 text-ink-4 hover:text-ink-3 rounded transition-colors"
                         >
                           <ExternalLink className="h-4 w-4" />
                         </a>
                       )}
                       <button
                         onClick={() => handleEditOpen(resource)}
-                        className="p-1.5 text-gray-400 hover:text-blue-600 rounded transition-colors"
+                        className="p-1.5 text-ink-4 hover:text-ds-accent rounded transition-colors"
                       >
                         <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         onClick={() => setDeleteTarget(resource)}
-                        className="p-1.5 text-gray-400 hover:text-red-600 rounded transition-colors"
+                        className="p-1.5 text-ink-4 hover:text-vermillion rounded transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -490,8 +484,8 @@ export default function AdminResourcesPage() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-vermillion-bg rounded-full">
+                <AlertTriangle className="h-5 w-5 text-vermillion" />
               </div>
               <AlertDialogTitle>Delete Global Resource</AlertDialogTitle>
             </div>
@@ -508,7 +502,7 @@ export default function AdminResourcesPage() {
                 handleDelete()
               }}
               disabled={isDeleting}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {isDeleting ? (
                 <>
@@ -538,17 +532,15 @@ export default function AdminResourcesPage() {
             <DialogTitle>{viewingResource?.title}</DialogTitle>
           </DialogHeader>
           {viewingResource?.description && (
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              {viewingResource.description}
-            </p>
+            <p className="text-sm text-ink-3 ">{viewingResource.description}</p>
           )}
           {viewingResource?.content ? (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed max-h-[60vh] overflow-y-auto">
+            <div className="p-4 bg-paper rounded-lg text-sm text-ink-2 whitespace-pre-wrap leading-relaxed max-h-[60vh] overflow-y-auto">
               {viewingResource.content}
             </div>
           ) : viewingResource?.file_url ? (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <FileText className="h-5 w-5 text-gray-500" />
+            <div className="flex items-center gap-3 p-3 bg-paper rounded-lg">
+              <FileText className="h-5 w-5 text-ink-3" />
               <span className="flex-1 text-sm truncate">
                 {viewingResource.file_url}
               </span>
@@ -556,32 +548,32 @@ export default function AdminResourcesPage() {
                 href={viewingResource.file_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 text-sm font-medium hover:underline"
+                className="text-ds-accent text-sm font-medium hover:underline"
               >
                 Open
               </a>
             </div>
           ) : viewingResource?.content_url ? (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-              <Link2 className="h-5 w-5 text-gray-500" />
-              <span className="flex-1 text-sm text-blue-600 truncate">
+            <div className="flex items-center gap-3 p-3 bg-paper rounded-lg">
+              <Link2 className="h-5 w-5 text-ink-3" />
+              <span className="flex-1 text-sm text-ds-accent truncate">
                 {viewingResource.content_url}
               </span>
               <a
                 href={viewingResource.content_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-600 text-sm font-medium hover:underline"
+                className="text-ds-accent text-sm font-medium hover:underline"
               >
                 Open
               </a>
             </div>
           ) : (
-            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg text-center text-sm text-gray-400">
+            <div className="p-4 bg-paper rounded-lg text-center text-sm text-ink-4">
               No content
             </div>
           )}
-          <div className="flex items-center gap-2 text-xs text-gray-500">
+          <div className="flex items-center gap-2 text-xs text-ink-3">
             <Badge variant="outline" className="text-xs capitalize">
               {viewingResource?.sharing_scope}
             </Badge>

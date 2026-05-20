@@ -21,11 +21,10 @@ interface UpcomingCommitmentsWidgetProps {
 }
 
 const priorityColors: Record<string, string> = {
-  urgent: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  high: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  medium:
-    'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
-  low: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+  urgent: 'bg-vermillion-bg text-vermillion ',
+  high: 'bg-amber-token-bg text-amber-token ',
+  medium: 'bg-amber-token-bg text-amber-token ',
+  low: 'bg-surface-3 text-ink-3 ',
 }
 
 export function UpcomingTasksWidget({
@@ -50,11 +49,11 @@ export function UpcomingTasksWidget({
     .slice(0, 5)
 
   return (
-    <Card className="border-gray-200">
+    <Card className="border-line">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <Target className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <Target className="h-4 w-4 text-ink-3 " />
             Upcoming Commitments
           </CardTitle>
           <Link href="/client-portal/dashboard">
@@ -67,7 +66,7 @@ export function UpcomingTasksWidget({
       </CardHeader>
       <CardContent className="pt-0">
         {upcoming.length === 0 ? (
-          <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+          <p className="text-sm text-ink-3 text-center py-4">
             No active commitments
           </p>
         ) : (
@@ -82,13 +81,13 @@ export function UpcomingTasksWidget({
                 >
                   <div className="flex-shrink-0 mt-0.5">
                     {commitment.status === 'in_progress' ? (
-                      <PlayCircle className="h-4 w-4 text-blue-600" />
+                      <PlayCircle className="h-4 w-4 text-ds-accent" />
                     ) : (
-                      <Circle className="h-4 w-4 text-gray-400" />
+                      <Circle className="h-4 w-4 text-ink-4" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                    <p className="text-sm font-medium text-ink truncate">
                       {commitment.title}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
@@ -99,7 +98,7 @@ export function UpcomingTasksWidget({
                         {commitment.priority}
                       </Badge>
                       {commitment.type && (
-                        <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                        <span className="text-[10px] text-ink-3 ">
                           {commitmentTypeLabels[commitment.type] ||
                             commitment.type}
                         </span>
@@ -108,8 +107,8 @@ export function UpcomingTasksWidget({
                         <span
                           className={`text-xs flex items-center gap-1 ${
                             isOverdue
-                              ? 'text-red-600 dark:text-red-400 font-medium'
-                              : 'text-gray-500 dark:text-gray-400'
+                              ? 'text-vermillion font-medium'
+                              : 'text-ink-3 '
                           }`}
                         >
                           {isOverdue && <AlertCircle className="h-3 w-3" />}

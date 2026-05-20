@@ -202,28 +202,26 @@ export function MediaUploader({
                 className={cn(
                   'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
                   isDragActive
-                    ? 'border-gray-900 bg-gray-50'
-                    : 'border-gray-300 hover:border-gray-400',
+                    ? 'border-line bg-paper'
+                    : 'border-line-strong hover:border-line-strong',
                   isProcessing && 'opacity-50 cursor-not-allowed',
                 )}
               >
                 <input {...getInputProps()} />
-                <Upload className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                <Upload className="w-12 h-12 mx-auto text-ink-4 mb-4" />
                 {isDragActive ? (
-                  <p className="text-gray-900 font-medium">
-                    Drop the file here
-                  </p>
+                  <p className="text-ink font-medium">Drop the file here</p>
                 ) : (
                   <>
-                    <p className="text-gray-600 mb-2">
+                    <p className="text-ink-3 mb-2">
                       Drag & drop a file here, or click to select
                     </p>
-                    <p className="text-sm text-gray-400">
+                    <p className="text-sm text-ink-4">
                       Audio ({supportedFormats.audio.join(', ')}), Video (
                       {supportedFormats.video.join(', ')}), Documents (
                       {supportedFormats.documents.join(', ')})
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-ink-4 mt-1">
                       Max 1GB for media, 10MB for documents
                     </p>
                   </>
@@ -232,12 +230,12 @@ export function MediaUploader({
             ) : (
               <div className="space-y-4">
                 {/* File Preview */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex items-center justify-between p-4 bg-paper rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <File className="w-8 h-8 text-gray-700" />
+                    <File className="w-8 h-8 text-ink-2" />
                     <div>
-                      <p className="font-medium text-gray-900">{file.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-ink">{file.name}</p>
+                      <p className="text-sm text-ink-3">
                         {formatFileSize(file.size)}
                       </p>
                     </div>
@@ -253,8 +251,8 @@ export function MediaUploader({
                 {uploading && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Uploading...</span>
-                      <span className="text-gray-900 font-medium">
+                      <span className="text-ink-3">Uploading...</span>
+                      <span className="text-ink font-medium">
                         {uploadProgress}%
                       </span>
                     </div>
@@ -265,7 +263,7 @@ export function MediaUploader({
                 {/* Time estimate + upload button (before upload) */}
                 {!isProcessing && (
                   <>
-                    <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5 text-sm text-ink-3">
                       <Clock className="w-3.5 h-3.5" />
                       <span>
                         Estimated processing time:{' '}
@@ -276,7 +274,7 @@ export function MediaUploader({
                     <Button
                       onClick={handleUpload}
                       disabled={!file}
-                      className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                      className="w-full bg-ink hover:bg-ink-2 text-ink-on-dark "
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       Upload & Process
@@ -300,11 +298,11 @@ export function MediaUploader({
               />
 
               {/* Character count + time estimate */}
-              <div className="flex items-center justify-between text-sm text-gray-500">
+              <div className="flex items-center justify-between text-sm text-ink-3">
                 <span>
                   {pastedText.length.toLocaleString()} chars
                   {pastedText.length > 0 && pastedText.length < 50 && (
-                    <span className="text-amber-600 ml-2">
+                    <span className="text-amber-token ml-2">
                       (minimum 50 characters)
                     </span>
                   )}
@@ -322,7 +320,7 @@ export function MediaUploader({
                 <Button
                   onClick={handlePasteSubmit}
                   disabled={pastedText.length < 50}
-                  className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                  className="w-full bg-ink hover:bg-ink-2 text-ink-on-dark "
                 >
                   <ClipboardPaste className="w-4 h-4 mr-2" />
                   Process Text

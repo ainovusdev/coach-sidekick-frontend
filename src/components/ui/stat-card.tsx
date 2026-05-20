@@ -9,39 +9,19 @@ interface StatCardProps {
   subtitle?: string
   icon: LucideIcon
   footer?: ReactNode
+  /**
+   * Variant controls only the icon-dot accent color now — never the
+   * background. The DS forbids gradient surfaces.
+   */
   variant?: 'blue' | 'green' | 'purple' | 'orange'
   className?: string
 }
 
-const variantStyles = {
-  blue: {
-    bg: 'bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200',
-    icon: 'bg-blue-500',
-    text: 'text-blue-900',
-    subtitle: 'text-blue-600',
-    footer: 'text-blue-600'
-  },
-  green: {
-    bg: 'bg-gradient-to-br from-green-50 to-emerald-100 border-green-200',
-    icon: 'bg-green-500',
-    text: 'text-green-900',
-    subtitle: 'text-green-600',
-    footer: 'text-green-600'
-  },
-  purple: {
-    bg: 'bg-gradient-to-br from-purple-50 to-violet-100 border-purple-200',
-    icon: 'bg-purple-500',
-    text: 'text-purple-900',
-    subtitle: 'text-purple-600',
-    footer: 'text-purple-600'
-  },
-  orange: {
-    bg: 'bg-gradient-to-br from-orange-50 to-amber-100 border-orange-200',
-    icon: 'bg-orange-500',
-    text: 'text-orange-900',
-    subtitle: 'text-orange-600',
-    footer: 'text-orange-600'
-  }
+const ACCENT: Record<NonNullable<StatCardProps['variant']>, string> = {
+  blue: 'text-ds-accent',
+  green: 'text-forest',
+  purple: 'text-indigo',
+  orange: 'text-amber-token',
 }
 
 export function StatCard({
@@ -51,37 +31,37 @@ export function StatCard({
   icon: Icon,
   footer,
   variant = 'blue',
-  className
+  className,
 }: StatCardProps) {
-  const styles = variantStyles[variant]
+  const accent = ACCENT[variant]
 
   return (
-    <Card className={cn(
-      styles.bg,
-      'shadow-sm hover:shadow-md transition-all duration-200',
-      className
-    )}>
+    <Card
+      className={cn(
+        'bg-surface-1 border border-line shadow-xs hover:shadow-sm transition-shadow duration-200',
+        className,
+      )}
+    >
       <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className={cn('text-3xl font-bold', styles.text)}>
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-3xl font-bold text-ink leading-tight tracking-tight">
               {value}
             </p>
-            <p className={cn('text-sm font-medium', styles.subtitle)}>
-              {title}
-            </p>
-            {subtitle && (
-              <p className={cn('text-xs mt-1', styles.subtitle)}>
-                {subtitle}
-              </p>
-            )}
+            <p className="text-sm font-medium text-ink-3 mt-1">{title}</p>
+            {subtitle && <p className="text-xs text-ink-4 mt-1">{subtitle}</p>}
           </div>
-          <div className={cn('p-4 rounded-2xl shadow-lg', styles.icon)}>
-            <Icon className="h-6 w-6 text-white" />
+          <div
+            className={cn(
+              'shrink-0 w-9 h-9 rounded-md bg-surface-3 flex items-center justify-center',
+              accent,
+            )}
+          >
+            <Icon className="h-4 w-4" strokeWidth={1.75} />
           </div>
         </div>
         {footer && (
-          <div className={cn('mt-4 flex items-center text-xs', styles.footer)}>
+          <div className="mt-4 flex items-center text-xs text-ink-3">
             {footer}
           </div>
         )}

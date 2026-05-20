@@ -271,7 +271,7 @@ export default function ClientDashboard() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-red-600 mb-4">Error: {error}</p>
+          <p className="text-vermillion mb-4">Error: {error}</p>
           <Button onClick={fetchDashboardData}>Retry</Button>
         </div>
       </div>
@@ -282,7 +282,7 @@ export default function ClientDashboard() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">No data available</p>
+          <p className="text-ink-3 ">No data available</p>
         </div>
       </div>
     )
@@ -294,18 +294,16 @@ export default function ClientDashboard() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
       <div className="mb-6">
-        <p className="text-gray-500 dark:text-gray-400 text-sm font-medium mb-1">
-          {getGreeting()}
-        </p>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+        <p className="text-ink-3 text-sm font-medium mb-1">{getGreeting()}</p>
+        <h1 className="text-3xl font-bold text-ink ">
           {dashboardData.client_info?.name || 'Welcome back'}
         </h1>
-        <p className="text-gray-500 dark:text-gray-400 mt-1">
+        <p className="text-ink-3 mt-1">
           Your coaching journey at a glance
           {dashboardData.coach_name && (
             <>
               <span className="mx-2">·</span>
-              <span className="text-gray-600 dark:text-gray-400 font-medium">
+              <span className="text-ink-3 font-medium">
                 Coach: {dashboardData.coach_name}
               </span>
             </>
@@ -397,7 +395,7 @@ export default function ClientDashboard() {
       {/* Recent Sessions - Full Width */}
       {dashboardData.recent_sessions &&
         dashboardData.recent_sessions.length > 1 && (
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg font-semibold">
@@ -418,25 +416,25 @@ export default function ClientDashboard() {
                     key={session.id}
                     href={`/client-portal/sessions/${session.id}`}
                   >
-                    <div className="group p-4 border border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-900 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all cursor-pointer">
+                    <div className="group p-4 border border-line rounded-xl bg-surface-1 hover:border-line-strong hover:shadow-sm transition-all cursor-pointer">
                       <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        <p className="text-sm font-medium text-ink ">
                           {formatDate(session.date, 'MMM d, yyyy')}
                         </p>
                         <Badge
                           variant="secondary"
-                          className="text-xs bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+                          className="text-xs bg-surface-3 text-ink-3 "
                         >
                           {session.duration_minutes} min
                         </Badge>
                       </div>
                       {session.summary && (
-                        <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                        <p className="text-sm text-ink-3 line-clamp-2">
                           {session.summary}
                         </p>
                       )}
                       <div className="flex items-center justify-end mt-3">
-                        <span className="text-xs text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 font-medium">
+                        <span className="text-xs text-ink-3 group-hover:text-ink-2 font-medium">
                           View details
                           <ChevronRight className="h-3 w-3 inline ml-0.5" />
                         </span>
@@ -542,8 +540,8 @@ export default function ClientDashboard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-vermillion-bg rounded-full">
+                <AlertTriangle className="h-5 w-5 text-vermillion" />
               </div>
               <AlertDialogTitle>Delete Vision</AlertDialogTitle>
             </div>
@@ -559,7 +557,7 @@ export default function ClientDashboard() {
             <AlertDialogAction
               onClick={handleDeleteGoal}
               disabled={isDeletingGoal}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {isDeletingGoal ? (
                 <>
@@ -586,8 +584,8 @@ export default function ClientDashboard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-vermillion-bg rounded-full">
+                <AlertTriangle className="h-5 w-5 text-vermillion" />
               </div>
               <AlertDialogTitle>Delete Outcome</AlertDialogTitle>
             </div>
@@ -603,7 +601,7 @@ export default function ClientDashboard() {
             <AlertDialogAction
               onClick={handleDeleteOutcome}
               disabled={isDeletingOutcome}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {isDeletingOutcome ? (
                 <>
@@ -630,8 +628,8 @@ export default function ClientDashboard() {
         <AlertDialogContent>
           <AlertDialogHeader>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-vermillion-bg rounded-full">
+                <AlertTriangle className="h-5 w-5 text-vermillion" />
               </div>
               <AlertDialogTitle>Delete Sprint</AlertDialogTitle>
             </div>
@@ -647,7 +645,7 @@ export default function ClientDashboard() {
             <AlertDialogAction
               onClick={handleDeleteSprint}
               disabled={isDeletingSprint}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {isDeletingSprint ? (
                 <>

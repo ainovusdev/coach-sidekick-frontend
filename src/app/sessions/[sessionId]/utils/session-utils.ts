@@ -1,26 +1,26 @@
 export const getStatusColor = (status: string) => {
   switch (status) {
     case 'completed':
-      return 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
+      return 'bg-ink text-ink-on-dark border-line '
     case 'in_progress':
-      return 'bg-gray-700 text-white border-gray-700'
+      return 'bg-ink-2 text-ink-on-dark border-line'
     case 'error':
-      return 'bg-gray-200 text-gray-900 border-gray-300'
+      return 'bg-surface-3 text-ink border-line-strong'
     case 'pending_upload':
-      return 'bg-white text-gray-900 border-gray-400'
+      return 'bg-surface-1 text-ink border-line-strong'
     default:
-      return 'bg-gray-100 text-gray-700 border-gray-200'
+      return 'bg-surface-3 text-ink-2 border-line'
   }
 }
 
 export const getScoreColor = (score: number) => {
-  if (score >= 8) return 'text-gray-900 font-bold'
-  if (score >= 6) return 'text-gray-700 font-medium'
-  return 'text-gray-500'
+  if (score >= 8) return 'text-ink font-bold'
+  if (score >= 6) return 'text-ink-2 font-medium'
+  return 'text-ink-3'
 }
 
 export const getScoreGradient = (score: number) => {
-  if (score >= 8) return 'from-gray-800 to-gray-900'
-  if (score >= 6) return 'from-gray-600 to-gray-700'
-  return 'from-gray-400 to-gray-500'
+  if (score >= 8) return ''
+  if (score >= 6) return ''
+  return ''
 }

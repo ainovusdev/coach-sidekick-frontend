@@ -47,7 +47,7 @@ export default function ClientSessionDetailPage() {
           <Skeleton className="h-6 w-20" />
         </div>
         {/* Hero skeleton */}
-        <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+        <div className="bg-paper border border-line rounded-2xl p-6 mb-6">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
             <div className="flex items-center gap-4">
               <Skeleton className="h-16 w-16 rounded-xl" />
@@ -79,7 +79,7 @@ export default function ClientSessionDetailPage() {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400 mb-4">
+          <p className="text-ink-3 mb-4">
             {error instanceof Error ? error.message : 'Session not found'}
           </p>
           <Link href="/client-portal/sessions">
@@ -100,19 +100,16 @@ export default function ClientSessionDetailPage() {
 
   const getSentimentIcon = () => {
     if (sentimentScore == null) return null
-    if (sentimentScore >= 7)
-      return <Smile className="h-4 w-4 text-emerald-500" />
-    if (sentimentScore >= 4) return <Meh className="h-4 w-4 text-amber-500" />
-    return <Frown className="h-4 w-4 text-gray-400" />
+    if (sentimentScore >= 7) return <Smile className="h-4 w-4 text-forest" />
+    if (sentimentScore >= 4) return <Meh className="h-4 w-4 text-amber-token" />
+    return <Frown className="h-4 w-4 text-ink-4" />
   }
 
   const getSentimentBgColor = () => {
     if (sentimentScore == null) return ''
-    if (sentimentScore >= 7)
-      return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-    if (sentimentScore >= 4)
-      return 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-    return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+    if (sentimentScore >= 7) return 'bg-forest-bg text-forest '
+    if (sentimentScore >= 4) return 'bg-amber-token-bg text-amber-token '
+    return 'bg-surface-3 text-ink-3 '
   }
 
   return (
@@ -123,7 +120,7 @@ export default function ClientSessionDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="-ml-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+            className="-ml-2 text-ink-3 hover:text-ink "
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             All Sessions
@@ -131,18 +128,18 @@ export default function ClientSessionDetailPage() {
         </Link>
         <Badge
           variant="secondary"
-          className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 capitalize"
+          className="bg-surface-3 text-ink-3 capitalize"
         >
           {session.status}
         </Badge>
       </div>
 
       {/* Hero Section */}
-      <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 mb-6">
+      <div className="bg-paper border border-line rounded-2xl p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           {/* Date & Title */}
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 bg-gray-900 dark:bg-white rounded-xl flex flex-col items-center justify-center text-white dark:text-gray-900">
+            <div className="h-16 w-16 bg-ink rounded-xl flex flex-col items-center justify-center text-ink-on-dark ">
               <span className="text-2xl font-bold">
                 {session.started_at ? formatDate(session.started_at, 'd') : '-'}
               </span>
@@ -153,16 +150,16 @@ export default function ClientSessionDetailPage() {
               </span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-xl font-bold text-ink ">
                 {session.started_at
                   ? formatDate(session.started_at, 'EEEE, MMMM d, yyyy')
                   : 'Session Details'}
               </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ink-3 ">
                 {session.started_at && formatRelativeTime(session.started_at)}
               </p>
               {session.is_group_session && (
-                <Badge className="mt-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs">
+                <Badge className="mt-1 bg-surface-3 text-ink-2 text-xs">
                   <Users className="h-3 w-3 mr-1" />
                   Group Session
                 </Badge>
@@ -173,35 +170,31 @@ export default function ClientSessionDetailPage() {
           {/* Quick Stats */}
           <div className="flex items-center gap-5 flex-wrap">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-2xl font-bold text-ink ">
                 {session.duration_minutes || 0}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Minutes
-              </p>
+              <p className="text-xs text-ink-3 ">Minutes</p>
             </div>
-            <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
+            <div className="h-10 w-px bg-surface-3 " />
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-2xl font-bold text-ink ">
                 {session.key_topics?.length || 0}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Topics</p>
+              <p className="text-xs text-ink-3 ">Topics</p>
             </div>
-            <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
+            <div className="h-10 w-px bg-surface-3 " />
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+              <p className="text-2xl font-bold text-ink ">
                 {structuredCommitments.length ||
                   session.action_items?.length ||
                   0}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Commitments
-              </p>
+              <p className="text-xs text-ink-3 ">Commitments</p>
             </div>
             {/* Sentiment score chip */}
             {sentimentScore != null && (
               <>
-                <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
+                <div className="h-10 w-px bg-surface-3 " />
                 <div
                   className={`flex items-center gap-2 px-3 py-2 rounded-lg ${getSentimentBgColor()}`}
                 >
@@ -220,16 +213,14 @@ export default function ClientSessionDetailPage() {
             {/* Coach */}
             {session.coach && (
               <>
-                <div className="h-10 w-px bg-gray-200 dark:bg-gray-700" />
+                <div className="h-10 w-px bg-surface-3 " />
                 <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center text-white dark:text-gray-900 font-medium">
+                  <div className="h-10 w-10 rounded-full bg-ink flex items-center justify-center text-ink-on-dark font-medium">
                     {session.coach.name?.charAt(0).toUpperCase() || 'C'}
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Coach
-                    </p>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    <p className="text-xs text-ink-3 ">Coach</p>
+                    <p className="text-sm font-medium text-ink ">
                       {session.coach.name}
                     </p>
                   </div>
@@ -245,15 +236,15 @@ export default function ClientSessionDetailPage() {
         !session.summary &&
         !sessionData.transcript?.length &&
         !hasInsights && (
-          <div className="mb-6 p-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl flex items-center gap-3">
-            <div className="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center animate-pulse">
-              <Clock className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+          <div className="mb-6 p-4 bg-surface-3 border border-line rounded-xl flex items-center gap-3">
+            <div className="h-8 w-8 rounded-full bg-surface-3 flex items-center justify-center animate-pulse">
+              <Clock className="h-4 w-4 text-ink-3 " />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white">
+              <p className="text-sm font-medium text-ink ">
                 Session Processing
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-ink-3 ">
                 Details will appear once processing is complete.
               </p>
             </div>
@@ -262,7 +253,7 @@ export default function ClientSessionDetailPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="overview" className="w-full">
-        <TabsList className="mb-6 bg-gray-100 dark:bg-gray-800">
+        <TabsList className="mb-6 bg-surface-3 ">
           <TabsTrigger value="overview" className="gap-2">
             <LayoutList className="h-4 w-4" />
             Overview
@@ -297,14 +288,14 @@ export default function ClientSessionDetailPage() {
         !sessionData.transcript?.length &&
         !sessionData.tasks?.length &&
         !hasInsights && (
-          <div className="mt-6 text-center py-16 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-            <div className="h-16 w-16 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Clock className="h-8 w-8 text-gray-400 dark:text-gray-500" />
+          <div className="mt-6 text-center py-16 bg-paper rounded-xl border border-line ">
+            <div className="h-16 w-16 bg-surface-3 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Clock className="h-8 w-8 text-ink-4 " />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-medium text-ink mb-2">
               Session details coming soon
             </h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+            <p className="text-sm text-ink-3 max-w-md mx-auto">
               This session is still being processed. Check back soon for the
               full summary, transcript, and insights.
             </p>

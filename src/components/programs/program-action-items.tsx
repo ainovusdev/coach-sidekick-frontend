@@ -104,7 +104,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <p className="text-gray-600">No action items available</p>
+          <p className="text-ink-3">No action items available</p>
         </CardContent>
       </Card>
     )
@@ -113,11 +113,11 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-50 text-green-700 border-green-200'
+        return 'bg-forest-bg text-forest border-forest'
       case 'overdue':
-        return 'bg-red-50 text-red-700 border-red-200'
+        return 'bg-vermillion-bg text-vermillion border-vermillion'
       default:
-        return 'bg-blue-50 text-blue-700 border-blue-200'
+        return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
     }
   }
 
@@ -137,8 +137,8 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Action Items</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-ink">Action Items</h2>
+          <p className="text-ink-3 mt-1">
             Track commitments and follow-ups across all clients
           </p>
         </div>
@@ -164,13 +164,13 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Total Items
             </CardTitle>
-            <ListTodo className="h-5 w-5 text-gray-500" />
+            <ListTodo className="h-5 w-5 text-ink-3" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {actionItems.total_action_items}
             </div>
           </CardContent>
@@ -178,13 +178,13 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Pending
             </CardTitle>
-            <Clock className="h-5 w-5 text-blue-500" />
+            <Clock className="h-5 w-5 text-ds-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {actionItems.pending_count}
             </div>
           </CardContent>
@@ -192,13 +192,13 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Completed
             </CardTitle>
-            <CheckCircle2 className="h-5 w-5 text-green-500" />
+            <CheckCircle2 className="h-5 w-5 text-forest" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {actionItems.completed_count}
             </div>
           </CardContent>
@@ -206,16 +206,16 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Overdue
             </CardTitle>
-            <AlertCircle className="h-5 w-5 text-red-500" />
+            <AlertCircle className="h-5 w-5 text-vermillion" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {actionItems.overdue_count}
             </div>
-            <p className="text-xs text-red-600 mt-1">
+            <p className="text-xs text-vermillion mt-1">
               {actionItems.completion_rate.toFixed(0)}% completion rate
             </p>
           </CardContent>
@@ -234,7 +234,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
           {/* Client Filters */}
           {uniqueClients.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Clients</p>
+              <p className="text-sm font-medium text-ink-2 mb-2">Clients</p>
               <div className="flex flex-wrap gap-2">
                 {uniqueClients.map(client => (
                   <button
@@ -242,8 +242,8 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                     onClick={() => toggleClientFilter(client.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedClients.includes(client.id)
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                        ? 'bg-ink text-ink-on-dark border-line '
+                        : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line'
                     }`}
                   >
                     {client.name}
@@ -252,7 +252,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                 {selectedClients.length > 0 && (
                   <button
                     onClick={() => setSelectedClients([])}
-                    className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 text-sm rounded-md border border-line-strong text-ink-2 hover:bg-paper"
                   >
                     Clear
                   </button>
@@ -264,7 +264,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
           {/* Coach Filters */}
           {uniqueCoaches.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Coaches</p>
+              <p className="text-sm font-medium text-ink-2 mb-2">Coaches</p>
               <div className="flex flex-wrap gap-2">
                 {uniqueCoaches.map(coach => (
                   <button
@@ -272,8 +272,8 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                     onClick={() => toggleCoachFilter(coach.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedCoaches.includes(coach.id)
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                        ? 'bg-ink text-ink-on-dark border-line '
+                        : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line'
                     }`}
                   >
                     {coach.name}
@@ -282,7 +282,7 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                 {selectedCoaches.length > 0 && (
                   <button
                     onClick={() => setSelectedCoaches([])}
-                    className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 text-sm rounded-md border border-line-strong text-ink-2 hover:bg-paper"
                   >
                     Clear
                   </button>
@@ -305,12 +305,12 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
         <CardContent>
           {filteredActionItems.length === 0 ? (
             <div className="text-center py-12">
-              <ListTodo className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">No action items found</p>
+              <ListTodo className="h-12 w-12 text-ink-4 mx-auto mb-4" />
+              <p className="text-ink-3">No action items found</p>
               {(statusFilter ||
                 selectedClients.length > 0 ||
                 selectedCoaches.length > 0) && (
-                <p className="text-sm text-gray-500 mt-2">
+                <p className="text-sm text-ink-3 mt-2">
                   Try changing the filters
                 </p>
               )}
@@ -333,15 +333,13 @@ export function ProgramActionItems({ programId }: ProgramActionItemsProps) {
                           {item.status}
                         </Badge>
                         {item.due_date && (
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-ink-3">
                             Due {formatRelativeTime(item.due_date)}
                           </span>
                         )}
                       </div>
-                      <p className="text-gray-900 font-medium">
-                        {item.description}
-                      </p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                      <p className="text-ink font-medium">{item.description}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-ink-3">
                         <span>Client: {item.client_name}</span>
                         <span>•</span>
                         <span>Coach: {item.coach_name || 'Unknown'}</span>

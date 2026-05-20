@@ -78,9 +78,7 @@ export function PasswordStrengthIndicator({
               <div
                 key={key}
                 className={`flex items-center gap-2 text-sm transition-colors ${
-                  met
-                    ? 'text-green-600 dark:text-green-400'
-                    : 'text-muted-foreground/60'
+                  met ? 'text-forest ' : 'text-muted-foreground/60'
                 }`}
               >
                 {met ? (

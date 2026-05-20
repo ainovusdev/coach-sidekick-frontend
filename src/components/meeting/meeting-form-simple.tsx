@@ -67,14 +67,14 @@ export function MeetingFormSimple({
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           {preselectedClientId && !showClientSelector ? (
-            <div className="w-full px-3 py-2 border border-neutral-200 dark:border-neutral-700 rounded-md bg-neutral-50 dark:bg-neutral-800 flex items-center justify-between">
-              <span className="font-medium text-neutral-900 dark:text-white">
+            <div className="w-full px-3 py-2 border border-line rounded-md bg-paper flex items-center justify-between">
+              <span className="font-medium text-ink ">
                 {preselectedClientName || 'Selected client'}
               </span>
               <button
                 type="button"
                 onClick={() => setShowClientSelector(true)}
-                className="text-xs text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 underline"
+                className="text-xs text-ink-3 hover:text-ink-2 underline"
               >
                 Change
               </button>
@@ -91,7 +91,7 @@ export function MeetingFormSimple({
         </div>
 
         <div className="relative">
-          <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4" />
           <Input
             type="url"
             value={meetingUrl}
@@ -107,7 +107,7 @@ export function MeetingFormSimple({
           disabled={
             loading || !meetingUrl.trim() || !validateUrl(meetingUrl.trim())
           }
-          className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+          className="w-full bg-ink hover:bg-ink-2 text-ink-on-dark "
         >
           {loading ? (
             <>
@@ -119,7 +119,7 @@ export function MeetingFormSimple({
           )}
         </Button>
 
-        <p className="text-xs text-center text-gray-500">
+        <p className="text-xs text-center text-ink-3">
           Works with Zoom, Google Meet, and Teams
         </p>
       </form>

@@ -85,14 +85,14 @@ export function BotStatus({ bot, onStop, compact = false }: BotStatusProps) {
         <Circle
           className={`w-2 h-2 ${
             statusColor === 'green'
-              ? 'text-green-500 fill-green-500'
+              ? 'text-forest fill-forest'
               : statusColor === 'yellow'
-              ? 'text-yellow-500 fill-yellow-500'
-              : statusColor === 'red'
-              ? 'text-red-500 fill-red-500'
-              : statusColor === 'gray'
-              ? 'text-gray-400 fill-gray-400'
-              : 'text-blue-500 fill-blue-500'
+                ? 'text-amber-token fill-amber-token'
+                : statusColor === 'red'
+                  ? 'text-vermillion fill-vermillion'
+                  : statusColor === 'gray'
+                    ? 'text-ink-4 fill-ink-4'
+                    : 'text-ds-accent fill-ds-accent'
           } ${isActive ? 'animate-pulse' : ''}`}
         />
         <Badge variant={getStatusVariant(bot.status)} className="text-xs">
@@ -112,14 +112,14 @@ export function BotStatus({ bot, onStop, compact = false }: BotStatusProps) {
             <Circle
               className={`w-3 h-3 ${
                 statusColor === 'green'
-                  ? 'text-green-500 fill-green-500'
+                  ? 'text-forest fill-forest'
                   : statusColor === 'yellow'
-                  ? 'text-yellow-500 fill-yellow-500'
-                  : statusColor === 'red'
-                  ? 'text-red-500 fill-red-500'
-                  : statusColor === 'gray'
-                  ? 'text-gray-400 fill-gray-400'
-                  : 'text-blue-500 fill-blue-500'
+                    ? 'text-amber-token fill-amber-token'
+                    : statusColor === 'red'
+                      ? 'text-vermillion fill-vermillion'
+                      : statusColor === 'gray'
+                        ? 'text-ink-4 fill-ink-4'
+                        : 'text-ds-accent fill-ds-accent'
               } ${isActive ? 'animate-pulse' : ''}`}
             />
           </div>

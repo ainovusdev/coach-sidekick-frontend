@@ -56,42 +56,42 @@ export function GoalsList({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'active':
-        return <Target className="h-4 w-4 text-green-600" />
+        return <Target className="h-4 w-4 text-forest" />
       case 'paused':
-        return <Pause className="h-4 w-4 text-yellow-600" />
+        return <Pause className="h-4 w-4 text-amber-token" />
       case 'achieved':
-        return <Trophy className="h-4 w-4 text-blue-600" />
+        return <Trophy className="h-4 w-4 text-ds-accent" />
       case 'abandoned':
-        return <X className="h-4 w-4 text-gray-400" />
+        return <X className="h-4 w-4 text-ink-4" />
       default:
-        return <Target className="h-4 w-4 text-gray-400" />
+        return <Target className="h-4 w-4 text-ink-4" />
     }
   }
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return 'bg-green-100 text-green-800 border-green-200'
+        return 'bg-forest-bg text-forest border-forest'
       case 'paused':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200'
+        return 'bg-amber-token-bg text-amber-token border-amber-token'
       case 'achieved':
-        return 'bg-blue-100 text-blue-800 border-blue-200'
+        return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
       case 'abandoned':
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-surface-3 text-ink-2 border-line'
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200'
+        return 'bg-surface-3 text-ink-2 border-line'
     }
   }
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      career: 'bg-gray-100 text-gray-800',
-      personal: 'bg-gray-200 text-gray-900',
-      health: 'bg-green-100 text-green-800',
-      financial: 'bg-yellow-100 text-yellow-800',
-      relationship: 'bg-red-100 text-red-800',
-      education: 'bg-blue-100 text-blue-800',
-      general: 'bg-gray-100 text-gray-800',
+      career: 'bg-surface-3 text-ink-2',
+      personal: 'bg-surface-3 text-ink',
+      health: 'bg-forest-bg text-forest',
+      financial: 'bg-amber-token-bg text-amber-token',
+      relationship: 'bg-vermillion-bg text-vermillion',
+      education: 'bg-ds-accent-bg text-ds-accent',
+      general: 'bg-surface-3 text-ink-2',
     }
     return colors[category.toLowerCase()] || colors.general
   }
@@ -100,7 +100,7 @@ export function GoalsList({
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-ink-4" />
         </CardContent>
       </Card>
     )
@@ -108,7 +108,7 @@ export function GoalsList({
 
   return (
     <>
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-line shadow-sm">
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -126,8 +126,8 @@ export function GoalsList({
         <CardContent>
           {goals.length === 0 ? (
             <div className="text-center py-8">
-              <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-600 mb-4">No vision set yet</p>
+              <Trophy className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+              <p className="text-ink-3 mb-4">No vision set yet</p>
               {showCreateButton && (
                 <Button variant="outline" onClick={handleCreateClick}>
                   <Plus className="h-4 w-4 mr-2" />
@@ -140,21 +140,21 @@ export function GoalsList({
               {goals.map(goal => (
                 <div
                   key={goal.id}
-                  className="p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="p-4 rounded-lg border border-line hover:bg-paper transition-colors"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-start gap-3 flex-1">
-                      <div className="p-2 bg-gray-100 rounded-lg mt-0.5">
+                      <div className="p-2 bg-surface-3 rounded-lg mt-0.5">
                         {getStatusIcon(goal.status)}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-semibold text-gray-900">
+                          <h4 className="font-semibold text-ink">
                             {goal.title}
                           </h4>
                         </div>
                         {goal.description && (
-                          <p className="text-sm text-gray-600 mb-2">
+                          <p className="text-sm text-ink-3 mb-2">
                             {goal.description}
                           </p>
                         )}
@@ -188,8 +188,8 @@ export function GoalsList({
                   {goal.status === 'active' && (
                     <div className="ml-14">
                       <div className="flex items-center justify-between text-sm mb-2">
-                        <span className="text-gray-600">Progress</span>
-                        <span className="font-semibold text-gray-900">
+                        <span className="text-ink-3">Progress</span>
+                        <span className="font-semibold text-ink">
                           {goal.progress}%
                         </span>
                       </div>

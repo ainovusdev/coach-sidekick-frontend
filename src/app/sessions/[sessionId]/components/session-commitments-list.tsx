@@ -129,11 +129,11 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'completed':
-        return <CheckCircle2 className="h-4 w-4 text-green-600" />
+        return <CheckCircle2 className="h-4 w-4 text-forest" />
       case 'in_progress':
-        return <PlayCircle className="h-4 w-4 text-blue-600" />
+        return <PlayCircle className="h-4 w-4 text-ds-accent" />
       case 'draft':
-        return <FileEdit className="h-4 w-4 text-amber-600" />
+        return <FileEdit className="h-4 w-4 text-amber-token" />
       default:
         return <Circle className="h-4 w-4 text-app-secondary" />
     }
@@ -142,11 +142,11 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'text-green-700 bg-green-50 border-green-200 dark:text-green-400 dark:bg-green-900/30 dark:border-green-800'
+        return 'text-forest bg-forest-bg border-forest '
       case 'in_progress':
-        return 'text-blue-700 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-900/30 dark:border-blue-800'
+        return 'text-ds-accent bg-ds-accent-bg border-ds-accent '
       case 'draft':
-        return 'text-amber-700 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-900/30 dark:border-amber-800'
+        return 'text-amber-token bg-amber-token-bg border-amber-token '
       default:
         return 'text-app-primary bg-app-surface border-app-border'
     }
@@ -155,22 +155,22 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   // Draft commitment item - special styling with accept/reject buttons
   if (isDraft) {
     return (
-      <div className="border border-amber-200 dark:border-amber-800 rounded-lg overflow-hidden bg-amber-50 dark:bg-amber-900/20">
+      <div className="border border-amber-token rounded-lg overflow-hidden bg-amber-token-bg ">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 p-3">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="flex-shrink-0">
-              <FileEdit className="h-4 w-4 text-amber-600" />
+              <FileEdit className="h-4 w-4 text-amber-token" />
             </div>
 
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex-shrink-0 p-0.5 hover:bg-amber-100 dark:hover:bg-amber-800/50 rounded transition-colors"
+              className="flex-shrink-0 p-0.5 hover:bg-amber-token-bg rounded transition-colors"
             >
               {isExpanded ? (
-                <ChevronDown className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                <ChevronDown className="h-4 w-4 text-amber-token " />
               ) : (
-                <ChevronRight className="h-4 w-4 text-amber-700 dark:text-amber-400" />
+                <ChevronRight className="h-4 w-4 text-amber-token " />
               )}
             </button>
 
@@ -191,7 +191,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
             <Badge
               variant="secondary"
-              className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/40 dark:text-amber-400 dark:border-amber-800 text-xs"
+              className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
             >
               Draft
             </Badge>
@@ -226,7 +226,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                   variant="outline"
                   onClick={handleConfirm}
                   disabled={isConfirming || isDiscarding}
-                  className="h-7 px-2 border-green-500 text-green-600 hover:bg-green-50 hover:text-green-700 dark:border-green-700 dark:text-green-400 dark:hover:bg-green-900/30 dark:hover:text-green-300"
+                  className="h-7 px-2 border-forest text-forest hover:bg-forest-bg hover:text-forest "
                   title="Accept commitment"
                 >
                   {isConfirming ? (
@@ -250,7 +250,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                   variant="outline"
                   onClick={handleDiscard}
                   disabled={isConfirming || isDiscarding}
-                  className="h-7 px-2 border-red-300 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-700 dark:text-red-400 dark:hover:bg-red-900/30 dark:hover:text-red-300"
+                  className="h-7 px-2 border-vermillion text-vermillion hover:bg-vermillion-bg hover:text-vermillion "
                   title="Discard commitment"
                 >
                   {isDiscarding ? (
@@ -266,7 +266,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
 
         {/* Expanded Details */}
         {isExpanded && (
-          <div className="px-3 pb-3 pt-1 space-y-3 border-t border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/10">
+          <div className="px-3 pb-3 pt-1 space-y-3 border-t border-amber-token bg-amber-token-bg/50 ">
             {/* Description */}
             <div>
               <label className="text-xs font-semibold text-app-primary mb-1 block">
@@ -294,7 +294,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 <label className="text-xs font-semibold text-app-primary mb-1 block">
                   From Transcript
                 </label>
-                <p className="text-sm text-app-secondary italic bg-white/50 dark:bg-gray-800/50 p-2 rounded border border-amber-100 dark:border-amber-800">
+                <p className="text-sm text-app-secondary italic bg-surface-1/50 p-2 rounded border border-amber-token ">
                   &ldquo;{commitment.transcript_context}&rdquo;
                 </p>
               </div>
@@ -451,7 +451,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
                 variant="ghost"
                 onClick={handleDiscard}
                 disabled={isDiscarding}
-                className="h-7 px-2 text-gray-400 dark:text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:text-red-400 dark:hover:bg-red-900/30"
+                className="h-7 px-2 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg "
                 title="Delete commitment"
               >
                 {isDiscarding ? (
@@ -664,7 +664,7 @@ export function SessionCommitmentsList({
             {draftCount > 0 && (
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" />
+                  <span className="w-1.5 h-1.5 bg-amber-token rounded-full animate-pulse" />
                   <span className="text-xs font-medium text-app-secondary uppercase tracking-wide">
                     Pending Review ({draftCount})
                   </span>

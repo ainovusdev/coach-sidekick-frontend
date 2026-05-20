@@ -11,10 +11,10 @@ interface AdminRouteProps {
   requireSuperAdmin?: boolean
 }
 
-export function AdminRoute({ 
-  children, 
+export function AdminRoute({
+  children,
   requiredRoles = ['admin', 'super_admin'],
-  requireSuperAdmin = false 
+  requireSuperAdmin = false,
 }: AdminRouteProps) {
   const { isAuthenticated, loading, hasAnyRole, isSuperAdmin } = useAuth()
   const router = useRouter()
@@ -29,12 +29,20 @@ export function AdminRoute({
         router.push('/unauthorized')
       }
     }
-  }, [isAuthenticated, loading, hasAnyRole, requiredRoles, requireSuperAdmin, isSuperAdmin, router])
+  }, [
+    isAuthenticated,
+    loading,
+    hasAnyRole,
+    requiredRoles,
+    requireSuperAdmin,
+    isSuperAdmin,
+    router,
+  ])
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-ink-4" />
       </div>
     )
   }

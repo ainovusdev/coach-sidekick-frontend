@@ -61,7 +61,7 @@ export function ThrillFormResponses({
           {isCompleted ? (
             <Badge
               variant="secondary"
-              className="bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800 text-xs"
+              className="bg-forest-bg text-forest border-forest text-xs"
             >
               <CheckCircle2 className="h-3 w-3 mr-1" />
               Completed
@@ -71,7 +71,7 @@ export function ThrillFormResponses({
           ) : (
             <Badge
               variant="secondary"
-              className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-800 text-xs"
+              className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
             >
               <Clock className="h-3 w-3 mr-1" />
               In Progress
@@ -90,7 +90,7 @@ export function ThrillFormResponses({
                   {qa.question_text}
                 </p>
                 {compact ? (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-semibold bg-gray-100 dark:bg-gray-800 text-app-primary">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-semibold bg-surface-3 text-app-primary">
                     {formatted}
                   </span>
                 ) : (

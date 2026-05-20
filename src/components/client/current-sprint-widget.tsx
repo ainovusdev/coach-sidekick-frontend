@@ -64,7 +64,7 @@ export function CurrentSprintWidget({
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-line"></div>
           </div>
         </CardContent>
       </Card>
@@ -98,12 +98,12 @@ export function CurrentSprintWidget({
         </CardHeader>
         <CardContent>
           <div className="text-center py-8">
-            <Target className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">No active sprint</p>
+            <Target className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+            <p className="text-ink-3 mb-4">No active sprint</p>
             {onCreateSprint && (
               <Button
                 onClick={onCreateSprint}
-                className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+                className="bg-ink hover:bg-ink-2 "
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create New Sprint
@@ -121,7 +121,7 @@ export function CurrentSprintWidget({
   )
 
   return (
-    <Card className="border-gray-200 hover:shadow-md transition-shadow">
+    <Card className="border-line hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
@@ -132,10 +132,10 @@ export function CurrentSprintWidget({
             <Badge
               className={
                 sprint.status === 'active'
-                  ? 'bg-green-100 text-green-800 border-green-200'
+                  ? 'bg-forest-bg text-forest border-forest'
                   : sprint.status === 'completed'
-                    ? 'bg-gray-100 text-gray-800 border-gray-200'
-                    : 'bg-yellow-100 text-yellow-800 border-yellow-200'
+                    ? 'bg-surface-3 text-ink-2 border-line'
+                    : 'bg-amber-token-bg text-amber-token border-amber-token'
               }
             >
               {sprint.status}
@@ -145,7 +145,7 @@ export function CurrentSprintWidget({
                 variant="outline"
                 size="sm"
                 onClick={handleFinishSprint}
-                className="border-green-600 text-green-700 hover:bg-green-50"
+                className="border-forest text-forest hover:bg-forest-bg"
               >
                 <CheckCircle className="h-4 w-4 mr-1" />
                 Finish Sprint
@@ -176,17 +176,17 @@ export function CurrentSprintWidget({
       <CardContent className="space-y-4">
         {/* Sprint Title */}
         <div>
-          <h3 className="font-semibold text-gray-900">{sprint.title}</h3>
+          <h3 className="font-semibold text-ink">{sprint.title}</h3>
           {sprint.description && (
-            <p className="text-sm text-gray-600 mt-1">{sprint.description}</p>
+            <p className="text-sm text-ink-3 mt-1">{sprint.description}</p>
           )}
         </div>
 
         {/* Progress */}
         <div>
           <div className="flex items-center justify-between text-sm mb-2">
-            <span className="text-gray-600">Overall Progress</span>
-            <span className="font-semibold text-gray-900">
+            <span className="text-ink-3">Overall Progress</span>
+            <span className="font-semibold text-ink">
               {sprint.progress_percentage || 0}%
             </span>
           </div>
@@ -194,29 +194,27 @@ export function CurrentSprintWidget({
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-gray-100">
+        <div className="grid grid-cols-3 gap-3 pt-3 border-t border-line">
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">
+            <div className="text-lg font-bold text-ink">
               {sprint.target_count || 0}
             </div>
-            <div className="text-xs text-gray-600">Desired Wins</div>
+            <div className="text-xs text-ink-3">Desired Wins</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">
-              {daysRemaining}
-            </div>
-            <div className="text-xs text-gray-600">Days Left</div>
+            <div className="text-lg font-bold text-ink">{daysRemaining}</div>
+            <div className="text-xs text-ink-3">Days Left</div>
           </div>
           <div className="text-center">
-            <div className="text-lg font-bold text-gray-900">
+            <div className="text-lg font-bold text-ink">
               {sprint.duration_weeks || 0}w
             </div>
-            <div className="text-xs text-gray-600">Duration</div>
+            <div className="text-xs text-ink-3">Duration</div>
           </div>
         </div>
 
         {/* Dates */}
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between text-xs text-ink-3 pt-2 border-t border-line">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
             <span>{formatDate(sprint.start_date, 'MMM d')}</span>
@@ -256,8 +254,8 @@ export function CurrentSprintWidget({
 
         {/* Vision Preview */}
         {sprint.targets && sprint.targets.length > 0 && (
-          <div className="pt-3 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-600 mb-2">
+          <div className="pt-3 border-t border-line">
+            <p className="text-xs font-semibold text-ink-3 mb-2">
               Active Desired Wins ({sprint.completed_target_count || 0}/
               {sprint.target_count || 0} completed)
             </p>
@@ -270,22 +268,18 @@ export function CurrentSprintWidget({
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <div
                       className={`h-2 w-2 rounded-full flex-shrink-0 ${
-                        target.status === 'completed'
-                          ? 'bg-green-500'
-                          : 'bg-gray-300'
+                        target.status === 'completed' ? 'bg-forest' : 'bg-line'
                       }`}
                     />
-                    <span className="text-gray-700 truncate">
-                      {target.title}
-                    </span>
+                    <span className="text-ink-2 truncate">{target.title}</span>
                   </div>
-                  <span className="text-xs text-gray-500 ml-2">
+                  <span className="text-xs text-ink-3 ml-2">
                     {target.progress_percentage}%
                   </span>
                 </div>
               ))}
               {sprint.targets.length > 3 && (
-                <p className="text-xs text-gray-500 text-center pt-1">
+                <p className="text-xs text-ink-3 text-center pt-1">
                   +{sprint.targets.length - 3} more desired wins
                 </p>
               )}

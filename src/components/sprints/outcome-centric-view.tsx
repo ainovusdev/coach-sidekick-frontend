@@ -115,9 +115,7 @@ export function OutcomeCentricView({
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-32">
-            <div className="animate-pulse text-gray-500">
-              Loading outcomes...
-            </div>
+            <div className="animate-pulse text-ink-3">Loading outcomes...</div>
           </div>
         </CardContent>
       </Card>
@@ -126,24 +124,24 @@ export function OutcomeCentricView({
 
   return (
     <>
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-line shadow-sm">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <TargetIcon className="h-5 w-5 text-gray-700" />
-              <h3 className="font-semibold text-gray-900">
+              <TargetIcon className="h-5 w-5 text-ink-2" />
+              <h3 className="font-semibold text-ink">
                 Meta Performance Outcomes & Progress
               </h3>
             </div>
             <div className="flex items-center gap-2">
               {/* Filter Toggle */}
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center gap-1 bg-surface-3 rounded-lg p-1">
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
                     'h-7 px-3 text-xs',
-                    viewFilter === 'all' && 'bg-white shadow-sm',
+                    viewFilter === 'all' && 'bg-surface-1 shadow-sm',
                   )}
                   onClick={() => setViewFilter('all')}
                 >
@@ -154,7 +152,7 @@ export function OutcomeCentricView({
                   size="sm"
                   className={cn(
                     'h-7 px-3 text-xs',
-                    viewFilter === 'active_sprint' && 'bg-white shadow-sm',
+                    viewFilter === 'active_sprint' && 'bg-surface-1 shadow-sm',
                   )}
                   onClick={() => setViewFilter('active_sprint')}
                 >
@@ -172,8 +170,8 @@ export function OutcomeCentricView({
 
         <CardContent className="pt-0">
           {groupedOutcomes.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              <TargetIcon className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+            <div className="text-center py-8 text-ink-3">
+              <TargetIcon className="h-12 w-12 mx-auto mb-3 text-ink-2" />
               <p className="text-sm">
                 {viewFilter === 'active_sprint'
                   ? 'No meta performance outcomes in active sprint'
@@ -198,13 +196,13 @@ export function OutcomeCentricView({
                   onOpenChange={() => toggleGoal(group.goal.id)}
                 >
                   <CollapsibleTrigger asChild>
-                    <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
+                    <div className="flex items-center gap-2 py-2 px-3 rounded-lg bg-paper hover:bg-surface-3 cursor-pointer transition-colors">
                       {isGoalExpanded(group.goal.id) ? (
-                        <ChevronDown className="h-4 w-4 text-gray-500" />
+                        <ChevronDown className="h-4 w-4 text-ink-3" />
                       ) : (
-                        <ChevronRight className="h-4 w-4 text-gray-500" />
+                        <ChevronRight className="h-4 w-4 text-ink-3" />
                       )}
-                      <span className="font-medium text-sm text-gray-900">
+                      <span className="font-medium text-sm text-ink">
                         {group.goal.title}
                       </span>
                       <Badge variant="secondary" className="ml-auto text-xs">
@@ -242,9 +240,9 @@ export function OutcomeCentricView({
 
           {/* Active Sprint Info */}
           {currentSprint && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-line">
               <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center gap-2 text-ink-3">
                   <Calendar className="h-4 w-4" />
                   <span>Active: {currentSprint.title}</span>
                 </div>

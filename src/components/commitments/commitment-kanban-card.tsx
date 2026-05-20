@@ -59,12 +59,10 @@ export function CommitmentKanbanCard({
     !isCompleted
 
   const priorityColors = {
-    urgent:
-      'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800',
-    high: 'bg-orange-100 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800',
-    medium:
-      'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-400 dark:border-yellow-800',
-    low: 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600',
+    urgent: 'bg-vermillion-bg text-vermillion border-vermillion ',
+    high: 'bg-amber-token-bg text-amber-token border-amber-token ',
+    medium: 'bg-amber-token-bg text-amber-token border-amber-token ',
+    low: 'bg-surface-3 text-ink-2 border-line ',
   }
 
   const getBorderColor = () => {
@@ -75,8 +73,8 @@ export function CommitmentKanbanCard({
   }
 
   const getBgColor = () => {
-    if (isCompleted) return 'bg-green-50/50 dark:bg-green-900/10'
-    if (isInProgress) return 'bg-blue-50/50 dark:bg-blue-900/10'
+    if (isCompleted) return 'bg-forest-bg/50 '
+    if (isInProgress) return 'bg-ds-accent-bg/50 '
     return ''
   }
 
@@ -140,7 +138,7 @@ export function CommitmentKanbanCard({
             {commitment.is_coach_commitment ? (
               <Badge
                 variant="outline"
-                className="bg-amber-50 dark:bg-amber-900/30 border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-400 text-xs w-fit"
+                className="bg-amber-token-bg border-amber-token text-amber-token text-xs w-fit"
               >
                 <Briefcase className="h-3 w-3 mr-1" />
                 Coach Task
@@ -148,7 +146,7 @@ export function CommitmentKanbanCard({
             ) : (
               <Badge
                 variant="outline"
-                className="bg-slate-50 dark:bg-slate-900/30 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-xs w-fit"
+                className="bg-paper border-line text-ink-3 text-xs w-fit"
               >
                 <User className="h-3 w-3 mr-1" />
                 Client Task
@@ -181,7 +179,10 @@ export function CommitmentKanbanCard({
                   </DropdownMenuItem>
                 )}
                 {onDelete && (
-                  <DropdownMenuItem onClick={onDelete} className="text-red-600">
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="text-vermillion"
+                  >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
@@ -195,9 +196,7 @@ export function CommitmentKanbanCard({
         <h4
           className={cn(
             'text-sm font-semibold line-clamp-2',
-            isCompleted
-              ? 'text-green-700 dark:text-green-400 line-through'
-              : 'text-gray-900 dark:text-white',
+            isCompleted ? 'text-forest line-through' : 'text-ink ',
           )}
         >
           {commitment.title}
@@ -205,7 +204,7 @@ export function CommitmentKanbanCard({
 
         {/* Description */}
         {commitment.description && (
-          <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2">
+          <p className="text-xs text-ink-3 line-clamp-2">
             {commitment.description}
           </p>
         )}
@@ -217,7 +216,7 @@ export function CommitmentKanbanCard({
               <Badge
                 key={outcome.id}
                 variant="outline"
-                className="bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-xs w-fit"
+                className="bg-paper border-line text-ink-2 text-xs w-fit"
               >
                 <Target className="h-3 w-3 mr-1" />
                 {outcome.title}
@@ -227,14 +226,12 @@ export function CommitmentKanbanCard({
         )}
 
         {/* Footer: Date and Priority */}
-        <div className="flex items-center justify-between gap-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-line ">
           {commitment.target_date && (
             <div
               className={cn(
                 'flex items-center gap-1 text-xs',
-                isOverdue
-                  ? 'text-red-600 font-medium'
-                  : 'text-gray-600 dark:text-gray-400',
+                isOverdue ? 'text-vermillion font-medium' : 'text-ink-3 ',
               )}
             >
               {isOverdue && <AlertCircle className="h-3 w-3" />}
