@@ -108,8 +108,23 @@ export function NotesList({
   )
   const [creating, setCreating] = useState(false)
 
-  // Get available note types based on portal type
+  // Types visible to the viewer. client_private notes are created during the
+  // live meeting via the guest endpoint — clients should see them after the
+  // call ends, but should not create new ones from the portal (no live token).
   const availableTypes: NoteType[] = isClientPortal
+    ? ['shared', 'client_reflection', 'client_private']
+    : [
+        'coach_private',
+        'shared',
+        'client_reflection',
+        'client_private',
+        'pre_session',
+        'post_session',
+      ]
+
+  // Types the viewer can create from the create-note form here. Excludes
+  // client_private for the client portal — that one is live-meeting-only.
+  const creatableTypes: NoteType[] = isClientPortal
     ? ['shared', 'client_reflection']
     : [
         'coach_private',
@@ -473,7 +488,7 @@ export function NotesList({
             </div>
             {/* Note type selector - compact */}
             <div className="flex items-center gap-1">
-              {availableTypes.map(type => {
+              {creatableTypes.map(type => {
                 const config = NOTE_TYPE_CONFIG[type]
                 const TypeIcon = config.icon
                 return (

@@ -131,24 +131,25 @@ export default function ClientPersonaPage() {
 
   if (noPersona || !persona) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12">
-        <Card className="border-line ">
-          <CardContent className="flex flex-col items-center justify-center py-16 px-8">
-            <div className="h-16 w-16 rounded-full bg-surface-3 flex items-center justify-center mb-6">
-              <Brain className="h-8 w-8 text-ink-4 " />
-            </div>
-            <h2 className="text-xl font-semibold text-ink mb-3 text-center">
-              Your Coaching Persona is Being Developed
-            </h2>
-            <p className="text-center text-ink-3 max-w-md mb-8">
-              {error ||
-                'Your personalized coaching profile will be available after a few sessions with your coach. This helps us provide better, more tailored coaching suggestions.'}
-            </p>
-            <Button onClick={() => router.push('/client-portal/dashboard')}>
-              Back to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+        <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm flex flex-col items-center justify-center py-16 px-8 text-center">
+          <div className="h-14 w-14 rounded-full bg-surface-2 flex items-center justify-center mb-5">
+            <Brain className="h-7 w-7 text-ink-3" strokeWidth={1.75} />
+          </div>
+          <h2 className="text-[18px] font-semibold text-ink mb-2 m-0">
+            Your coaching profile is taking shape
+          </h2>
+          <p className="text-[13px] leading-[1.55] text-ink-3 max-w-md mb-7 m-0">
+            {error ||
+              'Your personalized profile builds as you complete sessions. Check back after a few coaching conversations.'}
+          </p>
+          <Button
+            onClick={() => router.push('/client-portal/dashboard')}
+            className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium"
+          >
+            Back to dashboard
+          </Button>
+        </div>
       </div>
     )
   }
@@ -185,67 +186,94 @@ export default function ClientPersonaPage() {
     (progress.timeline?.length > 0 || progress.milestones?.length > 0)
   const activeGoals = goals.filter((g: any) => g.status === 'active')
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-2">
-        <div>
-          <p className="text-ink-3 text-sm font-medium mb-1">
-            AI-Generated Profile
-          </p>
-          <h1 className="text-3xl font-bold text-ink ">
-            Your Coaching Persona
-          </h1>
-          <p className="text-ink-3 mt-1">
-            Based on your coaching journey and sessions
-          </p>
-        </div>
+  const clientName = dashboard?.client_info?.name as string | undefined
+  const clientInitials = clientName
+    ? clientName
+        .split(' ')
+        .map(w => w[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    : 'CP'
 
-        <div className="flex items-center gap-6 md:gap-8">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-ink ">
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14 space-y-4">
+      {/* Editorial header */}
+      <div className="mb-3">
+        <h1 className="text-[30px] font-bold tracking-tight leading-[1.2] text-ink m-0">
+          Coaching profile
+        </h1>
+        <p className="text-[13px] text-ink-3 mt-1.5">
+          What your coach and Sidekick know about you. Built from your sessions.
+        </p>
+      </div>
+
+      {/* Identity card + stats */}
+      <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-6">
+        <div className="flex items-center gap-4">
+          <div className="w-[72px] h-[72px] rounded-full bg-ink text-ink-on-dark inline-flex items-center justify-center text-[20px] font-semibold flex-shrink-0">
+            {clientInitials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-[20px] font-semibold tracking-tight text-ink m-0 truncate">
+              {clientName || 'Your coaching profile'}
+            </h2>
+            <p className="m-0 text-[13px] text-ink-3 truncate">
+              {dashboard?.coach_name
+                ? `Coached by ${dashboard.coach_name}`
+                : 'Profile built from your coaching sessions'}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-7 gap-y-3 mt-5 pt-5 border-t border-line-2">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold m-0">
+              Sessions analyzed
+            </p>
+            <p className="text-[16px] font-semibold text-ink m-0 mt-0.5">
               {persona.metadata.sessions_analyzed}
             </p>
-            <p className="text-xs text-ink-3 ">Sessions</p>
           </div>
-          <div className="h-8 w-px bg-surface-3 " />
-          <div className="text-center">
-            <p className="text-2xl font-bold text-ink ">{confidence}</p>
-            <p className="text-xs text-ink-3 ">Confidence</p>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold m-0">
+              Confidence
+            </p>
+            <p className="text-[16px] font-semibold text-ink m-0 mt-0.5">
+              {confidence}
+            </p>
           </div>
-          <div className="h-8 w-px bg-surface-3 " />
-          <div className="text-center">
-            <p className="text-sm text-ink ">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold m-0">
+              Last updated
+            </p>
+            <p className="text-[16px] font-semibold text-ink m-0 mt-0.5">
               {persona.metadata.last_updated
                 ? formatDate(persona.metadata.last_updated, 'MMM d')
-                : '-'}
+                : '–'}
             </p>
-            <p className="text-xs text-ink-3 ">Updated</p>
           </div>
           {dashboard?.stats?.current_streak_days > 0 && (
-            <>
-              <div className="h-8 w-px bg-surface-3 " />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-ink flex items-center justify-center gap-1">
-                  <Flame className="h-5 w-5 text-amber-token" />
-                  {Math.floor(dashboard.stats.current_streak_days / 7) > 0
-                    ? `${Math.floor(dashboard.stats.current_streak_days / 7)}w`
-                    : `${dashboard.stats.current_streak_days}d`}
-                </p>
-                <p className="text-xs text-ink-3 ">Streak</p>
-              </div>
-            </>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold m-0">
+                Streak
+              </p>
+              <p className="text-[16px] font-semibold text-ink m-0 mt-0.5 inline-flex items-center gap-1">
+                <Flame className="h-3.5 w-3.5 text-amber-token" />
+                {Math.floor(dashboard.stats.current_streak_days / 7) > 0
+                  ? `${Math.floor(dashboard.stats.current_streak_days / 7)}w`
+                  : `${dashboard.stats.current_streak_days}d`}
+              </p>
+            </div>
           )}
           {dashboard?.stats?.total_sessions > 0 && (
-            <>
-              <div className="h-8 w-px bg-surface-3 " />
-              <div className="text-center">
-                <p className="text-2xl font-bold text-ink ">
-                  {dashboard.stats.total_sessions}
-                </p>
-                <p className="text-xs text-ink-3 ">Total</p>
-              </div>
-            </>
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold m-0">
+                Total sessions
+              </p>
+              <p className="text-[16px] font-semibold text-ink m-0 mt-0.5">
+                {dashboard.stats.total_sessions}
+              </p>
+            </div>
           )}
         </div>
       </div>

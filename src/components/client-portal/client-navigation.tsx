@@ -13,11 +13,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  LayoutDashboard,
-  History,
+  Home,
+  MessageSquareText,
+  UserRound,
   User,
   LogOut,
-  Sparkles,
+  Bell,
+  Search,
   Menu,
   X,
   Eye,
@@ -30,11 +32,19 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 const navItems = [
   {
     path: '/client-portal/dashboard',
-    label: 'Dashboard',
-    icon: LayoutDashboard,
+    label: 'Home',
+    icon: Home,
   },
-  { path: '/client-portal/sessions', label: 'Sessions', icon: History },
-  { path: '/client-portal/persona', label: 'My Profile', icon: User },
+  {
+    path: '/client-portal/sessions',
+    label: 'Sessions',
+    icon: MessageSquareText,
+  },
+  {
+    path: '/client-portal/persona',
+    label: 'Coaching Profile',
+    icon: UserRound,
+  },
 ]
 
 export function ClientNavigation() {
@@ -115,70 +125,74 @@ export function ClientNavigation() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Logo Section */}
-            <div className="flex items-center gap-10">
+            <div className="flex items-center gap-8">
               <button
                 onClick={() => router.push('/client-portal/dashboard')}
                 className="flex items-center gap-3 group"
               >
-                <div className="relative">
-                  <div className="absolute inset-0 bg-ink rounded-xl blur-sm opacity-20 group-hover:opacity-30 transition-opacity"></div>
-                  <div className="relative w-11 h-11 bg-ink rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    <Image
-                      src="/novus-global-logo.webp"
-                      alt="Novus Global Logo"
-                      width={32}
-                      height={32}
-                      className="object-contain filter brightness-0 invert"
-                    />
-                  </div>
+                <div className="w-10 h-10 bg-ink rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Image
+                    src="/novus-global-logo.webp"
+                    alt=""
+                    width={28}
+                    height={28}
+                    className="object-contain filter brightness-0 invert"
+                  />
                 </div>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2">
-                    <h1 className="text-xl font-bold text-ink ">
-                      Client Portal
-                    </h1>
-                  </div>
-                  <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-surface-3 rounded-full">
-                    <Sparkles className="w-3 h-3 text-ink-3 " />
-                    <span className="text-xs font-medium text-ink-3 ">
-                      Novus Global
-                    </span>
-                  </div>
+                <div className="flex flex-col items-start gap-0.5">
+                  <span className="text-[16px] font-bold tracking-tight text-ink leading-none">
+                    Coach Sidekick
+                  </span>
+                  <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3 leading-none">
+                    Client portal
+                  </span>
                 </div>
               </button>
 
               {/* Desktop Navigation Links */}
-              <nav className="hidden md:flex items-center">
-                <div className="flex items-center bg-paper rounded-lg p-1">
-                  {navItems.map(item => {
-                    const Icon = item.icon
-                    const isActive = isActivePath(item.path)
+              <nav className="hidden md:flex items-center gap-1">
+                {navItems.map(item => {
+                  const Icon = item.icon
+                  const isActive = isActivePath(item.path)
 
-                    return (
-                      <button
-                        key={item.path}
-                        onClick={() => router.push(item.path)}
-                        className={`
-                        flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
-                        transition-all duration-200 cursor-pointer
+                  return (
+                    <button
+                      key={item.path}
+                      onClick={() => router.push(item.path)}
+                      className={`
+                        inline-flex items-center gap-2 px-3 py-2 rounded-md text-[13px] font-medium
+                        transition-colors duration-150 cursor-pointer
                         ${
                           isActive
-                            ? 'bg-surface-1 text-ink shadow-sm '
-                            : 'text-ink-3 hover:text-ink hover:bg-surface-1 hover:shadow-sm '
+                            ? 'bg-surface-3 text-ink'
+                            : 'text-ink-3 hover:bg-surface-3 hover:text-ink'
                         }
                       `}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </button>
-                    )
-                  })}
-                </div>
+                    >
+                      <Icon className="h-[15px] w-[15px]" strokeWidth={1.75} />
+                      {item.label}
+                    </button>
+                  )
+                })}
               </nav>
             </div>
 
             {/* Right Section */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
+              <button
+                aria-label="Notifications"
+                className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-3 hover:bg-surface-3 hover:text-ink transition-colors"
+              >
+                <Bell className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+              <button
+                aria-label="Search"
+                className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-3 hover:bg-surface-3 hover:text-ink transition-colors"
+              >
+                <Search className="h-4 w-4" strokeWidth={1.75} />
+              </button>
+              <div className="hidden sm:block w-px h-5 bg-line" />
+
               <ThemeToggle />
 
               {/* Role Switcher - Only show if user has other roles */}
@@ -189,10 +203,10 @@ export function ClientNavigation() {
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="relative h-8 w-8 rounded-full"
+                    className="relative h-8 w-8 rounded-full p-0 hover:bg-transparent"
                   >
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-ds-accent-bg text-ds-accent ">
+                      <AvatarFallback className="bg-ink text-ink-on-dark text-xs font-semibold">
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>

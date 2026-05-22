@@ -3,9 +3,7 @@
 import { useState, useEffect } from 'react'
 import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import Link from 'next/link'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
 import { ClientPortalChat } from '@/components/client-portal/client-portal-chat'
@@ -43,8 +41,9 @@ import {
   AlertTriangle,
   Loader2,
   Trash2,
+  Video,
 } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
 
 interface DashboardData {
@@ -289,36 +288,98 @@ export default function ClientDashboard() {
   }
 
   const lastSession = dashboardData.recent_sessions?.[0]
+  const firstName = dashboardData.client_info?.name?.split(' ')[0] || 'there'
+  const pendingTasks = dashboardData.stats?.pending_tasks ?? 0
+  const nextSession = dashboardData.stats?.next_session
+  const todayLabel = formatDate(new Date().toISOString(), 'EEEE, MMMM d')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Header */}
-      <div className="mb-6">
-        <p className="text-ink-3 text-sm font-medium mb-1">{getGreeting()}</p>
-        <h1 className="text-3xl font-bold text-ink ">
-          {dashboardData.client_info?.name || 'Welcome back'}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+      {/* Header — calm greeting */}
+      <div className="mb-7">
+        <p className="text-[12px] font-medium text-ink-3 mb-1">{todayLabel}</p>
+        <h1 className="text-[30px] font-bold tracking-tight leading-[1.2] text-ink m-0">
+          {getGreeting()}, {firstName}.
         </h1>
-        <p className="text-ink-3 mt-1">
-          Your coaching journey at a glance
+        <p className="text-[13px] text-ink-3 mt-1.5">
+          {pendingTasks > 0 ? (
+            <>
+              You&apos;re on track this week.{' '}
+              <b className="font-medium text-ink-2">
+                {pendingTasks} commitment{pendingTasks === 1 ? '' : 's'} pending
+              </b>
+              .
+            </>
+          ) : (
+            <>Your coaching journey at a glance.</>
+          )}
           {dashboardData.coach_name && (
             <>
               <span className="mx-2">·</span>
-              <span className="text-ink-3 font-medium">
-                Coach: {dashboardData.coach_name}
-              </span>
-            </>
-          )}
-          {dashboardData.client_info?.member_since && (
-            <>
-              <span className="mx-2">·</span>
-              <span>
-                Member since{' '}
-                {formatDate(dashboardData.client_info.member_since, 'MMM yyyy')}
-              </span>
+              <span>Coach: {dashboardData.coach_name}</span>
             </>
           )}
         </p>
       </div>
+
+      {/* Hero — Next session */}
+      {nextSession && (
+        <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-7 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
+            <div className="flex-1 min-w-0">
+              <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3">
+                Next session
+              </span>
+              <h2 className="text-[24px] font-semibold tracking-tight m-0 mt-2 text-ink">
+                {formatDate(nextSession, 'EEEE, MMMM d · h:mm a')}
+              </h2>
+              <p className="m-0 mt-1 text-[14px] text-ink-3">
+                {dashboardData.coach_name
+                  ? `Weekly check-in with ${dashboardData.coach_name}`
+                  : 'Weekly check-in'}
+                <span className="mx-2">·</span>
+                {formatRelativeTime(nextSession)}
+              </p>
+              <div className="flex flex-wrap gap-3 mt-4">
+                <Button className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium">
+                  <Video className="h-3.5 w-3.5" />
+                  Join when ready
+                </Button>
+                <Button
+                  variant="outline"
+                  className="border-line bg-surface-1 text-ink hover:bg-surface-3 h-9 px-3.5 text-[13px] font-medium"
+                >
+                  Reschedule
+                </Button>
+              </div>
+            </div>
+            <div className="w-full lg:w-[260px] bg-surface-2 rounded-xl p-4 flex flex-col gap-2">
+              <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3">
+                Your prep
+              </span>
+              <p className="m-0 text-[13px] leading-[1.5] text-ink-2">
+                Bring one moment from this week worth talking through with your
+                coach.
+              </p>
+              {dashboardData.coach_name && (
+                <div className="flex items-center gap-2 mt-2">
+                  <div className="w-6 h-6 rounded-full bg-surface-3 text-ink-2 inline-flex items-center justify-center text-[10px] font-semibold">
+                    {dashboardData.coach_name
+                      .split(' ')
+                      .map(n => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
+                  </div>
+                  <span className="text-[12px] font-medium text-ink-2">
+                    {dashboardData.coach_name}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Active Sessions Banner */}
       <div className="mb-6">
@@ -371,7 +432,7 @@ export default function ClientDashboard() {
       )}
 
       {/* Two-Panel Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 mb-8">
         {/* Left Panel - Coaching Data */}
         <div className="space-y-4">
           {/* Last Session Insights */}
@@ -392,59 +453,57 @@ export default function ClientDashboard() {
         </div>
       </div>
 
-      {/* Recent Sessions - Full Width */}
+      {/* Recent Sessions - Editorial rows */}
       {dashboardData.recent_sessions &&
         dashboardData.recent_sessions.length > 1 && (
-          <Card className="border-line ">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg font-semibold">
-                  Recent Sessions
-                </CardTitle>
-                <Link href="/client-portal/sessions">
-                  <Button variant="ghost" size="sm">
-                    View All
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {dashboardData.recent_sessions.slice(1, 4).map(session => (
-                  <Link
-                    key={session.id}
-                    href={`/client-portal/sessions/${session.id}`}
-                  >
-                    <div className="group p-4 border border-line rounded-xl bg-surface-1 hover:border-line-strong hover:shadow-sm transition-all cursor-pointer">
-                      <div className="flex items-center justify-between mb-2">
-                        <p className="text-sm font-medium text-ink ">
-                          {formatDate(session.date, 'MMM d, yyyy')}
-                        </p>
-                        <Badge
-                          variant="secondary"
-                          className="text-xs bg-surface-3 text-ink-3 "
-                        >
-                          {session.duration_minutes} min
-                        </Badge>
-                      </div>
-                      {session.summary && (
-                        <p className="text-sm text-ink-3 line-clamp-2">
-                          {session.summary}
-                        </p>
-                      )}
-                      <div className="flex items-center justify-end mt-3">
-                        <span className="text-xs text-ink-3 group-hover:text-ink-2 font-medium">
-                          View details
-                          <ChevronRight className="h-3 w-3 inline ml-0.5" />
-                        </span>
-                      </div>
+          <div className="mb-2">
+            <div className="flex items-baseline justify-between mb-3">
+              <h3 className="text-[14px] font-semibold tracking-tight text-ink m-0">
+                Recent sessions
+              </h3>
+              <Link
+                href="/client-portal/sessions"
+                className="inline-flex items-center gap-1 text-[12px] font-medium text-ink-3 hover:text-ink"
+              >
+                View all
+                <ArrowRight className="h-3 w-3" />
+              </Link>
+            </div>
+            <div className="border-t border-line">
+              {dashboardData.recent_sessions.slice(1, 5).map(session => (
+                <Link
+                  key={session.id}
+                  href={`/client-portal/sessions/${session.id}`}
+                  className="group flex items-center gap-4 py-5 px-2 border-b border-line transition-colors hover:bg-surface-2"
+                >
+                  <div className="w-14 flex flex-col items-center">
+                    <span className="text-[24px] font-semibold leading-none text-ink">
+                      {formatDate(session.date, 'd')}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase text-ink-3 mt-1">
+                      {formatDate(session.date, 'MMM')}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-[14px] font-medium text-ink">
+                        {formatDate(session.date, 'EEEE')}
+                      </span>
+                      <span className="font-mono text-[11px] text-ink-3">
+                        {session.duration_minutes} min
+                      </span>
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                    {session.summary && (
+                      <p className="m-0 text-[13px] leading-[1.5] text-ink-2 line-clamp-2">
+                        {session.summary}
+                      </p>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-ink-4 group-hover:text-ink-3 flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
 
       {/* ===== Modals ===== */}

@@ -2,10 +2,8 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   Select,
@@ -21,20 +19,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import {
-  Clock,
-  FileText,
   Search,
   ChevronLeft,
   ChevronRight,
-  TrendingUp,
-  ArrowRight,
   MessageSquare,
-  Users,
-  Flame,
-  Timer,
+  Sparkles,
   ArrowUpDown,
 } from 'lucide-react'
-import { formatDate, formatRelativeTime } from '@/lib/date-utils'
+import { formatDate } from '@/lib/date-utils'
 import {
   useClientSessions,
   useClientDashboardStats,
@@ -95,72 +87,34 @@ export default function ClientSessionsPage() {
     }
   }, [filteredSessions, sortBy])
 
-  const getSentimentColor = (score?: number) => {
-    if (score == null) return null
-    if (score >= 7) return 'bg-forest'
-    if (score >= 4) return 'bg-amber-token'
-    return 'bg-line'
-  }
-
-  const getSentimentLabel = (score?: number) => {
-    if (score == null) return null
-    if (score >= 7) return 'Positive'
-    if (score >= 4) return 'Neutral'
-    return 'Needs attention'
-  }
-
-  const getStatusBorder = (session: (typeof sessions)[0]) => {
-    if (session.status === 'processing') return 'border-l-2 border-l-amber-400'
-    return 'border-l-2 border-l-emerald-500'
-  }
+  const isStrongScore = (score?: number) => score != null && score >= 7
 
   // Stats from dashboard (accurate totals)
   const totalSessions = dashboardStats?.total_sessions ?? sessions.length
-  const avgDuration = dashboardStats?.average_duration ?? 0
-  const streakDays = dashboardStats?.streak_days ?? 0
 
   if (isLoading) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
         {/* Header skeleton */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-          <div>
-            <Skeleton className="h-9 w-48 mb-2" />
-            <Skeleton className="h-5 w-72" />
-          </div>
-          <div className="flex items-center gap-6">
-            <Skeleton className="h-14 w-20" />
-            <Skeleton className="h-14 w-20" />
-            <Skeleton className="h-14 w-20" />
-          </div>
+        <div className="mb-7">
+          <Skeleton className="h-9 w-48 mb-2" />
+          <Skeleton className="h-4 w-72" />
         </div>
         {/* Search skeleton */}
-        <Skeleton className="h-11 w-full mb-6" />
-        {/* Card skeletons */}
-        <div className="space-y-3">
+        <Skeleton className="h-11 w-full mb-4" />
+        {/* Row skeletons */}
+        <div className="border-t border-line">
           {Array.from({ length: 5 }).map((_, i) => (
             <div
               key={i}
-              className="flex items-stretch border border-line rounded-xl bg-surface-1 overflow-hidden"
+              className="flex items-center gap-4 py-5 px-2 border-b border-line"
             >
-              <div className="w-24 md:w-32 bg-paper p-4 flex flex-col items-center justify-center border-r border-line ">
-                <Skeleton className="h-8 w-10 mb-1" />
-                <Skeleton className="h-3 w-14" />
+              <Skeleton className="h-10 w-12" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-full max-w-md" />
               </div>
-              <div className="flex-1 p-4 md:p-5 space-y-3">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                  <Skeleton className="h-5 w-16 rounded-full" />
-                </div>
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-5 w-16 rounded" />
-                  <Skeleton className="h-5 w-20 rounded" />
-                  <Skeleton className="h-5 w-14 rounded" />
-                </div>
-              </div>
+              <Skeleton className="h-5 w-20" />
             </div>
           ))}
         </div>
@@ -170,7 +124,7 @@ export default function ClientSessionsPage() {
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
         <div className="text-center py-12">
           <p className="text-vermillion mb-4">
             Error:{' '}
@@ -185,241 +139,144 @@ export default function ClientSessionsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      {/* Header with Stats */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-ink ">Your Sessions</h1>
-          <p className="text-ink-3 mt-1">
-            Review your coaching sessions and track your progress
-          </p>
-        </div>
-
-        {/* Stats — from dashboard for accuracy */}
-        <div className="flex items-center gap-6 md:gap-8">
-          <div className="text-center">
-            <p className="text-2xl font-bold text-ink ">{totalSessions}</p>
-            <p className="text-xs text-ink-3 ">Sessions</p>
-          </div>
-          <div className="h-8 w-px bg-surface-3 " />
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1">
-              <Timer className="h-3.5 w-3.5 text-ink-4" />
-              <p className="text-2xl font-bold text-ink ">{avgDuration}</p>
-            </div>
-            <p className="text-xs text-ink-3 ">Avg Min</p>
-          </div>
-          {streakDays > 0 && (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+      {/* Header — editorial */}
+      <div className="mb-7">
+        <h1 className="text-[30px] font-bold tracking-tight leading-[1.2] text-ink m-0">
+          Sessions
+        </h1>
+        <p className="text-[13px] text-ink-3 mt-1.5">
+          {totalSessions > 0 ? (
             <>
-              <div className="h-8 w-px bg-surface-3 " />
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <Flame className="h-3.5 w-3.5 text-amber-token" />
-                  <p className="text-2xl font-bold text-ink ">{streakDays}</p>
-                </div>
-                <p className="text-xs text-ink-3 ">Week Streak</p>
-              </div>
+              {totalSessions} conversation
+              {totalSessions === 1 ? '' : 's'}
+              {dashboardStats?.streak_days
+                ? ` · ${dashboardStats.streak_days}-week streak`
+                : ''}
             </>
+          ) : (
+            <>Your coaching sessions will appear here.</>
           )}
-        </div>
+        </p>
       </div>
 
-      {/* Search & Sort Bar */}
-      <div className="flex items-center gap-3 mb-6">
+      {/* Search & Sort */}
+      <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm flex items-center gap-2 p-1.5 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4 " />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
           <Input
             type="text"
-            placeholder="Search by date, topic, or summary..."
+            placeholder="Search by topic, date, or what was said…"
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="pl-10 h-11 bg-surface-1 border-line text-ink placeholder:text-ink-4 "
+            className="pl-9 h-9 border-0 bg-transparent shadow-none text-[13px] text-ink placeholder:text-ink-4 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
         <Select value={sortBy} onValueChange={v => setSortBy(v as SortOption)}>
-          <SelectTrigger className="w-[160px] h-11 bg-surface-1 border-line ">
-            <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-ink-4" />
-            <SelectValue />
+          <SelectTrigger className="w-auto h-8 border-0 bg-transparent shadow-none text-[12px] text-ink-2 px-2.5 gap-1.5 hover:bg-surface-3 focus:ring-0">
+            <ArrowUpDown className="h-3.5 w-3.5 text-ink-4" />
+            <span>
+              Sort: <SelectValue />
+            </span>
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="recent">Most Recent</SelectItem>
-            <SelectItem value="longest">Longest</SelectItem>
-            <SelectItem value="most_topics">Most Topics</SelectItem>
+          <SelectContent align="end">
+            <SelectItem value="recent">recent</SelectItem>
+            <SelectItem value="longest">longest</SelectItem>
+            <SelectItem value="most_topics">most topics</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
-      {/* Sessions List */}
+      {/* Sessions List — editorial rows */}
       {sortedSessions.length === 0 ? (
-        <Card className="border-line ">
-          <CardContent className="py-16 text-center">
-            <MessageSquare className="h-12 w-12 text-ink-2 mx-auto mb-4" />
-            {searchTerm ? (
-              <>
-                <h3 className="font-medium text-ink mb-2">No sessions found</h3>
-                <p className="text-sm text-ink-3 ">
-                  No sessions matching &quot;{searchTerm}&quot;
-                </p>
-              </>
-            ) : (
-              <>
-                <h3 className="font-medium text-ink mb-2">No sessions yet</h3>
-                <p className="text-sm text-ink-3 ">
-                  Your coaching sessions will appear here after your first call.
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <div className="bg-surface-1 border border-line rounded-[10px] py-16 text-center">
+          <MessageSquare className="h-10 w-10 text-ink-3 mx-auto mb-3" />
+          {searchTerm ? (
+            <>
+              <h3 className="text-[14px] font-medium text-ink mb-1">
+                No sessions found
+              </h3>
+              <p className="text-[13px] text-ink-3">
+                No sessions matching &quot;{searchTerm}&quot;
+              </p>
+            </>
+          ) : (
+            <>
+              <h3 className="text-[14px] font-medium text-ink mb-1">
+                No sessions yet
+              </h3>
+              <p className="text-[13px] text-ink-3">
+                Your coaching sessions will appear here after your first call.
+              </p>
+            </>
+          )}
+        </div>
       ) : (
         <TooltipProvider>
-          <div className="space-y-3">
+          <div className="border-t border-line">
             {sortedSessions.map(session => {
-              const sentimentColor = getSentimentColor(session.sentiment_score)
-              const sentimentLabel = getSentimentLabel(session.sentiment_score)
-
+              const strong = isStrongScore(session.sentiment_score)
+              const commitmentsCount =
+                session.tasks_assigned || session.action_items?.length || 0
               return (
                 <Link
                   key={session.id}
                   href={`/client-portal/sessions/${session.id}`}
-                  className="block group"
+                  className="group flex items-center gap-4 py-5 px-2 border-b border-line transition-colors hover:bg-surface-2"
                 >
-                  <div
-                    className={`flex items-stretch rounded-xl bg-surface-1 border border-line hover:border-line-strong hover:shadow-sm transition-all overflow-hidden ${getStatusBorder(session)}`}
-                  >
-                    {/* Date Column */}
-                    <div className="w-24 md:w-32 flex-shrink-0 bg-paper p-4 flex flex-col items-center justify-center border-r border-line ">
-                      <span className="text-2xl font-bold text-ink ">
-                        {session.session_date
-                          ? formatDate(session.session_date, 'd')
-                          : '-'}
-                      </span>
-                      <span className="text-xs text-ink-3 uppercase tracking-wide">
-                        {session.session_date
-                          ? formatDate(session.session_date, 'MMM yyyy')
-                          : ''}
-                      </span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 p-4 md:p-5 min-w-0">
-                      {/* Top Row */}
-                      <div className="flex items-start justify-between gap-4 mb-2">
-                        <div className="flex items-center gap-3 flex-wrap">
-                          <span className="text-sm font-medium text-ink ">
-                            {session.session_date
-                              ? formatDate(session.session_date, 'EEEE')
-                              : 'Session'}
-                          </span>
-                          <span className="text-xs text-ink-4 ">
-                            {formatRelativeTime(session.session_date)}
-                          </span>
-                          {/* Sentiment dot */}
-                          {sentimentColor && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span
-                                  className={`inline-block h-2.5 w-2.5 rounded-full ${sentimentColor}`}
-                                />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>
-                                  {sentimentLabel} (
-                                  {session.sentiment_score?.toFixed(1)}/10)
-                                </p>
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <Badge
-                            variant="secondary"
-                            className="bg-surface-3 text-ink-3 text-xs"
-                          >
-                            <Clock className="h-3 w-3 mr-1" />
-                            {session.duration_minutes || 0} min
-                          </Badge>
-                          {session.engagement_level && (
-                            <Badge
-                              variant="secondary"
-                              className="bg-surface-3 text-ink-3 text-xs capitalize"
-                            >
-                              {session.engagement_level}
-                            </Badge>
-                          )}
-                          {session.is_group_session && (
-                            <Badge
-                              variant="secondary"
-                              className="bg-indigo-bg text-indigo text-xs"
-                            >
-                              <Users className="h-3 w-3 mr-1" />
-                              Group
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Summary */}
-                      {session.summary ? (
-                        <p className="text-sm text-ink-3 line-clamp-2 mb-3">
-                          {session.summary}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-ink-4 italic mb-3">
-                          No summary available
-                        </p>
-                      )}
-
-                      {/* Bottom Row — Topics and Stats */}
-                      <div className="flex items-center justify-between gap-4">
-                        {/* Key Topics */}
-                        <div className="flex items-center gap-2 flex-wrap min-w-0">
-                          {session.key_topics &&
-                          session.key_topics.length > 0 ? (
-                            <>
-                              {session.key_topics
-                                .slice(0, 3)
-                                .map((topic, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="inline-flex px-2.5 py-1 bg-surface-3 text-ink-3 text-xs rounded-md"
-                                  >
-                                    {topic}
-                                  </span>
-                                ))}
-                              {session.key_topics.length > 3 && (
-                                <span className="text-xs text-ink-4 ">
-                                  +{session.key_topics.length - 3} more
-                                </span>
-                              )}
-                            </>
-                          ) : null}
-                        </div>
-
-                        {/* Stats */}
-                        <div className="flex items-center gap-4 text-xs text-ink-3 flex-shrink-0">
-                          {session.tasks_assigned > 0 && (
-                            <span className="flex items-center gap-1">
-                              <FileText className="h-3.5 w-3.5" />
-                              {session.tasks_assigned} commitments
-                            </span>
-                          )}
-                          {session.action_items &&
-                            session.action_items.length > 0 && (
-                              <span className="flex items-center gap-1">
-                                <TrendingUp className="h-3.5 w-3.5" />
-                                {session.action_items.length} actions
-                              </span>
-                            )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Arrow */}
-                    <div className="flex items-center px-4 bg-paper border-l border-line group-hover:bg-surface-3 transition-colors">
-                      <ArrowRight className="h-4 w-4 text-ink-4 group-hover:text-ink-3 transition-colors" />
-                    </div>
+                  <div className="w-14 flex-shrink-0 flex flex-col items-center">
+                    <span className="text-[24px] font-semibold leading-none text-ink">
+                      {session.session_date
+                        ? formatDate(session.session_date, 'd')
+                        : '–'}
+                    </span>
+                    <span className="font-mono text-[10px] uppercase text-ink-3 mt-1">
+                      {session.session_date
+                        ? formatDate(session.session_date, 'MMM')
+                        : ''}
+                    </span>
                   </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-[14px] font-medium text-ink">
+                        {session.session_date
+                          ? formatDate(session.session_date, 'EEEE')
+                          : 'Session'}
+                      </span>
+                      <span className="font-mono text-[11px] text-ink-3">
+                        {session.duration_minutes || 0} min
+                      </span>
+                    </div>
+                    <p className="m-0 text-[13px] leading-[1.5] text-ink-2 line-clamp-2">
+                      {session.summary ?? (
+                        <span className="italic text-ink-4">
+                          No summary available
+                        </span>
+                      )}
+                    </p>
+                  </div>
+                  <div className="flex flex-col items-end gap-1 min-w-[100px]">
+                    {strong && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span className="inline-flex items-center gap-1 px-2 h-[22px] rounded-md bg-forest-bg text-forest text-[11px] font-medium">
+                            <Sparkles className="h-3 w-3" />
+                            Strong session
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {session.sentiment_score?.toFixed(1)}/10 sentiment
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                    {commitmentsCount > 0 && (
+                      <span className="font-mono text-[11px] text-ink-3">
+                        {commitmentsCount} commitment
+                        {commitmentsCount === 1 ? '' : 's'}
+                      </span>
+                    )}
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-ink-4 group-hover:text-ink-3 flex-shrink-0" />
                 </Link>
               )
             })}
@@ -429,27 +286,29 @@ export default function ClientSessionsPage() {
 
       {/* Pagination */}
       {sessions.length > 0 && (
-        <div className="flex items-center justify-between mt-8 pt-6 border-t border-line ">
+        <div className="flex items-center justify-between mt-6 pt-5">
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
             disabled={currentPage === 1}
-            className="text-ink-3 hover:text-ink "
+            className="text-ink-3 hover:text-ink h-8 text-[12px]"
           >
-            <ChevronLeft className="mr-1 h-4 w-4" />
+            <ChevronLeft className="mr-1 h-3.5 w-3.5" />
             Previous
           </Button>
 
-          <span className="text-sm text-ink-3 ">Page {currentPage}</span>
+          <span className="font-mono text-[12px] text-ink-3">
+            Page {currentPage}
+          </span>
 
           <Button
             variant="ghost"
             onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={sortedSessions.length < itemsPerPage}
-            className="text-ink-3 hover:text-ink "
+            className="text-ink-3 hover:text-ink h-8 text-[12px]"
           >
             Next
-            <ChevronRight className="ml-1 h-4 w-4" />
+            <ChevronRight className="ml-1 h-3.5 w-3.5" />
           </Button>
         </div>
       )}

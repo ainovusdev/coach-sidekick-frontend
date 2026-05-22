@@ -173,14 +173,13 @@ export default function SessionDetailsPage({
     : baseClientId
 
   // Fetch commitments for this specific session only
-  const { data: commitmentsData, isLoading: commitmentsLoading } =
-    useCommitments(
-      {
-        session_id: resolvedParams.sessionId,
-        include_drafts: true,
-      },
-      { enabled: !!resolvedParams.sessionId },
-    )
+  const { data: commitmentsData } = useCommitments(
+    {
+      session_id: resolvedParams.sessionId,
+      include_drafts: true,
+    },
+    { enabled: !!resolvedParams.sessionId },
+  )
 
   // Helper to refresh commitments and wins from cache
   const refreshCommitments = () => {
@@ -886,7 +885,6 @@ export default function SessionDetailsPage({
                         session.status === 'completed' ||
                         session.transcription_status === 'completed'
                       }
-                      commitmentsLoaded={!commitmentsLoading}
                       onCreateCommitment={
                         !isViewer && clientId
                           ? () => setShowCommitmentCreatePanel(true)
