@@ -175,7 +175,7 @@ export function PersonaHistoryTimeline({
         {[1, 2, 3, 4, 5].map(i => (
           <div
             key={i}
-            className="border border-gray-200 rounded-lg p-4 bg-white"
+            className="border border-line rounded-lg p-4 bg-surface-1"
           >
             <div className="flex items-center gap-3 mb-3">
               <Skeleton className="h-10 w-10 rounded-lg" />
@@ -193,12 +193,10 @@ export function PersonaHistoryTimeline({
 
   if (history.length === 0) {
     return (
-      <div className="text-center py-12 border border-gray-200 rounded-lg bg-gray-50">
-        <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">
-          No History Yet
-        </h3>
-        <p className="text-gray-500">
+      <div className="text-center py-12 border border-line rounded-lg bg-paper">
+        <Clock className="h-12 w-12 text-ink-4 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-ink mb-2">No History Yet</h3>
+        <p className="text-ink-3">
           Persona updates will appear here as sessions are analyzed
         </p>
       </div>
@@ -259,32 +257,32 @@ export function PersonaHistoryTimeline({
         const categories = Object.keys(categorizedUpdates)
 
         return (
-          <Card key={sessionKey} className="border-gray-200 overflow-hidden">
+          <Card key={sessionKey} className="border-line overflow-hidden">
             {/* Session Header - Clickable */}
             <button
               onClick={() => toggleSession(sessionKey)}
               className={cn(
                 'w-full p-4 flex items-center gap-4 transition-colors',
-                'hover:bg-gray-50 text-left',
-                isExpanded && 'bg-gray-50',
+                'hover:bg-paper text-left',
+                isExpanded && 'bg-paper',
               )}
             >
               {/* Icon */}
-              <div className="flex-shrink-0 p-2.5 bg-gradient-to-br from-gray-900 to-gray-700 rounded-lg">
-                <Sparkles className="h-5 w-5 text-white" />
+              <div className="flex-shrink-0 p-2.5  rounded-lg">
+                <Sparkles className="h-5 w-5 text-ink-on-dark" />
               </div>
 
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-sm font-semibold text-gray-900">
+                  <h3 className="text-sm font-semibold text-ink">
                     Session Analysis
                   </h3>
                   <Badge variant="secondary" className="text-xs">
                     {group.updates.length} changes
                   </Badge>
                 </div>
-                <div className="flex items-center gap-3 text-xs text-gray-500">
+                <div className="flex items-center gap-3 text-xs text-ink-3">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3 w-3" />
                     {formatDate(group.sessionDateStr, 'MMM d, yyyy')}
@@ -305,38 +303,38 @@ export function PersonaHistoryTimeline({
                   className={cn(
                     'text-xs font-medium px-2.5 py-1 rounded-md',
                     group.avgConfidence >= 0.8
-                      ? 'bg-blue-100 text-blue-700'
+                      ? 'bg-ds-accent-bg text-ds-accent'
                       : group.avgConfidence >= 0.6
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'bg-gray-100 text-gray-600',
+                        ? 'bg-ds-accent-bg text-ds-accent'
+                        : 'bg-surface-3 text-ink-3',
                   )}
                 >
                   {(group.avgConfidence * 100).toFixed(0)}% avg
                 </div>
                 {isExpanded ? (
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                  <ChevronDown className="h-5 w-5 text-ink-4" />
                 ) : (
-                  <ChevronRight className="h-5 w-5 text-gray-400" />
+                  <ChevronRight className="h-5 w-5 text-ink-4" />
                 )}
               </div>
             </button>
 
             {/* Expanded Content */}
             {isExpanded && (
-              <div className="border-t border-gray-200 bg-white">
+              <div className="border-t border-line bg-surface-1">
                 <div className="p-4 space-y-4">
                   {/* Session Link */}
                   {group.sessionId && (
-                    <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between p-3 bg-ds-accent-bg rounded-lg border border-ds-accent">
                       <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-blue-600" />
-                        <span className="text-sm text-blue-900 font-medium">
+                        <FileText className="h-4 w-4 text-ds-accent" />
+                        <span className="text-sm text-ds-accent font-medium">
                           View session transcript
                         </span>
                       </div>
                       <Link
                         href={`/sessions/${group.sessionId}`}
-                        className="inline-flex items-center gap-1 text-sm text-blue-600 hover:text-blue-800 font-medium"
+                        className="inline-flex items-center gap-1 text-sm text-ds-accent hover:text-ds-accent font-medium"
                         onClick={e => e.stopPropagation()}
                       >
                         Open
@@ -355,9 +353,9 @@ export function PersonaHistoryTimeline({
                         return (
                           <div key={category} className="space-y-2">
                             {/* Category Header */}
-                            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                              <CategoryIcon className="h-4 w-4 text-gray-600" />
-                              <h4 className="text-sm font-semibold text-gray-900">
+                            <div className="flex items-center gap-2 pb-2 border-b border-line">
+                              <CategoryIcon className="h-4 w-4 text-ink-3" />
+                              <h4 className="text-sm font-semibold text-ink">
                                 {category}
                               </h4>
                               <Badge
@@ -387,23 +385,23 @@ export function PersonaHistoryTimeline({
                                     className="flex items-start gap-2 py-1.5"
                                   >
                                     {/* Icon */}
-                                    <Icon className="h-3.5 w-3.5 text-gray-400 flex-shrink-0 mt-0.5" />
+                                    <Icon className="h-3.5 w-3.5 text-ink-4 flex-shrink-0 mt-0.5" />
 
                                     {/* Content */}
                                     <div className="flex-1 min-w-0">
                                       {/* Label and Confidence on same line */}
                                       <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-sm font-medium text-gray-700">
+                                        <span className="text-sm font-medium text-ink-2">
                                           {label}
                                         </span>
                                         <div
                                           className={cn(
                                             'text-xs font-medium px-1.5 py-0.5 rounded',
                                             update.confidence >= 0.8
-                                              ? 'bg-blue-100 text-blue-700'
+                                              ? 'bg-ds-accent-bg text-ds-accent'
                                               : update.confidence >= 0.6
-                                                ? 'bg-blue-50 text-blue-600'
-                                                : 'bg-gray-100 text-gray-600',
+                                                ? 'bg-ds-accent-bg text-ds-accent'
+                                                : 'bg-surface-3 text-ink-3',
                                           )}
                                         >
                                           {(update.confidence * 100).toFixed(0)}
@@ -419,7 +417,7 @@ export function PersonaHistoryTimeline({
                                             Array.isArray(update.old_value) &&
                                             update.old_value.length > 0 && (
                                               <div className="flex flex-wrap gap-1 items-center">
-                                                <span className="text-xs text-gray-500 font-medium mr-1">
+                                                <span className="text-xs text-ink-3 font-medium mr-1">
                                                   Previous:
                                                 </span>
                                                 {update.old_value.map(
@@ -430,7 +428,7 @@ export function PersonaHistoryTimeline({
                                                     <Badge
                                                       key={idx}
                                                       variant="secondary"
-                                                      className="text-xs bg-gray-100 text-gray-600 border-gray-300 line-through opacity-75"
+                                                      className="text-xs bg-surface-3 text-ink-3 border-line-strong line-through opacity-75"
                                                     >
                                                       {item}
                                                     </Badge>
@@ -441,7 +439,7 @@ export function PersonaHistoryTimeline({
 
                                           {/* Added items inline */}
                                           <div className="flex flex-wrap gap-1 items-center">
-                                            <span className="text-xs text-gray-700 font-medium mr-1">
+                                            <span className="text-xs text-ink-2 font-medium mr-1">
                                               {update.old_value &&
                                               Array.isArray(update.old_value) &&
                                               update.old_value.length > 0
@@ -468,7 +466,7 @@ export function PersonaHistoryTimeline({
                                                     <Badge
                                                       key={idx}
                                                       variant="secondary"
-                                                      className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                                                      className="text-xs bg-ds-accent-bg text-ds-accent border-ds-accent"
                                                     >
                                                       {item}
                                                     </Badge>
@@ -480,11 +478,11 @@ export function PersonaHistoryTimeline({
                                         <div className="text-sm">
                                           {formatValue(update.old_value) !==
                                             'Not set' && (
-                                            <span className="text-gray-500 line-through mr-2">
+                                            <span className="text-ink-3 line-through mr-2">
                                               {formatValue(update.old_value)}
                                             </span>
                                           )}
-                                          <span className="font-medium text-gray-900">
+                                          <span className="font-medium text-ink">
                                             {formatValue(update.new_value)}
                                           </span>
                                         </div>

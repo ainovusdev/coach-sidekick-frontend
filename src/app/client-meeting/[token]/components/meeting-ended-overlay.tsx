@@ -41,21 +41,19 @@ export function MeetingEndedOverlay({
   }, [])
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full border-gray-200 dark:border-gray-700 shadow-2xl dark:bg-gray-800">
+    <div className="fixed inset-0 bg-overlay backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <Card className="max-w-md w-full border-line shadow-2xl ">
         <CardContent className="p-8 text-center">
           {/* Success Icon */}
-          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
+          <div className="w-16 h-16 bg-forest-bg rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircle className="h-8 w-8 text-forest " />
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Session Complete
-          </h2>
+          <h2 className="text-2xl font-bold text-ink mb-2">Session Complete</h2>
 
           {/* Subtitle */}
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-ink-3 mb-6">
             {coachName
               ? `Your session with ${coachName} has ended.`
               : 'This coaching session has ended.'}
@@ -63,30 +61,30 @@ export function MeetingEndedOverlay({
 
           {/* Summary Stats */}
           {(notesCount > 0 || commitmentsCount > 0) && (
-            <div className="flex justify-center gap-6 mb-6 py-4 border-y border-gray-100 dark:border-gray-700">
+            <div className="flex justify-center gap-6 mb-6 py-4 border-y border-line ">
               {notesCount > 0 && (
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center justify-center gap-1.5 text-ink-2 ">
                     <FileText className="h-4 w-4" />
                     <span className="text-2xl font-bold">{notesCount}</span>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-ink-3 mt-1">
                     {notesCount === 1 ? 'Note' : 'Notes'} saved
                   </p>
                 </div>
               )}
               {notesCount > 0 && commitmentsCount > 0 && (
-                <div className="w-px bg-gray-200 dark:bg-gray-700" />
+                <div className="w-px bg-surface-3 " />
               )}
               {commitmentsCount > 0 && (
                 <div className="text-center">
-                  <div className="flex items-center justify-center gap-1.5 text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center justify-center gap-1.5 text-ink-2 ">
                     <Target className="h-4 w-4" />
                     <span className="text-2xl font-bold">
                       {commitmentsCount}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-ink-3 mt-1">
                     {commitmentsCount === 1 ? 'Commitment' : 'Commitments'}
                   </p>
                 </div>
@@ -110,7 +108,7 @@ export function MeetingEndedOverlay({
                   Open Thrill Form
                 </Button>
               </a>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">
+              <p className="text-xs text-ink-4 mt-2">
                 We&apos;ve also emailed you the link.
               </p>
             </div>
@@ -119,7 +117,7 @@ export function MeetingEndedOverlay({
           {/* Message & Actions - different for logged in vs guest */}
           {isLoggedIn ? (
             <>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-ink-3 mb-6">
                 Your notes and commitments have been saved. You can review them
                 in your dashboard.
               </p>
@@ -132,7 +130,7 @@ export function MeetingEndedOverlay({
                 </Link>
                 <Button
                   variant="ghost"
-                  className="text-gray-500 dark:text-gray-400"
+                  className="text-ink-3 "
                   onClick={() => window.close()}
                 >
                   Close this page
@@ -141,7 +139,7 @@ export function MeetingEndedOverlay({
             </>
           ) : (
             <>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              <p className="text-sm text-ink-3 mb-6">
                 Your notes and commitments have been saved. You can access them
                 anytime by signing up for the client portal.
               </p>
@@ -154,17 +152,17 @@ export function MeetingEndedOverlay({
                 </Link>
                 <Button
                   variant="ghost"
-                  className="text-gray-500 dark:text-gray-400"
+                  className="text-ink-3 "
                   onClick={() => window.close()}
                 >
                   Close this page
                 </Button>
               </div>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
+              <p className="text-xs text-ink-4 mt-4">
                 Already have an account?{' '}
                 <Link
                   href="/client-portal/auth/signup"
-                  className="text-gray-600 dark:text-gray-300 hover:underline"
+                  className="text-ink-3 hover:underline"
                 >
                   Sign in
                 </Link>

@@ -11,10 +11,10 @@ interface ProtectedRouteProps {
   loadingMessage?: string
 }
 
-export function ProtectedRoute({ 
-  children, 
+export function ProtectedRoute({
+  children,
   redirectTo = '/auth',
-  loadingMessage = 'Loading...'
+  loadingMessage = 'Loading...',
 }: ProtectedRouteProps) {
   const { isAuthenticated, loading } = useAuth()
   const router = useRouter()
@@ -27,7 +27,7 @@ export function ProtectedRoute({
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
+      <div className="min-h-screen flex items-center justify-center  ">
         <LoadingState message={loadingMessage} />
       </div>
     )

@@ -67,9 +67,9 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
 
   if (loading) {
     return (
-      <Card className="border-gray-200 shadow-sm">
+      <Card className="border-line shadow-sm">
         <CardContent className="py-12 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+          <Loader2 className="h-8 w-8 text-ink-4 animate-spin" />
         </CardContent>
       </Card>
     )
@@ -79,8 +79,8 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
     return (
       <Card>
         <CardContent className="py-12 text-center">
-          <Trophy className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-600">Unable to load wins data</p>
+          <Trophy className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+          <p className="text-ink-3">Unable to load wins data</p>
         </CardContent>
       </Card>
     )
@@ -96,12 +96,12 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
   return (
     <div className="space-y-6">
       {/* Summary Card */}
-      <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
+      <Card className=" border-amber-token">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center">
-                <Trophy className="h-6 w-6 text-amber-600" />
+              <div className="w-12 h-12 rounded-full bg-amber-token-bg flex items-center justify-center">
+                <Trophy className="h-6 w-6 text-amber-token" />
               </div>
               <div>
                 <CardTitle className="text-xl">Sandbox Wins</CardTitle>
@@ -111,10 +111,10 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
               </div>
             </div>
             <div className="text-right">
-              <p className="text-3xl font-bold text-amber-700">
+              <p className="text-3xl font-bold text-amber-token">
                 {data.total_wins}
               </p>
-              <p className="text-sm text-amber-600">
+              <p className="text-sm text-amber-token">
                 Total Wins ({approvedWinsCount} approved)
               </p>
             </div>
@@ -122,36 +122,36 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="bg-white/60 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-1/60 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-ink">
                 {data.clients.length}
               </p>
-              <p className="text-xs text-gray-600">Total Clients</p>
+              <p className="text-xs text-ink-3">Total Clients</p>
             </div>
-            <div className="bg-white/60 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-1/60 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-ink">
                 {clientsWithWins.length}
               </p>
-              <p className="text-xs text-gray-600">Clients with Wins</p>
+              <p className="text-xs text-ink-3">Clients with Wins</p>
             </div>
-            <div className="bg-white/60 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-1/60 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-ink">
                 {data.total_wins > 0
                   ? Math.round(
                       (data.total_wins / clientsWithWins.length) * 10,
                     ) / 10
                   : 0}
               </p>
-              <p className="text-xs text-gray-600">Avg Wins/Client</p>
+              <p className="text-xs text-ink-3">Avg Wins/Client</p>
             </div>
-            <div className="bg-white/60 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-gray-900">
+            <div className="bg-surface-1/60 rounded-lg p-3 text-center">
+              <p className="text-2xl font-bold text-ink">
                 {Math.round(
                   (approvedWinsCount / Math.max(data.total_wins, 1)) * 100,
                 )}
                 %
               </p>
-              <p className="text-xs text-gray-600">Approval Rate</p>
+              <p className="text-xs text-ink-3">Approval Rate</p>
             </div>
           </div>
         </CardContent>
@@ -160,39 +160,39 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
       {/* Clients with Wins */}
       {clientsWithWins.length > 0 ? (
         <Card>
-          <CardHeader className="bg-gray-50 border-b">
+          <CardHeader className="bg-paper border-b">
             <CardTitle className="text-lg">Wins by Client</CardTitle>
             <CardDescription>
               Click on a client to expand and see their wins
             </CardDescription>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-line">
               {clientsWithWins
                 .sort((a, b) => b.total_wins - a.total_wins)
                 .map(client => (
-                  <div key={client.client_id} className="bg-white">
+                  <div key={client.client_id} className="bg-surface-1">
                     {/* Client Header */}
                     <button
                       onClick={() => toggleClient(client.client_id)}
-                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                      className="w-full px-6 py-4 flex items-center justify-between hover:bg-paper transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         {expandedClients.has(client.client_id) ? (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                          <ChevronDown className="h-5 w-5 text-ink-4" />
                         ) : (
-                          <ChevronRight className="h-5 w-5 text-gray-400" />
+                          <ChevronRight className="h-5 w-5 text-ink-4" />
                         )}
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                          <User className="h-5 w-5 text-gray-500" />
+                        <div className="w-10 h-10 rounded-full bg-surface-3 flex items-center justify-center">
+                          <User className="h-5 w-5 text-ink-3" />
                         </div>
                         <div className="text-left">
-                          <h4 className="font-medium text-gray-900">
+                          <h4 className="font-medium text-ink">
                             {client.client_name}
                           </h4>
                         </div>
                       </div>
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                      <Badge className="bg-amber-token-bg text-amber-token hover:bg-amber-token-bg">
                         {client.total_wins} win
                         {client.total_wins !== 1 ? 's' : ''}
                       </Badge>
@@ -206,36 +206,36 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                             key={win.id}
                             className={`p-4 rounded-lg border ${
                               win.is_approved
-                                ? 'bg-white border-gray-200'
-                                : 'bg-amber-50 border-amber-200'
+                                ? 'bg-surface-1 border-line'
+                                : 'bg-amber-token-bg border-amber-token'
                             }`}
                           >
                             <div className="flex items-start gap-3">
                               <div
                                 className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                                   win.is_approved
-                                    ? 'bg-amber-100'
-                                    : 'bg-amber-200'
+                                    ? 'bg-amber-token-bg'
+                                    : 'bg-amber-token-bg'
                                 }`}
                               >
                                 <Trophy
                                   className={`h-4 w-4 ${
                                     win.is_approved
-                                      ? 'text-amber-600'
-                                      : 'text-amber-700'
+                                      ? 'text-amber-token'
+                                      : 'text-amber-token'
                                   }`}
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2">
-                                  <h5 className="font-medium text-gray-900">
+                                  <h5 className="font-medium text-ink">
                                     {win.title}
                                   </h5>
                                   <div className="flex gap-1.5 flex-shrink-0">
                                     {win.is_ai_generated && (
                                       <Badge
                                         variant="secondary"
-                                        className="bg-gray-100 text-gray-500 text-xs"
+                                        className="bg-surface-3 text-ink-3 text-xs"
                                       >
                                         AI
                                       </Badge>
@@ -243,7 +243,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                                     {!win.is_approved && (
                                       <Badge
                                         variant="secondary"
-                                        className="bg-amber-100 text-amber-700 text-xs"
+                                        className="bg-amber-token-bg text-amber-token text-xs"
                                       >
                                         Pending
                                       </Badge>
@@ -251,11 +251,11 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                                   </div>
                                 </div>
                                 {win.description && (
-                                  <p className="text-sm text-gray-600 mt-1">
+                                  <p className="text-sm text-ink-3 mt-1">
                                     {win.description}
                                   </p>
                                 )}
-                                <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                <div className="flex items-center gap-4 mt-2 text-xs text-ink-3">
                                   {win.session_date && (
                                     <span className="flex items-center gap-1">
                                       <Calendar className="h-3 w-3" />
@@ -267,7 +267,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                                   )}
                                   <Link
                                     href={`/sessions/${win.session_id}`}
-                                    className="flex items-center gap-1 text-blue-600 hover:underline"
+                                    className="flex items-center gap-1 text-ds-accent hover:underline"
                                     onClick={e => e.stopPropagation()}
                                   >
                                     <ExternalLink className="h-3 w-3" />
@@ -284,7 +284,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="w-full text-gray-600 hover:text-gray-900"
+                            className="w-full text-ink-3 hover:text-ink"
                           >
                             View Client Profile
                             <ExternalLink className="h-4 w-4 ml-2" />
@@ -300,11 +300,11 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
       ) : (
         <Card>
           <CardContent className="py-16 text-center">
-            <Trophy className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+            <Trophy className="h-16 w-16 text-ink-2 mx-auto mb-4" />
+            <h3 className="text-xl font-semibold text-ink mb-2">
               No wins recorded yet
             </h3>
-            <p className="text-gray-600 max-w-md mx-auto">
+            <p className="text-ink-3 max-w-md mx-auto">
               Wins will appear here as they are recorded during coaching
               sessions. Use AI extraction from session details or add wins
               manually.
@@ -317,7 +317,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
       {clientsWithoutWins.length > 0 && (
         <Card className="border-dashed">
           <CardHeader>
-            <CardTitle className="text-base text-gray-600">
+            <CardTitle className="text-base text-ink-3">
               Clients Without Recorded Wins
             </CardTitle>
           </CardHeader>
@@ -330,7 +330,7 @@ export function ProgramWins({ programId }: ProgramWinsProps) {
                 >
                   <Badge
                     variant="outline"
-                    className="cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="cursor-pointer hover:bg-paper transition-colors"
                   >
                     {client.client_name}
                   </Badge>

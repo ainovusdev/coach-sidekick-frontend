@@ -170,10 +170,10 @@ export default function CoachAccessPage() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold  bg-clip-text text-transparent">
             Coach Access Management
           </h1>
-          <p className="text-gray-500 mt-2">
+          <p className="text-ink-3 mt-2">
             Manage admin access to coaches and their clients
           </p>
         </div>
@@ -190,10 +190,10 @@ export default function CoachAccessPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-ink-3">
                 Total Coaches
               </CardTitle>
-              <UserCheck className="h-4 w-4 text-blue-500" />
+              <UserCheck className="h-4 w-4 text-ds-accent" />
             </div>
           </CardHeader>
           <CardContent>
@@ -203,10 +203,10 @@ export default function CoachAccessPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-ink-3">
                 Total Admins
               </CardTitle>
-              <Shield className="h-4 w-4 text-purple-500" />
+              <Shield className="h-4 w-4 text-indigo" />
             </div>
           </CardHeader>
           <CardContent>
@@ -216,10 +216,10 @@ export default function CoachAccessPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-ink-3">
                 Assigned
               </CardTitle>
-              <Link2 className="h-4 w-4 text-green-500" />
+              <Link2 className="h-4 w-4 text-forest" />
             </div>
           </CardHeader>
           <CardContent>
@@ -234,10 +234,10 @@ export default function CoachAccessPage() {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-sm font-medium text-gray-600">
+              <CardTitle className="text-sm font-medium text-ink-3">
                 Unassigned
               </CardTitle>
-              <Unlink className="h-4 w-4 text-gray-400" />
+              <Unlink className="h-4 w-4 text-ink-4" />
             </div>
           </CardHeader>
           <CardContent>
@@ -256,7 +256,7 @@ export default function CoachAccessPage() {
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex bg-gray-100 rounded-lg p-1">
+              <div className="flex bg-surface-3 rounded-lg p-1">
                 <Button
                   variant={viewMode === 'coaches' ? 'default' : 'ghost'}
                   size="sm"
@@ -278,7 +278,7 @@ export default function CoachAccessPage() {
               </div>
             </div>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4" />
               <Input
                 placeholder="Search..."
                 value={searchQuery}
@@ -317,7 +317,7 @@ export default function CoachAccessPage() {
                       <AvatarImage
                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${assignment.coach.email}`}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-100 to-blue-200">
+                      <AvatarFallback className=" ">
                         {getUserInitials(
                           assignment.coach.email,
                           assignment.coach.full_name,
@@ -325,11 +325,11 @@ export default function CoachAccessPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-ink">
                         {assignment.coach.full_name || assignment.coach.email}
                       </h3>
                       {assignment.coach.full_name && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-ink-3">
                           {assignment.coach.email}
                         </p>
                       )}
@@ -340,7 +340,7 @@ export default function CoachAccessPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Clients</span>
+                    <span className="text-ink-3">Clients</span>
                     <Badge variant="secondary">
                       <Briefcase className="h-3 w-3 mr-1" />
                       {assignment.clientCount}
@@ -349,7 +349,7 @@ export default function CoachAccessPage() {
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-ink-2">
                         Assigned Admins
                       </span>
                       {assignment.assignedAdmins.length === 0 && (
@@ -363,11 +363,11 @@ export default function CoachAccessPage() {
                         {assignment.assignedAdmins.map(admin => (
                           <div
                             key={admin.id}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-2 bg-paper rounded-lg"
                           >
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="text-xs bg-purple-100">
+                                <AvatarFallback className="text-xs bg-indigo-bg">
                                   {getUserInitials(
                                     admin.email,
                                     admin.full_name,
@@ -393,7 +393,7 @@ export default function CoachAccessPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-gray-400 text-sm">
+                      <div className="text-center py-4 text-ink-4 text-sm">
                         No admins assigned
                       </div>
                     )}
@@ -417,7 +417,7 @@ export default function CoachAccessPage() {
                       <AvatarImage
                         src={`https://api.dicebear.com/7.x/initials/svg?seed=${assignment.admin.email}`}
                       />
-                      <AvatarFallback className="bg-gradient-to-br from-purple-100 to-purple-200">
+                      <AvatarFallback className=" ">
                         {getUserInitials(
                           assignment.admin.email,
                           assignment.admin.full_name,
@@ -425,11 +425,11 @@ export default function CoachAccessPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <h3 className="font-semibold text-gray-900">
+                      <h3 className="font-semibold text-ink">
                         {assignment.admin.full_name || assignment.admin.email}
                       </h3>
                       {assignment.admin.full_name && (
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-ink-3">
                           {assignment.admin.email}
                         </p>
                       )}
@@ -453,7 +453,7 @@ export default function CoachAccessPage() {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">Total Clients</span>
+                    <span className="text-ink-3">Total Clients</span>
                     <Badge variant="secondary">
                       <Briefcase className="h-3 w-3 mr-1" />
                       {assignment.totalClients}
@@ -462,7 +462,7 @@ export default function CoachAccessPage() {
 
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium text-gray-700">
+                      <span className="text-sm font-medium text-ink-2">
                         Assigned Coaches
                       </span>
                       <Badge variant="outline" className="text-xs">
@@ -474,11 +474,11 @@ export default function CoachAccessPage() {
                         {assignment.assignedCoaches.map(coach => (
                           <div
                             key={coach.id}
-                            className="flex items-center justify-between p-2 bg-gray-50 rounded-lg"
+                            className="flex items-center justify-between p-2 bg-paper rounded-lg"
                           >
                             <div className="flex items-center gap-2">
                               <Avatar className="h-8 w-8">
-                                <AvatarFallback className="text-xs bg-blue-100">
+                                <AvatarFallback className="text-xs bg-ds-accent-bg">
                                   {getUserInitials(
                                     coach.email,
                                     coach.full_name,
@@ -504,7 +504,7 @@ export default function CoachAccessPage() {
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4 text-gray-400 text-sm">
+                      <div className="text-center py-4 text-ink-4 text-sm">
                         No coaches assigned
                       </div>
                     )}
@@ -527,7 +527,7 @@ export default function CoachAccessPage() {
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-ink-2">
                 Select Coach
               </label>
               <Select
@@ -558,7 +558,7 @@ export default function CoachAccessPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-gray-700">
+              <label className="text-sm font-medium text-ink-2">
                 Select Admin
               </label>
               <Select

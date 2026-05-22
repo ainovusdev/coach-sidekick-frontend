@@ -75,31 +75,31 @@ export function AdminSidebar() {
   return (
     <div
       className={cn(
-        'bg-gray-900 dark:bg-gray-950 text-white transition-all duration-300 ease-in-out flex flex-col',
+        'bg-ink text-ink-on-dark transition-all duration-300 ease-in-out flex flex-col',
         collapsed ? 'w-16' : 'w-64',
       )}
     >
       {/* Logo Section */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-800">
+      <div className="flex items-center justify-between p-4 border-b border-line">
         <div
           className={cn(
             'flex items-center gap-2',
             collapsed && 'justify-center',
           )}
         >
-          <div className="h-8 w-8 bg-white rounded-lg flex items-center justify-center">
-            <UserCheck className="h-5 w-5 text-gray-900" />
+          <div className="h-8 w-8 bg-surface-1 rounded-lg flex items-center justify-center">
+            <UserCheck className="h-5 w-5 text-ink" />
           </div>
           {!collapsed && (
             <div>
               <h2 className="text-lg font-semibold">Admin Panel</h2>
-              <p className="text-xs text-gray-400">Coach Sidekick</p>
+              <p className="text-xs text-ink-4">Coach Sidekick</p>
             </div>
           )}
         </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1 rounded hover:bg-gray-800 transition-colors"
+          className="p-1 rounded hover:bg-ink-2 transition-colors"
         >
           {collapsed ? (
             <ChevronRight className="h-4 w-4" />
@@ -122,8 +122,8 @@ export function AdminSidebar() {
                   href={item.href}
                   className={cn(
                     'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all',
-                    'hover:bg-gray-800',
-                    isActive && 'bg-gray-800 border-l-4 border-white',
+                    'hover:bg-ink-2',
+                    isActive && 'bg-ink-2 border-l-4 border-paper',
                     collapsed && 'justify-center',
                   )}
                   title={collapsed ? item.title : undefined}

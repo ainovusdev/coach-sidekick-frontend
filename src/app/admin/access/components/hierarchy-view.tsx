@@ -376,13 +376,13 @@ export default function HierarchyView({
   const getNodeColor = (type: string) => {
     switch (type) {
       case 'admin':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+        return 'bg-indigo-bg text-indigo '
       case 'coach':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+        return 'bg-ds-accent-bg text-ds-accent '
       case 'client':
-        return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+        return 'bg-forest-bg text-forest '
       default:
-        return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+        return 'bg-surface-3 text-ink-2 '
     }
   }
 
@@ -422,7 +422,7 @@ export default function HierarchyView({
         <div
           className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
             matchesSearch
-              ? 'bg-yellow-50 border-2 border-yellow-300 dark:bg-yellow-900/30 dark:border-yellow-700'
+              ? 'bg-amber-token-bg border-2 border-amber-token '
               : 'hover:bg-muted/50 border-2 border-transparent'
           }`}
         >

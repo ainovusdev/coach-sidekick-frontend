@@ -19,10 +19,10 @@ export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
 
   const bgColor =
     type === 'success'
-      ? 'bg-green-50 border-green-200'
-      : 'bg-red-50 border-red-200'
-  const textColor = type === 'success' ? 'text-green-800' : 'text-red-800'
-  const iconColor = type === 'success' ? 'text-green-600' : 'text-red-600'
+      ? 'bg-forest-bg border-forest/20'
+      : 'bg-vermillion-bg border-vermillion/20'
+  const textColor = type === 'success' ? 'text-forest' : 'text-vermillion'
+  const iconColor = type === 'success' ? 'text-forest' : 'text-vermillion'
   const Icon = type === 'success' ? CheckCircle2 : AlertCircle
 
   return (

@@ -24,17 +24,17 @@ export function DashboardTab({
     <div className="space-y-6">
       {/* Meta Performance Vision - Prominent Display */}
       {client.meta_performance_vision && (
-        <Card className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-sm">
+        <Card className="border-ds-accent  shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="p-3 bg-blue-100 rounded-full">
-                <Sparkles className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-ds-accent-bg rounded-full">
+                <Sparkles className="h-6 w-6 text-ds-accent" />
               </div>
               <div className="flex-1">
-                <h2 className="text-lg font-semibold text-gray-900 mb-2 flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-ink mb-2 flex items-center gap-2">
                   Meta Performance Vision
                 </h2>
-                <p className="text-gray-700 leading-relaxed">
+                <p className="text-ink-2 leading-relaxed">
                   {client.meta_performance_vision}
                 </p>
               </div>
@@ -61,13 +61,13 @@ export function DashboardTab({
 
       {/* Quick Actions or Additional Info */}
       {!client.meta_performance_vision && (
-        <Card className="border-gray-200 border-dashed bg-gray-50/50">
+        <Card className="border-line border-dashed bg-paper/50">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-3 text-sm text-gray-600">
-              <Target className="h-5 w-5 text-gray-400" />
+            <div className="flex items-center gap-3 text-sm text-ink-3">
+              <Target className="h-5 w-5 text-ink-4" />
               <p>
-                <span className="font-medium text-gray-900">Tip:</span> Add a
-                Meta Performance Vision to help guide coaching focus and track
+                <span className="font-medium text-ink">Tip:</span> Add a Meta
+                Performance Vision to help guide coaching focus and track
                 long-term outcomes.
               </p>
             </div>

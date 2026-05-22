@@ -40,14 +40,14 @@ export function ClientMeetingHeader({
   }
 
   return (
-    <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-700 shadow-lg">
+    <div className=" border-b border-line shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           {/* Left: Logo and Session Info */}
           <div className="flex items-center gap-6">
             {/* Brand Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-lg p-1.5">
+              <div className="w-10 h-10 bg-surface-1 rounded-xl flex items-center justify-center shadow-lg p-1.5">
                 <Image
                   src="/novus-global-logo.webp"
                   alt="Logo"
@@ -57,31 +57,31 @@ export function ClientMeetingHeader({
                 />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-white tracking-tight">
+                <h1 className="text-lg font-bold text-ink-on-dark tracking-tight">
                   Coach Sidekick
                 </h1>
-                <p className="text-xs text-gray-400 hidden sm:block">
+                <p className="text-xs text-ink-4 hidden sm:block">
                   Live Session
                 </p>
               </div>
             </div>
 
-            <div className="hidden md:block h-8 w-px bg-gray-700" />
+            <div className="hidden md:block h-8 w-px bg-ink-2" />
 
             {/* Session Info */}
             <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 text-white">
-                <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-gray-300" />
+              <div className="flex items-center gap-2 text-ink-on-dark">
+                <div className="w-8 h-8 bg-ink-2 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-ink-2" />
                 </div>
                 <div>
-                  <p className="font-medium text-white">
+                  <p className="font-medium text-ink-on-dark">
                     {coachName
                       ? `Session with ${coachName}`
                       : 'Coaching Session'}
                   </p>
                   {clientName && (
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-ink-4">
                       Welcome back, {clientName}
                     </p>
                   )}
@@ -93,9 +93,9 @@ export function ClientMeetingHeader({
           {/* Right: Timer and Status */}
           <div className="flex items-center gap-4">
             {/* Timer */}
-            <div className="flex items-center gap-2 bg-gray-800/50 rounded-lg px-4 py-2 border border-gray-700">
-              <Clock className="h-4 w-4 text-gray-400" />
-              <span className="font-mono text-xl font-semibold text-white tabular-nums">
+            <div className="flex items-center gap-2 bg-ink-2/50 rounded-lg px-4 py-2 border border-line">
+              <Clock className="h-4 w-4 text-ink-4" />
+              <span className="font-mono text-xl font-semibold text-ink-on-dark tabular-nums">
                 {formatDuration(durationSeconds)}
               </span>
             </div>
@@ -106,7 +106,7 @@ export function ClientMeetingHeader({
                 variant="ghost"
                 size="sm"
                 onClick={toggleTheme}
-                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                className="text-ink-4 hover:text-ink-on-dark hover:bg-ink-2"
                 title={
                   theme === 'dark'
                     ? 'Switch to light mode'
@@ -127,7 +127,7 @@ export function ClientMeetingHeader({
                 variant="ghost"
                 size="sm"
                 onClick={onRefresh}
-                className="text-gray-400 hover:text-white hover:bg-gray-700"
+                className="text-ink-4 hover:text-ink-on-dark hover:bg-ink-2"
                 title="Refresh data"
               >
                 <RefreshCw className="h-4 w-4" />
@@ -138,17 +138,17 @@ export function ClientMeetingHeader({
             {isEnded ? (
               <Badge
                 variant="secondary"
-                className="bg-gray-700 text-gray-300 flex items-center gap-1.5 px-3 py-1.5"
+                className="bg-ink-2 text-ink-2 flex items-center gap-1.5 px-3 py-1.5"
               >
-                <Circle className="h-2 w-2 fill-gray-500" />
+                <Circle className="h-2 w-2 fill-ink-3" />
                 Session Ended
               </Badge>
             ) : (
               <Badge
                 variant="secondary"
-                className="bg-white/20 text-white border border-white/30 flex items-center gap-1.5 px-3 py-1.5"
+                className="bg-surface-1/20 text-ink-on-dark border border-paper/30 flex items-center gap-1.5 px-3 py-1.5"
               >
-                <Circle className="h-2 w-2 fill-white animate-pulse" />
+                <Circle className="h-2 w-2 fill-paper animate-pulse" />
                 Live
               </Badge>
             )}

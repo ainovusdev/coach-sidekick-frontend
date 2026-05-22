@@ -56,7 +56,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <p className="text-gray-600">No trend data available</p>
+          <p className="text-ink-3">No trend data available</p>
         </CardContent>
       </Card>
     )
@@ -91,8 +91,8 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
       {/* Time Range Selector */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Trend Analysis</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-ink">Trend Analysis</h2>
+          <p className="text-ink-3 mt-1">
             Session frequency and completion patterns over time
           </p>
         </div>
@@ -117,7 +117,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center gap-2">
-            <Activity className="h-5 w-5 text-blue-600" />
+            <Activity className="h-5 w-5 text-ds-accent" />
             <CardTitle>Session Frequency</CardTitle>
           </div>
           <CardDescription>Number of sessions per week</CardDescription>
@@ -133,7 +133,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
               <Line
                 type="monotone"
                 dataKey="sessions"
-                stroke="#3B82F6"
+                stroke="var(--ds-accent)"
                 strokeWidth={2}
               />
             </LineChart>
@@ -147,7 +147,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <TrendingUp className="h-5 w-5 text-forest" />
               <CardTitle>Completion Rate</CardTitle>
             </div>
             <CardDescription>
@@ -165,7 +165,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
                 <Line
                   type="monotone"
                   dataKey="rate"
-                  stroke="#10B981"
+                  stroke="var(--forest)"
                   strokeWidth={2}
                   name="Completion %"
                 />
@@ -178,7 +178,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-purple-600" />
+              <Calendar className="h-5 w-5 text-indigo" />
               <CardTitle>Sessions by Weekday</CardTitle>
             </div>
             <CardDescription>Which days have the most activity</CardDescription>
@@ -191,7 +191,7 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
                 <YAxis />
                 <Tooltip />
                 <Legend />
-                <Bar dataKey="sessions" fill="#8B5CF6" name="Sessions" />
+                <Bar dataKey="sessions" fill="var(--indigo)" name="Sessions" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -209,9 +209,9 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {Object.entries(trends.monthly_summary).map(([month, count]) => (
                 <div key={month} className="p-4 border rounded-lg">
-                  <p className="text-sm text-gray-600">{month}</p>
-                  <p className="text-2xl font-bold text-gray-900">{count}</p>
-                  <p className="text-xs text-gray-500">sessions</p>
+                  <p className="text-sm text-ink-3">{month}</p>
+                  <p className="text-2xl font-bold text-ink">{count}</p>
+                  <p className="text-xs text-ink-3">sessions</p>
                 </div>
               ))}
             </div>

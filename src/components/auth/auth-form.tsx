@@ -150,7 +150,7 @@ export function AuthForm() {
           <div className="inline-flex items-center justify-center gap-3.5 mb-3">
             <div className="relative">
               <div className="absolute -inset-1.5 bg-app-accent/20 rounded-2xl blur-lg" />
-              <div className="relative w-14 h-14 bg-app-primary rounded-2xl p-2 flex items-center justify-center shadow-lg ring-1 ring-white/10">
+              <div className="relative w-14 h-14 bg-app-primary rounded-2xl p-2 flex items-center justify-center shadow-lg ring-1 ring-paper/10">
                 <Image
                   src="/novus-global-logo.webp"
                   alt="Novus Global Logo"
@@ -280,14 +280,14 @@ export function AuthForm() {
                     </div>
 
                     {error && (
-                      <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+                      <div className="flex items-start gap-2 text-vermillion text-sm bg-vermillion-bg p-3 rounded-lg border border-vermillion ">
                         <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{error}</span>
                       </div>
                     )}
 
                     {success && (
-                      <div className="flex items-start gap-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-900/50">
+                      <div className="flex items-start gap-2 text-forest text-sm bg-forest-bg p-3 rounded-lg border border-forest ">
                         <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{success}</span>
                       </div>
@@ -295,12 +295,12 @@ export function AuthForm() {
 
                     <Button
                       type="submit"
-                      className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
+                      className="w-full bg-app-accent hover:bg-app-accent/90 text-ink-on-dark font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
                       disabled={loading}
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-paper border-t-transparent" />
                           Signing in...
                         </div>
                       ) : (
@@ -398,14 +398,14 @@ export function AuthForm() {
                     </div>
 
                     {error && (
-                      <div className="flex items-start gap-2 text-red-600 dark:text-red-400 text-sm bg-red-50 dark:bg-red-950/30 p-3 rounded-lg border border-red-200 dark:border-red-900/50">
+                      <div className="flex items-start gap-2 text-vermillion text-sm bg-vermillion-bg p-3 rounded-lg border border-vermillion ">
                         <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{error}</span>
                       </div>
                     )}
 
                     {success && (
-                      <div className="flex items-start gap-2 text-green-600 dark:text-green-400 text-sm bg-green-50 dark:bg-green-950/30 p-3 rounded-lg border border-green-200 dark:border-green-900/50">
+                      <div className="flex items-start gap-2 text-forest text-sm bg-forest-bg p-3 rounded-lg border border-forest ">
                         <CheckCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
                         <span>{success}</span>
                       </div>
@@ -413,12 +413,12 @@ export function AuthForm() {
 
                     <Button
                       type="submit"
-                      className="w-full bg-app-accent hover:bg-app-accent/90 text-white font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
+                      className="w-full bg-app-accent hover:bg-app-accent/90 text-ink-on-dark font-medium py-2.5 shadow-md shadow-app-accent/20 transition-all duration-200 hover:shadow-lg hover:shadow-app-accent/25"
                       disabled={loading}
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
-                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-paper border-t-transparent" />
                           Creating account...
                         </div>
                       ) : (

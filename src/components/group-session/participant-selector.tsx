@@ -35,16 +35,16 @@ export function ParticipantSelector({
             className={cn(
               'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
               isSelected
-                ? 'bg-gray-900 text-white border-gray-900 dark:bg-white dark:text-gray-900 dark:border-white shadow-sm'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-700',
+                ? 'bg-ink text-ink-on-dark border-line shadow-sm'
+                : 'bg-surface-1 text-ink-3 border-line hover:border-line-strong hover:bg-paper ',
             )}
           >
             <span
               className={cn(
                 'w-4.5 h-4.5 rounded-full flex items-center justify-center text-[9px] font-semibold leading-none',
                 isSelected
-                  ? 'bg-white/20 text-white dark:bg-gray-900/20 dark:text-gray-900'
-                  : 'bg-gray-100 text-gray-500 dark:bg-gray-700 dark:text-gray-400',
+                  ? 'bg-surface-1/20 text-ink-on-dark '
+                  : 'bg-surface-3 text-ink-3 ',
               )}
             >
               {getInitials(p.client_name)}

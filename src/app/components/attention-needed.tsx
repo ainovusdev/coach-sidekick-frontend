@@ -60,8 +60,8 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
           icon: Clock,
           href: '/commitments',
           color:
-            'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800 hover:bg-red-100 dark:hover:bg-red-900/30',
-          iconColor: 'text-red-500',
+            'bg-vermillion-bg text-vermillion border-vermillion hover:bg-vermillion-bg ',
+          iconColor: 'text-vermillion',
         }
       : null,
     staleClientCount > 0
@@ -70,8 +70,8 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
           icon: UserX,
           href: '/clients',
           color:
-            'bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800 hover:bg-amber-100 dark:hover:bg-amber-900/30',
-          iconColor: 'text-amber-500',
+            'bg-amber-token-bg text-amber-token border-amber-token hover:bg-amber-token-bg ',
+          iconColor: 'text-amber-token',
         }
       : null,
     draftCount > 0
@@ -80,8 +80,8 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
           icon: FileEdit,
           href: '/commitments?tab=drafts',
           color:
-            'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30',
-          iconColor: 'text-blue-500',
+            'bg-ds-accent-bg text-ds-accent border-ds-accent hover:bg-ds-accent-bg ',
+          iconColor: 'text-ds-accent',
         }
       : null,
   ].filter((item): item is AttentionItem => item !== null)

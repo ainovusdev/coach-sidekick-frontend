@@ -286,28 +286,25 @@ export default function CoachResourcesPage() {
       label: 'Total Resources',
       value: totalResources,
       icon: FolderOpen,
-      color: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400',
+      color: 'bg-ds-accent-bg text-ds-accent ',
     },
     {
       label: 'Personal',
       value: personalCount,
       icon: User,
-      color:
-        'bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400',
+      color: 'bg-forest-bg text-forest ',
     },
     {
       label: 'Shared',
       value: sharedCount,
       icon: Share2,
-      color:
-        'bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400',
+      color: 'bg-indigo-bg text-indigo ',
     },
     {
       label: 'Total Downloads',
       value: totalDownloads,
       icon: Download,
-      color:
-        'bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+      color: 'bg-amber-token-bg text-amber-token ',
     },
   ]
 
@@ -328,10 +325,8 @@ export default function CoachResourcesPage() {
       <PageLayout>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center py-12">
-            <AlertCircle className="size-12 mx-auto mb-4 text-red-600" />
-            <p className="text-gray-600 dark:text-gray-400 mb-4">
-              Failed to load resources
-            </p>
+            <AlertCircle className="size-12 mx-auto mb-4 text-vermillion" />
+            <p className="text-ink-3 mb-4">Failed to load resources</p>
             <Button onClick={() => refetch()} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
               Retry
@@ -348,10 +343,8 @@ export default function CoachResourcesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Resources
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-2">
+            <h1 className="text-3xl font-bold text-ink ">Resources</h1>
+            <p className="text-ink-3 mt-2">
               Manage and share resources with your clients
             </p>
           </div>
@@ -360,7 +353,7 @@ export default function CoachResourcesPage() {
               variant="outline"
               size="sm"
               onClick={() => refetch()}
-              className="border-gray-300 dark:border-gray-600"
+              className="border-line-strong "
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -381,22 +374,17 @@ export default function CoachResourcesPage() {
           {statCards.map(stat => {
             const StatIcon = stat.icon
             return (
-              <Card
-                key={stat.label}
-                className="border-gray-200 dark:border-gray-700"
-              >
+              <Card key={stat.label} className="border-line ">
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-lg ${stat.color}`}>
                       <StatIcon className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      <p className="text-2xl font-bold text-ink ">
                         {stat.value}
                       </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {stat.label}
-                      </p>
+                      <p className="text-xs text-ink-3 ">{stat.label}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -407,7 +395,7 @@ export default function CoachResourcesPage() {
 
         {/* Search Bar */}
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-4" />
           <Input
             placeholder="Search resources..."
             value={searchQuery}
@@ -426,8 +414,8 @@ export default function CoachResourcesPage() {
                 onClick={() => setScopeFilter(filter.value)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
                   scopeFilter === filter.value
-                    ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-ink text-ink-on-dark '
+                    : 'bg-surface-3 text-ink-3 hover:bg-surface-3 '
                 }`}
               >
                 <FilterIcon className="h-3.5 w-3.5" />
@@ -439,20 +427,20 @@ export default function CoachResourcesPage() {
 
         {/* Resource count */}
         {total > 0 && (
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          <p className="text-sm text-ink-3 mb-4">
             {total} resource{total !== 1 ? 's' : ''}
           </p>
         )}
 
         {/* Resources List */}
         {resources.length === 0 ? (
-          <Card className="border-2 border-dashed border-gray-300 dark:border-gray-600">
+          <Card className="border-2 border-dashed border-line-strong ">
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <BookOpen className="h-16 w-16 text-gray-400 mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <BookOpen className="h-16 w-16 text-ink-4 mb-4" />
+              <h3 className="text-lg font-semibold text-ink mb-2">
                 No Resources Yet
               </h3>
-              <p className="text-gray-600 dark:text-gray-400 text-center max-w-md mb-6">
+              <p className="text-ink-3 text-center max-w-md mb-6">
                 Start sharing resources with your clients. Upload documents,
                 share links, or write articles.
               </p>
@@ -468,7 +456,7 @@ export default function CoachResourcesPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden bg-white dark:bg-gray-800">
+          <div className="border border-line rounded-lg overflow-hidden bg-surface-1 ">
             {resources.map(resource => (
               <ResourceCard
                 key={resource.id}
@@ -560,13 +548,13 @@ export default function CoachResourcesPage() {
                   {selectedClients.map((client: any) => (
                     <span
                       key={client.id}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink text-ink-on-dark "
                     >
                       {client.name}
                       <button
                         type="button"
                         onClick={() => toggleClient(client.id)}
-                        className="hover:bg-white/20 dark:hover:bg-black/20 rounded-full p-0.5"
+                        className="hover:bg-surface-1/20 rounded-full p-0.5"
                       >
                         <X className="h-3 w-3" />
                       </button>
@@ -578,7 +566,7 @@ export default function CoachResourcesPage() {
               {/* Search + Select All */}
               <div className="flex items-center gap-2">
                 <div className="relative flex-1">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
                   <Input
                     value={clientSearch}
                     onChange={e => setClientSearch(e.target.value)}
@@ -610,22 +598,20 @@ export default function CoachResourcesPage() {
                       onClick={() => toggleClient(client.id)}
                       className={cn(
                         'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-colors',
-                        isSelected
-                          ? 'bg-gray-100 dark:bg-gray-800'
-                          : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                        isSelected ? 'bg-surface-3 ' : 'hover:bg-paper ',
                       )}
                     >
                       <div
                         className={cn(
                           'w-4 h-4 rounded border-2 flex items-center justify-center shrink-0',
                           isSelected
-                            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white'
-                            : 'border-gray-300 dark:border-gray-500',
+                            ? 'border-line bg-ink '
+                            : 'border-line-strong ',
                         )}
                       >
                         {isSelected && (
                           <svg
-                            className="h-2.5 w-2.5 text-white dark:text-gray-900"
+                            className="h-2.5 w-2.5 text-ink-on-dark "
                             fill="none"
                             viewBox="0 0 24 24"
                             stroke="currentColor"
@@ -640,11 +626,11 @@ export default function CoachResourcesPage() {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        <p className="text-sm font-medium text-ink truncate">
                           {client.name}
                         </p>
                         {client.email && (
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          <p className="text-xs text-ink-3 truncate">
                             {client.email}
                           </p>
                         )}
@@ -653,7 +639,7 @@ export default function CoachResourcesPage() {
                   )
                 })}
                 {filteredShareClients.length === 0 && clientSearch.trim() && (
-                  <p className="text-sm text-gray-400 text-center py-4">
+                  <p className="text-sm text-ink-4 text-center py-4">
                     No clients found
                   </p>
                 )}
@@ -661,7 +647,7 @@ export default function CoachResourcesPage() {
             </div>
 
             {selectedClientIds.size > 0 && (
-              <DialogFooter className="pt-3 border-t border-gray-100 dark:border-gray-800">
+              <DialogFooter className="pt-3 border-t border-line ">
                 <Button
                   variant="outline"
                   onClick={() => setSelectedClientIds(new Set())}
@@ -699,8 +685,8 @@ export default function CoachResourcesPage() {
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Delete Resource</AlertDialogTitle>
               </div>
@@ -720,7 +706,7 @@ export default function CoachResourcesPage() {
                   handleDeleteConfirm()
                 }}
                 disabled={deleteResourceMutation.isPending}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 {deleteResourceMutation.isPending ? (
                   <>

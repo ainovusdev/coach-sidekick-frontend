@@ -44,7 +44,7 @@ export default function MeetingHeader({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm">
+    <div className="bg-surface-1 border-b border-line shadow-sm">
       <div className="w-full px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -52,7 +52,7 @@ export default function MeetingHeader({
               variant="ghost"
               size="sm"
               onClick={onNavigateBack}
-              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+              className="text-ink-3 hover:text-ink "
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Dashboard
@@ -60,19 +60,16 @@ export default function MeetingHeader({
 
             {bot && (
               <div className="flex items-center gap-3">
-                <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
-                <Badge
-                  variant="outline"
-                  className="font-mono text-xs dark:border-gray-600 dark:text-gray-300"
-                >
+                <div className="h-8 w-px bg-line " />
+                <Badge variant="outline" className="font-mono text-xs ">
                   {bot.id}
                 </Badge>
                 <BotStatus bot={bot} onStop={onStopBot} compact />
-                <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
+                <div className="h-8 w-px bg-line " />
                 <WebSocketStatus />
                 {isGroupSession && (
                   <>
-                    <div className="h-8 w-px bg-gray-300 dark:bg-gray-600" />
+                    <div className="h-8 w-px bg-line " />
                     <GroupSessionBadge />
                   </>
                 )}
@@ -85,7 +82,7 @@ export default function MeetingHeader({
               {/* Client Meeting Link - inline with actions */}
               {sessionId && (
                 <>
-                  <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+                  <div className="h-6 w-px bg-line " />
                   <ClientMeetingLink
                     sessionId={sessionId}
                     clientId={clientId ?? null}
@@ -94,7 +91,7 @@ export default function MeetingHeader({
                 </>
               )}
 
-              <div className="h-6 w-px bg-gray-300 dark:bg-gray-600" />
+              <div className="h-6 w-px bg-line " />
 
               {/* Theme Toggle */}
               {mounted && (
@@ -102,7 +99,7 @@ export default function MeetingHeader({
                   variant="ghost"
                   size="sm"
                   onClick={toggleTheme}
-                  className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  className="text-ink-3 hover:text-ink "
                   title={
                     theme === 'dark'
                       ? 'Switch to light mode'

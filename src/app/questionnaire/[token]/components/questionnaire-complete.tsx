@@ -37,7 +37,7 @@ export function QuestionnaireComplete({
   const isThrillForm = kind === 'post_session'
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen flex flex-col  ">
       {/* Logo */}
       <div className="pt-8 px-6 flex justify-center">
         <Image
@@ -59,8 +59,8 @@ export function QuestionnaireComplete({
               showCheck ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
             }`}
           >
-            <div className="w-20 h-20 bg-gray-900 rounded-full flex items-center justify-center mx-auto mb-8">
-              <CheckCircle2 className="h-10 w-10 text-white" />
+            <div className="w-20 h-20 bg-ink rounded-full flex items-center justify-center mx-auto mb-8">
+              <CheckCircle2 className="h-10 w-10 text-ink-on-dark" />
             </div>
           </div>
 
@@ -70,28 +70,28 @@ export function QuestionnaireComplete({
               showText ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             }`}
           >
-            <h1 className="text-3xl font-light text-gray-900 mb-4">
+            <h1 className="text-3xl font-light text-ink mb-4">
               Thank you, {clientName}!
             </h1>
-            <p className="text-gray-500 text-lg leading-relaxed mb-6">
+            <p className="text-ink-3 text-lg leading-relaxed mb-6">
               {isThrillForm
                 ? `Your Thrill Form has been shared with ${coachName}.`
                 : `Your responses have been shared with ${coachName}.`}
               {dateInfo && (
                 <>
                   <br />
-                  <span className="text-gray-400">See you on {dateInfo}.</span>
+                  <span className="text-ink-4">See you on {dateInfo}.</span>
                 </>
               )}
             </p>
-            <p className="text-sm text-gray-300">You can close this tab now.</p>
+            <p className="text-sm text-ink-2">You can close this tab now.</p>
           </div>
         </div>
       </div>
 
       {/* Footer */}
       <div className="pb-6 text-center">
-        <p className="text-xs text-gray-300">Powered by Novus Global</p>
+        <p className="text-xs text-ink-2">Powered by Novus Global</p>
       </div>
     </div>
   )

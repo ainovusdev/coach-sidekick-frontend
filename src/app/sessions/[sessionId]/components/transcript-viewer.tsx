@@ -27,37 +27,37 @@ export default function TranscriptViewer({
   // Viewers cannot see transcript content
   if (isViewer) {
     return (
-      <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200 dark:border-gray-700">
-        <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <Card className="hover:shadow-md transition-shadow duration-200 border-line ">
+        <CardHeader className="bg-paper border-b border-line ">
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <div className="p-2 bg-gray-400 rounded-lg text-white">
+              <div className="p-2 bg-line rounded-lg text-ink-on-dark">
                 <Lock className="h-5 w-5" />
               </div>
-              <span className="text-lg font-bold text-gray-700 dark:text-gray-300">
+              <span className="text-lg font-bold text-ink-2 ">
                 Meeting Transcript
               </span>
             </div>
             <Badge
               variant="secondary"
-              className="bg-gray-200 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-300 dark:border-gray-600"
+              className="bg-surface-3 text-ink-3 border-line-strong "
             >
               Restricted
             </Badge>
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-              <Lock className="h-10 w-10 text-gray-400" />
+          <div className="text-center py-16 text-ink-3 ">
+            <div className="w-20 h-20 mx-auto mb-4 bg-surface-3 rounded-full flex items-center justify-center">
+              <Lock className="h-10 w-10 text-ink-4" />
             </div>
-            <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
+            <p className="text-lg font-medium text-ink-3 ">
               Transcript Access Restricted
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-sm text-ink-3 mt-2">
               You do not have permission to view session transcripts.
             </p>
-            <p className="text-xs text-gray-400 mt-4">
+            <p className="text-xs text-ink-4 mt-4">
               Contact your administrator for access.
             </p>
           </div>
@@ -67,20 +67,20 @@ export default function TranscriptViewer({
   }
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200 border-gray-200 dark:border-gray-700">
-      <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <Card className="hover:shadow-md transition-shadow duration-200 border-line ">
+      <CardHeader className="bg-paper border-b border-line ">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="p-2 bg-gray-900 dark:bg-gray-100 rounded-lg text-white dark:text-gray-900">
+            <div className="p-2 bg-ink rounded-lg text-ink-on-dark ">
               <MessageSquare className="h-5 w-5" />
             </div>
-            <span className="text-lg font-bold text-gray-900 dark:text-white">
+            <span className="text-lg font-bold text-ink ">
               Meeting Transcript
             </span>
           </div>
           <Badge
             variant="secondary"
-            className="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600"
+            className="bg-surface-3 text-ink-2 border-line-strong "
           >
             {transcript.length} messages
           </Badge>
@@ -88,14 +88,14 @@ export default function TranscriptViewer({
       </CardHeader>
       <CardContent className="p-0">
         {transcript.length === 0 ? (
-          <div className="text-center py-16 text-gray-500 dark:text-gray-400">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
-              <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-400" />
+          <div className="text-center py-16 text-ink-3 ">
+            <div className="w-20 h-20 mx-auto mb-4 bg-surface-3 rounded-full flex items-center justify-center">
+              <MessageSquare className="h-10 w-10 text-ink-2 " />
             </div>
-            <p className="text-lg font-medium text-gray-400">
+            <p className="text-lg font-medium text-ink-4">
               No transcript available
             </p>
-            <p className="text-sm text-gray-400 mt-1">
+            <p className="text-sm text-ink-4 mt-1">
               Messages will appear here once the meeting starts
             </p>
           </div>
@@ -111,16 +111,16 @@ export default function TranscriptViewer({
                     key={entry.id}
                     className={`flex gap-3 p-4 rounded-lg transition-colors ${
                       isBot
-                        ? 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
-                        : 'bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 border border-gray-200 dark:border-gray-700'
+                        ? 'bg-paper hover:bg-surface-3 border border-line '
+                        : 'bg-surface-1 hover:bg-paper border border-line '
                     }`}
                   >
                     <div className="flex-shrink-0">
                       <div
                         className={`w-10 h-10 rounded-full flex items-center justify-center ${
                           isBot
-                            ? 'bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-                            : 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900'
+                            ? 'bg-surface-3 text-ink-2 '
+                            : 'bg-ink text-ink-on-dark '
                         }`}
                       >
                         {isBot ? (
@@ -132,19 +132,19 @@ export default function TranscriptViewer({
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-3 mb-2 flex-wrap">
-                        <span className="font-semibold text-sm text-gray-900 dark:text-white">
+                        <span className="font-semibold text-sm text-ink ">
                           {entry.speaker}
                         </span>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-full">
+                        <span className="text-xs text-ink-3 bg-surface-3 px-2 py-1 rounded-full">
                           {formatDate(entry.timestamp, 'HH:mm:ss')}
                         </span>
                         {entry.confidence && (
-                          <span className="text-xs text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-full">
+                          <span className="text-xs text-ink-4 bg-paper px-2 py-1 rounded-full">
                             {Math.round(entry.confidence * 100)}% confidence
                           </span>
                         )}
                       </div>
-                      <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                      <p className="text-sm text-ink-2 leading-relaxed">
                         {entry.text}
                       </p>
                     </div>

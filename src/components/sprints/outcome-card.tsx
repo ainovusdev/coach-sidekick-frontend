@@ -54,9 +54,9 @@ export function OutcomeCard({
     <Card
       className={cn(
         'border-2 transition-all cursor-pointer',
-        isCompleted && 'border-green-200 bg-green-50/50',
+        isCompleted && 'border-forest bg-forest-bg/50',
         isSelected && !isCompleted && 'border-primary bg-primary/5',
-        !isCompleted && !isSelected && 'hover:border-gray-300',
+        !isCompleted && !isSelected && 'hover:border-line-strong',
       )}
       onClick={onClick}
     >
@@ -65,9 +65,9 @@ export function OutcomeCard({
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {isCompleted ? (
-              <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0" />
+              <CheckCircle className="h-5 w-5 text-forest flex-shrink-0" />
             ) : (
-              <Circle className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <Circle className="h-5 w-5 text-ink-4 flex-shrink-0" />
             )}
             <h4 className="font-semibold text-sm truncate">{outcome.title}</h4>
           </div>
@@ -76,7 +76,7 @@ export function OutcomeCard({
               variant={isCompleted ? 'default' : 'secondary'}
               className={cn(
                 'text-xs',
-                isCompleted && 'bg-green-100 text-green-800',
+                isCompleted && 'bg-forest-bg text-forest',
               )}
             >
               {outcome.status}
@@ -116,7 +116,7 @@ export function OutcomeCard({
                       e.stopPropagation()
                       onDelete()
                     }}
-                    className="text-red-600"
+                    className="text-vermillion"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
@@ -130,7 +130,7 @@ export function OutcomeCard({
         {/* Progress */}
         <div className="mt-3 flex items-center gap-3">
           <Progress value={outcome.progress_percentage} className="flex-1" />
-          <span className="text-xs font-medium text-gray-600 w-10 text-right">
+          <span className="text-xs font-medium text-ink-3 w-10 text-right">
             {outcome.progress_percentage}%
           </span>
         </div>
@@ -143,7 +143,7 @@ export function OutcomeCard({
               variant={sprint.status === 'active' ? 'default' : 'secondary'}
               className={cn(
                 'cursor-pointer hover:opacity-80 text-xs',
-                sprint.status === 'active' && 'bg-blue-100 text-blue-800',
+                sprint.status === 'active' && 'bg-ds-accent-bg text-ds-accent',
               )}
               onClick={e => {
                 e.stopPropagation()
@@ -153,19 +153,19 @@ export function OutcomeCard({
               <Calendar className="h-3 w-3 mr-1" />
               {sprint.title}
               {sprint.status === 'active' && (
-                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-green-500" />
+                <span className="ml-1 w-1.5 h-1.5 rounded-full bg-forest" />
               )}
             </Badge>
           ))}
           {linkedSprints.length === 0 && (
-            <span className="text-xs text-gray-500 italic">
+            <span className="text-xs text-ink-3 italic">
               No sprint assigned
             </span>
           )}
         </div>
 
         {/* Commitment count */}
-        <div className="mt-2 flex items-center gap-4 text-xs text-gray-600">
+        <div className="mt-2 flex items-center gap-4 text-xs text-ink-3">
           <div className="flex items-center gap-1">
             <Link2 className="h-3.5 w-3.5" />
             <span>
@@ -174,7 +174,7 @@ export function OutcomeCard({
             </span>
           </div>
           {activeSprints.length > 0 && (
-            <div className="flex items-center gap-1 text-blue-600">
+            <div className="flex items-center gap-1 text-ds-accent">
               <Calendar className="h-3.5 w-3.5" />
               <span>{activeSprints.length} active sprint(s)</span>
             </div>

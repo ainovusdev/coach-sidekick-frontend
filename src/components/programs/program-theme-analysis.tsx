@@ -54,7 +54,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <p className="text-gray-600">No theme data available</p>
+          <p className="text-ink-3">No theme data available</p>
         </CardContent>
       </Card>
     )
@@ -65,8 +65,8 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Theme Analysis</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-ink">Theme Analysis</h2>
+          <p className="text-ink-3 mt-1">
             Track conversation topics and patterns over time
           </p>
         </div>
@@ -92,7 +92,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-yellow-600" />
+              <Sparkles className="h-5 w-5 text-amber-token" />
               <CardTitle>Emerging Themes</CardTitle>
             </div>
             <CardDescription>
@@ -105,7 +105,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                 <Badge
                   key={theme}
                   variant="secondary"
-                  className="bg-yellow-50 text-yellow-700 border-yellow-200"
+                  className="bg-amber-token-bg text-amber-token border-amber-token"
                 >
                   <Sparkles className="h-3 w-3 mr-1" />
                   {theme}
@@ -122,14 +122,14 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
+              <TrendingUp className="h-5 w-5 text-forest" />
               <CardTitle>Trending Topics</CardTitle>
             </div>
             <CardDescription>Themes becoming more frequent</CardDescription>
           </CardHeader>
           <CardContent>
             {themes.trending_themes.length === 0 ? (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-ink-3">
                 No trending themes identified
               </p>
             ) : (
@@ -137,17 +137,17 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                 {themes.trending_themes.map(theme => (
                   <div key={theme.theme} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-ink">
                         {theme.theme}
                       </span>
                       <Badge
                         variant="outline"
-                        className="bg-green-50 text-green-700 border-green-200"
+                        className="bg-forest-bg text-forest border-forest"
                       >
                         {theme.total_count} mentions
                       </Badge>
                     </div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-ink-3">
                       <span>
                         First seen {formatRelativeTime(theme.first_seen)}
                       </span>
@@ -167,14 +167,14 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <TrendingDown className="h-5 w-5 text-orange-600" />
+              <TrendingDown className="h-5 w-5 text-amber-token" />
               <CardTitle>Declining Topics</CardTitle>
             </div>
             <CardDescription>Themes becoming less frequent</CardDescription>
           </CardHeader>
           <CardContent>
             {themes.declining_themes.length === 0 ? (
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-ink-3">
                 No declining themes identified
               </p>
             ) : (
@@ -182,17 +182,17 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                 {themes.declining_themes.map(theme => (
                   <div key={theme.theme} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-ink">
                         {theme.theme}
                       </span>
                       <Badge
                         variant="outline"
-                        className="bg-orange-50 text-orange-700 border-orange-200"
+                        className="bg-amber-token-bg text-amber-token border-amber-token"
                       >
                         {theme.total_count} mentions
                       </Badge>
                     </div>
-                    <div className="text-xs text-gray-600">
+                    <div className="text-xs text-ink-3">
                       <span>
                         First seen {formatRelativeTime(theme.first_seen)}
                       </span>
@@ -228,7 +228,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
 
                 return (
                   <div key={theme.theme}>
-                    <h4 className="text-sm font-medium text-gray-900 mb-3">
+                    <h4 className="text-sm font-medium text-ink mb-3">
                       {theme.theme}
                     </h4>
                     <ResponsiveContainer width="100%" height={150}>
@@ -240,7 +240,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
                         <Line
                           type="monotone"
                           dataKey="count"
-                          stroke="#10B981"
+                          stroke="var(--forest)"
                           strokeWidth={2}
                         />
                       </LineChart>
@@ -258,7 +258,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Network className="h-5 w-5 text-purple-600" />
+              <Network className="h-5 w-5 text-indigo" />
               <CardTitle>Related Themes</CardTitle>
             </div>
             <CardDescription>
@@ -270,13 +270,13 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
               {Object.entries(themes.theme_correlations).map(
                 ([theme, related]) => (
                   <div key={theme} className="p-4 border rounded-lg">
-                    <h4 className="font-medium text-gray-900 mb-3">{theme}</h4>
+                    <h4 className="font-medium text-ink mb-3">{theme}</h4>
                     <div className="flex flex-wrap gap-2">
                       {related.map(relatedTheme => (
                         <Badge
                           key={relatedTheme}
                           variant="secondary"
-                          className="bg-purple-50 text-purple-700 border-purple-200"
+                          className="bg-indigo-bg text-indigo border-indigo"
                         >
                           {relatedTheme}
                         </Badge>

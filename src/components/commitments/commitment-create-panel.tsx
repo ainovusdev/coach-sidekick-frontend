@@ -125,7 +125,7 @@ export function CommitmentCreatePanel({
       {/* Backdrop overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-[60] bg-black/50 animate-in fade-in duration-200"
+          className="fixed inset-0 z-[60] bg-overlay animate-in fade-in duration-200"
           onClick={onClose}
         />
       )}
@@ -134,7 +134,7 @@ export function CommitmentCreatePanel({
       <div
         ref={panelRef}
         className={cn(
-          'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-2xl',
+          'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-surface-1 border-l border-line shadow-2xl',
           'transition-transform duration-300 ease-in-out',
           isOpen ? 'translate-x-0' : 'translate-x-full',
         )}
@@ -150,7 +150,7 @@ export function CommitmentCreatePanel({
                     value={title}
                     onChange={e => setTitle(e.target.value)}
                     placeholder="Commitment title..."
-                    className="text-xl font-bold border-none shadow-none focus-visible:ring-0 px-2 py-1 -mx-2 h-auto placeholder:text-gray-400 placeholder:font-bold"
+                    className="text-xl font-bold border-none shadow-none focus-visible:ring-0 px-2 py-1 -mx-2 h-auto placeholder:text-ink-4 placeholder:font-bold"
                     maxLength={200}
                   />
                 </div>
@@ -199,10 +199,10 @@ export function CommitmentCreatePanel({
               )}
 
               {/* Fields Grid — mirrors FieldsGrid from detail panel */}
-              <div className="grid grid-cols-2 gap-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-4 bg-paper rounded-lg">
                 {/* Priority */}
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <label className="text-xs font-medium text-ink-3 ">
                     Priority
                   </label>
                   <Select
@@ -218,10 +218,7 @@ export function CommitmentCreatePanel({
                       <SelectItem value="low">
                         <div className="flex items-center gap-2">
                           <div
-                            className={cn(
-                              'w-2 h-2 rounded-full',
-                              'bg-gray-400',
-                            )}
+                            className={cn('w-2 h-2 rounded-full', 'bg-line')}
                           />
                           Low
                         </div>
@@ -231,7 +228,7 @@ export function CommitmentCreatePanel({
                           <div
                             className={cn(
                               'w-2 h-2 rounded-full',
-                              'bg-yellow-400',
+                              'bg-amber-token',
                             )}
                           />
                           Medium
@@ -242,7 +239,7 @@ export function CommitmentCreatePanel({
                           <div
                             className={cn(
                               'w-2 h-2 rounded-full',
-                              'bg-orange-400',
+                              'bg-amber-token',
                             )}
                           />
                           High
@@ -251,7 +248,10 @@ export function CommitmentCreatePanel({
                       <SelectItem value="urgent">
                         <div className="flex items-center gap-2">
                           <div
-                            className={cn('w-2 h-2 rounded-full', 'bg-red-500')}
+                            className={cn(
+                              'w-2 h-2 rounded-full',
+                              'bg-vermillion',
+                            )}
                           />
                           Urgent
                         </div>
@@ -262,7 +262,7 @@ export function CommitmentCreatePanel({
 
                 {/* Due Date */}
                 <div className="space-y-1">
-                  <label className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                  <label className="text-xs font-medium text-ink-3 ">
                     Due Date
                   </label>
                   <Popover open={dueDateOpen} onOpenChange={setDueDateOpen}>
@@ -271,7 +271,7 @@ export function CommitmentCreatePanel({
                         variant="outline"
                         className={cn(
                           'h-9 w-full justify-start text-left text-sm font-normal',
-                          !targetDate && 'text-gray-500',
+                          !targetDate && 'text-ink-3',
                         )}
                       >
                         <CalendarIcon className="h-3.5 w-3.5 mr-2" />
@@ -299,8 +299,8 @@ export function CommitmentCreatePanel({
               {/* Outcomes — tag UI matching LinkedOutcomesSection */}
               {clientTargets.length > 0 && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                    <Zap className="h-3.5 w-3.5 text-blue-500" />
+                  <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
+                    <Zap className="h-3.5 w-3.5 text-ds-accent" />
                     Meta Performance Outcomes
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -322,8 +322,8 @@ export function CommitmentCreatePanel({
                           className={cn(
                             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
                             isSelected
-                              ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-800 dark:text-blue-200 border-blue-300 dark:border-blue-700'
-                              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-700 hover:text-blue-600 dark:hover:text-blue-400',
+                              ? 'bg-ds-accent-bg text-ds-accent border-ds-accent '
+                              : 'bg-surface-1 text-ink-3 border-line hover:border-ds-accent hover:text-ds-accent ',
                           )}
                         >
                           {isSelected && (
@@ -352,8 +352,8 @@ export function CommitmentCreatePanel({
               {/* Sprints — tag UI matching LinkedOutcomesSection */}
               {allSprints.length > 0 && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-                    <CalendarIcon className="h-3.5 w-3.5 text-green-500" />
+                  <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
+                    <CalendarIcon className="h-3.5 w-3.5 text-forest" />
                     Sprints
                   </label>
                   <div className="flex flex-wrap gap-1.5">
@@ -375,8 +375,8 @@ export function CommitmentCreatePanel({
                           className={cn(
                             'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
                             isLinked
-                              ? 'bg-green-100 dark:bg-green-900/40 text-green-800 dark:text-green-200 border-green-300 dark:border-green-700'
-                              : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-green-300 dark:hover:border-green-700 hover:text-green-600 dark:hover:text-green-400',
+                              ? 'bg-forest-bg text-forest border-forest '
+                              : 'bg-surface-1 text-ink-3 border-line hover:border-forest hover:text-forest ',
                           )}
                         >
                           {isLinked && (
@@ -395,7 +395,7 @@ export function CommitmentCreatePanel({
                             </svg>
                           )}
                           {sprint.status === 'active' && (
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-forest" />
                           )}
                           {sprint.title}
                         </button>
@@ -407,7 +407,7 @@ export function CommitmentCreatePanel({
 
               {/* Description — mirrors DescriptionSection with RichTextEditor */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <label className="text-sm font-medium text-ink-2 ">
                   Description
                 </label>
                 <RichTextEditor
@@ -421,7 +421,7 @@ export function CommitmentCreatePanel({
           </ScrollArea>
 
           {/* Sticky Footer */}
-          <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex justify-end gap-3">
+          <div className="border-t border-line p-4 flex justify-end gap-3">
             <Button variant="outline" onClick={onClose}>
               Cancel
             </Button>

@@ -1,5 +1,14 @@
 'use client'
 
+/**
+ * Print-only view. Hex literals here mirror DS tokens:
+ *   #0A0A0A=ink · #404040=ink-2 · #737373=ink-3 · #A3A3A3=ink-4
+ *   #E5E7EB=line · #F3F4F6=surface-3 · #F9FAFB=surface-2
+ *   #15803D=forest · #B91C1C=vermillion · #B45309=amber-token · #4338CA=indigo · #2563EB=ds-accent
+ * The print medium drops CSS variables in some renderers, so hex stays here
+ * intentionally. Do not migrate to Tailwind utilities.
+ */
+
 import React, { useRef, useCallback } from 'react'
 import { formatDate } from '@/lib/date-utils'
 import type {
@@ -32,13 +41,13 @@ function getScoreLevelLabel(level: ScoreLevel): string {
 function getLevelColor(level: ScoreLevel): string {
   switch (level) {
     case 'sophisticated':
-      return '#059669'
+      return '#15803D'
     case 'effective':
-      return '#2563eb'
+      return '#2563EB'
     case 'developing':
-      return '#d97706'
+      return '#B45309'
     case 'ineffective':
-      return '#dc2626'
+      return '#B91C1C'
   }
 }
 
@@ -217,7 +226,7 @@ export function AnalysisPrintView({
           * { margin: 0; padding: 0; box-sizing: border-box; }
           body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #1a1a1a;
+            color: #0A0A0A;
             font-size: 11px;
             line-height: 1.5;
             -webkit-print-color-adjust: exact;
@@ -280,28 +289,28 @@ export function AnalysisPrintView({
         <div ref={printRef}>
           <style>{`
             .print-header { text-align: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e5e7eb; }
-            .print-header h1 { font-size: 20px; font-weight: 700; color: #111; margin-bottom: 4px; }
-            .print-header .subtitle { font-size: 13px; color: #6b7280; }
-            .print-header .meta { display: flex; justify-content: center; gap: 24px; margin-top: 8px; font-size: 11px; color: #6b7280; }
+            .print-header h1 { font-size: 20px; font-weight: 700; color: #0A0A0A; margin-bottom: 4px; }
+            .print-header .subtitle { font-size: 13px; color: #737373; }
+            .print-header .meta { display: flex; justify-content: center; gap: 24px; margin-top: 8px; font-size: 11px; color: #737373; }
             .print-header .meta span { display: flex; align-items: center; gap: 4px; }
 
             .section { margin-bottom: 20px; }
-            .section-title { font-size: 14px; font-weight: 700; color: #111; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
+            .section-title { font-size: 14px; font-weight: 700; color: #0A0A0A; margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid #e5e7eb; text-transform: uppercase; letter-spacing: 0.5px; }
 
             .score-hero { display: flex; align-items: flex-start; gap: 24px; padding: 16px; border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px; }
             .score-circle { text-align: center; min-width: 100px; }
-            .score-circle .big-score { font-size: 36px; font-weight: 800; color: #111; line-height: 1; }
-            .score-circle .big-score span { font-size: 18px; color: #9ca3af; font-weight: 400; }
+            .score-circle .big-score { font-size: 36px; font-weight: 800; color: #0A0A0A; line-height: 1; }
+            .score-circle .big-score span { font-size: 18px; color: #A3A3A3; font-weight: 400; }
             .score-circle .level-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; margin-top: 6px; }
-            .score-circle .label { font-size: 10px; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+            .score-circle .label { font-size: 10px; color: #A3A3A3; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
 
             .score-details { flex: 1; }
             .score-details .quick-stats { display: flex; gap: 16px; margin-bottom: 12px; }
             .score-details .stat-box { padding: 6px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; text-align: center; }
-            .score-details .stat-box .val { font-size: 12px; font-weight: 600; color: #111; }
-            .score-details .stat-box .lbl { font-size: 9px; color: #9ca3af; text-transform: uppercase; }
+            .score-details .stat-box .val { font-size: 12px; font-weight: 600; color: #0A0A0A; }
+            .score-details .stat-box .lbl { font-size: 9px; color: #A3A3A3; text-transform: uppercase; }
 
-            .assessment-text { font-size: 11.5px; line-height: 1.6; color: #374151; }
+            .assessment-text { font-size: 11.5px; line-height: 1.6; color: #404040; }
 
             .two-col { display: flex; gap: 16px; }
             .two-col > div { flex: 1; }
@@ -309,43 +318,43 @@ export function AnalysisPrintView({
             .list-card { padding: 10px 12px; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px; }
             .list-card .card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
             .list-card ul { padding-left: 16px; }
-            .list-card li { font-size: 11px; color: #374151; margin-bottom: 4px; line-height: 1.5; }
+            .list-card li { font-size: 11px; color: #404040; margin-bottom: 4px; line-height: 1.5; }
 
-            .strengths-title { color: #059669; }
+            .strengths-title { color: #15803D; }
             .strengths-card { border-color: #d1fae5; background: #f0fdf4; }
-            .growth-title { color: #d97706; }
+            .growth-title { color: #B45309; }
             .growth-card { border-color: #fef3c7; background: #fffbeb; }
-            .breakthrough-title { color: #7c3aed; }
-            .breakthrough-card { border-color: #ede9fe; background: #f5f3ff; }
+            .breakthrough-title { color: #4338CA; }
+            .breakthrough-card { border-color: #E0E7FF; background: #EEF2FF; }
 
             .emotions-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
-            .emotion-tag { display: inline-block; padding: 2px 8px; background: #f3f4f6; border-radius: 10px; font-size: 10px; color: #4b5563; }
+            .emotion-tag { display: inline-block; padding: 2px 8px; background: #f3f4f6; border-radius: 10px; font-size: 10px; color: #404040; }
 
             .metric-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
             .metric-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 10px 12px; page-break-inside: avoid; }
             .metric-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-            .metric-name { font-size: 12px; font-weight: 700; color: #111; }
-            .metric-score { font-size: 16px; font-weight: 800; color: #111; }
-            .metric-desc { font-size: 10px; color: #6b7280; margin-bottom: 6px; }
+            .metric-name { font-size: 12px; font-weight: 700; color: #0A0A0A; }
+            .metric-score { font-size: 16px; font-weight: 800; color: #0A0A0A; }
+            .metric-desc { font-size: 10px; color: #737373; margin-bottom: 6px; }
             .metric-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; margin-left: 6px; }
             .metric-bar { height: 4px; background: #e5e7eb; border-radius: 2px; margin-bottom: 8px; }
             .metric-bar-fill { height: 100%; border-radius: 2px; }
             .metric-justification { padding: 8px 10px; border-radius: 6px; margin-bottom: 6px; border: 1px solid #e5e7eb; background: #f9fafb; }
-            .metric-justification .j-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; margin-bottom: 3px; }
-            .metric-justification .j-text { font-size: 10.5px; color: #374151; line-height: 1.5; }
-            .metric-level { font-size: 10px; color: #6b7280; line-height: 1.4; }
-            .metric-level strong { color: #374151; }
+            .metric-justification .j-title { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #737373; margin-bottom: 3px; }
+            .metric-justification .j-text { font-size: 10.5px; color: #404040; line-height: 1.5; }
+            .metric-level { font-size: 10px; color: #737373; line-height: 1.4; }
+            .metric-level strong { color: #404040; }
 
             .golive-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
             .golive-card { text-align: center; padding: 10px 6px; border: 1px solid #e5e7eb; border-radius: 8px; }
-            .golive-label { font-size: 10px; color: #6b7280; font-weight: 500; margin-bottom: 4px; }
-            .golive-score { font-size: 18px; font-weight: 800; color: #111; }
+            .golive-label { font-size: 10px; color: #737373; font-weight: 500; margin-bottom: 4px; }
+            .golive-score { font-size: 18px; font-weight: 800; color: #0A0A0A; }
             .golive-badge { display: inline-block; padding: 1px 6px; border-radius: 10px; font-size: 8px; font-weight: 600; margin-top: 2px; }
 
             .suggestions-list { padding-left: 16px; }
-            .suggestions-list li { font-size: 11px; color: #374151; margin-bottom: 6px; line-height: 1.5; }
+            .suggestions-list li { font-size: 11px; color: #404040; margin-bottom: 6px; line-height: 1.5; }
 
-            .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 9px; color: #9ca3af; }
+            .footer { margin-top: 24px; padding-top: 12px; border-top: 1px solid #e5e7eb; text-align: center; font-size: 9px; color: #A3A3A3; }
           `}</style>
 
           {/* Header */}
@@ -425,7 +434,7 @@ export function AnalysisPrintView({
                         fontWeight: 700,
                         textTransform: 'uppercase' as const,
                         letterSpacing: '0.5px',
-                        color: '#6b7280',
+                        color: '#737373',
                         marginBottom: '4px',
                       }}
                     >
@@ -506,7 +515,7 @@ export function AnalysisPrintView({
                     fontWeight: 700,
                     textTransform: 'uppercase' as const,
                     letterSpacing: '0.5px',
-                    color: '#6b7280',
+                    color: '#737373',
                     marginBottom: '4px',
                   }}
                 >

@@ -31,7 +31,7 @@ export function ClientRoute({ children }: ClientRouteProps) {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-ink-4" />
       </div>
     )
   }
@@ -46,12 +46,12 @@ export function ClientRoute({ children }: ClientRouteProps) {
   if (!hasRole('client') && !isImpersonating) {
     // Not a client - show friendly message instead of redirecting
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+      <div className="flex items-center justify-center min-h-screen bg-paper">
         <div className="text-center space-y-4">
-          <p className="text-gray-600">
+          <p className="text-ink-3">
             You don&apos;t have access to the portal.
           </p>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-ink-3">
             Please contact your administrator.
           </p>
           <Button variant="outline" onClick={handleGoBackToSignIn}>

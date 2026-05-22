@@ -38,11 +38,11 @@ export default function EditProgramPage({
         </Button>
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <AlertCircle className="h-12 w-12 text-vermillion mb-4" />
+            <h3 className="text-lg font-semibold text-ink mb-2">
               Sandbox Not Found
             </h3>
-            <p className="text-gray-600 dark:text-gray-400 text-center mb-6">
+            <p className="text-ink-3 text-center mb-6">
               The sandbox you&apos;re looking for doesn&apos;t exist or you
               don&apos;t have permission to edit it.
             </p>
@@ -62,12 +62,8 @@ export default function EditProgramPage({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Edit Sandbox
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-1">
-          Update the details for {program.name}
-        </p>
+        <h1 className="text-3xl font-bold text-ink ">Edit Sandbox</h1>
+        <p className="text-ink-3 mt-1">Update the details for {program.name}</p>
       </div>
 
       <ProgramForm mode="edit" program={program} />

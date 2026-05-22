@@ -49,8 +49,8 @@ function SettingsContent() {
   return (
     <div className="container max-w-4xl mx-auto py-8 px-4">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-        <p className="text-gray-500 mt-2">
+        <h1 className="text-3xl font-bold text-ink">Settings</h1>
+        <p className="text-ink-3 mt-2">
           Manage your account, coaching style, and connected integrations.
         </p>
       </div>

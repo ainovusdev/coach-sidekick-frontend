@@ -13,7 +13,7 @@ export default function GlobalError({
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground flex items-center justify-center min-h-screen">
         <div className="text-center px-8 max-w-md">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center">
+          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-vermillion-bg flex items-center justify-center">
             <svg
               width="24"
               height="24"
@@ -23,7 +23,7 @@ export default function GlobalError({
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="text-red-500"
+              className="text-vermillion"
             >
               <circle cx="12" cy="12" r="10" />
               <line x1="12" y1="8" x2="12" y2="12" />

@@ -54,27 +54,21 @@ function StatCard({
       onClick={onClick}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+        <CardTitle className="text-sm font-medium text-ink-3 ">
           {title}
         </CardTitle>
-        <div className="h-10 w-10 rounded-full bg-gray-50 dark:bg-gray-800 flex items-center justify-center">
+        <div className="h-10 w-10 rounded-full bg-paper flex items-center justify-center">
           {icon}
         </div>
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-bold text-gray-900 dark:text-white">
-          {value}
-        </div>
+        <div className="text-3xl font-bold text-ink ">{value}</div>
         <div className="flex items-center justify-between mt-2">
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            {description}
-          </p>
+          <p className="text-xs text-ink-3 ">{description}</p>
           {trend && (
             <div
               className={`flex items-center gap-1 text-xs font-medium ${
-                trend.isPositive
-                  ? 'text-green-600 dark:text-green-400'
-                  : 'text-red-600 dark:text-red-400'
+                trend.isPositive ? 'text-forest ' : 'text-vermillion '
               }`}
             >
               {trend.isPositive ? (
@@ -87,7 +81,7 @@ function StatCard({
           )}
         </div>
       </CardContent>
-      <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600" />
+      <div className="absolute inset-x-0 bottom-0 h-1  " />
     </Card>
   )
 }
@@ -152,10 +146,10 @@ export default function AdminDashboard() {
       <div className="space-y-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold  bg-clip-text text-transparent">
               Admin Dashboard
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-ink-3 mt-2">
               Welcome back, let&apos;s see how things are going
             </p>
           </div>
@@ -201,10 +195,10 @@ export default function AdminDashboard() {
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold  bg-clip-text text-transparent">
             Admin Dashboard
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-ink-3 mt-2">
             Welcome back, let&apos;s see how things are going
           </p>
         </div>
@@ -216,25 +210,21 @@ export default function AdminDashboard() {
           title="Total Users"
           value={stats.totalUsers}
           description={`${stats.activeUsers} active users`}
-          icon={<Users className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
+          icon={<Users className="h-5 w-5 text-ds-accent " />}
           onClick={() => router.push('/admin/users')}
         />
         <StatCard
           title="Total Clients"
           value={stats.totalClients}
           description={`${stats.assignedClients} assigned`}
-          icon={
-            <UserCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
-          }
+          icon={<UserCheck className="h-5 w-5 text-forest " />}
           onClick={() => router.push('/admin/access')}
         />
         <StatCard
           title="Active Coaches"
           value={stats.roleDistribution.coach + stats.roleDistribution.trainee}
           description="Coaching users"
-          icon={
-            <TrendingUp className="h-5 w-5 text-purple-600 dark:text-purple-400" />
-          }
+          icon={<TrendingUp className="h-5 w-5 text-indigo " />}
           onClick={() => router.push('/admin/roles')}
         />
         <StatCard
@@ -243,9 +233,7 @@ export default function AdminDashboard() {
             stats.roleDistribution.admin + stats.roleDistribution.super_admin
           }
           description="System admins"
-          icon={
-            <Shield className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-          }
+          icon={<Shield className="h-5 w-5 text-amber-token " />}
           onClick={() => router.push('/admin/roles')}
         />
       </div>
@@ -257,7 +245,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Role Distribution</span>
-              <BarChart3 className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <BarChart3 className="h-5 w-5 text-ink-4 " />
             </CardTitle>
             <CardDescription>User roles breakdown</CardDescription>
           </CardHeader>
@@ -274,25 +262,23 @@ export default function AdminDashboard() {
                       <div
                         className={`h-2 w-2 rounded-full ${
                           role === 'super_admin'
-                            ? 'bg-red-500'
+                            ? 'bg-vermillion'
                             : role === 'admin'
-                              ? 'bg-blue-500'
+                              ? 'bg-ds-accent'
                               : role === 'coach'
-                                ? 'bg-green-500'
+                                ? 'bg-forest'
                                 : role === 'trainee'
-                                  ? 'bg-emerald-400'
+                                  ? 'bg-forest'
                                   : role === 'viewer'
-                                    ? 'bg-gray-500'
+                                    ? 'bg-ink-4'
                                     : ''
                         }`}
                       />
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 capitalize">
+                      <span className="text-sm font-medium text-ink-2 capitalize">
                         {role.replace('_', ' ')}
                       </span>
                     </div>
-                    <span className="text-sm font-bold text-gray-900 dark:text-white">
-                      {count}
-                    </span>
+                    <span className="text-sm font-bold text-ink ">{count}</span>
                   </div>
                   <Progress value={percentage} className="h-2" />
                 </div>
@@ -300,10 +286,8 @@ export default function AdminDashboard() {
             })}
             <div className="pt-4 border-t">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-gray-500 dark:text-gray-400">
-                  Total Users with Roles
-                </span>
-                <span className="font-semibold text-gray-900 dark:text-white">
+                <span className="text-ink-3 ">Total Users with Roles</span>
+                <span className="font-semibold text-ink ">
                   {totalRoleUsers}
                 </span>
               </div>
@@ -316,7 +300,7 @@ export default function AdminDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>System Health</span>
-              <Activity className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+              <Activity className="h-5 w-5 text-ink-4 " />
             </CardTitle>
             <CardDescription>
               Current system status and performance
@@ -327,21 +311,21 @@ export default function AdminDashboard() {
               {Object.entries(systemHealth).map(([service, status]) => (
                 <div
                   key={service}
-                  className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                  className="flex items-center justify-between p-3 rounded-lg bg-paper "
                 >
                   <div className="flex items-center gap-3">
                     <div
                       className={`h-3 w-3 rounded-full ${
                         status === 'operational'
-                          ? 'bg-green-500 animate-pulse'
+                          ? 'bg-forest animate-pulse'
                           : status === 'degraded'
-                            ? 'bg-yellow-500'
+                            ? 'bg-amber-token'
                             : status === 'down'
-                              ? 'bg-red-500'
+                              ? 'bg-vermillion'
                               : ''
                       }`}
                     />
-                    <span className="font-medium capitalize text-gray-700 dark:text-gray-300">
+                    <span className="font-medium capitalize text-ink-2 ">
                       {service} Service
                     </span>
                   </div>
@@ -351,11 +335,11 @@ export default function AdminDashboard() {
                     }
                     className={`${
                       status === 'operational'
-                        ? 'bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/30'
+                        ? 'bg-forest-bg text-forest hover:bg-forest-bg '
                         : status === 'degraded'
-                          ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-100 dark:bg-yellow-900/30 dark:text-yellow-400 dark:hover:bg-yellow-900/30'
+                          ? 'bg-amber-token-bg text-amber-token hover:bg-amber-token-bg '
                           : status === 'down'
-                            ? 'bg-red-100 text-red-700 hover:bg-red-100 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/30'
+                            ? 'bg-vermillion-bg text-vermillion hover:bg-vermillion-bg '
                             : ''
                     }`}
                   >
@@ -367,9 +351,7 @@ export default function AdminDashboard() {
                 </div>
               ))}
               <div className="pt-4 border-t">
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Last checked: Just now
-                </p>
+                <p className="text-xs text-ink-3 ">Last checked: Just now</p>
               </div>
             </div>
           </CardContent>
@@ -386,41 +368,35 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-3 gap-3">
             <Button
               variant="outline"
-              className="h-auto flex-col gap-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="h-auto flex-col gap-2 py-4 hover:bg-paper "
               onClick={() => router.push('/admin/users')}
             >
-              <Users className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <Users className="h-5 w-5 text-ink-3 " />
               <div className="text-center">
                 <p className="font-medium text-sm">Manage Users</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Add or edit users
-                </p>
+                <p className="text-xs text-ink-3 ">Add or edit users</p>
               </div>
             </Button>
             <Button
               variant="outline"
-              className="h-auto flex-col gap-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="h-auto flex-col gap-2 py-4 hover:bg-paper "
               onClick={() => router.push('/admin/access')}
             >
-              <LockKeyhole className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <LockKeyhole className="h-5 w-5 text-ink-3 " />
               <div className="text-center">
                 <p className="font-medium text-sm">Access Control</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Manage permissions
-                </p>
+                <p className="text-xs text-ink-3 ">Manage permissions</p>
               </div>
             </Button>
             <Button
               variant="outline"
-              className="h-auto flex-col gap-2 py-4 hover:bg-gray-50 dark:hover:bg-gray-800"
+              className="h-auto flex-col gap-2 py-4 hover:bg-paper "
               onClick={() => router.push('/admin/roles')}
             >
-              <Shield className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+              <Shield className="h-5 w-5 text-ink-3 " />
               <div className="text-center">
                 <p className="font-medium text-sm">Role Management</p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Assign roles
-                </p>
+                <p className="text-xs text-ink-3 ">Assign roles</p>
               </div>
             </Button>
           </div>

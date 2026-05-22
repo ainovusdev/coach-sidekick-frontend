@@ -84,7 +84,7 @@ export default function ClientCard({
 
   return (
     <Card
-      className="group border border-gray-200 bg-white rounded-xl hover:border-gray-300 hover:shadow-md transition-all duration-200 cursor-pointer"
+      className="group border border-line bg-surface-1 rounded-xl hover:border-line-strong hover:shadow-md transition-all duration-200 cursor-pointer"
       onClick={onView}
     >
       <CardContent className="p-5">
@@ -96,13 +96,13 @@ export default function ClientCard({
               <Avatar
                 className={`h-11 w-11 ${
                   isAssigned
-                    ? 'bg-blue-100 ring-2 ring-blue-200'
-                    : 'bg-gray-100 ring-2 ring-gray-200'
+                    ? 'bg-ds-accent-bg ring-2 ring-ds-accent'
+                    : 'bg-surface-3 ring-2 ring-line'
                 }`}
               >
                 <AvatarFallback
                   className={`text-sm font-semibold ${
-                    isAssigned ? 'text-blue-700' : 'text-gray-700'
+                    isAssigned ? 'text-ds-accent' : 'text-ink-2'
                   }`}
                 >
                   {getInitials(client.name)}
@@ -110,8 +110,8 @@ export default function ClientCard({
               </Avatar>
               {isActive && (
                 <div
-                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-white ${
-                    isAssigned ? 'bg-blue-500' : 'bg-green-500'
+                  className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-paper ${
+                    isAssigned ? 'bg-ds-accent' : 'bg-forest'
                   }`}
                 />
               )}
@@ -119,11 +119,11 @@ export default function ClientCard({
 
             {/* Name and Coach */}
             <div className="min-w-0">
-              <h3 className="font-semibold text-gray-900 truncate group-hover:text-gray-700 transition-colors">
+              <h3 className="font-semibold text-ink truncate group-hover:text-ink-2 transition-colors">
                 {client.name}
               </h3>
               {isAssigned && client.coach_name && (
-                <p className="text-xs text-blue-600 truncate">
+                <p className="text-xs text-ds-accent truncate">
                   Coach: {client.coach_name}
                 </p>
               )}
@@ -135,12 +135,12 @@ export default function ClientCard({
             {/* Status Badges */}
             <div className="flex items-center gap-1.5 mr-1">
               {client.invitation_status === 'invited' && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 rounded-full">
+                <span className="px-2 py-0.5 text-xs font-medium bg-indigo-bg text-indigo rounded-full">
                   Invited
                 </span>
               )}
               {client.invitation_status === 'accepted' && (
-                <span className="px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 rounded-full flex items-center gap-1">
+                <span className="px-2 py-0.5 text-xs font-medium bg-forest-bg text-forest rounded-full flex items-center gap-1">
                   <UserCheck className="h-3 w-3" />
                   Portal
                 </span>
@@ -156,7 +156,7 @@ export default function ClientCard({
                   className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                   onClick={e => e.stopPropagation()}
                 >
-                  <MoreHorizontal className="h-4 w-4 text-gray-500" />
+                  <MoreHorizontal className="h-4 w-4 text-ink-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-40">
@@ -196,7 +196,7 @@ export default function ClientCard({
                             e.stopPropagation()
                             onCancelInvite()
                           }}
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
+                          className="text-vermillion focus:text-vermillion focus:bg-vermillion-bg "
                         >
                           <XCircle className="h-4 w-4 mr-2" />
                           Cancel Invitation
@@ -208,7 +208,7 @@ export default function ClientCard({
                         e.stopPropagation()
                         onDelete()
                       }}
-                      className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-900/30"
+                      className="text-vermillion focus:text-vermillion focus:bg-vermillion-bg "
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
                       Delete Client
@@ -222,18 +222,16 @@ export default function ClientCard({
 
         {/* Notes */}
         {client.notes && (
-          <p className="text-sm text-gray-500 mt-3 line-clamp-2">
-            {client.notes}
-          </p>
+          <p className="text-sm text-ink-3 mt-3 line-clamp-2">{client.notes}</p>
         )}
 
         {/* Stats Row */}
-        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-gray-100">
+        <div className="flex items-center gap-4 mt-4 pt-4 border-t border-line">
           {/* Sessions */}
           <div className="flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
-              <span className="font-medium text-gray-900">
+            <Calendar className="h-4 w-4 text-ink-4" />
+            <span className="text-sm text-ink-3">
+              <span className="font-medium text-ink">
                 {stats?.total_sessions || 0}
               </span>{' '}
               sessions
@@ -241,12 +239,12 @@ export default function ClientCard({
           </div>
 
           {/* Divider */}
-          <div className="w-px h-4 bg-gray-200" />
+          <div className="w-px h-4 bg-surface-3" />
 
           {/* Last Activity */}
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-gray-400" />
-            <span className="text-sm text-gray-600">
+            <Clock className="h-4 w-4 text-ink-4" />
+            <span className="text-sm text-ink-3">
               {formatLastSession(stats?.last_session_date)}
             </span>
           </div>

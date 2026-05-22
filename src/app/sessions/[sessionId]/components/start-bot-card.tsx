@@ -104,8 +104,8 @@ export function StartBotCard({
       {/* Session Info */}
       <Card className="border-app-border shadow-sm">
         <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Bot className="h-8 w-8 text-gray-500" />
+          <div className="w-16 h-16 bg-surface-3 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Bot className="h-8 w-8 text-ink-3" />
           </div>
 
           <h2 className="text-xl font-semibold text-app-primary mb-2">
@@ -129,7 +129,7 @@ export function StartBotCard({
           {(!clientId || editingClient) && (
             <div className="mb-4 mt-4 mx-auto max-w-sm text-left">
               <Label className="text-sm font-medium mb-2 flex items-center gap-1.5">
-                <UserIcon className="h-4 w-4 text-gray-400" />
+                <UserIcon className="h-4 w-4 text-ink-4" />
                 Client {clientId ? '' : '(optional)'}
               </Label>
               <ClientSelector
@@ -175,7 +175,7 @@ export function StartBotCard({
                   })
                 }
                 disabled={sendQuestionnaire.isPending}
-                className="border-gray-300 dark:border-gray-600"
+                className="border-line-strong "
               >
                 {sendQuestionnaire.isPending ? (
                   <>
@@ -198,10 +198,10 @@ export function StartBotCard({
           <div className="text-left space-y-4 mt-6">
             <div className="space-y-2">
               <Label className="text-sm font-medium">
-                Meeting URL <span className="text-red-500">*</span>
+                Meeting URL <span className="text-vermillion">*</span>
               </Label>
               <div className="relative">
-                <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Link2 className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4" />
                 <Input
                   value={meetingUrl}
                   onChange={e => setMeetingUrl(e.target.value)}
@@ -231,7 +231,7 @@ export function StartBotCard({
             onClick={handleStartBot}
             disabled={!meetingUrl.trim() || startBot.isPending}
             size="lg"
-            className="w-full mt-6 bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900 h-12 text-base"
+            className="w-full mt-6 bg-ink hover:bg-ink-2 text-ink-on-dark h-12 text-base"
           >
             {startBot.isPending ? (
               <>

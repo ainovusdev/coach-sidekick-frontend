@@ -218,7 +218,7 @@ export function SessionResourcesCompact({
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => setDeleteResource(resource)}
-                          className="text-red-600"
+                          className="text-vermillion"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Delete
@@ -289,7 +289,7 @@ export function SessionResourcesCompact({
                 handleDeleteConfirm()
               }}
               disabled={deleteResourceMutation.isPending}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-vermillion hover:bg-vermillion"
             >
               {deleteResourceMutation.isPending ? (
                 <>

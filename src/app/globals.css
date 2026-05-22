@@ -9,7 +9,7 @@ body {
   pointer-events: auto !important;
 }
 
-/* Custom Scrollbar Styles */
+/* Custom Scrollbar Styles — token-driven */
 .scrollbar-thin {
   scrollbar-width: thin;
 }
@@ -20,29 +20,17 @@ body {
 }
 
 .scrollbar-thin::-webkit-scrollbar-track {
-  background: #f3f4f6;
+  background: var(--surface-3);
   border-radius: 3px;
-}
-
-.dark .scrollbar-thin::-webkit-scrollbar-track {
-  background: #1f2937;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #9ca3af;
+  background: var(--ink-4);
   border-radius: 3px;
 }
 
-.dark .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
+  background: var(--ink-3);
 }
 
 @theme inline {
@@ -84,94 +72,167 @@ body {
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* App Theme Colors (reference CSS vars for dark mode support) */
+  /* App Theme Colors (legacy aliases, retained so existing bg-app-* utilities keep working) */
   --color-app-primary: var(--app-primary);
   --color-app-secondary: var(--app-secondary);
   --color-app-accent: var(--app-accent);
   --color-app-background: var(--app-background);
   --color-app-surface: var(--app-surface);
   --color-app-border: var(--app-border);
+
+  /* ============================================================
+     Coach Sidekick Design System — Tailwind utility registration
+     Exposes ink/paper/surface/line + status tokens as utilities:
+       bg-paper, bg-surface-1/2/3, bg-ink, text-ink-2/3/4, text-ink-on-dark,
+       border-line / border-line-2 / border-line-strong,
+       bg-forest / text-forest / bg-forest-bg,
+       bg-vermillion / text-vermillion / bg-vermillion-bg,
+       bg-amber-token / text-amber-token / bg-amber-token-bg,
+       bg-indigo / text-indigo / bg-indigo-bg,
+       bg-ds-accent / text-ds-accent / bg-ds-accent-bg,
+       bg-brand-tile / text-brand-tile-fg, bg-overlay
+     ============================================================ */
+  --color-paper: var(--paper);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-4: var(--ink-4);
+  --color-ink-on-dark: var(--ink-on-dark);
+  --color-line: var(--line);
+  --color-line-2: var(--line-2);
+  --color-line-strong: var(--line-strong);
+  --color-ds-accent: var(--ds-accent);
+  --color-ds-accent-bg: var(--ds-accent-bg);
+  --color-forest: var(--forest);
+  --color-forest-bg: var(--forest-bg);
+  --color-vermillion: var(--vermillion);
+  --color-vermillion-bg: var(--vermillion-bg);
+  --color-amber-token: var(--amber-token);
+  --color-amber-token-bg: var(--amber-token-bg);
+  --color-indigo: var(--indigo);
+  --color-indigo-bg: var(--indigo-bg);
+  --color-brand-tile: var(--brand-tile-bg);
+  --color-brand-tile-fg: var(--brand-tile-fg);
+  --color-overlay: var(--overlay);
 }
 
 :root {
   --radius: 0.625rem;
-  --app-primary: #111111;
-  --app-secondary: #6B7280;
-  --app-accent: #2563EB;
-  --app-background: #FFFFFF;
-  --app-surface: #F9FAFB;
-  --app-border: #E5E7EB;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  /* ---------- Coach Sidekick DS — Ink / paper / surface (light) ---------- */
+  --paper: #FFFFFF;
+  --surface-1: #FFFFFF;
+  --surface-2: #F9FAFB;
+  --surface-3: #F3F4F6;
+
+  --ink: #0A0A0A;
+  --ink-2: #404040;
+  --ink-3: #737373;
+  --ink-4: #A3A3A3;
+  --ink-on-dark: #FAFAFA;
+
+  --line: #E5E7EB;
+  --line-2: #F3F4F6;
+  --line-strong: #D4D4D4;
+
+  /* DS chromatic accent (links, focus ring). Distinct from shadcn --accent
+     which is a *neutral* hover surface. */
+  --ds-accent: #2563EB;
+  --ds-accent-bg: #EFF6FF;
+
+  /* DS status colors — saturated chip + tinted bg pairs */
+  --forest: #15803D;
+  --forest-bg: #ECFDF5;
+  --vermillion: #B91C1C;
+  --vermillion-bg: #FEF2F2;
+  --amber-token: #B45309;
+  --amber-token-bg: #FFFBEB;
+  --indigo: #4338CA;
+  --indigo-bg: #EEF2FF;
+
+  /* Tokens that intentionally do NOT flip in dark mode */
+  --brand-tile-bg: #0A0A0A;
+  --brand-tile-fg: #FAFAFA;
+  --overlay: rgba(0, 0, 0, 0.5);
+
+  --shadow-focus: 0 0 0 3px rgba(37,99,235,0.18);
+
+  /* ---------- Legacy --app-* aliases (point at DS tokens, no value drift) ---------- */
+  --app-primary: var(--ink);
+  --app-secondary: var(--ink-3);
+  --app-accent: var(--ds-accent);
+  --app-background: var(--paper);
+  --app-surface: var(--surface-2);
+  --app-border: var(--line);
+
+  /* ---------- shadcn semantic tokens — remapped to DS scale ---------- */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--surface-1);
+  --card-foreground: var(--ink);
+  --popover: var(--surface-1);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--ink-on-dark);
+  --secondary: var(--surface-2);
+  --secondary-foreground: var(--ink);
+  --muted: var(--surface-2);
+  --muted-foreground: var(--ink-3);
+  --accent: var(--surface-2);
+  --accent-foreground: var(--ink);
+  --destructive: var(--vermillion);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--ds-accent);
+
+  /* ---------- Chart tokens — DS-mapped ---------- */
+  --chart-1: var(--ds-accent);
+  --chart-2: var(--forest);
+  --chart-3: var(--amber-token);
+  --chart-4: var(--indigo);
+  --chart-5: var(--vermillion);
+
+  /* ---------- Sidebar tokens — DS-mapped ---------- */
+  --sidebar: var(--surface-2);
+  --sidebar-foreground: var(--ink);
+  --sidebar-primary: var(--ink);
+  --sidebar-primary-foreground: var(--ink-on-dark);
+  --sidebar-accent: var(--surface-3);
+  --sidebar-accent-foreground: var(--ink);
+  --sidebar-border: var(--line);
+  --sidebar-ring: var(--ds-accent);
 }
 
 .dark {
-  --app-primary: #F9FAFB;
-  --app-secondary: #9CA3AF;
-  --app-accent: #3B82F6;
-  --app-background: #111827;
-  --app-surface: #1F2937;
-  --app-border: #374151;
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* ---------- Coach Sidekick DS — Ink / paper / surface (dark) ---------- */
+  --paper: #0A0A0A;
+  --surface-1: #171717;
+  --surface-2: #1F1F1F;
+  --surface-3: #262626;
+
+  --ink: #FAFAFA;
+  --ink-2: #D4D4D4;
+  --ink-3: #A3A3A3;
+  --ink-4: #737373;
+  --ink-on-dark: #0A0A0A;
+
+  --line: #2A2A2A;
+  --line-2: #1F1F1F;
+  --line-strong: #404040;
+
+  --ds-accent: #3B82F6;
+  --ds-accent-bg: rgba(59,130,246,0.12);
+
+  /* Saturated chips stay the same hue in dark; only -bg flips translucent. */
+  --forest-bg: rgba(21,128,61,0.14);
+  --vermillion-bg: rgba(185,28,28,0.14);
+  --amber-token-bg: rgba(180,83,9,0.14);
+  --indigo-bg: rgba(67,56,202,0.18);
+
+  /* --brand-tile-bg, --brand-tile-fg, --overlay intentionally NOT overridden. */
 }
 
 @layer base {

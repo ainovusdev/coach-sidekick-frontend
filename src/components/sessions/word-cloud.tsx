@@ -100,20 +100,20 @@ export function WordCloud({
   const getTierClasses = (tier: string) => {
     switch (tier) {
       case 'primary':
-        return 'text-gray-900 dark:text-gray-100 font-bold'
+        return 'text-ink font-bold'
       case 'secondary':
-        return 'text-gray-700 dark:text-gray-300 font-semibold'
+        return 'text-ink-2 font-semibold'
       case 'tertiary':
-        return 'text-gray-500 dark:text-gray-400 font-medium'
+        return 'text-ink-3 font-medium'
       default:
-        return 'text-gray-400 dark:text-gray-500 font-normal'
+        return 'text-ink-4 font-normal'
     }
   }
 
   return (
     <div className={`relative ${className}`}>
       {/* Background decoration */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 dark:from-gray-800/50 via-transparent to-gray-50/50 dark:to-gray-800/50 rounded-lg" />
+      <div className="absolute inset-0  via-transparent rounded-lg" />
 
       {/* Word cloud container */}
       <div className="relative flex flex-wrap gap-3 md:gap-4 justify-center items-center p-6">
@@ -130,8 +130,8 @@ export function WordCloud({
                 hover:scale-110 hover:z-10
                 cursor-default select-none
                 ${isImportant ? 'hover:drop-shadow-lg' : 'hover:drop-shadow-md'}
-                ${item.tier === 'primary' ? 'px-3 py-1 bg-gradient-to-r from-gray-100/80 dark:from-gray-700/80 to-gray-50/80 dark:to-gray-800/80 rounded-lg' : ''}
-                ${item.tier === 'secondary' ? 'px-2 py-0.5 bg-gray-50/60 dark:bg-gray-700/60 rounded-md' : ''}
+                ${item.tier === 'primary' ? 'px-3 py-1  rounded-lg' : ''}
+                ${item.tier === 'secondary' ? 'px-2 py-0.5 bg-paper/60 rounded-md' : ''}
                 ${getTierClasses(item.tier)}
               `}
               style={{
@@ -161,7 +161,7 @@ export function WordCloud({
               <span className="relative">
                 {item.word}
                 {item.tier === 'primary' && (
-                  <span className="absolute -top-1 -right-2 text-xs text-gray-400 dark:text-gray-500 font-normal">
+                  <span className="absolute -top-1 -right-2 text-xs text-ink-4 font-normal">
                     {item.rawFreq > 1 && `×${item.rawFreq}`}
                   </span>
                 )}
@@ -173,7 +173,7 @@ export function WordCloud({
 
       {/* Subtle gradient overlay for depth */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-t from-white/20 dark:from-gray-900/20 via-transparent to-transparent rounded-lg" />
+        <div className="absolute inset-0  via-transparent to-transparent rounded-lg" />
       </div>
     </div>
   )

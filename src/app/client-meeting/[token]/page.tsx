@@ -86,9 +86,9 @@ export default function ClientMeetingPage() {
   // Loading state
   if (isSessionLoading || isGuestLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen flex items-center justify-center  ">
         <div className="text-center">
-          <div className="w-16 h-16 bg-gray-900 rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4 p-2">
+          <div className="w-16 h-16 bg-ink rounded-2xl flex items-center justify-center shadow-lg mx-auto mb-4 p-2">
             <Image
               src="/novus-global-logo.webp"
               alt="Logo"
@@ -97,11 +97,9 @@ export default function ClientMeetingPage() {
               className="object-contain filter brightness-0 invert"
             />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Coach Sidekick
-          </h2>
+          <h2 className="text-xl font-bold text-ink mb-2">Coach Sidekick</h2>
           <LoadingSpinner className="mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Joining session...</p>
+          <p className="text-ink-3 ">Joining session...</p>
         </div>
       </div>
     )
@@ -110,10 +108,10 @@ export default function ClientMeetingPage() {
   // Error state
   if (sessionError) {
     return (
-      <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+      <div className="min-h-screen flex flex-col  ">
         <div className="flex-1 flex items-center justify-center p-4">
           <div className="text-center max-w-md">
-            <div className="w-12 h-12 bg-gray-900 rounded-xl flex items-center justify-center shadow-lg mx-auto mb-4 p-1.5">
+            <div className="w-12 h-12 bg-ink rounded-xl flex items-center justify-center shadow-lg mx-auto mb-4 p-1.5">
               <Image
                 src="/novus-global-logo.webp"
                 alt="Logo"
@@ -122,12 +120,10 @@ export default function ClientMeetingPage() {
                 className="object-contain filter brightness-0 invert"
               />
             </div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white mb-6">
-              Coach Sidekick
-            </h1>
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+            <h1 className="text-lg font-bold text-ink mb-6">Coach Sidekick</h1>
+            <div className="w-16 h-16 bg-vermillion-bg rounded-full flex items-center justify-center mx-auto mb-4">
               <svg
-                className="h-8 w-8 text-red-600 dark:text-red-400"
+                className="h-8 w-8 text-vermillion "
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -140,20 +136,16 @@ export default function ClientMeetingPage() {
                 />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-              Unable to Join
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
-              {sessionError}
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
+            <h2 className="text-xl font-bold text-ink mb-2">Unable to Join</h2>
+            <p className="text-ink-3 mb-6">{sessionError}</p>
+            <p className="text-sm text-ink-3 ">
               The meeting link may have expired or been revoked.
             </p>
           </div>
         </div>
-        <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <div className="w-5 h-5 bg-gray-900 rounded-md flex items-center justify-center p-0.5">
+        <footer className="flex-shrink-0 py-3 border-t border-line bg-surface-1/60 ">
+          <div className="flex items-center justify-center gap-2 text-sm text-ink-3 ">
+            <div className="w-5 h-5 bg-ink rounded-md flex items-center justify-center p-0.5">
               <Image
                 src="/novus-global-logo.webp"
                 alt="Logo"
@@ -164,9 +156,7 @@ export default function ClientMeetingPage() {
             </div>
             <span>
               Powered by{' '}
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Coach Sidekick
-              </span>
+              <span className="font-medium text-ink-2 ">Coach Sidekick</span>
             </span>
           </div>
         </footer>
@@ -179,7 +169,7 @@ export default function ClientMeetingPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
+    <div className="min-h-screen flex flex-col  ">
       {/* Header */}
       <ClientMeetingHeader
         coachName={sessionInfo.coach_name}
@@ -216,10 +206,10 @@ export default function ClientMeetingPage() {
       </div>
 
       {/* Footer with branding */}
-      <footer className="flex-shrink-0 py-3 border-t border-gray-200 dark:border-gray-700 bg-white/60 dark:bg-gray-900/60 backdrop-blur-sm">
+      <footer className="flex-shrink-0 py-3 border-t border-line bg-surface-1/60 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-center gap-2 text-sm text-gray-500 dark:text-gray-400">
-            <div className="w-5 h-5 bg-gray-900 rounded-md flex items-center justify-center p-0.5">
+          <div className="flex items-center justify-center gap-2 text-sm text-ink-3 ">
+            <div className="w-5 h-5 bg-ink rounded-md flex items-center justify-center p-0.5">
               <Image
                 src="/novus-global-logo.webp"
                 alt="Logo"
@@ -230,9 +220,7 @@ export default function ClientMeetingPage() {
             </div>
             <span>
               Powered by{' '}
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                Coach Sidekick
-              </span>
+              <span className="font-medium text-ink-2 ">Coach Sidekick</span>
             </span>
           </div>
         </div>

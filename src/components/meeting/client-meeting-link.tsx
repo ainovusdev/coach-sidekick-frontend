@@ -82,12 +82,7 @@ export function ClientMeetingLink({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              className="text-gray-400"
-            >
+            <Button variant="outline" size="sm" disabled className="text-ink-4">
               <UserPlus className="h-4 w-4 mr-2" />
               Share with Client
             </Button>
@@ -119,7 +114,7 @@ export function ClientMeetingLink({
             <Button
               variant="outline"
               size="sm"
-              className="text-red-500 border-red-200"
+              className="text-vermillion border-vermillion"
             >
               <Link2 className="h-4 w-4 mr-2" />
               Link Error
@@ -149,7 +144,7 @@ export function ClientMeetingLink({
             variant="outline"
             size="sm"
             onClick={handleCopy}
-            className={hasCopied ? 'border-green-300 text-green-600' : ''}
+            className={hasCopied ? 'border-forest text-forest' : ''}
           >
             {hasCopied ? (
               <>

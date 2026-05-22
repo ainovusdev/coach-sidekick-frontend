@@ -204,7 +204,7 @@ export function StartStandaloneGroupSessionModal({
             </ScrollArea>
 
             {selectedClientIds.size === 1 && (
-              <p className="text-xs text-amber-600 mt-1">
+              <p className="text-xs text-amber-token mt-1">
                 Select at least 2 clients for a group session
               </p>
             )}

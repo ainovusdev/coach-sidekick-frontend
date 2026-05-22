@@ -60,32 +60,34 @@ export const SCORE_OPTIONS: ReadonlyArray<ScoreOption> = [
   {
     value: null,
     label: 'Not Observed',
-    selectedClass: 'bg-gray-300 text-gray-900 ring-2 ring-gray-500',
-    unselectedClass: 'bg-gray-100 text-gray-600 hover:bg-gray-200',
+    selectedClass: 'bg-line text-ink ring-2 ring-line-strong',
+    unselectedClass: 'bg-surface-3 text-ink-3 hover:bg-surface-3',
   },
   {
     value: 1,
     label: '1',
-    selectedClass: 'bg-pink-300 text-pink-950 ring-2 ring-pink-600',
-    unselectedClass: 'bg-pink-100 text-pink-700 hover:bg-pink-200',
+    selectedClass: 'bg-vermillion text-ink-on-dark ring-2 ring-vermillion',
+    unselectedClass:
+      'bg-vermillion-bg text-vermillion hover:bg-vermillion-bg/80',
   },
   {
     value: 2,
     label: '2',
-    selectedClass: 'bg-orange-300 text-orange-950 ring-2 ring-orange-600',
-    unselectedClass: 'bg-orange-100 text-orange-700 hover:bg-orange-200',
+    selectedClass: 'bg-amber-token text-ink-on-dark ring-2 ring-amber-token',
+    unselectedClass:
+      'bg-amber-token-bg text-amber-token hover:bg-amber-token-bg/80',
   },
   {
     value: 3,
     label: '3',
-    selectedClass: 'bg-yellow-300 text-yellow-950 ring-2 ring-yellow-600',
-    unselectedClass: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200',
+    selectedClass: 'bg-ds-accent text-ink-on-dark ring-2 ring-ds-accent',
+    unselectedClass: 'bg-ds-accent-bg text-ds-accent hover:bg-ds-accent-bg/80',
   },
   {
     value: 4,
     label: '4',
-    selectedClass: 'bg-green-300 text-green-950 ring-2 ring-green-600',
-    unselectedClass: 'bg-green-100 text-green-700 hover:bg-green-200',
+    selectedClass: 'bg-forest text-ink-on-dark ring-2 ring-forest',
+    unselectedClass: 'bg-forest-bg text-forest hover:bg-forest-bg/80',
   },
 ]
 
@@ -98,17 +100,17 @@ export function scoreLabel(value: ScoreValue | undefined): string {
 export function scoreChipClass(value: ScoreValue | undefined): string {
   switch (value) {
     case null:
-      return 'bg-gray-200 text-gray-700'
+      return 'bg-surface-3 text-ink-2'
     case 1:
-      return 'bg-pink-200 text-pink-800'
+      return 'bg-vermillion-bg text-vermillion'
     case 2:
-      return 'bg-orange-200 text-orange-800'
+      return 'bg-amber-token-bg text-amber-token'
     case 3:
-      return 'bg-yellow-200 text-yellow-800'
+      return 'bg-ds-accent-bg text-ds-accent'
     case 4:
-      return 'bg-green-200 text-green-800'
+      return 'bg-forest-bg text-forest'
     default:
-      return 'bg-gray-100 text-gray-500'
+      return 'bg-surface-3 text-ink-3'
   }
 }
 

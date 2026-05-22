@@ -11,7 +11,7 @@ export default function AdminLayout({
 }) {
   return (
     <AdminRoute>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      <div className="flex h-screen bg-paper ">
         <AdminSidebar />
         <div className="flex-1 flex flex-col overflow-hidden">
           <AdminHeader />

@@ -144,25 +144,22 @@ export default function CoachDashboard() {
 
             {/* Personalized Welcome Header */}
             <div className="mb-8 text-center">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              <h1 className="text-3xl font-bold text-ink mb-2">
                 Welcome, {firstName}!
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <p className="text-ink-3 text-lg">
                 Let&apos;s set up your coaching workspace in just 2 steps.
               </p>
             </div>
 
             {/* Getting Started Card */}
-            <Card className="border-gray-200 dark:border-gray-700 mb-6">
-              <CardHeader className="border-b border-gray-200 dark:border-gray-700">
+            <Card className="border-line mb-6">
+              <CardHeader className="border-b border-line ">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-xl text-gray-900 dark:text-white">
+                  <CardTitle className="text-xl text-ink ">
                     Getting Started
                   </CardTitle>
-                  <Badge
-                    variant="outline"
-                    className="text-gray-600 dark:text-gray-400"
-                  >
+                  <Badge variant="outline" className="text-ink-3 ">
                     2 steps
                   </Badge>
                 </div>
@@ -171,20 +168,20 @@ export default function CoachDashboard() {
                 <div className="space-y-6">
                   {/* Step 1: Create Client */}
                   <div className="flex items-start gap-4">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold flex-shrink-0">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-ink text-ink-on-dark text-sm font-semibold flex-shrink-0">
                       1
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                      <h3 className="text-base font-semibold text-ink mb-1">
                         Create Your First Client
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                      <p className="text-sm text-ink-3 mb-3">
                         Add a client to organize their coaching journey, track
                         sessions, and monitor progress.
                       </p>
                       <Button
                         onClick={() => setIsClientModalOpen(true)}
-                        className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                        className="bg-ink hover:bg-ink-2 text-ink-on-dark "
                       >
                         <Plus className="h-4 w-4 mr-2" />
                         Add Client
@@ -192,18 +189,18 @@ export default function CoachDashboard() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-200 dark:border-gray-700" />
+                  <div className="border-t border-line " />
 
                   {/* Step 2: Start Session (Disabled until client is created) */}
                   <div className="flex items-start gap-4 opacity-50">
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-400 text-sm font-semibold flex-shrink-0">
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-surface-3 text-ink-4 text-sm font-semibold flex-shrink-0">
                       2
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-base font-semibold text-gray-500 mb-1">
+                      <h3 className="text-base font-semibold text-ink-3 mb-1">
                         Record a Session
                       </h3>
-                      <p className="text-sm text-gray-400 mb-3">
+                      <p className="text-sm text-ink-4 mb-3">
                         Join a live meeting or upload a past session to get
                         AI-powered insights.
                       </p>
@@ -211,7 +208,7 @@ export default function CoachDashboard() {
                         <Button
                           variant="outline"
                           disabled
-                          className="text-gray-400 border-gray-200 dark:border-gray-700"
+                          className="text-ink-4 border-line "
                         >
                           <PlayCircle className="h-4 w-4 mr-2" />
                           Start Live Session
@@ -219,14 +216,14 @@ export default function CoachDashboard() {
                         <Button
                           variant="outline"
                           disabled
-                          className="text-gray-400 border-gray-200 dark:border-gray-700"
+                          className="text-ink-4 border-line "
                         >
                           <FileText className="h-4 w-4 mr-2" />
                           Add Past Session
                         </Button>
                       </div>
                       {/* Explanation for disabled step */}
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-ink-4 mt-2">
                         Complete Step 1 first to unlock this step
                       </p>
                     </div>
@@ -257,10 +254,10 @@ export default function CoachDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Page Header */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h1 className="text-3xl font-bold text-ink mb-2">
               {greeting}, {firstName}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-ink-3 ">
               {overdueCount > 0 || staleClientCount > 0 ? (
                 <>
                   {overdueCount > 0 && (
@@ -285,24 +282,22 @@ export default function CoachDashboard() {
 
           {/* Viewer Mode Message */}
           {!canCreateMeeting && (
-            <Card className="border-gray-200 dark:border-gray-700 mb-8">
+            <Card className="border-line mb-8">
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-gray-100 dark:bg-gray-800 rounded-full">
-                    <Eye className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+                  <div className="p-3 bg-surface-3 rounded-full">
+                    <Eye className="h-6 w-6 text-ink-3 " />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
-                      Viewer Mode
-                    </h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <h3 className="font-semibold text-ink mb-1">Viewer Mode</h3>
+                    <p className="text-sm text-ink-3 ">
                       You have read-only access to view assigned clients and
                       their sessions.
                     </p>
                   </div>
                   <Badge
                     variant="outline"
-                    className="bg-gray-100 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 ml-auto"
+                    className="bg-surface-3 border-line-strong text-ink-2 ml-auto"
                   >
                     View Only Access
                   </Badge>
@@ -330,8 +325,8 @@ export default function CoachDashboard() {
             {/* Right: Start Session (1/3 width) */}
             {canCreateMeeting && (
               <div className="lg:col-span-1 flex">
-                <Card className="border-gray-200 dark:border-gray-700 flex flex-col w-full">
-                  <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-3">
+                <Card className="border-line flex flex-col w-full">
+                  <CardHeader className="border-b border-line pb-3">
                     <CardTitle className="text-base font-semibold">
                       Start Session
                     </CardTitle>
@@ -342,12 +337,12 @@ export default function CoachDashboard() {
                       error={error}
                       onSubmit={handleCreateBot}
                     />
-                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+                    <div className="mt-4 pt-4 border-t border-line space-y-2">
                       <Button
                         onClick={() => setIsGroupSessionModalOpen(true)}
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className="w-full border-line-strong hover:bg-paper "
                       >
                         <Users className="h-4 w-4 mr-2" />
                         Start Group Session
@@ -356,7 +351,7 @@ export default function CoachDashboard() {
                         onClick={() => setIsScheduleSessionModalOpen(true)}
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className="w-full border-line-strong hover:bg-paper "
                       >
                         <CalendarClock className="h-4 w-4 mr-2" />
                         Schedule Session
@@ -365,7 +360,7 @@ export default function CoachDashboard() {
                         onClick={() => setIsManualSessionModalOpen(true)}
                         variant="outline"
                         size="sm"
-                        className="w-full border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800"
+                        className="w-full border-line-strong hover:bg-paper "
                       >
                         <FileText className="h-4 w-4 mr-2" />
                         Add Past Session

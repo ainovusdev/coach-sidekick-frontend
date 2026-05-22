@@ -30,14 +30,14 @@ export function RecentSessionsToReview() {
     <section className="mb-6">
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white">
+          <Users className="h-4 w-4 text-ink-3 " />
+          <h2 className="text-base font-semibold text-ink ">
             Recent sessions to review
           </h2>
         </div>
         <Link
           href="/sessions/shared"
-          className="inline-flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-700"
+          className="inline-flex items-center gap-1 text-sm font-medium text-indigo hover:text-indigo"
         >
           View all
           <ArrowRight className="h-3.5 w-3.5" />

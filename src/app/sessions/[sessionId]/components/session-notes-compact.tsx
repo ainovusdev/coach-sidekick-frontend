@@ -172,9 +172,7 @@ export function SessionNotesCompact({
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <span
                       className={`w-1.5 h-1.5 rounded-full ${
-                        note.note_type === 'shared'
-                          ? 'bg-gray-900 dark:bg-white'
-                          : 'bg-gray-400'
+                        note.note_type === 'shared' ? 'bg-ink ' : 'bg-line'
                       }`}
                     />
                     <span className="text-xs text-app-secondary">
@@ -203,11 +201,11 @@ export function SessionNotesCompact({
                       setCopiedNoteId(note.id)
                       setTimeout(() => setCopiedNoteId(null), 2000)
                     }}
-                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+                    className="p-1 text-ink-4 hover:text-ink-3 hover:bg-surface-3 rounded transition-colors"
                     title="Copy note"
                   >
                     {copiedNoteId === note.id ? (
-                      <Check className="h-3.5 w-3.5 text-green-500" />
+                      <Check className="h-3.5 w-3.5 text-forest" />
                     ) : (
                       <Copy className="h-3.5 w-3.5" />
                     )}
@@ -239,14 +237,14 @@ export function SessionNotesCompact({
               <label className="text-sm font-medium text-app-primary mb-1.5 block">
                 Visibility
               </label>
-              <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5 w-fit">
+              <div className="flex items-center gap-0.5 bg-surface-3 rounded-md p-0.5 w-fit">
                 <button
                   type="button"
                   onClick={() => setNewNoteType('coach_private')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded transition-colors ${
                     newNoteType === 'coach_private'
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'bg-surface-1 text-ink shadow-sm'
+                      : 'text-ink-3 hover:text-ink-2 '
                   }`}
                 >
                   <Lock className="h-3.5 w-3.5" />
@@ -257,8 +255,8 @@ export function SessionNotesCompact({
                   onClick={() => setNewNoteType('shared')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded transition-colors ${
                     newNoteType === 'shared'
-                      ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                      ? 'bg-surface-1 text-ink shadow-sm'
+                      : 'text-ink-3 hover:text-ink-2 '
                   }`}
                 >
                   <Users className="h-3.5 w-3.5" />

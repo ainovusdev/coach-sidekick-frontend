@@ -72,7 +72,6 @@ interface SessionOverviewTabProps {
   onGenerateClientAnalysis?: () => void
   generatingClientAnalysis?: boolean
   isCompleted?: boolean
-  commitmentsLoaded?: boolean
   onCreateCommitment?: () => void
 }
 
@@ -91,7 +90,6 @@ export function SessionOverviewTab({
   onGenerateClientAnalysis,
   generatingClientAnalysis = false,
   isCompleted = false,
-  commitmentsLoaded = false,
   onCreateCommitment,
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
@@ -276,8 +274,6 @@ export function SessionOverviewTab({
                   : commitments || []
               }
               onUpdate={onRefreshCommitments || (() => {})}
-              isCompleted={isCompleted}
-              commitmentsLoaded={commitmentsLoaded}
               onCreateCommitment={onCreateCommitment}
             />
           ))}
@@ -433,7 +429,7 @@ export function SessionOverviewTab({
                   .map((focus, idx) => (
                     <span
                       key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-gray-800 border border-app-border text-sm text-app-primary"
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-1 border border-app-border text-sm text-app-primary"
                     >
                       {focus}
                     </span>

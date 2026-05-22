@@ -148,7 +148,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center py-12">
-          <p className="text-gray-600">No calendar data available</p>
+          <p className="text-ink-3">No calendar data available</p>
         </CardContent>
       </Card>
     )
@@ -164,8 +164,8 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Sandbox Calendar</h2>
-          <p className="text-gray-600 mt-1">
+          <h2 className="text-2xl font-bold text-ink">Sandbox Calendar</h2>
+          <p className="text-ink-3 mt-1">
             Upcoming sessions and coach workload
           </p>
         </div>
@@ -190,48 +190,46 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               This Week
             </CardTitle>
-            <Calendar className="h-5 w-5 text-blue-500" />
+            <Calendar className="h-5 w-5 text-ds-accent" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {calendar.sessions_this_week}
             </div>
-            <p className="text-xs text-gray-600 mt-1">sessions scheduled</p>
+            <p className="text-xs text-ink-3 mt-1">sessions scheduled</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Next Week
             </CardTitle>
-            <TrendingUp className="h-5 w-5 text-purple-500" />
+            <TrendingUp className="h-5 w-5 text-indigo" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {calendar.sessions_next_week}
             </div>
-            <p className="text-xs text-gray-600 mt-1">sessions scheduled</p>
+            <p className="text-xs text-ink-3 mt-1">sessions scheduled</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
+            <CardTitle className="text-sm font-medium text-ink-3">
               Total Upcoming
             </CardTitle>
-            <Clock className="h-5 w-5 text-green-500" />
+            <Clock className="h-5 w-5 text-forest" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold text-gray-900">
+            <div className="text-3xl font-bold text-ink">
               {filteredSessions.length}
             </div>
-            <p className="text-xs text-gray-600 mt-1">
-              in next {daysAhead} days
-            </p>
+            <p className="text-xs text-ink-3 mt-1">in next {daysAhead} days</p>
           </CardContent>
         </Card>
       </div>
@@ -246,7 +244,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
           {/* Client Filters */}
           {uniqueClients.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Clients</p>
+              <p className="text-sm font-medium text-ink-2 mb-2">Clients</p>
               <div className="flex flex-wrap gap-2">
                 {uniqueClients.map(client => (
                   <button
@@ -254,8 +252,8 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                     onClick={() => toggleClientFilter(client.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedClients.includes(client.id)
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                        ? 'bg-ink text-ink-on-dark border-line '
+                        : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line'
                     }`}
                   >
                     {client.name}
@@ -264,7 +262,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                 {selectedClients.length > 0 && (
                   <button
                     onClick={() => setSelectedClients([])}
-                    className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 text-sm rounded-md border border-line-strong text-ink-2 hover:bg-paper"
                   >
                     Clear
                   </button>
@@ -276,7 +274,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
           {/* Coach Filters */}
           {uniqueCoaches.length > 0 && (
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">Coaches</p>
+              <p className="text-sm font-medium text-ink-2 mb-2">Coaches</p>
               <div className="flex flex-wrap gap-2">
                 {uniqueCoaches.map(coach => (
                   <button
@@ -284,8 +282,8 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                     onClick={() => toggleCoachFilter(coach.id)}
                     className={`px-3 py-1.5 text-sm rounded-md border transition-colors ${
                       selectedCoaches.includes(coach.id)
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 border-gray-900 dark:border-white'
-                        : 'bg-white text-gray-700 border-gray-300 hover:border-gray-900'
+                        ? 'bg-ink text-ink-on-dark border-line '
+                        : 'bg-surface-1 text-ink-2 border-line-strong hover:border-line'
                     }`}
                   >
                     {coach.name}
@@ -294,7 +292,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                 {selectedCoaches.length > 0 && (
                   <button
                     onClick={() => setSelectedCoaches([])}
-                    className="px-3 py-1.5 text-sm rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="px-3 py-1.5 text-sm rounded-md border border-line-strong text-ink-2 hover:bg-paper"
                   >
                     Clear
                   </button>
@@ -332,12 +330,12 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-7 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden">
+          <div className="grid grid-cols-7 gap-px bg-surface-3 border border-line rounded-lg overflow-hidden">
             {/* Day headers */}
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
               <div
                 key={day}
-                className="bg-gray-50 p-2 text-center text-xs font-semibold text-gray-700"
+                className="bg-paper p-2 text-center text-xs font-semibold text-ink-2"
               >
                 {day}
               </div>
@@ -352,9 +350,9 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
               return (
                 <div
                   key={day.toISOString()}
-                  className={`bg-white p-2 min-h-[100px] ${
-                    !isCurrentMonth ? 'text-gray-400' : ''
-                  } ${isCurrentDay ? 'ring-2 ring-gray-900 ring-inset' : ''}`}
+                  className={`bg-surface-1 p-2 min-h-[100px] ${
+                    !isCurrentMonth ? 'text-ink-4' : ''
+                  } ${isCurrentDay ? 'ring-2 ring-line ring-inset' : ''}`}
                 >
                   <div className="text-sm font-medium mb-1">
                     {format(day, 'd')}
@@ -363,7 +361,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                     {daySessionsCount.slice(0, 3).map(session => (
                       <div
                         key={session.session_id}
-                        className="text-xs p-1 rounded bg-gray-50 border border-gray-300 cursor-pointer hover:bg-gray-100 truncate"
+                        className="text-xs p-1 rounded bg-paper border border-line-strong cursor-pointer hover:bg-surface-3 truncate"
                         onClick={() =>
                           router.push(`/clients/${session.client_id}`)
                         }
@@ -372,13 +370,13 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                         <div className="font-medium truncate">
                           {formatDate(session.scheduled_date, 'h:mm a')}
                         </div>
-                        <div className="truncate text-gray-600">
+                        <div className="truncate text-ink-3">
                           {session.client_name}
                         </div>
                       </div>
                     ))}
                     {daySessionsCount.length > 3 && (
-                      <div className="text-xs text-gray-500 font-medium">
+                      <div className="text-xs text-ink-3 font-medium">
                         +{daySessionsCount.length - 3} more
                       </div>
                     )}
@@ -395,7 +393,7 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-blue-600" />
+              <Users className="h-5 w-5 text-ds-accent" />
               <CardTitle>Coach Workload</CardTitle>
             </div>
             <CardDescription>
@@ -408,11 +406,11 @@ export function ProgramCalendar({ programId }: ProgramCalendarProps) {
                 .sort(([, a], [, b]) => b - a)
                 .map(([coach, count]) => (
                   <div key={coach} className="p-4 border rounded-lg">
-                    <p className="text-sm text-gray-600 truncate" title={coach}>
+                    <p className="text-sm text-ink-3 truncate" title={coach}>
                       {coach}
                     </p>
-                    <p className="text-2xl font-bold text-gray-900">{count}</p>
-                    <p className="text-xs text-gray-500">sessions</p>
+                    <p className="text-2xl font-bold text-ink">{count}</p>
+                    <p className="text-xs text-ink-3">sessions</p>
                   </div>
                 ))}
             </div>

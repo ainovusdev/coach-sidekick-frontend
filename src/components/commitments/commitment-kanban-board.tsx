@@ -70,7 +70,7 @@ function KanbanColumn({
   }
 
   return (
-    <Card className="border-gray-200 dark:border-gray-700 flex flex-col h-full min-h-0 overflow-hidden">
+    <Card className="border-line flex flex-col h-full min-h-0 overflow-hidden">
       <CardHeader
         className={cn(
           'py-3 pt-4 -mt-2 rounded-t-xl border-b flex-shrink-0',
@@ -80,7 +80,7 @@ function KanbanColumn({
         <CardTitle className="text-sm font-semibold flex items-center gap-2">
           <div className={iconColor}>{icon}</div>
           <span>{title}</span>
-          <span className="ml-auto text-xs font-normal text-gray-500 dark:text-gray-400">
+          <span className="ml-auto text-xs font-normal text-ink-3 ">
             ({commitments.length})
           </span>
         </CardTitle>
@@ -109,9 +109,7 @@ function KanbanColumn({
             ))
           ) : (
             <div className="text-center py-8 px-4">
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {emptyMessage}
-              </p>
+              <p className="text-sm text-ink-3 ">{emptyMessage}</p>
             </div>
           )}
         </div>
@@ -153,8 +151,8 @@ export function CommitmentKanbanBoard({
         onDelete={onDelete}
         onDrop={onDrop}
         emptyMessage="No commitments yet. Create one to get started!"
-        iconColor="text-gray-600 dark:text-gray-400"
-        headerBgColor="bg-gray-50 dark:bg-gray-800"
+        iconColor="text-ink-3 "
+        headerBgColor="bg-paper "
       />
 
       <KanbanColumn
@@ -169,8 +167,8 @@ export function CommitmentKanbanBoard({
         onDelete={onDelete}
         onDrop={onDrop}
         emptyMessage="Drag commitments here when you start working on them"
-        iconColor="text-blue-600 dark:text-blue-400"
-        headerBgColor="bg-blue-50 dark:bg-blue-900/30"
+        iconColor="text-ds-accent "
+        headerBgColor="bg-ds-accent-bg "
       />
 
       <KanbanColumn
@@ -185,8 +183,8 @@ export function CommitmentKanbanBoard({
         onDelete={onDelete}
         onDrop={onDrop}
         emptyMessage="Completed commitments will appear here"
-        iconColor="text-green-600 dark:text-green-400"
-        headerBgColor="bg-green-50 dark:bg-green-900/30"
+        iconColor="text-forest "
+        headerBgColor="bg-forest-bg "
       />
     </div>
   )

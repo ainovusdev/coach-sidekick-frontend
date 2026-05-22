@@ -79,7 +79,7 @@ export function ClientProfileCard({
     return (
       <Card className={compact ? 'h-auto border-0 shadow-none' : 'h-full'}>
         <CardContent className={compact ? 'p-0' : 'pt-4'}>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
+          <p className="text-xs text-ink-3 ">
             Profile will build as sessions are analyzed.
           </p>
         </CardContent>
@@ -106,17 +106,16 @@ export function ClientProfileCard({
   }
 
   const getBreakthroughColor = (potential: string) => {
-    if (potential?.includes('High'))
-      return 'text-green-600 bg-green-50 dark:text-green-400 dark:bg-green-900/30'
+    if (potential?.includes('High')) return 'text-forest bg-forest-bg '
     if (potential?.includes('Emerging'))
-      return 'text-yellow-600 bg-yellow-50 dark:text-yellow-400 dark:bg-yellow-900/30'
-    return 'text-gray-600 bg-gray-50 dark:text-gray-400 dark:bg-gray-800'
+      return 'text-amber-token bg-amber-token-bg '
+    return 'text-ink-3 bg-paper '
   }
 
   return (
     <Card className="h-auto">
       <CardHeader
-        className={`${compact ? 'pb-2 py-2' : 'pb-3'} cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors`}
+        className={`${compact ? 'pb-2 py-2' : 'pb-3'} cursor-pointer hover:bg-paper transition-colors`}
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center justify-between">
@@ -129,9 +128,7 @@ export function ClientProfileCard({
           >
             <User
               className={
-                compact
-                  ? 'h-3 w-3 text-gray-500 dark:text-gray-400'
-                  : 'h-4 w-4 text-gray-500 dark:text-gray-400'
+                compact ? 'h-3 w-3 text-ink-3 ' : 'h-4 w-4 text-ink-3 '
               }
             />
             Client Profile
@@ -143,9 +140,9 @@ export function ClientProfileCard({
           </h3>
           <div className="flex items-center gap-2">
             {isExpanded ? (
-              <ChevronUp className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+              <ChevronUp className="h-3 w-3 text-ink-4 " />
             ) : (
-              <ChevronDown className="h-3 w-3 text-gray-400 dark:text-gray-500" />
+              <ChevronDown className="h-3 w-3 text-ink-4 " />
             )}
           </div>
         </div>
@@ -155,7 +152,7 @@ export function ClientProfileCard({
             {summaryItems.map((item, i) => (
               <span
                 key={i}
-                className="text-xs text-gray-500 truncate max-w-[150px]"
+                className="text-xs text-ink-3 truncate max-w-[150px]"
               >
                 {i > 0 && ' • '}
                 {item}
@@ -164,7 +161,7 @@ export function ClientProfileCard({
           </div>
         )}
         {!isExpanded && summaryItems.length === 0 && (
-          <p className="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+          <p className="mt-1.5 text-xs text-ink-4 ">
             Expand to see profile details
           </p>
         )}
@@ -175,17 +172,15 @@ export function ClientProfileCard({
           {insights?.client_journey && !compact && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-xs font-medium text-ink-2 ">
                   Journey Stage
                 </span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-ink-3 ">
                   {getJourneyProgress()}%
                 </span>
               </div>
               <Progress value={getJourneyProgress()} className="h-1.5" />
-              <p className="text-xs text-gray-600 dark:text-gray-400">
-                {insights.client_journey}
-              </p>
+              <p className="text-xs text-ink-3 ">{insights.client_journey}</p>
             </div>
           )}
 
@@ -194,8 +189,8 @@ export function ClientProfileCard({
             {profile.communication_style && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <MessageSquare className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <MessageSquare className="h-3 w-3 text-ink-4 " />
+                  <span className="text-xs font-medium text-ink-2 ">
                     Communication
                   </span>
                 </div>
@@ -210,8 +205,8 @@ export function ClientProfileCard({
             {profile.learning_style && (
               <div className="space-y-1">
                 <div className="flex items-center gap-1">
-                  <Brain className="h-3 w-3 text-gray-400 dark:text-gray-500" />
-                  <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                  <Brain className="h-3 w-3 text-ink-4 " />
+                  <span className="text-xs font-medium text-ink-2 ">
                     Learning
                   </span>
                 </div>
@@ -231,32 +226,27 @@ export function ClientProfileCard({
             (profile.long_term_goals?.length ?? 0) > 0) && (
             <div className="space-y-2">
               <div className="flex items-center gap-1">
-                <Target className="h-3 w-3 text-green-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                  Vision
-                </span>
+                <Target className="h-3 w-3 text-forest" />
+                <span className="text-xs font-medium text-ink-2 ">Vision</span>
               </div>
               <div className="space-y-1">
                 {profile.primary_goals?.slice(0, 2).map((goal, i) => (
                   <div
                     key={i}
-                    className="text-xs text-gray-600 flex items-start gap-1"
+                    className="text-xs text-ink-3 flex items-start gap-1"
                   >
-                    <span className="text-green-500 mt-0.5">•</span>
+                    <span className="text-forest mt-0.5">•</span>
                     <span>{goal}</span>
                   </div>
                 ))}
                 {profile.short_term_goals?.slice(0, 1).map((goal, i) => (
                   <div
                     key={`st-${i}`}
-                    className="text-xs text-gray-600 flex items-start gap-1"
+                    className="text-xs text-ink-3 flex items-start gap-1"
                   >
-                    <span className="text-blue-500 mt-0.5">•</span>
+                    <span className="text-ds-accent mt-0.5">•</span>
                     <span>
-                      {goal}{' '}
-                      <span className="text-gray-400 dark:text-gray-500">
-                        (short-term)
-                      </span>
+                      {goal} <span className="text-ink-4 ">(short-term)</span>
                     </span>
                   </div>
                 ))}
@@ -269,8 +259,8 @@ export function ClientProfileCard({
             (profile.obstacles?.length ?? 0) > 0) && (
             <div className="space-y-2">
               <div className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3 text-orange-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <AlertCircle className="h-3 w-3 text-amber-token" />
+                <span className="text-xs font-medium text-ink-2 ">
                   Current Challenges
                 </span>
               </div>
@@ -283,9 +273,9 @@ export function ClientProfileCard({
                   .map((challenge, i) => (
                     <div
                       key={i}
-                      className="text-xs text-gray-600 flex items-start gap-1"
+                      className="text-xs text-ink-3 flex items-start gap-1"
                     >
-                      <span className="text-orange-500 mt-0.5">•</span>
+                      <span className="text-amber-token mt-0.5">•</span>
                       <span>{challenge}</span>
                     </div>
                   ))}
@@ -297,8 +287,8 @@ export function ClientProfileCard({
           {(profile.strengths?.length ?? 0) > 0 && (
             <div className="space-y-2">
               <div className="flex items-center gap-1">
-                <Award className="h-3 w-3 text-purple-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <Award className="h-3 w-3 text-indigo" />
+                <span className="text-xs font-medium text-ink-2 ">
                   Strengths
                 </span>
               </div>
@@ -306,7 +296,7 @@ export function ClientProfileCard({
                 {profile.strengths?.slice(0, 4).map((strength, i) => (
                   <Badge
                     key={i}
-                    className="text-xs bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800"
+                    className="text-xs bg-indigo-bg text-indigo border-indigo "
                   >
                     {strength}
                   </Badge>
@@ -320,8 +310,8 @@ export function ClientProfileCard({
             (insights?.suggested_focus?.length ?? 0) > 0) && (
             <div className="space-y-2">
               <div className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3 text-blue-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <TrendingUp className="h-3 w-3 text-ds-accent" />
+                <span className="text-xs font-medium text-ink-2 ">
                   Focus Areas
                 </span>
               </div>
@@ -341,8 +331,8 @@ export function ClientProfileCard({
           {insights?.breakthrough_potential && (
             <div className="space-y-1">
               <div className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3 text-yellow-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <Sparkles className="h-3 w-3 text-amber-token" />
+                <span className="text-xs font-medium text-ink-2 ">
                   Breakthrough Potential
                 </span>
               </div>
@@ -357,7 +347,7 @@ export function ClientProfileCard({
           {/* Recurring Themes */}
           {(profile.recurring_themes?.length ?? 0) > 0 && (
             <div className="space-y-2">
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+              <span className="text-xs font-medium text-ink-2 ">
                 Recurring Themes
               </span>
               <div className="flex flex-wrap gap-1">
@@ -375,7 +365,7 @@ export function ClientProfileCard({
             <div className="space-y-2 border-t pt-2">
               <div className="flex items-center gap-1">
                 <Award className="h-3 w-3 text-gold-500" />
-                <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                <span className="text-xs font-medium text-ink-2 ">
                   Recent Achievements
                 </span>
               </div>
@@ -383,9 +373,9 @@ export function ClientProfileCard({
                 {profile.achievements?.slice(0, 2).map((achievement, i) => (
                   <div
                     key={i}
-                    className="text-xs text-gray-600 flex items-start gap-1"
+                    className="text-xs text-ink-3 flex items-start gap-1"
                   >
-                    <span className="text-yellow-500">★</span>
+                    <span className="text-amber-token">★</span>
                     <span>{achievement}</span>
                   </div>
                 ))}

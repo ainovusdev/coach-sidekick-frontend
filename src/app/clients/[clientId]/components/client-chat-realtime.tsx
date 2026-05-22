@@ -184,7 +184,7 @@ export function ClientChatRealtime({
     return (
       <Card className="flex flex-col h-full">
         <div className="flex items-center justify-center flex-1">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-ink-4" />
         </div>
       </Card>
     )
@@ -195,11 +195,11 @@ export function ClientChatRealtime({
       <Card className="flex flex-col h-full p-4">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center max-w-sm">
-            <MessageSquare className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">
+            <MessageSquare className="h-10 w-10 text-ink-2 mx-auto mb-3" />
+            <h3 className="text-sm font-medium text-ink mb-1">
               No Knowledge Base Yet
             </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-ink-3 ">
               The AI assistant will be available after analyzing coaching
               sessions.
             </p>
@@ -210,24 +210,24 @@ export function ClientChatRealtime({
   }
 
   return (
-    <Card className="flex flex-col h-full bg-gradient-to-b from-white to-gray-50/50 dark:from-gray-900 dark:to-gray-900">
+    <Card className="flex flex-col h-full  ">
       {/* Header */}
-      <div className="border-b dark:border-gray-700 bg-white dark:bg-gray-900 px-4 py-3">
+      <div className="border-b bg-surface-1 px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
-                <Headphones className="h-5 w-5 text-white" />
+              <div className="h-10 w-10 rounded-lg bg-surface-3 flex items-center justify-center shadow-lg">
+                <Headphones className="h-5 w-5 text-ink-on-dark" />
               </div>
               <div
                 className={cn(
-                  'absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-white',
-                  isConnected ? 'bg-green-500' : 'bg-red-500',
+                  'absolute -bottom-1 -right-1 h-3 w-3 rounded-full border-2 border-paper',
+                  isConnected ? 'bg-forest' : 'bg-vermillion',
                 )}
               />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-base font-semibold text-ink ">
                 Realtime Voice Chat
               </h3>
               <div className="flex items-center gap-2 mt-0.5">
@@ -254,7 +254,7 @@ export function ClientChatRealtime({
 
           <div className="flex items-center gap-2">
             {/* Mode Toggle */}
-            <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5">
+            <div className="flex bg-surface-3 rounded-lg p-0.5">
               <Button
                 size="sm"
                 variant={mode === 'voice' ? 'default' : 'ghost'}
@@ -294,13 +294,13 @@ export function ClientChatRealtime({
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full py-8">
             <div className="text-center max-w-md">
-              <div className="h-16 w-16 rounded-full bg-gradient-to-br from-violet-100 to-purple-100 mx-auto mb-4 flex items-center justify-center">
-                <Bot className="h-8 w-8 text-violet-600" />
+              <div className="h-16 w-16 rounded-full  mx-auto mb-4 flex items-center justify-center">
+                <Bot className="h-8 w-8 text-indigo" />
               </div>
-              <h4 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              <h4 className="text-lg font-semibold text-ink mb-2">
                 Ready for conversation
               </h4>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              <p className="text-sm text-ink-3 mb-4">
                 {mode === 'voice'
                   ? `Hold the record button and speak naturally about ${
                       clientName || 'your client'
@@ -310,7 +310,7 @@ export function ClientChatRealtime({
               {stats.suggested_questions &&
                 stats.suggested_questions.length > 0 && (
                   <div className="space-y-2 mt-6">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider">
+                    <p className="text-xs text-ink-3 uppercase tracking-wider">
                       Try asking
                     </p>
                     {stats.suggested_questions.slice(0, 2).map((q, idx) => (
@@ -321,7 +321,7 @@ export function ClientChatRealtime({
                         onClick={() => (mode === 'text' ? setInput(q) : null)}
                         className="text-xs text-left justify-start h-auto py-2 px-3 w-full"
                       >
-                        <Sparkles className="h-3 w-3 mr-2 flex-shrink-0 text-violet-500" />
+                        <Sparkles className="h-3 w-3 mr-2 flex-shrink-0 text-indigo" />
                         <span className="line-clamp-2">{q}</span>
                       </Button>
                     ))}
@@ -341,8 +341,8 @@ export function ClientChatRealtime({
               >
                 {message.role === 'assistant' && (
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
-                      <Bot className="h-4 w-4 text-white" />
+                    <div className="h-8 w-8 rounded-lg bg-surface-3 flex items-center justify-center shadow-sm">
+                      <Bot className="h-4 w-4 text-ink-on-dark" />
                     </div>
                   </div>
                 )}
@@ -357,17 +357,15 @@ export function ClientChatRealtime({
                     className={cn(
                       'rounded-xl px-4 py-2.5 shadow-sm',
                       message.role === 'user'
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                        : 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700',
+                        ? 'bg-ink text-ink-on-dark '
+                        : 'bg-surface-1 border border-line ',
                     )}
                   >
                     {message.isVoice && (
                       <div
                         className={cn(
                           'flex items-center gap-1.5 mb-1.5 text-xs',
-                          message.role === 'user'
-                            ? 'text-gray-400'
-                            : 'text-gray-500',
+                          message.role === 'user' ? 'text-ink-4' : 'text-ink-3',
                         )}
                       >
                         <Volume2 className="h-3 w-3" />
@@ -388,7 +386,7 @@ export function ClientChatRealtime({
                     message.sources.length > 0 && (
                       <button
                         onClick={() => toggleSources(message.id)}
-                        className="inline-flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                        className="inline-flex items-center gap-1.5 text-xs text-ink-3 hover:text-ink-2 "
                       >
                         <BookOpen className="h-3 w-3" />
                         {showSources[message.id] ? 'Hide' : 'Show'} sources
@@ -406,13 +404,11 @@ export function ClientChatRealtime({
                       {message.sources.map((source: any, idx: number) => (
                         <div
                           key={idx}
-                          className="bg-gray-50 dark:bg-gray-800 rounded-lg p-2.5 text-xs"
+                          className="bg-paper rounded-lg p-2.5 text-xs"
                         >
                           <div className="flex justify-between mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">
-                              {source.date}
-                            </span>
-                            <span className="text-gray-500 dark:text-gray-400">
+                            <span className="text-ink-3 ">{source.date}</span>
+                            <span className="text-ink-3 ">
                               {(source.relevance * 100).toFixed(0)}% match
                             </span>
                           </div>
@@ -437,8 +433,8 @@ export function ClientChatRealtime({
 
                 {message.role === 'user' && (
                   <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center shadow-sm">
-                      <User className="h-4 w-4 text-white" />
+                    <div className="h-8 w-8 rounded-lg bg-surface-3 flex items-center justify-center shadow-sm">
+                      <User className="h-4 w-4 text-ink-on-dark" />
                     </div>
                   </div>
                 )}
@@ -449,8 +445,8 @@ export function ClientChatRealtime({
             {isRecording && (
               <div className="flex gap-3 justify-start">
                 <div className="h-8 w-8" />
-                <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg px-3 py-2 flex items-center gap-2">
-                  <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
+                <div className="bg-vermillion-bg text-vermillion rounded-lg px-3 py-2 flex items-center gap-2">
+                  <div className="h-2 w-2 rounded-full bg-vermillion animate-pulse" />
                   <span className="text-sm">Listening...</span>
                   {interimTranscript && (
                     <span className="text-sm italic ml-2">
@@ -464,7 +460,7 @@ export function ClientChatRealtime({
             {isSpeaking && (
               <div className="flex gap-3 justify-start">
                 <div className="h-8 w-8" />
-                <div className="bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg px-3 py-2 flex items-center gap-2">
+                <div className="bg-indigo-bg text-indigo rounded-lg px-3 py-2 flex items-center gap-2">
                   <Volume2 className="h-4 w-4 animate-pulse" />
                   <span className="text-sm">Speaking...</span>
                 </div>
@@ -477,7 +473,7 @@ export function ClientChatRealtime({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t dark:border-gray-700 bg-white dark:bg-gray-900 p-4">
+      <div className="border-t bg-surface-1 p-4">
         {mode === 'voice' ? (
           <div className="flex flex-col items-center gap-3">
             <TooltipProvider>
@@ -550,7 +546,7 @@ export function ClientChatRealtime({
               </div>
             </TooltipProvider>
 
-            <p className="text-xs text-gray-500 dark:text-gray-400">
+            <p className="text-xs text-ink-3 ">
               Hold the button and speak naturally
             </p>
           </div>
@@ -562,7 +558,7 @@ export function ClientChatRealtime({
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder={`Ask about ${clientName || 'this client'}...`}
-              className="w-full min-h-[44px] max-h-[120px] pl-4 pr-12 py-3 text-sm border border-gray-200 dark:border-gray-700 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent bg-white dark:bg-gray-800 dark:text-white dark:placeholder:text-gray-500"
+              className="w-full min-h-[44px] max-h-[120px] pl-4 pr-12 py-3 text-sm border border-line rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-indigo focus:border-transparent bg-surface-1 "
               disabled={!isConnected}
               rows={1}
             />

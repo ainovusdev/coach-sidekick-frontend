@@ -244,10 +244,10 @@ export default function AdminClientsPage() {
       <div>
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-gray-100 dark:to-gray-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold  bg-clip-text text-transparent">
               Client Management
             </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-2">
+            <p className="text-ink-3 mt-2">
               View and manage all clients across the organization
             </p>
           </div>
@@ -279,10 +279,10 @@ export default function AdminClientsPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Total Clients
                 </CardTitle>
-                <Users className="h-4 w-4 text-gray-400 dark:text-gray-500" />
+                <Users className="h-4 w-4 text-ink-4 " />
               </div>
             </CardHeader>
             <CardContent>
@@ -298,17 +298,17 @@ export default function AdminClientsPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   With Portal Access
                 </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-500" />
+                <CheckCircle className="h-4 w-4 text-forest" />
               </div>
             </CardHeader>
             <CardContent>
               {loadingStats ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                <div className="text-2xl font-bold text-forest ">
                   {stats?.total_with_portal_access || 0}
                 </div>
               )}
@@ -317,17 +317,17 @@ export default function AdminClientsPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Total Sessions
                 </CardTitle>
-                <Calendar className="h-4 w-4 text-blue-500" />
+                <Calendar className="h-4 w-4 text-ds-accent" />
               </div>
             </CardHeader>
             <CardContent>
               {loadingStats ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                <div className="text-2xl font-bold text-ds-accent ">
                   {stats?.total_sessions || 0}
                 </div>
               )}
@@ -336,17 +336,17 @@ export default function AdminClientsPage() {
           <Card>
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <CardTitle className="text-sm font-medium text-ink-3 ">
                   Coaches
                 </CardTitle>
-                <UserCheck className="h-4 w-4 text-purple-500" />
+                <UserCheck className="h-4 w-4 text-indigo" />
               </div>
             </CardHeader>
             <CardContent>
               {loadingStats ? (
                 <Skeleton className="h-8 w-16" />
               ) : (
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+                <div className="text-2xl font-bold text-indigo ">
                   {stats?.by_coach?.length || 0}
                 </div>
               )}
@@ -360,7 +360,7 @@ export default function AdminClientsPage() {
         <CardHeader className="pb-3">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="relative flex-1 min-w-[200px] max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-gray-500" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4 " />
               <Input
                 placeholder="Search by name or email..."
                 value={searchQuery}
@@ -416,18 +416,18 @@ export default function AdminClientsPage() {
 
       {/* Bulk Action Bar */}
       {selectedClients.size > 0 && (
-        <Card className="bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800">
+        <Card className="bg-ds-accent-bg border-ds-accent ">
           <CardContent className="py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <span className="text-sm font-medium text-blue-700 dark:text-blue-400">
+                <span className="text-sm font-medium text-ds-accent ">
                   {selectedClients.size} client(s) selected
                 </span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearSelection}
-                  className="text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300"
+                  className="text-ds-accent hover:text-ds-accent "
                 >
                   Clear selection
                 </Button>
@@ -473,11 +473,9 @@ export default function AdminClientsPage() {
             </div>
           ) : clients.length === 0 ? (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
-                No clients found
-              </p>
-              <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+              <Users className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+              <p className="text-ink-3 ">No clients found</p>
+              <p className="text-ink-4 text-sm mt-1">
                 Try adjusting your filters
               </p>
             </div>
@@ -515,7 +513,7 @@ export default function AdminClientsPage() {
                       <div>
                         <div className="font-medium">{client.name}</div>
                         {client.email && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                          <div className="text-sm text-ink-3 ">
                             {client.email}
                           </div>
                         )}
@@ -526,17 +524,13 @@ export default function AdminClientsPage() {
                         <div className="font-medium">
                           {client.coach_name || 'Unknown'}
                         </div>
-                        <div className="text-gray-500 dark:text-gray-400">
-                          {client.coach_email}
-                        </div>
+                        <div className="text-ink-3 ">{client.coach_email}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {client.programs.length === 0 ? (
-                          <span className="text-gray-400 dark:text-gray-500 text-sm">
-                            None
-                          </span>
+                          <span className="text-ink-4 text-sm">None</span>
                         ) : (
                           client.programs.slice(0, 2).map(program => (
                             <Badge
@@ -567,12 +561,12 @@ export default function AdminClientsPage() {
                     </TableCell>
                     <TableCell className="text-center">
                       {client.has_portal_access ? (
-                        <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
+                        <CheckCircle className="h-4 w-4 text-forest mx-auto" />
                       ) : (
-                        <XCircle className="h-4 w-4 text-gray-300 dark:text-gray-600 mx-auto" />
+                        <XCircle className="h-4 w-4 text-ink-2 mx-auto" />
                       )}
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500 dark:text-gray-400">
+                    <TableCell className="text-sm text-ink-3 ">
                       {formatDateValue(client.last_session_date)}
                     </TableCell>
                     <TableCell>
@@ -594,7 +588,7 @@ export default function AdminClientsPage() {
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             onClick={() => openDeleteDialog(client)}
-                            className="text-red-600 dark:text-red-400"
+                            className="text-vermillion "
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Delete
@@ -612,7 +606,7 @@ export default function AdminClientsPage() {
 
       {/* Pagination info */}
       {clientsData && (
-        <div className="text-sm text-gray-500 dark:text-gray-400 text-center">
+        <div className="text-sm text-ink-3 text-center">
           Showing {clients.length} of {clientsData.total} clients
         </div>
       )}

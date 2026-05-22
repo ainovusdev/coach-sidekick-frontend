@@ -4,8 +4,28 @@
  * Uses token in URL and optional X-Guest-Token header
  */
 
+import AuthService from './auth-service'
+
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
+
+/**
+ * Build headers, optionally including the user's portal Authorization token
+ * when one is present. The live-meeting endpoints work without auth, but
+ * sending the token lets the backend claim the guest identifier for the
+ * logged-in client so their notes attribute to their portal account.
+ */
+function buildHeaders(extra?: Record<string, string>): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(extra || {}),
+  }
+  const token = AuthService.getToken()
+  if (token && !headers.Authorization) {
+    headers.Authorization = `Bearer ${token}`
+  }
+  return headers
+}
 
 // ============ Types ============
 
@@ -217,9 +237,7 @@ export class LiveMeetingService {
   ): Promise<GuestIdentifier> {
     const response = await fetch(`${BACKEND_URL}/live-meeting/${token}/guest`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: buildHeaders(),
       body: JSON.stringify({
         guest_token: existingGuestToken || null,
         display_name: displayName || null,

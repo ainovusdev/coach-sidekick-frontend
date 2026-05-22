@@ -15,22 +15,17 @@ interface ClientCardProps {
 }
 
 function getHealthStatus(lastSessionDate?: string | null): {
-  color: string
   dotClass: string
 } {
   if (!lastSessionDate) {
-    return { color: 'gray', dotClass: 'bg-gray-400' }
+    return { dotClass: 'bg-ink-4' }
   }
   const daysSince = Math.floor(
     (Date.now() - new Date(lastSessionDate).getTime()) / (1000 * 60 * 60 * 24),
   )
-  if (daysSince <= 14) {
-    return { color: 'green', dotClass: 'bg-green-500' }
-  }
-  if (daysSince <= 30) {
-    return { color: 'yellow', dotClass: 'bg-amber-500' }
-  }
-  return { color: 'red', dotClass: 'bg-red-500' }
+  if (daysSince <= 14) return { dotClass: 'bg-forest' }
+  if (daysSince <= 30) return { dotClass: 'bg-amber-token' }
+  return { dotClass: 'bg-vermillion' }
 }
 
 function formatLastSession(dateStr: string): string {
@@ -70,7 +65,7 @@ export function ClientCard({
     <PermissionGate resource="clients" action="view" fallback={null}>
       <Card
         className={cn(
-          'border border-gray-200 dark:border-gray-700 hover:border-gray-900 dark:hover:border-gray-500 hover:shadow-sm transition-all duration-200',
+          'border border-line hover:border-line-strong hover:shadow-sm transition-all duration-200',
           onClick && !isViewer ? 'cursor-pointer' : 'cursor-default',
           className,
         )}
@@ -79,14 +74,14 @@ export function ClientCard({
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
-              <Avatar className="h-10 w-10 bg-gray-900 border-2 border-gray-200 dark:border-gray-700">
-                <AvatarFallback className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-bold">
+              <Avatar className="h-10 w-10 bg-ink border-2 border-line">
+                <AvatarFallback className="bg-ink text-ink-on-dark text-sm font-bold">
                   {getInitials(name)}
                 </AvatarFallback>
               </Avatar>
               <span
                 className={cn(
-                  'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white dark:border-gray-900',
+                  'absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-paper',
                   health.dotClass,
                 )}
                 title={
@@ -97,26 +92,22 @@ export function ClientCard({
               />
             </div>
             <div className="flex-1 min-w-0">
-              <h3 className="font-semibold text-gray-900 dark:text-white text-sm truncate">
+              <h3 className="font-semibold text-ink text-sm truncate">
                 {name}
               </h3>
               {lastSessionDate ? (
                 <div className="flex items-center gap-1 mt-1">
-                  <Calendar className="h-3 w-3 text-gray-400 flex-shrink-0" />
-                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                  <Calendar className="h-3 w-3 text-ink-4 flex-shrink-0" />
+                  <p className="text-xs text-ink-3">
                     {formatLastSession(lastSessionDate)}
                   </p>
                 </div>
               ) : email ? (
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-1">
-                  {email}
-                </p>
+                <p className="text-xs text-ink-3 truncate mt-1">{email}</p>
               ) : isMyClient === false && coachName ? (
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  by {coachName}
-                </p>
+                <p className="text-xs text-ink-3 mt-1">by {coachName}</p>
               ) : (
-                <p className="text-xs text-gray-400 mt-1">No sessions yet</p>
+                <p className="text-xs text-ink-4 mt-1">No sessions yet</p>
               )}
             </div>
           </div>

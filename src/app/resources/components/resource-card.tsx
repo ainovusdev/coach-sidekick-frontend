@@ -82,7 +82,7 @@ export function ResourceCard({
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors"
+      className="flex items-center gap-3 px-4 py-3 border-b border-line hover:bg-paper cursor-pointer transition-colors"
       onClick={() => onView(resource)}
     >
       {/* Category Icon */}
@@ -93,12 +93,12 @@ export function ResourceCard({
       {/* Title + Description */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
+          <h3 className="text-sm font-medium text-ink truncate">
             {resource.title}
           </h3>
         </div>
         {resource.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+          <p className="text-xs text-ink-3 truncate mt-0.5">
             {resource.description}
           </p>
         )}
@@ -122,7 +122,7 @@ export function ResourceCard({
             <PopoverTrigger asChild>
               <Badge
                 variant="outline"
-                className="text-xs gap-1 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
+                className="text-xs gap-1 cursor-pointer hover:bg-surface-3 "
                 onClick={e => e.stopPropagation()}
               >
                 <Share2 className="h-3 w-3" />
@@ -134,20 +134,18 @@ export function ResourceCard({
               className="w-auto max-w-64 p-3"
               onClick={e => e.stopPropagation()}
             >
-              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
-                Shared with
-              </p>
+              <p className="text-xs font-medium text-ink-3 mb-2">Shared with</p>
               <div className="flex flex-wrap gap-1.5">
                 {resource.shares?.slice(0, 3).map(share => (
                   <span
                     key={share.id}
-                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-800"
+                    className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border border-line text-ink-2 bg-paper "
                   >
                     {share.shared_with_name || 'Unknown'}
                   </span>
                 ))}
                 {shareCount > 3 && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium text-ink-3 bg-surface-3 ">
                     +{shareCount - 3} more
                   </span>
                 )}
@@ -156,7 +154,7 @@ export function ResourceCard({
           </Popover>
         )}
 
-        <span className="text-xs text-gray-400 hidden lg:inline">
+        <span className="text-xs text-ink-4 hidden lg:inline">
           {formatDate(resource.created_at)}
         </span>
 
@@ -192,7 +190,7 @@ export function ResourceCard({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => onDelete(resource)}
-                  className="text-red-600"
+                  className="text-vermillion"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete

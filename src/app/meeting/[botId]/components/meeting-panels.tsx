@@ -219,17 +219,17 @@ export default function MeetingPanels({
               size="sm"
               onClick={() => setAiSuggestionsOpen(!aiSuggestionsOpen)}
               className={cn(
-                'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-r-lg rounded-l-none border-l-0',
-                aiSuggestionsOpen && 'bg-gray-100 dark:bg-gray-700',
+                'h-auto py-3 px-2 border-line bg-surface-1 hover:bg-paper rounded-r-lg rounded-l-none border-l-0',
+                aiSuggestionsOpen && 'bg-surface-3 ',
               )}
             >
               <div className="flex flex-col items-center gap-2">
                 {aiSuggestionsOpen ? (
-                  <PanelLeftClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <PanelLeftClose className="h-4 w-4 text-ink-3 " />
                 ) : (
-                  <PanelLeftOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                  <PanelLeftOpen className="h-4 w-4 text-ink-3 " />
                 )}
-                <Sparkles className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                <Sparkles className="h-3.5 w-3.5 text-ink-3 " />
               </div>
             </Button>
           </div>
@@ -237,7 +237,7 @@ export default function MeetingPanels({
           {/* Collapsible AI Suggestions Panel + Resources */}
           <div
             className={cn(
-              'flex-shrink-0 border-r border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
+              'flex-shrink-0 border-r border-line bg-surface-1 transition-all duration-300 ease-in-out overflow-hidden',
               aiSuggestionsOpen ? 'w-72 xl:w-80 2xl:w-96' : 'w-0',
             )}
           >
@@ -252,14 +252,14 @@ export default function MeetingPanels({
 
               {/* Resources section below AI suggestions */}
               {allResources.length > 0 && (
-                <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="flex-shrink-0 border-t border-line overflow-hidden">
                   <button
                     onClick={() => setResourcesOpen(!resourcesOpen)}
-                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-2 hover:bg-paper transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <BookOpen className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
-                      <span className="text-xs font-semibold text-gray-900 dark:text-white">
+                      <BookOpen className="h-3.5 w-3.5 text-ds-accent " />
+                      <span className="text-xs font-semibold text-ink ">
                         Resources
                       </span>
                       <Badge
@@ -270,9 +270,9 @@ export default function MeetingPanels({
                       </Badge>
                     </div>
                     {resourcesOpen ? (
-                      <ChevronUp className="h-3 w-3 text-gray-400" />
+                      <ChevronUp className="h-3 w-3 text-ink-4" />
                     ) : (
-                      <ChevronDown className="h-3 w-3 text-gray-400" />
+                      <ChevronDown className="h-3 w-3 text-ink-4" />
                     )}
                   </button>
 
@@ -293,19 +293,19 @@ export default function MeetingPanels({
                         return (
                           <div
                             key={resource.id}
-                            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                            className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-paper "
                           >
                             <div
                               className={`p-1 rounded ${colors.bg} shrink-0`}
                             >
                               <Icon className={`h-3 w-3 ${colors.text}`} />
                             </div>
-                            <p className="flex-1 min-w-0 text-[11px] font-medium text-gray-900 dark:text-white truncate">
+                            <p className="flex-1 min-w-0 text-[11px] font-medium text-ink truncate">
                               {resource.title}
                             </p>
                             {targetClientId &&
                               (alreadyShared ? (
-                                <div className="shrink-0 flex items-center gap-0.5 text-green-600 dark:text-green-400">
+                                <div className="shrink-0 flex items-center gap-0.5 text-forest ">
                                   <Check className="h-2.5 w-2.5" />
                                   <span className="text-[9px] font-medium">
                                     Shared
@@ -367,17 +367,17 @@ export default function MeetingPanels({
                   isMeetingEnded={isMeetingEnded}
                 />
               ) : (
-                <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                <Card className="bg-surface-1 rounded-xl shadow-sm border border-line h-full">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <FileText className="h-4 w-4 text-gray-400" />
+                      <div className="p-2 bg-surface-3 rounded-lg">
+                        <FileText className="h-4 w-4 text-ink-4" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <h4 className="text-sm font-medium text-ink-2 ">
                           Notes
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-ink-3 mt-1">
                           Session loading...
                         </p>
                       </div>
@@ -399,18 +399,18 @@ export default function MeetingPanels({
           >
             <button
               onClick={() => setCommitmentsOpen(!commitmentsOpen)}
-              className="flex items-center justify-between px-3 py-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-t-xl flex-shrink-0 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors lg:hidden"
+              className="flex items-center justify-between px-3 py-2 bg-surface-1 border border-line rounded-t-xl flex-shrink-0 hover:bg-paper transition-colors lg:hidden"
             >
               <div className="flex items-center gap-2">
-                <Target className="h-3.5 w-3.5 text-gray-500" />
-                <span className="text-xs font-semibold text-gray-900 dark:text-white">
+                <Target className="h-3.5 w-3.5 text-ink-3" />
+                <span className="text-xs font-semibold text-ink ">
                   Commitments
                 </span>
               </div>
               {commitmentsOpen ? (
-                <ChevronUp className="h-3 w-3 text-gray-400" />
+                <ChevronUp className="h-3 w-3 text-ink-4" />
               ) : (
-                <ChevronDown className="h-3 w-3 text-gray-400" />
+                <ChevronDown className="h-3 w-3 text-ink-4" />
               )}
             </button>
             <div
@@ -425,17 +425,17 @@ export default function MeetingPanels({
                   clientId={commitmentClientId}
                 />
               ) : sessionId && !commitmentClientId ? (
-                <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/50 h-full">
+                <Card className="bg-surface-1 rounded-xl shadow-sm border border-amber-token h-full">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-amber-50 dark:bg-amber-900/30 rounded-lg">
-                        <Target className="h-4 w-4 text-amber-500 dark:text-amber-400" />
+                      <div className="p-2 bg-amber-token-bg rounded-lg">
+                        <Target className="h-4 w-4 text-amber-token " />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <h4 className="text-sm font-medium text-ink-2 ">
                           Commitments
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-ink-3 mt-1">
                           No client selected
                         </p>
                       </div>
@@ -443,17 +443,17 @@ export default function MeetingPanels({
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 h-full">
+                <Card className="bg-surface-1 rounded-xl shadow-sm border border-line h-full">
                   <CardContent className="p-4">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-                        <Target className="h-4 w-4 text-gray-400" />
+                      <div className="p-2 bg-surface-3 rounded-lg">
+                        <Target className="h-4 w-4 text-ink-4" />
                       </div>
                       <div>
-                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        <h4 className="text-sm font-medium text-ink-2 ">
                           Commitments
                         </h4>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        <p className="text-xs text-ink-3 mt-1">
                           Session loading...
                         </p>
                       </div>
@@ -473,20 +473,20 @@ export default function MeetingPanels({
           size="sm"
           onClick={() => setSidebarOpen(!sidebarOpen)}
           className={cn(
-            'h-auto py-3 px-2 border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-l-lg rounded-r-none border-r-0',
-            sidebarOpen && 'bg-gray-100 dark:bg-gray-700',
+            'h-auto py-3 px-2 border-line bg-surface-1 hover:bg-paper rounded-l-lg rounded-r-none border-r-0',
+            sidebarOpen && 'bg-surface-3 ',
           )}
         >
           <div className="flex flex-col items-center gap-2">
             {sidebarOpen ? (
-              <PanelRightClose className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <PanelRightClose className="h-4 w-4 text-ink-3 " />
             ) : (
-              <PanelRightOpen className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <PanelRightOpen className="h-4 w-4 text-ink-3 " />
             )}
             <div className="flex flex-col items-center gap-1">
-              <MessageSquare className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-              <Info className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-              <BookOpen className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+              <MessageSquare className="h-3.5 w-3.5 text-ink-3 " />
+              <Info className="h-3.5 w-3.5 text-ink-3 " />
+              <BookOpen className="h-3.5 w-3.5 text-ink-3 " />
             </div>
           </div>
         </Button>
@@ -495,27 +495,27 @@ export default function MeetingPanels({
       {/* Collapsible Sidebar */}
       <div
         className={cn(
-          'flex-shrink-0 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 transition-all duration-300 ease-in-out overflow-hidden',
+          'flex-shrink-0 border-l border-line bg-surface-1 transition-all duration-300 ease-in-out overflow-hidden',
           sidebarOpen ? 'w-72 xl:w-80' : 'w-0',
         )}
       >
         <div className="w-72 xl:w-80 h-full flex flex-col">
           {/* Sidebar Tabs */}
-          <div className="flex-shrink-0 border-b border-gray-100 dark:border-gray-700">
+          <div className="flex-shrink-0 border-b border-line ">
             <div className="flex">
               <button
                 onClick={() => setSidebarTab('transcript')}
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'transcript'
-                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                    ? 'text-ink border-line '
+                    : 'text-ink-3 border-transparent hover:text-ink-2 ',
                 )}
               >
                 <MessageSquare className="h-3.5 w-3.5" />
                 Transcript
                 {transcript.length > 0 && (
-                  <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                  <span className="text-xs bg-surface-3 px-1.5 py-0.5 rounded text-ink-3 ">
                     {transcript.length}
                   </span>
                 )}
@@ -525,8 +525,8 @@ export default function MeetingPanels({
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'context'
-                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                    ? 'text-ink border-line '
+                    : 'text-ink-3 border-transparent hover:text-ink-2 ',
                 )}
               >
                 <Info className="h-3.5 w-3.5" />
@@ -537,8 +537,8 @@ export default function MeetingPanels({
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'resources'
-                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                    ? 'text-ink border-line '
+                    : 'text-ink-3 border-transparent hover:text-ink-2 ',
                 )}
               >
                 <BookOpen className="h-3.5 w-3.5" />
@@ -549,8 +549,8 @@ export default function MeetingPanels({
                 className={cn(
                   'flex-1 py-2.5 text-xs font-medium transition-colors border-b-2 flex items-center justify-center gap-1.5',
                   sidebarTab === 'questionnaire'
-                    ? 'text-gray-900 dark:text-white border-gray-900 dark:border-white'
-                    : 'text-gray-500 dark:text-gray-400 border-transparent hover:text-gray-700 dark:hover:text-gray-300',
+                    ? 'text-ink border-line '
+                    : 'text-ink-3 border-transparent hover:text-ink-2 ',
                 )}
               >
                 <ClipboardList className="h-3.5 w-3.5" />
@@ -582,14 +582,14 @@ export default function MeetingPanels({
                 <Accordion
                   type="multiple"
                   defaultValue={['profile']}
-                  className="divide-y divide-gray-100 dark:divide-gray-700"
+                  className="divide-y divide-line "
                 >
                   {/* Client Profile */}
                   <AccordionItem value="profile" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-paper text-xs">
                       <div className="flex items-center gap-2">
-                        <User className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                        <User className="h-3.5 w-3.5 text-ink-3 " />
+                        <span className="font-medium text-ink-2 ">
                           Client Profile
                         </span>
                       </div>
@@ -597,8 +597,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-3/4"></div>
+                          <div className="h-3 bg-surface-3 rounded w-full"></div>
+                          <div className="h-3 bg-surface-3 rounded w-3/4"></div>
                         </div>
                       ) : (
                         <ClientProfileCard
@@ -612,14 +612,14 @@ export default function MeetingPanels({
 
                   {/* Similar Sessions */}
                   <AccordionItem value="similar" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-paper text-xs">
                       <div className="flex items-center gap-2">
-                        <History className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                        <History className="h-3.5 w-3.5 text-ink-3 " />
+                        <span className="font-medium text-ink-2 ">
                           Similar Sessions
                         </span>
                         {(fullContext?.similar_sessions?.length || 0) > 0 && (
-                          <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                          <span className="text-xs bg-surface-3 px-1.5 py-0.5 rounded text-ink-3 ">
                             {fullContext?.similar_sessions?.length}
                           </span>
                         )}
@@ -628,8 +628,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-5/6"></div>
+                          <div className="h-3 bg-surface-3 rounded w-full"></div>
+                          <div className="h-3 bg-surface-3 rounded w-5/6"></div>
                         </div>
                       ) : (
                         <SimilarSessionsCard
@@ -643,14 +643,14 @@ export default function MeetingPanels({
 
                   {/* Pattern Insights */}
                   <AccordionItem value="patterns" className="border-none">
-                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-gray-50 dark:hover:bg-gray-700 text-xs">
+                    <AccordionTrigger className="px-4 py-2.5 hover:no-underline hover:bg-paper text-xs">
                       <div className="flex items-center gap-2">
-                        <TrendingUp className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
-                        <span className="font-medium text-gray-700 dark:text-gray-300">
+                        <TrendingUp className="h-3.5 w-3.5 text-ink-3 " />
+                        <span className="font-medium text-ink-2 ">
                           Pattern Insights
                         </span>
                         {patterns.length > 0 && (
-                          <span className="text-xs bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-500 dark:text-gray-400">
+                          <span className="text-xs bg-surface-3 px-1.5 py-0.5 rounded text-ink-3 ">
                             {patterns.length}
                           </span>
                         )}
@@ -659,8 +659,8 @@ export default function MeetingPanels({
                     <AccordionContent className="px-4 pb-3">
                       {contextLoading ? (
                         <div className="animate-pulse space-y-2">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-full"></div>
-                          <div className="h-3 bg-gray-200 dark:bg-gray-600 rounded w-4/5"></div>
+                          <div className="h-3 bg-surface-3 rounded w-full"></div>
+                          <div className="h-3 bg-surface-3 rounded w-4/5"></div>
                         </div>
                       ) : (
                         <PatternInsightsCard

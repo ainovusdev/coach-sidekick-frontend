@@ -40,6 +40,7 @@ import {
   Trophy,
   BookOpen,
   XCircle,
+  Eye,
 } from 'lucide-react'
 import {
   AlertDialog,
@@ -61,7 +62,7 @@ export default function ClientDetailPage({
 }: {
   params: Promise<{ clientId: string }>
 }) {
-  const { userId } = useAuth()
+  const { userId, hasClientAccess } = useAuth()
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
   const router = useRouter()
@@ -318,19 +319,33 @@ export default function ClientDetailPage({
   return (
     <ProtectedRoute loadingMessage="Loading client details...">
       <PageLayout>
-        <div className="min-h-screen bg-white dark:bg-gray-900">
+        <div className="min-h-screen bg-surface-1 ">
           {/* Simple Back Link */}
-          <div className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="border-b border-line bg-surface-1 ">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => router.push('/clients')}
-                className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="text-ink-3 hover:text-ink hover:bg-surface-3 "
               >
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
               </Button>
+              {client && hasClientAccess(client.id) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    sessionStorage.setItem('view_as_client_id', client.id)
+                    sessionStorage.setItem('view_as_client_name', client.name)
+                    router.push('/client-portal/dashboard')
+                  }}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Client Portal
+                </Button>
+              )}
             </div>
           </div>
 
@@ -367,38 +382,38 @@ export default function ClientDetailPage({
                   className="space-y-6"
                 >
                   <div className="flex items-center justify-between">
-                    <TabsList className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-1 rounded-xl shadow-sm">
+                    <TabsList className="bg-surface-1 border border-line p-1 rounded-xl shadow-sm">
                       <TabsTrigger
                         value="overview"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-ink data-[state=active]:text-ink-on-dark dark:data-[state=active]:text-ink-on-dark rounded-lg"
                       >
                         <LayoutDashboard className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
                       <TabsTrigger
                         value="sessions"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-ink data-[state=active]:text-ink-on-dark dark:data-[state=active]:text-ink-on-dark rounded-lg"
                       >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Sessions & Chat
                       </TabsTrigger>
                       <TabsTrigger
                         value="goals"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-ink data-[state=active]:text-ink-on-dark dark:data-[state=active]:text-ink-on-dark rounded-lg"
                       >
                         <Target className="h-4 w-4 mr-2" />
                         Vision & Progress
                       </TabsTrigger>
                       <TabsTrigger
                         value="wins"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-ink data-[state=active]:text-ink-on-dark dark:data-[state=active]:text-ink-on-dark rounded-lg"
                       >
                         <Trophy className="h-4 w-4 mr-2" />
                         Wins
                       </TabsTrigger>
                       <TabsTrigger
                         value="resources"
-                        className="data-[state=active]:bg-black data-[state=active]:text-white dark:text-gray-400 dark:data-[state=active]:text-white rounded-lg"
+                        className="data-[state=active]:bg-ink data-[state=active]:text-ink-on-dark dark:data-[state=active]:text-ink-on-dark rounded-lg"
                       >
                         <BookOpen className="h-4 w-4 mr-2" />
                         Resources
@@ -421,7 +436,7 @@ export default function ClientDetailPage({
                             modalState.setIsScheduleSessionModalOpen(true)
                           }
                           variant="outline"
-                          className="border-gray-300 dark:border-gray-600"
+                          className="border-line-strong "
                         >
                           <CalendarClock className="h-4 w-4 mr-2" />
                           Schedule Session
@@ -585,8 +600,8 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Delete Client</AlertDialogTitle>
               </div>
@@ -595,10 +610,10 @@ export default function ClientDetailPage({
                   Are you sure you want to delete{' '}
                   <strong>{client?.name}</strong>?
                 </p>
-                <p className="text-sm text-red-600 font-medium">
+                <p className="text-sm text-vermillion font-medium">
                   This action cannot be undone. This will permanently delete:
                 </p>
-                <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-1 ml-4">
+                <ul className="text-sm text-ink-2 space-y-1 ml-4">
                   <li>• All coaching sessions and transcripts</li>
                   <li>• Session insights and analysis</li>
                   <li>• Client persona and knowledge base</li>
@@ -614,7 +629,7 @@ export default function ClientDetailPage({
               <AlertDialogAction
                 onClick={handleDelete}
                 disabled={isDeleting}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-vermillion hover:bg-vermillion text-ink-on-dark"
               >
                 {isDeleting ? (
                   <>
@@ -644,8 +659,8 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <XCircle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <XCircle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Cancel Invitation</AlertDialogTitle>
               </div>
@@ -665,7 +680,7 @@ export default function ClientDetailPage({
                   handleCancelInvitation()
                 }}
                 disabled={isCancellingInvite}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-vermillion hover:bg-vermillion text-ink-on-dark"
               >
                 {isCancellingInvite ? (
                   <>
@@ -696,27 +711,27 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Delete Vision</AlertDialogTitle>
               </div>
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the vision{' '}
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-ink ">
                     &quot;{goalToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                <div className="bg-ds-accent-bg border border-ds-accent rounded-lg p-3">
+                  <p className="text-sm text-ds-accent ">
                     <strong>Note:</strong> Deleting this vision will unlink it
                     from any associated outcomes. The outcomes themselves will
                     remain and stay linked to their sprints and commitments.
                   </p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-ink-3 ">
                   This action cannot be undone.
                 </p>
               </AlertDialogDescription>
@@ -731,7 +746,7 @@ export default function ClientDetailPage({
                   handleDeleteGoal()
                 }}
                 disabled={isDeletingGoal}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 {isDeletingGoal ? (
                   <>
@@ -762,20 +777,20 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Delete Outcome</AlertDialogTitle>
               </div>
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the outcome{' '}
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-ink ">
                     &quot;{outcomeToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-ink-3 ">
                   This action cannot be undone. This will also delete all
                   associated commitments for this outcome.
                 </p>
@@ -791,7 +806,7 @@ export default function ClientDetailPage({
                   handleDeleteOutcome()
                 }}
                 disabled={isDeletingOutcome}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 {isDeletingOutcome ? (
                   <>
@@ -822,27 +837,27 @@ export default function ClientDetailPage({
           <AlertDialogContent>
             <AlertDialogHeader>
               <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                  <AlertTriangle className="h-5 w-5 text-red-600" />
+                <div className="p-2 bg-vermillion-bg rounded-full">
+                  <AlertTriangle className="h-5 w-5 text-vermillion" />
                 </div>
                 <AlertDialogTitle>Delete Sprint</AlertDialogTitle>
               </div>
               <AlertDialogDescription className="space-y-3">
                 <p>
                   Are you sure you want to delete the sprint{' '}
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-ink ">
                     &quot;{sprintToDelete?.title}&quot;
                   </span>
                   ?
                 </p>
-                <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                <div className="bg-ds-accent-bg border border-ds-accent rounded-lg p-3">
+                  <p className="text-sm text-ds-accent ">
                     <strong>Note:</strong> Deleting this sprint will unlink it
                     from any associated outcomes. The outcomes themselves will
                     remain.
                   </p>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-ink-3 ">
                   This action cannot be undone.
                 </p>
               </AlertDialogDescription>
@@ -857,7 +872,7 @@ export default function ClientDetailPage({
                   handleDeleteSprint()
                 }}
                 disabled={isDeletingSprint}
-                className="bg-red-600 hover:bg-red-700"
+                className="bg-vermillion hover:bg-vermillion"
               >
                 {isDeletingSprint ? (
                   <>

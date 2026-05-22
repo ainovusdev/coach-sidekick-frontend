@@ -388,8 +388,8 @@ function ProcessingCard({ session, onDismiss }: ProcessingCardProps) {
       className={`
         rounded-lg border bg-background p-3 shadow-lg
         animate-in slide-in-from-right-5 fade-in duration-300
-        ${isCompleted ? 'border-green-500/30' : ''}
-        ${isFailed ? 'border-red-500/30' : ''}
+        ${isCompleted ? 'border-forest/30' : ''}
+        ${isFailed ? 'border-vermillion/30' : ''}
         ${isProcessing ? 'border-border' : ''}
       `}
     >
@@ -400,10 +400,10 @@ function ProcessingCard({ session, onDismiss }: ProcessingCardProps) {
             <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
           )}
           {isCompleted && (
-            <CheckCircle className="h-4 w-4 shrink-0 text-green-500" />
+            <CheckCircle className="h-4 w-4 shrink-0 text-forest" />
           )}
           {isFailed && (
-            <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
+            <AlertCircle className="h-4 w-4 shrink-0 text-vermillion" />
           )}
           <span className="text-sm font-medium truncate">{session.title}</span>
         </div>
@@ -428,9 +428,7 @@ function ProcessingCard({ session, onDismiss }: ProcessingCardProps) {
       {/* Status message */}
       {isCompleted && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-green-600 dark:text-green-400">
-            Ready for review
-          </p>
+          <p className="text-xs text-forest ">Ready for review</p>
           <Link
             href={`/sessions/${session.sessionId}`}
             className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"
@@ -443,9 +441,7 @@ function ProcessingCard({ session, onDismiss }: ProcessingCardProps) {
 
       {isFailed && (
         <div className="flex items-center justify-between">
-          <p className="text-xs text-red-600 dark:text-red-400">
-            Processing failed
-          </p>
+          <p className="text-xs text-vermillion ">Processing failed</p>
           <Link
             href={`/sessions/${session.sessionId}`}
             className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline"

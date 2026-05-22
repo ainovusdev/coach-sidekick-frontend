@@ -193,38 +193,35 @@ function getScoreLevelColor(level: ScoreLevel) {
   switch (level) {
     case 'sophisticated':
       return {
-        badge:
-          'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400',
-        progress: 'bg-emerald-500',
-        border: 'border-emerald-200 dark:border-emerald-800',
-        bg: 'bg-emerald-50 dark:bg-emerald-950/20',
-        dot: 'bg-emerald-500',
+        badge: 'bg-forest-bg text-forest ',
+        progress: 'bg-forest',
+        border: 'border-forest ',
+        bg: 'bg-forest-bg ',
+        dot: 'bg-forest',
       }
     case 'effective':
       return {
-        badge:
-          'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
-        progress: 'bg-blue-500',
-        border: 'border-blue-200 dark:border-blue-800',
-        bg: 'bg-blue-50 dark:bg-blue-950/20',
-        dot: 'bg-blue-500',
+        badge: 'bg-ds-accent-bg text-ds-accent ',
+        progress: 'bg-ds-accent',
+        border: 'border-ds-accent ',
+        bg: 'bg-ds-accent-bg ',
+        dot: 'bg-ds-accent',
       }
     case 'developing':
       return {
-        badge:
-          'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400',
-        progress: 'bg-amber-500',
-        border: 'border-amber-200 dark:border-amber-800',
-        bg: 'bg-amber-50 dark:bg-amber-950/20',
-        dot: 'bg-amber-500',
+        badge: 'bg-amber-token-bg text-amber-token ',
+        progress: 'bg-amber-token',
+        border: 'border-amber-token ',
+        bg: 'bg-amber-token-bg ',
+        dot: 'bg-amber-token',
       }
     case 'ineffective':
       return {
-        badge: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
-        progress: 'bg-red-400',
-        border: 'border-red-200 dark:border-red-800',
-        bg: 'bg-red-50 dark:bg-red-950/20',
-        dot: 'bg-red-400',
+        badge: 'bg-vermillion-bg text-vermillion ',
+        progress: 'bg-vermillion',
+        border: 'border-vermillion ',
+        bg: 'bg-vermillion-bg ',
+        dot: 'bg-vermillion',
       }
   }
 }
@@ -254,7 +251,7 @@ function MetricCard({
       >
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="p-1.5 bg-white dark:bg-gray-800 rounded-lg border border-app-border mt-0.5">
+            <div className="p-1.5 bg-surface-1 rounded-lg border border-app-border mt-0.5">
               <Icon className="h-4 w-4 text-app-secondary" />
             </div>
             <div className="flex-1 min-w-0">
@@ -293,7 +290,7 @@ function MetricCard({
         <div className="px-4 pb-4 pt-0">
           {/* Justification - why this score was given */}
           {justification && (
-            <div className="bg-white dark:bg-gray-800 rounded-lg border border-app-border p-3 mt-1 mb-2">
+            <div className="bg-surface-1 rounded-lg border border-app-border p-3 mt-1 mb-2">
               <p className="text-xs font-medium text-app-secondary uppercase tracking-wider mb-1.5">
                 Why this score
               </p>
@@ -329,7 +326,7 @@ function MetricCard({
                   key={l}
                   className={`flex items-start gap-2 px-2 py-1.5 rounded text-xs ${
                     isActive
-                      ? 'bg-white dark:bg-gray-800 font-medium text-app-primary'
+                      ? 'bg-surface-1 font-medium text-app-primary'
                       : 'text-app-secondary/70'
                   }`}
                 >
@@ -641,7 +638,7 @@ export function SessionAnalysisMerged({
 
                         {/* Quick stats */}
                         <div className="grid grid-cols-2 gap-2 mt-4">
-                          <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg border border-app-border">
+                          <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
                             <p className="text-sm font-semibold text-app-primary">
                               {coaching.sentiment.overall}
                             </p>
@@ -649,7 +646,7 @@ export function SessionAnalysisMerged({
                               Sentiment
                             </p>
                           </div>
-                          <div className="text-center p-2 bg-white dark:bg-gray-800 rounded-lg border border-app-border">
+                          <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
                             <p className="text-sm font-semibold text-app-primary">
                               {coaching.sentiment.engagement}
                             </p>
@@ -681,8 +678,8 @@ export function SessionAnalysisMerged({
                         coaching.key_strengths.length > 0 && (
                           <div>
                             <div className="flex items-center gap-1.5 mb-2">
-                              <Award className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                              <h4 className="text-xs text-emerald-700 dark:text-emerald-400 uppercase tracking-wider font-medium">
+                              <Award className="h-3.5 w-3.5 text-forest " />
+                              <h4 className="text-xs text-forest uppercase tracking-wider font-medium">
                                 Key Strengths
                               </h4>
                             </div>
@@ -690,10 +687,10 @@ export function SessionAnalysisMerged({
                               {coaching.key_strengths.map((s, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-start gap-2 p-2 bg-emerald-50 dark:bg-emerald-950/20 rounded-lg border border-emerald-100 dark:border-emerald-900/30"
+                                  className="flex items-start gap-2 p-2 bg-forest-bg rounded-lg border border-forest "
                                 >
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 mt-0.5 flex-shrink-0" />
-                                  <span className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-forest leading-relaxed">
                                     {s}
                                   </span>
                                 </div>
@@ -706,8 +703,8 @@ export function SessionAnalysisMerged({
                         coaching.areas_for_growth.length > 0 && (
                           <div>
                             <div className="flex items-center gap-1.5 mb-2">
-                              <TrendingUp className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400" />
-                              <h4 className="text-xs text-amber-700 dark:text-amber-400 uppercase tracking-wider font-medium">
+                              <TrendingUp className="h-3.5 w-3.5 text-amber-token " />
+                              <h4 className="text-xs text-amber-token uppercase tracking-wider font-medium">
                                 Areas for Growth
                               </h4>
                             </div>
@@ -715,10 +712,10 @@ export function SessionAnalysisMerged({
                               {coaching.areas_for_growth.map((a, i) => (
                                 <div
                                   key={i}
-                                  className="flex items-start gap-2 p-2 bg-amber-50 dark:bg-amber-950/20 rounded-lg border border-amber-100 dark:border-amber-900/30"
+                                  className="flex items-start gap-2 p-2 bg-amber-token-bg rounded-lg border border-amber-token "
                                 >
-                                  <ArrowRight className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
-                                  <span className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
+                                  <ArrowRight className="h-3.5 w-3.5 text-amber-token mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-amber-token leading-relaxed">
                                     {a}
                                   </span>
                                 </div>
@@ -733,8 +730,8 @@ export function SessionAnalysisMerged({
                       coaching.breakthrough_moments.length > 0 && (
                         <div>
                           <div className="flex items-center gap-1.5 mb-2">
-                            <Star className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                            <h4 className="text-xs text-purple-700 dark:text-purple-400 uppercase tracking-wider font-medium">
+                            <Star className="h-3.5 w-3.5 text-indigo " />
+                            <h4 className="text-xs text-indigo uppercase tracking-wider font-medium">
                               Breakthrough Moments
                             </h4>
                           </div>
@@ -742,10 +739,10 @@ export function SessionAnalysisMerged({
                             {coaching.breakthrough_moments.map((m, i) => (
                               <div
                                 key={i}
-                                className="flex items-start gap-2 p-2 bg-purple-50 dark:bg-purple-950/20 rounded-lg border border-purple-100 dark:border-purple-900/30"
+                                className="flex items-start gap-2 p-2 bg-indigo-bg rounded-lg border border-indigo "
                               >
-                                <Sparkles className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0" />
-                                <span className="text-xs text-purple-800 dark:text-purple-300 leading-relaxed">
+                                <Sparkles className="h-3.5 w-3.5 text-indigo mt-0.5 flex-shrink-0" />
+                                <span className="text-xs text-indigo leading-relaxed">
                                   {m}
                                 </span>
                               </div>
@@ -830,7 +827,7 @@ export function SessionAnalysisMerged({
                         key={value.key}
                         className={`text-center p-4 rounded-xl ${colors.bg} border ${colors.border}`}
                       >
-                        <div className="w-10 h-10 mx-auto bg-white dark:bg-gray-800 border border-app-border rounded-full flex items-center justify-center mb-3">
+                        <div className="w-10 h-10 mx-auto bg-surface-1 border border-app-border rounded-full flex items-center justify-center mb-3">
                           <Icon className="h-5 w-5 text-app-secondary" />
                         </div>
                         <h4 className="text-xs font-medium text-app-secondary mb-1">

@@ -159,9 +159,9 @@ export function ShareResourceDialog({
         </DialogHeader>
 
         {/* Client Selector */}
-        <div className="space-y-2 pb-3 border-b border-gray-100 dark:border-gray-800">
-          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5 text-gray-500" />
+        <div className="space-y-2 pb-3 border-b border-line ">
+          <label className="text-sm font-medium text-ink-2 flex items-center gap-1.5">
+            <Users className="h-3.5 w-3.5 text-ink-3" />
             Share with
           </label>
 
@@ -171,13 +171,13 @@ export function ShareResourceDialog({
               {selectedClients.map((client: any) => (
                 <span
                   key={client.id}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-900 dark:bg-white text-white dark:text-gray-900"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-ink text-ink-on-dark "
                 >
                   {client.name}
                   <button
                     type="button"
                     onClick={() => toggleClient(client.id)}
-                    className="hover:bg-white/20 dark:hover:bg-black/20 rounded-full p-0.5"
+                    className="hover:bg-surface-1/20 rounded-full p-0.5"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -188,7 +188,7 @@ export function ShareResourceDialog({
 
           {/* Client search + dropdown */}
           <div className="relative">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
             <Input
               value={clientSearch}
               onChange={e => setClientSearch(e.target.value)}
@@ -212,7 +212,7 @@ export function ShareResourceDialog({
                     }}
                     className={cn(
                       'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all border',
-                      'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-900 dark:hover:text-white',
+                      'bg-surface-1 text-ink-3 border-line hover:border-line-strong hover:text-ink ',
                     )}
                   >
                     <Plus className="h-3 w-3" />
@@ -222,7 +222,7 @@ export function ShareResourceDialog({
               {filteredClients.filter((c: any) => !selectedClientIds.has(c.id))
                 .length === 0 &&
                 clientSearch.trim() && (
-                  <p className="text-xs text-gray-400 py-1">No clients found</p>
+                  <p className="text-xs text-ink-4 py-1">No clients found</p>
                 )}
             </div>
           )}
@@ -253,14 +253,14 @@ export function ShareResourceDialog({
               </div>
             ) : personalResources.length === 0 ? (
               <div className="text-center py-8">
-                <BookOpen className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-                <p className="text-sm text-gray-500 dark:text-gray-400">
+                <BookOpen className="h-10 w-10 text-ink-2 mx-auto mb-3" />
+                <p className="text-sm text-ink-3 ">
                   No personal resources to share. Create one first.
                 </p>
               </div>
             ) : (
               <>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <p className="text-xs text-ink-3 mb-2">
                   Select resources to share
                 </p>
                 {personalResources.map(resource => (
@@ -277,8 +277,8 @@ export function ShareResourceDialog({
 
           <TabsContent value="new" className="mt-4">
             <div className="flex flex-col items-center justify-center py-8">
-              <Plus className="h-10 w-10 text-gray-400 dark:text-gray-500 mb-3" />
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 text-center">
+              <Plus className="h-10 w-10 text-ink-4 mb-3" />
+              <p className="text-sm text-ink-3 mb-4 text-center">
                 Create a new resource to share
               </p>
               <Button onClick={onCreateNew}>
@@ -290,7 +290,7 @@ export function ShareResourceDialog({
         </Tabs>
 
         {selectedResourceIds.size > 0 && selectedClientIds.size > 0 && (
-          <DialogFooter className="pt-4 border-t border-gray-100 dark:border-gray-800">
+          <DialogFooter className="pt-4 border-t border-line ">
             <Button
               variant="outline"
               onClick={() => setSelectedResourceIds(new Set())}
@@ -300,7 +300,7 @@ export function ShareResourceDialog({
             <Button
               onClick={handleShare}
               disabled={shareResource.isPending}
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 "
             >
               {shareResource.isPending
                 ? 'Sharing...'
@@ -330,32 +330,26 @@ function ShareableResourceItem({
       onClick={onToggle}
       className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
         selected
-          ? 'border-gray-900 dark:border-white bg-gray-50 dark:bg-gray-800'
-          : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-500'
+          ? 'border-line bg-paper '
+          : 'border-line hover:border-line-strong '
       }`}
     >
       <div
         className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
-          selected
-            ? 'border-gray-900 dark:border-white bg-gray-900 dark:bg-white'
-            : 'border-gray-300 dark:border-gray-500'
+          selected ? 'border-line bg-ink ' : 'border-line-strong '
         }`}
       >
-        {selected && (
-          <Check className="h-3 w-3 text-white dark:text-gray-900" />
-        )}
+        {selected && <Check className="h-3 w-3 text-ink-on-dark " />}
       </div>
       <div className={`p-1.5 rounded ${colors.bg} shrink-0`}>
         <Icon className={`h-3.5 w-3.5 ${colors.text}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+        <p className="text-sm font-medium text-ink truncate">
           {resource.title}
         </p>
         {resource.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-            {resource.description}
-          </p>
+          <p className="text-xs text-ink-3 truncate">{resource.description}</p>
         )}
       </div>
       <Badge

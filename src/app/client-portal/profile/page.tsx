@@ -3,19 +3,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import { useAuth } from '@/contexts/auth-context'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import {
   User,
@@ -23,7 +13,6 @@ import {
   Lock,
   Save,
   Users,
-  Calendar,
   Shield,
   Eye,
   EyeOff,
@@ -232,310 +221,289 @@ export default function ClientProfilePage() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-12 py-10">
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">
-              Loading profile...
-            </p>
+            <div className="animate-spin rounded-full h-7 w-7 border-2 border-line border-t-ink mx-auto mb-3" />
+            <p className="text-[13px] text-ink-3">Loading account…</p>
           </div>
         </div>
       </div>
     )
   }
 
+  const initials = profileData?.full_name
+    ? getInitials(profileData.full_name)
+    : user?.email?.slice(0, 2).toUpperCase() || 'U'
+
   return (
-    <div className="max-w-5xl mx-auto px-6 sm:px-8 lg:px-12 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Profile Settings
+    <div className="max-w-[720px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+      {/* Header — editorial */}
+      <div className="mb-7">
+        <h1 className="text-[30px] font-bold tracking-tight leading-[1.2] text-ink m-0">
+          Account
         </h1>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage your account information and preferences
+        <p className="text-[13px] text-ink-3 mt-1.5">
+          Sign-in, profile details, and how you appear to your coach.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column - Profile Card */}
-        <div className="lg:col-span-1">
-          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center">
-                <Avatar className="h-24 w-24 bg-white dark:bg-gray-900 border-4 border-gray-200 dark:border-gray-700 mb-4">
-                  <AvatarFallback className="bg-white dark:bg-gray-900 text-black dark:text-white text-2xl font-bold">
-                    {profileData?.full_name
-                      ? getInitials(profileData.full_name)
-                      : user?.email?.slice(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
-                  {profileData?.full_name || 'User'}
-                </h2>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                  {user?.email}
-                </p>
-
-                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                  {roles.map(role => (
-                    <Badge
-                      key={role}
-                      variant="outline"
-                      className="bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300"
-                    >
-                      {role === 'client' && <User className="h-3 w-3 mr-1" />}
-                      {role === 'coach' && <Users className="h-3 w-3 mr-1" />}
-                      {role === 'admin' && <Shield className="h-3 w-3 mr-1" />}
-                      {role.replace('_', ' ')}
-                    </Badge>
-                  ))}
-                </div>
-
-                {profileData?.created_at && (
-                  <div className="flex items-center text-sm text-gray-500 dark:text-gray-400">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Member since{' '}
-                    {formatDate(profileData.created_at, 'MMMM yyyy')}
-                  </div>
-                )}
-              </div>
-
-              <Separator className="my-6 bg-gray-50 dark:bg-gray-800" />
-
-              {/* Coaches List */}
-              {clientInfo.length > 0 && (
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
-                    Your Coaches
-                  </h3>
-                  <div className="space-y-3">
-                    {clientInfo.map((client, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start space-x-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-300 dark:border-gray-600"
-                      >
-                        <Users className="h-5 w-5 text-gray-600 dark:text-gray-400 mt-0.5" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-                            {client.coach_name || 'Coach'}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {client.coach_email || 'Email not available'}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Identity card */}
+      <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-6 mb-4">
+        <div className="flex items-center gap-4">
+          <div className="w-[64px] h-[64px] rounded-full bg-ink text-ink-on-dark inline-flex items-center justify-center text-[18px] font-semibold flex-shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-[20px] font-semibold tracking-tight text-ink m-0 truncate">
+              {profileData?.full_name || 'User'}
+            </h2>
+            <p className="m-0 text-[13px] text-ink-3 truncate">{user?.email}</p>
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {roles.map(role => (
+                <span
+                  key={role}
+                  className="inline-flex items-center gap-1 h-[20px] px-1.5 rounded-md bg-surface-2 border border-line-2 text-ink-2 text-[10px] font-medium capitalize"
+                >
+                  {role === 'client' && <User className="h-3 w-3" />}
+                  {role === 'coach' && <Users className="h-3 w-3" />}
+                  {role === 'admin' && <Shield className="h-3 w-3" />}
+                  {role.replace('_', ' ')}
+                </span>
+              ))}
+            </div>
+          </div>
+          {profileData?.created_at && (
+            <div className="text-right flex-shrink-0 hidden sm:block">
+              <p className="font-mono text-[10px] text-ink-4 uppercase tracking-[0.05em] font-semibold m-0">
+                Member since
+              </p>
+              <p className="text-[13px] font-medium text-ink-2 m-0 mt-0.5">
+                {formatDate(profileData.created_at, 'MMM yyyy')}
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Right Column - Edit Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Personal Information */}
-          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">
-                Personal Information
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Update your personal details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    value={user?.email || ''}
-                    disabled
-                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400 cursor-not-allowed"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Email cannot be changed. Contact support if needed.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="full_name"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Full Name
-                </Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="full_name"
-                    type="text"
-                    value={formData.full_name}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        full_name: e.target.value,
-                      }))
-                    }
-                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                    placeholder="Enter your full name"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Change Password */}
-          <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-gray-900 dark:text-white">
-                Change Password
-              </CardTitle>
-              <CardDescription className="text-gray-600 dark:text-gray-400">
-                Update your password to keep your account secure
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="current_password"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Current Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="current_password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.current_password}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        current_password: e.target.value,
-                      }))
-                    }
-                    className="pl-10 pr-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                    placeholder="Enter current password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="new_password"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  New Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="new_password"
-                    type={showPassword ? 'text' : 'password'}
-                    value={formData.new_password}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        new_password: e.target.value,
-                      }))
-                    }
-                    className="pl-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                    placeholder="Create a strong password"
-                  />
-                </div>
-                {formData.new_password && (
-                  <div className="mt-2">
-                    <PasswordStrengthIndicator
-                      strength={passwordValidation.strength}
-                      score={passwordValidation.score}
-                      showRequirements={true}
-                    />
+        {clientInfo.length > 0 && (
+          <div className="border-t border-line-2 mt-5 pt-4">
+            <p className="font-mono text-[10px] text-ink-4 uppercase tracking-[0.05em] font-semibold m-0 mb-2">
+              Your coach
+            </p>
+            <div className="space-y-2">
+              {clientInfo.map((client, idx) => (
+                <div key={idx} className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-surface-2 text-ink-2 inline-flex items-center justify-center text-[11px] font-semibold flex-shrink-0">
+                    {(client.coach_name || 'Coach')
+                      .split(' ')
+                      .map(w => w[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)}
                   </div>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="confirm_password"
-                  className="text-gray-700 dark:text-gray-300"
-                >
-                  Confirm New Password
-                </Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <Input
-                    id="confirm_password"
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    value={formData.confirm_password}
-                    onChange={e =>
-                      setFormData(prev => ({
-                        ...prev,
-                        confirm_password: e.target.value,
-                      }))
-                    }
-                    className="pl-10 pr-10 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder:text-gray-500 dark:placeholder:text-gray-400"
-                    placeholder="Confirm new password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-                  >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
-                      <Eye className="h-4 w-4" />
-                    )}
-                  </button>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[13px] font-medium text-ink m-0 truncate">
+                      {client.coach_name || 'Coach'}
+                    </p>
+                    <p className="text-[12px] text-ink-3 m-0 truncate">
+                      {client.coach_email || 'Email not available'}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
 
-          {/* Save Button */}
-          <div className="flex justify-end">
-            <Button
-              onClick={handleSaveProfile}
-              disabled={saving}
-              className="bg-white text-black hover:bg-zinc-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700"
+      {/* Profile section */}
+      <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-2 mb-4">
+        <h3 className="m-0 px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-3">
+          Profile
+        </h3>
+        <div className="px-4 py-3 border-t border-line-2 space-y-3">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="email"
+              className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold"
             >
-              {saving ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent mr-2" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Changes
-                </>
-              )}
-            </Button>
+              Email
+            </Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
+              <Input
+                id="email"
+                type="email"
+                value={user?.email || ''}
+                disabled
+                className="pl-9 h-9 text-[13px] bg-surface-2 border-line text-ink-3 cursor-not-allowed"
+              />
+            </div>
+            <p className="text-[11px] text-ink-4 m-0">
+              Email cannot be changed. Contact support if needed.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="full_name"
+              className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold"
+            >
+              Full name
+            </Label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
+              <Input
+                id="full_name"
+                type="text"
+                value={formData.full_name}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    full_name: e.target.value,
+                  }))
+                }
+                className="pl-9 h-9 text-[13px] bg-surface-1 border-line text-ink placeholder:text-ink-4"
+                placeholder="Your full name"
+              />
+            </div>
           </div>
         </div>
+      </div>
+
+      {/* Password section */}
+      <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-2 mb-4">
+        <h3 className="m-0 px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-3">
+          Change password
+        </h3>
+        <div className="px-4 py-3 border-t border-line-2 space-y-3">
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="current_password"
+              className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold"
+            >
+              Current password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
+              <Input
+                id="current_password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.current_password}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    current_password: e.target.value,
+                  }))
+                }
+                className="pl-9 pr-9 h-9 text-[13px] bg-surface-1 border-line text-ink placeholder:text-ink-4"
+                placeholder="Enter current password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="new_password"
+              className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold"
+            >
+              New password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
+              <Input
+                id="new_password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.new_password}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    new_password: e.target.value,
+                  }))
+                }
+                className="pl-9 h-9 text-[13px] bg-surface-1 border-line text-ink placeholder:text-ink-4"
+                placeholder="Create a strong password"
+              />
+            </div>
+            {formData.new_password && (
+              <div className="mt-2">
+                <PasswordStrengthIndicator
+                  strength={passwordValidation.strength}
+                  score={passwordValidation.score}
+                  showRequirements={true}
+                />
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <Label
+              htmlFor="confirm_password"
+              className="font-mono text-[10px] uppercase tracking-[0.05em] text-ink-4 font-semibold"
+            >
+              Confirm new password
+            </Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-ink-4" />
+              <Input
+                id="confirm_password"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={formData.confirm_password}
+                onChange={e =>
+                  setFormData(prev => ({
+                    ...prev,
+                    confirm_password: e.target.value,
+                  }))
+                }
+                className="pl-9 pr-9 h-9 text-[13px] bg-surface-1 border-line text-ink placeholder:text-ink-4"
+                placeholder="Confirm new password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink"
+              >
+                {showConfirmPassword ? (
+                  <EyeOff className="h-3.5 w-3.5" />
+                ) : (
+                  <Eye className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <Button
+          onClick={handleSaveProfile}
+          disabled={saving}
+          className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium"
+        >
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-3.5 w-3.5 border-2 border-ink-on-dark border-t-transparent mr-2" />
+              Saving…
+            </>
+          ) : (
+            <>
+              <Save className="h-3.5 w-3.5 mr-2" />
+              Save changes
+            </>
+          )}
+        </Button>
       </div>
     </div>
   )

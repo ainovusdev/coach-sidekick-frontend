@@ -91,17 +91,17 @@ export function getStrengthLabel(score: number): string {
 export function getStrengthColor(score: number): string {
   switch (score) {
     case 5:
-      return 'text-green-600'
+      return 'text-forest'
     case 4:
-      return 'text-emerald-600'
+      return 'text-forest'
     case 3:
-      return 'text-yellow-600'
+      return 'text-amber-token'
     case 2:
-      return 'text-orange-600'
+      return 'text-amber-token'
     case 1:
-      return 'text-red-600'
+      return 'text-vermillion'
     default:
-      return 'text-gray-400'
+      return 'text-ink-4'
   }
 }
 
@@ -111,16 +111,16 @@ export function getStrengthColor(score: number): string {
 export function getStrengthBarColor(score: number): string {
   switch (score) {
     case 5:
-      return 'bg-green-500'
+      return 'bg-forest'
     case 4:
-      return 'bg-emerald-500'
+      return 'bg-forest'
     case 3:
-      return 'bg-yellow-500'
+      return 'bg-amber-token'
     case 2:
-      return 'bg-orange-500'
+      return 'bg-amber-token'
     case 1:
-      return 'bg-red-500'
+      return 'bg-vermillion'
     default:
-      return 'bg-gray-200'
+      return 'bg-surface-3'
   }
 }

@@ -97,40 +97,38 @@ function CreateManualSessionContent() {
 
   if (loadingClients) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-paper">
         <LoadingState message="Loading clients..." className="min-h-screen" />
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-paper">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
+      <div className="bg-surface-1 border-b border-line">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center h-16">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => router.back()}
-              className="mr-4 text-gray-600 hover:text-gray-900"
+              className="mr-4 text-ink-3 hover:text-ink"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
             </Button>
-            <h1 className="text-xl font-semibold text-gray-900">
-              Add Past Session
-            </h1>
+            <h1 className="text-xl font-semibold text-ink">Add Past Session</h1>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <Card className="border-gray-200">
-          <CardHeader className="border-b border-gray-200">
+        <Card className="border-line">
+          <CardHeader className="border-b border-line">
             <CardTitle className="text-lg">Session Details</CardTitle>
-            <CardDescription className="text-gray-600">
+            <CardDescription className="text-ink-3">
               Create a session to upload and analyze recorded audio or video
               files
             </CardDescription>
@@ -141,9 +139,9 @@ function CreateManualSessionContent() {
               <div className="space-y-2">
                 <Label
                   htmlFor="client"
-                  className="text-base font-medium text-gray-900"
+                  className="text-base font-medium text-ink"
                 >
-                  Client <span className="text-red-500">*</span>
+                  Client <span className="text-vermillion">*</span>
                 </Label>
                 <Select
                   value={formData.client_id}
@@ -151,7 +149,7 @@ function CreateManualSessionContent() {
                     setFormData({ ...formData, client_id: value })
                   }
                 >
-                  <SelectTrigger id="client" className="border-gray-200">
+                  <SelectTrigger id="client" className="border-line">
                     <SelectValue placeholder="Select a client" />
                   </SelectTrigger>
                   <SelectContent>
@@ -168,7 +166,7 @@ function CreateManualSessionContent() {
               <div className="space-y-2">
                 <Label
                   htmlFor="date"
-                  className="text-base font-medium text-gray-900"
+                  className="text-base font-medium text-ink"
                 >
                   Session Date
                 </Label>
@@ -179,7 +177,7 @@ function CreateManualSessionContent() {
                   onChange={e =>
                     setFormData({ ...formData, session_date: e.target.value })
                   }
-                  className="border-gray-200"
+                  className="border-line"
                 />
               </div>
 
@@ -187,10 +185,10 @@ function CreateManualSessionContent() {
               <div className="space-y-2">
                 <Label
                   htmlFor="notes"
-                  className="text-base font-medium text-gray-900"
+                  className="text-base font-medium text-ink"
                 >
                   Notes{' '}
-                  <span className="text-gray-500 font-normal">(Optional)</span>
+                  <span className="text-ink-3 font-normal">(Optional)</span>
                 </Label>
                 <Textarea
                   id="notes"
@@ -200,25 +198,25 @@ function CreateManualSessionContent() {
                     setFormData({ ...formData, notes: e.target.value })
                   }
                   rows={4}
-                  className="border-gray-200"
+                  className="border-line"
                 />
               </div>
 
               {/* Actions */}
-              <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+              <div className="flex justify-end gap-3 pt-4 border-t border-line">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
                   disabled={creating}
-                  className="border-gray-300 hover:bg-gray-50"
+                  className="border-line-strong hover:bg-paper"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
                   disabled={creating || !formData.client_id}
-                  className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+                  className="bg-ink hover:bg-ink-2 text-ink-on-dark "
                 >
                   {creating ? (
                     <>Creating...</>

@@ -45,27 +45,27 @@ export function PatternInsightsCard({
   const getPatternIcon = (pattern: string) => {
     const patternLower = pattern.toLowerCase()
     if (patternLower.includes('breakthrough'))
-      return <Zap className="h-3 w-3 text-green-500" />
+      return <Zap className="h-3 w-3 text-forest" />
     if (patternLower.includes('resistance'))
-      return <AlertTriangle className="h-3 w-3 text-orange-500" />
+      return <AlertTriangle className="h-3 w-3 text-amber-token" />
     if (patternLower.includes('engagement') || patternLower.includes('engaged'))
-      return <CheckCircle className="h-3 w-3 text-blue-500" />
+      return <CheckCircle className="h-3 w-3 text-ds-accent" />
     if (patternLower.includes('avoidance'))
-      return <TrendingDown className="h-3 w-3 text-red-500" />
-    return <Activity className="h-3 w-3 text-gray-500" />
+      return <TrendingDown className="h-3 w-3 text-vermillion" />
+    return <Activity className="h-3 w-3 text-ink-3" />
   }
 
   const getPatternColor = (pattern: string) => {
     const patternLower = pattern.toLowerCase()
     if (patternLower.includes('breakthrough'))
-      return 'bg-green-50 text-green-700 border-green-200'
+      return 'bg-forest-bg text-forest border-forest'
     if (patternLower.includes('resistance'))
-      return 'bg-orange-50 text-orange-700 border-orange-200'
+      return 'bg-amber-token-bg text-amber-token border-amber-token'
     if (patternLower.includes('engagement') || patternLower.includes('engaged'))
-      return 'bg-blue-50 text-blue-700 border-blue-200'
+      return 'bg-ds-accent-bg text-ds-accent border-ds-accent'
     if (patternLower.includes('avoidance'))
-      return 'bg-red-50 text-red-700 border-red-200'
-    return 'bg-gray-50 text-gray-700 border-gray-200'
+      return 'bg-vermillion-bg text-vermillion border-vermillion'
+    return 'bg-paper text-ink-2 border-line'
   }
 
   const getThemeSize = (count: number) => {
@@ -87,7 +87,7 @@ export function PatternInsightsCard({
     return (
       <Card className={compact ? 'h-auto border-0 shadow-none' : 'h-full'}>
         <CardContent className={compact ? 'p-0' : 'pt-4'}>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-ink-3">
             Patterns will emerge as the conversation develops.
           </p>
         </CardContent>
@@ -111,7 +111,7 @@ export function PatternInsightsCard({
         {/* Active Patterns */}
         {hasPatterns && (
           <div className="space-y-1.5">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-medium text-ink-3 uppercase tracking-wider">
               Active
             </span>
             <div className="flex flex-wrap gap-1.5">
@@ -131,21 +131,21 @@ export function PatternInsightsCard({
         {/* Pattern Timeline (non-compact only) */}
         {hasHistory && !compact && (
           <div className="space-y-2">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-medium text-ink-3 uppercase tracking-wider">
               History
             </span>
             <div className="space-y-1.5">
               {(patternHistory || []).slice(0, 3).map((history, i) => (
                 <div key={i} className="flex items-center gap-2 text-xs">
-                  <span className="text-gray-400 w-16 flex-shrink-0 text-right">
+                  <span className="text-ink-4 w-16 flex-shrink-0 text-right">
                     {getTimeAgo(new Date(history.date))}
                   </span>
-                  <div className="w-px h-4 bg-gray-200 dark:bg-gray-600" />
+                  <div className="w-px h-4 bg-surface-3 " />
                   <div className="flex flex-wrap gap-1">
                     {history.patterns.slice(0, 3).map((pattern, j) => (
                       <span
                         key={j}
-                        className="flex items-center gap-1 text-gray-600 dark:text-gray-400"
+                        className="flex items-center gap-1 text-ink-3 "
                       >
                         {getPatternIcon(pattern)}
                         {formatPatternName(pattern)}
@@ -161,20 +161,18 @@ export function PatternInsightsCard({
         {/* Recurring Themes */}
         {hasThemes && (
           <div className="space-y-1.5">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <span className="text-xs font-medium text-ink-3 uppercase tracking-wider">
               Recurring Themes
             </span>
             <div className="flex flex-wrap gap-1.5">
               {(recurringThemes || []).map((theme, i) => (
                 <span
                   key={i}
-                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 ${getThemeSize(theme.count)}`}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-surface-3 text-ink-2 ${getThemeSize(theme.count)}`}
                 >
                   {theme.theme}
                   {theme.count > 1 && (
-                    <span className="text-gray-400 dark:text-gray-500">
-                      x{theme.count}
-                    </span>
+                    <span className="text-ink-4 ">x{theme.count}</span>
                   )}
                 </span>
               ))}
@@ -184,17 +182,17 @@ export function PatternInsightsCard({
 
         {/* Pattern Summary (non-compact, 3+ history entries) */}
         {(patternHistory?.length ?? 0) > 2 && !compact && (
-          <div className="border-t dark:border-gray-700 pt-3">
+          <div className="border-t pt-3">
             <div className="grid grid-cols-2 gap-2">
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <TrendingUp className="h-4 w-4 text-green-500 mx-auto mb-1" />
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+              <div className="text-center p-2 bg-paper rounded-lg">
+                <TrendingUp className="h-4 w-4 text-forest mx-auto mb-1" />
+                <p className="text-xs text-ink-3 ">
                   {countPositivePatterns(patternHistory || [])} positive shifts
                 </p>
               </div>
-              <div className="text-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <Activity className="h-4 w-4 text-blue-500 mx-auto mb-1" />
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+              <div className="text-center p-2 bg-paper rounded-lg">
+                <Activity className="h-4 w-4 text-ds-accent mx-auto mb-1" />
+                <p className="text-xs text-ink-3 ">
                   {countUniquePatterns(patternHistory || [])} unique patterns
                 </p>
               </div>

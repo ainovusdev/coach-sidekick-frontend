@@ -136,7 +136,7 @@ export function ManualSessionModal({
               htmlFor="client"
               className="text-base font-medium text-foreground"
             >
-              Client <span className="text-red-500">*</span>
+              Client <span className="text-vermillion">*</span>
             </Label>
             {loadingClients ? (
               <div className="flex items-center justify-center p-3 border rounded-md">
@@ -236,7 +236,7 @@ export function ManualSessionModal({
             <Button
               type="submit"
               disabled={creating || !formData.client_id || loadingClients}
-              className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+              className="bg-ink hover:bg-ink-2 text-ink-on-dark "
             >
               {creating ? (
                 <>

@@ -239,12 +239,10 @@ export default function ClientAccessInvitationPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
+      <div className="min-h-screen flex items-center justify-center bg-paper ">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">
-            Loading invitation...
-          </p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-line mx-auto mb-4"></div>
+          <p className="text-ink-3 ">Loading invitation...</p>
         </div>
       </div>
     )
@@ -252,19 +250,19 @@ export default function ClientAccessInvitationPage() {
 
   if (error && !invitation) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
-        <Card className="max-w-md w-full border-gray-200 dark:border-gray-800">
+      <div className="min-h-screen flex items-center justify-center bg-paper p-4">
+        <Card className="max-w-md w-full border-line ">
           <CardContent className="pt-6 text-center">
-            <div className="h-12 w-12 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-              <AlertCircle className="h-6 w-6 text-gray-600 dark:text-gray-400" />
+            <div className="h-12 w-12 rounded-full bg-surface-3 flex items-center justify-center mx-auto mb-4">
+              <AlertCircle className="h-6 w-6 text-ink-3 " />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-ink mb-2">
               Invalid Invitation
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">{error}</p>
+            <p className="text-ink-3 ">{error}</p>
             <Button
               onClick={() => router.push('/')}
-              className="mt-6 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+              className="mt-6 bg-ink text-ink-on-dark hover:bg-ink-2 "
             >
               Go to Home
             </Button>
@@ -276,23 +274,20 @@ export default function ClientAccessInvitationPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
-        <Card className="max-w-md w-full border-gray-200 dark:border-gray-800">
+      <div className="min-h-screen flex items-center justify-center bg-paper p-4">
+        <Card className="max-w-md w-full border-line ">
           <CardContent className="pt-6 text-center">
-            <div className="h-12 w-12 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center mx-auto mb-4">
-              <CheckCircle className="h-6 w-6 text-white dark:text-gray-900" />
+            <div className="h-12 w-12 rounded-full bg-ink flex items-center justify-center mx-auto mb-4">
+              <CheckCircle className="h-6 w-6 text-ink-on-dark " />
             </div>
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-xl font-semibold text-ink mb-2">
               Invitation Accepted!
             </h2>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-ink-3 ">
               You now have access to coaching with{' '}
-              <strong className="text-gray-900 dark:text-white">
-                {invitation?.coach_name}
-              </strong>
-              .
+              <strong className="text-ink ">{invitation?.coach_name}</strong>.
             </p>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
+            <p className="text-sm text-ink-3 mt-4">
               Redirecting to your dashboard...
             </p>
           </CardContent>
@@ -302,30 +297,28 @@ export default function ClientAccessInvitationPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 p-4">
-      <Card className="max-w-lg w-full border-gray-200 dark:border-gray-800">
-        <CardHeader className="text-center border-b border-gray-100 dark:border-gray-800">
-          <div className="mx-auto w-16 h-16 bg-gray-900 dark:bg-white rounded-full flex items-center justify-center mb-4">
-            <Users className="h-8 w-8 text-white dark:text-gray-900" />
+    <div className="min-h-screen flex items-center justify-center bg-paper p-4">
+      <Card className="max-w-lg w-full border-line ">
+        <CardHeader className="text-center border-b border-line ">
+          <div className="mx-auto w-16 h-16 bg-ink rounded-full flex items-center justify-center mb-4">
+            <Users className="h-8 w-8 text-ink-on-dark " />
           </div>
-          <CardTitle className="text-2xl text-gray-900 dark:text-white">
+          <CardTitle className="text-2xl text-ink ">
             Coaching Invitation
           </CardTitle>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+          <p className="text-sm text-ink-3 mt-2">
             You&apos;ve been invited to join a coaching program
           </p>
         </CardHeader>
 
         <CardContent className="space-y-4 pt-6">
           {/* Coach Info */}
-          <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
-            <p className="text-sm text-gray-700 dark:text-gray-300 mb-2">
-              <strong className="text-gray-900 dark:text-white">
-                {invitation?.coach_name}
-              </strong>{' '}
+          <div className="bg-paper border border-line p-4 rounded-lg">
+            <p className="text-sm text-ink-2 mb-2">
+              <strong className="text-ink ">{invitation?.coach_name}</strong>{' '}
               has invited you to join their coaching program
             </p>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-xs text-ink-3 ">
               <Mail className="h-3 w-3" />
               <span>{invitation?.coach_email}</span>
             </div>
@@ -333,11 +326,11 @@ export default function ClientAccessInvitationPage() {
 
           {/* Personal Message */}
           {invitation?.message && (
-            <div className="bg-gray-50 dark:bg-gray-800 border-l-4 border-gray-900 dark:border-white p-4">
-              <p className="text-sm text-gray-700 dark:text-gray-300 font-medium mb-1">
+            <div className="bg-paper border-l-4 border-line p-4">
+              <p className="text-sm text-ink-2 font-medium mb-1">
                 Personal message:
               </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 italic">
+              <p className="text-sm text-ink-3 italic">
                 &quot;{invitation.message}&quot;
               </p>
             </div>
@@ -345,24 +338,22 @@ export default function ClientAccessInvitationPage() {
 
           {/* Benefits */}
           <div className="space-y-2">
-            <h3 className="font-medium text-gray-900 dark:text-white">
-              What you&apos;ll get:
-            </h3>
-            <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-2">
+            <h3 className="font-medium text-ink ">What you&apos;ll get:</h3>
+            <ul className="text-sm text-ink-3 space-y-2">
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-gray-700 dark:text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-ink-2 mr-2 mt-0.5 flex-shrink-0" />
                 <span>Access to your personalized coaching dashboard</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-gray-700 dark:text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-ink-2 mr-2 mt-0.5 flex-shrink-0" />
                 <span>Track progress and insights from your sessions</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-gray-700 dark:text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-ink-2 mr-2 mt-0.5 flex-shrink-0" />
                 <span>View session commitments and next steps</span>
               </li>
               <li className="flex items-start">
-                <CheckCircle className="h-4 w-4 text-gray-700 dark:text-gray-300 mr-2 mt-0.5 flex-shrink-0" />
+                <CheckCircle className="h-4 w-4 text-ink-2 mr-2 mt-0.5 flex-shrink-0" />
                 <span>Manage multiple coaches from one account</span>
               </li>
             </ul>
@@ -370,7 +361,7 @@ export default function ClientAccessInvitationPage() {
 
           {/* Already Has Access */}
           {invitation?.already_has_access && (
-            <Alert className="border-gray-200 dark:border-gray-700">
+            <Alert className="border-line ">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 You already have access to this coaching program.
@@ -380,8 +371,8 @@ export default function ClientAccessInvitationPage() {
 
           {/* Inline Signup/Login Form */}
           {!isAuthenticated && !authLoading && (
-            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 rounded-lg space-y-4">
-              <h3 className="font-medium text-gray-900 dark:text-white">
+            <div className="bg-paper border border-line p-4 rounded-lg space-y-4">
+              <h3 className="font-medium text-ink ">
                 {invitation?.existing_user
                   ? 'Log in to accept'
                   : 'Create your account'}
@@ -389,10 +380,7 @@ export default function ClientAccessInvitationPage() {
 
               {/* Email (readonly) */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="email"
-                  className="text-sm text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="email" className="text-sm text-ink-2 ">
                   Email
                 </Label>
                 <Input
@@ -400,17 +388,14 @@ export default function ClientAccessInvitationPage() {
                   type="email"
                   value={invitation?.invitee_email || ''}
                   readOnly
-                  className="bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                  className="bg-surface-3 cursor-not-allowed"
                 />
               </div>
 
               {/* Full Name (new users only) */}
               {!invitation?.existing_user && (
                 <div className="space-y-1.5">
-                  <Label
-                    htmlFor="fullName"
-                    className="text-sm text-gray-700 dark:text-gray-300"
-                  >
+                  <Label htmlFor="fullName" className="text-sm text-ink-2 ">
                     Full Name
                   </Label>
                   <Input
@@ -425,10 +410,7 @@ export default function ClientAccessInvitationPage() {
 
               {/* Password */}
               <div className="space-y-1.5">
-                <Label
-                  htmlFor="password"
-                  className="text-sm text-gray-700 dark:text-gray-300"
-                >
+                <Label htmlFor="password" className="text-sm text-ink-2 ">
                   Password
                 </Label>
                 <Input
@@ -450,7 +432,7 @@ export default function ClientAccessInvitationPage() {
                   <div className="space-y-1.5">
                     <Label
                       htmlFor="confirmPassword"
-                      className="text-sm text-gray-700 dark:text-gray-300"
+                      className="text-sm text-ink-2 "
                     >
                       Confirm Password
                     </Label>
@@ -462,7 +444,7 @@ export default function ClientAccessInvitationPage() {
                       onChange={e => setConfirmPassword(e.target.value)}
                     />
                     {confirmPassword && password !== confirmPassword && (
-                      <p className="text-xs text-red-600">
+                      <p className="text-xs text-vermillion">
                         Passwords do not match
                       </p>
                     )}
@@ -481,12 +463,10 @@ export default function ClientAccessInvitationPage() {
 
           {/* Current User */}
           {isAuthenticated && user && (
-            <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-3 rounded-lg">
-              <p className="text-sm text-gray-700 dark:text-gray-300">
+            <div className="bg-paper border border-line p-3 rounded-lg">
+              <p className="text-sm text-ink-2 ">
                 Logged in as:{' '}
-                <strong className="text-gray-900 dark:text-white">
-                  {user.email}
-                </strong>
+                <strong className="text-ink ">{user.email}</strong>
               </p>
             </div>
           )}
@@ -503,7 +483,7 @@ export default function ClientAccessInvitationPage() {
         <CardFooter className="flex gap-3 pt-6">
           <Button
             variant="outline"
-            className="flex-1 border-gray-300 dark:border-gray-600"
+            className="flex-1 border-line-strong "
             onClick={handleDecline}
             disabled={
               accepting ||
@@ -516,7 +496,7 @@ export default function ClientAccessInvitationPage() {
             Decline
           </Button>
           <Button
-            className="flex-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100"
+            className="flex-1 bg-ink text-ink-on-dark hover:bg-ink-2 "
             onClick={isAuthenticated ? handleAccept : handleAcceptSignup}
             disabled={accepting || submitting || invitation?.already_has_access}
           >
@@ -532,8 +512,8 @@ export default function ClientAccessInvitationPage() {
         </CardFooter>
 
         {/* Expiration */}
-        <div className="px-6 pb-4 border-t border-gray-100 dark:border-gray-800 pt-4">
-          <p className="text-xs text-center text-gray-500 dark:text-gray-400">
+        <div className="px-6 pb-4 border-t border-line pt-4">
+          <p className="text-xs text-center text-ink-3 ">
             This invitation expires on{' '}
             {invitation?.expires_at
               ? formatDate(invitation.expires_at, 'EEEE, MMMM d, yyyy')

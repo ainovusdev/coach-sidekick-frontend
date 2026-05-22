@@ -17,10 +17,10 @@ export function GroupMeetingHeader({ session }: GroupMeetingHeaderProps) {
         {participants.slice(0, 5).map(p => (
           <div
             key={p.client_id}
-            className="w-7 h-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center"
+            className="w-7 h-7 rounded-full bg-surface-3 border-2 border-paper flex items-center justify-center"
             title={p.client_name}
           >
-            <span className="text-xs font-medium text-gray-600">
+            <span className="text-xs font-medium text-ink-3">
               {p.client_name
                 .split(' ')
                 .map(n => n[0])
@@ -31,8 +31,8 @@ export function GroupMeetingHeader({ session }: GroupMeetingHeaderProps) {
           </div>
         ))}
         {participants.length > 5 && (
-          <div className="w-7 h-7 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center">
-            <span className="text-xs font-medium text-gray-600">
+          <div className="w-7 h-7 rounded-full bg-line border-2 border-paper flex items-center justify-center">
+            <span className="text-xs font-medium text-ink-3">
               +{participants.length - 5}
             </span>
           </div>

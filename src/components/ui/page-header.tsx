@@ -6,6 +6,10 @@ interface PageHeaderProps {
   title: string
   description?: string
   icon?: LucideIcon
+  /**
+   * Retained for backward compatibility — both values now render the same
+   * DS-aligned header. The DS forbids decorative gradients.
+   */
   iconVariant?: 'default' | 'gradient'
   actions?: ReactNode
   className?: string
@@ -15,7 +19,6 @@ export function PageHeader({
   title,
   description,
   icon: Icon,
-  iconVariant = 'default',
   actions,
   className,
 }: PageHeaderProps) {
@@ -23,37 +26,15 @@ export function PageHeader({
     <div className={cn('mb-8', className)}>
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          {Icon && (
+          {Icon ? (
             <div className="flex items-center gap-3 mb-2">
-              {iconVariant === 'gradient' ? (
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl shadow-lg">
-                  <Icon className="h-6 w-6 text-white" />
-                </div>
-              ) : (
-                <Icon className="h-6 w-6 text-neutral-600 dark:text-neutral-400" />
-              )}
-              <h1
-                className={cn(
-                  'text-3xl',
-                  iconVariant === 'gradient'
-                    ? 'font-bold bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent'
-                    : 'font-semibold text-neutral-900 dark:text-white',
-                )}
-              >
-                {title}
-              </h1>
+              <Icon className="h-6 w-6 text-ink-3" strokeWidth={1.75} />
+              <h1 className="text-3xl font-semibold text-ink">{title}</h1>
             </div>
+          ) : (
+            <h1 className="text-3xl font-semibold text-ink">{title}</h1>
           )}
-          {!Icon && (
-            <h1 className="text-3xl font-semibold text-neutral-900 dark:text-white">
-              {title}
-            </h1>
-          )}
-          {description && (
-            <p className="text-neutral-500 dark:text-neutral-400 mt-1">
-              {description}
-            </p>
-          )}
+          {description && <p className="text-ink-3 mt-1">{description}</p>}
         </div>
         {actions && <div className="flex items-center gap-3">{actions}</div>}
       </div>

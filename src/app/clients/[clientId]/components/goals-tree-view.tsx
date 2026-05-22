@@ -114,9 +114,7 @@ function TreeNode({
           <Target
             className={cn(
               'h-4 w-4',
-              isCompleted
-                ? 'text-gray-400 dark:text-gray-500'
-                : 'text-gray-600 dark:text-gray-400',
+              isCompleted ? 'text-ink-4 ' : 'text-ink-3 ',
             )}
           />
         )
@@ -125,9 +123,7 @@ function TreeNode({
           <Zap
             className={cn(
               'h-4 w-4',
-              isCompleted
-                ? 'text-gray-400 dark:text-gray-500'
-                : 'text-blue-600',
+              isCompleted ? 'text-ink-4 ' : 'text-ds-accent',
             )}
           />
         )
@@ -136,9 +132,7 @@ function TreeNode({
           <Calendar
             className={cn(
               'h-4 w-4',
-              isCompleted
-                ? 'text-gray-400 dark:text-gray-500'
-                : 'text-green-600',
+              isCompleted ? 'text-ink-4 ' : 'text-forest',
             )}
           />
         )
@@ -149,13 +143,13 @@ function TreeNode({
     if (!data.status) return ''
     switch (data.status) {
       case 'active':
-        return 'bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800'
+        return 'bg-forest-bg text-forest border-forest '
       case 'completed':
-        return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800'
+        return 'bg-ds-accent-bg text-ds-accent border-ds-accent '
       case 'paused':
-        return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800'
+        return 'bg-amber-token-bg text-amber-token border-amber-token '
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700'
+        return 'bg-surface-3 text-ink-2 border-line '
     }
   }
 
@@ -163,7 +157,7 @@ function TreeNode({
     <div>
       <div
         className={cn(
-          'flex items-start gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors',
+          'flex items-start gap-2 py-2 px-3 rounded-lg cursor-pointer hover:bg-surface-3 transition-colors',
           isSelected && 'bg-primary/10 border border-primary/20',
         )}
         style={{ paddingLeft: `${indent + 12}px` }}
@@ -176,12 +170,12 @@ function TreeNode({
               e.stopPropagation()
               onToggle?.()
             }}
-            className="flex-shrink-0 p-0.5 mt-0.5 hover:bg-gray-200 dark:hover:bg-gray-800 rounded"
+            className="flex-shrink-0 p-0.5 mt-0.5 hover:bg-surface-3 rounded"
           >
             {isExpanded ? (
-              <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <ChevronDown className="h-4 w-4 text-ink-3 " />
             ) : (
-              <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <ChevronRight className="h-4 w-4 text-ink-3 " />
             )}
           </button>
         )}
@@ -195,9 +189,7 @@ function TreeNode({
         <span
           className={cn(
             'flex-1 text-sm font-medium break-words min-w-0',
-            isCompleted
-              ? 'text-gray-400 dark:text-gray-500 line-through'
-              : 'text-gray-900 dark:text-white',
+            isCompleted ? 'text-ink-4 line-through' : 'text-ink ',
           )}
         >
           {data.title}
@@ -205,7 +197,7 @@ function TreeNode({
 
         {/* Status Indicator (Green dot for active) */}
         {data.status === 'active' && (
-          <div className="w-2 h-2 rounded-full bg-green-500" title="Active" />
+          <div className="w-2 h-2 rounded-full bg-forest" title="Active" />
         )}
         {data.status && data.status !== 'active' && (
           <Badge variant="outline" className={cn('text-xs', getStatusColor())}>
@@ -217,8 +209,8 @@ function TreeNode({
         {(onEdit || onDelete || onComplete) && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
-              <button className="flex-shrink-0 p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded">
-                <MoreVertical className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+              <button className="flex-shrink-0 p-1 hover:bg-surface-3 rounded">
+                <MoreVertical className="h-4 w-4 text-ink-3 " />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
@@ -228,7 +220,7 @@ function TreeNode({
                     e.stopPropagation()
                     onComplete()
                   }}
-                  className="text-green-600 focus:text-green-600"
+                  className="text-forest focus:text-forest"
                 >
                   <CheckCircle2 className="h-4 w-4 mr-2" />
                   Mark Complete
@@ -256,7 +248,7 @@ function TreeNode({
                     e.stopPropagation()
                     onDelete()
                   }}
-                  className="text-red-600 focus:text-red-600"
+                  className="text-vermillion focus:text-vermillion"
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete{' '}
@@ -522,16 +514,16 @@ export function GoalsTreeView({
   // Empty state
   if (goals.length === 0) {
     return (
-      <Card className="border-gray-200 dark:border-gray-700">
+      <Card className="border-line ">
         <CardContent className="p-12 text-center">
           <div className="max-w-md mx-auto">
-            <div className="h-16 w-16 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mx-auto mb-4">
-              <Target className="h-8 w-8 text-gray-600 dark:text-gray-400" />
+            <div className="h-16 w-16 rounded-full bg-surface-3 flex items-center justify-center mx-auto mb-4">
+              <Target className="h-8 w-8 text-ink-3 " />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+            <h3 className="text-lg font-semibold text-ink mb-2">
               No Vision Yet
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-sm text-ink-3 mb-6">
               Create your first vision to get started with the tree view.
             </p>
             <Button onClick={onCreateNew} size="lg">
@@ -565,7 +557,7 @@ export function GoalsTreeView({
     <div className="space-y-3 h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-ink ">
           Vision & Progress (Tree View)
         </h3>
         <Button variant="outline" size="sm" onClick={onCreateNew}>
@@ -584,7 +576,7 @@ export function GoalsTreeView({
         {/* Left Panel: Goals & Sprints */}
         <Card
           className={cn(
-            'border-gray-200 dark:border-gray-700 flex flex-col min-h-0',
+            'border-line flex flex-col min-h-0',
             sidebarCollapsed && 'hidden',
           )}
         >
@@ -592,8 +584,8 @@ export function GoalsTreeView({
             <ScrollArea className="h-[calc(100vh-220px)]">
               <div className="p-3 space-y-6">
                 {/* Vision Section */}
-                <div className="pb-4 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
+                <div className="pb-4 border-b border-line ">
+                  <div className="flex items-center justify-between text-xs font-semibold text-ink-2 mb-3 px-2">
                     <span>VISION</span>
                     <div className="flex items-center gap-0.5">
                       <Tooltip>
@@ -606,13 +598,13 @@ export function GoalsTreeView({
                               'p-1 rounded transition-colors',
                               hideCompletedVisions
                                 ? 'text-primary bg-primary/10'
-                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                                : 'hover:bg-surface-3 ',
                             )}
                           >
                             {hideCompletedVisions ? (
                               <EyeOff className="h-3.5 w-3.5" />
                             ) : (
-                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                              <Eye className="h-3.5 w-3.5 text-ink-3 " />
                             )}
                           </button>
                         </TooltipTrigger>
@@ -627,9 +619,9 @@ export function GoalsTreeView({
                           <TooltipTrigger asChild>
                             <button
                               onClick={onCreateGoal}
-                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                              className="p-1 hover:bg-surface-3 rounded transition-colors"
                             >
-                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                              <Plus className="h-3.5 w-3.5 text-ink-3 cursor-pointer" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
@@ -688,7 +680,7 @@ export function GoalsTreeView({
 
                 {/* Outcomes Section - with Sprints as children */}
                 <div className="pb-4 border-b">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-ink-2 mb-3 px-2">
                     <span>META PERFORMANCE OUTCOMES</span>
                     <div className="flex items-center gap-0.5">
                       <Tooltip>
@@ -701,13 +693,13 @@ export function GoalsTreeView({
                               'p-1 rounded transition-colors',
                               hideCompletedOutcomes
                                 ? 'text-primary bg-primary/10'
-                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                                : 'hover:bg-surface-3 ',
                             )}
                           >
                             {hideCompletedOutcomes ? (
                               <EyeOff className="h-3.5 w-3.5" />
                             ) : (
-                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                              <Eye className="h-3.5 w-3.5 text-ink-3 " />
                             )}
                           </button>
                         </TooltipTrigger>
@@ -722,9 +714,9 @@ export function GoalsTreeView({
                           <TooltipTrigger asChild>
                             <button
                               onClick={onCreateOutcome}
-                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                              className="p-1 hover:bg-surface-3 rounded transition-colors"
                             >
-                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                              <Plus className="h-3.5 w-3.5 text-ink-3 cursor-pointer" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
@@ -791,7 +783,7 @@ export function GoalsTreeView({
 
                 {/* Sprint Timeline - with Outcomes as children */}
                 <div className="pb-4">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700 dark:text-gray-300 mb-3 px-2">
+                  <div className="flex items-center justify-between text-xs font-semibold text-ink-2 mb-3 px-2">
                     <span>SPRINTS</span>
                     <div className="flex items-center gap-0.5">
                       <Tooltip>
@@ -804,13 +796,13 @@ export function GoalsTreeView({
                               'p-1 rounded transition-colors',
                               hideCompletedSprints
                                 ? 'text-primary bg-primary/10'
-                                : 'hover:bg-gray-200 dark:hover:bg-gray-800',
+                                : 'hover:bg-surface-3 ',
                             )}
                           >
                             {hideCompletedSprints ? (
                               <EyeOff className="h-3.5 w-3.5" />
                             ) : (
-                              <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+                              <Eye className="h-3.5 w-3.5 text-ink-3 " />
                             )}
                           </button>
                         </TooltipTrigger>
@@ -825,9 +817,9 @@ export function GoalsTreeView({
                           <TooltipTrigger asChild>
                             <button
                               onClick={onCreateSprint}
-                              className="p-1 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors"
+                              className="p-1 hover:bg-surface-3 rounded transition-colors"
                             >
-                              <Plus className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400 cursor-pointer" />
+                              <Plus className="h-3.5 w-3.5 text-ink-3 cursor-pointer" />
                             </button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom">
@@ -902,7 +894,7 @@ export function GoalsTreeView({
         <div
           className={cn('flex flex-col', !sidebarCollapsed && 'lg:col-span-2')}
         >
-          <Card className="border-gray-200 dark:border-gray-700 flex flex-col h-[calc(100vh-220px)]">
+          <Card className="border-line flex flex-col h-[calc(100vh-220px)]">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -923,7 +915,7 @@ export function GoalsTreeView({
                     <CardTitle className="text-sm font-semibold mb-1">
                       Commitments ({filteredCommitments.length})
                     </CardTitle>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <p className="text-xs text-ink-3 ">
                       {getFilterDescription()}
                     </p>
                   </div>
@@ -995,7 +987,7 @@ export function GoalsTreeView({
                       <div className="space-y-3">
                         {/* Status Filter */}
                         <div className="space-y-1.5">
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-xs font-medium text-ink-2 ">
                             Status
                           </span>
                           <div className="flex flex-wrap gap-1">
@@ -1004,17 +996,17 @@ export function GoalsTreeView({
                               {
                                 value: 'active',
                                 label: 'To Do',
-                                color: 'bg-blue-400',
+                                color: 'bg-ds-accent',
                               },
                               {
                                 value: 'in_progress',
                                 label: 'In Progress',
-                                color: 'bg-yellow-400',
+                                color: 'bg-amber-token',
                               },
                               {
                                 value: 'completed',
                                 label: 'Done',
-                                color: 'bg-green-400',
+                                color: 'bg-forest',
                               },
                             ].map(opt => (
                               <Button
@@ -1030,13 +1022,13 @@ export function GoalsTreeView({
                                   'h-7 text-xs px-2.5',
                                   statusFilter === opt.value
                                     ? opt.value === 'all'
-                                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                                      ? 'bg-ink text-ink-on-dark '
                                       : opt.value === 'active'
-                                        ? 'bg-blue-600 text-white'
+                                        ? 'bg-ds-accent text-ink-on-dark'
                                         : opt.value === 'in_progress'
-                                          ? 'bg-yellow-600 text-white'
-                                          : 'bg-green-600 text-white'
-                                    : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400',
+                                          ? 'bg-amber-token text-ink-on-dark'
+                                          : 'bg-forest text-ink-on-dark'
+                                    : 'border-line text-ink-3 ',
                                 )}
                               >
                                 {opt.color && (
@@ -1054,7 +1046,7 @@ export function GoalsTreeView({
                         </div>
                         {/* Priority Filter */}
                         <div className="space-y-1.5">
-                          <span className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                          <span className="text-xs font-medium text-ink-2 ">
                             Priority
                           </span>
                           <div className="flex flex-wrap gap-1">
@@ -1063,22 +1055,22 @@ export function GoalsTreeView({
                               {
                                 value: 'low',
                                 label: 'Low',
-                                color: 'bg-gray-400',
+                                color: 'bg-line',
                               },
                               {
                                 value: 'medium',
                                 label: 'Medium',
-                                color: 'bg-yellow-400',
+                                color: 'bg-amber-token',
                               },
                               {
                                 value: 'high',
                                 label: 'High',
-                                color: 'bg-orange-400',
+                                color: 'bg-amber-token',
                               },
                               {
                                 value: 'urgent',
                                 label: 'Urgent',
-                                color: 'bg-red-500',
+                                color: 'bg-vermillion',
                               },
                             ].map(opt => (
                               <Button
@@ -1094,15 +1086,15 @@ export function GoalsTreeView({
                                   'h-7 text-xs px-2.5',
                                   priorityFilter === opt.value
                                     ? opt.value === 'all'
-                                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
+                                      ? 'bg-ink text-ink-on-dark '
                                       : opt.value === 'low'
-                                        ? 'bg-gray-600 text-white'
+                                        ? 'bg-ink-3 text-ink-on-dark'
                                         : opt.value === 'medium'
-                                          ? 'bg-yellow-600 text-white'
+                                          ? 'bg-amber-token text-ink-on-dark'
                                           : opt.value === 'high'
-                                            ? 'bg-orange-600 text-white'
-                                            : 'bg-red-600 text-white'
-                                    : 'border-gray-200 text-gray-600 dark:border-gray-700 dark:text-gray-400',
+                                            ? 'bg-amber-token text-ink-on-dark'
+                                            : 'bg-vermillion text-ink-on-dark'
+                                    : 'border-line text-ink-3 ',
                                 )}
                               >
                                 {opt.color && (
@@ -1124,7 +1116,7 @@ export function GoalsTreeView({
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="w-full h-7 text-xs text-gray-500"
+                            className="w-full h-7 text-xs text-ink-3"
                             onClick={() => {
                               setStatusFilter('all')
                               setPriorityFilter('all')
@@ -1139,10 +1131,8 @@ export function GoalsTreeView({
                 </div>
               </div>
               {/* Assignee Filter Buttons */}
-              <div className="flex items-center gap-1 mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-                <span className="text-xs text-gray-500 dark:text-gray-400 mr-2">
-                  Show:
-                </span>
+              <div className="flex items-center gap-1 mt-3 pt-3 border-t border-line ">
+                <span className="text-xs text-ink-3 mr-2">Show:</span>
                 <Button
                   variant={assigneeFilter === 'all' ? 'default' : 'outline'}
                   size="sm"
@@ -1150,8 +1140,8 @@ export function GoalsTreeView({
                   className={cn(
                     'h-7 text-xs px-3',
                     assigneeFilter === 'all'
-                      ? 'bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
+                      ? 'bg-ink text-ink-on-dark '
+                      : 'border-line text-ink-3 hover:bg-paper ',
                   )}
                 >
                   All
@@ -1163,8 +1153,8 @@ export function GoalsTreeView({
                   className={cn(
                     'h-7 text-xs px-3',
                     assigneeFilter === 'client'
-                      ? 'bg-slate-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
+                      ? 'bg-ink-3 text-ink-on-dark'
+                      : 'border-line text-ink-3 hover:bg-paper ',
                   )}
                 >
                   <User className="h-3 w-3 mr-1" />
@@ -1177,8 +1167,8 @@ export function GoalsTreeView({
                   className={cn(
                     'h-7 text-xs px-3',
                     assigneeFilter === 'coach'
-                      ? 'bg-amber-600 text-white'
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50 dark:border-gray-700 dark:text-gray-400 dark:hover:bg-gray-800',
+                      ? 'bg-amber-token text-ink-on-dark'
+                      : 'border-line text-ink-3 hover:bg-paper ',
                   )}
                 >
                   <Briefcase className="h-3 w-3 mr-1" />

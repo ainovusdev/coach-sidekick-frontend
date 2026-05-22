@@ -97,28 +97,23 @@ const statusConfig: Record<
 > = {
   draft: {
     label: 'Draft',
-    className:
-      'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700',
+    className: 'bg-surface-3 text-ink-3 border-line ',
   },
   active: {
     label: 'Active',
-    className:
-      'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+    className: 'bg-ds-accent-bg text-ds-accent border-ds-accent ',
   },
   in_progress: {
     label: 'In Progress',
-    className:
-      'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    className: 'bg-amber-token-bg text-amber-token border-amber-token ',
   },
   completed: {
     label: 'Completed',
-    className:
-      'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
+    className: 'bg-forest-bg text-forest border-forest ',
   },
   abandoned: {
     label: 'Abandoned',
-    className:
-      'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800',
+    className: 'bg-vermillion-bg text-vermillion border-vermillion ',
   },
 }
 
@@ -126,10 +121,10 @@ const priorityConfig: Record<
   CommitmentPriority,
   { label: string; className: string }
 > = {
-  low: { label: 'Low', className: 'text-gray-500' },
-  medium: { label: 'Medium', className: 'text-amber-600' },
-  high: { label: 'High', className: 'text-orange-600' },
-  urgent: { label: 'Urgent', className: 'text-red-600' },
+  low: { label: 'Low', className: 'text-ink-3' },
+  medium: { label: 'Medium', className: 'text-amber-token' },
+  high: { label: 'High', className: 'text-amber-token' },
+  urgent: { label: 'Urgent', className: 'text-vermillion' },
 }
 
 // --- Inline Commitment Row ---
@@ -191,8 +186,8 @@ function CommitmentRow({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 px-4 py-3 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors',
-        isSelected && 'bg-blue-50/50 dark:bg-blue-900/10',
+        'flex items-start gap-3 px-4 py-3 border-b border-line last:border-b-0 hover:bg-paper transition-colors',
+        isSelected && 'bg-ds-accent-bg/50 ',
       )}
     >
       {/* Checkbox for drafts */}
@@ -209,7 +204,7 @@ function CommitmentRow({
         {/* Title line */}
         <div className="flex items-center gap-2 flex-wrap">
           <span
-            className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer hover:underline"
+            className="text-sm font-medium text-ink cursor-pointer hover:underline"
             onClick={() => onEdit(commitment)}
           >
             {commitment.title}
@@ -217,7 +212,7 @@ function CommitmentRow({
           {commitment.extracted_from_transcript && (
             <Badge
               variant="outline"
-              className="text-xs bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-purple-200 dark:border-purple-800"
+              className="text-xs bg-indigo-bg text-indigo border-indigo "
             >
               <Sparkles className="h-3 w-3 mr-1" />
               AI
@@ -233,14 +228,14 @@ function CommitmentRow({
 
         {/* Description */}
         {commitment.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate max-w-2xl">
+          <p className="text-xs text-ink-3 mt-0.5 truncate max-w-2xl">
             {commitment.description}
           </p>
         )}
 
         {/* Transcript context for drafts */}
         {isDraft && commitment.transcript_context && (
-          <p className="text-xs text-gray-400 italic mt-0.5 truncate max-w-xl">
+          <p className="text-xs text-ink-4 italic mt-0.5 truncate max-w-xl">
             &ldquo;{commitment.transcript_context}&rdquo;
           </p>
         )}
@@ -264,7 +259,7 @@ function CommitmentRow({
           <DropdownMenuContent align="end">
             {isDraft && (
               <DropdownMenuItem onClick={() => onConfirm(commitment.id)}>
-                <Check className="h-3.5 w-3.5 mr-2 text-green-500" />
+                <Check className="h-3.5 w-3.5 mr-2 text-forest" />
                 Approve
               </DropdownMenuItem>
             )}
@@ -272,7 +267,7 @@ function CommitmentRow({
               <DropdownMenuItem
                 onClick={() => onStatusChange(commitment.id, 'active')}
               >
-                <Target className="h-3.5 w-3.5 mr-2 text-blue-500" />
+                <Target className="h-3.5 w-3.5 mr-2 text-ds-accent" />
                 Active
               </DropdownMenuItem>
             )}
@@ -280,7 +275,7 @@ function CommitmentRow({
               <DropdownMenuItem
                 onClick={() => onStatusChange(commitment.id, 'completed')}
               >
-                <CheckCircle2 className="h-3.5 w-3.5 mr-2 text-green-500" />
+                <CheckCircle2 className="h-3.5 w-3.5 mr-2 text-forest" />
                 Completed
               </DropdownMenuItem>
             )}
@@ -288,7 +283,7 @@ function CommitmentRow({
               <DropdownMenuItem
                 onClick={() => onStatusChange(commitment.id, 'abandoned')}
               >
-                <XCircle className="h-3.5 w-3.5 mr-2 text-red-500" />
+                <XCircle className="h-3.5 w-3.5 mr-2 text-vermillion" />
                 Abandon
               </DropdownMenuItem>
             )}
@@ -300,12 +295,12 @@ function CommitmentRow({
           <PopoverTrigger asChild>
             <button
               className={cn(
-                'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs border border-gray-200 dark:border-gray-700 cursor-pointer transition-colors hover:bg-gray-100 dark:hover:bg-gray-700',
+                'inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs border border-line cursor-pointer transition-colors hover:bg-surface-3 ',
                 isOverdue
-                  ? 'text-red-600 dark:text-red-400 font-medium border-red-200 dark:border-red-800'
+                  ? 'text-vermillion font-medium border-vermillion '
                   : daysUntil !== null && daysUntil <= 7
-                    ? 'text-amber-600 dark:text-amber-400'
-                    : 'text-gray-600 dark:text-gray-400',
+                    ? 'text-amber-token '
+                    : 'text-ink-3 ',
               )}
             >
               <Calendar className="h-3 w-3" />
@@ -342,7 +337,7 @@ function CommitmentRow({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2.5 text-xs text-green-600 border-green-200 dark:border-green-800 hover:bg-green-50 dark:hover:bg-green-900/20"
+              className="h-7 px-2.5 text-xs text-forest border-forest hover:bg-forest-bg "
               onClick={handleConfirm}
               disabled={actionLoading !== null}
             >
@@ -356,7 +351,7 @@ function CommitmentRow({
             <Button
               variant="outline"
               size="sm"
-              className="h-7 px-2.5 text-xs text-red-600 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
+              className="h-7 px-2.5 text-xs text-vermillion border-vermillion hover:bg-vermillion-bg "
               onClick={handleReject}
               disabled={actionLoading !== null}
             >
@@ -374,7 +369,7 @@ function CommitmentRow({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+          className="h-7 px-2 text-xs text-ink-3 hover:text-ink-2 "
           onClick={() => onEdit(commitment)}
         >
           <Edit className="h-3 w-3 mr-1" />
@@ -385,7 +380,7 @@ function CommitmentRow({
         <Button
           variant="ghost"
           size="sm"
-          className="h-7 px-2 text-xs text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="h-7 px-2 text-xs text-vermillion hover:text-vermillion hover:bg-vermillion-bg "
           onClick={() => onDelete(commitment.id)}
         >
           <Trash2 className="h-3 w-3" />
@@ -620,7 +615,7 @@ export default function CommitmentsPage() {
     return (
       <PageLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <Loader2 className="h-8 w-8 animate-spin text-ink-4" />
         </div>
       </PageLayout>
     )
@@ -632,16 +627,14 @@ export default function CommitmentsPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Commitments
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
+            <h1 className="text-3xl font-bold text-ink ">Commitments</h1>
+            <p className="text-ink-3 mt-1">
               Track and manage commitments across all your clients
             </p>
           </div>
           <Button
             onClick={() => setCreatePanelOpen(true)}
-            className="bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 text-white dark:text-gray-900"
+            className="bg-ink hover:bg-ink-2 text-ink-on-dark "
           >
             <Plus className="h-4 w-4 mr-2" />
             New Commitment
@@ -650,54 +643,50 @@ export default function CommitmentsPage() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
-                <Target className="h-4 w-4 text-blue-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  Active
-                </span>
+                <Target className="h-4 w-4 text-ds-accent" />
+                <span className="text-xs text-ink-3 font-medium">Active</span>
               </div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-ink ">
                 {stats?.total_active ?? activeCount}
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <CheckCircle2 className="h-4 w-4 text-forest" />
+                <span className="text-xs text-ink-3 font-medium">
                   Completed
                 </span>
               </div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-ink ">
                 {stats?.total_completed ?? completedCount}
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
-                <AlertCircle className="h-4 w-4 text-red-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                  At Risk
-                </span>
+                <AlertCircle className="h-4 w-4 text-vermillion" />
+                <span className="text-xs text-ink-3 font-medium">At Risk</span>
               </div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-ink ">
                 {stats?.at_risk_count ?? 0}
               </p>
             </CardContent>
           </Card>
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-1">
-                <TrendingUp className="h-4 w-4 text-emerald-500" />
-                <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                <TrendingUp className="h-4 w-4 text-forest" />
+                <span className="text-xs text-ink-3 font-medium">
                   Completion Rate
                 </span>
               </div>
-              <p className="text-xl font-bold text-gray-900 dark:text-white">
+              <p className="text-xl font-bold text-ink ">
                 {stats?.completion_rate ?? 0}%
               </p>
             </CardContent>
@@ -707,7 +696,7 @@ export default function CommitmentsPage() {
         {/* Filters & Tabs Bar */}
         <div className="flex flex-wrap items-center gap-3 mb-6">
           {/* Tabs */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+          <div className="flex items-center bg-surface-3 rounded-lg p-1">
             {[
               {
                 key: 'all' as const,
@@ -728,8 +717,8 @@ export default function CommitmentsPage() {
                 className={cn(
                   'px-3 py-1.5 rounded-md text-sm font-medium transition-all flex items-center gap-1.5',
                   activeTab === tab.key
-                    ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
+                    ? 'bg-surface-1 text-ink shadow-sm'
+                    : 'text-ink-3 hover:text-ink-2 ',
                 )}
               >
                 {tab.label}
@@ -738,8 +727,8 @@ export default function CommitmentsPage() {
                     className={cn(
                       'text-xs px-1.5 py-0.5 rounded-full',
                       activeTab === tab.key
-                        ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
+                        ? 'bg-ink text-ink-on-dark '
+                        : 'bg-surface-3 text-ink-3 ',
                     )}
                   >
                     {tab.count}
@@ -753,7 +742,7 @@ export default function CommitmentsPage() {
 
           {/* Client filter */}
           <Select value={selectedClient} onValueChange={setSelectedClient}>
-            <SelectTrigger className="w-[180px] border-gray-200 dark:border-gray-700">
+            <SelectTrigger className="w-[180px] border-line ">
               <SelectValue placeholder="All Clients" />
             </SelectTrigger>
             <SelectContent>
@@ -773,7 +762,7 @@ export default function CommitmentsPage() {
             value={selectedType}
             onValueChange={v => setSelectedType(v as CommitmentType | 'all')}
           >
-            <SelectTrigger className="w-[160px] border-gray-200 dark:border-gray-700">
+            <SelectTrigger className="w-[160px] border-line ">
               <SelectValue placeholder="All Types" />
             </SelectTrigger>
             <SelectContent>
@@ -789,7 +778,7 @@ export default function CommitmentsPage() {
 
         {/* Bulk Draft Actions */}
         {activeTab === 'drafts' && draftCount > 0 && (
-          <Card className="border-amber-200 dark:border-amber-800/50 bg-amber-50/50 dark:bg-amber-950/20 mb-4">
+          <Card className="border-amber-token bg-amber-token-bg/50 mb-4">
             <CardContent className="py-3 px-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -797,7 +786,7 @@ export default function CommitmentsPage() {
                     checked={allDraftsSelected}
                     onCheckedChange={toggleAllDrafts}
                   />
-                  <span className="text-sm text-gray-700 dark:text-gray-300">
+                  <span className="text-sm text-ink-2 ">
                     {selectedDraftIds.size > 0
                       ? `${selectedDraftIds.size} of ${allDraftIds.length} selected`
                       : `${allDraftIds.length} draft${allDraftIds.length !== 1 ? 's' : ''} pending review`}
@@ -811,7 +800,7 @@ export default function CommitmentsPage() {
                     disabled={
                       selectedDraftIds.size === 0 || bulkDiscard.isPending
                     }
-                    className="border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                    className="border-vermillion text-vermillion hover:bg-vermillion-bg "
                   >
                     {bulkDiscard.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
@@ -826,7 +815,7 @@ export default function CommitmentsPage() {
                     disabled={
                       selectedDraftIds.size === 0 || bulkConfirm.isPending
                     }
-                    className="bg-green-600 hover:bg-green-700 text-white"
+                    className="bg-forest hover:bg-forest text-ink-on-dark"
                   >
                     {bulkConfirm.isPending ? (
                       <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
@@ -843,15 +832,15 @@ export default function CommitmentsPage() {
 
         {/* Empty State */}
         {filteredCommitments.length === 0 && (
-          <Card className="border-gray-200 dark:border-gray-700">
+          <Card className="border-line ">
             <CardContent className="py-16 text-center">
-              <div className="inline-flex items-center justify-center w-14 h-14 bg-gray-100 dark:bg-gray-800 rounded-full mb-4">
-                <Target className="h-7 w-7 text-gray-400" />
+              <div className="inline-flex items-center justify-center w-14 h-14 bg-surface-3 rounded-full mb-4">
+                <Target className="h-7 w-7 text-ink-4" />
               </div>
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-base font-semibold text-ink mb-1">
                 No commitments found
               </h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-sm text-ink-3 mb-4">
                 {activeTab === 'drafts'
                   ? 'No draft commitments to review. Drafts are created when AI extracts commitments from session transcripts.'
                   : 'Commitments are created during sessions or manually by coaches.'}
@@ -859,7 +848,7 @@ export default function CommitmentsPage() {
               <Button
                 variant="outline"
                 onClick={() => setCreatePanelOpen(true)}
-                className="border-gray-300 dark:border-gray-600"
+                className="border-line-strong "
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Create Commitment
@@ -876,39 +865,39 @@ export default function CommitmentsPage() {
               open={expandedClients.has(clientGroup.clientId)}
               onOpenChange={() => toggleClient(clientGroup.clientId)}
             >
-              <Card className="border-gray-200 dark:border-gray-700 overflow-hidden">
+              <Card className="border-line overflow-hidden">
                 {/* Client Header */}
                 <CollapsibleTrigger asChild>
-                  <button className="w-full flex items-center gap-3 px-5 py-4 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-left">
+                  <button className="w-full flex items-center gap-3 px-5 py-4 hover:bg-paper transition-colors text-left">
                     <ChevronRight
                       className={cn(
-                        'h-4 w-4 text-gray-400 transition-transform flex-shrink-0',
+                        'h-4 w-4 text-ink-4 transition-transform flex-shrink-0',
                         expandedClients.has(clientGroup.clientId) &&
                           'rotate-90',
                       )}
                     />
-                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex-shrink-0">
-                      <UserCircle className="h-4 w-4 text-white dark:text-gray-900" />
+                    <div className="flex items-center justify-center w-8 h-8 rounded-full bg-ink flex-shrink-0">
+                      <UserCircle className="h-4 w-4 text-ink-on-dark " />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <h3 className="text-sm font-semibold text-ink ">
                         {clientGroup.clientName}
                       </h3>
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       {clientGroup.draftCount > 0 && (
-                        <Badge className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs">
+                        <Badge className="bg-surface-3 text-ink-3 text-xs">
                           {clientGroup.draftCount} draft
                           {clientGroup.draftCount !== 1 && 's'}
                         </Badge>
                       )}
                       {clientGroup.activeCount > 0 && (
-                        <Badge className="bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 text-xs">
+                        <Badge className="bg-ds-accent-bg text-ds-accent text-xs">
                           {clientGroup.activeCount} active
                         </Badge>
                       )}
                       {clientGroup.completedCount > 0 && (
-                        <Badge className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs">
+                        <Badge className="bg-forest-bg text-forest text-xs">
                           {clientGroup.completedCount} done
                         </Badge>
                       )}
@@ -917,17 +906,17 @@ export default function CommitmentsPage() {
                 </CollapsibleTrigger>
 
                 <CollapsibleContent>
-                  <div className="border-t border-gray-100 dark:border-gray-800">
+                  <div className="border-t border-line ">
                     {clientGroup.sessions.map((session, idx) => (
                       <div key={session.sessionId || `manual-${idx}`}>
                         {/* Session Header */}
-                        <div className="flex items-center gap-2 px-5 py-2.5 bg-gray-50 dark:bg-gray-800/30 border-b border-gray-100 dark:border-gray-800">
+                        <div className="flex items-center gap-2 px-5 py-2.5 bg-paper border-b border-line ">
                           {session.sessionId ? (
-                            <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                            <Calendar className="h-3.5 w-3.5 text-ink-4" />
                           ) : (
-                            <FileText className="h-3.5 w-3.5 text-gray-400" />
+                            <FileText className="h-3.5 w-3.5 text-ink-4" />
                           )}
-                          <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          <span className="text-xs font-medium text-ink-3 ">
                             {session.sessionId
                               ? `Session - ${session.sessionDate ? formatDate(session.sessionDate, 'MMM d, yyyy') : 'Unknown date'}`
                               : 'Manually Created'}

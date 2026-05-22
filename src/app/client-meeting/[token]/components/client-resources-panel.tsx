@@ -81,16 +81,14 @@ export function ClientResourcesPanel({
   }, [fetchResources, guestToken])
 
   return (
-    <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col h-full">
+    <Card className="bg-surface-1 rounded-2xl shadow-sm border border-line flex flex-col h-full">
       {/* Header */}
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
+      <div className="px-5 py-4 border-b border-line flex items-center justify-between flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="p-1.5 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-            <BookOpen className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <div className="p-1.5 bg-ds-accent-bg rounded-lg">
+            <BookOpen className="h-4 w-4 text-ds-accent " />
           </div>
-          <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Shared Resources
-          </h3>
+          <h3 className="text-sm font-semibold text-ink ">Shared Resources</h3>
           {resources.length > 0 && (
             <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5">
               {resources.length}
@@ -102,7 +100,7 @@ export function ClientResourcesPanel({
           size="sm"
           onClick={fetchResources}
           disabled={isLoading}
-          className="h-7 w-7 p-0 text-gray-400 hover:text-gray-600"
+          className="h-7 w-7 p-0 text-ink-4 hover:text-ink-3"
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${isLoading ? 'animate-spin' : ''}`}
@@ -113,13 +111,13 @@ export function ClientResourcesPanel({
       {/* Content */}
       <div className="flex-1 overflow-y-auto min-h-0">
         {isLoading && resources.length === 0 ? (
-          <div className="p-6 flex items-center justify-center gap-2 text-gray-400">
+          <div className="p-6 flex items-center justify-center gap-2 text-ink-4">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span className="text-sm">Loading resources...</span>
           </div>
         ) : error ? (
           <div className="p-6 text-center">
-            <p className="text-sm text-gray-500 dark:text-gray-400">{error}</p>
+            <p className="text-sm text-ink-3 ">{error}</p>
             <Button
               variant="outline"
               size="sm"
@@ -131,11 +129,9 @@ export function ClientResourcesPanel({
           </div>
         ) : resources.length === 0 ? (
           <div className="p-8 text-center">
-            <BookOpen className="h-10 w-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
-            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-              No resources yet
-            </p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+            <BookOpen className="h-10 w-10 text-ink-2 mx-auto mb-3" />
+            <p className="text-sm font-medium text-ink-3 ">No resources yet</p>
+            <p className="text-xs text-ink-4 mt-1">
               Resources shared by your coach will appear here
             </p>
           </div>
@@ -150,18 +146,18 @@ export function ClientResourcesPanel({
               return (
                 <div
                   key={resource.id}
-                  className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 transition-colors"
+                  className="p-3 rounded-lg border border-line hover:border-line transition-colors"
                 >
                   <div className="flex items-start gap-3">
                     <div className={`p-2 rounded-lg ${colors.bg} shrink-0`}>
                       <Icon className={`h-4 w-4 ${colors.text}`} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      <p className="text-sm font-medium text-ink ">
                         {resource.title}
                       </p>
                       {resource.description && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">
+                        <p className="text-xs text-ink-3 mt-0.5 line-clamp-2">
                           {resource.description}
                         </p>
                       )}
@@ -175,7 +171,7 @@ export function ClientResourcesPanel({
                           ] || resource.category}
                         </Badge>
                         {resource.tags?.length > 0 && (
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-ink-4">
                             {resource.tags.slice(0, 2).join(', ')}
                           </span>
                         )}

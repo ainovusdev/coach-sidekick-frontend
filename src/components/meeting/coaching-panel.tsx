@@ -164,13 +164,13 @@ export function CoachingPanel({
 
   if (error && error.includes('OpenAI API key')) {
     return (
-      <Card className={cn(className, 'dark:bg-gray-800 dark:border-gray-700')}>
+      <Card className={cn(className, '')}>
         <CardContent className="p-6 text-center">
-          <AlertCircle className="h-8 w-8 text-yellow-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2 dark:text-white">
+          <AlertCircle className="h-8 w-8 text-amber-token mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2 ">
             OpenAI Configuration Required
           </h3>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
+          <p className="text-ink-3 text-sm">
             Add your OPENAI_API_KEY to the .env.local file to enable coaching
             analysis.
           </p>
@@ -183,42 +183,41 @@ export function CoachingPanel({
     switch (priority) {
       case 'high':
         return {
-          bg: 'bg-white dark:bg-gray-800',
-          border: 'border-gray-200 dark:border-gray-700',
-          accentBg: 'bg-gray-800 dark:bg-gray-200',
-          accentText: 'text-gray-800 dark:text-gray-200',
-          badge: 'bg-gray-900 text-white dark:bg-gray-200 dark:text-gray-900',
+          bg: 'bg-surface-1 ',
+          border: 'border-line ',
+          accentBg: 'bg-ink-2 ',
+          accentText: 'text-ink-2 ',
+          badge: 'bg-ink text-ink-on-dark ',
           icon: Zap,
           label: 'Act Now',
         }
       case 'medium':
         return {
-          bg: 'bg-white dark:bg-gray-800',
-          border: 'border-gray-200 dark:border-gray-700',
-          accentBg: 'bg-gray-600 dark:bg-gray-400',
-          accentText: 'text-gray-700 dark:text-gray-300',
-          badge:
-            'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+          bg: 'bg-surface-1 ',
+          border: 'border-line ',
+          accentBg: 'bg-ink-3 ',
+          accentText: 'text-ink-2 ',
+          badge: 'bg-surface-3 text-ink-2 ',
           icon: MessageCircle,
           label: 'Consider',
         }
       case 'low':
         return {
-          bg: 'bg-white dark:bg-gray-800',
-          border: 'border-gray-200 dark:border-gray-700',
-          accentBg: 'bg-gray-400 dark:bg-gray-500',
-          accentText: 'text-gray-600 dark:text-gray-400',
-          badge: 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+          bg: 'bg-surface-1 ',
+          border: 'border-line ',
+          accentBg: 'bg-line ',
+          accentText: 'text-ink-3 ',
+          badge: 'bg-paper text-ink-3 ',
           icon: Lightbulb,
           label: 'Idea',
         }
       default:
         return {
-          bg: 'bg-white dark:bg-gray-800',
-          border: 'border-gray-200 dark:border-gray-700',
-          accentBg: 'bg-gray-400 dark:bg-gray-500',
-          accentText: 'text-gray-600 dark:text-gray-400',
-          badge: 'bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+          bg: 'bg-surface-1 ',
+          border: 'border-line ',
+          accentBg: 'bg-line ',
+          accentText: 'text-ink-3 ',
+          badge: 'bg-paper text-ink-3 ',
           icon: Lightbulb,
           label: 'Tip',
         }
@@ -231,31 +230,27 @@ export function CoachingPanel({
       case 'immediate':
         return {
           label: 'Use now',
-          color:
-            'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300',
+          color: 'bg-surface-3 text-ink-2 ',
         }
       case 'next_pause':
         return {
           label: 'Next pause',
-          color:
-            'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+          color: 'bg-surface-3 text-ink-3 ',
         }
       case 'next_exchange':
         return {
           label: 'Next exchange',
-          color:
-            'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+          color: 'bg-surface-3 text-ink-3 ',
         }
       case 'end_of_call':
         return {
           label: 'End of call',
-          color:
-            'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+          color: 'bg-surface-3 text-ink-3 ',
         }
       case 'wait':
         return {
           label: 'When ready',
-          color: 'bg-gray-50 text-gray-500 dark:bg-gray-700 dark:text-gray-500',
+          color: 'bg-paper text-ink-3 ',
         }
       default:
         return null
@@ -266,25 +261,23 @@ export function CoachingPanel({
 
   return (
     <div className={cn('flex flex-col h-full', className)}>
-      <Card className="h-full flex flex-col bg-white dark:bg-gray-800 border-0 shadow-sm overflow-hidden">
+      <Card className="h-full flex flex-col bg-surface-1 border-0 shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="px-4 py-3 flex-shrink-0 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+        <div className="px-4 py-3 flex-shrink-0 border-b border-line flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-            <span className="text-sm font-semibold text-gray-900 dark:text-white">
-              AI Coach
-            </span>
+            <Sparkles className="h-4 w-4 text-ink-2 " />
+            <span className="text-sm font-semibold text-ink ">AI Coach</span>
           </div>
           {isConnected ? (
-            <span className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
+            <span className="flex items-center gap-1.5 text-xs text-ink-3 ">
               <span className="relative flex h-1.5 w-1.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-forest opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-forest"></span>
               </span>
               Live
             </span>
           ) : (
-            <span className="text-xs text-gray-400">Connecting...</span>
+            <span className="text-xs text-ink-4">Connecting...</span>
           )}
         </div>
 
@@ -295,13 +288,13 @@ export function CoachingPanel({
               {loading && (
                 <div className="flex flex-col items-center justify-center py-12">
                   <div className="relative">
-                    <div className="w-16 h-16 border-4 border-gray-200 dark:border-gray-600 rounded-full" />
-                    <div className="absolute inset-0 w-16 h-16 border-4 border-gray-800 dark:border-gray-200 border-t-transparent rounded-full animate-spin" />
+                    <div className="w-16 h-16 border-4 border-line rounded-full" />
+                    <div className="absolute inset-0 w-16 h-16 border-4 border-line border-t-transparent rounded-full animate-spin" />
                   </div>
-                  <p className="mt-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <p className="mt-4 text-sm font-semibold text-ink-2 ">
                     Analyzing conversation...
                   </p>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="text-xs text-ink-3 mt-1">
                     This takes about 30 seconds
                   </p>
                 </div>
@@ -309,16 +302,14 @@ export function CoachingPanel({
 
               {/* Error State */}
               {error && (
-                <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                <div className="bg-vermillion-bg border border-vermillion rounded-xl p-4">
                   <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <AlertCircle className="h-5 w-5 text-vermillion flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                      <p className="text-sm font-semibold text-vermillion ">
                         Analysis Error
                       </p>
-                      <p className="text-sm text-red-600 dark:text-red-400 mt-1">
-                        {error}
-                      </p>
+                      <p className="text-sm text-vermillion mt-1">{error}</p>
                     </div>
                   </div>
                 </div>
@@ -327,21 +318,21 @@ export function CoachingPanel({
               {/* Empty State */}
               {allSuggestions.length === 0 && !loading && !error && (
                 <div className="flex flex-col items-center justify-center py-12 px-6">
-                  <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-3xl flex items-center justify-center mb-5">
-                    <Lightbulb className="h-10 w-10 text-gray-600 dark:text-gray-400" />
+                  <div className="w-20 h-20 bg-surface-3 rounded-3xl flex items-center justify-center mb-5">
+                    <Lightbulb className="h-10 w-10 text-ink-3 " />
                   </div>
-                  <h3 className="text-base font-bold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-base font-bold text-ink mb-2">
                     {waitingForSuggestions
                       ? 'Listening...'
                       : 'Ready for insights'}
                   </h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 text-center max-w-[240px] leading-relaxed">
+                  <p className="text-sm text-ink-3 text-center max-w-[240px] leading-relaxed">
                     {waitingForSuggestions
                       ? 'AI-powered coaching suggestions will appear as the conversation unfolds'
                       : 'Continue the conversation to receive personalized coaching tips'}
                   </p>
                   {waitingForSuggestions && (
-                    <div className="flex items-center gap-2 mt-5 text-sm text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded-full font-medium">
+                    <div className="flex items-center gap-2 mt-5 text-sm text-ink-2 bg-surface-3 px-4 py-2 rounded-full font-medium">
                       <Clock className="h-4 w-4" />
                       Updates every 30-60s
                     </div>
@@ -354,11 +345,11 @@ export function CoachingPanel({
                 <div className="mb-4">
                   <button
                     onClick={() => setPinnedSectionOpen(!pinnedSectionOpen)}
-                    className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                    className="w-full flex items-center justify-between px-3 py-2 bg-paper border border-line rounded-lg hover:bg-surface-3 transition-colors"
                   >
                     <div className="flex items-center gap-2">
-                      <Pin className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
-                      <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                      <Pin className="h-3.5 w-3.5 text-ink-3 " />
+                      <span className="text-sm font-semibold text-ink-2 ">
                         Pinned ({pinnedCount})
                       </span>
                     </div>
@@ -370,14 +361,14 @@ export function CoachingPanel({
                           e.stopPropagation()
                           clearAllPinned()
                         }}
-                        className="h-6 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
+                        className="h-6 px-2 text-xs text-ink-3 hover:text-ink-2 hover:bg-surface-3 "
                       >
                         Clear all
                       </Button>
                       {pinnedSectionOpen ? (
-                        <ChevronUp className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <ChevronUp className="h-4 w-4 text-ink-3 " />
                       ) : (
-                        <ChevronDown className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                        <ChevronDown className="h-4 w-4 text-ink-3 " />
                       )}
                     </div>
                   </button>
@@ -387,7 +378,7 @@ export function CoachingPanel({
                       {pinnedSuggestions.map(pinned => (
                         <div
                           key={pinned.id}
-                          className="relative flex items-start gap-2 p-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl group"
+                          className="relative flex items-start gap-2 p-3 bg-paper border border-line rounded-xl group"
                         >
                           {pinned.go_live_emoji && (
                             <span className="text-lg flex-shrink-0">
@@ -395,11 +386,11 @@ export function CoachingPanel({
                             </span>
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-800 dark:text-gray-200 leading-relaxed">
+                            <p className="text-sm font-medium text-ink-2 leading-relaxed">
                               {pinned.suggestion}
                             </p>
                             {pinned.go_live_value && (
-                              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 rounded">
+                              <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-surface-3 text-ink-2 rounded">
                                 {pinned.go_live_value}
                               </span>
                             )}
@@ -408,7 +399,7 @@ export function CoachingPanel({
                             variant="ghost"
                             size="sm"
                             onClick={() => unpinSuggestion(pinned.id)}
-                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 flex-shrink-0"
+                            className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity text-ink-4 hover:text-vermillion hover:bg-vermillion-bg flex-shrink-0"
                           >
                             <X className="h-3.5 w-3.5" />
                           </Button>
@@ -464,7 +455,7 @@ export function CoachingPanel({
                               </span>
                               {'go_live_value' in suggestion &&
                                 suggestion.go_live_value && (
-                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-white/80 dark:bg-gray-700/80 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600">
+                                  <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-surface-1/80 text-ink-2 border border-line ">
                                     {suggestion.go_live_value}
                                   </span>
                                 )}
@@ -494,8 +485,8 @@ export function CoachingPanel({
                                 className={cn(
                                   'h-7 w-7 p-0 rounded-full transition-all',
                                   isPinned(suggestion.id)
-                                    ? 'text-gray-700 bg-gray-200 hover:bg-gray-300'
-                                    : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100',
+                                    ? 'text-ink-2 bg-surface-3 hover:bg-line'
+                                    : 'text-ink-4 hover:text-ink-3 hover:bg-surface-3',
                                 )}
                                 title={
                                   isPinned(suggestion.id)
@@ -526,12 +517,12 @@ export function CoachingPanel({
                                   config.accentBg,
                                 )}
                               >
-                                <ArrowRight className="h-5 w-5 text-white" />
+                                <ArrowRight className="h-5 w-5 text-ink-on-dark" />
                               </div>
                             )}
 
                             <div className="flex-1 min-w-0">
-                              <p className="text-base font-semibold text-gray-900 dark:text-white leading-relaxed">
+                              <p className="text-base font-semibold text-ink leading-relaxed">
                                 {suggestion.suggestion ||
                                   ('content' in suggestion
                                     ? (suggestion as any).content
@@ -542,7 +533,7 @@ export function CoachingPanel({
                               {!simplified &&
                                 'rationale' in suggestion &&
                                 suggestion.rationale && (
-                                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 leading-relaxed">
+                                  <p className="text-sm text-ink-3 mt-2 leading-relaxed">
                                     {suggestion.rationale}
                                   </p>
                                 )}
@@ -551,12 +542,12 @@ export function CoachingPanel({
 
                           {/* Confidence indicator */}
                           {!simplified && suggestion.confidence && (
-                            <div className="mt-4 pt-3 border-t border-gray-200/50 dark:border-gray-600/50">
+                            <div className="mt-4 pt-3 border-t border-line/50 ">
                               <div className="flex items-center gap-3">
-                                <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                <span className="text-xs font-medium text-ink-3 ">
                                   Confidence
                                 </span>
-                                <div className="flex-1 h-2 bg-white/80 dark:bg-gray-700/80 rounded-full overflow-hidden">
+                                <div className="flex-1 h-2 bg-surface-1/80 rounded-full overflow-hidden">
                                   <div
                                     className={cn(
                                       'h-full rounded-full transition-all duration-500',
@@ -567,7 +558,7 @@ export function CoachingPanel({
                                     }}
                                   />
                                 </div>
-                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
+                                <span className="text-xs font-bold text-ink-2 ">
                                   {Math.round(suggestion.confidence * 100)}%
                                 </span>
                               </div>

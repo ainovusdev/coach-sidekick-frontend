@@ -130,7 +130,7 @@ function CoachSignupContent() {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+      <div className="min-h-screen flex items-center justify-center bg-paper ">
         <LoadingSpinner />
       </div>
     )
@@ -138,7 +138,7 @@ function CoachSignupContent() {
 
   if (!invitationInfo?.valid) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-paper p-4">
         <Card className="max-w-md">
           <CardContent className="pt-6">
             <Alert variant="destructive">
@@ -157,59 +157,59 @@ function CoachSignupContent() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex bg-paper ">
       {/* Left side - Features */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gray-900 text-white p-12 flex-col justify-center">
+      <div className="hidden lg:flex lg:w-1/2 bg-ink text-ink-on-dark p-12 flex-col justify-center">
         <div className="max-w-md mx-auto">
           <h1 className="text-4xl font-bold mb-4">Welcome to Coach Sidekick</h1>
-          <p className="text-gray-400 text-lg mb-12">
+          <p className="text-ink-4 text-lg mb-12">
             Your AI-powered coaching assistant for better sessions and insights.
           </p>
 
           <div className="space-y-8">
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-ink-2 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Client Management</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-ink-4 text-sm">
                   Organize and track your coaching clients with ease.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-ink-2 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Brain className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">AI-Powered Insights</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-ink-4 text-sm">
                   Get real-time coaching suggestions during sessions.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-ink-2 rounded-lg flex items-center justify-center flex-shrink-0">
                 <BarChart3 className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Progress Tracking</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-ink-4 text-sm">
                   Monitor client progress with comprehensive analytics.
                 </p>
               </div>
             </div>
 
             <div className="flex items-start gap-4">
-              <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-ink-2 rounded-lg flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div>
                 <h3 className="font-semibold mb-1">Session Transcription</h3>
-                <p className="text-gray-400 text-sm">
+                <p className="text-ink-4 text-sm">
                   Automatic transcription with key insights extraction.
                 </p>
               </div>
@@ -233,11 +233,11 @@ function CoachSignupContent() {
                 : "You've been invited to join as a coach"}
             </p>
             {invitationInfo.existing_user && invitationInfo.existing_roles && (
-              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                <p className="text-sm text-blue-800 dark:text-blue-200">
+              <div className="mt-3 p-3 bg-ds-accent-bg border border-ds-accent rounded-lg">
+                <p className="text-sm text-ds-accent ">
                   <strong>Existing Account Detected</strong>
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                <p className="text-xs text-ds-accent mt-1">
                   You already have an account as a{' '}
                   {invitationInfo.existing_roles
                     .map(r => r.replace('_', ' '))
@@ -257,10 +257,10 @@ function CoachSignupContent() {
                   type="email"
                   value={invitationInfo.email}
                   disabled
-                  className="bg-gray-100 dark:bg-gray-800"
+                  className="bg-surface-3 "
                 />
                 {invitationInfo.existing_user && (
-                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                  <p className="text-xs text-ds-accent mt-1">
                     This email is already registered in our system
                   </p>
                 )}
@@ -340,7 +340,7 @@ function CoachSignupContent() {
             <CardFooter className="flex flex-col gap-4 pt-6">
               <Button
                 type="submit"
-                className="w-full bg-gray-900 dark:bg-white hover:bg-gray-800 dark:hover:bg-gray-100 dark:text-gray-900"
+                className="w-full bg-ink hover:bg-ink-2 "
                 disabled={isLoading}
               >
                 {isLoading

@@ -69,8 +69,8 @@ export function EndSprintModal({
       <AlertDialogContent>
         <AlertDialogHeader>
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2 bg-orange-100 rounded-full">
-              <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <div className="p-2 bg-amber-token-bg rounded-full">
+              <AlertTriangle className="h-5 w-5 text-amber-token" />
             </div>
             <AlertDialogTitle>End Sprint</AlertDialogTitle>
           </div>
@@ -83,7 +83,7 @@ export function EndSprintModal({
               ?
             </p>
 
-            <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-700">
+            <div className="bg-paper rounded-lg p-3 text-sm text-ink-2">
               <p>
                 <strong>Sprint Period:</strong>{' '}
                 {formatDate(sprint.start_date, 'MMM d, yyyy')} -{' '}
@@ -95,33 +95,33 @@ export function EndSprintModal({
             </div>
 
             {unfinishedCommitments.length > 0 && (
-              <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                <p className="text-sm font-semibold text-orange-900 mb-2">
+              <div className="bg-amber-token-bg border border-amber-token rounded-lg p-3">
+                <p className="text-sm font-semibold text-amber-token mb-2">
                   Unfinished Commitments ({unfinishedCommitments.length})
                 </p>
-                <p className="text-sm text-orange-700 mb-2">
+                <p className="text-sm text-amber-token mb-2">
                   The following commitments are not yet completed:
                 </p>
-                <ul className="text-sm text-orange-800 space-y-1 ml-4">
+                <ul className="text-sm text-amber-token space-y-1 ml-4">
                   {unfinishedCommitments.slice(0, 5).map((commitment: any) => (
                     <li key={commitment.id} className="list-disc">
                       {commitment.title}
                     </li>
                   ))}
                   {unfinishedCommitments.length > 5 && (
-                    <li className="list-none text-orange-600 font-medium">
+                    <li className="list-none text-amber-token font-medium">
                       +{unfinishedCommitments.length - 5} more...
                     </li>
                   )}
                 </ul>
-                <p className="text-xs text-orange-700 mt-2">
+                <p className="text-xs text-amber-token mt-2">
                   These commitments will be unlinked from this sprint and can be
                   added to future sprints.
                 </p>
               </div>
             )}
 
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-ink-3">
               This action will mark the sprint as completed. You can create a
               new sprint after ending this one.
             </p>
@@ -138,7 +138,7 @@ export function EndSprintModal({
           <Button
             onClick={handleEndSprint}
             disabled={isEnding}
-            className="bg-orange-600 hover:bg-orange-700 text-white"
+            className="bg-amber-token hover:bg-amber-token text-ink-on-dark"
           >
             {isEnding ? (
               <>

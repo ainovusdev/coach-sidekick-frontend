@@ -44,9 +44,9 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
 
   if (loading) {
     return (
-      <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
+      <Card className="border-line shadow-sm">
         <CardContent className="py-12 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 text-gray-400 animate-spin" />
+          <Loader2 className="h-8 w-8 text-ink-4 animate-spin" />
         </CardContent>
       </Card>
     )
@@ -81,16 +81,16 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
   const pendingWins = wins.filter(w => !w.is_approved)
 
   return (
-    <Card className="border-gray-200 dark:border-gray-700 shadow-sm">
-      <CardHeader className="bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+    <Card className="border-line shadow-sm">
+      <CardHeader className="bg-paper border-b border-line ">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
-              <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+            <div className="w-10 h-10 rounded-full bg-amber-token-bg flex items-center justify-center">
+              <Trophy className="h-5 w-5 text-amber-token " />
             </div>
             <div>
               <CardTitle className="text-lg">Client Wins</CardTitle>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
+              <p className="text-sm text-ink-3 ">
                 Achievements and breakthroughs from all sessions
               </p>
             </div>
@@ -98,15 +98,12 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
           <div className="flex items-center gap-2">
             <Badge
               variant="secondary"
-              className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
+              className="bg-amber-token-bg text-amber-token "
             >
               {approvedWins.length} wins
             </Badge>
             {pendingWins.length > 0 && (
-              <Badge
-                variant="secondary"
-                className="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400"
-              >
+              <Badge variant="secondary" className="bg-surface-3 text-ink-3 ">
                 {pendingWins.length} pending
               </Badge>
             )}
@@ -116,26 +113,26 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
 
       <CardContent className="p-0">
         {winsBySession.length > 0 ? (
-          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+          <div className="divide-y divide-line ">
             {winsBySession.map(sessionGroup => (
               <div key={sessionGroup.sessionId} className="p-6">
                 {/* Session Header */}
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-4 w-4 text-gray-400" />
+                    <Calendar className="h-4 w-4 text-ink-4" />
                     <div>
-                      <h4 className="font-medium text-gray-900 dark:text-white">
+                      <h4 className="font-medium text-ink ">
                         {sessionGroup.sessionTitle || 'Coaching Session'}
                       </h4>
                       {sessionGroup.sessionDate && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                        <p className="text-sm text-ink-3 ">
                           {formatDate(sessionGroup.sessionDate, 'MMMM d, yyyy')}
                         </p>
                       )}
                     </div>
                   </div>
                   <Link href={`/sessions/${sessionGroup.sessionId}`}>
-                    <Button variant="ghost" size="sm" className="text-gray-500">
+                    <Button variant="ghost" size="sm" className="text-ink-3">
                       <ExternalLink className="h-4 w-4 mr-1" />
                       View Session
                     </Button>
@@ -149,36 +146,36 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                       key={win.id}
                       className={`p-4 rounded-lg border ${
                         win.is_approved
-                          ? 'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700'
-                          : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800'
+                          ? 'bg-surface-1 border-line '
+                          : 'bg-amber-token-bg border-amber-token '
                       }`}
                     >
                       <div className="flex items-start gap-3">
                         <div
                           className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
                             win.is_approved
-                              ? 'bg-amber-100 dark:bg-amber-900/40'
-                              : 'bg-amber-200 dark:bg-amber-900/60'
+                              ? 'bg-amber-token-bg '
+                              : 'bg-amber-token-bg '
                           }`}
                         >
                           <Trophy
                             className={`h-4 w-4 ${
                               win.is_approved
-                                ? 'text-amber-600 dark:text-amber-400'
-                                : 'text-amber-700 dark:text-amber-300'
+                                ? 'text-amber-token '
+                                : 'text-amber-token '
                             }`}
                           />
                         </div>
                         <div className="flex-1">
                           <div className="flex items-start justify-between gap-2">
-                            <h5 className="font-medium text-gray-900 dark:text-white">
+                            <h5 className="font-medium text-ink ">
                               {win.title}
                             </h5>
                             <div className="flex gap-1.5">
                               {win.is_ai_generated && (
                                 <Badge
                                   variant="secondary"
-                                  className="bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-xs"
+                                  className="bg-surface-3 text-ink-3 text-xs"
                                 >
                                   AI
                                 </Badge>
@@ -186,7 +183,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                               {!win.is_approved && (
                                 <Badge
                                   variant="secondary"
-                                  className="bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 text-xs"
+                                  className="bg-amber-token-bg text-amber-token text-xs"
                                 >
                                   Pending
                                 </Badge>
@@ -194,7 +191,7 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
                             </div>
                           </div>
                           {win.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                            <p className="text-sm text-ink-3 mt-1">
                               {win.description}
                             </p>
                           )}
@@ -208,11 +205,11 @@ export function ClientWinsTimeline({ clientId }: ClientWinsTimelineProps) {
           </div>
         ) : (
           <div className="py-16 text-center">
-            <Trophy className="h-12 w-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            <Trophy className="h-12 w-12 text-ink-2 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-ink mb-2">
               No wins recorded yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
+            <p className="text-ink-3 max-w-sm mx-auto">
               Wins will appear here as they are recorded during coaching
               sessions. Use AI extraction or add them manually from session
               details.

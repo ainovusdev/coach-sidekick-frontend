@@ -225,10 +225,10 @@ export function DraftCommitmentsReview({
                         className={cn(
                           'ml-2',
                           draft.extraction_confidence >= 0.8
-                            ? 'bg-green-500/10 text-green-600'
+                            ? 'bg-forest/10 text-forest'
                             : draft.extraction_confidence >= 0.6
-                              ? 'bg-yellow-500/10 text-yellow-600'
-                              : 'bg-gray-500/10 text-gray-600',
+                              ? 'bg-amber-token/10 text-amber-token'
+                              : 'bg-ink-4/10 text-ink-3',
                         )}
                       >
                         {Math.round(draft.extraction_confidence * 100)}%
@@ -250,7 +250,7 @@ export function DraftCommitmentsReview({
                   {draft.transcript_context && (
                     <div className="mt-3 p-3 bg-accent/50 rounded-md border border-border/50">
                       <div className="flex items-start gap-2">
-                        <Sparkles className="size-4 text-purple-600 flex-shrink-0 mt-0.5" />
+                        <Sparkles className="size-4 text-indigo flex-shrink-0 mt-0.5" />
                         <div className="flex-1">
                           <p className="text-xs font-medium text-muted-foreground mb-1">
                             From transcript:

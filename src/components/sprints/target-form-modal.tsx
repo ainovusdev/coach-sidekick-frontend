@@ -206,7 +206,7 @@ export function TargetFormModal({
                           'flex items-center gap-2 px-3 py-1.5 rounded-lg border cursor-pointer transition-colors',
                           isSelected
                             ? 'bg-primary text-primary-foreground border-primary'
-                            : 'bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500',
+                            : 'bg-surface-1 border-line-strong hover:border-line-strong ',
                         )}
                         onClick={() => {
                           if (isSelected) {
@@ -222,8 +222,8 @@ export function TargetFormModal({
                           className={cn(
                             'w-4 h-4 rounded border-2 flex items-center justify-center',
                             isSelected
-                              ? 'bg-white border-white'
-                              : 'bg-white border-gray-300',
+                              ? 'bg-surface-1 border-paper'
+                              : 'bg-surface-1 border-line-strong',
                           )}
                         >
                           {isSelected && (
@@ -238,12 +238,10 @@ export function TargetFormModal({
                   })}
                 </div>
               ) : (
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  No active visions
-                </div>
+                <div className="text-sm text-ink-3 ">No active visions</div>
               )}
               {selectedGoalIds.length > 0 && (
-                <p className="text-xs text-gray-600 dark:text-gray-400">
+                <p className="text-xs text-ink-3 ">
                   {selectedGoalIds.length} vision
                   {selectedGoalIds.length !== 1 ? 's' : ''} selected
                 </p>
