@@ -417,7 +417,7 @@ function PanelHeader({
           />
         ) : (
           <h2
-            className="text-xl font-bold text-ink cursor-pointer hover:bg-surface-3 rounded px-2 py-1 -mx-2 truncate"
+            className="text-xl font-bold text-ink cursor-pointer hover:bg-surface-3 rounded px-2 py-1 -mx-2 break-words"
             onClick={() => setIsEditingTitle(true)}
           >
             {commitment.title}
