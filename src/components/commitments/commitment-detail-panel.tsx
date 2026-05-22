@@ -457,7 +457,7 @@ function PanelHeader({
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="z-[80]">
             <DropdownMenuItem onClick={onDelete} className="text-vermillion">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
@@ -537,7 +537,7 @@ function FieldsGrid({
             <SelectTrigger className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="z-[80]">
               <SelectItem value="low">
                 <div className="flex items-center gap-2">
                   <div className={cn('w-2 h-2 rounded-full', 'bg-line')} />
@@ -590,7 +590,7 @@ function FieldsGrid({
                   : 'Set date'}
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
+            <PopoverContent className="w-auto p-0 z-[80]" align="start">
               <Calendar
                 mode="single"
                 selected={
