@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { CommitmentService } from '@/services/commitment-service'
+import { ClientCommitmentService } from '@/services/client-commitment-service'
 import {
   useUpdateCommitment,
   useUpdateCommitmentProgress,
@@ -13,6 +14,16 @@ import {
   useUploadAttachment,
   useDeleteAttachment,
 } from '@/hooks/mutations/use-commitment-mutations'
+import {
+  useClientUpdateCommitment,
+  useClientUpdateCommitmentProgress,
+  useClientAddMilestone,
+  useClientUpdateMilestone,
+  useClientDeleteMilestone,
+  useClientDiscardCommitment,
+  useClientUploadAttachment,
+  useClientDeleteAttachment,
+} from '@/hooks/mutations/use-client-commitment-mutations'
 import { queryKeys } from '@/lib/query-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -97,6 +108,7 @@ interface CommitmentDetailPanelProps {
   onClose: () => void
   onCommitmentUpdate?: () => void
   guestContext?: GuestContext
+  clientMode?: boolean
 }
 
 // UUID v4 pattern check — prevents sending invalid IDs (e.g. "temp-*", "None") to the API
@@ -106,6 +118,7 @@ const UUID_RE =
 function useCommitment(
   commitmentId: string | null,
   guestContext?: GuestContext,
+  clientMode?: boolean,
 ) {
   const isValidId = !!commitmentId && UUID_RE.test(commitmentId)
   return useQuery({
@@ -117,6 +130,9 @@ function useCommitment(
           guestContext.guestToken,
           commitmentId!,
         )
+      }
+      if (clientMode) {
+        return ClientCommitmentService.getCommitment(commitmentId!)
       }
       return CommitmentService.getCommitment(commitmentId!)
     },
@@ -131,10 +147,12 @@ export function CommitmentDetailPanel({
   onClose,
   onCommitmentUpdate,
   guestContext,
+  clientMode,
 }: CommitmentDetailPanelProps) {
   const { data: commitment, isLoading } = useCommitment(
     commitmentId,
     guestContext,
+    clientMode,
   )
   const resolvedClientId = clientIdProp || commitment?.client_id
 
@@ -153,8 +171,16 @@ export function CommitmentDetailPanel({
     resolvedClientId ? { client_id: resolvedClientId } : undefined,
     guestQueryOpts,
   )
-  const updateCommitment = useUpdateCommitment({ silent: true })
-  const discardCommitment = useDiscardCommitment()
+  const coachUpdateCommitment = useUpdateCommitment({ silent: true })
+  const clientUpdateCommitment = useClientUpdateCommitment({ silent: true })
+  const updateCommitment = clientMode
+    ? clientUpdateCommitment
+    : coachUpdateCommitment
+  const coachDiscardCommitment = useDiscardCommitment()
+  const clientDiscardCommitment = useClientDiscardCommitment()
+  const discardCommitment = clientMode
+    ? clientDiscardCommitment
+    : coachDiscardCommitment
   const queryClient = useQueryClient()
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
@@ -278,13 +304,15 @@ export function CommitmentDetailPanel({
                   onFieldUpdate={handleFieldUpdate}
                 />
 
-                {/* Linked Meta Performance Outcomes & Sprints */}
-                <LinkedOutcomesSection
-                  commitment={commitment}
-                  commitmentId={commitmentId!}
-                  onCommitmentUpdate={onCommitmentUpdate}
-                  guestContext={guestContext}
-                />
+                {/* Linked Meta Performance Outcomes & Sprints - hidden in client mode (no client-portal TargetService) */}
+                {!clientMode && (
+                  <LinkedOutcomesSection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                    onCommitmentUpdate={onCommitmentUpdate}
+                    guestContext={guestContext}
+                  />
+                )}
 
                 {/* Description */}
                 <DescriptionSection
@@ -297,6 +325,7 @@ export function CommitmentDetailPanel({
                   <AttachmentsSection
                     commitment={commitment}
                     commitmentId={commitmentId!}
+                    clientMode={clientMode}
                   />
                 )}
 
@@ -305,6 +334,7 @@ export function CommitmentDetailPanel({
                   <MilestonesSection
                     commitment={commitment}
                     commitmentId={commitmentId!}
+                    clientMode={clientMode}
                   />
                 )}
 
@@ -314,6 +344,7 @@ export function CommitmentDetailPanel({
                     commitment={commitment}
                     commitmentId={commitmentId!}
                     onCommitmentUpdate={onCommitmentUpdate}
+                    clientMode={clientMode}
                   />
                 )}
 
@@ -936,12 +967,22 @@ function formatFileSize(bytes: number): string {
 function AttachmentsSection({
   commitment,
   commitmentId,
+  clientMode,
 }: {
   commitment: Commitment
   commitmentId: string
+  clientMode?: boolean
 }) {
-  const uploadAttachment = useUploadAttachment(commitmentId)
-  const deleteAttachment = useDeleteAttachment(commitmentId)
+  const coachUploadAttachment = useUploadAttachment(commitmentId)
+  const clientUploadAttachment = useClientUploadAttachment(commitmentId)
+  const uploadAttachment = clientMode
+    ? clientUploadAttachment
+    : coachUploadAttachment
+  const coachDeleteAttachment = useDeleteAttachment(commitmentId)
+  const clientDeleteAttachment = useClientDeleteAttachment(commitmentId)
+  const deleteAttachment = clientMode
+    ? clientDeleteAttachment
+    : coachDeleteAttachment
   const [isDragging, setIsDragging] = useState(false)
   const [uploadProgress, setUploadProgress] = useState<number | null>(null)
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -1001,10 +1042,15 @@ function AttachmentsSection({
 
     if (new Date() > expiresAt) {
       try {
-        const refreshed = await CommitmentService.refreshAttachmentUrl(
-          commitmentId,
-          attachment.id,
-        )
+        const refreshed = clientMode
+          ? await ClientCommitmentService.refreshAttachmentUrl(
+              commitmentId,
+              attachment.id,
+            )
+          : await CommitmentService.refreshAttachmentUrl(
+              commitmentId,
+              attachment.id,
+            )
         url = refreshed.file_url
       } catch {
         toast.error('Failed to refresh download link')
@@ -1160,14 +1206,26 @@ function AttachmentsSection({
 function MilestonesSection({
   commitment,
   commitmentId,
+  clientMode,
 }: {
   commitment: Commitment
   commitmentId: string
+  clientMode?: boolean
 }) {
   const [newMilestoneTitle, setNewMilestoneTitle] = useState('')
-  const addMilestone = useAddMilestone(commitmentId)
-  const updateMilestone = useUpdateMilestone(commitmentId)
-  const deleteMilestone = useDeleteMilestone(commitmentId)
+  const coachAddMilestone = useAddMilestone(commitmentId)
+  const clientAddMilestone = useClientAddMilestone(commitmentId)
+  const addMilestone = clientMode ? clientAddMilestone : coachAddMilestone
+  const coachUpdateMilestone = useUpdateMilestone(commitmentId)
+  const clientUpdateMilestone = useClientUpdateMilestone(commitmentId)
+  const updateMilestone = clientMode
+    ? clientUpdateMilestone
+    : coachUpdateMilestone
+  const coachDeleteMilestone = useDeleteMilestone(commitmentId)
+  const clientDeleteMilestone = useClientDeleteMilestone(commitmentId)
+  const deleteMilestone = clientMode
+    ? clientDeleteMilestone
+    : coachDeleteMilestone
   const { fireConfetti } = useConfetti()
 
   const milestones = commitment.milestones || []
@@ -1330,10 +1388,12 @@ function ActivitySection({
   commitment,
   commitmentId,
   onCommitmentUpdate,
+  clientMode,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
+  clientMode?: boolean
 }) {
   const [note, setNote] = useState('')
   const [showExtras, setShowExtras] = useState(false)
@@ -1341,7 +1401,9 @@ function ActivitySection({
   const [blockers, setBlockers] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const _queryClient = useQueryClient()
-  const updateProgress = useUpdateCommitmentProgress()
+  const coachUpdateProgress = useUpdateCommitmentProgress()
+  const clientUpdateProgress = useClientUpdateCommitmentProgress()
+  const updateProgress = clientMode ? clientUpdateProgress : coachUpdateProgress
 
   const updates = [...(commitment.updates || [])].sort(
     (a, b) =>
