@@ -183,7 +183,6 @@ export function CommitmentDetailPanel({
     : coachDiscardCommitment
   const queryClient = useQueryClient()
 
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
 
   // Close on Escape
@@ -260,7 +259,6 @@ export function CommitmentDetailPanel({
         },
       })
     }
-    setDeleteDialogOpen(false)
   }
 
   const isOpen = !!commitmentId
@@ -295,7 +293,7 @@ export function CommitmentDetailPanel({
                   commitment={commitment}
                   onClose={onClose}
                   onFieldUpdate={handleFieldUpdate}
-                  onDelete={() => setDeleteDialogOpen(true)}
+                  onDelete={handleDelete}
                 />
 
                 {/* Fields Grid */}
@@ -359,28 +357,6 @@ export function CommitmentDetailPanel({
           )}
         </div>
       </div>
-
-      {/* Delete Confirmation */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Commitment</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete &ldquo;{commitment?.title}
-              &rdquo;? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-vermillion hover:bg-vermillion"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   )
 }
