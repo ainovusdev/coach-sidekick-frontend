@@ -396,19 +396,56 @@ function reduceBlocks(
           ? { ...b, input: event.input || {} }
           : b,
       )
-    case 'tool_result':
-      return blocks.map(b => {
+    case 'tool_result': {
+      const isError =
+        event.result &&
+        typeof event.result === 'object' &&
+        'error' in event.result
+      const matching = blocks.find(
+        b => b.kind === 'tool_call' && b.id === event.id,
+      )
+      const updated = blocks.map(b => {
         if (b.kind !== 'tool_call' || b.id !== event.id) return b
-        const isError =
-          event.result &&
-          typeof event.result === 'object' &&
-          'error' in event.result
         return {
           ...b,
           result: event.result,
           status: isError ? 'error' : 'done',
-        }
+        } as MessageBlock
       })
+      if (
+        !isError &&
+        matching?.kind === 'tool_call' &&
+        matching.name === 'generate_report' &&
+        event.result &&
+        typeof event.result === 'object' &&
+        'url' in event.result &&
+        typeof (event.result as { url?: unknown }).url === 'string'
+      ) {
+        const r = event.result as {
+          url: string
+          filename: string
+          title: string
+          size_bytes: number
+          page_count: number
+          expires_at: string
+        }
+        return [
+          ...updated,
+          {
+            kind: 'report',
+            spec: {
+              url: r.url,
+              filename: r.filename,
+              title: r.title,
+              size_bytes: r.size_bytes,
+              page_count: r.page_count,
+              expires_at: r.expires_at,
+            },
+          } as MessageBlock,
+        ]
+      }
+      return updated
+    }
     case 'chart':
       return [...blocks, { kind: 'chart', spec: event.spec }]
     case 'error':

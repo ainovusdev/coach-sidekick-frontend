@@ -4,6 +4,7 @@ import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { cn } from '@/lib/utils'
 import { Sparkles, User } from 'lucide-react'
 import { AgentChart } from './agent-chart'
+import { AgentReportCard } from './agent-report-card'
 import { AgentToolCallCard } from './agent-tool-call-card'
 import type { AgentMessage as AgentMessageType } from '@/types/agent'
 
@@ -66,6 +67,9 @@ export function AgentMessage({ message }: Props) {
             }
             if (block.kind === 'chart') {
               return <AgentChart key={i} spec={block.spec} />
+            }
+            if (block.kind === 'report') {
+              return <AgentReportCard key={i} spec={block.spec} />
             }
             return null
           })

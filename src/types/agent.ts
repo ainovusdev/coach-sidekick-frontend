@@ -65,12 +65,32 @@ export interface SessionTranscriptResult {
   truncated?: boolean
 }
 
+export interface ReportSpec {
+  url: string
+  filename: string
+  title: string
+  size_bytes: number
+  page_count: number
+  expires_at: string
+}
+
+export interface ReportToolResult {
+  ok: true
+  url: string
+  filename: string
+  title: string
+  size_bytes: number
+  page_count: number
+  expires_at: string
+}
+
 export type ToolResultPayload =
   | SqlResult
   | SchemaListResult
   | SchemaDescribeResult
   | SearchConversationsResult
   | SessionTranscriptResult
+  | ReportToolResult
   | ToolError
   | { ok: boolean; rendered?: boolean }
   | Record<string, unknown>
@@ -112,6 +132,7 @@ export type ToolName =
   | 'generate_chart'
   | 'search_conversations'
   | 'get_session_transcript'
+  | 'generate_report'
 
 /** A block within an assistant message, in render order. */
 export type MessageBlock =
@@ -126,6 +147,7 @@ export type MessageBlock =
       result?: ToolResultPayload
     }
   | { kind: 'chart'; spec: ChartSpec }
+  | { kind: 'report'; spec: ReportSpec }
 
 export interface AgentMessage {
   /** Stable id for React keying. */
