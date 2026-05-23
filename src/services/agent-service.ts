@@ -6,7 +6,12 @@
  */
 
 import authService from '@/services/auth-service'
-import type { AgentEvent, ModelsResponse } from '@/types/agent'
+import type {
+  AgentEvent,
+  AgentThreadDetail,
+  AgentThreadListResponse,
+  ModelsResponse,
+} from '@/types/agent'
 
 const API_BASE =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -16,14 +21,74 @@ export interface StreamAgentArgs {
   model: string
   /** If set, the Agent SDK resumes that conversation — tool history from prior turns is preserved. */
   resume_session_id?: string | null
+  /** DB-backed thread id. Omitted on the first turn; the server creates a thread and emits `thread_init`. */
+  thread_id?: string | null
   signal?: AbortSignal
 }
 
-export async function fetchModels(): Promise<ModelsResponse> {
+function authHeader(): Record<string, string> {
   const token = authService.getToken()
   if (!token) throw new Error('Not authenticated')
+  return { Authorization: `Bearer ${token}` }
+}
+
+async function unwrapError(res: Response, fallback: string): Promise<string> {
+  try {
+    const j = await res.json()
+    if (j?.detail) {
+      return typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail)
+    }
+  } catch {
+    /* ignore */
+  }
+  return fallback
+}
+
+// ---------------------------------------------------------------------------
+// Thread persistence
+// ---------------------------------------------------------------------------
+
+export async function listAgentThreads(): Promise<AgentThreadListResponse> {
+  const res = await fetch(`${API_BASE}/admin/agent/threads`, {
+    headers: authHeader(),
+  })
+  if (!res.ok) {
+    throw new Error(
+      await unwrapError(res, `Failed to load threads: ${res.status}`),
+    )
+  }
+  return (await res.json()) as AgentThreadListResponse
+}
+
+export async function getAgentThread(
+  threadId: string,
+): Promise<AgentThreadDetail> {
+  const res = await fetch(`${API_BASE}/admin/agent/threads/${threadId}`, {
+    headers: authHeader(),
+  })
+  if (!res.ok) {
+    throw new Error(
+      await unwrapError(res, `Failed to load thread: ${res.status}`),
+    )
+  }
+  return (await res.json()) as AgentThreadDetail
+}
+
+export async function deleteAgentThread(threadId: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/admin/agent/threads/${threadId}`, {
+    method: 'DELETE',
+    headers: authHeader(),
+  })
+  if (!res.ok && res.status !== 204) {
+    throw new Error(
+      await unwrapError(res, `Failed to delete thread: ${res.status}`),
+    )
+  }
+}
+
+export async function fetchModels(): Promise<ModelsResponse> {
   const res = await fetch(`${API_BASE}/admin/agent/models`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: authHeader(),
   })
   if (!res.ok) {
     throw new Error(`Failed to load models: ${res.status}`)
@@ -39,19 +104,18 @@ export async function* streamAgent({
   messages,
   model,
   resume_session_id,
+  thread_id,
   signal,
 }: StreamAgentArgs): AsyncGenerator<AgentEvent, void, unknown> {
-  const token = authService.getToken()
-  if (!token) throw new Error('Not authenticated')
-
   const body: Record<string, unknown> = { messages, model }
   if (resume_session_id) body.resume_session_id = resume_session_id
+  if (thread_id) body.thread_id = thread_id
 
   const res = await fetch(`${API_BASE}/admin/agent/stream`, {
     method: 'POST',
     headers: {
+      ...authHeader(),
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
       Accept: 'text/event-stream',
     },
     body: JSON.stringify(body),
@@ -59,16 +123,7 @@ export async function* streamAgent({
   })
 
   if (!res.ok) {
-    let detail = `HTTP ${res.status}`
-    try {
-      const j = await res.json()
-      if (j?.detail)
-        detail =
-          typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail)
-    } catch {
-      /* ignore */
-    }
-    throw new Error(detail)
+    throw new Error(await unwrapError(res, `HTTP ${res.status}`))
   }
 
   if (!res.body) {

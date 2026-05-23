@@ -104,6 +104,8 @@ export interface AgentMetrics {
 /** SSE event payloads emitted by the backend. */
 export type AgentEvent =
   | { type: 'session_init'; session_id: string }
+  /** First event of a brand-new thread — carries the DB id the FE pins in the URL. */
+  | { type: 'thread_init'; thread_id: string; title: string }
   | { type: 'message_start'; iteration?: number }
   | { type: 'assistant_text_delta'; text: string }
   | { type: 'assistant_thinking'; text: string }
@@ -167,4 +169,33 @@ export interface ModelOption {
 export interface ModelsResponse {
   models: ModelOption[]
   default: string
+}
+
+// ---------------------------------------------------------------------------
+// Thread persistence (sidebar history)
+// ---------------------------------------------------------------------------
+
+/** Sidebar row — what the thread-list endpoint returns per thread. */
+export interface AgentThreadSummary {
+  id: string
+  title: string
+  model: string
+  last_message_at: string
+  created_at: string
+  message_count: number
+}
+
+/** Full thread payload returned when loading a single thread for hydration. */
+export interface AgentThreadDetail {
+  id: string
+  title: string
+  model: string
+  last_message_at: string
+  created_at: string
+  /** Messages in the same {id, role, blocks, metrics?} shape the chat already renders. */
+  messages: AgentMessage[]
+}
+
+export interface AgentThreadListResponse {
+  threads: AgentThreadSummary[]
 }
