@@ -110,7 +110,7 @@ export class ClientCommitmentService {
   }
 
   /**
-   * Delete a commitment (only client-created ones)
+   * Delete a commitment owned by the current client
    */
   static async deleteCommitment(commitmentId: string): Promise<void> {
     await ApiClient.delete(
