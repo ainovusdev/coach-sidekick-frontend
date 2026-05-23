@@ -15,6 +15,7 @@ import {
   Network,
   FolderKanban,
   BookOpen,
+  Sparkles,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -24,6 +25,12 @@ const menuItems = [
     href: '/admin/dashboard',
     icon: LayoutDashboard,
     requiredRole: ['admin', 'super_admin'],
+  },
+  {
+    title: 'AI Agent',
+    href: '/admin/agent',
+    icon: Sparkles,
+    requiredRole: ['super_admin'],
   },
   {
     title: 'Users',
