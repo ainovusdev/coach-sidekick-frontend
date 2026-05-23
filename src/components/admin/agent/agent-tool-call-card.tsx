@@ -18,6 +18,7 @@ import {
   CheckCircle2,
   MessagesSquare,
   FileText,
+  FileDown,
 } from 'lucide-react'
 import type {
   MessageBlock,
@@ -32,6 +33,7 @@ const TOOL_META: Record<ToolName, { label: string; icon: typeof Database }> = {
   generate_chart: { label: 'Chart', icon: BarChart3 },
   search_conversations: { label: 'Conversation search', icon: MessagesSquare },
   get_session_transcript: { label: 'Session transcript', icon: FileText },
+  generate_report: { label: 'PDF report', icon: FileDown },
 }
 
 interface Props {
@@ -128,6 +130,14 @@ function ToolInputSummary({
       </span>
     )
   }
+  if (block.name === 'generate_report') {
+    const title = (block.input.title as string) || ''
+    return (
+      <span className="hidden md:inline text-xs text-ink-3 truncate max-w-[40ch]">
+        {title}
+      </span>
+    )
+  }
   return null
 }
 
@@ -148,6 +158,33 @@ function ToolInputDetails({
         <pre className="overflow-x-auto rounded bg-surface-2 p-2 text-xs text-ink whitespace-pre-wrap break-words">
           {query || '...'}
         </pre>
+      </div>
+    )
+  }
+  if (block.name === 'generate_report') {
+    const title = (block.input.title as string) || ''
+    const subtitle = (block.input.subtitle as string) || ''
+    const explanation = (block.input.explanation as string) || ''
+    const markdownBytes = ((block.input.markdown as string) || '').length
+    return (
+      <div className="space-y-2 text-xs">
+        {title ? (
+          <div>
+            <span className="text-ink-3">Title: </span>
+            <span className="text-ink">{title}</span>
+          </div>
+        ) : null}
+        {subtitle ? (
+          <div>
+            <span className="text-ink-3">Subtitle: </span>
+            <span className="text-ink-2">{subtitle}</span>
+          </div>
+        ) : null}
+        {explanation ? <p className="text-ink-2">{explanation}</p> : null}
+        <div className="text-ink-3">
+          Markdown body: {markdownBytes.toLocaleString()} chars · download card
+          will appear below when ready.
+        </div>
       </div>
     )
   }

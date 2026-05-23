@@ -26,6 +26,7 @@ const TOOL_VERB: Record<ToolName, string> = {
   generate_chart: 'Rendering chart',
   search_conversations: 'Searching transcripts',
   get_session_transcript: 'Reading transcript',
+  generate_report: 'Composing PDF report',
 }
 
 export function AgentActivityBar({ blocks, streaming }: Props) {
@@ -120,6 +121,10 @@ function extractToolDetail(
     return id ? `session ${id.slice(0, 8)}…` : null
   }
   if (block.name === 'generate_chart') {
+    const title = (input.title as string | undefined) || null
+    return title ? truncate(title, 80) : null
+  }
+  if (block.name === 'generate_report') {
     const title = (input.title as string | undefined) || null
     return title ? truncate(title, 80) : null
   }
