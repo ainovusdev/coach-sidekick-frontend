@@ -1,6 +1,8 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import {
   Select,
@@ -21,7 +23,10 @@ import {
 import { AgentMessage } from './agent-message'
 import { AgentComposer } from './agent-composer'
 import { AgentActivityBar } from './agent-activity-bar'
+import { AgentThreadSidebar } from './agent-thread-sidebar'
 import { fetchModels, streamAgent } from '@/services/agent-service'
+import { useAgentThread } from '@/hooks/queries/use-agent-threads'
+import { queryKeys } from '@/lib/query-client'
 import type {
   AgentEvent,
   AgentMessage as AgentMessageType,
@@ -40,17 +45,56 @@ const STARTERS = [
 ]
 
 export function AgentChat() {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const queryClient = useQueryClient()
+
+  // Source-of-truth for "which thread is open" lives in the URL (?thread=…)
+  // so refresh and back/forward navigation round-trip cleanly.
+  const threadIdFromUrl = searchParams.get('thread')
+
   const [model, setModel] = useState<string>('claude-opus-4-7')
   const [models, setModels] = useState<ModelOption[]>([])
   const [messages, setMessages] = useState<AgentMessageType[]>([])
   const [input, setInput] = useState('')
   const [streaming, setStreaming] = useState(false)
   // Captured from the SDK's first `session_init` event; sent back as
-  // `resume_session_id` on follow-up turns so the agent keeps prior tool
-  // history in working memory. Cleared by the "New" button.
+  // `resume_session_id` on follow-up turns so the agent's cached subprocess
+  // (or a fresh-spawn fallback) reattaches to prior tool history.
   const [sdkSessionId, setSdkSessionId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // Hydration: if the URL points at a thread we haven't loaded, fetch it and
+  // replace local message state with the persisted version.
+  const { data: hydratedThread } = useAgentThread(threadIdFromUrl, {
+    // We only need this on entry / navigation — once messages are local,
+    // further updates come from the stream, not from re-fetching.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
+
+  // Track which thread the local state belongs to so we don't re-hydrate
+  // over a fresh-streamed conversation.
+  const loadedThreadIdRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!threadIdFromUrl) {
+      // URL cleared — caller hit "New chat". Reset to empty state.
+      if (loadedThreadIdRef.current !== null) {
+        setMessages([])
+        setSdkSessionId(null)
+        loadedThreadIdRef.current = null
+      }
+      return
+    }
+    if (loadedThreadIdRef.current === threadIdFromUrl) return
+    if (!hydratedThread) return
+    setMessages(hydratedThread.messages ?? [])
+    setModel(hydratedThread.model)
+    setSdkSessionId(null) // Cold load — let the server build a fresh SDK session.
+    loadedThreadIdRef.current = threadIdFromUrl
+  }, [threadIdFromUrl, hydratedThread])
 
   // Fetch model picker options once.
   useEffect(() => {
@@ -59,12 +103,13 @@ export function AgentChat() {
       .then(res => {
         if (cancelled) return
         setModels(res.models)
-        if (res.default) setModel(res.default)
+        // Only overwrite the picker default if we're not in a loaded thread
+        // (loaded threads carry their own last-used model).
+        if (res.default && !loadedThreadIdRef.current) setModel(res.default)
       })
       .catch(err => {
         if (cancelled) return
         // Non-fatal — the picker stays at its default.
-
         console.warn('Failed to fetch agent models', err)
       })
     return () => {
@@ -85,11 +130,24 @@ export function AgentChat() {
     setStreaming(false)
   }, [])
 
-  const handleReset = useCallback(() => {
+  const handleNewThread = useCallback(() => {
     if (streaming) handleCancel()
     setMessages([])
     setSdkSessionId(null)
-  }, [streaming, handleCancel])
+    loadedThreadIdRef.current = null
+    // Strip ?thread=… without a navigation event so we stay on the page.
+    router.replace(pathname, { scroll: false })
+  }, [streaming, handleCancel, router, pathname])
+
+  const handleSelectThread = useCallback(
+    (threadId: string) => {
+      if (threadId === threadIdFromUrl) return
+      if (streaming) handleCancel()
+      // The useEffect above (keyed on threadIdFromUrl) does the hydration.
+      router.replace(`${pathname}?thread=${threadId}`, { scroll: false })
+    },
+    [threadIdFromUrl, streaming, handleCancel, router, pathname],
+  )
 
   const handleSend = useCallback(
     async (questionOverride?: string) => {
@@ -120,12 +178,18 @@ export function AgentChat() {
           messages: historyForBackend,
           model,
           resume_session_id: sdkSessionId,
+          thread_id: threadIdFromUrl,
           signal: controller.signal,
         })) {
           if (event.type === 'session_init' && event.session_id) {
-            // Capture the SDK session id on the first turn; the next turn
-            // sends it back as resume_session_id.
             setSdkSessionId(event.session_id)
+          }
+          if (event.type === 'thread_init') {
+            // Brand-new thread — pin it to the URL so reload / share works.
+            loadedThreadIdRef.current = event.thread_id
+            router.replace(`${pathname}?thread=${event.thread_id}`, {
+              scroll: false,
+            })
           }
           setMessages(prev => applyEvent(prev, assistantMsg.id, event))
           if (event.type === 'done') break
@@ -147,9 +211,24 @@ export function AgentChat() {
       } finally {
         abortRef.current = null
         setStreaming(false)
+        // Refresh the sidebar so the just-touched thread floats to the top
+        // and its "last activity" timestamp is current.
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.admin.agentThreads.list(),
+        })
       }
     },
-    [input, model, messages, streaming, sdkSessionId],
+    [
+      input,
+      model,
+      messages,
+      streaming,
+      sdkSessionId,
+      threadIdFromUrl,
+      router,
+      pathname,
+      queryClient,
+    ],
   )
 
   const showStarters = messages.length === 0 && !streaming
@@ -187,121 +266,135 @@ export function AgentChat() {
   )
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] flex-col overflow-hidden rounded-lg border border-line-strong bg-paper shadow-sm">
-      {/* Analyst console header — distinguishes this from regular chat. */}
-      <div className="border-b border-line bg-surface-1">
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-ds-accent text-ink-on-dark shadow-sm">
-            <Sparkles className="h-4 w-4" />
-          </div>
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-semibold tracking-tight text-ink">
-                Data Analyst Agent
-              </span>
-              <span className="rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
-                Agent · Admin
+    <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-line-strong bg-paper shadow-sm">
+      <AgentThreadSidebar
+        activeThreadId={threadIdFromUrl}
+        onSelectThread={handleSelectThread}
+        onNewThread={handleNewThread}
+      />
+      <div className="flex flex-1 min-w-0 flex-col">
+        {/* Analyst console header — distinguishes this from regular chat. */}
+        <div className="border-b border-line bg-surface-1">
+          <div className="flex items-center gap-3 px-4 py-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-ds-accent text-ink-on-dark shadow-sm">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold tracking-tight text-ink">
+                  Data Analyst Agent
+                </span>
+                <span className="rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
+                  Agent · Admin
+                </span>
+              </div>
+              <span className="text-[11px] text-ink-3">
+                Reasons across the live database and session transcripts.
+                Strictly read-only.
               </span>
             </div>
-            <span className="text-[11px] text-ink-3">
-              Reasons across the live database and session transcripts. Strictly
-              read-only.
-            </span>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <Select value={model} onValueChange={setModel} disabled={streaming}>
-              <SelectTrigger className="h-8 w-[180px] text-xs">
-                {/* Render only the model label in the trigger; the description
+            <div className="ml-auto flex items-center gap-2">
+              <Select
+                value={model}
+                onValueChange={setModel}
+                disabled={streaming}
+              >
+                <SelectTrigger className="h-8 w-[180px] text-xs">
+                  {/* Render only the model label in the trigger; the description
                     only belongs in the open menu. Passing children to SelectValue
                     overrides the default which would echo the full SelectItem
                     children (label + description) and overflow the row. */}
-                <SelectValue placeholder="Pick a model">
-                  {modelOptions.find(m => m.id === model)?.label ?? model}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {modelOptions.map(m => (
-                  <SelectItem key={m.id} value={m.id} className="text-xs">
-                    <div className="flex flex-col">
-                      <span>{m.label}</span>
-                      <span className="text-[10px] text-ink-3">
-                        {m.description}
-                      </span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleReset}
-              disabled={messages.length === 0}
-              className="gap-1.5"
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              New
-            </Button>
+                  <SelectValue placeholder="Pick a model">
+                    {modelOptions.find(m => m.id === model)?.label ?? model}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {modelOptions.map(m => (
+                    <SelectItem key={m.id} value={m.id} className="text-xs">
+                      <div className="flex flex-col">
+                        <span>{m.label}</span>
+                        <span className="text-[10px] text-ink-3">
+                          {m.description}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNewThread}
+                disabled={messages.length === 0 && !threadIdFromUrl}
+                className="gap-1.5"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                New
+              </Button>
+            </div>
+          </div>
+          {/* Capability strip — surfaces what the agent has access to. */}
+          <div className="flex items-center gap-3 border-t border-line bg-ds-accent-bg px-4 py-1.5 text-[11px] text-ink-2">
+            <span className="inline-flex items-center gap-1">
+              <Database className="h-3 w-3" />
+              Postgres
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <MessagesSquare className="h-3 w-3" />
+              Transcripts (Weaviate)
+            </span>
+            <span className="inline-flex items-center gap-1">
+              <Zap className="h-3 w-3" />
+              Charts
+            </span>
+            <span className="inline-flex items-center gap-1 text-forest">
+              <ShieldCheck className="h-3 w-3" />
+              Read-only
+            </span>
+            <span className="ml-auto flex items-center gap-3 font-mono text-[10px] text-ink-3">
+              {sdkSessionId ? (
+                <span title={sdkSessionId}>
+                  session {sdkSessionId.slice(0, 8)}…
+                </span>
+              ) : null}
+              {userTurns > 0 ? (
+                <span>
+                  {userTurns} turn{userTurns === 1 ? '' : 's'} ·{' '}
+                  {totalToolCalls} tool call
+                  {totalToolCalls === 1 ? '' : 's'}
+                </span>
+              ) : null}
+            </span>
           </div>
         </div>
-        {/* Capability strip — surfaces what the agent has access to. */}
-        <div className="flex items-center gap-3 border-t border-line bg-ds-accent-bg px-4 py-1.5 text-[11px] text-ink-2">
-          <span className="inline-flex items-center gap-1">
-            <Database className="h-3 w-3" />
-            Postgres
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <MessagesSquare className="h-3 w-3" />
-            Transcripts (Weaviate)
-          </span>
-          <span className="inline-flex items-center gap-1">
-            <Zap className="h-3 w-3" />
-            Charts
-          </span>
-          <span className="inline-flex items-center gap-1 text-forest">
-            <ShieldCheck className="h-3 w-3" />
-            Read-only
-          </span>
-          <span className="ml-auto flex items-center gap-3 font-mono text-[10px] text-ink-3">
-            {sdkSessionId ? (
-              <span title={sdkSessionId}>
-                session {sdkSessionId.slice(0, 8)}…
-              </span>
-            ) : null}
-            {userTurns > 0 ? (
-              <span>
-                {userTurns} turn{userTurns === 1 ? '' : 's'} · {totalToolCalls}{' '}
-                tool call
-                {totalToolCalls === 1 ? '' : 's'}
-              </span>
-            ) : null}
-          </span>
+
+        {/* Live activity bar — only visible while streaming. */}
+        <div className="px-4">
+          <AgentActivityBar
+            blocks={liveAssistantBlocks}
+            streaming={streaming}
+          />
         </div>
-      </div>
 
-      {/* Live activity bar — only visible while streaming. */}
-      <div className="px-4">
-        <AgentActivityBar blocks={liveAssistantBlocks} streaming={streaming} />
-      </div>
-
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        <div className="mx-auto flex max-w-4xl flex-col gap-4">
-          {showStarters ? (
-            <EmptyState onPick={q => handleSend(q)} />
-          ) : (
-            messages.map(m => <AgentMessage key={m.id} message={m} />)
-          )}
+        {/* Messages */}
+        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+          <div className="mx-auto flex max-w-4xl flex-col gap-4">
+            {showStarters ? (
+              <EmptyState onPick={q => handleSend(q)} />
+            ) : (
+              messages.map(m => <AgentMessage key={m.id} message={m} />)
+            )}
+          </div>
         </div>
-      </div>
 
-      <AgentComposer
-        value={input}
-        onChange={setInput}
-        onSend={() => handleSend()}
-        onCancel={handleCancel}
-        streaming={streaming}
-      />
+        <AgentComposer
+          value={input}
+          onChange={setInput}
+          onSend={() => handleSend()}
+          onCancel={handleCancel}
+          streaming={streaming}
+        />
+      </div>
     </div>
   )
 }

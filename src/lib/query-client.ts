@@ -317,6 +317,14 @@ export const queryKeys = {
         [...queryKeys.admin.clients.all, 'detail', id] as const,
       stats: () => [...queryKeys.admin.clients.all, 'stats'] as const,
     },
+
+    // Data Analyst Agent threads
+    agentThreads: {
+      all: ['admin', 'agent-threads'] as const,
+      list: () => [...queryKeys.admin.agentThreads.all, 'list'] as const,
+      detail: (id: string) =>
+        [...queryKeys.admin.agentThreads.all, 'detail', id] as const,
+    },
   },
 } as const
 
