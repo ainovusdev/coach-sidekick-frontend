@@ -266,7 +266,7 @@ export function AgentChat() {
   )
 
   return (
-    <div className="flex h-[calc(100vh-8rem)] overflow-hidden rounded-lg border border-line-strong bg-paper shadow-sm">
+    <div className="flex h-full overflow-hidden border-0 bg-paper">
       <AgentThreadSidebar
         activeThreadId={threadIdFromUrl}
         onSelectThread={handleSelectThread}
@@ -282,15 +282,14 @@ export function AgentChat() {
             <div className="flex flex-col">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold tracking-tight text-ink">
-                  Data Analyst Agent
+                  Sidekick Agent
                 </span>
                 <span className="rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
-                  Agent · Admin
+                  Admin
                 </span>
               </div>
               <span className="text-[11px] text-ink-3">
-                Reasons across the live database and session transcripts.
-                Strictly read-only.
+                Queries the live database and session transcripts. Read-only.
               </span>
             </div>
             <div className="ml-auto flex items-center gap-2">
@@ -406,12 +405,11 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
         <Sparkles className="h-7 w-7" />
       </div>
       <h2 className="text-lg font-semibold text-ink">
-        Ask the agent anything about your data
+        Ask Sidekick anything about your data
       </h2>
       <p className="mt-1.5 text-sm text-ink-3">
-        Unlike the per-client chat, this agent reasons across <em>all</em>
-        coaches, clients, sessions, and transcripts. It writes SQL, searches
-        transcripts semantically, and builds charts — chaining steps as needed.
+        Reasons across every coach, client, session, and transcript — writing
+        SQL, searching transcripts, and building charts as needed.
       </p>
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
         {STARTERS.map(q => (

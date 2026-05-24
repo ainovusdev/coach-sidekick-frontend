@@ -27,7 +27,7 @@ const menuItems = [
     requiredRole: ['admin', 'super_admin'],
   },
   {
-    title: 'AI Agent',
+    title: 'Sidekick Agent',
     href: '/admin/agent',
     icon: Sparkles,
     requiredRole: ['super_admin'],
