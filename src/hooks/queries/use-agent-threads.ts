@@ -5,7 +5,7 @@ import { getAgentThread, listAgentThreads } from '@/services/agent-service'
 import type { AgentThreadDetail, AgentThreadListResponse } from '@/types/agent'
 
 /**
- * List the current admin's saved Data Analyst Agent threads.
+ * List the current admin's saved Sidekick Agent threads.
  * Fed into the left-rail sidebar in /admin/agent.
  */
 export function useAgentThreads(
