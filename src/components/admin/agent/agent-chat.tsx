@@ -44,15 +44,25 @@ const STARTERS = [
   'Compare average session length for 1-on-1 vs group sessions.',
 ]
 
+// Flip to `true` to bring back the thread-history UI (sidebar, ?thread= URL,
+// refresh-hydration). Backend persistence runs regardless — rows keep being
+// written to `agent_threads`; we just don't surface them.
+const SHOW_THREAD_HISTORY = false
+
 export function AgentChat() {
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const queryClient = useQueryClient()
 
-  // Source-of-truth for "which thread is open" lives in the URL (?thread=…)
-  // so refresh and back/forward navigation round-trip cleanly.
-  const threadIdFromUrl = searchParams.get('thread')
+  // When the sidebar UI is on, the URL is the source-of-truth for "which
+  // thread is open" so refresh / back-forward / share-URL round-trip cleanly.
+  // When it's hidden, the id lives in component state only — follow-up turns
+  // within the same conversation still get grouped on the server, but
+  // refresh / bookmark / share won't surface the persistence layer.
+  const urlThreadId = searchParams.get('thread')
+  const [hiddenThreadId, setHiddenThreadId] = useState<string | null>(null)
+  const threadId = SHOW_THREAD_HISTORY ? urlThreadId : hiddenThreadId
 
   const [model, setModel] = useState<string>('claude-opus-4-7')
   const [models, setModels] = useState<ModelOption[]>([])
@@ -68,18 +78,21 @@ export function AgentChat() {
 
   // Hydration: if the URL points at a thread we haven't loaded, fetch it and
   // replace local message state with the persisted version.
-  const { data: hydratedThread } = useAgentThread(threadIdFromUrl, {
-    // We only need this on entry / navigation — once messages are local,
-    // further updates come from the stream, not from re-fetching.
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  })
+  const { data: hydratedThread } = useAgentThread(
+    SHOW_THREAD_HISTORY ? threadId : null,
+    {
+      // We only need this on entry / navigation — once messages are local,
+      // further updates come from the stream, not from re-fetching.
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+  )
 
   // Track which thread the local state belongs to so we don't re-hydrate
   // over a fresh-streamed conversation.
   const loadedThreadIdRef = useRef<string | null>(null)
   useEffect(() => {
-    if (!threadIdFromUrl) {
+    if (!threadId) {
       // URL cleared — caller hit "New chat". Reset to empty state.
       if (loadedThreadIdRef.current !== null) {
         setMessages([])
@@ -88,13 +101,13 @@ export function AgentChat() {
       }
       return
     }
-    if (loadedThreadIdRef.current === threadIdFromUrl) return
+    if (loadedThreadIdRef.current === threadId) return
     if (!hydratedThread) return
     setMessages(hydratedThread.messages ?? [])
     setModel(hydratedThread.model)
     setSdkSessionId(null) // Cold load — let the server build a fresh SDK session.
-    loadedThreadIdRef.current = threadIdFromUrl
-  }, [threadIdFromUrl, hydratedThread])
+    loadedThreadIdRef.current = threadId
+  }, [threadId, hydratedThread])
 
   // Fetch model picker options once.
   useEffect(() => {
@@ -134,19 +147,22 @@ export function AgentChat() {
     if (streaming) handleCancel()
     setMessages([])
     setSdkSessionId(null)
+    setHiddenThreadId(null)
     loadedThreadIdRef.current = null
-    // Strip ?thread=… without a navigation event so we stay on the page.
-    router.replace(pathname, { scroll: false })
+    if (SHOW_THREAD_HISTORY) {
+      // Strip ?thread=… without a navigation event so we stay on the page.
+      router.replace(pathname, { scroll: false })
+    }
   }, [streaming, handleCancel, router, pathname])
 
   const handleSelectThread = useCallback(
     (threadId: string) => {
-      if (threadId === threadIdFromUrl) return
+      if (threadId === threadId) return
       if (streaming) handleCancel()
-      // The useEffect above (keyed on threadIdFromUrl) does the hydration.
+      // The useEffect above (keyed on threadId) does the hydration.
       router.replace(`${pathname}?thread=${threadId}`, { scroll: false })
     },
-    [threadIdFromUrl, streaming, handleCancel, router, pathname],
+    [threadId, streaming, handleCancel, router, pathname],
   )
 
   const handleSend = useCallback(
@@ -178,18 +194,24 @@ export function AgentChat() {
           messages: historyForBackend,
           model,
           resume_session_id: sdkSessionId,
-          thread_id: threadIdFromUrl,
+          thread_id: threadId,
           signal: controller.signal,
         })) {
           if (event.type === 'session_init' && event.session_id) {
             setSdkSessionId(event.session_id)
           }
           if (event.type === 'thread_init') {
-            // Brand-new thread — pin it to the URL so reload / share works.
             loadedThreadIdRef.current = event.thread_id
-            router.replace(`${pathname}?thread=${event.thread_id}`, {
-              scroll: false,
-            })
+            if (SHOW_THREAD_HISTORY) {
+              // Brand-new thread — pin it to the URL so reload / share works.
+              router.replace(`${pathname}?thread=${event.thread_id}`, {
+                scroll: false,
+              })
+            } else {
+              // Sidebar hidden — keep the id in state so follow-up turns still
+              // get grouped server-side, without exposing it in the URL.
+              setHiddenThreadId(event.thread_id)
+            }
           }
           setMessages(prev => applyEvent(prev, assistantMsg.id, event))
           if (event.type === 'done') break
@@ -224,7 +246,7 @@ export function AgentChat() {
       messages,
       streaming,
       sdkSessionId,
-      threadIdFromUrl,
+      threadId,
       router,
       pathname,
       queryClient,
@@ -267,11 +289,13 @@ export function AgentChat() {
 
   return (
     <div className="flex h-full overflow-hidden border-0 bg-paper">
-      <AgentThreadSidebar
-        activeThreadId={threadIdFromUrl}
-        onSelectThread={handleSelectThread}
-        onNewThread={handleNewThread}
-      />
+      {SHOW_THREAD_HISTORY ? (
+        <AgentThreadSidebar
+          activeThreadId={threadId}
+          onSelectThread={handleSelectThread}
+          onNewThread={handleNewThread}
+        />
+      ) : null}
       <div className="flex flex-1 min-w-0 flex-col">
         {/* Analyst console header — distinguishes this from regular chat. */}
         <div className="border-b border-line bg-surface-1">
@@ -324,7 +348,7 @@ export function AgentChat() {
                 variant="ghost"
                 size="sm"
                 onClick={handleNewThread}
-                disabled={messages.length === 0 && !threadIdFromUrl}
+                disabled={messages.length === 0 && !threadId}
                 className="gap-1.5"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
