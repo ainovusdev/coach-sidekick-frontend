@@ -44,10 +44,10 @@ const STARTERS = [
   'Compare average session length for 1-on-1 vs group sessions.',
 ]
 
-// Flip to `true` to bring back the thread-history UI (sidebar, ?thread= URL,
-// refresh-hydration). Backend persistence runs regardless — rows keep being
-// written to `agent_threads`; we just don't surface them.
-const SHOW_THREAD_HISTORY = false
+// The thread-history UI (sidebar, ?thread= URL, refresh-hydration) is on.
+// Backend persistence runs regardless — rows are written to `agent_threads`
+// either way; this flips whether the user sees them.
+const SHOW_THREAD_HISTORY = true
 
 export function AgentChat() {
   const router = useRouter()
@@ -156,11 +156,11 @@ export function AgentChat() {
   }, [streaming, handleCancel, router, pathname])
 
   const handleSelectThread = useCallback(
-    (threadId: string) => {
-      if (threadId === threadId) return
+    (nextThreadId: string) => {
+      if (nextThreadId === threadId) return
       if (streaming) handleCancel()
       // The useEffect above (keyed on threadId) does the hydration.
-      router.replace(`${pathname}?thread=${threadId}`, { scroll: false })
+      router.replace(`${pathname}?thread=${nextThreadId}`, { scroll: false })
     },
     [threadId, streaming, handleCancel, router, pathname],
   )
