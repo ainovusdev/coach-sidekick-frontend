@@ -91,7 +91,8 @@ export function useSendThrillForm() {
       queryClient.invalidateQueries({
         predicate: query =>
           query.queryKey[0] === 'questionnaire' &&
-          query.queryKey[1] === 'thrill-form-responses' &&
+          (query.queryKey[1] === 'thrill-form-responses' ||
+            query.queryKey[1] === 'thrill-form') &&
           query.queryKey[2] === sessionId,
       })
       toast.success('Thrill Form sent')

@@ -3,6 +3,7 @@ import { QuestionnaireService } from '@/services/questionnaire-service'
 import type {
   ScheduledSession,
   QuestionnaireResponseView,
+  ThrillFormStatusView,
 } from '@/types/questionnaire'
 
 export const questionnaireKeys = {
@@ -12,6 +13,8 @@ export const questionnaireKeys = {
     ['questionnaire', 'responses', sessionId, clientId] as const,
   thrillFormResponses: (sessionId: string, clientId?: string) =>
     ['questionnaire', 'thrill-form-responses', sessionId, clientId] as const,
+  thrillForm: (sessionId: string, clientId?: string) =>
+    ['questionnaire', 'thrill-form', sessionId, clientId] as const,
 }
 
 export function useUpcomingSessions(clientId?: string) {
@@ -43,6 +46,21 @@ export function useThrillFormResponses(
     queryKey: questionnaireKeys.thrillFormResponses(sessionId || '', clientId),
     queryFn: () =>
       QuestionnaireService.getResponses(sessionId!, clientId, 'post_session'),
+    enabled: !!sessionId,
+    staleTime: 60 * 1000,
+  })
+}
+
+// Thrill Form status — includes the "sent but not yet completed" state that the
+// raw responses list can't express (no response row exists until the client
+// opens the form).
+export function useThrillForm(
+  sessionId: string | undefined,
+  clientId?: string,
+) {
+  return useQuery<ThrillFormStatusView>({
+    queryKey: questionnaireKeys.thrillForm(sessionId || '', clientId),
+    queryFn: () => QuestionnaireService.getThrillForm(sessionId!, clientId),
     enabled: !!sessionId,
     staleTime: 60 * 1000,
   })
