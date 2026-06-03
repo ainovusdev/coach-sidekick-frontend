@@ -1,9 +1,11 @@
 'use client'
 
-import { Sparkles, CheckCircle2, Clock } from 'lucide-react'
+import { Sparkles, CheckCircle2, Clock, Send, Loader2 } from 'lucide-react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { useThrillFormResponses } from '@/hooks/queries/use-questionnaire'
+import { Button } from '@/components/ui/button'
+import { useThrillForm } from '@/hooks/queries/use-questionnaire'
+import { useSendThrillForm } from '@/hooks/mutations/use-questionnaire-mutations'
 import { format } from 'date-fns'
 
 interface ThrillFormResponsesProps {
@@ -38,50 +40,100 @@ export function ThrillFormResponses({
   sessionId,
   clientId,
 }: ThrillFormResponsesProps) {
-  const { data: responses, isLoading } = useThrillFormResponses(
-    sessionId,
-    clientId,
+  const { data, isLoading } = useThrillForm(sessionId, clientId)
+  const sendThrillForm = useSendThrillForm()
+
+  // Never sent (or no access) → render nothing, exactly as before.
+  if (isLoading || !data || data.status === 'not_sent') return null
+
+  const isCompleted = data.status === 'completed'
+  // For a sent-but-not-completed form, resend needs a client id; fall back to
+  // the one attached to the token if the caller didn't pass one.
+  const resendClientId = clientId || data.client_id || undefined
+
+  const header = (
+    <CardHeader className="pb-3">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Sparkles className="h-4 w-4 text-app-secondary" />
+          <h3 className="text-sm font-semibold text-app-primary">
+            Thrill Form
+          </h3>
+        </div>
+        {isCompleted ? (
+          <Badge
+            variant="secondary"
+            className="bg-forest-bg text-forest border-forest text-xs"
+          >
+            <CheckCircle2 className="h-3 w-3 mr-1" />
+            Completed
+            {data.completed_at &&
+              ` ${format(new Date(data.completed_at), 'MMM d')}`}
+          </Badge>
+        ) : data.status === 'in_progress' ? (
+          <Badge
+            variant="secondary"
+            className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            In Progress
+          </Badge>
+        ) : (
+          <Badge
+            variant="secondary"
+            className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
+          >
+            <Clock className="h-3 w-3 mr-1" />
+            Awaiting response
+          </Badge>
+        )}
+      </div>
+    </CardHeader>
   )
 
-  if (isLoading || !responses || responses.length === 0) return null
+  // Sent, but the client hasn't opened/completed it yet — surface it (instead
+  // of silently showing nothing) so the coach knows it's pending and can resend.
+  if (data.status === 'sent') {
+    const who = data.client_name || 'Your client'
+    return (
+      <Card className="border-app-border shadow-sm">
+        {header}
+        <CardContent className="pt-0">
+          <p className="text-sm text-app-secondary leading-relaxed">
+            {who} hasn&apos;t completed the Thrill Form yet
+            {data.sent_at &&
+              ` — sent ${format(new Date(data.sent_at), 'MMM d')}`}
+            .
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3"
+            disabled={!resendClientId || sendThrillForm.isPending}
+            onClick={() =>
+              resendClientId &&
+              sendThrillForm.mutate({ sessionId, clientId: resendClientId })
+            }
+          >
+            {sendThrillForm.isPending ? (
+              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <Send className="h-3.5 w-3.5 mr-1.5" />
+            )}
+            Resend Thrill Form
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
 
-  const response = responses[0]
-  const isCompleted = response.status === 'completed'
-
+  // Completed / in-progress → show the answers.
   return (
     <Card className="border-app-border shadow-sm">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Sparkles className="h-4 w-4 text-app-secondary" />
-            <h3 className="text-sm font-semibold text-app-primary">
-              Thrill Form
-            </h3>
-          </div>
-          {isCompleted ? (
-            <Badge
-              variant="secondary"
-              className="bg-forest-bg text-forest border-forest text-xs"
-            >
-              <CheckCircle2 className="h-3 w-3 mr-1" />
-              Completed
-              {response.completed_at &&
-                ` ${format(new Date(response.completed_at), 'MMM d')}`}
-            </Badge>
-          ) : (
-            <Badge
-              variant="secondary"
-              className="bg-amber-token-bg text-amber-token border-amber-token text-xs"
-            >
-              <Clock className="h-3 w-3 mr-1" />
-              In Progress
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
+      {header}
       <CardContent className="pt-0">
         <div className="space-y-4">
-          {response.responses.map((qa, idx) => {
+          {data.responses.map((qa, idx) => {
             const formatted = formatAnswer(qa.question_text, qa.answer)
             const compact = isShortAnswer(qa.answer)
             return (
@@ -98,7 +150,7 @@ export function ThrillFormResponses({
                     {formatted}
                   </p>
                 )}
-                {idx < response.responses.length - 1 && (
+                {idx < data.responses.length - 1 && (
                   <div className="border-b border-app-border mt-4" />
                 )}
               </div>

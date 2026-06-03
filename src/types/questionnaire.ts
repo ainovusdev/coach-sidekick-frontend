@@ -72,6 +72,17 @@ export interface QuestionAnswerPair {
   answer: string
 }
 
+export type ThrillFormStatus = 'not_sent' | 'sent' | 'in_progress' | 'completed'
+
+export interface ThrillFormStatusView {
+  status: ThrillFormStatus
+  sent_at: string | null
+  completed_at: string | null
+  client_id: string | null
+  client_name: string | null
+  responses: QuestionAnswerPair[]
+}
+
 export interface QuestionnaireTokenResponse {
   token: string
   questionnaire_url: string

@@ -4,6 +4,7 @@ import type {
   ScheduledSession,
   QuestionnaireValidation,
   QuestionnaireResponseView,
+  ThrillFormStatusView,
   QuestionnaireTokenResponse,
   StartBotResponse,
 } from '@/types/questionnaire'
@@ -69,6 +70,18 @@ export class QuestionnaireService {
     const qs = search.toString()
     return ApiClient.get(
       `${BACKEND_URL}/questionnaire/sessions/${sessionId}/responses${qs ? `?${qs}` : ''}`,
+    )
+  }
+
+  static async getThrillForm(
+    sessionId: string,
+    clientId?: string,
+  ): Promise<ThrillFormStatusView> {
+    const search = new URLSearchParams()
+    if (clientId) search.set('client_id', clientId)
+    const qs = search.toString()
+    return ApiClient.get(
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/thrill-form${qs ? `?${qs}` : ''}`,
     )
   }
 
