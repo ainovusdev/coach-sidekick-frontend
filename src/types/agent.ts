@@ -124,6 +124,14 @@ export type AgentEvent =
       is_error?: boolean
     }
   | { type: 'chart'; spec: ChartSpec }
+  /** A server-rendered (matplotlib) static chart, delivered as inline SVG. */
+  | {
+      type: 'rendered_chart'
+      svg?: string
+      title?: string | null
+      description?: string | null
+      error?: string
+    }
   | { type: 'message_stop'; stop_reason: string }
   | { type: 'error'; message: string }
   | { type: 'done'; session_id?: string; metrics?: AgentMetrics }
@@ -132,6 +140,7 @@ export type ToolName =
   | 'run_sql_query'
   | 'describe_schema'
   | 'generate_chart'
+  | 'generate_static_chart'
   | 'search_conversations'
   | 'get_session_transcript'
   | 'generate_report'
@@ -149,6 +158,13 @@ export type MessageBlock =
       result?: ToolResultPayload
     }
   | { kind: 'chart'; spec: ChartSpec }
+  | {
+      kind: 'svg_chart'
+      svg?: string
+      title?: string | null
+      description?: string | null
+      error?: string
+    }
   | { kind: 'report'; spec: ReportSpec }
 
 export interface AgentMessage {

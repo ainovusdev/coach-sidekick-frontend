@@ -6,6 +6,7 @@ import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { AskSidekickBar } from '@/components/agent/ask-sidekick-bar'
 import {
   BarChart3,
   UserCheck,
@@ -159,6 +160,7 @@ export default function Navigation() {
             <div className="flex items-center gap-4">
               {isAuthenticated && (
                 <>
+                  <AskSidekickBar />
                   <div className="hidden lg:flex items-center">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
                       <div className="relative">

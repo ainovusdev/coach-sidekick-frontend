@@ -12,21 +12,20 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import {
-  Sparkles,
-  RotateCcw,
-  Database,
-  MessagesSquare,
-  ShieldCheck,
-  Zap,
-} from 'lucide-react'
+import { Sparkles, RotateCcw, Maximize2, X } from 'lucide-react'
 import { AgentMessage } from './agent-message'
 import { AgentComposer } from './agent-composer'
 import { AgentActivityBar } from './agent-activity-bar'
 import { AgentThreadSidebar } from './agent-thread-sidebar'
-import { fetchModels, streamAgent } from '@/services/agent-service'
-import { useAgentThread } from '@/hooks/queries/use-agent-threads'
-import { queryKeys } from '@/lib/query-client'
+import {
+  fetchModels,
+  streamAgent,
+  type AgentApiScope,
+} from '@/services/agent-service'
+import {
+  agentThreadKeys,
+  useAgentThread,
+} from '@/hooks/queries/use-agent-threads'
 import type {
   AgentEvent,
   AgentMessage as AgentMessageType,
@@ -34,26 +33,76 @@ import type {
   ModelOption,
   ToolName,
 } from '@/types/agent'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { AgentThreadMenu } from './agent-thread-menu'
+import { STARTERS_BY_SCOPE, EMPTY_STATE_BLURB } from './agent-starters'
 
-const STARTERS = [
-  'How many active coaches do we have right now?',
-  'Plot coaching sessions per week over the last 3 months.',
-  'Find the top 5 coaches by avg coaching scores, then quote a moment of strong coaching from each.',
-  'Top 5 most common primary goals across all client personas.',
-  'Find 3 examples in our transcripts where a coach helps a client reframe a stuck mindset.',
-  'Compare average session length for 1-on-1 vs group sessions.',
-]
+const SCOPE_BADGE: Record<AgentApiScope, string> = {
+  admin: 'Admin',
+  coach: 'Coach',
+  client: 'You',
+}
 
-// The thread-history UI (sidebar, ?thread= URL, refresh-hydration) is on.
-// Backend persistence runs regardless — rows are written to `agent_threads`
-// either way; this flips whether the user sees them.
-const SHOW_THREAD_HISTORY = true
+// Short, reassuring status line shown under the conversation title when idle.
+const HEADER_STATUS: Record<AgentApiScope, string> = {
+  admin: 'Read-only access',
+  coach: 'Private · reads only your data',
+  client: 'Private · reads only your data',
+}
 
-export function AgentChat() {
+export interface AgentChatProps {
+  /** Which backend agent mount to use. Drives data scope + starters + badge. */
+  apiScope?: AgentApiScope
+  /**
+   * 'full' (default) = dedicated page: left sidebar + ?thread= URL persistence.
+   * 'embedded' = dashboard card: popover history + local thread state + card chrome.
+   * 'modal' = large on-page dialog: like embedded, but the Dialog owns the chrome
+   *   and the header gains a Close button (wired to `onClose`).
+   */
+  variant?: 'full' | 'embedded' | 'modal'
+  /** Auto-asked once on mount (deep-link from the "Ask Sidekick" bar / card). */
+  initialQuery?: string
+  /** Seed the conversation to a saved thread on mount (compact modes only). */
+  initialThreadId?: string
+  /** Modal mode: called by the Close button and after "Open full page" navigates. */
+  onClose?: () => void
+}
+
+export function AgentChat({
+  apiScope = 'admin',
+  variant = 'full',
+  initialQuery,
+  initialThreadId,
+  onClose,
+}: AgentChatProps = {}) {
+  // The dedicated page ('full') and the near-fullscreen 'modal' both show the left
+  // thread sidebar; only the small dashboard card ('embedded') is too narrow, so it
+  // hides the sidebar and surfaces history via a popover in a slim header instead.
+  // The active thread is held in local state (not the URL) for modal + embedded, so
+  // the host page's address bar is never rewritten; only 'full' treats ?thread= as
+  // the source of truth. Backend persistence runs in every mode.
+  const isModal = variant === 'modal'
+  const isEmbedded = variant === 'embedded'
+  const showSidebar = variant === 'full' || isModal
+  const persistThreadInUrl = variant === 'full'
+  // The dashboard card draws its own border/shadow; the modal's Dialog supplies the
+  // chrome, and the full page is edge-to-edge — so only 'embedded' is chromed.
+  const showCardChrome = isEmbedded
+  // Only the narrow dashboard card uses the slim icon-button header; the roomy modal
+  // uses the same full console header as the dedicated page (plus Close controls).
+  const slimHeader = isEmbedded
+
   const router = useRouter()
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const queryClient = useQueryClient()
+  const starters = STARTERS_BY_SCOPE[apiScope]
 
   // When the sidebar UI is on, the URL is the source-of-truth for "which
   // thread is open" so refresh / back-forward / share-URL round-trip cleanly.
@@ -61,8 +110,13 @@ export function AgentChat() {
   // within the same conversation still get grouped on the server, but
   // refresh / bookmark / share won't surface the persistence layer.
   const urlThreadId = searchParams.get('thread')
-  const [hiddenThreadId, setHiddenThreadId] = useState<string | null>(null)
-  const threadId = SHOW_THREAD_HISTORY ? urlThreadId : hiddenThreadId
+  // Deep-link query: in full (URL) mode the "Ask Sidekick" bar / card lands here
+  // with ?q=<question>; embedded mode passes the question via the prop instead.
+  const urlQuery = persistThreadInUrl ? searchParams.get('q') : null
+  const [hiddenThreadId, setHiddenThreadId] = useState<string | null>(
+    initialThreadId ?? null,
+  )
+  const threadId = persistThreadInUrl ? urlThreadId : hiddenThreadId
 
   const [model, setModel] = useState<string>('claude-opus-4-7')
   const [models, setModels] = useState<ModelOption[]>([])
@@ -78,15 +132,12 @@ export function AgentChat() {
 
   // Hydration: if the URL points at a thread we haven't loaded, fetch it and
   // replace local message state with the persisted version.
-  const { data: hydratedThread } = useAgentThread(
-    SHOW_THREAD_HISTORY ? threadId : null,
-    {
-      // We only need this on entry / navigation — once messages are local,
-      // further updates come from the stream, not from re-fetching.
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-    },
-  )
+  const { data: hydratedThread } = useAgentThread(threadId, apiScope, {
+    // We only need this on entry / navigation (URL ?thread= or a popover pick) —
+    // once messages are local, further updates come from the stream.
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+  })
 
   // Track which thread the local state belongs to so we don't re-hydrate
   // over a fresh-streamed conversation.
@@ -112,7 +163,7 @@ export function AgentChat() {
   // Fetch model picker options once.
   useEffect(() => {
     let cancelled = false
-    fetchModels()
+    fetchModels(apiScope)
       .then(res => {
         if (cancelled) return
         setModels(res.models)
@@ -128,7 +179,7 @@ export function AgentChat() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [apiScope])
 
   // Auto-scroll to bottom as messages grow.
   useEffect(() => {
@@ -149,21 +200,34 @@ export function AgentChat() {
     setSdkSessionId(null)
     setHiddenThreadId(null)
     loadedThreadIdRef.current = null
-    if (SHOW_THREAD_HISTORY) {
+    if (persistThreadInUrl) {
       // Strip ?thread=… without a navigation event so we stay on the page.
       router.replace(pathname, { scroll: false })
     }
-  }, [streaming, handleCancel, router, pathname])
+  }, [streaming, handleCancel, router, pathname, persistThreadInUrl])
 
   const handleSelectThread = useCallback(
     (nextThreadId: string) => {
       if (nextThreadId === threadId) return
       if (streaming) handleCancel()
       // The useEffect above (keyed on threadId) does the hydration.
-      router.replace(`${pathname}?thread=${nextThreadId}`, { scroll: false })
+      if (persistThreadInUrl) {
+        router.replace(`${pathname}?thread=${nextThreadId}`, { scroll: false })
+      } else {
+        setHiddenThreadId(nextThreadId)
+      }
     },
-    [threadId, streaming, handleCancel, router, pathname],
+    [threadId, streaming, handleCancel, router, pathname, persistThreadInUrl],
   )
+
+  // Compact → full page, carrying the current conversation (threads are
+  // server-persisted, so the dedicated page hydrates the same messages). In modal
+  // mode we also dismiss the dialog so we don't navigate behind an open overlay.
+  const handleExpand = useCallback(() => {
+    const full = fullRouteForScope(apiScope)
+    router.push(threadId ? `${full}?thread=${threadId}` : full)
+    onClose?.()
+  }, [apiScope, threadId, router, onClose])
 
   const handleSend = useCallback(
     async (questionOverride?: string) => {
@@ -195,6 +259,7 @@ export function AgentChat() {
           model,
           resume_session_id: sdkSessionId,
           thread_id: threadId,
+          scope: apiScope,
           signal: controller.signal,
         })) {
           if (event.type === 'session_init' && event.session_id) {
@@ -202,7 +267,7 @@ export function AgentChat() {
           }
           if (event.type === 'thread_init') {
             loadedThreadIdRef.current = event.thread_id
-            if (SHOW_THREAD_HISTORY) {
+            if (persistThreadInUrl) {
               // Brand-new thread — pin it to the URL so reload / share works.
               router.replace(`${pathname}?thread=${event.thread_id}`, {
                 scroll: false,
@@ -236,7 +301,7 @@ export function AgentChat() {
         // Refresh the sidebar so the just-touched thread floats to the top
         // and its "last activity" timestamp is current.
         queryClient.invalidateQueries({
-          queryKey: queryKeys.admin.agentThreads.list(),
+          queryKey: agentThreadKeys.list(apiScope),
         })
       }
     },
@@ -247,13 +312,42 @@ export function AgentChat() {
       streaming,
       sdkSessionId,
       threadId,
+      apiScope,
       router,
       pathname,
       queryClient,
+      persistThreadInUrl,
     ],
   )
 
+  // Deep-link: if launched with an initial question (the `initialQuery` prop or
+  // ?q= in the URL, from the "Ask Sidekick" bar / card), ask it once on mount.
+  // Ref-guarded against StrictMode double-run.
+  const initialQueryFiredRef = useRef(false)
+  useEffect(() => {
+    if (initialQueryFiredRef.current) return
+    const q = (initialQuery ?? urlQuery ?? '').trim()
+    if (!q) return
+    if (messages.length > 0 || threadId) return
+    initialQueryFiredRef.current = true
+    void handleSend(q)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialQuery, urlQuery])
+
   const showStarters = messages.length === 0 && !streaming
+
+  // The active conversation's title for the header: the saved thread's title once
+  // hydrated, else the first user message (a good stand-in for a fresh chat),
+  // else null (brand-new, nothing asked yet).
+  const activeThreadTitle = useMemo<string | null>(() => {
+    if (hydratedThread?.id === threadId && hydratedThread?.title) {
+      return hydratedThread.title
+    }
+    const firstUser = messages.find(m => m.role === 'user')
+    const textBlock = firstUser?.blocks.find(b => b.kind === 'text')
+    const text = textBlock && textBlock.kind === 'text' ? textBlock.text : ''
+    return text.trim() || null
+  }, [hydratedThread, threadId, messages])
 
   const modelOptions = useMemo<ModelOption[]>(() => {
     if (models.length > 0) return models
@@ -274,128 +368,180 @@ export function AgentChat() {
     messages[messages.length - 1].role === 'assistant'
       ? messages[messages.length - 1].blocks
       : []
-  const totalToolCalls = useMemo(
-    () =>
-      messages.reduce(
-        (n, m) => n + m.blocks.filter(b => b.kind === 'tool_call').length,
-        0,
-      ),
-    [messages],
-  )
-  const userTurns = useMemo(
-    () => messages.filter(m => m.role === 'user').length,
-    [messages],
-  )
 
   return (
-    <div className="flex h-full overflow-hidden border-0 bg-paper">
-      {SHOW_THREAD_HISTORY ? (
+    <div
+      className={cn(
+        'flex h-full overflow-hidden bg-paper',
+        showCardChrome ? 'rounded-xl border border-line shadow-sm' : 'border-0',
+      )}
+    >
+      {showSidebar ? (
         <AgentThreadSidebar
+          apiScope={apiScope}
           activeThreadId={threadId}
           onSelectThread={handleSelectThread}
           onNewThread={handleNewThread}
         />
       ) : null}
       <div className="flex flex-1 min-w-0 flex-col">
-        {/* Analyst console header — distinguishes this from regular chat. */}
-        <div className="border-b border-line bg-surface-1">
-          <div className="flex items-center gap-3 px-4 py-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-ds-accent text-ink-on-dark shadow-sm">
-              <Sparkles className="h-4 w-4" />
+        {slimHeader ? (
+          /* Slim header for the narrow dashboard card — history in a popover, no
+             model picker or capability strip, with an Expand-to-full control. */
+          <div className="flex items-center gap-2.5 border-b border-line bg-surface-1 px-3 py-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-ds-accent text-ink-on-dark shadow-sm">
+              <Sparkles className="h-3.5 w-3.5" />
             </div>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold tracking-tight text-ink">
-                  Sidekick Agent
-                </span>
-                <span className="rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
-                  Admin
-                </span>
-              </div>
-              <span className="text-[11px] text-ink-3">
-                Queries the live database and session transcripts. Read-only.
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-sm font-semibold tracking-tight text-ink">
+                Sidekick Agent
+              </span>
+              <span className="rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
+                {SCOPE_BADGE[apiScope]}
               </span>
             </div>
-            <div className="ml-auto flex items-center gap-2">
-              <Select
-                value={model}
-                onValueChange={setModel}
-                disabled={streaming}
-              >
-                <SelectTrigger className="h-8 w-[180px] text-xs">
-                  {/* Render only the model label in the trigger; the description
-                    only belongs in the open menu. Passing children to SelectValue
-                    overrides the default which would echo the full SelectItem
-                    children (label + description) and overflow the row. */}
-                  <SelectValue placeholder="Pick a model">
-                    {modelOptions.find(m => m.id === model)?.label ?? model}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {modelOptions.map(m => (
-                    <SelectItem key={m.id} value={m.id} className="text-xs">
-                      <div className="flex flex-col">
-                        <span>{m.label}</span>
-                        <span className="text-[10px] text-ink-3">
-                          {m.description}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNewThread}
-                disabled={messages.length === 0 && !threadId}
-                className="gap-1.5"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                New
-              </Button>
+            <TooltipProvider delayDuration={300}>
+              <div className="ml-auto flex items-center gap-0.5">
+                <AgentThreadMenu
+                  apiScope={apiScope}
+                  activeThreadId={threadId}
+                  onSelectThread={handleSelectThread}
+                  onNewThread={handleNewThread}
+                />
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={handleNewThread}
+                      disabled={messages.length === 0 && !threadId}
+                      aria-label="New conversation"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>New conversation</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7"
+                      onClick={handleExpand}
+                      aria-label="Expand to full view"
+                    >
+                      <Maximize2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Expand to full view</TooltipContent>
+                </Tooltip>
+              </div>
+            </TooltipProvider>
+          </div>
+        ) : (
+          /* Console header — conversation-title-centric and calm. The Read-only
+             reassurance now lives in the status line + composer; "New" lives in the
+             sidebar. Modal mode adds Open-full-page + Close on the right. */
+          <div className="flex items-center gap-3 border-b border-line bg-surface-1 px-4 py-3">
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-ds-accent text-ink-on-dark shadow-sm">
+              <Sparkles className="h-4 w-4" />
+            </div>
+            <div className="flex min-w-0 flex-col">
+              <div className="flex items-center gap-2">
+                <span className="truncate text-sm font-semibold tracking-tight text-ink">
+                  {activeThreadTitle ?? 'Sidekick Agent'}
+                </span>
+                {!activeThreadTitle ? (
+                  <span className="shrink-0 rounded bg-ds-accent-bg px-1.5 py-0.5 font-mono text-[10px] font-semibold uppercase tracking-wider text-ds-accent">
+                    {SCOPE_BADGE[apiScope]}
+                  </span>
+                ) : null}
+              </div>
+              <span className="flex items-center gap-1.5 text-[11px] text-ink-3">
+                <span
+                  className={cn(
+                    'h-1.5 w-1.5 shrink-0 rounded-full bg-forest',
+                    streaming && 'animate-pulse',
+                  )}
+                />
+                <span className="truncate">
+                  {streaming ? 'Working…' : HEADER_STATUS[apiScope]}
+                </span>
+              </span>
+            </div>
+            <div className="ml-auto flex items-center gap-1.5">
+              {/* Model switching is a power-user control — keep it for coaches/
+                  admins, hide it from the client portal, and quiet the styling. */}
+              {apiScope !== 'client' ? (
+                <Select
+                  value={model}
+                  onValueChange={setModel}
+                  disabled={streaming}
+                >
+                  <SelectTrigger className="h-8 w-auto gap-1.5 border-line bg-paper px-2.5 text-xs text-ink-2">
+                    {/* Render only the (shortened) model label in the trigger; the
+                    description belongs in the open menu. Passing children to
+                    SelectValue overrides the default which would echo the full
+                    SelectItem children and overflow the row. */}
+                    <SelectValue placeholder="Model">
+                      {shortModelLabel(
+                        modelOptions.find(m => m.id === model)?.label ?? model,
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {modelOptions.map(m => (
+                      <SelectItem key={m.id} value={m.id} className="text-xs">
+                        <div className="flex flex-col">
+                          <span>{m.label}</span>
+                          <span className="text-[10px] text-ink-3">
+                            {m.description}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+              {isModal ? (
+                /* Modal-only: an explicit Open-full-page escape hatch (URL-persisted,
+                   shareable) and a Close button. Native titles avoid wrapping this
+                   row in a TooltipProvider. */
+                <>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={handleExpand}
+                    aria-label="Open full page"
+                    title="Open full page"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={onClose}
+                    aria-label="Close"
+                    title="Close"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </>
+              ) : null}
             </div>
           </div>
-          {/* Capability strip — surfaces what the agent has access to. */}
-          <div className="flex items-center gap-3 border-t border-line bg-ds-accent-bg px-4 py-1.5 text-[11px] text-ink-2">
-            <span className="inline-flex items-center gap-1">
-              <Database className="h-3 w-3" />
-              Postgres
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <MessagesSquare className="h-3 w-3" />
-              Transcripts (Weaviate)
-            </span>
-            <span className="inline-flex items-center gap-1">
-              <Zap className="h-3 w-3" />
-              Charts
-            </span>
-            <span className="inline-flex items-center gap-1 text-forest">
-              <ShieldCheck className="h-3 w-3" />
-              Read-only
-            </span>
-            <span className="ml-auto flex items-center gap-3 font-mono text-[10px] text-ink-3">
-              {sdkSessionId ? (
-                <span title={sdkSessionId}>
-                  session {sdkSessionId.slice(0, 8)}…
-                </span>
-              ) : null}
-              {userTurns > 0 ? (
-                <span>
-                  {userTurns} turn{userTurns === 1 ? '' : 's'} ·{' '}
-                  {totalToolCalls} tool call
-                  {totalToolCalls === 1 ? '' : 's'}
-                </span>
-              ) : null}
-            </span>
-          </div>
-        </div>
+        )}
 
         {/* Live activity bar — only visible while streaming. */}
         <div className="px-4">
           <AgentActivityBar
             blocks={liveAssistantBlocks}
             streaming={streaming}
+            apiScope={apiScope}
           />
         </div>
 
@@ -403,9 +549,15 @@ export function AgentChat() {
         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
           <div className="mx-auto flex max-w-4xl flex-col gap-4">
             {showStarters ? (
-              <EmptyState onPick={q => handleSend(q)} />
+              <EmptyState
+                onPick={q => handleSend(q)}
+                starters={starters}
+                apiScope={apiScope}
+              />
             ) : (
-              messages.map(m => <AgentMessage key={m.id} message={m} />)
+              messages.map(m => (
+                <AgentMessage key={m.id} message={m} apiScope={apiScope} />
+              ))
             )}
           </div>
         </div>
@@ -416,27 +568,32 @@ export function AgentChat() {
           onSend={() => handleSend()}
           onCancel={handleCancel}
           streaming={streaming}
+          autoFocus={isModal}
+          apiScope={apiScope}
         />
       </div>
     </div>
   )
 }
 
-function EmptyState({ onPick }: { onPick: (q: string) => void }) {
+function EmptyState({
+  onPick,
+  starters,
+  apiScope,
+}: {
+  onPick: (q: string) => void
+  starters: string[]
+  apiScope: AgentApiScope
+}) {
   return (
     <div className="mx-auto max-w-2xl py-10 text-center">
       <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-ds-accent text-ink-on-dark shadow-md">
         <Sparkles className="h-7 w-7" />
       </div>
-      <h2 className="text-lg font-semibold text-ink">
-        Ask Sidekick anything about your data
-      </h2>
-      <p className="mt-1.5 text-sm text-ink-3">
-        Reasons across every coach, client, session, and transcript — writing
-        SQL, searching transcripts, and building charts as needed.
-      </p>
+      <h2 className="text-lg font-semibold text-ink">Ask Sidekick anything</h2>
+      <p className="mt-1.5 text-sm text-ink-3">{EMPTY_STATE_BLURB[apiScope]}</p>
       <div className="mt-6 grid grid-cols-1 gap-2 sm:grid-cols-2">
-        {STARTERS.map(q => (
+        {starters.map(q => (
           <button
             key={q}
             type="button"
@@ -449,6 +606,23 @@ function EmptyState({ onPick }: { onPick: (q: string) => void }) {
       </div>
     </div>
   )
+}
+
+/** Drop the "Claude " prefix so the picker reads "Opus 4.7", not "Claude Opus 4.7". */
+function shortModelLabel(label: string): string {
+  return label.replace(/^Claude\s+/i, '')
+}
+
+/** The dedicated full-page route for each scope — where "Expand" sends you. */
+function fullRouteForScope(scope: AgentApiScope): string {
+  switch (scope) {
+    case 'client':
+      return '/client-portal/agent'
+    case 'coach':
+      return '/agent'
+    default:
+      return '/admin/agent'
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -563,6 +737,17 @@ function reduceBlocks(
     }
     case 'chart':
       return [...blocks, { kind: 'chart', spec: event.spec }]
+    case 'rendered_chart':
+      return [
+        ...blocks,
+        {
+          kind: 'svg_chart',
+          svg: event.svg,
+          title: event.title,
+          description: event.description,
+          error: event.error,
+        },
+      ]
     case 'error':
       return [
         ...blocks,

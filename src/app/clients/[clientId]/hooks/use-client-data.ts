@@ -60,7 +60,7 @@ export function useClientData(
     isLoading: sessionsLoading,
     error: sessionsError,
     refetch: refetchSessions,
-  } = useClientSessions(clientId ?? undefined, { per_page: 10 })
+  } = useClientSessions(clientId ?? undefined)
 
   // Combined loading state
   const loading = clientLoading || sessionsLoading
