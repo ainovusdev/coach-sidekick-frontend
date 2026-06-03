@@ -353,20 +353,21 @@ export default function ClientDetailPage({
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
               </Button>
-              {client && hasClientAccess(client.id) && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    sessionStorage.setItem('view_as_client_id', client.id)
-                    sessionStorage.setItem('view_as_client_name', client.name)
-                    router.push('/client-portal/dashboard')
-                  }}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Client Portal
-                </Button>
-              )}
+              {client &&
+                (hasClientAccess(client.id) || client.coach_id === userId) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      sessionStorage.setItem('view_as_client_id', client.id)
+                      sessionStorage.setItem('view_as_client_name', client.name)
+                      router.push('/client-portal/dashboard')
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Client Portal
+                  </Button>
+                )}
             </div>
           </div>
 
