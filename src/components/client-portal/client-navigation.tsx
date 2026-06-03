@@ -23,6 +23,7 @@ import {
   Menu,
   X,
   Eye,
+  Sparkles,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -44,6 +45,11 @@ const navItems = [
     path: '/client-portal/persona',
     label: 'Coaching Profile',
     icon: UserRound,
+  },
+  {
+    path: '/client-portal/agent',
+    label: 'Sidekick Agent',
+    icon: Sparkles,
   },
 ]
 

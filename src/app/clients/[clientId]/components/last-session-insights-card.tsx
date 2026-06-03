@@ -288,6 +288,7 @@ export function LastSessionInsightsCard({
   session,
 }: LastSessionInsightsCardProps) {
   const router = useRouter()
+  const [showAllActionItems, setShowAllActionItems] = useState(false)
   const { data: sessionDetails, isLoading: detailsLoading } = useSessionDetails(
     session?.id,
   )
@@ -415,20 +416,37 @@ export function LastSessionInsightsCard({
               </h4>
               {session.action_items && session.action_items.length > 0 ? (
                 <ul className="space-y-1.5">
-                  {session.action_items
-                    .slice(0, 3)
-                    .map((item: string, index: number) => (
-                      <li
-                        key={index}
-                        className="text-sm text-ink-2 flex items-start gap-2"
-                      >
-                        <span className="text-primary mt-0.5">→</span>
-                        <span>{item}</span>
-                      </li>
-                    ))}
+                  {(showAllActionItems
+                    ? session.action_items
+                    : session.action_items.slice(0, 3)
+                  ).map((item: string, index: number) => (
+                    <li
+                      key={index}
+                      className="text-sm text-ink-2 flex items-start gap-2"
+                    >
+                      <span className="text-primary mt-0.5">→</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
                   {session.action_items.length > 3 && (
-                    <li className="text-xs text-ink-3 ml-5">
-                      +{session.action_items.length - 3} more items
+                    <li>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllActionItems(prev => !prev)}
+                        className="ml-5 text-xs text-primary hover:underline flex items-center gap-1"
+                      >
+                        {showAllActionItems ? (
+                          <>
+                            <ChevronDown className="h-3 w-3" />
+                            Show less
+                          </>
+                        ) : (
+                          <>
+                            <ChevronRight className="h-3 w-3" />+
+                            {session.action_items.length - 3} more items
+                          </>
+                        )}
+                      </button>
                     </li>
                   )}
                 </ul>

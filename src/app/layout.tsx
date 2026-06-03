@@ -6,6 +6,7 @@ import { WebSocketProvider } from '@/contexts/websocket-context'
 import { ProcessingProvider } from '@/contexts/processing-context'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { AgentModalProvider } from '@/components/agent/agent-modal'
 import { Toaster } from 'sonner'
 import './globals.css'
 
@@ -41,7 +42,7 @@ export default function RootLayout({
               <PermissionProvider>
                 <WebSocketProvider>
                   <ProcessingProvider>
-                    {children}
+                    <AgentModalProvider>{children}</AgentModalProvider>
                     <Toaster
                       position="top-right"
                       richColors

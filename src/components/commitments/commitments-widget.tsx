@@ -60,9 +60,8 @@ export function CommitmentsWidget({
     refetch,
   } = useCommitments({
     client_id: clientId,
-    // Remove status filter to show all commitments (active, draft, etc.)
-    // status: 'active',
-    include_drafts: true, // Include draft commitments
+    // Drafts are excluded — unconfirmed (transcript-extracted) commitments are
+    // only reviewed on the session detail page and the /commitments page.
   })
 
   const error = queryError ? 'Failed to load commitments' : null

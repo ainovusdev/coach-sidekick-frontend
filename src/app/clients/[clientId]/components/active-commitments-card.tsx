@@ -27,9 +27,8 @@ export function ActiveCommitmentsCard({
 }: ActiveCommitmentsCardProps) {
   const { data, isLoading } = useCommitments({
     client_id: clientId,
-    // Remove status filter to show all commitments
-    // status: 'active',
-    include_drafts: true,
+    // Drafts are excluded here — unconfirmed (transcript-extracted) commitments
+    // are only reviewed on the session detail page and the /commitments page.
   })
 
   const allCommitments = data?.commitments || []

@@ -5,14 +5,18 @@ import { cn } from '@/lib/utils'
 import { Sparkles, User } from 'lucide-react'
 import { AgentChart } from './agent-chart'
 import { AgentReportCard } from './agent-report-card'
+import { AgentSvgChart } from './agent-svg-chart'
 import { AgentToolCallCard } from './agent-tool-call-card'
+import { AgentToolCallHeadline } from './agent-tool-call-headline'
 import type { AgentMessage as AgentMessageType } from '@/types/agent'
+import type { AgentApiScope } from '@/services/agent-service'
 
 interface Props {
   message: AgentMessageType
+  apiScope: AgentApiScope
 }
 
-export function AgentMessage({ message }: Props) {
+export function AgentMessage({ message, apiScope }: Props) {
   const isUser = message.role === 'user'
 
   return (
@@ -63,10 +67,19 @@ export function AgentMessage({ message }: Props) {
               )
             }
             if (block.kind === 'tool_call') {
-              return <AgentToolCallCard key={i} block={block} />
+              // Admins get the full tool call (SQL, schema, result rows); coaches
+              // and clients see only a plain-language headline of what's happening.
+              return apiScope === 'admin' ? (
+                <AgentToolCallCard key={i} block={block} />
+              ) : (
+                <AgentToolCallHeadline key={i} block={block} />
+              )
             }
             if (block.kind === 'chart') {
               return <AgentChart key={i} spec={block.spec} />
+            }
+            if (block.kind === 'svg_chart') {
+              return <AgentSvgChart key={i} block={block} />
             }
             if (block.kind === 'report') {
               return <AgentReportCard key={i} spec={block.spec} />
@@ -75,7 +88,7 @@ export function AgentMessage({ message }: Props) {
           })
         )}
         {!isUser && message.metrics ? (
-          <MetricsFooter metrics={message.metrics} />
+          <MetricsFooter metrics={message.metrics} apiScope={apiScope} />
         ) : null}
       </div>
     </div>
@@ -84,17 +97,22 @@ export function AgentMessage({ message }: Props) {
 
 function MetricsFooter({
   metrics,
+  apiScope,
 }: {
   metrics: NonNullable<AgentMessageType['metrics']>
+  apiScope: AgentApiScope
 }) {
+  // Cost (our infra spend) and the internal agent-turn count are debug signals —
+  // show them only to admins. Coaches/clients just see how long the answer took.
+  const isAdmin = apiScope === 'admin'
   const parts: string[] = []
-  if (typeof metrics.total_cost_usd === 'number') {
+  if (isAdmin && typeof metrics.total_cost_usd === 'number') {
     parts.push(`$${metrics.total_cost_usd.toFixed(4)}`)
   }
   if (typeof metrics.duration_ms === 'number') {
     parts.push(`${(metrics.duration_ms / 1000).toFixed(1)}s`)
   }
-  if (typeof metrics.num_turns === 'number') {
+  if (isAdmin && typeof metrics.num_turns === 'number') {
     parts.push(`${metrics.num_turns} turn${metrics.num_turns === 1 ? '' : 's'}`)
   }
   if (parts.length === 0) return null

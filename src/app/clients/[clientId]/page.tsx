@@ -56,6 +56,11 @@ import { ClientService } from '@/services/client-service'
 import { ClientWinsTimeline } from '@/components/wins/client-wins-timeline'
 import { ClientResourcesTab } from './components/client-resources-tab'
 import { ClientUpcomingSessions } from './components/client-upcoming-sessions'
+import { AgentInsight } from '@/components/agent/agent-insight'
+import {
+  nextSessionPrepPrompt,
+  nextSessionPrepDeepPrompt,
+} from '@/lib/agent-insight-prompts'
 
 export default function ClientDetailPage({
   params,
@@ -109,6 +114,22 @@ export default function ClientDetailPage({
       created_at: s.created_at,
     }))
   }, [activeSessionsData, client?.name])
+
+  // Passive "prepare for the next session" synthesis — open commitments, last
+  // Thrill Form, the upcoming pre-session questionnaire, and recent themes.
+  // `prepDeepPrompt` seeds the "Open full prep" drill-down in the agent modal.
+  const { prepPrompt, prepDeepPrompt } = useMemo(() => {
+    if (!client) return { prepPrompt: null, prepDeepPrompt: undefined }
+    const args = {
+      clientName: client.name,
+      clientId: client.id,
+      dateISO: new Date().toISOString().slice(0, 10),
+    }
+    return {
+      prepPrompt: nextSessionPrepPrompt(args),
+      prepDeepPrompt: nextSessionPrepDeepPrompt(args),
+    }
+  }, [client])
 
   useEffect(() => {
     params.then(({ clientId }) => {
@@ -446,6 +467,13 @@ export default function ClientDetailPage({
                   </div>
 
                   <TabsContent value="overview" className="space-y-4">
+                    <AgentInsight
+                      scope="coach"
+                      title="Prep for next session"
+                      prompt={prepPrompt}
+                      expandPrompt={prepDeepPrompt}
+                      expandLabel="Open full prep"
+                    />
                     <OverviewTab
                       client={client}
                       sessions={sessions}

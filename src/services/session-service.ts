@@ -155,27 +155,35 @@ export class SessionService {
     return transformSession(response)
   }
 
+  // Backend caps per_page at 100, so fetch every page and concatenate to
+  // return the client's full session history (not just the first page).
   static async getClientSessions(
     clientId: string,
-    params?: {
-      page?: number
-      per_page?: number
-    },
   ): Promise<SessionListResponse> {
-    const queryParams = new URLSearchParams()
-    if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.per_page)
-      queryParams.append('per_page', params.per_page.toString())
+    const PER_PAGE = 100
 
-    const response = await ApiClient.get(
-      `${BACKEND_URL}/clients/${clientId}/sessions?${queryParams}`,
-    )
+    const fetchPage = async (page: number) =>
+      ApiClient.get(
+        `${BACKEND_URL}/clients/${clientId}/sessions?page=${page}&per_page=${PER_PAGE}`,
+      )
+
+    const first = await fetchPage(1)
+    const total: number = first.total ?? first.sessions.length
+    const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
+
+    const rawSessions = [...first.sessions]
+    if (totalPages > 1) {
+      const rest = await Promise.all(
+        Array.from({ length: totalPages - 1 }, (_, i) => fetchPage(i + 2)),
+      )
+      for (const response of rest) rawSessions.push(...response.sessions)
+    }
 
     return {
-      sessions: response.sessions.map(transformSession),
-      total: response.total,
-      page: response.page,
-      per_page: response.per_page,
+      sessions: rawSessions.map(transformSession),
+      total,
+      page: 1,
+      per_page: rawSessions.length,
     }
   }
 

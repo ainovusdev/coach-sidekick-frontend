@@ -2,12 +2,9 @@
 
 import { useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  useMyCommitments,
-  useCommitments,
-} from '@/hooks/queries/use-commitments'
+import { useMyCommitments } from '@/hooks/queries/use-commitments'
 import { SimpleClient } from '@/services/client-service'
-import { Clock, FileEdit, UserX, ArrowRight } from 'lucide-react'
+import { Clock, UserX, ArrowRight } from 'lucide-react'
 
 interface AttentionNeededProps {
   clients: SimpleClient[]
@@ -16,10 +13,6 @@ interface AttentionNeededProps {
 export function AttentionNeeded({ clients }: AttentionNeededProps) {
   const router = useRouter()
   const { data: myCommitmentsData } = useMyCommitments()
-  const { data: draftCommitmentsData } = useCommitments({
-    status: 'draft',
-    my_clients_only: true,
-  })
 
   const overdueCount = useMemo(() => {
     const commitments = myCommitmentsData?.commitments ?? []
@@ -42,8 +35,6 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
       return new Date(c.last_session_date) < thirtyDaysAgo
     }).length
   }, [clients])
-
-  const draftCount = draftCommitmentsData?.commitments?.length ?? 0
 
   type AttentionItem = {
     label: string
@@ -72,16 +63,6 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
           color:
             'bg-amber-token-bg text-amber-token border-amber-token hover:bg-amber-token-bg ',
           iconColor: 'text-amber-token',
-        }
-      : null,
-    draftCount > 0
-      ? {
-          label: `${draftCount} draft${draftCount !== 1 ? 's' : ''} to review`,
-          icon: FileEdit,
-          href: '/commitments?tab=drafts',
-          color:
-            'bg-ds-accent-bg text-ds-accent border-ds-accent hover:bg-ds-accent-bg ',
-          iconColor: 'text-ds-accent',
         }
       : null,
   ].filter((item): item is AttentionItem => item !== null)

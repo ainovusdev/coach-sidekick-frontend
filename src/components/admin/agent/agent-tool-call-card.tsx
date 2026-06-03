@@ -31,6 +31,7 @@ const TOOL_META: Record<ToolName, { label: string; icon: typeof Database }> = {
   run_sql_query: { label: 'SQL query', icon: Database },
   describe_schema: { label: 'Schema lookup', icon: BookOpen },
   generate_chart: { label: 'Chart', icon: BarChart3 },
+  generate_static_chart: { label: 'Static chart', icon: BarChart3 },
   search_conversations: { label: 'Conversation search', icon: MessagesSquare },
   get_session_transcript: { label: 'Session transcript', icon: FileText },
   generate_report: { label: 'PDF report', icon: FileDown },
@@ -127,6 +128,15 @@ function ToolInputSummary({
     return (
       <span className="hidden md:inline text-xs text-ink-3 truncate max-w-[40ch]">
         {title}
+      </span>
+    )
+  }
+  if (block.name === 'generate_static_chart') {
+    const title = (block.input.title as string) || ''
+    const chartType = (block.input.chart_type as string) || ''
+    return (
+      <span className="hidden md:inline text-xs text-ink-3 truncate max-w-[40ch]">
+        {[chartType, title].filter(Boolean).join(' · ')}
       </span>
     )
   }

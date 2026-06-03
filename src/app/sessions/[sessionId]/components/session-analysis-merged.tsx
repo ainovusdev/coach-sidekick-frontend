@@ -517,7 +517,7 @@ export function SessionAnalysisMerged({
                               (strength, idx) => (
                                 <Badge
                                   key={idx}
-                                  className="bg-app-primary text-app-background hover:bg-app-primary/90"
+                                  className="max-w-full whitespace-normal break-words text-left bg-app-primary text-app-background hover:bg-app-primary/90"
                                 >
                                   {strength}
                                 </Badge>
@@ -538,7 +538,7 @@ export function SessionAnalysisMerged({
                                 <Badge
                                   key={idx}
                                   variant="outline"
-                                  className="border-app-border text-app-secondary"
+                                  className="max-w-full whitespace-normal break-words text-left border-app-border text-app-secondary"
                                 >
                                   {obstacle}
                                 </Badge>

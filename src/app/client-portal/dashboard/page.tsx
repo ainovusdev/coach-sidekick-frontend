@@ -6,10 +6,12 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { LoadingSpinner } from '@/components/ui/loading-spinner'
 import { ActiveSessionsCard } from '@/components/client-portal/active-sessions-card'
-import { ClientPortalChat } from '@/components/client-portal/client-portal-chat'
+import { AgentChat } from '@/components/admin/agent/agent-chat'
 import { ClientLastSessionInsights } from '@/components/client-portal/client-last-session-insights'
 import { UpcomingTasksWidget } from '@/components/client-portal/upcoming-tasks-widget'
 import { RecentResourcesWidget } from '@/components/client-portal/recent-resources-widget'
+import { AgentInsight } from '@/components/agent/agent-insight'
+import { clientNextSessionPrepPrompt } from '@/lib/agent-insight-prompts'
 import { GoalsTreeView } from '@/app/clients/[clientId]/components/goals-tree-view'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
 import { SprintFormModal } from '@/components/sprints/sprint-form-modal'
@@ -322,25 +324,27 @@ export default function ClientDashboard() {
         </p>
       </div>
 
-      {/* Hero — Next session */}
+      {/* Hero — Next session, with AI prep embedded below */}
       {nextSession && (
-        <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-7 mb-6">
-          <div className="flex flex-col lg:flex-row lg:items-start gap-6">
-            <div className="flex-1 min-w-0">
-              <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3">
-                Next session
-              </span>
-              <h2 className="text-[24px] font-semibold tracking-tight m-0 mt-2 text-ink">
-                {formatDate(nextSession, 'EEEE, MMMM d · h:mm a')}
-              </h2>
-              <p className="m-0 mt-1 text-[14px] text-ink-3">
-                {dashboardData.coach_name
-                  ? `Weekly check-in with ${dashboardData.coach_name}`
-                  : 'Weekly check-in'}
-                <span className="mx-2">·</span>
-                {formatRelativeTime(nextSession)}
-              </p>
-              <div className="flex flex-wrap gap-3 mt-4">
+        <div className="bg-surface-1 border border-line rounded-[10px] shadow-sm mb-6 overflow-hidden">
+          <div className="p-7">
+            <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+              <div className="min-w-0">
+                <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3">
+                  Next session
+                </span>
+                <h2 className="text-[24px] font-semibold tracking-tight m-0 mt-2 text-ink">
+                  {formatDate(nextSession, 'EEEE, MMMM d · h:mm a')}
+                </h2>
+                <p className="m-0 mt-1 text-[14px] text-ink-3">
+                  {dashboardData.coach_name
+                    ? `Weekly check-in with ${dashboardData.coach_name}`
+                    : 'Weekly check-in'}
+                  <span className="mx-2">·</span>
+                  {formatRelativeTime(nextSession)}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-3 shrink-0">
                 <Button className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium">
                   <Video className="h-3.5 w-3.5" />
                   Join when ready
@@ -353,30 +357,17 @@ export default function ClientDashboard() {
                 </Button>
               </div>
             </div>
-            <div className="w-full lg:w-[260px] bg-surface-2 rounded-xl p-4 flex flex-col gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-[0.04em] text-ink-3">
-                Your prep
-              </span>
-              <p className="m-0 text-[13px] leading-[1.5] text-ink-2">
-                Bring one moment from this week worth talking through with your
-                coach.
-              </p>
-              {dashboardData.coach_name && (
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="w-6 h-6 rounded-full bg-surface-3 text-ink-2 inline-flex items-center justify-center text-[10px] font-semibold">
-                    {dashboardData.coach_name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)}
-                  </div>
-                  <span className="text-[12px] font-medium text-ink-2">
-                    {dashboardData.coach_name}
-                  </span>
-                </div>
-              )}
-            </div>
+          </div>
+          {/* Your prep — AI-generated, scoped to this client */}
+          <div className="border-t border-line bg-surface-2/40 px-7 py-5">
+            <AgentInsight
+              scope="client"
+              title="Your prep"
+              bare
+              prompt={clientNextSessionPrepPrompt({
+                dateISO: new Date().toISOString().slice(0, 10),
+              })}
+            />
           </div>
         </div>
       )}
@@ -435,6 +426,18 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] gap-6 mb-8">
         {/* Left Panel - Coaching Data */}
         <div className="space-y-4">
+          {/* Prepare for your next session — standalone card only when no
+              session is scheduled (otherwise it lives inside the hero above). */}
+          {!nextSession && (
+            <AgentInsight
+              scope="client"
+              title="Prepare for your next session"
+              prompt={clientNextSessionPrepPrompt({
+                dateISO: new Date().toISOString().slice(0, 10),
+              })}
+            />
+          )}
+
           {/* Last Session Insights */}
           <ClientLastSessionInsights session={lastSession} />
 
@@ -445,10 +448,10 @@ export default function ClientDashboard() {
           <RecentResourcesWidget />
         </div>
 
-        {/* Right Panel - AI Chat */}
+        {/* Right Panel - Sidekick Agent (embedded) */}
         <div className="lg:sticky lg:top-[80px] lg:self-start">
           <div className="h-[500px] lg:h-[calc(100vh-160px)] lg:min-h-[500px] lg:max-h-[800px]">
-            <ClientPortalChat />
+            <AgentChat apiScope="client" variant="embedded" />
           </div>
         </div>
       </div>

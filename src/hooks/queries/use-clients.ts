@@ -89,31 +89,25 @@ export function useClient(
  *
  * Features:
  * - Cached for 5 minutes
- * - Supports pagination
- * - Automatically refetches when params change
+ * - Fetches the client's complete session history (all pages)
  *
  * @param clientId - The client ID
- * @param params - Pagination parameters
  * @param options - Additional react-query options
  *
  * @example
- * const { data, isLoading } = useClientSessions(clientId, { page: 1, per_page: 10 })
+ * const { data, isLoading } = useClientSessions(clientId)
  * const sessions = data?.sessions ?? []
  */
 export function useClientSessions(
   clientId: string | undefined,
-  params?: {
-    page?: number
-    per_page?: number
-  },
   options?: Omit<
     UseQueryOptions<SessionListResponse>,
     'queryKey' | 'queryFn' | 'enabled'
   >,
 ) {
   return useQuery({
-    queryKey: [...queryKeys.clients.sessions(clientId!), params],
-    queryFn: () => SessionService.getClientSessions(clientId!, params),
+    queryKey: queryKeys.clients.sessions(clientId!),
+    queryFn: () => SessionService.getClientSessions(clientId!),
     enabled: !!clientId,
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,

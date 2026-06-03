@@ -3,6 +3,7 @@
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { MessageBlock, ToolName } from '@/types/agent'
+import type { AgentApiScope } from '@/services/agent-service'
 
 /**
  * Live status bar shown while the agent is mid-thought. Sits at the top of
@@ -18,21 +19,37 @@ interface Props {
   blocks: MessageBlock[]
   /** Whether the stream is still active. */
   streaming: boolean
+  /** Scope of the host console. Admins see the technical verbs + SQL detail. */
+  apiScope: AgentApiScope
 }
 
+// Technical verbs (admin console). Coaches/clients get the plainer set below.
 const TOOL_VERB: Record<ToolName, string> = {
   run_sql_query: 'Running SQL',
   describe_schema: 'Inspecting schema',
   generate_chart: 'Rendering chart',
+  generate_static_chart: 'Rendering static chart',
   search_conversations: 'Searching transcripts',
   get_session_transcript: 'Reading transcript',
   generate_report: 'Composing PDF report',
 }
 
-export function AgentActivityBar({ blocks, streaming }: Props) {
+// Plain-language verbs for coaches/clients — no SQL/schema/transcript jargon.
+const TOOL_VERB_PLAIN: Record<ToolName, string> = {
+  run_sql_query: 'Searching your data',
+  describe_schema: 'Getting oriented',
+  generate_chart: 'Building a chart',
+  generate_static_chart: 'Building a chart',
+  search_conversations: 'Searching your conversations',
+  get_session_transcript: 'Reading a session',
+  generate_report: 'Preparing a report',
+}
+
+export function AgentActivityBar({ blocks, streaming, apiScope }: Props) {
   if (!streaming) return null
 
-  const status = deriveStatus(blocks)
+  const isAdmin = apiScope === 'admin'
+  const status = deriveStatus(blocks, isAdmin)
   if (!status) return null
 
   return (
@@ -57,7 +74,13 @@ interface DerivedStatus {
   stepLabel: string | null
 }
 
-function deriveStatus(blocks: MessageBlock[]): DerivedStatus | null {
+function deriveStatus(
+  blocks: MessageBlock[],
+  isAdmin: boolean,
+): DerivedStatus | null {
+  const verbFor = (name: ToolName) =>
+    (isAdmin ? TOOL_VERB[name] : TOOL_VERB_PLAIN[name]) ?? name
+
   if (blocks.length === 0) {
     return { verb: 'Thinking', detail: null, stepLabel: null }
   }
@@ -67,9 +90,10 @@ function deriveStatus(blocks: MessageBlock[]): DerivedStatus | null {
     const b = blocks[i]
     if (b.kind === 'tool_call' && b.status === 'running') {
       return {
-        verb: TOOL_VERB[b.name] ?? b.name,
-        detail: extractToolDetail(b),
-        stepLabel: buildStepLabel(blocks),
+        verb: verbFor(b.name),
+        // Coaches/clients never see the SQL / query / id detail or step counter.
+        detail: isAdmin ? extractToolDetail(b) : null,
+        stepLabel: isAdmin ? buildStepLabel(blocks) : null,
       }
     }
   }
@@ -81,8 +105,8 @@ function deriveStatus(blocks: MessageBlock[]): DerivedStatus | null {
   if (lastCompleted && lastCompleted.kind === 'tool_call') {
     return {
       verb: 'Composing answer',
-      detail: `after ${TOOL_VERB[lastCompleted.name] ?? lastCompleted.name}`,
-      stepLabel: buildStepLabel(blocks),
+      detail: isAdmin ? `after ${verbFor(lastCompleted.name)}` : null,
+      stepLabel: isAdmin ? buildStepLabel(blocks) : null,
     }
   }
 

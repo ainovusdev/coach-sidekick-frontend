@@ -196,7 +196,7 @@ export function ClientProfileCard({
                 </div>
                 <Badge
                   variant="outline"
-                  className="text-xs w-full justify-center"
+                  className="text-xs w-full justify-center h-auto whitespace-normal break-words text-center"
                 >
                   {profile.communication_style}
                 </Badge>
@@ -212,7 +212,7 @@ export function ClientProfileCard({
                 </div>
                 <Badge
                   variant="outline"
-                  className="text-xs w-full justify-center"
+                  className="text-xs w-full justify-center h-auto whitespace-normal break-words text-center"
                 >
                   {profile.learning_style}
                 </Badge>
@@ -296,7 +296,7 @@ export function ClientProfileCard({
                 {profile.strengths?.slice(0, 4).map((strength, i) => (
                   <Badge
                     key={i}
-                    className="text-xs bg-indigo-bg text-indigo border-indigo "
+                    className="text-xs bg-indigo-bg text-indigo border-indigo max-w-full whitespace-normal break-words text-left h-auto"
                   >
                     {strength}
                   </Badge>
@@ -319,7 +319,11 @@ export function ClientProfileCard({
                 {(insights?.suggested_focus || profile.growth_areas || [])
                   .slice(0, 3)
                   .map((area, i) => (
-                    <Badge key={i} variant="outline" className="text-xs">
+                    <Badge
+                      key={i}
+                      variant="outline"
+                      className="text-xs max-w-full whitespace-normal break-words text-left h-auto"
+                    >
                       {area}
                     </Badge>
                   ))}
@@ -337,7 +341,7 @@ export function ClientProfileCard({
                 </span>
               </div>
               <Badge
-                className={`text-xs ${getBreakthroughColor(insights.breakthrough_potential)}`}
+                className={`text-xs max-w-full whitespace-normal break-words text-left h-auto ${getBreakthroughColor(insights.breakthrough_potential)}`}
               >
                 {insights.breakthrough_potential}
               </Badge>
@@ -352,7 +356,11 @@ export function ClientProfileCard({
               </span>
               <div className="flex flex-wrap gap-1">
                 {profile.recurring_themes?.slice(0, 5).map((theme, i) => (
-                  <Badge key={i} variant="secondary" className="text-xs">
+                  <Badge
+                    key={i}
+                    variant="secondary"
+                    className="text-xs max-w-full whitespace-normal break-words text-left h-auto"
+                  >
                     {theme}
                   </Badge>
                 ))}
