@@ -10,6 +10,8 @@ import {
   startOfDay,
   isSameDay,
 } from 'date-fns'
+import { fromZonedTime } from 'date-fns-tz'
+import { resolveTimeZone } from '@/lib/date-utils'
 import { CalendarIcon, Loader2 } from 'lucide-react'
 import {
   Dialog,
@@ -117,12 +119,18 @@ export function ScheduleSessionModal({
     if (period === 'AM' && h === 12) h = 0
     if (period === 'PM' && h !== 12) h += 12
 
-    const scheduledFor = new Date(sessionDate)
-    scheduledFor.setHours(h, parseInt(minute), 0, 0)
+    // Interpret the picked calendar day + time as wall-clock in the coach's
+    // timezone, then convert to the absolute UTC instant we send to the API.
+    const pad = (n: number) => String(n).padStart(2, '0')
+    const tz = resolveTimeZone()
+    const wall = `${sessionDate.getFullYear()}-${pad(
+      sessionDate.getMonth() + 1,
+    )}-${pad(sessionDate.getDate())}T${pad(h)}:${minute}:00`
+    const scheduledForIso = fromZonedTime(wall, tz).toISOString()
 
     const result = await scheduleSession.mutateAsync({
       client_id: clientId,
-      scheduled_for: scheduledFor.toISOString(),
+      scheduled_for: scheduledForIso,
       title: title || undefined,
       meeting_url: meetingUrl || undefined,
       send_questionnaire: sendQuestionnaire,

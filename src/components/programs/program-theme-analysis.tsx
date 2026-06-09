@@ -28,7 +28,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { TrendingUp, TrendingDown, Sparkles, Network } from 'lucide-react'
-import { formatRelativeTime, formatDate } from '@/lib/date-utils'
+import { formatRelativeTime, formatDateOnly } from '@/lib/date-utils'
 
 interface ProgramThemeAnalysisProps {
   programId: string
@@ -222,7 +222,7 @@ export function ProgramThemeAnalysis({ programId }: ProgramThemeAnalysisProps) {
             <div className="space-y-6">
               {themes.trending_themes.slice(0, 3).map(theme => {
                 const chartData = theme.occurrences.map(point => ({
-                  date: formatDate(point.date, 'MMM d'),
+                  date: formatDateOnly(point.date, 'MMM d'),
                   count: point.value,
                 }))
 

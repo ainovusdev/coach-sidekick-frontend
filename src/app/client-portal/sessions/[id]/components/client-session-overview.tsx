@@ -44,7 +44,7 @@ import {
   StickyNote,
 } from 'lucide-react'
 import { NotesList } from '@/components/session-notes/notes-list'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { CommitmentService } from '@/services/commitment-service'
 import { commitmentTypeLabels } from '@/types/commitment'
 import { toast } from 'sonner'
@@ -304,7 +304,7 @@ function CommitmentItem({
                     <span>
                       Due:{' '}
                       <strong>
-                        {formatDate(commitment.target_date, 'MMM d, yyyy')}
+                        {formatDateOnly(commitment.target_date, 'MMM d, yyyy')}
                       </strong>
                     </span>
                   )}

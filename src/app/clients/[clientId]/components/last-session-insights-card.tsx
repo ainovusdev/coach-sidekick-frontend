@@ -34,7 +34,7 @@ import {
   PlayCircle,
   CheckCircle2,
 } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -265,7 +265,7 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               <span>
                 Due:{' '}
                 <strong>
-                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
+                  {formatDateOnly(commitment.target_date, 'MMM d, yyyy')}
                 </strong>
               </span>
             )}

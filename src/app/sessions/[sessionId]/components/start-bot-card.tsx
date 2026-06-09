@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import {
   Play,
   Link2,
@@ -159,7 +159,7 @@ export function StartBotCard({
           {scheduledFor && (
             <div className="flex items-center justify-center gap-1.5 text-sm text-app-secondary mb-6">
               <CalendarClock className="h-4 w-4" />
-              {format(new Date(scheduledFor), "EEEE, MMMM d 'at' h:mm a")}
+              {formatDate(scheduledFor, "EEEE, MMMM d 'at' h:mm a")}
             </div>
           )}
 

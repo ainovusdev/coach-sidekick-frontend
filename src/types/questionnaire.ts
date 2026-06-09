@@ -83,6 +83,20 @@ export interface ThrillFormStatusView {
   responses: QuestionAnswerPair[]
 }
 
+export type PreSessionStatus = 'not_started' | 'in_progress' | 'completed'
+
+export interface PreSessionPrep {
+  session: {
+    id: string
+    title: string | null
+    scheduled_for: string | null
+    meeting_url: string | null
+  } | null
+  questions: QuestionItem[]
+  existing_answers: QuestionAnswerPair[]
+  status: PreSessionStatus
+}
+
 export interface QuestionnaireTokenResponse {
   token: string
   questionnaire_url: string

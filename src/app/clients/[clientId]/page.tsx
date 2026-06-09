@@ -471,6 +471,7 @@ export default function ClientDetailPage({
                     <AgentInsight
                       scope="coach"
                       title="Prep for next session"
+                      manual
                       prompt={prepPrompt}
                       expandPrompt={prepDeepPrompt}
                       expandLabel="Open full prep"

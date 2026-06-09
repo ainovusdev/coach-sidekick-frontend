@@ -31,6 +31,13 @@ interface AgentInsightProps {
   /** Gate generation explicitly (e.g. `enabled={!!client}`). Defaults to true. */
   enabled?: boolean
   /**
+   * On-demand mode: don't generate on mount. Render a CTA button instead, and
+   * only fire the prompt once the user clicks it. Defaults to false (auto).
+   */
+  manual?: boolean
+  /** CTA label for `manual` mode. Defaults to "Prepare for next session". */
+  manualLabel?: string
+  /**
    * When set, shows an "open full" affordance that pops the agent modal
    * pre-seeded with this (usually deeper) prompt — depth on demand.
    */
@@ -62,6 +69,8 @@ export function AgentInsight({
   title,
   icon: Icon = Sparkles,
   enabled = true,
+  manual = false,
+  manualLabel = 'Prepare for next session',
   expandPrompt,
   expandLabel = 'Open full prep',
   collapsible = false,
@@ -69,13 +78,14 @@ export function AgentInsight({
   bare = false,
   className,
 }: AgentInsightProps) {
-  const active = !!prompt && enabled
   const [collapsed, setCollapsed] = useState(collapsible && defaultCollapsed)
+  const [triggered, setTriggered] = useState(!manual)
+  const active = !!prompt && enabled && triggered
   const { openAgent } = useAgentModal()
   const { data, isError, isFetching, regenerate } = useAgentInsight(
     prompt,
     scope,
-    { enabled: enabled && !collapsed },
+    { enabled: enabled && !collapsed && triggered },
   )
 
   if (bare) {
@@ -195,6 +205,22 @@ export function AgentInsight({
                   Try again
                 </button>
               </div>
+            </div>
+          ) : manual && !triggered && !isFetching ? (
+            <div className="flex flex-col items-center gap-2.5 py-4 text-center">
+              <p className="max-w-sm text-sm text-ink-3">
+                Generate a quick, AI-prepared brief for this client&rsquo;s next
+                session.
+              </p>
+              <button
+                type="button"
+                onClick={() => setTriggered(true)}
+                disabled={!prompt || !enabled}
+                className="inline-flex items-center gap-2 rounded-lg bg-ds-accent px-3.5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Sparkles className="h-4 w-4" />
+                {manualLabel}
+              </button>
             </div>
           ) : data ? (
             <>

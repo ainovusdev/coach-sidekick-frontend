@@ -7,6 +7,7 @@ import type {
   ThrillFormStatusView,
   QuestionnaireTokenResponse,
   StartBotResponse,
+  PreSessionPrep,
 } from '@/types/questionnaire'
 
 const BACKEND_URL =
@@ -93,6 +94,22 @@ export class QuestionnaireService {
     return ApiClient.post(
       `${BACKEND_URL}/questionnaire/sessions/${sessionId}/start-bot`,
       { meeting_url: meetingUrl, bot_name: botName },
+    )
+  }
+
+  // ---- Authenticated (client portal) ----
+
+  static async getClientPreSession(): Promise<PreSessionPrep> {
+    return ApiClient.get(`${BACKEND_URL}/client/pre-session-questionnaire`)
+  }
+
+  static async submitClientPreSession(
+    sessionId: string,
+    answers: { question_index: number; answer: string }[],
+  ): Promise<{ status: string }> {
+    return ApiClient.post(
+      `${BACKEND_URL}/client/pre-session-questionnaire/submit`,
+      { session_id: sessionId, answers },
     )
   }
 

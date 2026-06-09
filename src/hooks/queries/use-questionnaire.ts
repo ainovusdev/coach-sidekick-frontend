@@ -4,6 +4,7 @@ import type {
   ScheduledSession,
   QuestionnaireResponseView,
   ThrillFormStatusView,
+  PreSessionPrep,
 } from '@/types/questionnaire'
 
 export const questionnaireKeys = {
@@ -15,6 +16,7 @@ export const questionnaireKeys = {
     ['questionnaire', 'thrill-form-responses', sessionId, clientId] as const,
   thrillForm: (sessionId: string, clientId?: string) =>
     ['questionnaire', 'thrill-form', sessionId, clientId] as const,
+  clientPreSession: () => ['questionnaire', 'client-pre-session'] as const,
 }
 
 export function useUpcomingSessions(clientId?: string) {
@@ -63,5 +65,15 @@ export function useThrillForm(
     queryFn: () => QuestionnaireService.getThrillForm(sessionId!, clientId),
     enabled: !!sessionId,
     staleTime: 60 * 1000,
+  })
+}
+
+// Pre-session prep questions for the logged-in client's next session — powers
+// the on-demand prep form on the client portal dashboard.
+export function useClientPreSession() {
+  return useQuery<PreSessionPrep>({
+    queryKey: questionnaireKeys.clientPreSession(),
+    queryFn: () => QuestionnaireService.getClientPreSession(),
+    staleTime: 30 * 1000,
   })
 }

@@ -2,15 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { format, formatDistanceToNow, isPast, startOfDay } from 'date-fns'
+import { isPast } from 'date-fns'
 import {
   CalendarClock,
   ArrowRight,
   Send,
   CheckCircle2,
-  Clock,
   Mail,
-  CalendarIcon,
   Pencil,
   Loader2,
   RotateCw,
@@ -19,12 +17,7 @@ import {
 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
-import { Calendar } from '@/components/ui/calendar'
+import { ReschedulePopover } from '@/components/sessions/reschedule-popover'
 import { useUpcomingSessions } from '@/hooks/queries/use-questionnaire'
 import {
   useSendQuestionnaire,
@@ -38,7 +31,6 @@ export function UpcomingSessions() {
   const sendQuestionnaire = useSendQuestionnaire()
   const reschedule = useRescheduleSession()
   const updateSession = useUpdateSession()
-  const [openCalendarId, setOpenCalendarId] = useState<string | null>(null)
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null)
   const [editingTitle, setEditingTitle] = useState('')
   const [expanded, setExpanded] = useState(false)
@@ -53,17 +45,6 @@ export function UpcomingSessions() {
   }, [editingTitleId])
 
   if (isLoading || !sessions || sessions.length === 0) return null
-
-  const handleReschedule = (sessionId: string, newDate: Date | undefined) => {
-    if (!newDate) return
-    const session = sessions.find(s => s.id === sessionId)
-    if (session?.scheduled_for) {
-      const original = new Date(session.scheduled_for)
-      newDate.setHours(original.getHours(), original.getMinutes(), 0, 0)
-    }
-    reschedule.mutate({ sessionId, scheduledFor: newDate.toISOString() })
-    setOpenCalendarId(null)
-  }
 
   const handleTitleSave = (sessionId: string) => {
     const trimmed = editingTitle.trim()
@@ -140,36 +121,17 @@ export function UpcomingSessions() {
                 </div>
 
                 {/* Date (reschedule) */}
-                <Popover
-                  open={openCalendarId === session.id}
-                  onOpenChange={open =>
-                    setOpenCalendarId(open ? session.id : null)
+                <ReschedulePopover
+                  scheduledFor={session.scheduled_for}
+                  isOverdue={isOverdue}
+                  isPending={reschedule.isPending}
+                  onConfirm={iso =>
+                    reschedule.mutate({
+                      sessionId: session.id,
+                      scheduledFor: iso,
+                    })
                   }
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      className={`flex items-center gap-1 text-xs shrink-0 hover:underline ${
-                        isOverdue ? 'text-vermillion' : 'text-ink-3 '
-                      }`}
-                      title="Click to reschedule"
-                    >
-                      <Clock className="h-3 w-3" />
-                      {scheduledDate
-                        ? `${format(scheduledDate, 'MMM d, h:mm a')} (${formatDistanceToNow(scheduledDate, { addSuffix: true })})`
-                        : 'No date'}
-                      <CalendarIcon className="h-2.5 w-2.5 opacity-0 group-hover:opacity-50 transition-opacity" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={scheduledDate || undefined}
-                      onSelect={date => handleReschedule(session.id, date)}
-                      disabled={date => date < startOfDay(new Date())}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
+                />
 
                 {/* Q&A status + resend */}
                 <div className="flex items-center gap-1.5 shrink-0">

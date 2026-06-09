@@ -30,7 +30,11 @@ import {
   PlayCircle,
   CheckCircle2,
 } from 'lucide-react'
-import { formatDate, formatRelativeTime } from '@/lib/date-utils'
+import {
+  formatDate,
+  formatDateOnly,
+  formatRelativeTime,
+} from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 
 interface SessionData {
@@ -168,7 +172,7 @@ function SessionCommitmentItem({
               <span>
                 Due:{' '}
                 <strong>
-                  {formatDate(commitment.target_date, 'MMM d, yyyy')}
+                  {formatDateOnly(commitment.target_date, 'MMM d, yyyy')}
                 </strong>
               </span>
             )}
