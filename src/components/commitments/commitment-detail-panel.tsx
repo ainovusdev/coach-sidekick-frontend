@@ -62,7 +62,11 @@ import {
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import { formatDate } from '@/lib/date-utils'
+import {
+  formatDate,
+  formatDateOnly,
+  parseDateForPicker,
+} from '@/lib/date-utils'
 import {
   X,
   MoreVertical,
@@ -562,18 +566,14 @@ function FieldsGrid({
               >
                 <CalendarIcon className="h-3.5 w-3.5 mr-2" />
                 {commitment.target_date
-                  ? formatDate(commitment.target_date, 'MMM d, yyyy')
+                  ? formatDateOnly(commitment.target_date, 'MMM d, yyyy')
                   : 'Set date'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[80]" align="start">
               <Calendar
                 mode="single"
-                selected={
-                  commitment.target_date
-                    ? new Date(commitment.target_date)
-                    : undefined
-                }
+                selected={parseDateForPicker(commitment.target_date)}
                 onSelect={date => {
                   onFieldUpdate(
                     'target_date',
@@ -1343,7 +1343,7 @@ function MilestoneItem({
       )}
       {milestone.target_date && (
         <span className="text-xs text-ink-4 ">
-          {formatDate(milestone.target_date, 'MMM d')}
+          {formatDateOnly(milestone.target_date, 'MMM d')}
         </span>
       )}
       <Button

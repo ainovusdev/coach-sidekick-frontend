@@ -103,6 +103,31 @@ export function useSendThrillForm() {
   })
 }
 
+export function useSubmitClientPreSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      sessionId,
+      answers,
+    }: {
+      sessionId: string
+      answers: { question_index: number; answer: string }[]
+    }) => QuestionnaireService.submitClientPreSession(sessionId, answers),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'questionnaire' &&
+          query.queryKey[1] === 'client-pre-session',
+      })
+      toast.success('Prep answers saved')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to save prep answers')
+    },
+  })
+}
+
 export function useStartSessionBot() {
   return useMutation({
     mutationFn: ({

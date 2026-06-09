@@ -24,7 +24,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import { PersonaService, type ClientPersona } from '@/services/persona-service'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 
 interface ClientPersonaProps {
   clientId: string
@@ -118,7 +118,7 @@ export function ClientPersonaDisplay({ clientId }: ClientPersonaProps) {
                   Last Updated
                 </p>
                 <p className="text-sm text-ink-2">
-                  {formatDate(persona.metadata.last_updated)}
+                  {formatDateOnly(persona.metadata.last_updated)}
                 </p>
               </div>
             )}

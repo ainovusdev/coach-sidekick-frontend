@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { CheckSquare, Calendar, ArrowRight, User } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 import Link from 'next/link'
 
 export function MyCommitments() {
@@ -112,11 +112,11 @@ export function MyCommitments() {
                         {new Date(commitment.target_date) < now ? (
                           <span className="text-vermillion font-medium">
                             Overdue -{' '}
-                            {formatDate(commitment.target_date, 'MMM d')}
+                            {formatDateOnly(commitment.target_date, 'MMM d')}
                           </span>
                         ) : (
                           <span>
-                            {formatDate(commitment.target_date, 'MMM d')}
+                            {formatDateOnly(commitment.target_date, 'MMM d')}
                           </span>
                         )}
                       </>

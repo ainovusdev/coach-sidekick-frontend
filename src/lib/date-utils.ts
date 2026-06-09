@@ -3,7 +3,17 @@
  *
  * Handles date parsing and formatting consistently across the app.
  * All dates from the backend are treated as UTC.
- * All dates are displayed in UTC to prevent timezone-induced day shifts.
+ *
+ * Two distinct formatting conventions:
+ * - INSTANT fields (timestamps with a meaningful time-of-day: scheduled_for,
+ *   created_at, started_at, session_date, …) are rendered in the user's
+ *   timezone via `formatDate` / `formatTime` / `formatDateTime`. The target
+ *   zone resolves to the saved coach timezone (set once at app root via
+ *   `setActiveTimeZone`) and falls back to the browser's zone.
+ * - DATE-ONLY fields (a calendar day with no time: commitment/sprint
+ *   target_date, start_date, end_date, daily-metric date) must be rendered in
+ *   UTC via `formatDateOnly` / `formatTimeOnly` to avoid timezone-induced day
+ *   shifts (e.g. "2026-06-15" displaying as Jun 14 in a negative-offset zone).
  */
 
 import {
@@ -13,6 +23,41 @@ import {
   isAfter as fnsIsAfter,
   isBefore as fnsIsBefore,
 } from 'date-fns'
+import { formatInTimeZone } from 'date-fns-tz'
+
+/**
+ * Module-level "active" timezone for INSTANT formatting. Populated once near
+ * the app root by `useUserTimezone()` with the coach's saved IANA zone, so the
+ * formatters below render in the right zone without threading a tz argument
+ * through every call site. Null until set → callers fall back to browser zone.
+ */
+let activeTimeZone: string | null = null
+
+export function setActiveTimeZone(tz: string | null): void {
+  activeTimeZone = tz
+}
+
+function browserTimeZone(): string {
+  if (typeof Intl === 'undefined') return 'UTC'
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  } catch {
+    return 'UTC'
+  }
+}
+
+/**
+ * Resolve the IANA timezone to render an INSTANT in.
+ * Priority: explicit arg → active (saved coach) zone → browser zone.
+ * Guards SSR with 'UTC' so server and the first client render agree (the
+ * post-mount re-render then applies the real browser/saved zone).
+ */
+export function resolveTimeZone(tz?: string | null): string {
+  if (tz) return tz
+  if (activeTimeZone) return activeTimeZone
+  if (typeof window === 'undefined') return 'UTC'
+  return browserTimeZone()
+}
 
 /**
  * Parse a date string from the API into a Date object.
@@ -31,8 +76,12 @@ export function parseDate(dateString: string | null | undefined): Date | null {
   if (!dateString.endsWith('Z') && !dateString.match(/[+-]\d{2}:\d{2}$/)) {
     // Replace space with T if present (some backends return "2024-01-15 10:30:00")
     normalizedString = dateString.replace(' ', 'T')
-    // Append Z to indicate UTC
-    if (!normalizedString.endsWith('Z')) {
+    // Date-only strings (e.g. "2024-06-15") need a time before the 'Z' suffix —
+    // Safari rejects "2024-06-15Z" as an invalid date.
+    if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedString)) {
+      normalizedString += 'T00:00:00Z'
+    } else if (!normalizedString.endsWith('Z')) {
+      // Append Z to indicate UTC
       normalizedString += 'Z'
     }
   }
@@ -58,6 +107,21 @@ function toUTCLocal(date: Date): Date {
 }
 
 /**
+ * Parse an API date string into a Date that renders the correct calendar day in
+ * LOCAL time (for <Calendar> / date-picker `selected` values). Returns undefined
+ * when the string is missing or unparseable.
+ *
+ * Without this, `new Date("2024-06-15")` parses as UTC midnight, so in a
+ * negative-offset timezone the picker highlights the previous day.
+ */
+export function parseDateForPicker(
+  dateString: string | null | undefined,
+): Date | undefined {
+  const date = parseDate(dateString)
+  return date ? toUTCLocal(date) : undefined
+}
+
+/**
  * Format a date for relative display (e.g., "2 hours ago")
  *
  * @param dateString - Date string from the API
@@ -75,14 +139,71 @@ export function formatRelativeTime(
 }
 
 /**
- * Format a date for display in UTC (e.g., "Jan 15, 2024").
- * Prevents timezone-induced day shifts for date-only values.
+ * Format an INSTANT date in the user's timezone (e.g., "Jan 15, 2024").
+ * Use for timestamps with a meaningful time-of-day. For calendar-day-only
+ * values use `formatDateOnly` instead.
  *
  * @param dateString - Date string from the API
  * @param formatString - date-fns format string (default: 'PPP')
- * @returns Formatted date string in UTC
+ * @param tz - Optional explicit IANA zone; defaults to the resolved user zone
+ * @returns Formatted date string in the resolved timezone
  */
 export function formatDate(
+  dateString: string | null | undefined,
+  formatString: string = 'PPP',
+  tz?: string | null,
+): string {
+  const date = parseDate(dateString)
+  if (!date) return 'Unknown'
+
+  return formatInTimeZone(date, resolveTimeZone(tz), formatString)
+}
+
+/**
+ * Format an INSTANT as time only in the user's timezone (e.g., "2:30 PM").
+ *
+ * @param dateString - Date string from the API
+ * @param tz - Optional explicit IANA zone; defaults to the resolved user zone
+ * @returns Formatted time string in the resolved timezone
+ */
+export function formatTime(
+  dateString: string | null | undefined,
+  tz?: string | null,
+): string {
+  const date = parseDate(dateString)
+  if (!date) return 'Unknown'
+
+  return formatInTimeZone(date, resolveTimeZone(tz), 'p')
+}
+
+/**
+ * Format an INSTANT with date and time in the user's timezone
+ * (e.g., "Jan 15, 2024 at 10:30 AM").
+ *
+ * @param dateString - Date string from the API
+ * @param tz - Optional explicit IANA zone; defaults to the resolved user zone
+ * @returns Formatted date and time string in the resolved timezone
+ */
+export function formatDateTime(
+  dateString: string | null | undefined,
+  tz?: string | null,
+): string {
+  const date = parseDate(dateString)
+  if (!date) return 'Unknown'
+
+  return formatInTimeZone(date, resolveTimeZone(tz), "PPP 'at' p")
+}
+
+/**
+ * Format a DATE-ONLY value in UTC (e.g., "Jan 15, 2024").
+ * Prevents timezone-induced day shifts for calendar-day values that have no
+ * meaningful time-of-day (commitment/sprint dates, daily-metric dates).
+ *
+ * @param dateString - Date string from the API
+ * @param formatString - date-fns format string (default: 'PPP')
+ * @returns Formatted date string rendered as its UTC calendar day
+ */
+export function formatDateOnly(
   dateString: string | null | undefined,
   formatString: string = 'PPP',
 ): string {
@@ -93,29 +214,17 @@ export function formatDate(
 }
 
 /**
- * Format a time only (e.g., "2:30 PM")
+ * Format a DATE-ONLY value's time portion in UTC (e.g., "12:00 AM").
+ * Rarely needed; provided for parity with `formatDateOnly`.
  *
  * @param dateString - Date string from the API
- * @returns Formatted time string
+ * @returns Formatted time string rendered in UTC
  */
-export function formatTime(dateString: string | null | undefined): string {
+export function formatTimeOnly(dateString: string | null | undefined): string {
   const date = parseDate(dateString)
   if (!date) return 'Unknown'
 
   return fnsFormat(toUTCLocal(date), 'p')
-}
-
-/**
- * Format a date with time (e.g., "Jan 15, 2024 at 10:30 AM")
- *
- * @param dateString - Date string from the API
- * @returns Formatted date and time string
- */
-export function formatDateTime(dateString: string | null | undefined): string {
-  const date = parseDate(dateString)
-  if (!date) return 'Unknown'
-
-  return fnsFormat(toUTCLocal(date), "PPP 'at' p")
 }
 
 /**

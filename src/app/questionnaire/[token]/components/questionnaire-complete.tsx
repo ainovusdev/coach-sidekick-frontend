@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { format } from 'date-fns'
+import { formatDate } from '@/lib/date-utils'
 import { CheckCircle2 } from 'lucide-react'
 import Image from 'next/image'
 
@@ -32,7 +32,7 @@ export function QuestionnaireComplete({
 
   const dateInfo =
     kind === 'pre_session' && scheduledFor
-      ? format(new Date(scheduledFor), "EEEE, MMMM d 'at' h:mm a")
+      ? formatDate(scheduledFor, "EEEE, MMMM d 'at' h:mm a")
       : null
   const isThrillForm = kind === 'post_session'
 

@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Pencil, Sparkles } from 'lucide-react'
 import { Commitment, commitmentTypeLabels } from '@/types/commitment'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 interface CommitmentListItemProps {
   commitment: Commitment
   onUpdate?: () => void
@@ -46,7 +46,7 @@ export function CommitmentListItem({
               </Badge>
               {commitment.target_date && (
                 <Badge variant="outline" className="text-xs">
-                  Due: {formatDate(commitment.target_date)}
+                  Due: {formatDateOnly(commitment.target_date)}
                 </Badge>
               )}
               {commitment.progress_percentage > 0 && (

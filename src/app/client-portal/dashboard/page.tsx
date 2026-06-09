@@ -11,6 +11,7 @@ import { ClientLastSessionInsights } from '@/components/client-portal/client-las
 import { UpcomingTasksWidget } from '@/components/client-portal/upcoming-tasks-widget'
 import { RecentResourcesWidget } from '@/components/client-portal/recent-resources-widget'
 import { AgentInsight } from '@/components/agent/agent-insight'
+import { PreSessionPrep } from '@/components/client-portal/pre-session-prep'
 import { clientNextSessionPrepPrompt } from '@/lib/agent-insight-prompts'
 import { GoalsTreeView } from '@/app/clients/[clientId]/components/goals-tree-view'
 import { GoalFormModal } from '@/components/goals/goal-form-modal'
@@ -24,6 +25,7 @@ import { TargetService } from '@/services/target-service'
 import { SprintService } from '@/services/sprint-service'
 import { useGoals } from '@/hooks/queries/use-goals'
 import { useSprints } from '@/hooks/queries/use-sprints'
+import { useClientPreSession } from '@/hooks/queries/use-questionnaire'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
@@ -121,6 +123,10 @@ export default function ClientDashboard() {
   const { data: sprints = [] } = useSprints(
     clientId ? { client_id: clientId, status: 'active' } : undefined,
   )
+
+  // Next-session prep — also supplies the meeting link for the Join button.
+  const { data: preSession } = useClientPreSession()
+  const nextSessionMeetingUrl = preSession?.session?.meeting_url || null
 
   useEffect(() => {
     fetchDashboardData()
@@ -344,18 +350,23 @@ export default function ClientDashboard() {
                   {formatRelativeTime(nextSession)}
                 </p>
               </div>
-              <div className="flex flex-wrap gap-3 shrink-0">
-                <Button className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium">
-                  <Video className="h-3.5 w-3.5" />
-                  Join when ready
-                </Button>
-                <Button
-                  variant="outline"
-                  className="border-line bg-surface-1 text-ink hover:bg-surface-3 h-9 px-3.5 text-[13px] font-medium"
-                >
-                  Reschedule
-                </Button>
-              </div>
+              {nextSessionMeetingUrl && (
+                <div className="flex flex-wrap gap-3 shrink-0">
+                  <Button
+                    onClick={() =>
+                      window.open(
+                        nextSessionMeetingUrl,
+                        '_blank',
+                        'noopener,noreferrer',
+                      )
+                    }
+                    className="bg-ink text-ink-on-dark hover:bg-ink-2 h-9 px-3.5 text-[13px] font-medium"
+                  >
+                    <Video className="h-3.5 w-3.5" />
+                    Join when ready
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
           {/* Your prep — AI-generated, scoped to this client */}
@@ -371,6 +382,9 @@ export default function ClientDashboard() {
           </div>
         </div>
       )}
+
+      {/* Pre-session prep — prominent standalone card (hidden when no session) */}
+      <PreSessionPrep />
 
       {/* Active Sessions Banner */}
       <div className="mb-6">

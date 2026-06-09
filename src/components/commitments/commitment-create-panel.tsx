@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { format } from 'date-fns'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly, parseDateForPicker } from '@/lib/date-utils'
 import { useCreateCommitment } from '@/hooks/mutations/use-commitment-mutations'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useTargets } from '@/hooks/queries/use-targets'
@@ -276,14 +276,14 @@ export function CommitmentCreatePanel({
                       >
                         <CalendarIcon className="h-3.5 w-3.5 mr-2" />
                         {targetDate
-                          ? formatDate(targetDate, 'MMM d, yyyy')
+                          ? formatDateOnly(targetDate, 'MMM d, yyyy')
                           : 'Set date'}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
                       <Calendar
                         mode="single"
-                        selected={targetDate ? new Date(targetDate) : undefined}
+                        selected={parseDateForPicker(targetDate)}
                         onSelect={date => {
                           setTargetDate(
                             date ? format(date, 'yyyy-MM-dd') : undefined,

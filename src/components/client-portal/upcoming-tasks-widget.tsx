@@ -11,7 +11,7 @@ import {
   Circle,
   PlayCircle,
 } from 'lucide-react'
-import { formatDate, isPastDate } from '@/lib/date-utils'
+import { formatDateOnly, isPastDate } from '@/lib/date-utils'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { commitmentTypeLabels } from '@/types/commitment'
 import type { Commitment } from '@/types/commitment'
@@ -112,7 +112,7 @@ export function UpcomingTasksWidget({
                           }`}
                         >
                           {isOverdue && <AlertCircle className="h-3 w-3" />}
-                          {formatDate(commitment.target_date, 'MMM d')}
+                          {formatDateOnly(commitment.target_date, 'MMM d')}
                         </span>
                       )}
                     </div>

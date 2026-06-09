@@ -43,7 +43,7 @@ import {
   useBulkConfirmCommitments,
   useBulkDiscardCommitments,
 } from '@/hooks/mutations/use-commitment-mutations'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { isPast, parseISO, differenceInDays } from 'date-fns'
 import PageLayout from '@/components/layout/page-layout'
 import {
@@ -307,7 +307,7 @@ function CommitmentRow({
               {commitment.target_date
                 ? isOverdue
                   ? `${Math.abs(daysUntil!)}d overdue`
-                  : formatDate(commitment.target_date, 'MMM d')
+                  : formatDateOnly(commitment.target_date, 'MMM d')
                 : 'Set date'}
             </button>
           </PopoverTrigger>

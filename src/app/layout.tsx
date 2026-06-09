@@ -6,6 +6,7 @@ import { WebSocketProvider } from '@/contexts/websocket-context'
 import { ProcessingProvider } from '@/contexts/processing-context'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
+import { TimezoneInitializer } from '@/components/providers/timezone-initializer'
 import { AgentModalProvider } from '@/components/agent/agent-modal'
 import { Toaster } from 'sonner'
 import './globals.css'
@@ -39,6 +40,7 @@ export default function RootLayout({
         <ThemeProvider>
           <QueryProvider>
             <AuthProvider>
+              <TimezoneInitializer />
               <PermissionProvider>
                 <WebSocketProvider>
                   <ProcessingProvider>

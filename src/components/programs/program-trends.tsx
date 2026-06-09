@@ -30,7 +30,7 @@ import {
   Legend,
 } from 'recharts'
 import { TrendingUp, Calendar, Activity } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 
 interface ProgramTrendsProps {
   programId: string
@@ -64,12 +64,12 @@ export function ProgramTrends({ programId }: ProgramTrendsProps) {
 
   // Format data for charts
   const sessionFrequencyData = trends.session_frequency.map(point => ({
-    date: formatDate(point.date, 'MMM d'),
+    date: formatDateOnly(point.date, 'MMM d'),
     sessions: point.value,
   }))
 
   const completionRateData = trends.completion_rate_trend.map(point => ({
-    date: formatDate(point.date, 'MMM d'),
+    date: formatDateOnly(point.date, 'MMM d'),
     rate: point.value,
   }))
 

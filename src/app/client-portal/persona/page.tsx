@@ -35,7 +35,7 @@ import {
   ArrowRight,
   CheckCircle2,
 } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { Progress } from '@/components/ui/progress'
 import Link from 'next/link'
 
@@ -337,7 +337,7 @@ export default function ClientPersonaPage() {
                               ? 'First Session'
                               : `${milestone.count} Sessions`}
                             {milestone.date &&
-                              ` - ${formatDate(milestone.date, 'MMM d')}`}
+                              ` - ${formatDateOnly(milestone.date, 'MMM d')}`}
                           </span>
                         </div>
                       </div>
@@ -365,7 +365,7 @@ export default function ClientPersonaPage() {
                               ? 'bg-amber-token '
                               : 'bg-line '
                         }`}
-                        title={`${formatDate(entry.date, 'MMM d')} - ${entry.sentiment || 'neutral'}`}
+                        title={`${formatDateOnly(entry.date, 'MMM d')} - ${entry.sentiment || 'neutral'}`}
                       />
                     ))}
                   </div>

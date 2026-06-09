@@ -8,7 +8,12 @@
 
 import React, { useState } from 'react'
 import { format, isPast, addDays, addWeeks } from 'date-fns'
-import { formatDate, formatRelativeTime } from '@/lib/date-utils'
+import {
+  formatDate,
+  formatDateOnly,
+  formatRelativeTime,
+  parseDateForPicker,
+} from '@/lib/date-utils'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -153,7 +158,7 @@ function DraftCommitmentCard({
 }) {
   const [editTitle, setEditTitle] = useState(commitment.title)
   const [editDate, setEditDate] = useState<Date | undefined>(
-    commitment.target_date ? new Date(commitment.target_date) : undefined,
+    parseDateForPicker(commitment.target_date),
   )
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [showDatePicker, setShowDatePicker] = useState(false)
@@ -438,9 +443,7 @@ export function CommitmentPanel({
   const handleStartEdit = (commitment: PanelCommitment) => {
     setEditingId(commitment.id)
     setEditTitle(commitment.title)
-    setEditDate(
-      commitment.target_date ? new Date(commitment.target_date) : undefined,
-    )
+    setEditDate(parseDateForPicker(commitment.target_date))
   }
 
   const handleCancelEdit = () => {
@@ -759,7 +762,7 @@ export function CommitmentPanel({
                 >
                   <CalendarIcon className="h-3 w-3" />
                   {isOverdue && 'Overdue: '}
-                  {formatDate(commitment.target_date, 'MMM d')}
+                  {formatDateOnly(commitment.target_date, 'MMM d')}
                 </span>
               )}
 
@@ -891,7 +894,7 @@ export function CommitmentPanel({
                       {commitment.target_date && (
                         <span className="text-[10px] text-ink-4 flex items-center gap-0.5">
                           <CalendarIcon className="h-2.5 w-2.5" />
-                          {formatDate(commitment.target_date, 'MMM d')}
+                          {formatDateOnly(commitment.target_date, 'MMM d')}
                         </span>
                       )}
                       {isCoach && commitment.is_coach_commitment && (

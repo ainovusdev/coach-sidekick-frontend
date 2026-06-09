@@ -20,7 +20,7 @@ import {
   Edit,
   Trash2,
 } from 'lucide-react'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 
 interface CommitmentKanbanCardProps {
@@ -236,7 +236,7 @@ export function CommitmentKanbanCard({
             >
               {isOverdue && <AlertCircle className="h-3 w-3" />}
               <Calendar className="h-3 w-3" />
-              <span>{formatDate(commitment.target_date, 'MMM d')}</span>
+              <span>{formatDateOnly(commitment.target_date, 'MMM d')}</span>
             </div>
           )}
 

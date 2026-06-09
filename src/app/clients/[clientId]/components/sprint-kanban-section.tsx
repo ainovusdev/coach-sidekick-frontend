@@ -21,7 +21,7 @@ import {
   CheckCircle2,
 } from 'lucide-react'
 import { differenceInDays, isAfter, isBefore } from 'date-fns'
-import { formatDate } from '@/lib/date-utils'
+import { formatDateOnly } from '@/lib/date-utils'
 import { toast } from 'sonner'
 import { useConfetti } from '@/hooks/use-confetti'
 
@@ -141,8 +141,8 @@ function SprintAccordionItem({
               <div className="flex items-center gap-2 text-sm text-ink-3 mb-2">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>
-                  {formatDate(sprint.start_date, 'MMM d')} -{' '}
-                  {formatDate(sprint.end_date, 'MMM d, yyyy')}
+                  {formatDateOnly(sprint.start_date, 'MMM d')} -{' '}
+                  {formatDateOnly(sprint.end_date, 'MMM d, yyyy')}
                 </span>
                 {!isUpcoming && !isEnded && (
                   <>
