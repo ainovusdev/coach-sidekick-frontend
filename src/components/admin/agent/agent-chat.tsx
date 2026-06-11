@@ -118,7 +118,7 @@ export function AgentChat({
   )
   const threadId = persistThreadInUrl ? urlThreadId : hiddenThreadId
 
-  const [model, setModel] = useState<string>('claude-opus-4-7')
+  const [model, setModel] = useState<string>('claude-opus-4-8')
   const [models, setModels] = useState<ModelOption[]>([])
   const [messages, setMessages] = useState<AgentMessageType[]>([])
   const [input, setInput] = useState('')
@@ -353,8 +353,8 @@ export function AgentChat({
     if (models.length > 0) return models
     return [
       {
-        id: 'claude-opus-4-7',
-        label: 'Claude Opus 4.7',
+        id: 'claude-opus-4-8',
+        label: 'Claude Opus 4.8',
         description: 'Strongest reasoning',
       },
     ]
@@ -608,7 +608,7 @@ function EmptyState({
   )
 }
 
-/** Drop the "Claude " prefix so the picker reads "Opus 4.7", not "Claude Opus 4.7". */
+/** Drop the "Claude " prefix so the picker reads "Opus 4.8", not "Claude Opus 4.8". */
 function shortModelLabel(label: string): string {
   return label.replace(/^Claude\s+/i, '')
 }
