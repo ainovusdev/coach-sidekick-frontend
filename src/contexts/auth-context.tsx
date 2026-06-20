@@ -180,8 +180,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { error: null }
     } catch (error) {
       console.error('Sign in error:', error)
+      // Prefer the backend's detail message (e.g. the pending "not activated yet"
+      // 403) over axios's generic "Request failed with status code ..." text.
+      const detail = (error as { response?: { data?: { detail?: string } } })
+        ?.response?.data?.detail
       const errorMessage =
-        error instanceof Error ? error.message : 'Invalid email or password'
+        detail ||
+        (error instanceof Error ? error.message : 'Invalid email or password')
       toast.error('Login Failed', {
         description: errorMessage,
         duration: 5000,
