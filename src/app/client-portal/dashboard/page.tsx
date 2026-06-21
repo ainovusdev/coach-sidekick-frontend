@@ -150,6 +150,10 @@ export default function ClientDashboard() {
       if (viewAsClient) {
         headers['X-View-As-Client'] = viewAsClient
       }
+      const activeClient = sessionStorage.getItem('active_client_id')
+      if (activeClient) {
+        headers['X-Active-Client'] = activeClient
+      }
       const response = await fetch(`${apiUrl}/client/dashboard`, { headers })
 
       if (!response.ok) {

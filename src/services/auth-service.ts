@@ -198,6 +198,11 @@ class AuthService {
       // Also clear legacy keys
       localStorage.removeItem('client_auth_token')
       localStorage.removeItem('client_user_data')
+
+      // Phase 5c: drop the multi-profile active selection so a different user
+      // signing in on this tab starts on their own default profile.
+      sessionStorage.removeItem('active_client_id')
+      sessionStorage.removeItem('active_client_name')
     }
   }
 

@@ -57,6 +57,8 @@ function viewAsHeaders(): Record<string, string> {
   if (viewAsClient) headers['X-View-As-Client'] = viewAsClient
   const viewAsCoach = sessionStorage.getItem('view_as_coach_id')
   if (viewAsCoach) headers['X-View-As-Coach'] = viewAsCoach
+  const activeClient = sessionStorage.getItem('active_client_id')
+  if (activeClient) headers['X-Active-Client'] = activeClient
   return headers
 }
 

@@ -184,6 +184,10 @@ export class ClientCommitmentService {
       typeof window !== 'undefined'
         ? sessionStorage.getItem('view_as_client_id')
         : null
+    const activeClient =
+      typeof window !== 'undefined'
+        ? sessionStorage.getItem('active_client_id')
+        : null
 
     if (onProgress) {
       return new Promise((resolve, reject) => {
@@ -194,6 +198,7 @@ export class ClientCommitmentService {
         )
         if (token) xhr.setRequestHeader('Authorization', `Bearer ${token}`)
         if (viewAsClient) xhr.setRequestHeader('X-View-As-Client', viewAsClient)
+        if (activeClient) xhr.setRequestHeader('X-Active-Client', activeClient)
 
         xhr.upload.onprogress = e => {
           if (e.lengthComputable) {
@@ -226,6 +231,7 @@ export class ClientCommitmentService {
         headers: {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...(viewAsClient ? { 'X-View-As-Client': viewAsClient } : {}),
+          ...(activeClient ? { 'X-Active-Client': activeClient } : {}),
         },
         body: formData,
       },
