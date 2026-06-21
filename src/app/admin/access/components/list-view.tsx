@@ -43,7 +43,6 @@ interface AccessRelationship {
   coach?: UserType
   client?: ClientAccessMatrix
   user?: UserType
-  access_level?: string
   is_owner?: boolean
 }
 
@@ -91,7 +90,6 @@ export default function ListView({
             type: 'client_access',
             client,
             user,
-            access_level: assignedUser.access_level,
             is_owner: assignedUser.is_owner,
           })
         }
@@ -457,18 +455,6 @@ export default function ListView({
                                 Owner
                               </Badge>
                             )}
-                            <Badge
-                              variant={
-                                rel.access_level === 'full'
-                                  ? 'default'
-                                  : 'outline'
-                              }
-                              className="text-xs"
-                            >
-                              {rel.access_level === 'full'
-                                ? 'Full Access'
-                                : 'Read Only'}
-                            </Badge>
                           </div>
                         </TableCell>
                       </TableRow>

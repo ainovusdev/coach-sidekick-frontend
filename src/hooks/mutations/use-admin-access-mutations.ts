@@ -12,8 +12,7 @@ import { toast } from 'sonner'
  *
  * grantAccess({
  *   client_id: 'client-123',
- *   user_id: 'user-456',
- *   access_level: 'full'
+ *   user_id: 'user-456'
  * })
  * ```
  */
@@ -21,11 +20,8 @@ export function useGrantClientAccess() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: {
-      client_id: string
-      user_id: string
-      access_level?: 'full' | 'readonly'
-    }) => adminService.grantClientAccess(data),
+    mutationFn: (data: { client_id: string; user_id: string }) =>
+      adminService.grantClientAccess(data),
 
     onSuccess: () => {
       toast.success('Access granted successfully')
@@ -47,8 +43,7 @@ export function useGrantClientAccess() {
  *
  * bulkAssign({
  *   user_id: 'user-123',
- *   client_ids: ['client-1', 'client-2', 'client-3'],
- *   access_level: 'full'
+ *   client_ids: ['client-1', 'client-2', 'client-3']
  * })
  * ```
  */
@@ -56,11 +51,8 @@ export function useBulkAssignClients() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (data: {
-      user_id: string
-      client_ids: string[]
-      access_level?: 'full' | 'readonly'
-    }) => adminService.bulkAssignClients(data),
+    mutationFn: (data: { user_id: string; client_ids: string[] }) =>
+      adminService.bulkAssignClients(data),
 
     onSuccess: result => {
       toast.success(`${result.assigned_count} clients assigned successfully`)

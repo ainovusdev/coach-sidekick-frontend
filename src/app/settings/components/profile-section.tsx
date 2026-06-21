@@ -27,7 +27,6 @@ import {
   UserCheck,
   Users,
   Eye,
-  LockKeyhole,
 } from 'lucide-react'
 import axios from '@/lib/axios-config'
 import { formatDate } from '@/lib/date-utils'
@@ -45,7 +44,6 @@ interface UserProfile {
   client_access: Array<{
     client_id: string
     client_name: string
-    access_level: string
   }>
 }
 
@@ -452,20 +450,6 @@ export function ProfileSection() {
                             </p>
                           </div>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            'text-xs',
-                            access.access_level === 'full'
-                              ? 'bg-forest-bg text-forest border-forest'
-                              : 'bg-amber-token-bg text-amber-token border-amber-token',
-                          )}
-                        >
-                          <LockKeyhole className="h-3 w-3 mr-1" />
-                          {access.access_level === 'full'
-                            ? 'Full Access'
-                            : 'Read Only'}
-                        </Badge>
                       </div>
                     ))}
                   </div>
