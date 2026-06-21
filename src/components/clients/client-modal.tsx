@@ -5,15 +5,21 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Client } from '@/types/meeting'
-import { ClientService } from '@/services/client-service'
+import {
+  ClientService,
+  type ClientEmailLookup,
+} from '@/services/client-service'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Loader2, Send } from 'lucide-react'
+import { Loader2, Send, UserCheck, Clock } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
+import { toast } from 'sonner'
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 interface ClientModalProps {
   isOpen: boolean
@@ -42,6 +48,8 @@ export default function ClientModal({
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
+  // Real-time recognition of an email that already belongs to a person.
+  const [lookup, setLookup] = useState<ClientEmailLookup | null>(null)
 
   // Reset form when modal opens or client changes
   useEffect(() => {
@@ -52,8 +60,40 @@ export default function ClientModal({
         inviteToPortal: false,
       })
       setErrors({})
+      setLookup(null)
     }
   }, [isOpen, client])
+
+  // Debounced email lookup (create mode only) so the coach is offered "send a
+  // request" when the email already belongs to someone, instead of a hard error.
+  useEffect(() => {
+    if (mode !== 'create') return
+    const email = formData.email.trim().toLowerCase()
+    if (!EMAIL_RE.test(email)) {
+      setLookup(null)
+      return
+    }
+    let cancelled = false
+    const handle = setTimeout(async () => {
+      try {
+        const result = await ClientService.lookupEmail(email)
+        if (!cancelled) setLookup(result)
+      } catch {
+        if (!cancelled) setLookup(null)
+      }
+    }, 400)
+    return () => {
+      cancelled = true
+      clearTimeout(handle)
+    }
+  }, [formData.email, mode])
+
+  // Derived recognition state for the UI.
+  const isExistingActive =
+    !!lookup && lookup.exists && lookup.kind === 'active_user'
+  const isExistingPending =
+    !!lookup && lookup.exists && lookup.kind === 'pending_user'
+  const alreadyMyClient = !!lookup && lookup.already_my_client
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,8 +109,7 @@ export default function ClientModal({
 
     // Validate email if provided
     if (formData.email.trim()) {
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      if (!emailRegex.test(formData.email.trim())) {
+      if (!EMAIL_RE.test(formData.email.trim())) {
         newErrors.email = 'Please enter a valid email address'
       }
     }
@@ -78,6 +117,11 @@ export default function ClientModal({
     // Email is required if inviting to portal
     if (formData.inviteToPortal && !formData.email.trim()) {
       newErrors.email = 'Email is required to send invitation'
+    }
+
+    // Already this coach's client (recognized in real time) → block.
+    if (mode === 'create' && alreadyMyClient) {
+      newErrors.email = 'You already have a client with this email'
     }
 
     if (Object.keys(newErrors).length > 0) {
@@ -99,14 +143,29 @@ export default function ClientModal({
       } else if (mode === 'edit' && client) {
         await ClientService.updateClient(client.id, clientData)
       } else if (mode === 'create') {
-        const createdClient = await ClientService.createClient(clientData)
+        const {
+          client: createdClient,
+          accessRequestSent,
+          accessRequestName,
+        } = await ClientService.createClient(clientData)
 
-        // Send invitation if toggle is on and email is provided
-        if (
+        if (accessRequestSent) {
+          // Existing active user → an accept/decline request was emailed; they
+          // link to this profile once they consent. Don't also fire the signup
+          // invite (they already have an account).
+          toast.success(
+            `Request sent to ${accessRequestName || formData.email.trim()}`,
+            {
+              description:
+                'They’ll appear as your client once they accept your coaching.',
+            },
+          )
+        } else if (
           formData.inviteToPortal &&
           formData.email.trim() &&
           createdClient?.id
         ) {
+          // No existing account → optional portal signup invitation.
           try {
             const apiUrl =
               process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -144,10 +203,13 @@ export default function ClientModal({
     } catch (error: any) {
       console.error('Error submitting client form:', error)
       // Check for duplicate email error from backend
-      const errorMessage = error?.message || error?.detail || ''
-      if (errorMessage.toLowerCase().includes('email already exists')) {
+      const errorMessage = (error?.message || error?.detail || '').toLowerCase()
+      if (
+        errorMessage.includes('email already exists') ||
+        errorMessage.includes('already have a client')
+      ) {
         setErrors({
-          email: 'A client with this email already exists in the system',
+          email: 'You already have a client with this email',
         })
       } else {
         setErrors({ submit: 'Failed to save client. Please try again.' })
@@ -227,27 +289,67 @@ export default function ClientModal({
               )}
             </div>
 
-            {/* Invite Toggle - Only show in create mode when email is entered */}
-            {mode === 'create' && formData.email.trim() && (
-              <div className="flex items-center justify-between py-3 px-4 bg-paper rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Send className="h-4 w-4 text-ink-3 " />
-                  <span className="text-sm text-ink-2 ">
-                    Send portal invitation
-                  </span>
+            {/* Recognized existing person → offer "send a request" instead of a
+                hard duplicate error (multi-coach enrollment). */}
+            {mode === 'create' &&
+              !alreadyMyClient &&
+              isExistingActive &&
+              !errors.email && (
+                <div className="flex items-start gap-2.5 py-3 px-4 bg-paper rounded-lg border border-line">
+                  <UserCheck className="h-4 w-4 text-ink-2 mt-0.5 shrink-0" />
+                  <p className="text-sm text-ink-2 leading-snug">
+                    <span className="font-medium text-ink">
+                      {lookup?.name || formData.email.trim()}
+                    </span>{' '}
+                    is already in Coach Sidekick. We’ll send them a request to
+                    accept your coaching — they’ll appear as your client once
+                    they accept.
+                  </p>
                 </div>
-                <Switch
-                  checked={formData.inviteToPortal}
-                  onCheckedChange={checked =>
-                    setFormData(prev => ({
-                      ...prev,
-                      inviteToPortal: checked,
-                    }))
-                  }
-                  disabled={isLoading}
-                />
-              </div>
-            )}
+              )}
+
+            {mode === 'create' &&
+              !alreadyMyClient &&
+              isExistingPending &&
+              !errors.email && (
+                <div className="flex items-start gap-2.5 py-3 px-4 bg-paper rounded-lg border border-line">
+                  <Clock className="h-4 w-4 text-ink-3 mt-0.5 shrink-0" />
+                  <p className="text-sm text-ink-2 leading-snug">
+                    <span className="font-medium text-ink">
+                      {lookup?.name || formData.email.trim()}
+                    </span>{' '}
+                    was invited but hasn’t set up their account yet — we’ll link
+                    them to you.
+                  </p>
+                </div>
+              )}
+
+            {/* Invite Toggle - only when the email is NOT an existing account
+                (an existing user already has a login / gets a consent request). */}
+            {mode === 'create' &&
+              formData.email.trim() &&
+              !isExistingActive &&
+              !isExistingPending &&
+              !alreadyMyClient && (
+                <div className="flex items-center justify-between py-3 px-4 bg-paper rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <Send className="h-4 w-4 text-ink-3 " />
+                    <span className="text-sm text-ink-2 ">
+                      Send portal invitation
+                    </span>
+                  </div>
+                  <Switch
+                    checked={formData.inviteToPortal}
+                    onCheckedChange={checked =>
+                      setFormData(prev => ({
+                        ...prev,
+                        inviteToPortal: checked,
+                      }))
+                    }
+                    disabled={isLoading}
+                  />
+                </div>
+              )}
 
             {/* Error message */}
             {errors.submit && (
@@ -279,7 +381,11 @@ export default function ClientModal({
                   {mode === 'create' ? 'Creating...' : 'Saving...'}
                 </>
               ) : mode === 'create' ? (
-                'Create Client'
+                isExistingActive && !alreadyMyClient ? (
+                  'Add & send request'
+                ) : (
+                  'Create Client'
+                )
               ) : (
                 'Save Changes'
               )}

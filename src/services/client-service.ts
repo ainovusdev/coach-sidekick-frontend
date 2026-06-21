@@ -6,8 +6,25 @@ const BACKEND_URL =
 
 export interface ClientCreateDto {
   name: string
+  email?: string
   notes?: string
   meta_performance_vision?: string
+}
+
+// Real-time recognition for the New Client modal.
+export interface ClientEmailLookup {
+  exists: boolean
+  kind: 'none' | 'pending_user' | 'active_user'
+  name: string | null
+  already_my_client: boolean
+}
+
+// createClient may, for an existing active user, create the row unlinked and send
+// an accept/decline request instead of connecting immediately.
+export interface CreateClientResult {
+  client: Client
+  accessRequestSent: boolean
+  accessRequestName?: string
 }
 
 export interface ClientUpdateDto {
@@ -32,6 +49,8 @@ interface BackendClient {
   coach_id?: string
   is_my_client?: boolean
   coach_name?: string
+  access_request_sent?: boolean
+  access_request_name?: string
   invitation_status?: 'not_invited' | 'invited' | 'accepted'
   invitation_sent_at?: string
   client_session_stats?: Array<{
@@ -167,12 +186,26 @@ export class ClientService {
     return transformClient(response)
   }
 
-  static async createClient(data: ClientCreateDto): Promise<Client> {
+  static async createClient(
+    data: ClientCreateDto,
+  ): Promise<CreateClientResult> {
     const response: BackendClient = await ApiClient.post(
       `${BACKEND_URL}/clients/`,
       data,
     )
-    return transformClient(response)
+    return {
+      client: transformClient(response),
+      accessRequestSent: Boolean(response.access_request_sent),
+      accessRequestName: response.access_request_name,
+    }
+  }
+
+  // Real-time email recognition for the New Client modal: is this email already a
+  // person in the system, and are they already this coach's client?
+  static async lookupEmail(email: string): Promise<ClientEmailLookup> {
+    return await ApiClient.get(
+      `${BACKEND_URL}/clients/lookup-email?email=${encodeURIComponent(email)}`,
+    )
   }
 
   static async updateClient(
