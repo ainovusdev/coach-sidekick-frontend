@@ -44,7 +44,6 @@ interface HierarchyNode {
   email?: string
   children: HierarchyNode[]
   roles?: string[]
-  access_level?: string
   is_owner?: boolean
 }
 
@@ -119,7 +118,6 @@ export default function HierarchyView({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   is_owner: accessInfo?.is_owner,
                   children: [],
                 })
@@ -161,7 +159,6 @@ export default function HierarchyView({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   is_owner: accessInfo?.is_owner,
                   children: [],
                 })
@@ -193,7 +190,6 @@ export default function HierarchyView({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   is_owner: accessInfo?.is_owner,
                   children: [],
                 })
@@ -237,7 +233,6 @@ export default function HierarchyView({
               type: 'client',
               id: client.client_id,
               name: client.client_name,
-              access_level: accessInfo?.access_level,
               is_owner: accessInfo?.is_owner,
               children: [],
             })
@@ -469,11 +464,6 @@ export default function HierarchyView({
               {node.is_owner && (
                 <Badge variant="secondary" className="text-xs">
                   Owner
-                </Badge>
-              )}
-              {node.access_level && !node.is_owner && (
-                <Badge variant="outline" className="text-xs">
-                  {node.access_level === 'full' ? 'Full Access' : 'Read Only'}
                 </Badge>
               )}
             </div>

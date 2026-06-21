@@ -53,8 +53,6 @@ import {
   Users,
   UserPlus,
   UserMinus,
-  Eye,
-  Edit2,
   Shield,
   Network,
   Building,
@@ -70,7 +68,6 @@ interface HierarchyNode {
   email?: string
   children: HierarchyNode[]
   roles?: string[]
-  access_level?: string
 }
 
 export default function ClientAccessPage() {
@@ -87,13 +84,11 @@ export default function ClientAccessPage() {
   const [grantAccessForm, setGrantAccessForm] = useState({
     client_id: '',
     user_id: '',
-    access_level: 'full' as 'full' | 'readonly',
   })
 
   const [bulkAssignForm, setBulkAssignForm] = useState({
     user_id: '',
     client_ids: [] as string[],
-    access_level: 'full' as 'full' | 'readonly',
   })
 
   // React Query hooks - automatic caching!
@@ -166,14 +161,10 @@ export default function ClientAccessPage() {
                 u => u.user_id === coach.id,
               )
               if (coachHasAccess) {
-                const accessInfo = client.assigned_users.find(
-                  u => u.user_id === coach.id,
-                )
                 coachNode.children.push({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   children: [],
                 })
               }
@@ -208,14 +199,10 @@ export default function ClientAccessPage() {
                 u => u.user_id === coach.id,
               )
               if (coachHasAccess) {
-                const accessInfo = client.assigned_users.find(
-                  u => u.user_id === coach.id,
-                )
                 coachNode.children.push({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   children: [],
                 })
               }
@@ -240,14 +227,10 @@ export default function ClientAccessPage() {
               )
 
               if (!alreadyInHierarchy) {
-                const accessInfo = client.assigned_users.find(
-                  u => u.user_id === admin.id,
-                )
                 adminNode.children.push({
                   type: 'client',
                   id: client.client_id,
                   name: client.client_name,
-                  access_level: accessInfo?.access_level,
                   children: [],
                 })
               }
@@ -276,14 +259,10 @@ export default function ClientAccessPage() {
             u => u.user_id === coach.id,
           )
           if (coachHasAccess) {
-            const accessInfo = client.assigned_users.find(
-              u => u.user_id === coach.id,
-            )
             coachNode.children.push({
               type: 'client',
               id: client.client_id,
               name: client.client_name,
-              access_level: accessInfo?.access_level,
               children: [],
             })
           }
@@ -346,7 +325,6 @@ export default function ClientAccessPage() {
     setGrantAccessForm({
       client_id: '',
       user_id: '',
-      access_level: 'full',
     })
     setSelectedClient(null)
   }
@@ -355,7 +333,6 @@ export default function ClientAccessPage() {
     setBulkAssignForm({
       user_id: '',
       client_ids: [],
-      access_level: 'full',
     })
   }
 
@@ -441,19 +418,6 @@ export default function ClientAccessPage() {
               {node.type === 'admin' && !isSuper && (
                 <Badge variant="default" className="text-xs">
                   Admin
-                </Badge>
-              )}
-              {node.access_level && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs',
-                    node.access_level === 'full'
-                      ? 'bg-forest-bg text-forest border-forest '
-                      : 'bg-amber-token-bg text-amber-token border-amber-token ',
-                  )}
-                >
-                  {node.access_level === 'full' ? 'Full Access' : 'Read Only'}
                 </Badge>
               )}
             </div>
@@ -650,24 +614,6 @@ export default function ClientAccessPage() {
                                   </Badge>
                                 ))}
                               </div>
-                              <Badge
-                                variant="outline"
-                                className={cn(
-                                  'text-xs',
-                                  user.access_level === 'full'
-                                    ? 'bg-forest-bg text-forest border-forest '
-                                    : 'bg-amber-token-bg text-amber-token border-amber-token ',
-                                )}
-                              >
-                                {user.access_level === 'full' ? (
-                                  <Edit2 className="h-3 w-3 mr-1" />
-                                ) : (
-                                  <Eye className="h-3 w-3 mr-1" />
-                                )}
-                                {user.access_level === 'full'
-                                  ? 'Full Access'
-                                  : 'Read Only'}
-                              </Badge>
                             </div>
                             <Button
                               variant="ghost"
@@ -770,33 +716,6 @@ export default function ClientAccessPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="access_level">Access Level</Label>
-              <Select
-                value={grantAccessForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') =>
-                  setGrantAccessForm(prev => ({ ...prev, access_level: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">
-                    <div className="flex items-center gap-2">
-                      <Edit2 className="h-4 w-4" />
-                      Full Access
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="readonly">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Read Only
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <DialogFooter>
             <Button
@@ -843,33 +762,6 @@ export default function ClientAccessPage() {
                       {user.email} {user.full_name && `(${user.full_name})`}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="bulk-access_level">Access Level</Label>
-              <Select
-                value={bulkAssignForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') =>
-                  setBulkAssignForm(prev => ({ ...prev, access_level: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">
-                    <div className="flex items-center gap-2">
-                      <Edit2 className="h-4 w-4" />
-                      Full Access
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="readonly">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Read Only
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

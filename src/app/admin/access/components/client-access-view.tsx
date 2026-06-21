@@ -43,16 +43,7 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
-import {
-  Search,
-  Plus,
-  Users,
-  UserPlus,
-  UserMinus,
-  Eye,
-  Edit2,
-  Loader2,
-} from 'lucide-react'
+import { Search, Plus, Users, UserPlus, UserMinus, Loader2 } from 'lucide-react'
 
 interface ClientAccessViewProps {
   users: UserType[]
@@ -83,13 +74,11 @@ export default function ClientAccessView({
   const [grantAccessForm, setGrantAccessForm] = useState({
     client_id: '',
     user_id: '',
-    access_level: 'full' as 'full' | 'readonly',
   })
 
   const [bulkAssignForm, setBulkAssignForm] = useState({
     user_id: '',
     client_ids: [] as string[],
-    access_level: 'full' as 'full' | 'readonly',
   })
 
   // Mutation hooks
@@ -135,7 +124,6 @@ export default function ClientAccessView({
     setGrantAccessForm({
       client_id: '',
       user_id: '',
-      access_level: 'full',
     })
     setSelectedClient(null)
   }
@@ -144,7 +132,6 @@ export default function ClientAccessView({
     setBulkAssignForm({
       user_id: '',
       client_ids: [],
-      access_level: 'full',
     })
   }
 
@@ -346,22 +333,6 @@ export default function ClientAccessView({
                                       {formatRoleName(role)}
                                     </Badge>
                                   ))}
-                                  <Badge
-                                    variant="outline"
-                                    className={cn(
-                                      'text-xs',
-                                      user.access_level === 'full' ? '' : '',
-                                    )}
-                                  >
-                                    {user.access_level === 'full' ? (
-                                      <Edit2 className="h-3 w-3 mr-1" />
-                                    ) : (
-                                      <Eye className="h-3 w-3 mr-1" />
-                                    )}
-                                    {user.access_level === 'full'
-                                      ? 'Full Access'
-                                      : 'Read Only'}
-                                  </Badge>
                                 </div>
                               </div>
                               {!user.is_owner && (
@@ -471,33 +442,6 @@ export default function ClientAccessView({
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="access_level">Access Level</Label>
-              <Select
-                value={grantAccessForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') =>
-                  setGrantAccessForm(prev => ({ ...prev, access_level: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">
-                    <div className="flex items-center gap-2">
-                      <Edit2 className="h-4 w-4" />
-                      Full Access
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="readonly">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Read Only
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           <DialogFooter>
             <Button
@@ -553,33 +497,6 @@ export default function ClientAccessView({
                       {user.email} {user.full_name && `(${user.full_name})`}
                     </SelectItem>
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="bulk-access_level">Access Level</Label>
-              <Select
-                value={bulkAssignForm.access_level}
-                onValueChange={(value: 'full' | 'readonly') =>
-                  setBulkAssignForm(prev => ({ ...prev, access_level: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full">
-                    <div className="flex items-center gap-2">
-                      <Edit2 className="h-4 w-4" />
-                      Full Access
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="readonly">
-                    <div className="flex items-center gap-2">
-                      <Eye className="h-4 w-4" />
-                      Read Only
-                    </div>
-                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

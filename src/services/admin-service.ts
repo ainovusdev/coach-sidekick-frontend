@@ -51,7 +51,6 @@ export interface RoleAssignment {
 export interface ClientAccess {
   client_id: string
   user_id: string
-  access_level: 'full' | 'readonly'
 }
 
 export interface ClientAccessMatrix {
@@ -62,7 +61,6 @@ export interface ClientAccessMatrix {
     email: string
     full_name: string | null
     roles: string[]
-    access_level: string
     is_owner?: boolean
   }[]
 }
@@ -174,7 +172,6 @@ class AdminService {
     {
       client_id: string
       client_name: string
-      access_level: string
       is_admin_access?: boolean
     }[]
   > {
@@ -190,7 +187,6 @@ class AdminService {
       email: string
       full_name: string | null
       roles: string[]
-      access_level: string
       granted_at?: string
       is_admin_access?: boolean
     }[]
@@ -204,7 +200,6 @@ class AdminService {
   async grantClientAccess(data: {
     client_id: string
     user_id: string
-    access_level?: 'full' | 'readonly'
   }): Promise<void> {
     await axiosInstance.post('/admin/client-access/grant', data)
   }
@@ -212,7 +207,6 @@ class AdminService {
   async bulkAssignClients(data: {
     user_id: string
     client_ids: string[]
-    access_level?: 'full' | 'readonly'
   }): Promise<{
     message: string
     assigned_count: number
@@ -241,7 +235,6 @@ class AdminService {
   async assignClientAccess(data: {
     client_id: string
     user_id: string
-    access_level: string
   }): Promise<any> {
     const response = await axiosInstance.post('/access/client-access', data)
     return response.data
