@@ -28,6 +28,7 @@ import {
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
+import { ProfileSwitcher } from '@/components/client-portal/profile-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 const navItems = [
@@ -203,6 +204,9 @@ export function ClientNavigation() {
 
               {/* Role Switcher - Only show if user has other roles */}
               {hasOtherRoles && <RoleSwitcher />}
+
+              {/* Multi-profile switcher - only renders for clients with >1 profile */}
+              <ProfileSwitcher />
 
               {/* User Menu */}
               <DropdownMenu>

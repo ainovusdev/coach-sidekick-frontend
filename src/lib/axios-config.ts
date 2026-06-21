@@ -74,6 +74,12 @@ axiosInstance.interceptors.request.use(
       if (viewAsCoach && !config.url?.includes('/admin/')) {
         config.headers['X-View-As-Coach'] = viewAsCoach
       }
+      // Multi-profile switch (Phase 5c): a client choosing among their OWN
+      // profiles (distinct from impersonation above).
+      const activeClient = sessionStorage.getItem('active_client_id')
+      if (activeClient) {
+        config.headers['X-Active-Client'] = activeClient
+      }
     }
 
     return config

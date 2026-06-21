@@ -110,6 +110,13 @@ export class ApiClient {
       if (viewAsCoach) {
         headers['X-View-As-Coach'] = viewAsCoach
       }
+      // Multi-profile switch (Phase 5c): a client choosing among their OWN
+      // profiles. Distinct from impersonation above — the backend honors it only
+      // on the no-impersonation path.
+      const activeClient = sessionStorage.getItem('active_client_id')
+      if (activeClient) {
+        headers['X-Active-Client'] = activeClient
+      }
     }
 
     return headers

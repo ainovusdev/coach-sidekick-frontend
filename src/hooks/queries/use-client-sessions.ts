@@ -16,6 +16,10 @@ function getAuthHeaders(): Record<string, string> {
     if (viewAsClient) {
       headers['X-View-As-Client'] = viewAsClient
     }
+    const activeClient = sessionStorage.getItem('active_client_id')
+    if (activeClient) {
+      headers['X-Active-Client'] = activeClient
+    }
   }
   return headers
 }
