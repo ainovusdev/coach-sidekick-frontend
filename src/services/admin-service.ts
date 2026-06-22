@@ -398,6 +398,66 @@ class AdminService {
     )
     return response.data
   }
+
+  // Profile Merge (super admin)
+  async previewMerge(
+    sourceUserId: string,
+    targetUserId: string,
+  ): Promise<MergePreview> {
+    const response = await axiosInstance.post('/admin/merge/preview', {
+      source_user_id: sourceUserId,
+      target_user_id: targetUserId,
+    })
+    return response.data
+  }
+
+  async executeMerge(
+    sourceUserId: string,
+    targetUserId: string,
+  ): Promise<MergeResult> {
+    const response = await axiosInstance.post('/admin/merge/execute', {
+      source_user_id: sourceUserId,
+      target_user_id: targetUserId,
+      confirm: true,
+    })
+    return response.data
+  }
+}
+
+// Profile Merge Types
+export interface MergeProfileItem {
+  client_id: string
+  coach_id: string
+  coach_name: string | null
+  name: string
+  email: string | null
+}
+
+export interface MergePreview {
+  source: {
+    id: string
+    email: string
+    full_name: string | null
+    is_active: boolean
+    deleted_at: string | null
+  }
+  target: { id: string; email: string; full_name: string | null }
+  profiles_to_move: MergeProfileItem[]
+  moved_counts: Record<string, number>
+  roles_added: string[]
+  roles_deduped: string[]
+  client_access_moved: number
+  client_access_deduped: number
+  warnings: string[]
+  blocking_errors: string[]
+  can_merge: boolean
+}
+
+export interface MergeResult {
+  source_user_id: string
+  target_user_id: string
+  moved_summary: Record<string, unknown>
+  message: string
 }
 
 // Coach Invitation Types
