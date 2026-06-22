@@ -16,6 +16,7 @@ import {
   FolderKanban,
   BookOpen,
   Sparkles,
+  GitMerge,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -66,6 +67,12 @@ const menuItems = [
     title: 'Roles',
     href: '/admin/roles',
     icon: Shield,
+    requiredRole: ['super_admin'],
+  },
+  {
+    title: 'Merge Profiles',
+    href: '/admin/merge-profiles',
+    icon: GitMerge,
     requiredRole: ['super_admin'],
   },
 ]
