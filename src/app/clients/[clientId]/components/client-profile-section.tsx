@@ -32,6 +32,7 @@ import {
   MoreVertical,
   Trash2,
   XCircle,
+  StickyNote,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 
@@ -117,7 +118,7 @@ export function ClientProfileSection({
               <DropdownMenuContent align="end" className="w-48">
                 <DropdownMenuItem onClick={onEdit}>
                   <Edit className="h-4 w-4 mr-2" />
-                  Edit Client
+                  Client settings
                 </DropdownMenuItem>
                 {client.invitation_status !== 'accepted' && !client.user_id && (
                   <DropdownMenuItem onClick={onInvite}>
@@ -237,6 +238,19 @@ export function ClientProfileSection({
             </div>
           </div>
 
+          {/* Coach Notes */}
+          {client.notes && (
+            <div className="rounded-lg bg-paper border border-line p-3">
+              <div className="flex items-center gap-1.5 mb-1">
+                <StickyNote className="h-3.5 w-3.5 text-ink-4" />
+                <h4 className="text-xs font-semibold text-ink-2">Notes</h4>
+              </div>
+              <p className="text-sm text-ink-3 leading-relaxed whitespace-pre-wrap">
+                {client.notes}
+              </p>
+            </div>
+          )}
+
           {/* AI Insights from Persona */}
           {persona && persona.patterns && (
             <div className="pt-4 border-t border-line ">
@@ -353,16 +367,6 @@ export function ClientProfileSection({
               </h4>
               <p className="text-sm text-ink-3 leading-relaxed">
                 {client.meta_performance_vision}
-              </p>
-            </div>
-          )}
-
-          {/* Notes */}
-          {client.notes && (
-            <div className="pt-4 border-t border-line ">
-              <h4 className="text-sm font-semibold text-ink-2 mb-2">Notes</h4>
-              <p className="text-sm text-ink-3 leading-relaxed whitespace-pre-wrap">
-                {client.notes}
               </p>
             </div>
           )}
