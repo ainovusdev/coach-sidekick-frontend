@@ -17,9 +17,17 @@ import {
 } from '@/components/ui/dialog'
 import { Loader2, Send, UserCheck, Clock } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
+import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Quick-pick lead times (hours before the session) for the pre-session
+// questionnaire. The coach can also type any value LEAD_TIME_MIN–MAX in the
+// custom field; the matching tag highlights when it equals a preset.
+const LEAD_TIME_PRESETS = [1, 3, 12, 24, 48, 72]
+const LEAD_TIME_MIN = 1
+const LEAD_TIME_MAX = 168
 
 interface ClientModalProps {
   isOpen: boolean
@@ -45,6 +53,9 @@ export default function ClientModal({
     name: '',
     email: '',
     inviteToPortal: false,
+    autoSendQuestionnaire: true,
+    leadTimeHours: 24,
+    notes: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isLoading, setIsLoading] = useState(false)
@@ -58,6 +69,9 @@ export default function ClientModal({
         name: client?.name || '',
         email: client?.email || '',
         inviteToPortal: false,
+        autoSendQuestionnaire: client?.auto_send_questionnaire ?? true,
+        leadTimeHours: client?.questionnaire_lead_time_hours ?? 24,
+        notes: client?.notes || '',
       })
       setErrors({})
       setLookup(null)
@@ -119,6 +133,16 @@ export default function ClientModal({
       newErrors.email = 'Email is required to send invitation'
     }
 
+    // Validate the custom lead time when auto-send is on.
+    if (
+      formData.autoSendQuestionnaire &&
+      (!formData.leadTimeHours ||
+        formData.leadTimeHours < LEAD_TIME_MIN ||
+        formData.leadTimeHours > LEAD_TIME_MAX)
+    ) {
+      newErrors.leadTime = `Enter a value between ${LEAD_TIME_MIN} and ${LEAD_TIME_MAX} hours`
+    }
+
     // Already this coach's client (recognized in real time) → block.
     if (mode === 'create' && alreadyMyClient) {
       newErrors.email = 'You already have a client with this email'
@@ -134,7 +158,9 @@ export default function ClientModal({
       const clientData = {
         name: formData.name.trim(),
         email: formData.email.trim() || undefined,
-        notes: '',
+        notes: formData.notes,
+        auto_send_questionnaire: formData.autoSendQuestionnaire,
+        questionnaire_lead_time_hours: formData.leadTimeHours,
       }
 
       // If onSubmit is provided, use it; otherwise handle internally
@@ -236,7 +262,7 @@ export default function ClientModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="px-6 space-y-4">
+          <div className="px-6 space-y-4 max-h-[65vh] overflow-y-auto">
             {/* Name Field */}
             <div>
               <label
@@ -350,6 +376,113 @@ export default function ClientModal({
                   />
                 </div>
               )}
+
+            {/* Pre-session questionnaire settings + notes */}
+            <div className="space-y-4 pt-1">
+              <div className="flex items-center justify-between gap-3 py-3 px-4 bg-paper rounded-lg">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-ink-2">
+                    Auto-send pre-session questionnaire
+                  </span>
+                  <span className="text-xs text-ink-3">
+                    Email the questionnaire automatically before each session
+                  </span>
+                </div>
+                <Switch
+                  checked={formData.autoSendQuestionnaire}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      autoSendQuestionnaire: checked,
+                    }))
+                  }
+                  disabled={isLoading}
+                />
+              </div>
+
+              {formData.autoSendQuestionnaire && (
+                <div>
+                  <label className="block text-sm font-medium text-ink-2 mb-1.5">
+                    Send ahead of session
+                  </label>
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {LEAD_TIME_PRESETS.map(preset => {
+                      const active = formData.leadTimeHours === preset
+                      return (
+                        <button
+                          key={preset}
+                          type="button"
+                          onClick={() =>
+                            setFormData(prev => ({
+                              ...prev,
+                              leadTimeHours: preset,
+                            }))
+                          }
+                          disabled={isLoading}
+                          className={`h-8 px-3 rounded-full text-sm border transition-colors ${
+                            active
+                              ? 'bg-ink text-ink-on-dark border-ink'
+                              : 'bg-paper text-ink-2 border-line hover:bg-surface-3'
+                          }`}
+                        >
+                          {preset}h
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={LEAD_TIME_MIN}
+                      max={LEAD_TIME_MAX}
+                      value={formData.leadTimeHours || ''}
+                      onChange={e => {
+                        const raw = e.target.value
+                        setFormData(prev => ({
+                          ...prev,
+                          leadTimeHours: raw === '' ? 0 : Number(raw),
+                        }))
+                        if (errors.leadTime) {
+                          setErrors(prev => ({ ...prev, leadTime: '' }))
+                        }
+                      }}
+                      className={`h-10 w-24 ${
+                        errors.leadTime
+                          ? 'border-vermillion focus:border-vermillion focus:ring-vermillion'
+                          : 'border-line focus:border-line-strong'
+                      }`}
+                      placeholder="Hours"
+                      disabled={isLoading}
+                    />
+                    <span className="text-sm text-ink-3">hours before</span>
+                  </div>
+                  {errors.leadTime && (
+                    <p className="text-xs text-vermillion mt-1">
+                      {errors.leadTime}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div>
+                <label
+                  htmlFor="notes"
+                  className="block text-sm font-medium text-ink-2 mb-1.5"
+                >
+                  Notes
+                </label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, notes: e.target.value }))
+                  }
+                  className="min-h-[80px] border-line focus:border-line-strong"
+                  placeholder="Private notes about this client"
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
 
             {/* Error message */}
             {errors.submit && (

@@ -23,6 +23,8 @@ export interface Client {
   notes?: string
   meta_performance_vision?: string
   email?: string
+  auto_send_questionnaire?: boolean
+  questionnaire_lead_time_hours?: number
   created_at: string
   updated_at: string
   user_id?: string
