@@ -9,6 +9,8 @@ export interface ClientCreateDto {
   email?: string
   notes?: string
   meta_performance_vision?: string
+  auto_send_questionnaire?: boolean
+  questionnaire_lead_time_hours?: number
 }
 
 // Real-time recognition for the New Client modal.
@@ -29,8 +31,11 @@ export interface CreateClientResult {
 
 export interface ClientUpdateDto {
   name?: string
+  email?: string
   notes?: string
   meta_performance_vision?: string
+  auto_send_questionnaire?: boolean
+  questionnaire_lead_time_hours?: number
 }
 
 // Backend response format - matches what the API actually returns
@@ -42,6 +47,8 @@ interface BackendClient {
   notes?: string
   tags?: string[]
   meta_performance_vision?: string
+  auto_send_questionnaire?: boolean
+  questionnaire_lead_time_hours?: number
   created_at: string
   updated_at: string
   has_portal_access?: boolean
@@ -105,6 +112,8 @@ function transformClient(backendClient: BackendClient): Client {
     email: backendClient.email,
     notes: backendClient.notes,
     meta_performance_vision: backendClient.meta_performance_vision,
+    auto_send_questionnaire: backendClient.auto_send_questionnaire,
+    questionnaire_lead_time_hours: backendClient.questionnaire_lead_time_hours,
     created_at: backendClient.created_at,
     updated_at: backendClient.updated_at,
     is_my_client: backendClient.is_my_client,
