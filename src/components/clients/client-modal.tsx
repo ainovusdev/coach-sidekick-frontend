@@ -257,7 +257,7 @@ export default function ClientModal({
       <DialogContent className="sm:max-w-[400px] p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle className="text-lg font-semibold text-ink ">
-            {mode === 'create' ? 'New Client' : 'Edit Client'}
+            {mode === 'create' ? 'New Client' : 'Client settings'}
           </DialogTitle>
         </DialogHeader>
 

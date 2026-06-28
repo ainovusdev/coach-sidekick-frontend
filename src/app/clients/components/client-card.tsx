@@ -178,7 +178,7 @@ export default function ClientCard({
                       }}
                     >
                       <Edit className="h-4 w-4 mr-2" />
-                      Edit Client
+                      Client settings
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={e => {
