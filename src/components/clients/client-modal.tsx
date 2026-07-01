@@ -55,6 +55,7 @@ export default function ClientModal({
     inviteToPortal: false,
     autoSendQuestionnaire: true,
     leadTimeHours: 24,
+    autoSendThrillForm: true,
     notes: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -71,6 +72,7 @@ export default function ClientModal({
         inviteToPortal: false,
         autoSendQuestionnaire: client?.auto_send_questionnaire ?? true,
         leadTimeHours: client?.questionnaire_lead_time_hours ?? 24,
+        autoSendThrillForm: client?.auto_send_thrill_form ?? true,
         notes: client?.notes || '',
       })
       setErrors({})
@@ -161,6 +163,7 @@ export default function ClientModal({
         notes: formData.notes,
         auto_send_questionnaire: formData.autoSendQuestionnaire,
         questionnaire_lead_time_hours: formData.leadTimeHours,
+        auto_send_thrill_form: formData.autoSendThrillForm,
       }
 
       // If onSubmit is provided, use it; otherwise handle internally
@@ -463,6 +466,27 @@ export default function ClientModal({
                   )}
                 </div>
               )}
+
+              <div className="flex items-center justify-between gap-3 py-3 px-4 bg-paper rounded-lg">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-ink-2">
+                    Auto-send post-session Thrill Form
+                  </span>
+                  <span className="text-xs text-ink-3">
+                    Email the Thrill Form automatically after each session
+                  </span>
+                </div>
+                <Switch
+                  checked={formData.autoSendThrillForm}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      autoSendThrillForm: checked,
+                    }))
+                  }
+                  disabled={isLoading}
+                />
+              </div>
 
               <div>
                 <label
