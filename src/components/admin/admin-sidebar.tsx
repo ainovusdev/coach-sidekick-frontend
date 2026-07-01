@@ -17,6 +17,7 @@ import {
   BookOpen,
   Sparkles,
   GitMerge,
+  MessagesSquare,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -31,6 +32,12 @@ const menuItems = [
     title: 'Sidekick Agent',
     href: '/admin/agent',
     icon: Sparkles,
+    requiredRole: ['super_admin'],
+  },
+  {
+    title: 'Agent Chats',
+    href: '/admin/agent-chats',
+    icon: MessagesSquare,
     requiredRole: ['super_admin'],
   },
   {
