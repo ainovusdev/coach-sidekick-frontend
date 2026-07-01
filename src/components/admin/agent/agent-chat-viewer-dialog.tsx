@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminAgentChatThread } from '@/hooks/queries/use-admin-agent-chats'
 import type { AdminAgentChatThreadDetail } from '@/services/admin-service'
@@ -62,29 +61,27 @@ export function AgentChatViewerDialog({ threadId, open, onOpenChange }: Props) {
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="min-h-0 flex-1">
-          <div className="space-y-4 px-6 py-4">
-            {isLoading ? (
-              <ViewerSkeleton />
-            ) : error ? (
-              <p className="text-sm text-vermillion">
-                Failed to load conversation.
-              </p>
-            ) : thread && thread.messages.length > 0 ? (
-              thread.messages.map(message => (
-                <AgentMessage
-                  key={message.id}
-                  message={message}
-                  apiScope="admin"
-                />
-              ))
-            ) : (
-              <p className="text-sm text-ink-3">
-                No messages in this conversation.
-              </p>
-            )}
-          </div>
-        </ScrollArea>
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
+          {isLoading ? (
+            <ViewerSkeleton />
+          ) : error ? (
+            <p className="text-sm text-vermillion">
+              Failed to load conversation.
+            </p>
+          ) : thread && thread.messages.length > 0 ? (
+            thread.messages.map(message => (
+              <AgentMessage
+                key={message.id}
+                message={message}
+                apiScope="admin"
+              />
+            ))
+          ) : (
+            <p className="text-sm text-ink-3">
+              No messages in this conversation.
+            </p>
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   )
