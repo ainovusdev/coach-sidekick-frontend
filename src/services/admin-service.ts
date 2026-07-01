@@ -1,4 +1,5 @@
 import axiosInstance from '@/lib/axios-config'
+import type { AgentMessage } from '@/types/agent'
 import type {
   AdminClient,
   AdminClientListResponse,
@@ -63,6 +64,47 @@ export interface ClientAccessMatrix {
     roles: string[]
     is_owner?: boolean
   }[]
+}
+
+// Agent Chats (super-admin oversight) — see backend app/api/v1/admin/agent_chats.py
+export type AgentChatGroupBy = 'coach' | 'client' | 'admin'
+
+export interface AdminAgentChatThreadSummary {
+  id: string
+  title: string
+  model: string
+  message_count: number
+  last_message_at: string
+  created_at: string
+}
+
+export interface AdminAgentChatGroup {
+  key: string
+  name: string
+  email: string | null
+  coach_name: string | null // populated for client groups only (context)
+  thread_count: number
+  last_activity: string | null
+  threads: AdminAgentChatThreadSummary[]
+}
+
+export interface AdminAgentChatGroupsResponse {
+  group_by: AgentChatGroupBy
+  groups: AdminAgentChatGroup[]
+}
+
+export interface AdminAgentChatThreadDetail {
+  id: string
+  title: string
+  model: string
+  last_message_at: string
+  created_at: string
+  // Same {id, role, blocks, metrics?} shape the chat already renders.
+  messages: AgentMessage[]
+  owner_name: string | null
+  scope: AgentChatGroupBy
+  client_name: string | null
+  coach_name: string | null
 }
 
 class AdminService {
@@ -420,6 +462,25 @@ class AdminService {
       target_user_id: targetUserId,
       confirm: true,
     })
+    return response.data
+  }
+
+  // Agent Chats (super-admin oversight, read-only)
+  async getAgentChatGroups(
+    groupBy: AgentChatGroupBy,
+  ): Promise<AdminAgentChatGroupsResponse> {
+    const response = await axiosInstance.get('/admin/agent-chats', {
+      params: { group_by: groupBy },
+    })
+    return response.data
+  }
+
+  async getAgentChatThread(
+    threadId: string,
+  ): Promise<AdminAgentChatThreadDetail> {
+    const response = await axiosInstance.get(
+      `/admin/agent-chats/threads/${threadId}`,
+    )
     return response.data
   }
 }

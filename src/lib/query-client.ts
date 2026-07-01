@@ -325,6 +325,15 @@ export const queryKeys = {
       detail: (id: string) =>
         [...queryKeys.admin.agentThreads.all, 'detail', id] as const,
     },
+
+    // Cross-owner agent-chats oversight (grouped by coach/client/admin)
+    agentChats: {
+      all: ['admin', 'agent-chats'] as const,
+      groups: (groupBy: string) =>
+        [...queryKeys.admin.agentChats.all, 'groups', groupBy] as const,
+      thread: (id: string) =>
+        [...queryKeys.admin.agentChats.all, 'thread', id] as const,
+    },
   },
 } as const
 
