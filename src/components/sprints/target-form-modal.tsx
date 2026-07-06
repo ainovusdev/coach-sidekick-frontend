@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { DueDateField } from '@/components/ui/due-date-field'
 import { Check } from 'lucide-react'
 import { TargetService } from '@/services/target-service'
 import { TargetCreate, TargetUpdate } from '@/types/sprint'
@@ -48,6 +49,7 @@ export function TargetFormModal({
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    target_date: null as string | null,
     status: 'active' as const,
   })
 
@@ -60,6 +62,7 @@ export function TargetFormModal({
         setFormData({
           title: target.title || '',
           description: target.description || '',
+          target_date: target.target_date ?? null,
           status: target.status || 'active',
         })
         setSelectedGoalIds(target.goal_ids || [])
@@ -67,6 +70,7 @@ export function TargetFormModal({
         setFormData({
           title: '',
           description: '',
+          target_date: null,
           status: 'active',
         })
         setSelectedGoalIds([])
@@ -89,6 +93,7 @@ export function TargetFormModal({
         const updateData: TargetUpdate = {
           title: formData.title,
           description: formData.description || undefined,
+          target_date: formData.target_date ?? null,
           status: formData.status,
           goal_ids: selectedGoalIds,
         }
@@ -113,6 +118,7 @@ export function TargetFormModal({
           sprint_ids: sprintId ? [sprintId] : [],
           title: formData.title,
           description: formData.description || undefined,
+          target_date: formData.target_date ?? null,
           status: formData.status,
         }
 
@@ -273,6 +279,14 @@ export function TargetFormModal({
                 rows={3}
               />
             </div>
+
+            <DueDateField
+              id="outcome-due-date"
+              value={formData.target_date}
+              onChange={value =>
+                setFormData({ ...formData, target_date: value })
+              }
+            />
           </div>
 
           <DialogFooter>
