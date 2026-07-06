@@ -65,6 +65,9 @@ export interface ClientSessionDetailData {
       name: string
       email: string
     } | null
+    video_url?: string | null
+    video_unavailable?: boolean
+    recording_started_at?: string | null
   }
   transcript: Array<{
     speaker: string
