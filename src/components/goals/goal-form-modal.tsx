@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { DueDateField } from '@/components/ui/due-date-field'
 import { GoalService, GoalCreate, Goal } from '@/services/goal-service'
 import { toast } from 'sonner'
 import { useEffect } from 'react'
@@ -44,6 +45,7 @@ export function GoalFormModal({
     title: '',
     description: '',
     category: 'career',
+    target_date: null as string | null,
     status: 'active',
   })
 
@@ -54,6 +56,7 @@ export function GoalFormModal({
         title: goal.title,
         description: goal.description || '',
         category: goal.category,
+        target_date: goal.target_date ?? null,
         status: goal.status,
       })
     } else if (open && mode === 'create') {
@@ -62,6 +65,7 @@ export function GoalFormModal({
         title: '',
         description: '',
         category: 'career',
+        target_date: null,
         status: 'active',
       })
     }
@@ -87,6 +91,7 @@ export function GoalFormModal({
           title: formData.title,
           description: formData.description || undefined,
           category: formData.category,
+          target_date: formData.target_date ?? null,
           status: formData.status,
         }
 
@@ -111,6 +116,7 @@ export function GoalFormModal({
           title: formData.title,
           description: formData.description || undefined,
           category: formData.category,
+          target_date: formData.target_date ?? null,
           status: formData.status,
         }
 
@@ -122,7 +128,6 @@ export function GoalFormModal({
           updated_at: new Date().toISOString(),
           created_by: '',
           progress: 0,
-          target_date: null,
         }
 
         queryClient.setQueryData(
@@ -215,6 +220,14 @@ export function GoalFormModal({
                 rows={3}
               />
             </div>
+
+            <DueDateField
+              id="vision-due-date"
+              value={formData.target_date}
+              onChange={value =>
+                setFormData({ ...formData, target_date: value })
+              }
+            />
 
             <div className="space-y-3">
               <Label>Category</Label>

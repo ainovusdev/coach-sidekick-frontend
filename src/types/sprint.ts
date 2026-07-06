@@ -52,6 +52,7 @@ export interface SprintDetail extends Sprint {
 export interface TargetBase {
   title: string
   description?: string
+  target_date?: string | null // Optional due date
 }
 
 export interface TargetCreate extends TargetBase {
@@ -64,6 +65,7 @@ export interface TargetCreate extends TargetBase {
 export interface TargetUpdate {
   title?: string
   description?: string
+  target_date?: string | null // Update due date
   status?: TargetStatus
   progress_percentage?: number
   order_index?: number

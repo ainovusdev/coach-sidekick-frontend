@@ -26,6 +26,7 @@ export interface GoalCreate {
   title: string
   description?: string
   category?: string
+  target_date?: string | null
   status?: string
 }
 

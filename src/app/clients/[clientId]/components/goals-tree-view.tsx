@@ -55,6 +55,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { VisionDetailPanel } from '@/components/goals/vision-detail-panel'
+import { OutcomeDetailPanel } from '@/components/sprints/outcome-detail-panel'
+import { SprintDetailPanel } from '@/components/sprints/sprint-detail-panel'
 
 interface GoalsTreeViewProps {
   clientId: string
@@ -306,6 +309,10 @@ export function GoalsTreeView({
   const [selectedNodeType, setSelectedNodeType] = useState<
     'goal' | 'outcome' | 'sprint' | null
   >(null)
+  const [detailNode, setDetailNode] = useState<{
+    type: 'goal' | 'outcome' | 'sprint'
+    data: any
+  } | null>(null)
   const [assigneeFilter, setAssigneeFilter] = useState<
     'all' | 'client' | 'coach'
   >('all')
@@ -449,8 +456,39 @@ export function GoalsTreeView({
   }
 
   const handleNodeClick = (id: string, type: 'goal' | 'outcome' | 'sprint') => {
+    // Filter the commitments kanban (existing behavior)...
     setSelectedNodeId(id)
     setSelectedNodeType(type)
+    // ...and open the detail drawer for the clicked entity.
+    const data =
+      type === 'goal'
+        ? goals.find((g: any) => g.id === id)
+        : type === 'outcome'
+          ? clientTargets.find((t: any) => t.id === id)
+          : allSprints.find((s: any) => s.id === id)
+    if (data) setDetailNode({ type, data })
+  }
+
+  // Commitments associated with a node — reuses the same association rules as
+  // `filteredCommitments` (node scope only; no assignee/status/priority filters).
+  const getCommitmentsForNode = (
+    id: string,
+    type: 'goal' | 'outcome' | 'sprint',
+  ): any[] => {
+    if (type === 'outcome') {
+      return allCommitments.filter((c: any) =>
+        c.target_links?.some((link: any) => link.target_id === id),
+      )
+    }
+    // goal / sprint: via their linked outcomes (exclude unlinked/orphan commitments)
+    const outcomeIds = clientTargets
+      .filter((t: any) =>
+        type === 'goal' ? t.goal_ids?.includes(id) : t.sprint_ids?.includes(id),
+      )
+      .map((t: any) => t.id)
+    return allCommitments.filter((c: any) =>
+      c.target_links?.some((link: any) => outcomeIds.includes(link.target_id)),
+    )
   }
 
   const handleCommitmentUpdate = () => {
@@ -1221,6 +1259,123 @@ export function GoalsTreeView({
           </Card>
         </div>
       </div>
+
+      {/* Read-only detail drawers opened on row click (Vision / Outcome / Sprint) */}
+      {detailNode?.type === 'goal' && (
+        <VisionDetailPanel
+          goal={detailNode.data}
+          linkedOutcomes={clientTargets.filter((t: any) =>
+            (t.goal_ids || []).includes(detailNode.data.id),
+          )}
+          commitments={getCommitmentsForNode(detailNode.data.id, 'goal')}
+          onCommitmentClick={
+            onCommitmentClick
+              ? (c: any) => {
+                  setDetailNode(null)
+                  onCommitmentClick(c)
+                }
+              : undefined
+          }
+          onClose={() => setDetailNode(null)}
+          onEdit={
+            onEditGoal
+              ? () => {
+                  onEditGoal(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+          onDelete={
+            onDeleteGoal
+              ? () => {
+                  onDeleteGoal(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+        />
+      )}
+      {detailNode?.type === 'outcome' && (
+        <OutcomeDetailPanel
+          outcome={detailNode.data}
+          linkedSprints={allSprints.filter((s: any) =>
+            (detailNode.data.sprint_ids || []).includes(s.id),
+          )}
+          commitments={getCommitmentsForNode(detailNode.data.id, 'outcome')}
+          onCommitmentClick={
+            onCommitmentClick
+              ? (c: any) => {
+                  setDetailNode(null)
+                  onCommitmentClick(c)
+                }
+              : undefined
+          }
+          onClose={() => setDetailNode(null)}
+          onEdit={
+            onEditOutcome
+              ? () => {
+                  onEditOutcome(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+          onComplete={
+            onCompleteOutcome
+              ? () => {
+                  onCompleteOutcome(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+          onDelete={
+            onDeleteOutcome
+              ? () => {
+                  onDeleteOutcome(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+        />
+      )}
+      {detailNode?.type === 'sprint' && (
+        <SprintDetailPanel
+          sprint={detailNode.data}
+          commitments={getCommitmentsForNode(detailNode.data.id, 'sprint')}
+          onCommitmentClick={
+            onCommitmentClick
+              ? (c: any) => {
+                  setDetailNode(null)
+                  onCommitmentClick(c)
+                }
+              : undefined
+          }
+          onClose={() => setDetailNode(null)}
+          onEdit={
+            onEditSprint
+              ? () => {
+                  onEditSprint(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+          onComplete={
+            onCompleteSprint
+              ? () => {
+                  onCompleteSprint(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+          onDelete={
+            onDeleteSprint
+              ? () => {
+                  onDeleteSprint(detailNode.data)
+                  setDetailNode(null)
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   )
 }
