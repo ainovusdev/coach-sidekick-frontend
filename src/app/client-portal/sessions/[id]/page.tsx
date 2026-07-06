@@ -14,12 +14,14 @@ import {
   Smile,
   Meh,
   Frown,
+  Video,
 } from 'lucide-react'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { useClientSessionDetail } from '@/hooks/queries/use-client-sessions'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { ClientSessionOverview } from './components/client-session-overview'
 import { ClientSessionAnalysis } from './components/client-session-analysis'
+import { VideoPlayer } from '@/components/sessions/video-player'
 
 export default function ClientSessionDetailPage() {
   const params = useParams()
@@ -29,6 +31,7 @@ export default function ClientSessionDetailPage() {
     data: sessionData,
     isLoading,
     error,
+    refetch,
   } = useClientSessionDetail(sessionId)
 
   const { data: commitmentData, refetch: refetchCommitments } = useCommitments(
@@ -75,6 +78,7 @@ export default function ClientSessionDetailPage() {
 
   const session = sessionData.session
   const hasInsights = sessionData.insights != null
+  const hasRecording = !!session.video_url || !!session.video_unavailable
   const sentimentScore = sessionData.insights?.sentiment?.score
   const sentimentLabel = sessionData.insights?.sentiment?.overall
 
@@ -202,6 +206,12 @@ export default function ClientSessionDetailPage() {
             <BarChart3 className="h-3.5 w-3.5" />
             Insights & Analysis
           </TabsTrigger>
+          {hasRecording && (
+            <TabsTrigger value="recording" className="gap-2 text-[13px]">
+              <Video className="h-3.5 w-3.5" />
+              Recording
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview">
@@ -216,6 +226,19 @@ export default function ClientSessionDetailPage() {
         <TabsContent value="analysis">
           <ClientSessionAnalysis sessionData={sessionData} />
         </TabsContent>
+
+        {hasRecording && (
+          <TabsContent value="recording">
+            <VideoPlayer
+              videoUrl={session.video_url}
+              sessionId={sessionId}
+              videoUnavailable={session.video_unavailable}
+              onRefresh={async () => {
+                await refetch()
+              }}
+            />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Empty State */}
