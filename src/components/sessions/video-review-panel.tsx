@@ -32,6 +32,7 @@ import {
   useUpdateVideoComment,
 } from '@/hooks/mutations/use-video-comment-mutations'
 import { useVideoReviewShortcuts } from '@/hooks/use-video-review-shortcuts'
+import { SessionService } from '@/services/session-service'
 import { cn } from '@/lib/utils'
 
 interface VideoReviewPanelProps {
@@ -187,6 +188,9 @@ export function VideoReviewPanel({
         videoUrl={videoUrl}
         videoUnavailable={videoUnavailable}
         onRefresh={onRefreshVideoUrl ?? (async () => undefined)}
+        getDownloadUrl={async () =>
+          (await SessionService.getVideoDownloadUrl(sessionId)).download_url
+        }
         onTimeUpdate={t => {
           setCurrentTime(t)
           isPlayingRef.current = !!playerRef.current?.isPlaying()

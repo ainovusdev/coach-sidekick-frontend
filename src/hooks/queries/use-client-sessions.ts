@@ -66,6 +66,7 @@ export interface ClientSessionDetailData {
       email: string
     } | null
     video_url?: string | null
+    video_download_url?: string | null
     video_unavailable?: boolean
     recording_started_at?: string | null
   }
