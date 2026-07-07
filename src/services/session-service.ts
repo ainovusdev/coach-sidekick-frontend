@@ -248,6 +248,14 @@ export class SessionService {
     return await ApiClient.get(`${BACKEND_URL}/sessions/${sessionId}/video-url`)
   }
 
+  static async getVideoDownloadUrl(sessionId: string): Promise<{
+    download_url: string
+  }> {
+    return await ApiClient.get(
+      `${BACKEND_URL}/sessions/${sessionId}/video-download`,
+    )
+  }
+
   static async generateClientAnalysis(
     sessionId: string,
     clientId?: string,

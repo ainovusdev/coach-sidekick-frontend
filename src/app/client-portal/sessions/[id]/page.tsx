@@ -236,6 +236,7 @@ export default function ClientSessionDetailPage() {
               onRefresh={async () => {
                 await refetch()
               }}
+              getDownloadUrl={async () => session.video_download_url ?? null}
             />
           </TabsContent>
         )}

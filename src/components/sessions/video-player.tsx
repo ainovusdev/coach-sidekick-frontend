@@ -11,7 +11,15 @@ import React, {
 } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Video, RefreshCw, AlertCircle, Loader2, VideoOff } from 'lucide-react'
+import {
+  Video,
+  RefreshCw,
+  AlertCircle,
+  Loader2,
+  VideoOff,
+  Download,
+} from 'lucide-react'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 
 export type VideoPlayerHandle = {
@@ -45,6 +53,12 @@ interface VideoPlayerProps {
    * with no Refresh button — clicking it would just 404 again.
    */
   videoUnavailable?: boolean
+  /**
+   * When provided, renders a Download button that resolves a fresh, download-
+   * flavored URL (server sets Content-Disposition: attachment) and saves the
+   * file. Omit to hide the button (watch-only).
+   */
+  getDownloadUrl?: () => Promise<string | null>
 }
 
 const TIME_UPDATE_INTERVAL_MS = 250
@@ -72,12 +86,14 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
       markers,
       onMarkerClick,
       videoUnavailable = false,
+      getDownloadUrl,
     },
     ref,
   ) {
     const [error, setError] = useState(false)
     const [loading, setLoading] = useState(true)
     const [refreshing, setRefreshing] = useState(false)
+    const [downloading, setDownloading] = useState(false)
     const [duration, setDuration] = useState(0)
     const videoRef = useRef<HTMLVideoElement>(null)
     const lastEmittedRef = useRef<number>(0)
@@ -156,6 +172,32 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
         setRefreshing(false)
       }
     }, [onRefresh])
+
+    const handleDownload = useCallback(async () => {
+      if (!getDownloadUrl) return
+      setDownloading(true)
+      try {
+        const url = await getDownloadUrl()
+        if (!url) {
+          toast.error('Download link is not available for this recording.')
+          return
+        }
+        // The URL carries Content-Disposition: attachment, so a plain anchor
+        // click saves the file (streamed to disk) instead of navigating.
+        const a = document.createElement('a')
+        a.href = url
+        a.download = ''
+        a.rel = 'noopener'
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      } catch (err) {
+        console.error('Failed to download video:', err)
+        toast.error('Could not download the recording. Please try again.')
+      } finally {
+        setDownloading(false)
+      }
+    }, [getDownloadUrl])
 
     // Reset emit timer when video URL changes
     useEffect(() => {
@@ -278,19 +320,37 @@ export const VideoPlayer = forwardRef<VideoPlayerHandle, VideoPlayerProps>(
               <Video className="h-5 w-5" />
               Session Recording
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="border-line-strong hover:bg-paper"
-            >
-              {refreshing ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4" />
+            <div className="flex items-center gap-2">
+              {getDownloadUrl && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownload}
+                  disabled={downloading}
+                  className="border-line-strong hover:bg-paper"
+                >
+                  {downloading ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4 mr-2" />
+                  )}
+                  Download
+                </Button>
               )}
-            </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={refreshing}
+                className="border-line-strong hover:bg-paper"
+              >
+                {refreshing ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
