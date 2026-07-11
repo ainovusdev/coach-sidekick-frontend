@@ -29,6 +29,7 @@ import SessionHeader from './components/session-header'
 import { SessionHeroCard } from './components/session-hero-card'
 import { SessionOverviewTab } from './components/session-overview-tab'
 import { SessionAnalysisMerged } from './components/session-analysis-merged'
+import { SessionProficiencyAnalysis } from './components/session-proficiency-analysis'
 import { VideoReviewPanel } from '@/components/sessions/video-review-panel'
 import { EvaluationsList } from '@/components/sessions/evaluations-list'
 import { useCoachEvaluations } from '@/hooks/queries/use-coach-evaluations'
@@ -974,6 +975,13 @@ export default function SessionDetailsPage({
                               : undefined
                           }
                         />
+
+                        {/* Proficiency Ladder rubric — admin-only preview while validating */}
+                        {isAdmin && analysisData.proficiency ? (
+                          <SessionProficiencyAnalysis
+                            proficiency={analysisData.proficiency}
+                          />
+                        ) : null}
                       </>
                     ) : (
                       <Card className="border-dashed border-2 border-app-border">
