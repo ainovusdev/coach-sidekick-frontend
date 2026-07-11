@@ -77,6 +77,39 @@ export interface GOLIVEScores {
   energy: number
 }
 
+// ---- Proficiency Ladder rubric (trainee vs graduate, 7-rung) ----
+// Runs alongside the Meta-Performance scores above. `score`/`overall` may be
+// negative (graduates below the bar) or exceed the rung (trainees above it).
+export interface ProficiencyCriterionScore {
+  rung: number // 1 (Ineffective) .. 7 (Elite)
+  score: number
+  justification?: string
+  evidence?: string | null
+}
+
+export interface ProficiencyScores {
+  maximum_value: ProficiencyCriterionScore
+  expansion: ProficiencyCriterionScore
+  integrity: ProficiencyCriterionScore
+  agency: ProficiencyCriterionScore
+  listening: ProficiencyCriterionScore
+  reinvention: ProficiencyCriterionScore
+  energy: ProficiencyCriterionScore
+  disruption: ProficiencyCriterionScore
+  overall: number
+  rubric_type: 'trainee' | 'graduate'
+  rubric_version: string
+}
+
+// When the rubric couldn't be scored (short transcript / error), the backend
+// stores a marker instead of scores.
+export interface ProficiencyUnavailable {
+  status: 'unavailable'
+  reason?: string
+}
+
+export type ProficiencyResult = ProficiencyScores | ProficiencyUnavailable
+
 export interface CoachingAnalysis {
   session_id: string
   timestamp: string
@@ -122,6 +155,8 @@ export interface FullAnalysisResponse {
     processing_time_ms: number
   } | null
   total_processing_time_ms?: number
+  // Proficiency Ladder rubric (admin-only display). Null when never scored.
+  proficiency?: ProficiencyResult | null
 }
 
 export class AnalysisService {
