@@ -91,10 +91,7 @@ export default function ClientsPage() {
     if (!selectedClient) return
     await updateMutation.mutateAsync({
       clientId: selectedClient.id,
-      data: {
-        name: clientData.name,
-        notes: clientData.notes,
-      },
+      data: clientData,
     })
   }
 
