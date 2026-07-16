@@ -5,6 +5,7 @@ import authService from '@/services/auth-service'
 import axios from '@/lib/axios-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner' // NEW: Add Sonner toasts
+import posthog from 'posthog-js'
 
 const TZ_SYNCED_FLAG = 'tz_synced'
 
@@ -102,6 +103,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setClientAccess(userClientAccess)
         setOwnClientId(userClientId) // NEW
 
+        // Identify the already-authenticated user so events on page refresh
+        // are linked to the correct person profile.
+        if (id) {
+          posthog.identify(id, {
+            name: fullName || undefined,
+            roles: userRoles,
+          })
+        }
+
         // Sync browser tz to backend so session emails render in the
         // recipient's local zone. Fire-and-forget.
         void syncBrowserTimezone()
@@ -156,6 +166,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setClientAccess(authService.getClientAccess())
       setOwnClientId(authService.getOwnClientId())
 
+      // Identify user in PostHog after successful login
+      if (id) {
+        posthog.identify(id, {
+          name: fullName || undefined,
+          roles: userRoles,
+        })
+      }
+      posthog.capture('user_signed_in', {
+        roles: userRoles,
+      })
+
       // Sync browser tz to backend so session emails render in the
       // recipient's local zone. Fire-and-forget.
       void syncBrowserTimezone()
@@ -200,6 +221,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signOut = async () => {
     try {
       await authService.logout()
+
+      // Capture sign-out before resetting so the event is still linked to the user
+      posthog.capture('user_signed_out')
+      posthog.reset()
 
       // Update auth state
       setIsAuthenticated(false)

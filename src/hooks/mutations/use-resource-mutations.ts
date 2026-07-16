@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import posthog from 'posthog-js'
 import { ResourceService } from '@/services/resource-service'
 import { ClientResourceService } from '@/services/client-resource-service'
 import type {
@@ -21,6 +22,10 @@ export function useCreateResource() {
       onProgress?: (percent: number) => void
     }) => ResourceService.createResource(formData, onProgress),
     onSuccess: data => {
+      posthog.capture('resource_created', {
+        resource_id: data.id,
+        resource_type: data.resource_type ?? null,
+      })
       queryClient.invalidateQueries({ queryKey: ['resources'] })
       toast.success('Resource created', { description: data.title })
     },
@@ -74,7 +79,10 @@ export function useShareResource() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ResourceShareRequest }) =>
       ResourceService.shareResource(id, data),
-    onSuccess: () => {
+    onSuccess: (_data, { id }) => {
+      posthog.capture('resource_shared', {
+        resource_id: id,
+      })
       queryClient.invalidateQueries({ queryKey: ['resources'] })
       queryClient.invalidateQueries({ queryKey: ['client-resources'] })
       toast.success('Resource shared')

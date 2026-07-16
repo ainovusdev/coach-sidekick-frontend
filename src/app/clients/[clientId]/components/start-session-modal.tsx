@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import posthog from 'posthog-js'
 import {
   Dialog,
   DialogContent,
@@ -44,6 +45,10 @@ export function StartSessionModal({
       })
 
       if (response.id) {
+        posthog.capture('session_started', {
+          bot_id: response.id,
+          client_id: finalClientId,
+        })
         toast.success('Session bot created successfully!')
         // Navigate to the meeting page
         router.push(`/meeting/${response.id}`)

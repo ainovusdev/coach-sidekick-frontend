@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
+import posthog from 'posthog-js'
 import { queryKeys } from '@/lib/query-client'
 import { Toast, useToast } from '@/components/ui/toast'
 import { MeetingLoading } from '@/components/meeting/meeting-loading'
@@ -98,6 +99,11 @@ export default function MeetingPage() {
     try {
       const success = await stopBot(bot.id, sessionId || undefined)
       if (success) {
+        posthog.capture('session_bot_stopped', {
+          bot_id: bot.id,
+          session_id: sessionId ?? null,
+          client_id: clientId ?? null,
+        })
         showToast(
           'Bot stopped successfully! Redirecting to session details...',
           'success',

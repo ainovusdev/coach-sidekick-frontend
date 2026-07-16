@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -114,6 +115,17 @@ function ClientSignupContent() {
         full_name: response.full_name,
         roles: response.roles || ['client'],
         client_id: response.client_id,
+      })
+
+      // Identify and capture signup event
+      if (response.user_id) {
+        posthog.identify(response.user_id, {
+          name: response.full_name || undefined,
+          roles: response.roles || ['client'],
+        })
+      }
+      posthog.capture('client_portal_signed_up', {
+        is_existing_user: invitationInfo?.existing_user ?? false,
       })
 
       // Redirect to dashboard
