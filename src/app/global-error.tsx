@@ -1,6 +1,8 @@
 'use client'
 
+import { useEffect } from 'react'
 import './globals.css'
+import { captureException } from '@/lib/posthog-capture'
 
 export default function GlobalError({
   error,
@@ -9,6 +11,15 @@ export default function GlobalError({
   error: Error & { digest?: string }
   reset: () => void
 }) {
+  useEffect(() => {
+    console.error('Global application error:', error)
+    captureException(error, {
+      digest: error.digest,
+      boundary: 'global',
+      fatal: true,
+    })
+  }, [error])
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased bg-background text-foreground flex items-center justify-center min-h-screen">

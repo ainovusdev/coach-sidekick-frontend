@@ -6,6 +6,19 @@ import axios from '@/lib/axios-config'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner' // NEW: Add Sonner toasts
 import posthog from 'posthog-js'
+import { captureException } from '@/lib/posthog-capture'
+
+/**
+ * Report an auth failure to PostHog only when it's unexpected — a network
+ * error or a 5xx. Routine rejections (wrong password 401, "email exists" 400,
+ * pending-activation 403) are user error, not bugs, and would just be noise.
+ */
+function captureUnexpectedAuthError(error: unknown, flow: string) {
+  const status = (error as { response?: { status?: number } })?.response?.status
+  if (!status || status >= 500) {
+    captureException(error, { flow })
+  }
+}
 
 const TZ_SYNCED_FLAG = 'tz_synced'
 
@@ -137,6 +150,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { error: null }
     } catch (error) {
       console.error('Sign up error:', error)
+      captureUnexpectedAuthError(error, 'sign_up')
       const errorMessage =
         error instanceof Error ? error.message : 'Failed to sign up'
       toast.error('Signup Failed', {
@@ -205,6 +219,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       return { error: null }
     } catch (error) {
       console.error('Sign in error:', error)
+      captureUnexpectedAuthError(error, 'sign_in')
       // Prefer the backend's detail message (e.g. the pending "not activated yet"
       // 403) over axios's generic "Request failed with status code ..." text.
       const detail = (error as { response?: { data?: { detail?: string } } })

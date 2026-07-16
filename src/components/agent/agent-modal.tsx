@@ -119,7 +119,10 @@ export function AgentModalProvider({
       {children}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent
-          className="flex h-[95vh] w-[97vw] max-w-[1800px] flex-col gap-0 overflow-hidden rounded-2xl border border-line bg-paper p-0 shadow-2xl"
+          // ph-no-capture: the agent surfaces client data, transcripts, and
+          // scores, so its content is never recorded in session replay — even
+          // though this modal can open on otherwise-recorded routes.
+          className="ph-no-capture flex h-[95vh] w-[97vw] max-w-[1800px] flex-col gap-0 overflow-hidden rounded-2xl border border-line bg-paper p-0 shadow-2xl"
           // The agent owns its own composer focus; don't let the dialog steal the
           // first focus to a header icon button instead.
           onOpenAutoFocus={e => e.preventDefault()}
