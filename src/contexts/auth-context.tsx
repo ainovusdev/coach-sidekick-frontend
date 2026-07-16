@@ -104,10 +104,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setOwnClientId(userClientId) // NEW
 
         // Identify the already-authenticated user so events on page refresh
-        // are linked to the correct person profile.
+        // are linked to the correct person profile. `email` is set so feature
+        // flags can be targeted per email address in PostHog.
         if (id) {
           posthog.identify(id, {
             name: fullName || undefined,
+            email: email || undefined,
             roles: userRoles,
           })
         }
@@ -166,10 +168,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setClientAccess(authService.getClientAccess())
       setOwnClientId(authService.getOwnClientId())
 
-      // Identify user in PostHog after successful login
+      // Identify user in PostHog after successful login. `email` is set so
+      // feature flags can be targeted per email address in PostHog.
       if (id) {
         posthog.identify(id, {
           name: fullName || undefined,
+          email: userEmail || email || undefined,
           roles: userRoles,
         })
       }

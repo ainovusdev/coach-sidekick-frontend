@@ -33,6 +33,7 @@ import { SessionProficiencyAnalysis } from './components/session-proficiency-ana
 import { VideoReviewPanel } from '@/components/sessions/video-review-panel'
 import { EvaluationsList } from '@/components/sessions/evaluations-list'
 import { useCoachEvaluations } from '@/hooks/queries/use-coach-evaluations'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { useAuth } from '@/contexts/auth-context'
 import { isPresignedUrlExpired } from '@/lib/presigned-url'
 import { GroupParticipantBar } from './components/group-participant-bar'
@@ -88,6 +89,9 @@ export default function SessionDetailsPage({
   const permissions = usePermissions()
   const isViewer = permissions.isViewer()
   const isAdmin = permissions.isAdmin() || permissions.isSuperAdmin()
+  // Proficiency Ladder rubric visibility is gated by a PostHog feature flag
+  // rather than by role, so access can be rolled out without a deploy.
+  const showProficiency = useFeatureFlagEnabled('proficiency-rubric')
   const { userId: currentUserId } = useAuth()
   const resolvedParams = React.use(params)
   const queryClient = useQueryClient()
@@ -976,8 +980,9 @@ export default function SessionDetailsPage({
                           }
                         />
 
-                        {/* Proficiency Ladder rubric — admin-only preview while validating */}
-                        {isAdmin && analysisData.proficiency ? (
+                        {/* Proficiency Ladder rubric — gated by the
+                            `proficiency-rubric` PostHog feature flag */}
+                        {showProficiency && analysisData.proficiency ? (
                           <SessionProficiencyAnalysis
                             proficiency={analysisData.proficiency}
                           />
