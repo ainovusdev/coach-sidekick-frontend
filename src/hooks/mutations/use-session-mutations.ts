@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import posthog from 'posthog-js'
 import { SessionService, SessionUpdateDto } from '@/services/session-service'
 import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
@@ -63,6 +64,9 @@ export function useUpdateSession() {
     },
 
     onSuccess: data => {
+      posthog.capture('session_updated', {
+        session_id: data.id,
+      })
       toast.success('Session updated', {
         description: data.title || 'Changes saved successfully',
       })

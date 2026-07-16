@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -117,6 +118,17 @@ function CoachSignupContent() {
         email: response.email,
         full_name: response.full_name,
         roles: response.roles || ['coach'],
+      })
+
+      // Identify and capture signup event
+      if (response.user_id) {
+        posthog.identify(response.user_id, {
+          name: response.full_name || undefined,
+          roles: response.roles || ['coach'],
+        })
+      }
+      posthog.capture('coach_signed_up', {
+        is_existing_user: invitationInfo?.existing_user ?? false,
       })
 
       // Redirect to coach dashboard (root)

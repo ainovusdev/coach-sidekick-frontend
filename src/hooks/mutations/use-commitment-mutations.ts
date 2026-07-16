@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
+import posthog from 'posthog-js'
 import { CommitmentService } from '@/services/commitment-service'
 import {
   CommitmentAttachment,
@@ -82,6 +83,11 @@ export function useCreateCommitment() {
     },
 
     onSuccess: data => {
+      posthog.capture('commitment_created', {
+        commitment_id: data.id,
+        commitment_type: data.type ?? null,
+        client_id: data.client_id ?? null,
+      })
       toast.success('Commitment created', {
         description: data.title,
       })
@@ -341,7 +347,12 @@ export function useUpdateCommitmentProgress() {
       })
     },
 
-    onSuccess: () => {
+    onSuccess: (data, { commitmentId, data: updateData }) => {
+      if (updateData.progress_percentage === 100) {
+        posthog.capture('commitment_completed', {
+          commitment_id: commitmentId,
+        })
+      }
       toast.success('Progress updated')
     },
 
