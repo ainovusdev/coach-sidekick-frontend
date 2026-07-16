@@ -7,6 +7,7 @@ import { ProcessingProvider } from '@/contexts/processing-context'
 import { QueryProvider } from '@/components/providers/query-provider'
 import { ThemeProvider } from '@/components/providers/theme-provider'
 import { TimezoneInitializer } from '@/components/providers/timezone-initializer'
+import { SessionReplayController } from '@/components/providers/session-replay-controller'
 import { AgentModalProvider } from '@/components/agent/agent-modal'
 import { Toaster } from 'sonner'
 import './globals.css'
@@ -41,6 +42,7 @@ export default function RootLayout({
           <QueryProvider>
             <AuthProvider>
               <TimezoneInitializer />
+              <SessionReplayController />
               <PermissionProvider>
                 <WebSocketProvider>
                   <ProcessingProvider>

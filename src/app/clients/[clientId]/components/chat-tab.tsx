@@ -39,5 +39,11 @@ export function ChatTab({ clientId, clientName, isViewer }: ChatTabProps) {
     )
   }
 
-  return <ClientChatUnified clientId={clientId} clientName={clientName} />
+  // ph-no-capture: the AI chat surfaces client data and coaching insights, so
+  // its content is excluded from session replay even on this recorded route.
+  return (
+    <div className="ph-no-capture h-full">
+      <ClientChatUnified clientId={clientId} clientName={clientName} />
+    </div>
+  )
 }

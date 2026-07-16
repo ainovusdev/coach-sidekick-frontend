@@ -1,4 +1,5 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
+import { captureException } from '@/lib/posthog-capture'
 
 /**
  * Global QueryClient configuration for TanStack Query
@@ -8,6 +9,25 @@ import { QueryClient } from '@tanstack/react-query'
  * - Provides instant navigation with eventual consistency
  */
 export const queryClient = new QueryClient({
+  // Report every query/mutation failure to PostHog error tracking. Doing it at
+  // the cache level instruments all ~25 hook files at once; individual hooks
+  // still keep their own onError toasts.
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      captureException(error, {
+        source: 'react-query',
+        queryKey: query.queryKey,
+      })
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error, _variables, _context, mutation) => {
+      captureException(error, {
+        source: 'react-query-mutation',
+        mutationKey: mutation.options.mutationKey,
+      })
+    },
+  }),
   defaultOptions: {
     queries: {
       // Stale time: Data is considered fresh for 5 minutes

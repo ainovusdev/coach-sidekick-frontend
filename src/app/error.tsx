@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { AlertCircle, RefreshCw, Home } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { captureException } from '@/lib/posthog-capture'
 
 export default function Error({
   error,
@@ -13,6 +14,7 @@ export default function Error({
 }) {
   useEffect(() => {
     console.error('Application error:', error)
+    captureException(error, { digest: error.digest, boundary: 'app' })
   }, [error])
 
   return (
