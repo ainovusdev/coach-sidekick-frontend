@@ -11,6 +11,7 @@ import {
 } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 import { QuestionnaireService } from '@/services/questionnaire-service'
 import type {
   QuestionItem,
@@ -191,6 +192,12 @@ export function QuestionnaireFlow({
         .filter(a => a.answer.length > 0)
 
       await QuestionnaireService.submitAll(token, allAnswers)
+      posthog.capture('questionnaire_completed', {
+        kind,
+        question_count: visibleQuestions.length,
+        answered_count: allAnswers.length,
+        view_mode: viewMode,
+      })
       clearStorage(token)
       onComplete()
     } catch {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -131,6 +132,13 @@ export function ClientChatUnified({
     async (messageText?: string) => {
       const textToSend = messageText || input.trim()
       if (!textToSend || isLoading) return
+
+      posthog.capture('agent_message_sent', {
+        surface: 'client_chat',
+        client_id: clientId,
+        input_mode: inputMode,
+        provider: selectedProvider,
+      })
 
       // TODO: Add realtime voice support
       // if (useRealtimeVoice && realtimeConnected) {

@@ -12,6 +12,7 @@ import {
 import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Loader2 } from 'lucide-react'
+import posthog from 'posthog-js'
 
 import {
   Dialog,
@@ -90,17 +91,25 @@ export function AgentModalProvider({
   // Bumped on every open so AgentChat remounts fresh.
   const [mountKey, setMountKey] = useState(0)
 
-  const openAgent = useCallback((opts: OpenAgentOptions = {}) => {
-    if (opts.scope) setScope(opts.scope)
-    // Always (re)seed + remount so every open is deterministic: a question, a
-    // saved thread, or — with neither — a fresh *empty* modal (clearing any seed
-    // left over from a prior open). Radix unmounts the content on close, so there's
-    // no in-memory conversation to preserve anyway.
-    setInitialQuery(opts.query)
-    setInitialThreadId(opts.threadId)
-    setMountKey(k => k + 1)
-    setOpen(true)
-  }, [])
+  const openAgent = useCallback(
+    (opts: OpenAgentOptions = {}) => {
+      posthog.capture('agent_opened', {
+        scope: opts.scope ?? defaultScope,
+        opened_with_query: !!opts.query,
+        opened_thread: !!opts.threadId,
+      })
+      if (opts.scope) setScope(opts.scope)
+      // Always (re)seed + remount so every open is deterministic: a question, a
+      // saved thread, or — with neither — a fresh *empty* modal (clearing any seed
+      // left over from a prior open). Radix unmounts the content on close, so there's
+      // no in-memory conversation to preserve anyway.
+      setInitialQuery(opts.query)
+      setInitialThreadId(opts.threadId)
+      setMountKey(k => k + 1)
+      setOpen(true)
+    },
+    [defaultScope],
+  )
 
   const closeAgent = useCallback(() => setOpen(false), [])
 

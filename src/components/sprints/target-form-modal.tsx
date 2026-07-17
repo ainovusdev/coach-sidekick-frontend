@@ -18,6 +18,7 @@ import { Check } from 'lucide-react'
 import { TargetService } from '@/services/target-service'
 import { TargetCreate, TargetUpdate } from '@/types/sprint'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
@@ -152,6 +153,13 @@ export function TargetFormModal({
 
         // Actual API call
         await TargetService.createTarget(targetData)
+
+        posthog.capture('target_created', {
+          client_id: clientId,
+          goal_link_count: selectedGoalIds.length,
+          has_target_date: !!formData.target_date,
+          status: formData.status,
+        })
 
         // Invalidate to get the real data from server
         queryClient.invalidateQueries({

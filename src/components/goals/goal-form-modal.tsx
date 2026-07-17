@@ -17,6 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { DueDateField } from '@/components/ui/due-date-field'
 import { GoalService, GoalCreate, Goal } from '@/services/goal-service'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 import { useEffect } from 'react'
 import { cn } from '@/lib/utils'
 import { useQueryClient } from '@tanstack/react-query'
@@ -145,6 +146,12 @@ export function GoalFormModal({
 
         // Actual API call
         await GoalService.createGoal(goalData)
+
+        posthog.capture('goal_created', {
+          client_id: clientId,
+          has_target_date: !!goalData.target_date,
+          status: formData.status,
+        })
 
         // Invalidate to get the real data from server
         queryClient.invalidateQueries({
