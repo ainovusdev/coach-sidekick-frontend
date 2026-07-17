@@ -8,6 +8,7 @@ import {
   MicrophoneCapture,
   RealtimeAudioFormat,
 } from '@/utils/audio-processing'
+import { captureExceptionThrottled } from '@/lib/posthog-capture'
 
 export interface RealtimeMessage {
   type: string
@@ -181,6 +182,12 @@ export function useRealtimeChat(config: RealtimeConfig) {
 
       wsRef.current.onerror = error => {
         console.error('WebSocket error:', error)
+        // Throttled: onerror fires on every failed attempt during reconnects.
+        captureExceptionThrottled(
+          'realtime-onerror',
+          new Error('Realtime voice WebSocket connection error'),
+          { source: 'realtime-voice', reason: 'onerror' },
+        )
         onError?.(new Error('WebSocket connection error'))
         isConnectingRef.current = false // Reset connecting flag
       }
@@ -208,6 +215,12 @@ export function useRealtimeChat(config: RealtimeConfig) {
           }, delay)
         } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
           console.error('Max reconnection attempts reached')
+          // Definitive failure: the voice session couldn't be re-established.
+          captureExceptionThrottled(
+            'realtime-max-reconnect',
+            new Error('Realtime voice: max reconnection attempts reached'),
+            { source: 'realtime-voice', reason: 'max_reconnect' },
+          )
           onError?.(
             new Error('Unable to establish connection after multiple attempts'),
           )
@@ -215,6 +228,10 @@ export function useRealtimeChat(config: RealtimeConfig) {
       }
     } catch (error) {
       console.error('Failed to connect:', error)
+      captureExceptionThrottled('realtime-connect', error, {
+        source: 'realtime-voice',
+        reason: 'connect_threw',
+      })
       onError?.(error as Error)
       isConnectingRef.current = false // Reset connecting flag on error
     }

@@ -118,12 +118,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
         // Identify the already-authenticated user so events on page refresh
         // are linked to the correct person profile. `email` is set so feature
-        // flags can be targeted per email address in PostHog.
+        // flags can be targeted per email address in PostHog. `client_id`
+        // attributes coachee errors/replays to their client profile (org-level
+        // grouping would need a backend-provided org id — not in the token).
         if (id) {
           posthog.identify(id, {
             name: fullName || undefined,
             email: email || undefined,
             roles: userRoles,
+            client_id: userClientId || undefined,
           })
         }
 
@@ -183,12 +186,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setOwnClientId(authService.getOwnClientId())
 
       // Identify user in PostHog after successful login. `email` is set so
-      // feature flags can be targeted per email address in PostHog.
+      // feature flags can be targeted per email address in PostHog. `client_id`
+      // attributes coachee errors/replays to their client profile.
       if (id) {
         posthog.identify(id, {
           name: fullName || undefined,
           email: userEmail || email || undefined,
           roles: userRoles,
+          client_id: authService.getOwnClientId() || undefined,
         })
       }
       posthog.capture('user_signed_in', {

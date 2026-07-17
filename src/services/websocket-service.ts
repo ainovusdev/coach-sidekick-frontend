@@ -1,4 +1,5 @@
 import authService from '@/services/auth-service'
+import { captureExceptionThrottled } from '@/lib/posthog-capture'
 
 export type WebSocketStatus =
   | 'connecting'
@@ -115,6 +116,10 @@ class WebSocketService {
       this.setupEventListeners()
     } catch (error) {
       console.error('[WebSocket] Connection error:', error)
+      captureExceptionThrottled('ws-connect', error, {
+        source: 'websocket',
+        reason: 'connect_threw',
+      })
       this.updateStatus('error')
       this.scheduleReconnect()
     }
@@ -166,6 +171,13 @@ class WebSocketService {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[WebSocket] Connection error occurred')
       }
+      // Throttled: onerror fires on every failed attempt during a reconnect
+      // storm; the max-reconnect capture below is the high-signal "gave up".
+      captureExceptionThrottled(
+        'ws-onerror',
+        new Error('WebSocket connection error'),
+        { source: 'websocket', reason: 'onerror' },
+      )
       this.updateStatus('error')
       // Schedule reconnect on error (if not intentional disconnect)
       if (!this.intentionalDisconnect) {
@@ -202,6 +214,17 @@ class WebSocketService {
 
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       console.error('[WebSocket] Max reconnection attempts reached')
+      // Definitive failure: the live transcript connection is lost. High-signal
+      // — this is the "bot/transcript stopped working" support case.
+      captureExceptionThrottled(
+        'ws-max-reconnect',
+        new Error('WebSocket max reconnection attempts reached'),
+        {
+          source: 'websocket',
+          reason: 'max_reconnect',
+          attempts: this.reconnectAttempts,
+        },
+      )
       // Emit an event so UI can show reconnect button
       this.emit('max_reconnect_attempts', { attempts: this.reconnectAttempts })
       return

@@ -15,6 +15,10 @@ export function isReplayExcludedPath(pathname: string): boolean {
   if (pathname.startsWith('/meeting/')) return true
   if (pathname.startsWith('/client-meeting/')) return true
 
+  // External questionnaire intake (client PII: /questionnaire/<token>). Answers
+  // are masked as inputs, but the questions/page text would still be visible.
+  if (pathname.startsWith('/questionnaire/')) return true
+
   // AI agent / chat pages.
   if (
     pathname === '/agent' ||
