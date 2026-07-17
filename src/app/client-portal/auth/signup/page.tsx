@@ -117,11 +117,14 @@ function ClientSignupContent() {
         client_id: response.client_id,
       })
 
-      // Identify and capture signup event
+      // Identify and capture signup event. `email` + `client_id` are set so
+      // errors/replays are attributable (matches the login/refresh identify).
       if (response.user_id) {
         posthog.identify(response.user_id, {
           name: response.full_name || undefined,
+          email: response.email || undefined,
           roles: response.roles || ['client'],
+          client_id: response.client_id || undefined,
         })
       }
       posthog.capture('client_portal_signed_up', {

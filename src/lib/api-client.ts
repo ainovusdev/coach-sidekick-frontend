@@ -1,11 +1,16 @@
 import authService from '@/services/auth-service'
 import { toast } from 'sonner'
+import { captureExceptionThrottled } from '@/lib/posthog-capture'
+
+/** Error thrown by ApiClient, annotated for PostHog dedup at the cache layer. */
+type ApiError = Error & { status?: number; __phCaptured?: boolean }
 
 export class ApiClient {
   private static DEFAULT_TIMEOUT = 30000 // 30 seconds
 
   private static async handleErrorResponse(response: Response): Promise<never> {
-    let errorMessage = `HTTP error! status: ${response.status}`
+    const status = response.status
+    let errorMessage = `HTTP error! status: ${status}`
 
     try {
       const contentType = response.headers.get('content-type')
@@ -87,7 +92,21 @@ export class ApiClient {
     // Small delay to ensure toast is rendered
     await new Promise(resolve => setTimeout(resolve, 50))
 
-    throw new Error(errorMessage)
+    const error: ApiError = new Error(errorMessage)
+    error.status = status
+    // Report server errors to PostHog here (throttled per endpoint+status so a
+    // retried call doesn't double-report) and flag them so the react-query
+    // cache layer skips re-reporting. Routine 4xx are expected user/flow errors
+    // and are intentionally left uncaptured.
+    if (status >= 500) {
+      captureExceptionThrottled(`api-5xx:${status}:${response.url}`, error, {
+        source: 'api-client',
+        status,
+        url: response.url,
+      })
+      error.__phCaptured = true
+    }
+    throw error
   }
 
   private static async getAuthHeaders(): Promise<Record<string, string>> {
@@ -156,9 +175,27 @@ export class ApiClient {
     } catch (error) {
       clearTimeout(timeoutId)
       console.error('Fetch error:', error)
+      // These never reach a react-query onError with a usable status (the
+      // request never completed), so report them here — throttled per endpoint
+      // and flagged so the cache layer doesn't double-count.
       if (error instanceof Error && error.name === 'AbortError') {
-        throw new Error('Request timeout - please try again')
+        const timeoutError: ApiError = new Error(
+          'Request timeout - please try again',
+        )
+        timeoutError.__phCaptured = true
+        captureExceptionThrottled(`api-timeout:${url}`, timeoutError, {
+          source: 'api-client',
+          reason: 'timeout',
+          url,
+        })
+        throw timeoutError
       }
+      captureExceptionThrottled(`api-network:${url}`, error, {
+        source: 'api-client',
+        reason: 'network',
+        url,
+      })
+      ;(error as ApiError).__phCaptured = true
       throw error
     }
   }

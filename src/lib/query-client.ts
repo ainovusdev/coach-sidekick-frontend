@@ -2,6 +2,29 @@ import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
 import { captureException } from '@/lib/posthog-capture'
 
 /**
+ * Only report *unexpected* failures to PostHog error tracking:
+ * - Skip errors already captured at the source (ApiClient tags `__phCaptured`
+ *   on 5xx/network) to avoid double-counting.
+ * - Skip routine 4xx (auth/permission/not-found/validation) — these are
+ *   expected user/flow errors, not bugs, and would just be noise. Mirrors the
+ *   `captureUnexpectedAuthError` filter in `auth-context.tsx`.
+ */
+function reportUnexpectedQueryError(
+  error: unknown,
+  properties: Record<string, unknown>,
+) {
+  const e = error as {
+    __phCaptured?: boolean
+    status?: number
+    response?: { status?: number }
+  }
+  if (e?.__phCaptured) return
+  const status = e?.status ?? e?.response?.status
+  if (status && status >= 400 && status < 500) return
+  captureException(error, properties)
+}
+
+/**
  * Global QueryClient configuration for TanStack Query
  *
  * Default strategy: Stale-while-revalidate
@@ -14,7 +37,7 @@ export const queryClient = new QueryClient({
   // still keep their own onError toasts.
   queryCache: new QueryCache({
     onError: (error, query) => {
-      captureException(error, {
+      reportUnexpectedQueryError(error, {
         source: 'react-query',
         queryKey: query.queryKey,
       })
@@ -22,7 +45,7 @@ export const queryClient = new QueryClient({
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
-      captureException(error, {
+      reportUnexpectedQueryError(error, {
         source: 'react-query-mutation',
         mutationKey: mutation.options.mutationKey,
       })

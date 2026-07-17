@@ -120,10 +120,12 @@ function CoachSignupContent() {
         roles: response.roles || ['coach'],
       })
 
-      // Identify and capture signup event
+      // Identify and capture signup event. `email` is set so errors/replays are
+      // attributable to the person (matches the login/refresh identify calls).
       if (response.user_id) {
         posthog.identify(response.user_id, {
           name: response.full_name || undefined,
+          email: response.email || undefined,
           roles: response.roles || ['coach'],
         })
       }
