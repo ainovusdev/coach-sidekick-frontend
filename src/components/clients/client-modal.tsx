@@ -19,6 +19,7 @@ import { Loader2, Send, UserCheck, Clock } from 'lucide-react'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -177,6 +178,15 @@ export default function ClientModal({
           accessRequestSent,
           accessRequestName,
         } = await ClientService.createClient(clientData)
+
+        posthog.capture('client_created', {
+          client_id: createdClient?.id,
+          access_request_sent: !!accessRequestSent,
+          invited_to_portal: !!formData.inviteToPortal,
+          has_email: !!formData.email.trim(),
+          auto_send_questionnaire: formData.autoSendQuestionnaire,
+          auto_send_thrill_form: formData.autoSendThrillForm,
+        })
 
         if (accessRequestSent) {
           // Existing active user → an accept/decline request was emailed; they

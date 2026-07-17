@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Calendar, CheckCircle2, AlertCircle } from 'lucide-react'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -38,6 +39,7 @@ export function IntegrationsSection() {
     const connected = searchParams.get('calendar_connected')
     const error = searchParams.get('calendar_error')
     if (connected) {
+      posthog.capture('calendar_connected', { provider: 'google_calendar' })
       toast.success('Google Calendar connected')
       router.replace('/settings?tab=profile#integrations')
     } else if (error) {

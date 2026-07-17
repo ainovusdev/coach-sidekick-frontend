@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
+import posthog from 'posthog-js'
 import {
   Select,
   SelectContent,
@@ -233,6 +234,13 @@ export function AgentChat({
     async (questionOverride?: string) => {
       const question = (questionOverride ?? input).trim()
       if (!question || streaming) return
+
+      posthog.capture('agent_message_sent', {
+        surface: 'global_agent',
+        scope: apiScope,
+        is_new_thread: !threadId,
+        model,
+      })
 
       const userMsg: AgentMessageType = {
         id: crypto.randomUUID(),

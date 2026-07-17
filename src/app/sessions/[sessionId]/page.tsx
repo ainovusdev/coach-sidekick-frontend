@@ -35,6 +35,7 @@ import { EvaluationsList } from '@/components/sessions/evaluations-list'
 import { useCoachEvaluations } from '@/hooks/queries/use-coach-evaluations'
 import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { useAuth } from '@/contexts/auth-context'
+import posthog from 'posthog-js'
 import { isPresignedUrlExpired } from '@/lib/presigned-url'
 import { GroupParticipantBar } from './components/group-participant-bar'
 import { QuickNote } from '@/components/session-notes/quick-note'
@@ -745,7 +746,17 @@ export default function SessionDetailsPage({
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <Tabs
                     value={activeTab}
-                    onValueChange={setActiveTab}
+                    onValueChange={v => {
+                      setActiveTab(v)
+                      if (v === 'analysis') {
+                        posthog.capture('session_analysis_viewed', {
+                          session_id: resolvedParams.sessionId,
+                          has_analysis: !!analysisData,
+                          show_proficiency: showProficiency,
+                          is_viewer: isViewer,
+                        })
+                      }
+                    }}
                     className="flex-1"
                   >
                     <TabsList className="bg-app-surface p-1 rounded-lg">
