@@ -4,7 +4,6 @@ import {
   keepPreviousData,
 } from '@tanstack/react-query'
 import { SessionService, SessionListResponse } from '@/services/session-service'
-import { CoachingSession } from '@/types/meeting'
 import { queryKeys } from '@/lib/query-client'
 import { ApiClient } from '@/lib/api-client'
 
@@ -41,109 +40,6 @@ export function useSessions(
     queryKey: queryKeys.sessions.list(filters),
     queryFn: () => SessionService.listSessions(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch a single session by ID
- *
- * @param sessionId - The session ID to fetch
- * @param options - Additional react-query options
- *
- * @example
- * const { data: session, isLoading } = useSession(sessionId)
- */
-export function useSession(
-  sessionId: string | undefined,
-  options?: Omit<
-    UseQueryOptions<CoachingSession>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >,
-) {
-  return useQuery({
-    queryKey: queryKeys.sessions.detail(sessionId!),
-    queryFn: () => SessionService.getSession(sessionId!),
-    enabled: !!sessionId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch session by bot ID
- *
- * Useful for real-time meeting pages where you have botId but not sessionId
- *
- * @param botId - The bot ID
- * @param options - Additional react-query options
- *
- * @example
- * const { data: session } = useSessionByBotId(botId)
- */
-export function useSessionByBotId(
-  botId: string | undefined,
-  options?: Omit<
-    UseQueryOptions<CoachingSession>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >,
-) {
-  return useQuery({
-    queryKey: [...queryKeys.bots.detail(botId!), 'session'],
-    queryFn: () => SessionService.getSessionByBotId(botId!),
-    enabled: !!botId,
-    staleTime: 2 * 60 * 1000, // 2 minutes (more dynamic for active sessions)
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch detailed session analysis
- *
- * This includes coaching analysis, insights, and metrics
- * Cached for longer since analysis rarely changes
- *
- * @param sessionId - The session ID
- * @param options - Additional react-query options
- *
- * @example
- * const { data: analysis } = useSessionAnalysis(sessionId)
- */
-export function useSessionAnalysis(
-  sessionId: string | undefined,
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn' | 'enabled'>,
-) {
-  return useQuery({
-    queryKey: queryKeys.sessions.analysis(sessionId!),
-    queryFn: () => SessionService.getSessionDetails(sessionId!),
-    enabled: !!sessionId,
-    staleTime: 24 * 60 * 60 * 1000, // 24 hours - analysis rarely changes
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch session transcript
- *
- * @param sessionId - The session ID
- * @param options - Additional react-query options
- *
- * @example
- * const { data: transcript } = useSessionTranscript(sessionId)
- */
-export function useSessionTranscript(
-  sessionId: string | undefined,
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn' | 'enabled'>,
-) {
-  return useQuery({
-    queryKey: queryKeys.sessions.transcript(sessionId!),
-    queryFn: async () => {
-      return await ApiClient.get(
-        `${BACKEND_URL}/sessions/${sessionId}/transcript`,
-      )
-    },
-    enabled: !!sessionId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   })
 }

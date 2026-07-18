@@ -40,18 +40,6 @@ export class SprintService {
   }
 
   /**
-   * Get current active sprint for a client
-   */
-  static async getCurrentSprint(
-    clientId: string,
-  ): Promise<SprintDetail | null> {
-    const response = await ApiClient.get(
-      `${BACKEND_URL}/sprints/current/${clientId}`,
-    )
-    return response
-  }
-
-  /**
    * Get single sprint by ID
    */
   static async getSprint(sprintId: string): Promise<SprintDetail> {

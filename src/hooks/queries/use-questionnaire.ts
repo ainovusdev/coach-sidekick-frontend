@@ -40,19 +40,6 @@ export function useQuestionnaireResponses(
   })
 }
 
-export function useThrillFormResponses(
-  sessionId: string | undefined,
-  clientId?: string,
-) {
-  return useQuery<QuestionnaireResponseView[]>({
-    queryKey: questionnaireKeys.thrillFormResponses(sessionId || '', clientId),
-    queryFn: () =>
-      QuestionnaireService.getResponses(sessionId!, clientId, 'post_session'),
-    enabled: !!sessionId,
-    staleTime: 60 * 1000,
-  })
-}
-
 // Thrill Form status — includes the "sent but not yet completed" state that the
 // raw responses list can't express (no response row exists until the client
 // opens the form).

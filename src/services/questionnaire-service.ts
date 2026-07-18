@@ -123,24 +123,6 @@ export class QuestionnaireService {
     return res.json()
   }
 
-  static async saveAnswer(
-    token: string,
-    questionIndex: number,
-    answer: string,
-  ): Promise<void> {
-    const res = await fetch(
-      `${BACKEND_URL}/questionnaire/public/${token}/answer`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question_index: questionIndex, answer }),
-      },
-    )
-    if (!res.ok) {
-      throw new Error('Failed to save answer')
-    }
-  }
-
   static async submitAll(
     token: string,
     answers: { question_index: number; answer: string }[],
@@ -155,16 +137,6 @@ export class QuestionnaireService {
     )
     if (!res.ok) {
       throw new Error('Failed to submit questionnaire')
-    }
-  }
-
-  static async completeQuestionnaire(token: string): Promise<void> {
-    const res = await fetch(
-      `${BACKEND_URL}/questionnaire/public/${token}/complete`,
-      { method: 'POST' },
-    )
-    if (!res.ok) {
-      throw new Error('Failed to complete questionnaire')
     }
   }
 }

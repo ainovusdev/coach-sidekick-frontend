@@ -2,81 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   adminService,
   AdminClientListResponse,
-  AdminClientUpdate,
   BulkAssignCoachRequest,
   BulkAssignProgramRequest,
   CSVImportRequest,
 } from '@/services/admin-service'
 import { invalidateAdminQueries, queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
-
-/**
- * Update admin client mutation
- * Includes optimistic update to instantly reflect changes
- *
- * @example
- * ```tsx
- * const { mutate: updateClient } = useUpdateAdminClient()
- *
- * updateClient({
- *   clientId: '123',
- *   data: { name: 'New Name', coach_id: 'coach-uuid' }
- * })
- * ```
- */
-export function useUpdateAdminClient() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: ({
-      clientId,
-      data,
-    }: {
-      clientId: string
-      data: AdminClientUpdate
-    }) => adminService.updateAdminClient(clientId, data),
-
-    onMutate: async ({ clientId, data }) => {
-      await queryClient.cancelQueries({ queryKey: queryKeys.admin.clients.all })
-
-      const previousData = queryClient.getQueryData<AdminClientListResponse>(
-        queryKeys.admin.clients.list(),
-      )
-
-      if (previousData) {
-        queryClient.setQueryData<AdminClientListResponse>(
-          queryKeys.admin.clients.list(),
-          old =>
-            old
-              ? {
-                  ...old,
-                  clients: old.clients.map(client =>
-                    client.id === clientId ? { ...client, ...data } : client,
-                  ),
-                }
-              : old,
-        )
-      }
-
-      return { previousData }
-    },
-
-    onError: (error: any, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          queryKeys.admin.clients.list(),
-          context.previousData,
-        )
-      }
-      toast.error(error.response?.data?.detail || 'Failed to update client')
-    },
-
-    onSuccess: (updatedClient, { clientId }) => {
-      toast.success('Client updated successfully')
-      invalidateAdminQueries.afterAdminClientUpdate(queryClient, clientId)
-    },
-  })
-}
 
 /**
  * Delete admin client mutation

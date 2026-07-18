@@ -284,11 +284,6 @@ class AuthService {
     return roles.some(role => currentRoles.includes(role))
   }
 
-  hasAllRoles(roles: string[]): boolean {
-    const currentRoles = this.getRoles()
-    return roles.every(role => currentRoles.includes(role))
-  }
-
   isSuperAdmin(): boolean {
     return this.hasRole('super_admin')
   }
@@ -315,12 +310,6 @@ class AuthService {
     return this.clientAccess
   }
 
-  hasClientAccess(clientId: string): boolean {
-    // Admins have access to all clients
-    if (this.isAdmin()) return true
-    return this.clientAccess.includes(clientId)
-  }
-
   // NEW: Get user's own client profile ID
   getOwnClientId(): string | null {
     if (this.ownClientId) return this.ownClientId
@@ -330,34 +319,6 @@ class AuthService {
       return localStorage.getItem('user_client_id')
     }
     return null
-  }
-
-  // Password reset methods
-  async requestPasswordReset(email: string): Promise<{ message: string }> {
-    const response = await axiosInstance.post('/auth/request-password-reset', {
-      email: email.toLowerCase(),
-    })
-    return response.data
-  }
-
-  async verifyResetToken(
-    token: string,
-  ): Promise<{ valid: boolean; email: string }> {
-    const response = await axiosInstance.post('/auth/verify-reset-token', {
-      token,
-    })
-    return response.data
-  }
-
-  async completePasswordReset(
-    token: string,
-    newPassword: string,
-  ): Promise<{ message: string }> {
-    const response = await axiosInstance.post('/auth/complete-password-reset', {
-      token,
-      new_password: newPassword,
-    })
-    return response.data
   }
 }
 

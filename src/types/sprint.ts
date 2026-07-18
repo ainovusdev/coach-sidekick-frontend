@@ -98,14 +98,3 @@ export interface CommitmentTargetLink {
   target_id: string
   created_at: string
 }
-
-// Enhanced commitment with target links
-export interface CommitmentWithTargets {
-  id: string
-  title: string
-  description?: string
-  status: string
-  linked_target_ids: string[]
-  session_id?: string
-  created_at: string
-}

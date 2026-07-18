@@ -35,11 +35,6 @@ export interface GroupSessionCreate {
   session_type?: string
 }
 
-export interface GroupSessionUpdate {
-  title?: string
-  status?: string
-}
-
 export interface GroupSessionListResponse {
   sessions: GroupSession[]
   total: number
@@ -51,13 +46,4 @@ export interface GroupSessionFilters {
   program_id?: string
   page?: number
   per_page?: number
-}
-
-export interface GroupSessionTokenResponse {
-  tokens: Array<{
-    client_id: string
-    client_name: string
-    token: string
-    share_url: string
-  }>
 }

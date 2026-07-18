@@ -416,10 +416,6 @@ class WebSocketService {
   getStatus(): WebSocketStatus {
     return this.currentStatus
   }
-
-  isConnected(): boolean {
-    return this.currentStatus === 'connected'
-  }
 }
 
 // Create singleton instance

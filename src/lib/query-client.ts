@@ -146,15 +146,6 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.commitments.all, id] as const,
   },
 
-  // Task keys
-  tasks: {
-    all: ['tasks'] as const,
-    lists: () => [...queryKeys.tasks.all, 'list'] as const,
-    list: (filters?: Record<string, any>) =>
-      [...queryKeys.tasks.lists(), { filters }] as const,
-    detail: (id: string) => [...queryKeys.tasks.all, id] as const,
-  },
-
   // Sprint keys
   sprints: {
     all: ['sprints'] as const,
@@ -200,12 +191,6 @@ export const queryKeys = {
       [...queryKeys.personas.all, 'client', clientId] as const,
   },
 
-  // Dashboard keys (composite data)
-  dashboard: {
-    client: (clientId: string) => ['dashboard', 'client', clientId] as const,
-    coach: () => ['dashboard', 'coach'] as const,
-  },
-
   // Target keys
   targets: {
     all: ['targets'] as const,
@@ -222,41 +207,10 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.goals.all, id] as const,
   },
 
-  // Metrics keys
-  metrics: {
-    coach: (coachId?: string) => ['metrics', 'coach', coachId] as const,
-    system: () => ['metrics', 'system'] as const,
-  },
-
-  // User/Auth keys
-  user: {
-    current: () => ['user', 'current'] as const,
-    preferences: () => ['user', 'preferences'] as const,
-  },
-
   // Calendar integration keys
   calendar: {
     all: ['calendar'] as const,
     status: () => [...queryKeys.calendar.all, 'status'] as const,
-  },
-
-  // Resource keys (coach side)
-  resources: {
-    all: ['resources'] as const,
-    lists: () => [...queryKeys.resources.all, 'list'] as const,
-    list: (filters?: Record<string, any>) =>
-      [...queryKeys.resources.lists(), { filters }] as const,
-    detail: (id: string) => [...queryKeys.resources.all, id] as const,
-    categories: () => [...queryKeys.resources.all, 'categories'] as const,
-  },
-
-  // Client resource keys
-  clientResources: {
-    all: ['client-resources'] as const,
-    lists: () => [...queryKeys.clientResources.all, 'list'] as const,
-    list: (filters?: Record<string, any>) =>
-      [...queryKeys.clientResources.lists(), { filters }] as const,
-    detail: (id: string) => [...queryKeys.clientResources.all, id] as const,
   },
 
   // Program keys
@@ -385,40 +339,6 @@ export const queryKeys = {
  * Example: After creating a session, invalidate both sessions list and client sessions
  */
 export const invalidateQueries = {
-  afterClientUpdate: async (queryClient: QueryClient, clientId: string) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.clients.detail(clientId),
-      }),
-    ])
-  },
-
-  afterSessionUpdate: async (
-    queryClient: QueryClient,
-    sessionId: string,
-    clientId?: string,
-  ) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all }),
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.sessions.detail(sessionId),
-      }),
-      clientId &&
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.clients.sessions(clientId),
-        }),
-    ])
-  },
-
-  afterCommitmentUpdate: async (queryClient: QueryClient) => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
-  },
-
-  afterTaskUpdate: async (queryClient: QueryClient) => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
-  },
-
   afterProgramUpdate: async (queryClient: QueryClient, programId?: string) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.programs.all }),

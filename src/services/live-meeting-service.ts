@@ -186,31 +186,6 @@ export class LiveMeetingService {
     return handleResponse<LiveMeetingTokenInfo>(response)
   }
 
-  /**
-   * Revoke a live meeting token (coach use)
-   */
-  static async revokeToken(meetingToken: string): Promise<void> {
-    const token = localStorage.getItem('auth_token')
-    if (!token) {
-      throw new Error('Authentication required')
-    }
-
-    const response = await fetch(
-      `${BACKEND_URL}/live-meeting/tokens/${meetingToken}`,
-      {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    )
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      throw new Error(errorData.detail || 'Failed to revoke token')
-    }
-  }
-
   // ============ Guest Access (No auth required) ============
 
   /**

@@ -1,9 +1,5 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
-import {
-  PersonaService,
-  ClientPersona,
-  PersonaUpdateHistory,
-} from '@/services/persona-service'
+import { PersonaService, ClientPersona } from '@/services/persona-service'
 import { queryKeys } from '@/lib/query-client'
 
 /**
@@ -30,35 +26,6 @@ export function useClientPersona(
     queryFn: () => PersonaService.getClientPersona(clientId!),
     enabled: !!clientId,
     staleTime: 10 * 60 * 1000, // 10 minutes - personas don't change frequently
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch persona update history
- *
- * Shows how the AI's understanding of the client evolved over time
- *
- * @param clientId - The client ID
- * @param limit - Number of history records to fetch (default 50)
- * @param options - Additional react-query options
- *
- * @example
- * const { data: history = [] } = usePersonaHistory(clientId, 20)
- */
-export function usePersonaHistory(
-  clientId: string | undefined,
-  limit: number = 50,
-  options?: Omit<
-    UseQueryOptions<PersonaUpdateHistory[]>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >,
-) {
-  return useQuery({
-    queryKey: [...queryKeys.personas.client(clientId!), 'history', limit],
-    queryFn: () => PersonaService.getPersonaHistory(clientId!, limit),
-    enabled: !!clientId,
-    staleTime: 10 * 60 * 1000, // 10 minutes
     ...options,
   })
 }

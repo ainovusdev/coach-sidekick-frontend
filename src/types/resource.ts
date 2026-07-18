@@ -70,19 +70,6 @@ export interface ClientResource {
   created_at: string
 }
 
-// Create resource request (coach-side, uses FormData for file upload)
-export interface SharedResourceCreate {
-  title: string
-  description?: string
-  content?: string
-  content_url?: string
-  category: ResourceCategory
-  tags: string[]
-  sharing_scope: SharingScope
-  session_id?: string
-  client_id?: string
-}
-
 // Update resource request
 export interface SharedResourceUpdate {
   title?: string
@@ -186,15 +173,4 @@ export const CATEGORY_COLORS: Record<
     bg: 'bg-forest-bg ',
     text: 'text-forest ',
   },
-}
-
-export const CATEGORY_ICONS_MAP: Record<ResourceCategory, string> = {
-  general: 'FileText',
-  worksheet: 'ClipboardList',
-  exercise: 'Dumbbell',
-  article: 'Newspaper',
-  template: 'FileEdit',
-  video: 'Video',
-  document: 'FileText',
-  link: 'Link2',
 }

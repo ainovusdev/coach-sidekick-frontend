@@ -31,29 +31,3 @@ export function useAvailableRoles(
     ...options,
   })
 }
-
-/**
- * Fetch roles for a specific user
- *
- * @param userId - The user ID to fetch roles for
- * @param options - Additional React Query options
- * @returns Query result with array of role strings
- *
- * @example
- * ```tsx
- * const { data: userRoles = [] } = useUserRoles(userId)
- * // userRoles = ['admin', 'coach']
- * ```
- */
-export function useUserRoles(
-  userId: string,
-  options?: Omit<UseQueryOptions<string[], Error>, 'queryKey' | 'queryFn'>,
-) {
-  return useQuery({
-    queryKey: queryKeys.admin.roles.user(userId),
-    queryFn: () => adminService.getUserRoles(userId),
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
-    ...options,
-  })
-}

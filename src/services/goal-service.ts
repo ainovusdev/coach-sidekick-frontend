@@ -69,14 +69,4 @@ export class GoalService {
   static async deleteGoal(goalId: string): Promise<void> {
     await ApiClient.delete(`${BACKEND_URL}/goals/${goalId}`)
   }
-
-  /**
-   * Bulk confirm draft goals
-   */
-  static async bulkConfirmGoals(goalIds: string[]): Promise<Goal[]> {
-    const response = await ApiClient.post(`${BACKEND_URL}/goals/bulk-confirm`, {
-      goal_ids: goalIds,
-    })
-    return Array.isArray(response) ? response : []
-  }
 }

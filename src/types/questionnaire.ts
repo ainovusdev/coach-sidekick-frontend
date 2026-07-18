@@ -103,11 +103,6 @@ export interface QuestionnaireTokenResponse {
   expires_at: string
 }
 
-export interface StartBotRequest {
-  meeting_url: string
-  bot_name?: string
-}
-
 export interface StartBotResponse {
   id: string
   session_id: string

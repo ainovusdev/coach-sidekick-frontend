@@ -9,19 +9,3 @@ export function useGroupSessions(filters?: GroupSessionFilters) {
     queryFn: () => GroupSessionService.listGroupSessions(filters),
   })
 }
-
-export function useGroupSession(sessionId: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.groupSessions.detail(sessionId!),
-    queryFn: () => GroupSessionService.getGroupSession(sessionId!),
-    enabled: !!sessionId,
-  })
-}
-
-export function useGroupSessionParticipants(sessionId: string | undefined) {
-  return useQuery({
-    queryKey: queryKeys.groupSessions.participants(sessionId!),
-    queryFn: () => GroupSessionService.getParticipants(sessionId!),
-    enabled: !!sessionId,
-  })
-}

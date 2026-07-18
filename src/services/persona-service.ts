@@ -1,7 +1,8 @@
 import { ApiClient } from '@/lib/api-client'
 
 const BACKEND_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'https://coach-sidekick-backend-production.up.railway.app/api/v1'
+  process.env.NEXT_PUBLIC_API_URL ||
+  'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
 export interface Demographics {
   age_range?: string | null
@@ -60,25 +61,6 @@ export interface ClientPersona {
   metadata: PersonaMetadata
 }
 
-export interface PersonaUpdateHistory {
-  id: string
-  session_id?: string | null
-  field_name: string
-  old_value: any
-  new_value: any
-  confidence: number
-  created_at: string
-}
-
-export interface PersonaUpdateRequest {
-  age_range?: string | null
-  occupation?: string | null
-  location?: string | null
-  family_situation?: string | null
-  communication_style?: string | null
-  learning_style?: string | null
-}
-
 export class PersonaService {
   static async getClientPersona(
     clientId: string,
@@ -91,32 +73,6 @@ export class PersonaService {
     } catch (error) {
       console.error('Failed to fetch client persona:', error)
       return null
-    }
-  }
-
-  static async updateClientPersona(
-    clientId: string,
-    updates: PersonaUpdateRequest,
-  ): Promise<ClientPersona> {
-    const response = await ApiClient.put(
-      `${BACKEND_URL}/clients/${clientId}/persona`,
-      updates,
-    )
-    return response
-  }
-
-  static async getPersonaHistory(
-    clientId: string,
-    limit: number = 50,
-  ): Promise<PersonaUpdateHistory[]> {
-    try {
-      const response = await ApiClient.get(
-        `${BACKEND_URL}/clients/${clientId}/persona/history?limit=${limit}`,
-      )
-      return response
-    } catch (error) {
-      console.error('Failed to fetch persona history:', error)
-      return []
     }
   }
 }

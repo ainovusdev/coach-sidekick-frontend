@@ -10,19 +10,3 @@ export function useResources(filters?: ResourceFilters) {
     queryFn: () => ResourceService.listResources(filters),
   })
 }
-
-export function useResource(id: string) {
-  return useQuery({
-    queryKey: ['resource', id],
-    queryFn: () => ResourceService.getResource(id),
-    enabled: !!id,
-  })
-}
-
-export function useResourceCategories() {
-  return useQuery({
-    queryKey: ['resource-categories'],
-    queryFn: () => ResourceService.getCategories(),
-    staleTime: 30 * 60 * 1000, // 30 minutes
-  })
-}
