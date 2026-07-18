@@ -2,6 +2,12 @@ import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Surface container for grouped content. Compose with CardHeader, CardTitle,
+ * CardDescription, CardAction, CardContent and CardFooter.
+ *
+ * @category data-display
+ */
 function Card({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div

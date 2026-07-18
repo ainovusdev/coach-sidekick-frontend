@@ -6,6 +6,12 @@ import { Check, ChevronDown, ChevronUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Select dropdown built on Radix Select. Compose with SelectTrigger, SelectValue,
+ * SelectContent, SelectGroup, SelectLabel and SelectItem.
+ *
+ * @category forms
+ */
 const Select = SelectPrimitive.Root
 
 const SelectGroup = SelectPrimitive.Group

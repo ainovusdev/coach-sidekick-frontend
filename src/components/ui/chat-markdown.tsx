@@ -7,6 +7,11 @@ interface ChatMarkdownProps {
   content: string
 }
 
+/**
+ * Markdown renderer for chat/AI output (react-markdown + GFM) with DS typography.
+ *
+ * @category data-display
+ */
 export function ChatMarkdown({ content }: ChatMarkdownProps) {
   return (
     <div className="text-sm">

@@ -7,6 +7,13 @@ import { X } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Slide-in panel (drawer) built on Radix Dialog. side: top, right, bottom or left.
+ * Compose with SheetTrigger, SheetContent, SheetHeader, SheetFooter, SheetTitle
+ * and SheetDescription.
+ *
+ * @category overlays
+ */
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger

@@ -61,6 +61,12 @@ interface AIProviderSelectorProps {
   className?: string
 }
 
+/**
+ * Selector for the app's AI provider (OpenAI / Gemini / Claude), rendered as a
+ * compact dropdown or a radio-card list with provider icons, model lists and badges.
+ *
+ * @category forms
+ */
 export function AIProviderSelector({
   value,
   onChange,

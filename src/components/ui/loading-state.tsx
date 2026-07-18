@@ -9,6 +9,11 @@ interface LoadingStateProps {
   variant?: 'default' | 'gradient'
 }
 
+/**
+ * Full-area centered loading block: LoadingSpinner plus a message. Sizes: sm, md, lg.
+ *
+ * @category feedback
+ */
 export function LoadingState({
   message = 'Loading...',
   size = 'md',

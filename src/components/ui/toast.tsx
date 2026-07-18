@@ -8,6 +8,12 @@ interface ToastProps {
   duration?: number
 }
 
+/**
+ * Fixed-position toast notification with success and error styles; auto-dismisses
+ * after a configurable duration. Pair with the useToast hook.
+ *
+ * @category feedback
+ */
 export function Toast({ message, type, onClose, duration = 3000 }: ToastProps) {
   useEffect(() => {
     const timer = setTimeout(() => {
