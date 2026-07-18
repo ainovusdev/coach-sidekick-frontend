@@ -1,7 +1,6 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import {
   adminService,
-  AdminClient,
   AdminClientListResponse,
   AdminClientStats,
 } from '@/services/admin-service'
@@ -41,31 +40,6 @@ export function useAdminClients(
     queryKey: queryKeys.admin.clients.list(params),
     queryFn: () => adminService.getAdminClients(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
-    ...options,
-  })
-}
-
-/**
- * Fetch single admin client by ID
- *
- * @param clientId - The client ID to fetch
- * @param options - Additional React Query options
- * @returns Query result with client data
- *
- * @example
- * ```tsx
- * const { data: client, isLoading } = useAdminClient(clientId)
- * ```
- */
-export function useAdminClient(
-  clientId: string,
-  options?: Omit<UseQueryOptions<AdminClient, Error>, 'queryKey' | 'queryFn'>,
-) {
-  return useQuery({
-    queryKey: queryKeys.admin.clients.detail(clientId),
-    queryFn: () => adminService.getAdminClient(clientId),
-    enabled: !!clientId,
-    staleTime: 5 * 60 * 1000,
     ...options,
   })
 }

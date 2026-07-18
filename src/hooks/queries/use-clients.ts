@@ -113,31 +113,3 @@ export function useClientSessions(
     ...options,
   })
 }
-
-/**
- * Hook to fetch client statistics
- *
- * This would be implemented when we have a stats endpoint
- * For now, it's a placeholder showing the pattern
- *
- * @param clientId - The client ID
- *
- * @example
- * const { data: stats } = useClientStats(clientId)
- */
-export function useClientStats(
-  clientId: string | undefined,
-  options?: Omit<UseQueryOptions<any>, 'queryKey' | 'queryFn' | 'enabled'>,
-) {
-  return useQuery({
-    queryKey: queryKeys.clients.stats(clientId!),
-    queryFn: async () => {
-      // TODO: Implement stats endpoint or calculate from sessions
-      // For now, return null
-      return null
-    },
-    enabled: !!clientId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    ...options,
-  })
-}

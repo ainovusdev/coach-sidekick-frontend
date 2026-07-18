@@ -51,30 +51,3 @@ export function useSprint(
     ...options,
   })
 }
-
-/**
- * Hook to fetch current active sprint for a client
- *
- * Useful for dashboard displays showing current sprint progress
- *
- * @param clientId - The client ID
- * @param options - Additional react-query options
- *
- * @example
- * const { data: currentSprint } = useCurrentSprint(clientId)
- */
-export function useCurrentSprint(
-  clientId: string | undefined,
-  options?: Omit<
-    UseQueryOptions<SprintDetail | null>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >,
-) {
-  return useQuery({
-    queryKey: [...queryKeys.sprints.all, 'current', clientId],
-    queryFn: () => SprintService.getCurrentSprint(clientId!),
-    enabled: !!clientId,
-    staleTime: 3 * 60 * 1000, // 3 minutes (more dynamic for active sprints)
-    ...options,
-  })
-}

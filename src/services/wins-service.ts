@@ -56,16 +56,6 @@ export class WinsService {
   }
 
   /**
-   * Get a single win by ID
-   */
-  static async getWin(winId: string, sessionId: string): Promise<SessionWin> {
-    const response = await ApiClient.get(
-      `${BACKEND_URL}/wins/${winId}?session_id=${sessionId}`,
-    )
-    return response
-  }
-
-  /**
    * Update a win
    */
   static async updateWin(

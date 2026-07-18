@@ -78,37 +78,3 @@ export function useUpdateSession() {
     },
   })
 }
-
-/**
- * Hook to delete a session
- *
- * @example
- * const deleteSession = useDeleteSession()
- * await deleteSession.mutateAsync('session-id-123')
- */
-export function useDeleteSession() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (sessionId: string) => SessionService.deleteSession(sessionId),
-
-    onSuccess: (_data, sessionId) => {
-      // Invalidate all session queries
-      queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all })
-      // Remove the specific session from cache
-      queryClient.removeQueries({
-        queryKey: queryKeys.sessions.detail(sessionId),
-      })
-
-      toast.success('Session deleted', {
-        description: 'The session has been removed',
-      })
-    },
-
-    onError: err => {
-      toast.error('Failed to delete session', {
-        description: err instanceof Error ? err.message : 'Please try again',
-      })
-    },
-  })
-}

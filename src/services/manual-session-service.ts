@@ -96,30 +96,4 @@ export class ManualSessionService {
     )
     return response
   }
-
-  static subscribeToTranscriptionProgress(
-    sessionId: string,
-    onProgress: (status: string, progress: number) => void,
-  ) {
-    // This will be implemented with WebSocket connection
-    // For now, we'll poll the status endpoint
-    const interval = setInterval(async () => {
-      try {
-        const status = await this.getTranscriptionStatus(sessionId)
-        onProgress(status.transcription_status, status.transcription_progress)
-
-        if (
-          status.transcription_status === 'completed' ||
-          status.transcription_status === 'failed'
-        ) {
-          clearInterval(interval)
-        }
-      } catch (error) {
-        console.error('Failed to get transcription status:', error)
-      }
-    }, 2000) // Poll every 2 seconds
-
-    // Return cleanup function
-    return () => clearInterval(interval)
-  }
 }

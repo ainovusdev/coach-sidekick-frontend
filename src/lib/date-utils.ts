@@ -7,21 +7,19 @@
  * Two distinct formatting conventions:
  * - INSTANT fields (timestamps with a meaningful time-of-day: scheduled_for,
  *   created_at, started_at, session_date, …) are rendered in the user's
- *   timezone via `formatDate` / `formatTime` / `formatDateTime`. The target
- *   zone resolves to the saved coach timezone (set once at app root via
- *   `setActiveTimeZone`) and falls back to the browser's zone.
+ *   timezone via `formatDate` / `formatTime`. The target zone resolves to the
+ *   saved coach timezone (set once at app root via `setActiveTimeZone`) and
+ *   falls back to the browser's zone.
  * - DATE-ONLY fields (a calendar day with no time: commitment/sprint
  *   target_date, start_date, end_date, daily-metric date) must be rendered in
- *   UTC via `formatDateOnly` / `formatTimeOnly` to avoid timezone-induced day
- *   shifts (e.g. "2026-06-15" displaying as Jun 14 in a negative-offset zone).
+ *   UTC via `formatDateOnly` to avoid timezone-induced day shifts (e.g.
+ *   "2026-06-15" displaying as Jun 14 in a negative-offset zone).
  */
 
 import {
   formatDistanceToNow as fnsFormatDistanceToNow,
   format as fnsFormat,
   isPast as fnsIsPast,
-  isAfter as fnsIsAfter,
-  isBefore as fnsIsBefore,
 } from 'date-fns'
 import { formatInTimeZone } from 'date-fns-tz'
 
@@ -177,24 +175,6 @@ export function formatTime(
 }
 
 /**
- * Format an INSTANT with date and time in the user's timezone
- * (e.g., "Jan 15, 2024 at 10:30 AM").
- *
- * @param dateString - Date string from the API
- * @param tz - Optional explicit IANA zone; defaults to the resolved user zone
- * @returns Formatted date and time string in the resolved timezone
- */
-export function formatDateTime(
-  dateString: string | null | undefined,
-  tz?: string | null,
-): string {
-  const date = parseDate(dateString)
-  if (!date) return 'Unknown'
-
-  return formatInTimeZone(date, resolveTimeZone(tz), "PPP 'at' p")
-}
-
-/**
  * Format a DATE-ONLY value in UTC (e.g., "Jan 15, 2024").
  * Prevents timezone-induced day shifts for calendar-day values that have no
  * meaningful time-of-day (commitment/sprint dates, daily-metric dates).
@@ -214,20 +194,6 @@ export function formatDateOnly(
 }
 
 /**
- * Format a DATE-ONLY value's time portion in UTC (e.g., "12:00 AM").
- * Rarely needed; provided for parity with `formatDateOnly`.
- *
- * @param dateString - Date string from the API
- * @returns Formatted time string rendered in UTC
- */
-export function formatTimeOnly(dateString: string | null | undefined): string {
-  const date = parseDate(dateString)
-  if (!date) return 'Unknown'
-
-  return fnsFormat(toUTCLocal(date), 'p')
-}
-
-/**
  * Create a UTC ISO string for the current time.
  * Use this when creating optimistic updates.
  *
@@ -235,16 +201,6 @@ export function formatTimeOnly(dateString: string | null | undefined): string {
  */
 export function nowUTC(): string {
   return new Date().toISOString()
-}
-
-/**
- * Create a UTC ISO string for a specific Date object.
- *
- * @param date - Date object to convert
- * @returns ISO string with Z suffix
- */
-export function toUTC(date: Date): string {
-  return date.toISOString()
 }
 
 /**
@@ -257,38 +213,4 @@ export function isPastDate(dateString: string | null | undefined): boolean {
   const date = parseDate(dateString)
   if (!date) return false
   return fnsIsPast(date)
-}
-
-/**
- * Check if date A is after date B.
- *
- * @param dateA - First date string
- * @param dateB - Second date string
- * @returns true if dateA is after dateB
- */
-export function isAfterDate(
-  dateA: string | null | undefined,
-  dateB: string | null | undefined,
-): boolean {
-  const a = parseDate(dateA)
-  const b = parseDate(dateB)
-  if (!a || !b) return false
-  return fnsIsAfter(a, b)
-}
-
-/**
- * Check if date A is before date B.
- *
- * @param dateA - First date string
- * @param dateB - Second date string
- * @returns true if dateA is before dateB
- */
-export function isBeforeDate(
-  dateA: string | null | undefined,
-  dateB: string | null | undefined,
-): boolean {
-  const a = parseDate(dateA)
-  const b = parseDate(dateB)
-  if (!a || !b) return false
-  return fnsIsBefore(a, b)
 }

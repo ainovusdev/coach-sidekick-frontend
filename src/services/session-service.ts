@@ -122,13 +122,6 @@ export class SessionService {
     }
   }
 
-  static async getSession(sessionId: string): Promise<CoachingSession> {
-    const response: BackendSession = await ApiClient.get(
-      `${BACKEND_URL}/sessions/${sessionId}`,
-    )
-    return transformSession(response)
-  }
-
   static async getSessionByBotId(botId: string): Promise<CoachingSession> {
     const response: BackendSession = await ApiClient.get(
       `${BACKEND_URL}/sessions/by-bot/${botId}`,

@@ -8,7 +8,6 @@ import {
   Commitment,
   CommitmentAttachment,
   CommitmentUpdateCreate,
-  CommitmentListResponse,
   Milestone,
   MilestoneCreate,
 } from '@/types/commitment'
@@ -16,14 +15,6 @@ import authService from '@/services/auth-service'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-
-export interface ClientCommitmentCreate {
-  title: string
-  description?: string
-  type?: 'commitment' | 'habit' | 'mp_outcome' | 'learning' | 'sprint'
-  target_date: string // Required
-  target_ids?: string[]
-}
 
 export interface ClientCommitmentUpdate {
   title?: string
@@ -35,52 +26,6 @@ export interface ClientCommitmentUpdate {
 }
 
 export class ClientCommitmentService {
-  /**
-   * List commitments for the current client
-   */
-  static async listCommitments(params?: {
-    status?: string
-    include_coach_created?: boolean
-  }): Promise<CommitmentListResponse> {
-    const searchParams = new URLSearchParams()
-
-    if (params?.status) searchParams.append('status', params.status)
-    if (params?.include_coach_created !== undefined) {
-      searchParams.append(
-        'include_coach_created',
-        String(params.include_coach_created),
-      )
-    }
-
-    const queryString = searchParams.toString()
-    const url = `${BACKEND_URL}/client-portal/commitments${queryString ? `?${queryString}` : ''}`
-
-    const response = await ApiClient.get(url)
-
-    // Backend returns array directly, wrap it in expected format
-    if (Array.isArray(response)) {
-      return {
-        commitments: response,
-        total: response.length,
-      }
-    }
-
-    return response
-  }
-
-  /**
-   * Create a new commitment (client self-created)
-   */
-  static async createCommitment(
-    data: ClientCommitmentCreate,
-  ): Promise<Commitment> {
-    const response = await ApiClient.post(
-      `${BACKEND_URL}/client-portal/commitments`,
-      data,
-    )
-    return response
-  }
-
   /**
    * Update an existing commitment
    */
@@ -118,16 +63,6 @@ export class ClientCommitmentService {
     )
   }
 
-  /**
-   * Mark commitment as complete
-   */
-  static async completeCommitment(commitmentId: string): Promise<Commitment> {
-    return this.updateCommitment(commitmentId, {
-      status: 'completed',
-      progress_percentage: 100,
-    })
-  }
-
   static async getCommitment(commitmentId: string): Promise<Commitment> {
     return ApiClient.get(
       `${BACKEND_URL}/client-portal/commitments/${commitmentId}`,
@@ -161,13 +96,6 @@ export class ClientCommitmentService {
   ): Promise<void> {
     await ApiClient.delete(
       `${BACKEND_URL}/client-portal/commitments/${commitmentId}/milestones/${milestoneId}`,
-    )
-  }
-
-  static async completeMilestone(milestoneId: string): Promise<Milestone> {
-    return ApiClient.post(
-      `${BACKEND_URL}/client-portal/commitments/milestones/${milestoneId}/complete`,
-      {},
     )
   }
 

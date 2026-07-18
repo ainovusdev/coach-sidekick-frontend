@@ -90,17 +90,6 @@ class ChatService {
       throw error
     }
   }
-
-  async clearClientIndex(clientId: string): Promise<void> {
-    try {
-      await axios.delete(`${API_URL}/chat/clients/${clientId}/chat/index`, {
-        headers: this.getAuthHeaders(),
-      })
-    } catch (error) {
-      console.error('Failed to clear client index:', error)
-      throw error
-    }
-  }
 }
 
 export const chatService = new ChatService()

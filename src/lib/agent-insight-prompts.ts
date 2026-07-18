@@ -112,22 +112,3 @@ export function clientNextSessionPrepPrompt({
     'Keep it warm and under ~120 words.',
   ].join(' ')
 }
-
-/**
- * Client-facing "Your progress" card. Currently unused (the card was removed
- * from the portal) but kept for easy re-add: a sourced, structured read over
- * the client's own goals, recent sessions, and open/completed commitments.
- */
-export function clientProgressPrompt({ dateISO }: { dateISO: string }): string {
-  return [
-    `Today is ${dateISO}. Give me a warm, honest read on how my coaching is going.`,
-    'Pull from my own data: my goals and how they are trending, what we focused on in my most recent sessions, the commitments I made (which I have completed and which are still open), and my next scheduled session if there is one. Weight my most recent session and anything coming up most heavily.',
-    'Respond in exactly these three short markdown sections, speaking to me directly as "you":',
-    '**Your momentum** — one or two genuine signs of progress toward my goals, grounded in something specific I did or said recently.',
-    '**Keep going on** — 1–2 open commitments or in-progress things to stay with (encouraging, not nagging).',
-    '**Before next time** — one helpful thing to reflect on or notice before my next session.',
-    'Be specific and real — celebrate actual progress, but do not invent wins. If there is genuinely little to go on yet, say so kindly and point me at one small next step.',
-    BASE_STYLE,
-    'Keep the whole thing warm and under ~130 words.',
-  ].join(' ')
-}

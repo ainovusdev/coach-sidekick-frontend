@@ -10,9 +10,7 @@ import type {
   SharedResourceListResponse,
   SharedResourceUpdate,
   ResourceShareRequest,
-  ResourceShareListResponse,
   ResourceFilters,
-  CategoryOption,
 } from '@/types/resource'
 
 const BACKEND_URL =
@@ -112,12 +110,6 @@ export class ResourceService {
     return ApiClient.post(`${BACKEND_URL}/resources/${id}/share`, data)
   }
 
-  static async getResourceShares(
-    id: string,
-  ): Promise<ResourceShareListResponse> {
-    return ApiClient.get(`${BACKEND_URL}/resources/${id}/shares`)
-  }
-
   static async unshareResource(
     resourceId: string,
     shareId: string,
@@ -125,9 +117,5 @@ export class ResourceService {
     return ApiClient.delete(
       `${BACKEND_URL}/resources/${resourceId}/shares/${shareId}`,
     )
-  }
-
-  static async getCategories(): Promise<CategoryOption[]> {
-    return ApiClient.get(`${BACKEND_URL}/resources/categories`)
   }
 }

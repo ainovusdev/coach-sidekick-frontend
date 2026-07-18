@@ -33,15 +33,6 @@ export interface AdminClientListResponse {
   per_page: number
 }
 
-export interface AdminClientListParams {
-  skip?: number
-  limit?: number
-  search?: string
-  coach_id?: string
-  program_id?: string
-  tags?: string
-}
-
 export interface AdminClientUpdate {
   name?: string
   email?: string | null
@@ -56,22 +47,10 @@ export interface BulkAssignCoachRequest {
   coach_id: string
 }
 
-export interface BulkAssignCoachResponse {
-  success_count: number
-  failed_count: number
-  errors: string[]
-}
-
 export interface BulkAssignProgramRequest {
   client_ids: string[]
   program_id: string
   action: 'add' | 'remove'
-}
-
-export interface BulkAssignProgramResponse {
-  success_count: number
-  failed_count: number
-  errors: string[]
 }
 
 export interface CSVImportRow {

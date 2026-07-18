@@ -63,20 +63,6 @@ export interface Task {
   client_name?: string
 }
 
-export interface TaskComment {
-  id: string
-  task_id: string
-  user_id: string
-  content: string
-  is_edited: boolean
-  edited_at: string | null
-  attachments: any[]
-  mentions: string[]
-  created_at: string
-  user_name?: string
-  user_role?: string
-}
-
 export interface ClientGoal {
   id: string
   title: string
@@ -126,14 +112,6 @@ export interface ClientPersona {
   }
 }
 
-export interface TimelineItem {
-  type: 'session' | 'task_completed' | 'goal_achieved'
-  date: string
-  title: string
-  description: string
-  data: any
-}
-
 export interface Notification {
   id: string
   type: string
@@ -151,95 +129,9 @@ class ClientDashboardAPI {
     return response.data
   }
 
-  // Sessions
-  async getSessions(
-    skip = 0,
-    limit = 20,
-    status?: string,
-  ): Promise<SessionSummary[]> {
-    const params = new URLSearchParams({
-      skip: skip.toString(),
-      limit: limit.toString(),
-    })
-    if (status) params.append('status', status)
-
-    const response = await axiosInstance.get(`/client/sessions?${params}`)
-    return response.data
-  }
-
-  async getSessionDetails(sessionId: string) {
-    const response = await axiosInstance.get(`/client/sessions/${sessionId}`)
-    return response.data
-  }
-
-  // Tasks
-  async getTasks(filters?: {
-    status?: string
-    priority?: string
-    skip?: number
-    limit?: number
-  }): Promise<Task[]> {
-    const params = new URLSearchParams()
-    if (filters?.status) params.append('status', filters.status)
-    if (filters?.priority) params.append('priority', filters.priority)
-    if (filters?.skip !== undefined)
-      params.append('skip', filters.skip.toString())
-    if (filters?.limit !== undefined)
-      params.append('limit', filters.limit.toString())
-
-    const response = await axiosInstance.get(`/tasks?${params}`)
-    return response.data
-  }
-
-  async getTask(taskId: string): Promise<Task> {
-    const response = await axiosInstance.get(`/tasks/${taskId}`)
-    return response.data
-  }
-
-  async updateTaskStatus(
-    taskId: string,
-    status: 'pending' | 'in_progress' | 'completed' | 'cancelled',
-  ): Promise<Task> {
-    const response = await axiosInstance.patch(`/tasks/${taskId}/status`, {
-      status,
-    })
-    return response.data
-  }
-
-  async addTaskComment(
-    taskId: string,
-    content: string,
-    mentions: string[] = [],
-  ): Promise<TaskComment> {
-    const response = await axiosInstance.post(`/tasks/${taskId}/comments`, {
-      content,
-      mentions,
-      attachments: [],
-    })
-    return response.data
-  }
-
-  async getTaskComments(taskId: string): Promise<TaskComment[]> {
-    const response = await axiosInstance.get(`/tasks/${taskId}/comments`)
-    return response.data
-  }
-
   // Persona
   async getPersona(): Promise<ClientPersona | { message: string }> {
     const response = await axiosInstance.get('/client/persona')
-    return response.data
-  }
-
-  // Timeline
-  async getTimeline(
-    startDate?: string,
-    endDate?: string,
-  ): Promise<TimelineItem[]> {
-    const params = new URLSearchParams()
-    if (startDate) params.append('start_date', startDate)
-    if (endDate) params.append('end_date', endDate)
-
-    const response = await axiosInstance.get(`/client/timeline?${params}`)
     return response.data
   }
 
@@ -263,20 +155,6 @@ class ClientDashboardAPI {
       `/client-portal/commitments?${params}`,
     )
     return response.data
-  }
-
-  // Notifications
-  async getNotifications(limit = 10): Promise<Notification[]> {
-    const response = await axiosInstance.get(`/notifications?limit=${limit}`)
-    return response.data
-  }
-
-  async markNotificationRead(notificationId: string): Promise<void> {
-    await axiosInstance.patch(`/notifications/${notificationId}/read`)
-  }
-
-  async markAllNotificationsRead(): Promise<void> {
-    await axiosInstance.post('/notifications/mark-all-read')
   }
 }
 
