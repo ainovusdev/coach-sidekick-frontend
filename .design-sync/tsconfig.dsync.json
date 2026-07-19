@@ -1,0 +1,12 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "baseUrl": "..",
+    "paths": {
+      "@/contexts/permission-context": [
+        "./.design-sync/shims/permission-context.tsx"
+      ],
+      "@/*": ["./src/*"]
+    }
+  }
+}

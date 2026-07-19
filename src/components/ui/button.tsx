@@ -35,6 +35,12 @@ const buttonVariants = cva(
   },
 )
 
+/**
+ * Primary action control. Variants: default, destructive, outline, secondary, ghost,
+ * link. Sizes: default, sm, lg, icon. Supports asChild to render links as buttons.
+ *
+ * @category actions
+ */
 function Button({
   className,
   variant,

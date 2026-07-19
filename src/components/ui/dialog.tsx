@@ -3,6 +3,12 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Modal dialog built on Radix Dialog. Compose with DialogTrigger, DialogContent,
+ * DialogHeader, DialogFooter, DialogTitle and DialogDescription.
+ *
+ * @category overlays
+ */
 const Dialog = DialogPrimitive.Root
 
 const DialogTrigger = DialogPrimitive.Trigger

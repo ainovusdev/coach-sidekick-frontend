@@ -5,6 +5,12 @@ import { useEffect, useState } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+/**
+ * Light/dark theme switcher backed by next-themes; renders a ghost icon Button
+ * with sun/moon icons.
+ *
+ * @category actions
+ */
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)

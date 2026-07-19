@@ -1,0 +1,27 @@
+/* Geist Sans + Geist Mono (variable) — the app loads these via next/font at
+   runtime, so the design-system bundle ships its own @font-face copies.
+   Font files from the official `geist` npm package (OFL license alongside). */
+
+@font-face {
+  font-family: 'Geist';
+  src: url('./Geist-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('./GeistMono-Variable.woff2') format('woff2-variations');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* next/font exposes the families through these variables; globals.css maps
+   --font-sans/--font-mono onto them. Define them here so the shipped CSS
+   resolves without the Next runtime. */
+:root {
+  --font-geist-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-geist-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}

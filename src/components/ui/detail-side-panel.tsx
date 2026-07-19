@@ -34,6 +34,13 @@ interface DetailSidePanelProps {
   children: React.ReactNode
 }
 
+/**
+ * Right-hand slide-in drawer for record details with eyebrow, title, status badge and
+ * action slots; closes on Escape. Compose with DetailSection, DetailRow, StatusBadge,
+ * PanelActions, EmptyHint, LinkedItem and CommitmentsSection.
+ *
+ * @category overlays
+ */
 export function DetailSidePanel({
   onClose,
   title,
