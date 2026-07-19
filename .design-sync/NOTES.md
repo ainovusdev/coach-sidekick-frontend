@@ -106,6 +106,17 @@ explicit barrel entry.
 - (none — final validate was warning-free; the 4 pre-authoring [RENDER_BLANK]
   flags disappeared once previews were authored)
 
+## Hand-authored extras (off-pipeline)
+
+- The PROJECT file `components/overview/Overview/Overview.html` is a
+  hand-authored composite card (repo source: `.design-sync/extras/Overview.html`)
+  that iframes all 40 per-component card pages into one "all components" canvas
+  (@dsCard group "overview"). It is deliberately absent from \_ds_sync.json /
+  componentSrcMap, so resync diffs neither re-upload nor orphan-delete it.
+  After adding/renaming/regrouping/removing a component, update the GROUPS
+  table in the extras file (name, group dir, viewport for single-mode cards)
+  and re-upload that single path via DesignSync write_files.
+
 ## Re-sync risks
 
 - `.design-sync/.cache/compiled.css` is generated: a fresh clone must run
