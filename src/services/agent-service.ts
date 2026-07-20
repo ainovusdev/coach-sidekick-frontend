@@ -82,7 +82,7 @@ export async function listAgentThreads(
   scope: AgentApiScope = 'admin',
 ): Promise<AgentThreadListResponse> {
   const res = await fetch(`${agentBase(scope)}/threads`, {
-    headers: authHeader(),
+    headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
     throw new Error(
@@ -97,7 +97,7 @@ export async function getAgentThread(
   scope: AgentApiScope = 'admin',
 ): Promise<AgentThreadDetail> {
   const res = await fetch(`${agentBase(scope)}/threads/${threadId}`, {
-    headers: authHeader(),
+    headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
     throw new Error(
@@ -113,7 +113,7 @@ export async function deleteAgentThread(
 ): Promise<void> {
   const res = await fetch(`${agentBase(scope)}/threads/${threadId}`, {
     method: 'DELETE',
-    headers: authHeader(),
+    headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok && res.status !== 204) {
     throw new Error(
@@ -126,7 +126,7 @@ export async function fetchModels(
   scope: AgentApiScope = 'admin',
 ): Promise<ModelsResponse> {
   const res = await fetch(`${agentBase(scope)}/models`, {
-    headers: authHeader(),
+    headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
     throw new Error(`Failed to load models: ${res.status}`)
@@ -213,6 +213,7 @@ export async function* streamAgent({
     method: 'POST',
     headers: {
       ...authHeader(),
+      ...viewAsHeaders(),
       'Content-Type': 'application/json',
       Accept: 'text/event-stream',
     },
