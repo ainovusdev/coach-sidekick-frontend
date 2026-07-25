@@ -24,6 +24,7 @@ import { Users, BarChart3, Brain, Sparkles } from 'lucide-react'
 interface InvitationInfo {
   valid: boolean
   email: string
+  role?: 'coach' | 'trainee'
   invited_by_name: string | null
   expires_at: string
   existing_user: boolean
@@ -243,8 +244,16 @@ function CoachSignupContent() {
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               {invitationInfo.invited_by_name
-                ? `You've been invited by ${invitationInfo.invited_by_name}`
-                : "You've been invited to join as a coach"}
+                ? `You've been invited by ${invitationInfo.invited_by_name}${
+                    invitationInfo.role === 'trainee'
+                      ? ' as a trainee coach'
+                      : ''
+                  }`
+                : `You've been invited to join as a ${
+                    invitationInfo.role === 'trainee'
+                      ? 'trainee coach'
+                      : 'coach'
+                  }`}
             </p>
             {invitationInfo.existing_user && invitationInfo.existing_roles && (
               <div className="mt-3 p-3 bg-ds-accent-bg border border-ds-accent rounded-lg">
@@ -256,7 +265,9 @@ function CoachSignupContent() {
                   {invitationInfo.existing_roles
                     .map(r => r.replace('_', ' '))
                     .join(', ')}
-                  . This will add coach access to your existing account.
+                  . This will add{' '}
+                  {invitationInfo.role === 'trainee' ? 'trainee' : 'coach'}{' '}
+                  access to your existing account.
                 </p>
               </div>
             )}

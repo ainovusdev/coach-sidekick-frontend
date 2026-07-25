@@ -329,9 +329,13 @@ class AdminService {
   }
 
   // Coach Invitation Management
-  async sendCoachInvitation(email: string): Promise<CoachInvitation> {
+  async sendCoachInvitation(
+    email: string,
+    role: 'coach' | 'trainee' = 'coach',
+  ): Promise<CoachInvitation> {
     const response = await axiosInstance.post('/admin/coach-invitations', {
       email,
+      role,
     })
     return response.data
   }
@@ -420,6 +424,7 @@ export interface MergeResult {
 export interface CoachInvitation {
   id: string
   email: string
+  role: 'coach' | 'trainee'
   invited_by_name: string | null
   expires_at: string
   created_at: string

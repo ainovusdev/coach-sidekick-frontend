@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { toast } from 'sonner'
 import {
@@ -38,9 +39,12 @@ export function CoachInvitationModal({
   onInvitationSent,
 }: CoachInvitationModalProps) {
   const [email, setEmail] = useState('')
+  const [role, setRole] = useState<'coach' | 'trainee'>('coach')
   const [isSending, setIsSending] = useState(false)
   const [invitationSent, setInvitationSent] = useState(false)
   const [error, setError] = useState('')
+
+  const roleLabel = role === 'trainee' ? 'trainee' : 'coach'
 
   const handleSendInvitation = async () => {
     if (!email) {
@@ -59,14 +63,19 @@ export function CoachInvitationModal({
     setError('')
 
     try {
-      await adminService.sendCoachInvitation(email)
+      await adminService.sendCoachInvitation(email, role)
 
       setInvitationSent(true)
 
-      toast.success('Coach Invitation Sent!', {
-        description: `${email} will receive an email with instructions to create their account.`,
-        duration: 5000,
-      })
+      toast.success(
+        role === 'trainee'
+          ? 'Trainee Invitation Sent!'
+          : 'Coach Invitation Sent!',
+        {
+          description: `${email} will receive an email with instructions to create their account.`,
+          duration: 5000,
+        },
+      )
 
       // Call callback if provided
       if (onInvitationSent) {
@@ -95,6 +104,7 @@ export function CoachInvitationModal({
 
   const handleClose = () => {
     setEmail('')
+    setRole('coach')
     setError('')
     setInvitationSent(false)
     onClose()
@@ -106,8 +116,8 @@ export function CoachInvitationModal({
         <DialogHeader>
           <DialogTitle>Invite New Coach</DialogTitle>
           <DialogDescription>
-            Send an invitation to a new coach to join the platform. They&apos;ll
-            receive an email with a secure link to create their account.
+            Send an invitation to join the platform. They&apos;ll receive an
+            email with a secure link to create their account.
           </DialogDescription>
         </DialogHeader>
 
@@ -133,6 +143,51 @@ export function CoachInvitationModal({
                 </p>
               </div>
 
+              <div className="space-y-2">
+                <Label>Role</Label>
+                <RadioGroup
+                  value={role}
+                  onValueChange={value => setRole(value as 'coach' | 'trainee')}
+                  disabled={isSending}
+                  className="gap-2"
+                >
+                  <label
+                    htmlFor="role-coach"
+                    className="flex items-start gap-3 rounded-lg border p-3 cursor-pointer has-[[data-state=checked]]:border-ink has-[[data-state=checked]]:bg-paper"
+                  >
+                    <RadioGroupItem
+                      value="coach"
+                      id="role-coach"
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium text-ink">Coach</p>
+                      <p className="text-xs text-muted-foreground">
+                        Full access, including AI coaching suggestions during
+                        live meetings
+                      </p>
+                    </div>
+                  </label>
+                  <label
+                    htmlFor="role-trainee"
+                    className="flex items-start gap-3 rounded-lg border p-3 cursor-pointer has-[[data-state=checked]]:border-ink has-[[data-state=checked]]:bg-paper"
+                  >
+                    <RadioGroupItem
+                      value="trainee"
+                      id="role-trainee"
+                      className="mt-0.5"
+                    />
+                    <div className="space-y-0.5">
+                      <p className="text-sm font-medium text-ink">Trainee</p>
+                      <p className="text-xs text-muted-foreground">
+                        Coach in training — same access as a coach, but AI
+                        suggestions are hidden during live meetings
+                      </p>
+                    </div>
+                  </label>
+                </RadioGroup>
+              </div>
+
               {error && (
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
@@ -142,7 +197,8 @@ export function CoachInvitationModal({
 
               <div className="rounded-lg bg-paper p-4 border">
                 <h4 className="text-sm font-medium text-ink mb-3">
-                  New coaches will have access to:
+                  New {roleLabel === 'trainee' ? 'trainees' : 'coaches'} will
+                  have access to:
                 </h4>
                 <div className="grid grid-cols-2 gap-3">
                   <div className="flex items-center gap-2 text-sm text-ink-3">
@@ -168,8 +224,8 @@ export function CoachInvitationModal({
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
                   The invitation link will be valid for <strong>7 days</strong>.
-                  If the email is already registered, the coach role will be
-                  added to their existing account.
+                  If the email is already registered, the {roleLabel} role will
+                  be added to their existing account.
                 </AlertDescription>
               </Alert>
             </div>
@@ -211,8 +267,8 @@ export function CoachInvitationModal({
                   Sent to: <span className="text-ink">{email}</span>
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  The new coach will receive an email with instructions to set
-                  up their account.
+                  The new {roleLabel} will receive an email with instructions to
+                  set up their account.
                 </p>
               </div>
 
@@ -236,7 +292,9 @@ export function CoachInvitationModal({
                   <li className="flex items-start">
                     <span className="mr-2">3.</span>
                     <span>
-                      Once registered, they&apos;ll have full coach access
+                      Once registered, they&apos;ll have{' '}
+                      {roleLabel === 'trainee' ? 'trainee' : 'full coach'}{' '}
+                      access
                     </span>
                   </li>
                   <li className="flex items-start">
