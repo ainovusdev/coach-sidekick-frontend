@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -15,6 +15,7 @@ import {
   StickyNote,
   FileText,
   Loader2,
+  Paperclip,
   Plus,
   Lock,
   Users,
@@ -23,6 +24,12 @@ import {
 } from 'lucide-react'
 import { SessionNotesService } from '@/services/session-notes-service'
 import { SessionNote } from '@/types/session-note'
+import {
+  ATTACHMENT_ACCEPT,
+  NoteAttachmentsStrip,
+  PendingFilesList,
+  validateAttachment,
+} from '@/components/session-notes/note-attachments'
 import { formatRelativeTime } from '@/lib/date-utils'
 import { htmlToPlainText } from '@/components/ui/rich-text-editor'
 import { toast } from 'sonner'
@@ -48,6 +55,8 @@ export function SessionNotesCompact({
   )
   const [isCreating, setIsCreating] = useState(false)
   const [copiedNoteId, setCopiedNoteId] = useState<string | null>(null)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     fetchNotes()
@@ -69,20 +78,47 @@ export function SessionNotesCompact({
     }
   }
 
+  const handleFilesSelected = (fileList: FileList | null) => {
+    if (!fileList) return
+    const valid: File[] = []
+    for (const file of Array.from(fileList)) {
+      const error = validateAttachment(file)
+      if (error) {
+        toast.error(error)
+      } else {
+        valid.push(file)
+      }
+    }
+    if (valid.length) setPendingFiles(prev => [...prev, ...valid])
+  }
+
   const handleCreateNote = async () => {
     if (!newContent.trim()) return
     setIsCreating(true)
     try {
-      await SessionNotesService.createNote(sessionId, {
+      // Attachments need a note_id, so the note is created first and queued
+      // files are uploaded against it.
+      const created = await SessionNotesService.createNote(sessionId, {
         title: `Note - ${new Date().toLocaleTimeString()}`,
         content: newContent.trim(),
         note_type: newNoteType,
         ...(clientId ? { client_id: clientId } : {}),
       })
+      for (const file of pendingFiles) {
+        try {
+          await SessionNotesService.uploadAttachment(created.id, file)
+        } catch (uploadError) {
+          console.error('Failed to upload attachment:', uploadError)
+          toast.error(
+            `The note was saved, but ${file.name} could not be uploaded`,
+          )
+        }
+      }
       toast.success('Note added')
       setShowCreateDialog(false)
       setNewContent('')
       setNewNoteType('coach_private')
+      setPendingFiles([])
       fetchNotes()
     } catch (error) {
       console.error('Failed to create note:', error)
@@ -188,6 +224,10 @@ export function SessionNotesCompact({
                   />
                 )}
 
+                {note.attachments && note.attachments.length > 0 && (
+                  <NoteAttachmentsStrip attachments={note.attachments} />
+                )}
+
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-app-secondary">
                     {formatRelativeTime(note.created_at)}
@@ -225,6 +265,7 @@ export function SessionNotesCompact({
             setShowCreateDialog(false)
             setNewContent('')
             setNewNoteType('coach_private')
+            setPendingFiles([])
           }
         }}
       >
@@ -274,6 +315,33 @@ export function SessionNotesCompact({
                 placeholder="Write your note..."
                 rows={4}
               />
+              <PendingFilesList
+                files={pendingFiles}
+                onRemove={index =>
+                  setPendingFiles(prev => prev.filter((_, i) => i !== index))
+                }
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept={ATTACHMENT_ACCEPT}
+                className="hidden"
+                onChange={e => {
+                  handleFilesSelected(e.target.files)
+                  e.target.value = ''
+                }}
+              />
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isCreating}
+                className="mt-2 text-ink-3 hover:text-ink"
+              >
+                <Paperclip className="h-4 w-4 mr-1" />
+                Attach files
+              </Button>
             </div>
           </div>
           <DialogFooter>
@@ -283,6 +351,7 @@ export function SessionNotesCompact({
                 setShowCreateDialog(false)
                 setNewContent('')
                 setNewNoteType('coach_private')
+                setPendingFiles([])
               }}
             >
               Cancel

@@ -11,6 +11,18 @@ export type NoteType =
   | 'pre_session'
   | 'post_session'
 
+// File attachment stored on a note (same shape as commitment attachments)
+export interface NoteAttachment {
+  id: string
+  filename: string
+  file_key: string
+  file_url: string
+  file_size: number
+  content_type: string
+  uploaded_by_id?: string | null
+  uploaded_at: string
+}
+
 // Base session note interface
 export interface SessionNoteBase {
   title?: string | null // Optional for client notes
@@ -42,6 +54,7 @@ export interface SessionNote extends SessionNoteBase {
   template_id?: string
   is_visible_to_client: boolean
   note_metadata: Record<string, any>
+  attachments?: NoteAttachment[]
   created_at: string
   updated_at: string
 }
