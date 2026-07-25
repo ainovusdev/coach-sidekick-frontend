@@ -127,7 +127,7 @@ export const PROFICIENCY_CRITERIA: ProficiencyCriterionConfig[] = [
       4: 'Helps articulate new possibilities for who they could become.',
       5: 'Moves clients from insight into declaration & commitment.',
       6: 'Client participates in reinvention live — shifts in real time.',
-      7: "Reinvents self in the call to advocate for the client's becoming.",
+      7: 'Reinvention is self-generating; the coach reinvents self in service of it.',
     },
   },
   {
@@ -136,12 +136,12 @@ export const PROFICIENCY_CRITERIA: ProficiencyCriterionConfig[] = [
     icon: Zap,
     anchors: {
       1: "Energies are 'off'; discernible mistrust.",
-      2: 'Prepared but the call feels overly structured or rigid.',
-      3: 'Prepared with some flow; transitions can feel abrupt.',
+      2: "Inconsistent presence; the coach's own state leaks into the call.",
+      3: 'Prepared, but overly structured or rigid; transitions can be abrupt.',
       4: 'Inviting, neutral, curious; natural flow with smooth transitions.',
       5: 'Intentionally plays diverse energies; reliably lifts engagement.',
       6: 'Discerns and evokes the energy transformation requires.',
-      7: 'Becomes whoever they must to unlock trajectory-shifting growth.',
+      7: 'Generates whatever energy the moment requires; becomes whoever they must.',
     },
   },
   {
@@ -155,7 +155,7 @@ export const PROFICIENCY_CRITERIA: ProficiencyCriterionConfig[] = [
       4: 'Disrupts interpretations/identity claims live; hidden things become seen.',
       5: 'Disrupts strategically, tailored to the limiting constraint.',
       6: 'Disrupts the deeper structure; steady through resistance.',
-      7: 'Disruption is seamless; client disrupts their own narratives.',
+      7: 'Seamless and resistance-free; client disrupts their own narratives.',
     },
   },
 ]
