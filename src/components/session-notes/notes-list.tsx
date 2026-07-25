@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -14,9 +14,16 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { SessionNotesService } from '@/services/session-notes-service'
-import { SessionNote, NoteType } from '@/types/session-note'
+import { SessionNote, NoteAttachment, NoteType } from '@/types/session-note'
+import {
+  ATTACHMENT_ACCEPT,
+  NoteAttachmentsStrip,
+  PendingFilesList,
+  validateAttachment,
+} from '@/components/session-notes/note-attachments'
 import {
   Loader2,
+  Paperclip,
   Plus,
   Pencil,
   Trash2,
@@ -107,6 +114,10 @@ export function NotesList({
     isClientPortal ? 'client_reflection' : 'coach_private',
   )
   const [creating, setCreating] = useState(false)
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
+  const createFileInputRef = useRef<HTMLInputElement>(null)
+  const editFileInputRef = useRef<HTMLInputElement>(null)
 
   // Types visible to the viewer. client_private notes are created during the
   // live meeting via the guest endpoint — clients should see them after the
@@ -243,7 +254,23 @@ export function NotesList({
     }
   }
 
-  // Handle create note
+  // Queue files for the create form (validated client-side)
+  const handleFilesSelected = (fileList: FileList | null) => {
+    if (!fileList) return
+    const valid: File[] = []
+    for (const file of Array.from(fileList)) {
+      const error = validateAttachment(file)
+      if (error) {
+        toast({ title: 'Error', description: error, variant: 'destructive' })
+      } else {
+        valid.push(file)
+      }
+    }
+    if (valid.length) setPendingFiles(prev => [...prev, ...valid])
+  }
+
+  // Handle create note — the note is created first, then queued files are
+  // uploaded against its id (attachments need a note_id).
   const handleCreateNote = async () => {
     if (!newNoteContent.trim()) return
 
@@ -253,11 +280,23 @@ export function NotesList({
       const autoTitle =
         newNoteContent.trim().substring(0, 50) ||
         `Note - ${new Date().toLocaleTimeString()}`
-      await SessionNotesService.createNote(sessionId, {
+      const created = await SessionNotesService.createNote(sessionId, {
         title: autoTitle,
         content: newNoteContent.trim(),
         note_type: newNoteType,
       })
+      for (const file of pendingFiles) {
+        try {
+          await SessionNotesService.uploadAttachment(created.id, file)
+        } catch (uploadError) {
+          console.error('Failed to upload attachment:', uploadError)
+          toast({
+            title: 'Attachment Failed',
+            description: `The note was saved, but ${file.name} could not be uploaded`,
+            variant: 'destructive',
+          })
+        }
+      }
       toast({
         title: 'Note Created',
         description: 'Your note has been saved',
@@ -265,6 +304,7 @@ export function NotesList({
       await fetchNotes()
       setShowCreateForm(false)
       setNewNoteContent('')
+      setPendingFiles([])
     } catch (error) {
       console.error('Failed to create note:', error)
       toast({
@@ -277,6 +317,49 @@ export function NotesList({
     }
   }
 
+  // Edit mode: the note exists, so uploads happen immediately on pick
+  const handleEditFilesSelected = async (fileList: FileList | null) => {
+    if (!fileList || !editingNote) return
+    setUploadingAttachment(true)
+    try {
+      for (const file of Array.from(fileList)) {
+        const error = validateAttachment(file)
+        if (error) {
+          toast({ title: 'Error', description: error, variant: 'destructive' })
+          continue
+        }
+        try {
+          await SessionNotesService.uploadAttachment(editingNote.id, file)
+        } catch (uploadError) {
+          console.error('Failed to upload attachment:', uploadError)
+          toast({
+            title: 'Error',
+            description: `Failed to upload ${file.name}`,
+            variant: 'destructive',
+          })
+        }
+      }
+      await fetchNotes()
+    } finally {
+      setUploadingAttachment(false)
+    }
+  }
+
+  const handleDeleteAttachment = async (attachment: NoteAttachment) => {
+    if (!editingNote) return
+    try {
+      await SessionNotesService.deleteAttachment(editingNote.id, attachment.id)
+      await fetchNotes()
+    } catch (error) {
+      console.error('Failed to delete attachment:', error)
+      toast({
+        title: 'Error',
+        description: 'Failed to remove attachment',
+        variant: 'destructive',
+      })
+    }
+  }
+
   // Render note card
   const renderNoteCard = (note: SessionNote) => {
     const config = NOTE_TYPE_CONFIG[note.note_type]
@@ -284,6 +367,10 @@ export function NotesList({
     const isEditing = editingNote?.id === note.id
 
     if (isEditing) {
+      // Source attachments from the notes state so fetchNotes() refreshes them
+      const currentAttachments =
+        notes.find(n => n.id === note.id)?.attachments || []
+
       return (
         <div
           key={note.id}
@@ -296,29 +383,61 @@ export function NotesList({
             className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
             autoFocus
           />
-          <div className="flex items-center justify-end gap-2">
+          <NoteAttachmentsStrip
+            attachments={currentAttachments}
+            canDelete
+            onDelete={handleDeleteAttachment}
+          />
+          <input
+            ref={editFileInputRef}
+            type="file"
+            multiple
+            accept={ATTACHMENT_ACCEPT}
+            className="hidden"
+            onChange={e => {
+              handleEditFilesSelected(e.target.files)
+              e.target.value = ''
+            }}
+          />
+          <div className="flex items-center justify-between gap-2 mt-3">
             <Button
               variant="ghost"
               size="sm"
-              onClick={cancelEditing}
-              disabled={saving}
+              onClick={() => editFileInputRef.current?.click()}
+              disabled={saving || uploadingAttachment}
+              className="text-ink-3 hover:text-ink"
             >
-              <X className="h-4 w-4 mr-1" />
-              Cancel
-            </Button>
-            <Button
-              size="sm"
-              onClick={saveEdit}
-              disabled={saving || !editContent.trim()}
-              className="bg-ink hover:bg-ink-2 "
-            >
-              {saving ? (
+              {uploadingAttachment ? (
                 <Loader2 className="h-4 w-4 mr-1 animate-spin" />
               ) : (
-                <Check className="h-4 w-4 mr-1" />
+                <Paperclip className="h-4 w-4 mr-1" />
               )}
-              Save
+              Attach
             </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={cancelEditing}
+                disabled={saving}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={saveEdit}
+                disabled={saving || !editContent.trim()}
+                className="bg-ink hover:bg-ink-2 "
+              >
+                {saving ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-1" />
+                )}
+                Save
+              </Button>
+            </div>
           </div>
         </div>
       )
@@ -376,6 +495,11 @@ export function NotesList({
           className="text-sm text-ink-2 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1"
           dangerouslySetInnerHTML={{ __html: note.content }}
         />
+
+        {/* Attachments */}
+        {note.attachments && note.attachments.length > 0 && (
+          <NoteAttachmentsStrip attachments={note.attachments} />
+        )}
       </div>
     )
   }
@@ -517,31 +641,61 @@ export function NotesList({
             className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
             autoFocus
           />
-          <div className="flex items-center justify-end gap-2">
+          <PendingFilesList
+            files={pendingFiles}
+            onRemove={index =>
+              setPendingFiles(prev => prev.filter((_, i) => i !== index))
+            }
+          />
+          <input
+            ref={createFileInputRef}
+            type="file"
+            multiple
+            accept={ATTACHMENT_ACCEPT}
+            className="hidden"
+            onChange={e => {
+              handleFilesSelected(e.target.files)
+              e.target.value = ''
+            }}
+          />
+          <div className="flex items-center justify-between gap-2 mt-3">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => {
-                setShowCreateForm(false)
-                setNewNoteContent('')
-              }}
+              onClick={() => createFileInputRef.current?.click()}
               disabled={creating}
+              className="text-ink-3 hover:text-ink"
             >
-              Cancel
+              <Paperclip className="h-4 w-4 mr-1" />
+              Attach
             </Button>
-            <Button
-              size="sm"
-              onClick={handleCreateNote}
-              disabled={creating || !newNoteContent.trim()}
-              className="bg-ink hover:bg-ink-2 "
-            >
-              {creating ? (
-                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              ) : (
-                <Check className="h-4 w-4 mr-1" />
-              )}
-              Save Note
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowCreateForm(false)
+                  setNewNoteContent('')
+                  setPendingFiles([])
+                }}
+                disabled={creating}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleCreateNote}
+                disabled={creating || !newNoteContent.trim()}
+                className="bg-ink hover:bg-ink-2 "
+              >
+                {creating ? (
+                  <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                ) : (
+                  <Check className="h-4 w-4 mr-1" />
+                )}
+                Save Note
+              </Button>
+            </div>
           </div>
         </div>
       )}
