@@ -14,6 +14,7 @@ import {
   BookOpen,
   Shield,
   Eye,
+  Target,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -60,6 +61,12 @@ export default function Navigation() {
       label: 'Sessions',
       icon: History,
       permission: { resource: 'sessions', action: 'view' },
+    },
+    {
+      path: '/commitments',
+      label: 'Commitments',
+      icon: Target,
+      permission: { resource: 'clients', action: 'view' },
     },
     {
       path: '/resources',
