@@ -26,6 +26,7 @@ export interface Client {
   auto_send_questionnaire?: boolean
   questionnaire_lead_time_hours?: number
   auto_send_thrill_form?: boolean
+  weekly_commitment_email_enabled?: boolean
   created_at: string
   updated_at: string
   user_id?: string

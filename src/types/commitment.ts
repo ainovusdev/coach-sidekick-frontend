@@ -103,6 +103,8 @@ export interface Commitment extends CommitmentBase {
 
   // Computed fields
   client_name?: string
+  session_title?: string
+  session_date?: string
   creator_name?: string
   update_count?: number
   milestone_count?: number

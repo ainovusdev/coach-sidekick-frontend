@@ -49,7 +49,7 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
       ? {
           label: `${overdueCount} overdue`,
           icon: Clock,
-          href: '/commitments',
+          href: '/commitments?due=overdue',
           color:
             'bg-vermillion-bg text-vermillion border-vermillion hover:bg-vermillion-bg ',
           iconColor: 'text-vermillion',
