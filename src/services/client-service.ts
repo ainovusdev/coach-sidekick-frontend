@@ -12,6 +12,7 @@ export interface ClientCreateDto {
   auto_send_questionnaire?: boolean
   questionnaire_lead_time_hours?: number
   auto_send_thrill_form?: boolean
+  weekly_commitment_email_enabled?: boolean
 }
 
 // Real-time recognition for the New Client modal.
@@ -38,6 +39,7 @@ export interface ClientUpdateDto {
   auto_send_questionnaire?: boolean
   questionnaire_lead_time_hours?: number
   auto_send_thrill_form?: boolean
+  weekly_commitment_email_enabled?: boolean
 }
 
 // Backend response format - matches what the API actually returns
@@ -52,6 +54,7 @@ interface BackendClient {
   auto_send_questionnaire?: boolean
   questionnaire_lead_time_hours?: number
   auto_send_thrill_form?: boolean
+  weekly_commitment_email_enabled?: boolean
   created_at: string
   updated_at: string
   has_portal_access?: boolean
@@ -118,6 +121,8 @@ function transformClient(backendClient: BackendClient): Client {
     auto_send_questionnaire: backendClient.auto_send_questionnaire,
     questionnaire_lead_time_hours: backendClient.questionnaire_lead_time_hours,
     auto_send_thrill_form: backendClient.auto_send_thrill_form,
+    weekly_commitment_email_enabled:
+      backendClient.weekly_commitment_email_enabled,
     created_at: backendClient.created_at,
     updated_at: backendClient.updated_at,
     is_my_client: backendClient.is_my_client,

@@ -57,6 +57,7 @@ export default function ClientModal({
     autoSendQuestionnaire: true,
     leadTimeHours: 24,
     autoSendThrillForm: true,
+    weeklyCommitmentEmail: true,
     notes: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -74,6 +75,7 @@ export default function ClientModal({
         autoSendQuestionnaire: client?.auto_send_questionnaire ?? true,
         leadTimeHours: client?.questionnaire_lead_time_hours ?? 24,
         autoSendThrillForm: client?.auto_send_thrill_form ?? true,
+        weeklyCommitmentEmail: client?.weekly_commitment_email_enabled ?? true,
         notes: client?.notes || '',
       })
       setErrors({})
@@ -165,6 +167,7 @@ export default function ClientModal({
         auto_send_questionnaire: formData.autoSendQuestionnaire,
         questionnaire_lead_time_hours: formData.leadTimeHours,
         auto_send_thrill_form: formData.autoSendThrillForm,
+        weekly_commitment_email_enabled: formData.weeklyCommitmentEmail,
       }
 
       // If onSubmit is provided, use it; otherwise handle internally
@@ -186,6 +189,7 @@ export default function ClientModal({
           has_email: !!formData.email.trim(),
           auto_send_questionnaire: formData.autoSendQuestionnaire,
           auto_send_thrill_form: formData.autoSendThrillForm,
+          weekly_commitment_email_enabled: formData.weeklyCommitmentEmail,
         })
 
         if (accessRequestSent) {
@@ -492,6 +496,28 @@ export default function ClientModal({
                     setFormData(prev => ({
                       ...prev,
                       autoSendThrillForm: checked,
+                    }))
+                  }
+                  disabled={isLoading}
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-3 py-3 px-4 bg-paper rounded-lg">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-ink-2">
+                    Weekly commitment email
+                  </span>
+                  <span className="text-xs text-ink-3">
+                    Email a Monday summary of open commitments with a link to
+                    check them off. Turn off when a contract ends.
+                  </span>
+                </div>
+                <Switch
+                  checked={formData.weeklyCommitmentEmail}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      weeklyCommitmentEmail: checked,
                     }))
                   }
                   disabled={isLoading}
