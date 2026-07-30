@@ -19,6 +19,10 @@ export function isReplayExcludedPath(pathname: string): boolean {
   // are masked as inputs, but the questions/page text would still be visible.
   if (pathname.startsWith('/questionnaire/')) return true
 
+  // Public weekly commitment check-in (/checkin/<token>). Commitment titles are
+  // page *text*, not masked inputs, so the route has to be excluded outright.
+  if (pathname.startsWith('/checkin/')) return true
+
   // AI agent / chat pages.
   if (
     pathname === '/agent' ||
