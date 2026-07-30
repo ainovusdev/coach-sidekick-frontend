@@ -1,77 +1,43 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+/**
+ * Public weekly commitment check-in, reached from the Monday digest email.
+ * Thin route shell: owns the token and the state machine, delegates everything
+ * else. All page state lives in `useCheckin`.
+ */
+
+import { Suspense } from 'react'
 import { useParams } from 'next/navigation'
-import { Loader2, AlertCircle } from 'lucide-react'
+import { useCheckin } from './hooks/use-checkin'
+import { CheckinScreen } from './components/checkin-screen'
 import {
-  CheckinService,
-  CheckinPage as CheckinPageData,
-} from '@/services/checkin-service'
-import { CheckinList } from './components/checkin-list'
-
-type PageState = 'loading' | 'error' | 'active'
-
-function LoadingScreen() {
-  return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="text-center">
-        <Loader2 className="h-8 w-8 animate-spin text-ink-4 mx-auto mb-4" />
-        <p className="text-ink-3 text-sm">Loading your commitments...</p>
-      </div>
-    </div>
-  )
-}
+  CheckinSkeleton,
+  ExpiredScreen,
+  LoadFailedScreen,
+} from './components/checkin-states'
 
 export default function CheckinPage() {
   const params = useParams()
   const token = params.token as string
+  const checkin = useCheckin(token)
 
-  const [state, setState] = useState<PageState>('loading')
-  const [data, setData] = useState<CheckinPageData | null>(null)
-
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const result = await CheckinService.getCheckin(token)
-        setData(result)
-        setState('active')
-      } catch {
-        setState('error')
-      }
-    }
-    load()
-  }, [token])
-
-  if (state === 'loading') {
-    return <LoadingScreen />
-  }
-
-  if (state === 'error') {
+  if (checkin.status === 'loading') return <CheckinSkeleton />
+  if (checkin.status === 'expired') return <ExpiredScreen />
+  if (checkin.status === 'failed') {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
-          <div className="w-16 h-16 bg-surface-3 rounded-full flex items-center justify-center mx-auto mb-6">
-            <AlertCircle className="h-8 w-8 text-ink-4" />
-          </div>
-          <h1 className="text-xl font-semibold text-ink mb-3">
-            Check-in Unavailable
-          </h1>
-          <p className="text-ink-3 leading-relaxed">
-            This check-in link is invalid or has expired. Ask your coach for a
-            fresh one — a new link arrives with every weekly summary.
-          </p>
-        </div>
-      </div>
+      <LoadFailedScreen
+        onRetry={checkin.retryLoad}
+        attempts={checkin.attempts}
+      />
     )
   }
+  if (!checkin.data) return null
 
-  if (state === 'active' && data) {
-    return (
-      <Suspense fallback={<LoadingScreen />}>
-        <CheckinList token={token} data={data} />
-      </Suspense>
-    )
-  }
-
-  return null
+  // CheckinScreen reads `?commitment=` for the email's deep link, so it needs a
+  // Suspense boundary around useSearchParams.
+  return (
+    <Suspense fallback={<CheckinSkeleton />}>
+      <CheckinScreen data={checkin.data} checkin={checkin} />
+    </Suspense>
+  )
 }
