@@ -46,11 +46,20 @@ function AlertDialogOverlay({
 
 function AlertDialogContent({
   className,
+  overlayClassName,
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Content>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Content> & {
+  /**
+   * Classes for the backdrop. Needed when the dialog opens from inside a
+   * stacking context above the default z-50 — e.g. the commitment detail
+   * panel sits at z-70, so without this the scrim renders *behind* the panel
+   * even when the dialog box itself is lifted.
+   */
+  overlayClassName?: string
+}) {
   return (
     <AlertDialogPortal>
-      <AlertDialogOverlay />
+      <AlertDialogOverlay className={overlayClassName} />
       <AlertDialogPrimitive.Content
         data-slot="alert-dialog-content"
         className={cn(
