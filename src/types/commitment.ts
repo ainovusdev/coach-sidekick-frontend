@@ -52,8 +52,6 @@ export interface CommitmentBase {
   start_date?: string // ISO date string
   target_date?: string // ISO date string
   measurement_criteria?: string
-  goal_id?: string | null // Direct link to goal
-  sprint_id?: string | null // Direct link to sprint
 }
 
 // Create commitment request
@@ -75,8 +73,6 @@ export interface CommitmentUpdate {
   target_date?: string
   progress_percentage?: number
   measurement_criteria?: string
-  goal_id?: string | null
-  sprint_id?: string | null
   assigned_to_id?: string | null // User ID of assignee. null = client, set = coach
   metadata?: Record<string, unknown>
 }
@@ -108,7 +104,6 @@ export interface Commitment extends CommitmentBase {
   creator_name?: string
   update_count?: number
   milestone_count?: number
-  days_until_deadline?: number
 
   // Related data
   attachments?: CommitmentAttachment[]
@@ -133,6 +128,7 @@ export interface CommitmentUpdateEntry {
   id: string
   commitment_id: string
   updated_by_id: string
+  updated_by_name?: string
   progress_percentage?: number
   status_change?: string
   note?: string
@@ -199,5 +195,4 @@ export interface CommitmentStats {
   total_completed: number
   completion_rate: number
   at_risk_count: number // commitments past deadline
-  due_soon_count: number // commitments due within 7 days
 }

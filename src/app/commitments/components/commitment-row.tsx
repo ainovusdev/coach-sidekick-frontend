@@ -144,12 +144,20 @@ export function CommitmentRow({
       <div className="flex-1 min-w-0">
         {/* Title line */}
         <div className="flex items-center gap-2 flex-wrap">
-          <span
-            className="text-sm font-medium text-ink cursor-pointer hover:underline"
-            onClick={() => onEdit(commitment)}
+          {/* A real <Link>, so the row gets a hover URL and cmd/ctrl/middle
+              click opens the full page in a new tab. Plain click is
+              intercepted and still opens the fast slide-over panel. */}
+          <Link
+            href={`/commitments/${commitment.id}`}
+            className="text-sm font-medium text-ink hover:underline"
+            onClick={e => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
+              e.preventDefault()
+              onEdit(commitment)
+            }}
           >
             {commitment.title}
-          </span>
+          </Link>
           {showPriority && (
             <span className={cn('text-xs font-medium', priority.className)}>
               {priority.label}

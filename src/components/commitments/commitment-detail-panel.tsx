@@ -1,26 +1,22 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useQueryClient } from '@tanstack/react-query'
 import { CommitmentService } from '@/services/commitment-service'
 import { ClientCommitmentService } from '@/services/client-commitment-service'
 import {
-  useUpdateCommitment,
   useUpdateCommitmentProgress,
   useAddMilestone,
   useUpdateMilestone,
   useDeleteMilestone,
-  useDiscardCommitment,
   useUploadAttachment,
   useDeleteAttachment,
 } from '@/hooks/mutations/use-commitment-mutations'
 import {
-  useClientUpdateCommitment,
   useClientUpdateCommitmentProgress,
   useClientAddMilestone,
   useClientUpdateMilestone,
   useClientDeleteMilestone,
-  useClientDiscardCommitment,
   useClientUploadAttachment,
   useClientDeleteAttachment,
 } from '@/hooks/mutations/use-client-commitment-mutations'
@@ -87,6 +83,8 @@ import {
   File,
   Loader2,
   Zap,
+  Maximize2,
+  Link as LinkIcon,
 } from 'lucide-react'
 import type {
   Commitment,
@@ -101,10 +99,15 @@ import { toast } from 'sonner'
 import { Progress } from '@/components/ui/progress'
 import { useConfetti } from '@/hooks/use-confetti'
 
-export interface GuestContext {
-  meetingToken: string
-  guestToken: string
-}
+import {
+  useCommitmentDetail,
+  type GuestContext,
+} from './detail/use-commitment-detail'
+import { copyCommitmentLink } from './detail/commitment-links'
+
+// Re-exported so the six existing mount sites keep importing GuestContext from
+// here unchanged; the definition now lives with the shared controller.
+export type { GuestContext }
 
 interface CommitmentDetailPanelProps {
   commitmentId: string | null
@@ -113,36 +116,8 @@ interface CommitmentDetailPanelProps {
   onCommitmentUpdate?: () => void
   guestContext?: GuestContext
   clientMode?: boolean
-}
-
-// UUID v4 pattern check — prevents sending invalid IDs (e.g. "temp-*", "None") to the API
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-function useCommitment(
-  commitmentId: string | null,
-  guestContext?: GuestContext,
-  clientMode?: boolean,
-) {
-  const isValidId = !!commitmentId && UUID_RE.test(commitmentId)
-  return useQuery({
-    queryKey: queryKeys.commitments.detail(commitmentId || ''),
-    queryFn: () => {
-      if (guestContext) {
-        return LiveMeetingService.getCommitmentDetail(
-          guestContext.meetingToken,
-          guestContext.guestToken,
-          commitmentId!,
-        )
-      }
-      if (clientMode) {
-        return ClientCommitmentService.getCommitment(commitmentId!)
-      }
-      return CommitmentService.getCommitment(commitmentId!)
-    },
-    enabled: isValidId,
-    staleTime: 2 * 60 * 1000,
-  })
+  /** Show the "open full page" affordance. Coach surfaces only. */
+  onOpenInPage?: () => void
 }
 
 export function CommitmentDetailPanel({
@@ -152,44 +127,28 @@ export function CommitmentDetailPanel({
   onCommitmentUpdate,
   guestContext,
   clientMode,
+  onOpenInPage,
 }: CommitmentDetailPanelProps) {
-  const { data: commitment, isLoading } = useCommitment(
+  // All data + mutation logic is shared with the /commitments/[id] page.
+  const {
+    commitment,
+    isLoading,
+    capabilities,
+    handleFieldUpdate,
+    handleDelete,
+  } = useCommitmentDetail({
     commitmentId,
+    clientId: clientIdProp,
     guestContext,
     clientMode,
-  )
-  const resolvedClientId = clientIdProp || commitment?.client_id
-
-  // Prefetch targets & sprints immediately using the known clientId
-  // so they're cached before LinkedOutcomesSection mounts.
-  // In guest mode, disable fetching (cache is pre-seeded by ClientCommitmentPanel)
-  // to avoid 403 errors from authenticated API calls.
-  const targetFilters = resolvedClientId
-    ? { client_id: resolvedClientId }
-    : undefined
-  const guestQueryOpts = guestContext
-    ? { enabled: false, staleTime: Infinity }
-    : {}
-  useTargets(targetFilters, guestQueryOpts)
-  useSprints(
-    resolvedClientId ? { client_id: resolvedClientId } : undefined,
-    guestQueryOpts,
-  )
-  const coachUpdateCommitment = useUpdateCommitment({ silent: true })
-  const clientUpdateCommitment = useClientUpdateCommitment({ silent: true })
-  const updateCommitment = clientMode
-    ? clientUpdateCommitment
-    : coachUpdateCommitment
-  const coachDiscardCommitment = useDiscardCommitment()
-  const clientDiscardCommitment = useClientDiscardCommitment()
-  const discardCommitment = clientMode
-    ? clientDiscardCommitment
-    : coachDiscardCommitment
-  const queryClient = useQueryClient()
+    onCommitmentUpdate,
+    onDeleted: onClose,
+  })
 
   const panelRef = useRef<HTMLDivElement>(null)
 
-  // Close on Escape
+  // Close on Escape. Panel-only: on the page route this would navigate away,
+  // which is hostile.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose()
@@ -199,71 +158,6 @@ export function CommitmentDetailPanel({
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
   }, [commitmentId, onClose])
-
-  const handleFieldUpdate = useCallback(
-    (field: string, value: any) => {
-      if (!commitmentId) return
-
-      // Optimistically update the detail cache immediately
-      queryClient.setQueryData(
-        queryKeys.commitments.detail(commitmentId),
-        (old: any) => {
-          if (!old) return old
-          return { ...old, [field]: value }
-        },
-      )
-
-      if (guestContext) {
-        LiveMeetingService.updateCommitment(
-          guestContext.meetingToken,
-          guestContext.guestToken,
-          commitmentId,
-          { [field]: value },
-        )
-          .then(() => onCommitmentUpdate?.())
-          .catch(() => toast.error('Failed to update commitment'))
-      } else {
-        updateCommitment.mutate(
-          { commitmentId, data: { [field]: value } },
-          {
-            onSuccess: () => {
-              onCommitmentUpdate?.()
-            },
-          },
-        )
-      }
-    },
-    [
-      commitmentId,
-      updateCommitment,
-      queryClient,
-      onCommitmentUpdate,
-      guestContext,
-    ],
-  )
-
-  const handleDelete = () => {
-    if (!commitmentId) return
-    if (guestContext) {
-      LiveMeetingService.deleteCommitment(
-        guestContext.meetingToken,
-        guestContext.guestToken,
-        commitmentId,
-      )
-        .then(() => {
-          onClose()
-          onCommitmentUpdate?.()
-        })
-        .catch(() => toast.error('Failed to delete commitment'))
-    } else {
-      discardCommitment.mutate(commitmentId, {
-        onSuccess: () => {
-          onClose()
-          onCommitmentUpdate?.()
-        },
-      })
-    }
-  }
 
   const isOpen = !!commitmentId
 
@@ -298,6 +192,14 @@ export function CommitmentDetailPanel({
                   onClose={onClose}
                   onFieldUpdate={handleFieldUpdate}
                   onDelete={handleDelete}
+                  onOpenInPage={
+                    capabilities.canOpenInPage ? onOpenInPage : undefined
+                  }
+                  onCopyLink={
+                    capabilities.canOpenInPage
+                      ? () => copyCommitmentLink(commitment.id)
+                      : undefined
+                  }
                 />
 
                 {/* Fields Grid */}
@@ -367,16 +269,20 @@ export function CommitmentDetailPanel({
 
 // === Header Section ===
 
-function PanelHeader({
+export function PanelHeader({
   commitment,
   onClose,
   onFieldUpdate,
   onDelete,
+  onOpenInPage,
+  onCopyLink,
 }: {
   commitment: Commitment
   onClose: () => void
   onFieldUpdate: (field: string, value: any) => void
   onDelete: () => void
+  onOpenInPage?: () => void
+  onCopyLink?: () => void
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(commitment.title)
@@ -431,6 +337,20 @@ function PanelHeader({
 
       {/* Actions */}
       <div className="flex items-center gap-1 shrink-0">
+        {/* Coach surfaces only — guests and the client portal have no
+            /commitments/[id] route, so the affordance simply isn't rendered. */}
+        {onOpenInPage && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={onOpenInPage}
+            title="Open as full page"
+            aria-label="Open as full page"
+          >
+            <Maximize2 className="h-4 w-4" />
+          </Button>
+        )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
@@ -438,6 +358,12 @@ function PanelHeader({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="z-[80]">
+            {onCopyLink && (
+              <DropdownMenuItem onClick={onCopyLink}>
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Copy link
+              </DropdownMenuItem>
+            )}
             <DropdownMenuItem onClick={onDelete} className="text-vermillion">
               <Trash2 className="h-4 w-4 mr-2" />
               Delete
@@ -459,7 +385,7 @@ function PanelHeader({
 
 // === Fields Grid ===
 
-function FieldsGrid({
+export function FieldsGrid({
   commitment,
   onFieldUpdate,
 }: {
@@ -468,13 +394,9 @@ function FieldsGrid({
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
 
-  const _priorityColors: Record<string, string> = {
-    urgent: 'bg-vermillion-bg text-vermillion ',
-    high: 'bg-amber-token-bg text-amber-token ',
-    medium: 'bg-amber-token-bg text-amber-token ',
-    low: 'bg-surface-3 text-ink-2 ',
-  }
-
+  // Settable statuses. `in_progress` MUST be here: the kanban board and three
+  // other surfaces write it, so without it an In Progress commitment opened
+  // here showed no selected chip and picking any option silently lost the state.
   const statusOptions: {
     value: string
     label: string
@@ -487,6 +409,13 @@ function FieldsGrid({
       selected: 'bg-ds-accent-bg text-ds-accent border-ds-accent ',
       unselected:
         'bg-transparent text-ink-3 border-line hover:bg-ds-accent-bg hover:text-ds-accent hover:border-ds-accent ',
+    },
+    {
+      value: 'in_progress',
+      label: 'In Progress',
+      selected: 'bg-amber-token-bg text-amber-token border-amber-token ',
+      unselected:
+        'bg-transparent text-ink-3 border-line hover:bg-amber-token-bg hover:text-amber-token hover:border-amber-token ',
     },
     {
       value: 'completed',
@@ -503,6 +432,22 @@ function FieldsGrid({
         'bg-transparent text-ink-3 border-line hover:bg-vermillion-bg hover:text-vermillion hover:border-vermillion ',
     },
   ]
+
+  // Guard the whole class of bug rather than the one instance: any status that
+  // isn't settable here (today `draft`) still renders, read-only, so the
+  // control can never show "nothing selected".
+  const isKnownStatus = statusOptions.some(o => o.value === commitment.status)
+
+  // Milestone-derived progress, used when reopening a completed commitment so
+  // we restore real progress instead of hard-zeroing it.
+  const milestones = commitment.milestones || []
+  const derivedProgress = milestones.length
+    ? Math.round(
+        (milestones.filter(m => m.status === 'completed').length /
+          milestones.length) *
+          100,
+      )
+    : 0
 
   return (
     <div className="p-4 bg-paper rounded-lg space-y-4">
@@ -591,6 +536,14 @@ function FieldsGrid({
       <div className="space-y-1">
         <label className="text-xs font-medium text-ink-3 ">Status</label>
         <div className="flex flex-wrap gap-1.5">
+          {!isKnownStatus && (
+            <span
+              className="px-2.5 py-1 rounded-full text-xs font-medium border bg-surface-3 text-ink-2 border-line capitalize"
+              title="Current status — set elsewhere and not directly settable here"
+            >
+              {commitment.status.replace('_', ' ')}
+            </span>
+          )}
           {statusOptions.map(opt => {
             const isSelected = commitment.status === opt.value
             return (
@@ -600,14 +553,17 @@ function FieldsGrid({
                 onClick={() => {
                   if (isSelected) return
                   onFieldUpdate('status', opt.value)
+                  // Progress rules live here, in one place, rather than being
+                  // implied by whichever button was pressed.
                   if (opt.value === 'completed') {
                     onFieldUpdate('progress_percentage', 100)
-                  } else if (
-                    commitment.status === 'completed' &&
-                    opt.value === 'active'
-                  ) {
-                    onFieldUpdate('progress_percentage', 0)
+                  } else if (commitment.status === 'completed') {
+                    // Reopening: restore milestone-derived progress rather than
+                    // hard-zeroing work that was actually done.
+                    onFieldUpdate('progress_percentage', derivedProgress)
                   }
+                  // Moving to in_progress with no milestones leaves progress
+                  // alone — we don't invent a number.
                 }}
                 aria-pressed={isSelected}
                 className={cn(
@@ -627,7 +583,7 @@ function FieldsGrid({
 
 // === Linked Outcomes & Sprints Section ===
 
-function LinkedOutcomesSection({
+export function LinkedOutcomesSection({
   commitment,
   commitmentId,
   onCommitmentUpdate,
@@ -860,7 +816,7 @@ function LinkedOutcomesSection({
 
 // === Description Section ===
 
-function DescriptionSection({
+export function DescriptionSection({
   commitment,
   onFieldUpdate,
 }: {
@@ -940,7 +896,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-function AttachmentsSection({
+export function AttachmentsSection({
   commitment,
   commitmentId,
   clientMode,
@@ -1149,7 +1105,10 @@ function AttachmentsSection({
         open={!!deleteConfirmId}
         onOpenChange={open => !open && setDeleteConfirmId(null)}
       >
-        <AlertDialogContent>
+        {/* Both classes are required: the panel is z-70, and the dialog's own
+            backdrop defaults to z-50, so lifting only the content would leave
+            the scrim rendering behind the panel. */}
+        <AlertDialogContent className="z-[80]" overlayClassName="z-[80]">
           <AlertDialogHeader>
             <AlertDialogTitle>Remove Attachment</AlertDialogTitle>
             <AlertDialogDescription>
@@ -1179,7 +1138,7 @@ function AttachmentsSection({
 
 // === Milestones Section ===
 
-function MilestonesSection({
+export function MilestonesSection({
   commitment,
   commitmentId,
   clientMode,
@@ -1360,23 +1319,36 @@ function MilestoneItem({
 
 // === Comments Section ===
 
-function ActivitySection({
+export function ActivitySection({
   commitment,
   commitmentId,
   onCommitmentUpdate,
   clientMode,
+  hideHistory,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
   clientMode?: boolean
+  /**
+   * Render the composer only. The page route pairs this with
+   * CommitmentActivityTimeline, which shows the same updates plus the status
+   * and progress events this flat list drops.
+   */
+  hideHistory?: boolean
 }) {
   const [note, setNote] = useState('')
   const [showExtras, setShowExtras] = useState(false)
   const [wins, setWins] = useState('')
   const [blockers, setBlockers] = useState('')
   const inputRef = useRef<HTMLTextAreaElement>(null)
-  const _queryClient = useQueryClient()
+  // Resolved after mount: `navigator` is undefined during server rendering,
+  // and this component now also renders under a page route.
+  const [isMac, setIsMac] = useState(false)
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPad/.test(navigator.platform || ''))
+  }, [])
+
   const coachUpdateProgress = useUpdateCommitmentProgress()
   const clientUpdateProgress = useClientUpdateCommitmentProgress()
   const updateProgress = clientMode ? clientUpdateProgress : coachUpdateProgress
@@ -1449,7 +1421,7 @@ function ActivitySection({
           </button>
           <div className="flex items-center gap-2">
             <span className="text-[10px] text-ink-4 ">
-              {navigator.platform?.includes('Mac') ? '⌘' : 'Ctrl'}+Enter
+              {isMac ? '⌘' : 'Ctrl'}+Enter
             </span>
             <Button
               size="sm"
@@ -1490,8 +1462,9 @@ function ActivitySection({
         )}
       </div>
 
-      {/* Comments feed */}
-      {updates.length > 0 ? (
+      {/* Comments feed — suppressed on the page route, which renders the
+          richer CommitmentActivityTimeline in its place. */}
+      {hideHistory ? null : updates.length > 0 ? (
         <div className="space-y-2">
           {updates.map(update => (
             <div
@@ -1535,7 +1508,7 @@ function ActivitySection({
 
 // === Metadata Footer ===
 
-function MetadataFooter({ commitment }: { commitment: Commitment }) {
+export function MetadataFooter({ commitment }: { commitment: Commitment }) {
   return (
     <div className="pt-4 border-t border-line space-y-1">
       <div className="flex items-center gap-2 text-xs text-ink-4 ">
@@ -1560,7 +1533,7 @@ function MetadataFooter({ commitment }: { commitment: Commitment }) {
 
 // === Loading Skeleton ===
 
-function PanelSkeleton() {
+export function PanelSkeleton() {
   return (
     <div className="p-6 space-y-6">
       <div className="space-y-3">

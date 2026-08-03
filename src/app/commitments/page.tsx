@@ -1,6 +1,7 @@
 'use client'
 
 import { Suspense, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import PageLayout from '@/components/layout/page-layout'
 import { ProtectedRoute } from '@/components/auth/protected-route'
 import { PageHeader } from '@/components/ui/page-header'
@@ -35,6 +36,7 @@ type ConfirmState =
   | null
 
 function CommitmentsPageContent() {
+  const router = useRouter()
   const view = useCommitmentsView()
   const { data: stats } = useCommitmentStats(undefined, true)
   const { data: clientsData } = useClients()
@@ -256,6 +258,11 @@ function CommitmentsPageContent() {
       <CommitmentDetailPanel
         commitmentId={selectedCommitmentId}
         onClose={() => setSelectedCommitmentId(null)}
+        onOpenInPage={
+          selectedCommitmentId
+            ? () => router.push(`/commitments/${selectedCommitmentId}`)
+            : undefined
+        }
       />
 
       {/* Destructive-action confirmation */}
