@@ -81,7 +81,10 @@ export default function SessionReviewPage({
     if (!sid) return
     if (autoRefreshedRef.current === sid) return
     if (data.video_unavailable) return
-    if (!data.is_owner && !data.is_admin) return // only owner/admin can refresh
+    // Recipients of a share are authorized to refresh too — the backend
+    // gates GET /sessions/{id}/video-url on can_view_session, not ownership.
+    // Without this, anyone who isn't the owner lands on an expired SigV4 URL
+    // (they last 7 days) and sees a dead player with no way to fix it.
     const url = data.video_url
     if (!url || !isPresignedUrlExpired(url)) return
     autoRefreshedRef.current = sid
