@@ -72,6 +72,7 @@ export function ClientChatUnified({
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [stats, setStats] = useState<ChatStats | null>(null)
+  const [statsError, setStatsError] = useState(false)
   const [loadingStats, setLoadingStats] = useState(true)
   const [suggestedQuestions, setSuggestedQuestions] = useState<string[]>([])
   const [showSources, setShowSources] = useState<{ [key: number]: boolean }>({})
@@ -110,15 +111,14 @@ export function ClientChatUnified({
       const data = await chatService.getClientKnowledgeStats(clientId)
       setStats(data)
       setSuggestedQuestions(data.suggested_questions || [])
+      setStatsError(false)
     } catch (error) {
       console.error('Failed to fetch stats:', error)
-      // Set empty stats on error to prevent infinite loading
-      setStats({
-        total_chunks: 0,
-        unique_sessions: 0,
-        top_topics: [],
-        suggested_questions: [],
-      })
+      // Don't fake an empty knowledge base — "we couldn't check" and "this
+      // client has no indexed sessions" are different problems and need
+      // different messages.
+      setStats(null)
+      setStatsError(true)
     } finally {
       setLoadingStats(false)
     }
@@ -305,8 +305,8 @@ export function ClientChatUnified({
     )
   }
 
-  if (!stats || stats.total_chunks === 0) {
-    const hasSessionData = stats && stats.unique_sessions > 0
+  if (statsError || !stats || stats.total_chunks === 0) {
+    const hasSessionData = !statsError && stats && stats.unique_sessions > 0
 
     return (
       <div className="flex flex-col h-full p-4">
@@ -314,14 +314,18 @@ export function ClientChatUnified({
           <div className="text-center max-w-sm">
             <MessageSquare className="h-10 w-10 text-ink-2 mx-auto mb-3" />
             <h3 className="text-sm font-medium text-ink mb-1">
-              Knowledge Base Not Available
+              {statsError
+                ? "Couldn't Load Knowledge Base"
+                : 'Knowledge Base Not Available'}
             </h3>
             <p className="text-xs text-ink-3 mb-3">
-              {hasSessionData
-                ? 'The knowledge base is currently being indexed. Please try again in a few moments.'
-                : 'The AI assistant will be available after analyzing coaching sessions.'}
+              {statsError
+                ? "We couldn't reach the knowledge base just now — this doesn't mean your sessions are missing. Please retry."
+                : hasSessionData
+                  ? 'The knowledge base is currently being indexed. Please try again in a few moments.'
+                  : 'The AI assistant will be available after analyzing coaching sessions.'}
             </p>
-            {!hasSessionData && (
+            {!hasSessionData && !statsError && (
               <p className="text-xs text-ink-4 ">
                 Upload or record coaching sessions to enable AI-powered
                 insights.
