@@ -33,6 +33,12 @@ const badgeVariants = cva(
   },
 )
 
+/**
+ * Small status chip. Variants: default, secondary, destructive, outline.
+ * Supports asChild for link badges.
+ *
+ * @category data-display
+ */
 function Badge({
   className,
   variant,

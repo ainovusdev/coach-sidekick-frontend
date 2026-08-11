@@ -58,6 +58,12 @@ function ToolbarButton({
   )
 }
 
+/**
+ * Rich-text editor built on TipTap with a bold/italic/underline and list toolbar.
+ * Emits HTML via onChange; see htmlToPlainText for plain-text extraction.
+ *
+ * @category forms
+ */
 export function RichTextEditor({
   content = '',
   onChange,

@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.dsync.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "incremental": false,
+    "rootDir": "..",
+    "outDir": "../types"
+  },
+  "include": ["ds-entry.ts"]
+}

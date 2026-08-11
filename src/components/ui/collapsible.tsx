@@ -5,6 +5,12 @@ import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Show/hide container built on Radix Collapsible.
+ * Compose with CollapsibleTrigger and CollapsibleContent.
+ *
+ * @category data-display
+ */
 function Collapsible({
   ...props
 }: React.ComponentProps<typeof CollapsiblePrimitive.Root>) {

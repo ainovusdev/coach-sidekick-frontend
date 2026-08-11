@@ -6,6 +6,13 @@ import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 
+/**
+ * Modal confirmation dialog for blocking decisions, built on Radix AlertDialog.
+ * Compose with AlertDialogTrigger, AlertDialogContent, AlertDialogHeader/Footer,
+ * AlertDialogTitle, AlertDialogDescription, AlertDialogAction and AlertDialogCancel.
+ *
+ * @category overlays
+ */
 function AlertDialog({
   ...props
 }: React.ComponentProps<typeof AlertDialogPrimitive.Root>) {

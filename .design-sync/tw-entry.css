@@ -1,0 +1,9 @@
+/* design-sync Tailwind entry — compiles the app's globals.css with sources
+   pinned to the app source, the authored DS previews, and a utility safelist
+   (so designs built in claude.ai/design can use common layout/spacing/token
+   utilities the app itself may not happen to use). Output goes to
+   .design-sync/.cache/compiled.css (see buildCmd in config.json). */
+@source "../src";
+@source "./previews";
+@source "./tw-safelist.txt";
+@import "../src/app/globals.css";

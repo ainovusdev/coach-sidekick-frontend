@@ -20,6 +20,12 @@ interface EmptyStateProps {
   iconClassName?: string
 }
 
+/**
+ * Centered empty-state block with icon, title, description and optional primary and
+ * secondary actions.
+ *
+ * @category feedback
+ */
 export function EmptyState({
   icon: Icon,
   title,

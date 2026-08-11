@@ -1,0 +1,129 @@
+<!-- @dsCard group="overview" viewport="1440x900" -->
+<!doctype html>
+<html><head><meta charset="utf-8">
+  <title>Coach Sidekick DS — Overview</title>
+  <link rel="stylesheet" href="../../../styles.css">
+  <link rel="stylesheet" href="../../../_ds_bundle.css">
+  <style>
+    /* Hand-authored composite card (repo source: .design-sync/extras/Overview.html).
+       Embeds every component's own card page as a same-origin iframe, so this
+       canvas always shows exactly what each card shows — no duplicated stories.
+       Off-pipeline on purpose: not in _ds_sync.json, so re-syncs ignore it. */
+    body{margin:0;padding:0}
+    .ov-wrap{max-width:1400px;margin:0 auto;padding:32px 28px 64px}
+    .ov-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;align-items:start}
+    .ov-block.ov-wide{grid-column:1/-1}
+    .ov-frame{position:relative;overflow:hidden;border-radius:10px}
+    .ov-frame>iframe{position:absolute;top:0;left:0;border:0;transform-origin:top left;background:#fff}
+    .ov-toc a{text-decoration:none}
+    @media (max-width:980px){.ov-grid{grid-template-columns:1fr}}
+  </style>
+</head><body class="bg-paper">
+  <div class="ov-wrap">
+    <header class="border-b border-line pb-6">
+      <p class="text-[11px] font-medium uppercase tracking-[0.08em] text-ink-3">Coach Sidekick Design System</p>
+      <h1 class="mt-2 text-3xl font-semibold text-ink" style="letter-spacing:-0.02em">All components, one canvas</h1>
+      <p class="mt-2 max-w-2xl text-sm text-ink-2">Every card in the system, rendered live and grouped by category. Each tile is the component&rsquo;s own preview page &mdash; open the individual card for its full API (<code class="font-mono text-[12px]">.d.ts</code>) and usage notes (<code class="font-mono text-[12px]">.prompt.md</code>).</p>
+      <nav class="ov-toc mt-4 flex flex-wrap gap-2" id="toc"></nav>
+    </header>
+    <main id="sections"></main>
+  </div>
+  <script>
+    // name → { g: group dir, w: natural render width, h: fixed height (single-mode
+    // cards declare their capture viewport; dynamic cards measure), wide: span
+    // both columns. Widths/heights mirror each card's @dsCard viewport.
+    var GROUPS = [
+      ['actions', 'Actions', [
+        ['Button', 900], ['DropdownMenu', 700, 560], ['ThemeToggle', 900]]],
+      ['forms', 'Forms', [
+        ['AIProviderSelector', 900, 0, 1], ['Calendar', 900], ['Checkbox', 900],
+        ['DueDateField', 900], ['Input', 900], ['Label', 900], ['RadioGroup', 900],
+        ['RichTextEditor', 900, 0, 1], ['Select', 700, 560], ['Switch', 900], ['Textarea', 900]]],
+      ['overlays', 'Overlays', [
+        ['AlertDialog', 800, 620], ['ConfirmationDialog', 800, 620],
+        ['DetailSidePanel', 1000, 700, 1], ['Dialog', 800, 620], ['Popover', 700, 500],
+        ['Sheet', 900, 700, 1], ['Tooltip', 700, 400]]],
+      ['data-display', 'Data display', [
+        ['Accordion', 900], ['Avatar', 900], ['Badge', 900], ['Card', 900],
+        ['ChatMarkdown', 900, 0, 1], ['Collapsible', 900], ['ScrollArea', 900],
+        ['Separator', 900], ['Table', 900, 0, 1], ['Tabs', 900]]],
+      ['feedback', 'Feedback', [
+        ['Alert', 900], ['EmptyState', 900], ['LoadingSpinner', 900],
+        ['LoadingState', 900], ['Progress', 900], ['Skeleton', 900], ['Toast', 700, 400]]],
+      ['patterns', 'Patterns', [
+        ['ClientCard', 900, 0, 1], ['PageHeader', 900, 0, 1]]],
+    ];
+    var DEFAULT_H = 560, MIN_H = 180, MAX_H = 2600;
+    var toc = document.getElementById('toc'), main = document.getElementById('sections');
+
+    function el(tag, cls, html) {
+      var e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (html !== undefined) e.innerHTML = html;
+      return e;
+    }
+
+    GROUPS.forEach(function (grp) {
+      var dir = grp[0], label = grp[1], comps = grp[2];
+      var a = el('a', 'rounded-md border border-line bg-surface-1 px-2.5 py-1 text-xs font-medium text-ink-2',
+        label + ' <span class="text-ink-4">' + comps.length + '</span>');
+      a.href = '#ov-' + dir;
+      toc.appendChild(a);
+
+      var section = el('section', 'pt-9');
+      section.id = 'ov-' + dir;
+      var head = el('div', 'mb-4 flex items-baseline gap-3',
+        '<h2 class="text-lg font-semibold text-ink">' + label + '</h2>' +
+        '<span class="text-xs text-ink-4">' + comps.length + ' component' + (comps.length > 1 ? 's' : '') + '</span>');
+      section.appendChild(head);
+      var grid = el('div', 'ov-grid');
+      comps.forEach(function (c) { grid.appendChild(block(dir, c[0], c[1], c[2] || 0, !!c[3])); });
+      section.appendChild(grid);
+      main.appendChild(section);
+    });
+
+    function block(dir, name, natW, fixedH, wide) {
+      var b = el('div', 'ov-block rounded-xl border border-line bg-surface-1 p-3' + (wide ? ' ov-wide' : ''));
+      b.appendChild(el('div', 'mb-2 flex items-baseline justify-between',
+        '<span class="text-[13px] font-semibold text-ink">' + name + '</span>' +
+        '<span class="font-mono text-[10px] text-ink-4">' + dir + '</span>'));
+      var frame = el('div', 'ov-frame border border-line-2');
+      var f = document.createElement('iframe');
+      f.loading = 'lazy';
+      f.src = '../../' + dir + '/' + name + '/' + name + '.html';
+      f.title = name;
+      frame.appendChild(f);
+      b.appendChild(frame);
+
+      function fit() {
+        var cellW = frame.clientWidth;
+        if (!cellW) return;
+        // Wider cell than the card's natural width → let the page reflow to
+        // fill it (scale 1); narrower → render at natural width, scale down.
+        var renderW = Math.max(natW, cellW);
+        var s = cellW / renderW;
+        f.style.width = renderW + 'px';
+        f.style.transform = 'scale(' + s + ')';
+        var h = fixedH;
+        if (!h) {
+          h = DEFAULT_H;
+          try {
+            var d = f.contentDocument;
+            var m = d && d.documentElement && d.documentElement.scrollHeight;
+            if (m) h = Math.max(MIN_H, Math.min(m, MAX_H));
+          } catch (e) { /* cross-origin sandbox — keep the default */ }
+        }
+        f.style.height = h + 'px';
+        frame.style.height = Math.round(h * s) + 'px';
+      }
+      // React mounts after load and layouts settle late (fonts, calendars,
+      // editors) — re-fit on a tail of timers instead of chasing observers.
+      f.addEventListener('load', function () {
+        fit(); [300, 900, 2000, 4000].forEach(function (t) { setTimeout(fit, t); });
+      });
+      window.addEventListener('resize', fit);
+      fit();
+      return b;
+    }
+  </script>
+</body></html>

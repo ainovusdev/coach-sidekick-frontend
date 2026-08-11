@@ -20,6 +20,12 @@ interface ConfirmationDialogProps {
   variant?: 'default' | 'destructive'
 }
 
+/**
+ * Ready-made confirm/cancel dialog (wraps AlertDialog) with title, description and
+ * default/destructive variants. Controlled via open/onOpenChange.
+ *
+ * @category overlays
+ */
 export function ConfirmationDialog({
   open,
   onOpenChange,

@@ -27,6 +27,12 @@ interface DueDateFieldProps {
   id?: string
 }
 
+/**
+ * Labeled, clearable due-date picker: an outline trigger button opening a Calendar
+ * popover. Emits date-only yyyy-MM-dd strings (or null) via onChange.
+ *
+ * @category forms
+ */
 export function DueDateField({
   value,
   onChange,

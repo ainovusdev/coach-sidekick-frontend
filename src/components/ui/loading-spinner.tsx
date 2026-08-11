@@ -5,6 +5,11 @@ interface LoadingSpinnerProps {
   className?: string
 }
 
+/**
+ * Circular border spinner. Sizes: sm, md, lg.
+ *
+ * @category feedback
+ */
 export function LoadingSpinner({
   size = 'md',
   className,

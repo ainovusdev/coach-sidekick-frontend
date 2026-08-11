@@ -6,6 +6,12 @@ import { Check, ChevronRight, Circle } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * Action menu built on Radix DropdownMenu with items, checkbox/radio items, labels,
+ * separators, shortcuts and nested submenus.
+ *
+ * @category actions
+ */
 const DropdownMenu = DropdownMenuPrimitive.Root
 
 const DropdownMenuTrigger = DropdownMenuPrimitive.Trigger

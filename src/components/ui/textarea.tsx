@@ -4,6 +4,11 @@ import { cn } from '@/lib/utils'
 
 export type TextareaProps = React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
+/**
+ * Multi-line text input styled with DS tokens.
+ *
+ * @category forms
+ */
 const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, ...props }, ref) => {
     return (

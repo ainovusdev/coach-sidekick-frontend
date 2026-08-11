@@ -39,6 +39,13 @@ function formatLastSession(dateStr: string): string {
   return `${Math.floor(daysSince / 30)}mo ago`
 }
 
+/**
+ * Client roster card: name, initials avatar, email and a session-recency health dot.
+ * Permission-aware (renders inside the app's PermissionProvider); can flag "my client"
+ * and show the owning coach.
+ *
+ * @category patterns
+ */
 export function ClientCard({
   name,
   email,

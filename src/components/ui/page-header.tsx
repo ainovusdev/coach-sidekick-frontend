@@ -15,6 +15,11 @@ interface PageHeaderProps {
   className?: string
 }
 
+/**
+ * Page title block with optional icon, description and a right-aligned actions slot.
+ *
+ * @category patterns
+ */
 export function PageHeader({
   title,
   description,
