@@ -10,7 +10,6 @@ import {
   SessionWinUpdate,
   SessionWinListResponse,
   ClientWinsResponse,
-  ProgramWinsResponse,
   WinsExtractionResponse,
 } from '@/types/win'
 
@@ -85,16 +84,6 @@ export class WinsService {
   static async getClientWins(clientId: string): Promise<ClientWinsResponse> {
     const response = await ApiClient.get(
       `${BACKEND_URL}/wins/client/${clientId}`,
-    )
-    return response
-  }
-
-  /**
-   * Get all wins for a program (grouped by client)
-   */
-  static async getProgramWins(programId: string): Promise<ProgramWinsResponse> {
-    const response = await ApiClient.get(
-      `${BACKEND_URL}/wins/program/${programId}`,
     )
     return response
   }

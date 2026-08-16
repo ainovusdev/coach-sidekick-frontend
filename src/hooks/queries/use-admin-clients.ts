@@ -11,7 +11,6 @@ export interface AdminClientsParams {
   limit?: number
   search?: string
   coach_id?: string
-  program_id?: string
   tags?: string
 }
 

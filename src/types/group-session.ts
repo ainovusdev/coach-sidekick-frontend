@@ -8,8 +8,6 @@ export interface GroupSession {
   id: string
   coach_id: string
   coach_name: string | null
-  program_id: string | null
-  program_name: string | null
   title: string | null
   status: string
   session_type: string
@@ -28,7 +26,6 @@ export interface GroupSession {
 }
 
 export interface GroupSessionCreate {
-  program_id?: string
   client_ids: string[]
   title?: string
   meeting_url?: string
@@ -43,7 +40,6 @@ export interface GroupSessionListResponse {
 }
 
 export interface GroupSessionFilters {
-  program_id?: string
   page?: number
   per_page?: number
 }

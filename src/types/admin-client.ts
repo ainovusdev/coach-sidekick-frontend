@@ -2,12 +2,6 @@
  * Types for Admin Client Management
  */
 
-export interface AdminClientProgram {
-  id: string
-  name: string
-  color: string
-}
-
 export interface AdminClient {
   id: string
   name: string
@@ -18,7 +12,6 @@ export interface AdminClient {
   coach_id: string
   coach_name: string | null
   coach_email: string
-  programs: AdminClientProgram[]
   total_sessions: number
   last_session_date: string | null
   has_portal_access: boolean
@@ -45,12 +38,6 @@ export interface AdminClientUpdate {
 export interface BulkAssignCoachRequest {
   client_ids: string[]
   coach_id: string
-}
-
-export interface BulkAssignProgramRequest {
-  client_ids: string[]
-  program_id: string
-  action: 'add' | 'remove'
 }
 
 export interface CSVImportRow {
@@ -85,16 +72,9 @@ export interface CoachStats {
   client_count: number
 }
 
-export interface ProgramStats {
-  program_id: string
-  program_name: string
-  client_count: number
-}
-
 export interface AdminClientStats {
   total_clients: number
   total_with_portal_access: number
   total_sessions: number
   by_coach: CoachStats[]
-  by_program: ProgramStats[]
 }

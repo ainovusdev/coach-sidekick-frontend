@@ -213,18 +213,6 @@ export const queryKeys = {
     status: () => [...queryKeys.calendar.all, 'status'] as const,
   },
 
-  // Program keys
-  programs: {
-    all: ['programs'] as const,
-    lists: () => [...queryKeys.programs.all, 'list'] as const,
-    list: (filters?: Record<string, any>) =>
-      [...queryKeys.programs.lists(), { filters }] as const,
-    details: () => [...queryKeys.programs.all, 'detail'] as const,
-    detail: (id: string) => [...queryKeys.programs.details(), id] as const,
-    dashboard: (id: string) =>
-      [...queryKeys.programs.detail(id), 'dashboard'] as const,
-  },
-
   // Group session keys
   groupSessions: {
     all: ['group-sessions'] as const,
@@ -307,7 +295,6 @@ export const queryKeys = {
         limit?: number
         search?: string
         coach_id?: string
-        program_id?: string
         tags?: string
       }) => [...queryKeys.admin.clients.lists(), { params }] as const,
       detail: (id: string) =>
@@ -339,20 +326,6 @@ export const queryKeys = {
  * Example: After creating a session, invalidate both sessions list and client sessions
  */
 export const invalidateQueries = {
-  afterProgramUpdate: async (queryClient: QueryClient, programId?: string) => {
-    await Promise.all([
-      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all }),
-      programId &&
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.programs.detail(programId),
-        }),
-      programId &&
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.programs.dashboard(programId),
-        }),
-    ])
-  },
-
   afterGroupSessionUpdate: async (
     queryClient: QueryClient,
     sessionId?: string,
@@ -425,7 +398,6 @@ export const invalidateAdminQueries = {
       queryClient.invalidateQueries({
         queryKey: queryKeys.admin.dashboard.stats(),
       }),
-      queryClient.invalidateQueries({ queryKey: queryKeys.programs.all }),
       clientId &&
         queryClient.invalidateQueries({
           queryKey: queryKeys.admin.clients.detail(clientId),

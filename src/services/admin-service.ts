@@ -4,7 +4,6 @@ import type {
   AdminClientListResponse,
   AdminClientStats,
   BulkAssignCoachRequest,
-  BulkAssignProgramRequest,
   CSVImportRequest,
   CSVImportResponse,
 } from '@/types/admin-client'
@@ -16,7 +15,6 @@ export type {
   AdminClientStats,
   AdminClientUpdate,
   BulkAssignCoachRequest,
-  BulkAssignProgramRequest,
   CSVImportRequest,
   CSVImportResponse,
 } from '@/types/admin-client'
@@ -275,7 +273,6 @@ class AdminService {
     limit?: number
     search?: string
     coach_id?: string
-    program_id?: string
     tags?: string
   }): Promise<AdminClientListResponse> {
     const response = await axiosInstance.get('/admin/clients', { params })
@@ -301,16 +298,6 @@ class AdminService {
     return response.data
   }
 
-  async bulkAssignProgram(
-    data: BulkAssignProgramRequest,
-  ): Promise<BulkOperationResponse> {
-    const response = await axiosInstance.post(
-      '/admin/clients/bulk-assign-program',
-      data,
-    )
-    return response.data
-  }
-
   async importClientsCSV(data: CSVImportRequest): Promise<CSVImportResponse> {
     const response = await axiosInstance.post('/admin/clients/import', data)
     return response.data
@@ -319,7 +306,6 @@ class AdminService {
   async exportClientsCSV(params?: {
     search?: string
     coach_id?: string
-    program_id?: string
   }): Promise<Blob> {
     const response = await axiosInstance.get('/admin/clients/export', {
       params,
