@@ -3,7 +3,6 @@ import {
   adminService,
   AdminClientListResponse,
   BulkAssignCoachRequest,
-  BulkAssignProgramRequest,
   CSVImportRequest,
 } from '@/services/admin-service'
 import { invalidateAdminQueries, queryKeys } from '@/lib/query-client'
@@ -108,48 +107,6 @@ export function useBulkAssignCoach() {
 }
 
 /**
- * Bulk add or remove clients from a program
- *
- * @example
- * ```tsx
- * const { mutate: bulkAssignProgram } = useBulkAssignProgram()
- *
- * bulkAssignProgram({
- *   client_ids: ['id1', 'id2'],
- *   program_id: 'program-uuid',
- *   action: 'add'
- * })
- * ```
- */
-export function useBulkAssignProgram() {
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: (data: BulkAssignProgramRequest) =>
-      adminService.bulkAssignProgram(data),
-
-    onSuccess: (result, variables) => {
-      const action = variables.action === 'add' ? 'added to' : 'removed from'
-      if (result.success_count > 0) {
-        toast.success(
-          `Successfully ${action} sandbox: ${result.success_count} client(s)`,
-        )
-      }
-      if (result.failed_count > 0) {
-        toast.error(`Failed to update ${result.failed_count} client(s)`)
-      }
-      invalidateAdminQueries.afterAdminClientUpdate(queryClient)
-    },
-
-    onError: (error: any) => {
-      toast.error(
-        error.response?.data?.detail || 'Failed to update sandbox membership',
-      )
-    },
-  })
-}
-
-/**
  * Import clients from CSV data
  *
  * @example
@@ -210,7 +167,6 @@ export function useExportClients() {
     mutationFn: (params?: {
       search?: string
       coach_id?: string
-      program_id?: string
     }) => adminService.exportClientsCSV(params),
 
     onSuccess: blob => {

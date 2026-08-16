@@ -21,7 +21,6 @@ export class GroupSessionService {
     params?: GroupSessionFilters,
   ): Promise<GroupSessionListResponse> {
     const queryParams = new URLSearchParams()
-    if (params?.program_id) queryParams.append('program_id', params.program_id)
     if (params?.page) queryParams.append('page', params.page.toString())
     if (params?.per_page)
       queryParams.append('per_page', params.per_page.toString())

@@ -43,12 +43,6 @@ export interface ClientWinsResponse {
   total_wins: number
 }
 
-export interface ProgramWinsResponse {
-  program_id: string
-  clients: ClientWinsResponse[]
-  total_wins: number
-}
-
 export interface ExtractedWin {
   title: string
   description: string

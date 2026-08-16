@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
 import { AdminClient } from '@/types/admin-client'
 import {
   useAdminClients,
@@ -12,7 +11,6 @@ import { useAdminUsers } from '@/hooks/queries/use-admin-users'
 import {
   useDeleteAdminClient,
   useBulkAssignCoach,
-  useBulkAssignProgram,
   useExportClients,
 } from '@/hooks/mutations/use-admin-client-mutations'
 import { Button } from '@/components/ui/button'
@@ -49,7 +47,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
@@ -63,57 +60,35 @@ import {
   Trash2,
   Edit,
   UserCog,
-  FolderPlus,
   X,
   CheckCircle,
   XCircle,
   Loader2,
 } from 'lucide-react'
-import { useQuery } from '@tanstack/react-query'
-import { queryKeys } from '@/lib/query-client'
-import axiosInstance from '@/lib/axios-config'
 import { formatDate } from '@/lib/date-utils'
 import { isCoachRole } from '@/lib/roles'
 
-interface Program {
-  id: string
-  name: string
-  color: string
-}
-
 export default function AdminClientsPage() {
-  const searchParams = useSearchParams()
-  const initialProgramId = searchParams.get('program_id') || 'all'
-
-  // Filter state - initialize from URL params
+  // Filter state
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCoach, setSelectedCoach] = useState<string>('all')
-  const [selectedProgram, setSelectedProgram] =
-    useState<string>(initialProgramId)
 
   // Selection state
   const [selectedClients, setSelectedClients] = useState<Set<string>>(new Set())
 
   // Dialog state
   const [isAssignCoachDialogOpen, setIsAssignCoachDialogOpen] = useState(false)
-  const [isAssignProgramDialogOpen, setIsAssignProgramDialogOpen] =
-    useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [clientToDelete, setClientToDelete] = useState<AdminClient | null>(null)
 
   // Bulk action form state
   const [bulkCoachId, setBulkCoachId] = useState<string>('')
-  const [bulkProgramId, setBulkProgramId] = useState<string>('')
-  const [bulkProgramAction, setBulkProgramAction] = useState<'add' | 'remove'>(
-    'add',
-  )
 
   // Query hooks
   const { data: clientsData, isLoading: loadingClients } = useAdminClients({
     limit: 100,
     search: searchQuery || undefined,
     coach_id: selectedCoach !== 'all' ? selectedCoach : undefined,
-    program_id: selectedProgram !== 'all' ? selectedProgram : undefined,
   })
   const clients = clientsData?.clients || []
 
@@ -127,22 +102,10 @@ export default function AdminClientsPage() {
       u.roles.includes('super_admin'),
   )
 
-  // Fetch programs
-  const { data: programsData } = useQuery<{ programs: Program[] }>({
-    queryKey: queryKeys.programs.list(),
-    queryFn: async () => {
-      const response = await axiosInstance.get('/programs')
-      return response.data
-    },
-  })
-  const programs = programsData?.programs || []
-
   // Mutation hooks
   const { mutate: deleteClient, isPending: isDeleting } = useDeleteAdminClient()
   const { mutate: bulkAssignCoach, isPending: isAssigningCoach } =
     useBulkAssignCoach()
-  const { mutate: bulkAssignProgram, isPending: isAssigningProgram } =
-    useBulkAssignProgram()
   const { mutate: exportClients, isPending: isExporting } = useExportClients()
 
   // Selection handlers
@@ -187,25 +150,6 @@ export default function AdminClientsPage() {
     )
   }
 
-  const handleBulkAssignProgram = () => {
-    if (!bulkProgramId || selectedClients.size === 0) return
-
-    bulkAssignProgram(
-      {
-        client_ids: Array.from(selectedClients),
-        program_id: bulkProgramId,
-        action: bulkProgramAction,
-      },
-      {
-        onSuccess: () => {
-          setIsAssignProgramDialogOpen(false)
-          setBulkProgramId('')
-          clearSelection()
-        },
-      },
-    )
-  }
-
   const handleDeleteClient = () => {
     if (!clientToDelete) return
 
@@ -221,7 +165,6 @@ export default function AdminClientsPage() {
     exportClients({
       search: searchQuery || undefined,
       coach_id: selectedCoach !== 'all' ? selectedCoach : undefined,
-      program_id: selectedProgram !== 'all' ? selectedProgram : undefined,
     })
   }
 
@@ -381,29 +324,13 @@ export default function AdminClientsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-              <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="All Sandboxes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Sandboxes</SelectItem>
-                {programs.map(program => (
-                  <SelectItem key={program.id} value={program.id}>
-                    {program.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {(searchQuery ||
-              selectedCoach !== 'all' ||
-              selectedProgram !== 'all') && (
+            {(searchQuery || selectedCoach !== 'all') && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
                   setSearchQuery('')
                   setSelectedCoach('all')
-                  setSelectedProgram('all')
                 }}
               >
                 <X className="h-4 w-4 mr-1" />
@@ -440,14 +367,6 @@ export default function AdminClientsPage() {
                 >
                   <UserCog className="h-4 w-4 mr-2" />
                   Assign Coach
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsAssignProgramDialogOpen(true)}
-                >
-                  <FolderPlus className="h-4 w-4 mr-2" />
-                  Manage Sandbox
                 </Button>
               </div>
             </div>
@@ -491,7 +410,6 @@ export default function AdminClientsPage() {
                   </TableHead>
                   <TableHead>Client</TableHead>
                   <TableHead>Coach</TableHead>
-                  <TableHead>Sandboxes</TableHead>
                   <TableHead className="text-center">Sessions</TableHead>
                   <TableHead className="text-center">Portal</TableHead>
                   <TableHead>Last Session</TableHead>
@@ -525,33 +443,6 @@ export default function AdminClientsPage() {
                           {client.coach_name || 'Unknown'}
                         </div>
                         <div className="text-ink-3 ">{client.coach_email}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {client.programs.length === 0 ? (
-                          <span className="text-ink-4 text-sm">None</span>
-                        ) : (
-                          client.programs.slice(0, 2).map(program => (
-                            <Badge
-                              key={program.id}
-                              variant="secondary"
-                              style={{
-                                backgroundColor: `${program.color}20`,
-                                color: program.color,
-                                borderColor: program.color,
-                              }}
-                              className="text-xs"
-                            >
-                              {program.name}
-                            </Badge>
-                          ))
-                        )}
-                        {client.programs.length > 2 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{client.programs.length - 2}
-                          </Badge>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
@@ -652,71 +543,6 @@ export default function AdminClientsPage() {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : null}
               Assign Coach
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Assign Program Dialog */}
-      <Dialog
-        open={isAssignProgramDialogOpen}
-        onOpenChange={setIsAssignProgramDialogOpen}
-      >
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Manage Sandbox Membership</DialogTitle>
-            <DialogDescription>
-              Add or remove {selectedClients.size} selected client(s) from a
-              sandbox
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4 space-y-4">
-            <div className="flex gap-2">
-              <Button
-                variant={bulkProgramAction === 'add' ? 'default' : 'outline'}
-                onClick={() => setBulkProgramAction('add')}
-                className="flex-1"
-              >
-                Add to Sandbox
-              </Button>
-              <Button
-                variant={bulkProgramAction === 'remove' ? 'default' : 'outline'}
-                onClick={() => setBulkProgramAction('remove')}
-                className="flex-1"
-              >
-                Remove from Sandbox
-              </Button>
-            </div>
-            <Select value={bulkProgramId} onValueChange={setBulkProgramId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a sandbox" />
-              </SelectTrigger>
-              <SelectContent>
-                {programs.map(program => (
-                  <SelectItem key={program.id} value={program.id}>
-                    {program.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAssignProgramDialogOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleBulkAssignProgram}
-              disabled={!bulkProgramId || isAssigningProgram}
-            >
-              {isAssigningProgram ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : null}
-              {bulkProgramAction === 'add'
-                ? 'Add to Sandbox'
-                : 'Remove from Sandbox'}
             </Button>
           </DialogFooter>
         </DialogContent>

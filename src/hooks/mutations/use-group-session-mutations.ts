@@ -16,7 +16,6 @@ export function useCreateGroupSession() {
         group_session_id: created?.id,
         participant_count: created?.participant_count ?? null,
         session_type: created?.session_type ?? null,
-        has_program: !!created?.program_id,
       })
       toast.success('Group session created')
       invalidateQueries.afterGroupSessionUpdate(queryClient)

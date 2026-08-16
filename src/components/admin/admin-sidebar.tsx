@@ -13,7 +13,6 @@ import {
   ChevronLeft,
   ChevronRight,
   Network,
-  FolderKanban,
   BookOpen,
   Sparkles,
   GitMerge,
@@ -45,12 +44,6 @@ const menuItems = [
     href: '/admin/users',
     icon: Users,
     requiredRole: ['admin', 'super_admin'],
-  },
-  {
-    title: 'Sandboxes',
-    href: '/admin/programs',
-    icon: FolderKanban,
-    requiredRole: ['super_admin'],
   },
   {
     title: 'Clients',
