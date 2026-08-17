@@ -44,15 +44,18 @@ interface WebSocketProviderProps {
 }
 
 export function WebSocketProvider({ children }: WebSocketProviderProps) {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isCoach, isAdmin } = useAuth()
   const [status, setStatus] = useState<WebSocketStatus>('disconnected')
+
+  // Only coach/admin surfaces consume the socket (session-processing toasts,
+  // live session page); client-portal users must not hold an idle connection.
+  const shouldConnect = isAuthenticated && (isCoach() || isAdmin())
 
   useEffect(() => {
     // Subscribe to status changes
     const unsubscribe = websocketService.onStatusChange(setStatus)
 
-    // Auto-connect WebSocket when authenticated
-    if (isAuthenticated) {
+    if (shouldConnect) {
       websocketService.connect()
     } else {
       websocketService.disconnect()
@@ -61,7 +64,7 @@ export function WebSocketProvider({ children }: WebSocketProviderProps) {
     return () => {
       unsubscribe()
     }
-  }, [isAuthenticated])
+  }, [shouldConnect])
 
   const connect = useCallback(() => {
     websocketService.connect()

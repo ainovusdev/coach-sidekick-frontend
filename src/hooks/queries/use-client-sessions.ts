@@ -1,5 +1,6 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 
 const API_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -8,8 +9,10 @@ function getAuthHeaders(): Record<string, string> {
   const token =
     typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${token}`,
     'Content-Type': 'application/json',
+  }
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
   }
   if (typeof window !== 'undefined') {
     const viewAsClient = sessionStorage.getItem('view_as_client_id')
@@ -25,9 +28,20 @@ function getAuthHeaders(): Record<string, string> {
 }
 
 async function clientFetch<T>(path: string): Promise<T> {
+  if (!isTokenValid()) {
+    handleAuthExpired()
+    throw Object.assign(new Error('Session expired'), { status: 401 })
+  }
   const res = await fetch(`${API_URL}${path}`, { headers: getAuthHeaders() })
+  if (res.status === 401) {
+    handleAuthExpired()
+  }
   if (!res.ok) {
-    throw new Error(`Failed to fetch ${path}: ${res.status}`)
+    // status lets the query cache's 4xx filter suppress expected client
+    // errors from PostHog (see reportUnexpectedQueryError in query-client.ts)
+    throw Object.assign(new Error(`Failed to fetch ${path}: ${res.status}`), {
+      status: res.status,
+    })
   }
   return res.json()
 }

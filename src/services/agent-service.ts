@@ -6,6 +6,7 @@
  */
 
 import authService from '@/services/auth-service'
+import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import type {
   AgentEvent,
   AgentThreadDetail,
@@ -41,7 +42,10 @@ export interface StreamAgentArgs {
 
 function authHeader(): Record<string, string> {
   const token = authService.getToken()
-  if (!token) throw new Error('Not authenticated')
+  if (!token || !isTokenValid()) {
+    handleAuthExpired()
+    throw Object.assign(new Error('Not authenticated'), { status: 401 })
+  }
   return { Authorization: `Bearer ${token}` }
 }
 
@@ -74,6 +78,20 @@ async function unwrapError(res: Response, fallback: string): Promise<string> {
   return fallback
 }
 
+/**
+ * Build an Error carrying the HTTP status so the query cache's 4xx filter
+ * (query-client.ts) can suppress expected client errors from PostHog, and
+ * redirect to login on 401 like the axios interceptor does.
+ */
+async function httpError(res: Response, fallback: string): Promise<Error> {
+  if (res.status === 401) {
+    handleAuthExpired()
+  }
+  return Object.assign(new Error(await unwrapError(res, fallback)), {
+    status: res.status,
+  })
+}
+
 // ---------------------------------------------------------------------------
 // Thread persistence
 // ---------------------------------------------------------------------------
@@ -85,9 +103,7 @@ export async function listAgentThreads(
     headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
-    throw new Error(
-      await unwrapError(res, `Failed to load threads: ${res.status}`),
-    )
+    throw await httpError(res, `Failed to load threads: ${res.status}`)
   }
   return (await res.json()) as AgentThreadListResponse
 }
@@ -100,9 +116,7 @@ export async function getAgentThread(
     headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
-    throw new Error(
-      await unwrapError(res, `Failed to load thread: ${res.status}`),
-    )
+    throw await httpError(res, `Failed to load thread: ${res.status}`)
   }
   return (await res.json()) as AgentThreadDetail
 }
@@ -116,9 +130,7 @@ export async function deleteAgentThread(
     headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok && res.status !== 204) {
-    throw new Error(
-      await unwrapError(res, `Failed to delete thread: ${res.status}`),
-    )
+    throw await httpError(res, `Failed to delete thread: ${res.status}`)
   }
 }
 
@@ -129,7 +141,7 @@ export async function fetchModels(
     headers: { ...authHeader(), ...viewAsHeaders() },
   })
   if (!res.ok) {
-    throw new Error(`Failed to load models: ${res.status}`)
+    throw await httpError(res, `Failed to load models: ${res.status}`)
   }
   return (await res.json()) as ModelsResponse
 }
@@ -186,9 +198,7 @@ export async function fetchAgentInsight({
   })
 
   if (!res.ok) {
-    throw new Error(
-      await unwrapError(res, `Failed to generate insight: ${res.status}`),
-    )
+    throw await httpError(res, `Failed to generate insight: ${res.status}`)
   }
   return (await res.json()) as AgentInsightResult
 }
@@ -222,7 +232,7 @@ export async function* streamAgent({
   })
 
   if (!res.ok) {
-    throw new Error(await unwrapError(res, `HTTP ${res.status}`))
+    throw await httpError(res, `HTTP ${res.status}`)
   }
 
   if (!res.body) {

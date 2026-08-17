@@ -61,6 +61,6 @@ export function useClientPreSession() {
   return useQuery<PreSessionPrep>({
     queryKey: questionnaireKeys.clientPreSession(),
     queryFn: () => QuestionnaireService.getClientPreSession(),
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000,
   })
 }

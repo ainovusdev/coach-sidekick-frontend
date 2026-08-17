@@ -178,23 +178,34 @@ export class ApiClient {
       // These never reach a react-query onError with a usable status (the
       // request never completed), so report them here — throttled per endpoint
       // and flagged so the cache layer doesn't double-count.
+      // Offline/wake flaps aren't actionable: only report failures that
+      // happen while the browser believes it has a network connection.
+      const isOnline = typeof navigator === 'undefined' || navigator.onLine
       if (error instanceof Error && error.name === 'AbortError') {
         const timeoutError: ApiError = new Error(
           'Request timeout - please try again',
         )
         timeoutError.__phCaptured = true
-        captureExceptionThrottled(`api-timeout:${url}`, timeoutError, {
-          source: 'api-client',
-          reason: 'timeout',
-          url,
-        })
+        if (isOnline) {
+          captureExceptionThrottled(`api-timeout:${url}`, timeoutError, {
+            source: 'api-client',
+            reason: 'timeout',
+            url,
+          })
+        }
         throw timeoutError
       }
-      captureExceptionThrottled(`api-network:${url}`, error, {
-        source: 'api-client',
-        reason: 'network',
-        url,
-      })
+      if (isOnline) {
+        captureExceptionThrottled(`api-network:${url}`, error, {
+          source: 'api-client',
+          reason: 'network',
+          url,
+          visibility:
+            typeof document !== 'undefined'
+              ? document.visibilityState
+              : 'unknown',
+        })
+      }
       ;(error as ApiError).__phCaptured = true
       throw error
     }
