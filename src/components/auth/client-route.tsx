@@ -11,7 +11,7 @@ interface ClientRouteProps {
 }
 
 export function ClientRoute({ children }: ClientRouteProps) {
-  const { isAuthenticated, loading, hasRole, signOut } = useAuth()
+  const { isAuthenticated, loading, canAccessClientView, signOut } = useAuth()
   const router = useRouter()
 
   const handleGoBackToSignIn = async () => {
@@ -40,10 +40,13 @@ export function ClientRoute({ children }: ClientRouteProps) {
     return null
   }
 
-  // Check if user has client role (or is impersonating as super_admin)
+  // Require a usable client profile — role alone isn't enough: users hit by
+  // the onboarding gap have the client role but no client profile row, and
+  // rendering the portal for them just turns every backend call into a 403/404
+  // (or is impersonating as super_admin)
   const isImpersonating =
     typeof window !== 'undefined' && sessionStorage.getItem('view_as_client_id')
-  if (!hasRole('client') && !isImpersonating) {
+  if (!canAccessClientView() && !isImpersonating) {
     // Not a client - show friendly message instead of redirecting
     return (
       <div className="flex items-center justify-center min-h-screen bg-paper">

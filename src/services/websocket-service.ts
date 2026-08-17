@@ -179,10 +179,8 @@ class WebSocketService {
         { source: 'websocket', reason: 'onerror' },
       )
       this.updateStatus('error')
-      // Schedule reconnect on error (if not intentional disconnect)
-      if (!this.intentionalDisconnect) {
-        this.scheduleReconnect()
-      }
+      // No scheduleReconnect here: onclose always follows a failed connection
+      // and schedules it — doing both burned two attempts per real failure.
     }
 
     this.ws.onclose = event => {
@@ -192,8 +190,15 @@ class WebSocketService {
       // Reconnect if not an intentional disconnect
       const isIntentionalClose =
         event.code === 1000 && event.reason === 'Client disconnect'
+      // 4001 = backend rejected the token (websocket/handlers.py); retrying
+      // with the same token can never succeed.
+      const isAuthRejection = event.code === 4001
 
-      if (!this.intentionalDisconnect && !isIntentionalClose) {
+      if (
+        !this.intentionalDisconnect &&
+        !isIntentionalClose &&
+        !isAuthRejection
+      ) {
         this.scheduleReconnect()
       }
     }
