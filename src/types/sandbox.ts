@@ -196,14 +196,79 @@ export interface SandboxGroup {
   updated_at: string
 }
 
+export type TimelineKind =
+  | 'gold_sealing'
+  | 'check_in'
+  | 'midpoint_reporting'
+  | 'results_review'
+  | 'custom'
+
 export interface TimelineEvent {
   id: string
-  kind: 'gold_sealing' | 'check_in' | 'midpoint_reporting' | 'results_review'
+  kind: TimelineKind
   label: string
   window_start: string
   window_end: string
   position: number
   state: EventState
+  /** Stable identity of a generated event ("check_in:2"); null = added by hand. */
+  gen_key: string | null
+  is_custom: boolean
+  /** Window moved by hand (or a custom event). Kept on regeneration by default. */
+  is_hand_adjusted: boolean
+  /** The reason given when the event was added by hand. */
+  note: string | null
+  removed_at: string | null
+  removed_reason: string | null
+}
+
+export interface TimelineEventCreate {
+  label: string
+  window_start: string
+  window_end: string
+  note: string
+}
+
+export interface TimelineEventUpdate {
+  label?: string
+  window_start?: string
+  window_end?: string
+  /** Move the later check-ins by the same number of days. */
+  shift_following?: boolean
+}
+
+export type TimelineChangeAction =
+  | 'unchanged'
+  | 'moved'
+  | 'added'
+  | 'dropped'
+  | 'kept'
+  | 'overwritten'
+
+export interface TimelineChange {
+  action: TimelineChangeAction
+  event_id: string | null
+  gen_key: string | null
+  kind: TimelineKind
+  label: string
+  before_start: string | null
+  before_end: string | null
+  after_start: string | null
+  after_end: string | null
+  is_hand_adjusted: boolean
+  is_custom: boolean
+  was_removed: boolean
+}
+
+export interface TimelineRegeneratePreview {
+  term_start: string
+  term_months: number
+  term_end: string
+  overwrite_hand_adjusted: boolean
+  changes: TimelineChange[]
+  counts: Record<TimelineChangeAction, number>
+  /** Events on the timeline today that regeneration leaves alone by default. */
+  hand_adjusted_count: number
 }
 
 export interface SetupChecklist {
@@ -242,6 +307,8 @@ export interface SandboxOverview {
   members: SandboxMember[]
   groups: SandboxGroup[]
   timeline: TimelineEvent[]
+  /** Events taken out by hand, newest removal first. Restorable. */
+  timeline_removed: TimelineEvent[]
   checklist: SetupChecklist
   invitations: SandboxInvitation[]
   my_roles: string[]
@@ -268,6 +335,8 @@ export interface SandboxUpdate {
   term_months?: TermMonths
   vision?: string | null
   links?: SandboxLink[]
+  /** On a term change: also reset hand-adjusted, removed and added events. */
+  overwrite_hand_adjusted?: boolean
 }
 
 export interface SandboxMemberCreate {

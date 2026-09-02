@@ -246,6 +246,19 @@ export const queryKeys = {
       [...queryKeys.sandboxes.detail(id), 'lookup', email] as const,
     termPreview: (start: string, months: number) =>
       [...queryKeys.sandboxes.all, 'term-preview', start, months] as const,
+    regeneratePreview: (
+      id: string,
+      start: string,
+      months: number,
+      overwrite: boolean,
+    ) =>
+      [
+        ...queryKeys.sandboxes.detail(id),
+        'regenerate-preview',
+        start,
+        months,
+        overwrite,
+      ] as const,
     emailPreview: (id: string, memberId: string) =>
       [...queryKeys.sandboxes.detail(id), 'email-preview', memberId] as const,
     welcome: (id: string) =>

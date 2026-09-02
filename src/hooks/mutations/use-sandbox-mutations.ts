@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import posthog from 'posthog-js'
-import { invalidateQueries } from '@/lib/query-client'
+import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { SandboxService } from '@/services/sandbox-service'
 import type {
   InvitationSendRequest,
@@ -12,7 +12,10 @@ import type {
   SandboxGroupUpdate,
   SandboxMemberCreate,
   SandboxMemberUpdate,
+  SandboxOverview,
   SandboxUpdate,
+  TimelineEventCreate,
+  TimelineEventUpdate,
 } from '@/types/sandbox'
 
 type ApiErr = Error & { status?: number; detail?: Record<string, any> }
@@ -57,6 +60,88 @@ export function useUpdateSandbox(sandboxId: string) {
     onError: error =>
       toast.error(errorMessage(error, 'Could not save the sandbox')),
   })
+}
+
+// ------------------------------------------------------------------ timeline
+
+/** Every timeline mutation returns the fresh overview; put it straight in the cache. */
+function useTimelineMutation<TVars>(
+  sandboxId: string,
+  mutationFn: (vars: TVars) => Promise<SandboxOverview>,
+  successMessage: string | ((vars: TVars, overview: SandboxOverview) => string),
+  fallbackError: string,
+) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn,
+    onSuccess: (overview, vars) => {
+      queryClient.setQueryData(
+        queryKeys.sandboxes.overview(sandboxId),
+        overview,
+      )
+      invalidateQueries.afterSandboxUpdate(queryClient, sandboxId)
+      const message =
+        typeof successMessage === 'function'
+          ? successMessage(vars, overview)
+          : successMessage
+      if (message) toast.success(message)
+    },
+    onError: error => {
+      const detail = sandboxErrorDetail(error)
+      toast.error(detail?.message || errorMessage(error, fallbackError))
+    },
+  })
+}
+
+export function useMoveEvent(sandboxId: string) {
+  return useTimelineMutation(
+    sandboxId,
+    ({ eventId, data }: { eventId: string; data: TimelineEventUpdate }) =>
+      SandboxService.moveEvent(sandboxId, eventId, data),
+    ({ data }) =>
+      data.shift_following
+        ? 'Window moved, later check-ins shifted'
+        : 'Window moved',
+    'Could not move that window',
+  )
+}
+
+export function useAddEvent(sandboxId: string) {
+  return useTimelineMutation(
+    sandboxId,
+    (data: TimelineEventCreate) => SandboxService.addEvent(sandboxId, data),
+    'Event added',
+    'Could not add the event',
+  )
+}
+
+export function useRemoveEvent(sandboxId: string) {
+  return useTimelineMutation(
+    sandboxId,
+    ({ eventId, reason }: { eventId: string; reason: string }) =>
+      SandboxService.removeEvent(sandboxId, eventId, reason),
+    'Event removed. It stays on record and can be restored.',
+    'Could not remove the event',
+  )
+}
+
+export function useRestoreEvent(sandboxId: string) {
+  return useTimelineMutation(
+    sandboxId,
+    (eventId: string) => SandboxService.restoreEvent(sandboxId, eventId),
+    'Event restored',
+    'Could not restore the event',
+  )
+}
+
+export function useRegenerateTimeline(sandboxId: string) {
+  return useTimelineMutation(
+    sandboxId,
+    (overwrite: boolean) =>
+      SandboxService.regenerateTimeline(sandboxId, overwrite),
+    'Timeline regenerated',
+    'Could not regenerate the timeline',
+  )
 }
 
 export function useAddMember(sandboxId: string) {

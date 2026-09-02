@@ -27,6 +27,9 @@ import type {
   SandboxOverview,
   SandboxUpdate,
   TermPreview,
+  TimelineEventCreate,
+  TimelineEventUpdate,
+  TimelineRegeneratePreview,
   WelcomeData,
 } from '@/types/sandbox'
 
@@ -61,6 +64,65 @@ export class SandboxService {
 
   static termPreview(start: string, months: number): Promise<TermPreview> {
     return ApiClient.get(`${BASE}/term-preview?start=${start}&months=${months}`)
+  }
+
+  // -------------------------------------------------------------- timeline
+  /** What regenerating for a term would do, event by event. No writes. */
+  static regeneratePreview(
+    id: string,
+    params: {
+      term_start?: string
+      term_months?: number
+      overwrite_hand_adjusted?: boolean
+    } = {},
+  ): Promise<TimelineRegeneratePreview> {
+    const qs = new URLSearchParams()
+    if (params.term_start) qs.set('term_start', params.term_start)
+    if (params.term_months) qs.set('term_months', String(params.term_months))
+    if (params.overwrite_hand_adjusted)
+      qs.set('overwrite_hand_adjusted', 'true')
+    const s = qs.toString()
+    return ApiClient.get(
+      `${BASE}/${id}/timeline/regenerate-preview${s ? `?${s}` : ''}`,
+    )
+  }
+
+  static regenerateTimeline(
+    id: string,
+    overwrite_hand_adjusted: boolean,
+  ): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/timeline/regenerate`, {
+      overwrite_hand_adjusted,
+    })
+  }
+
+  static addEvent(
+    id: string,
+    data: TimelineEventCreate,
+  ): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/timeline`, data)
+  }
+
+  static moveEvent(
+    id: string,
+    eventId: string,
+    data: TimelineEventUpdate,
+  ): Promise<SandboxOverview> {
+    return ApiClient.patch(`${BASE}/${id}/timeline/${eventId}`, data)
+  }
+
+  static removeEvent(
+    id: string,
+    eventId: string,
+    reason: string,
+  ): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/timeline/${eventId}/remove`, {
+      reason,
+    })
+  }
+
+  static restoreEvent(id: string, eventId: string): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/timeline/${eventId}/restore`, {})
   }
 
   // ---------------------------------------------------------------- people

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -15,10 +16,13 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DueDateField } from '@/components/ui/due-date-field'
+import { RegeneratePreviewList } from '@/components/sandboxes/regenerate-dialog'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
+import { useRegeneratePreview } from '@/hooks/queries/use-sandboxes'
 import {
   fmtDay,
   listNames,
+  pluralise,
   STATUS_CLASS,
   STATUS_LABEL,
 } from '@/lib/sandbox/format'
@@ -188,19 +192,39 @@ function EditSandboxDialog({
   const canSave =
     name.trim() && organisation.trim() && !!start && !update.isPending
 
+  // What the term change would do to the timeline, event by event.
+  const [overwrite, setOverwrite] = useState(false)
+  useEffect(() => {
+    if (open) setOverwrite(false)
+  }, [open])
+  const preview = useRegeneratePreview(
+    sandbox.id,
+    termStart,
+    termMonths,
+    overwrite,
+    open && termChanged && !!start,
+  )
+  const handCount = preview.data?.hand_adjusted_count ?? 0
+
   const save = async () => {
     await update.mutateAsync({
       name: name.trim(),
       organisation: organisation.trim(),
       term_start: termStart,
       term_months: termMonths,
+      ...(termChanged ? { overwrite_hand_adjusted: overwrite } : {}),
     })
     onOpenChange(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent
+        className={cn(
+          'max-h-[calc(100dvh-2rem)] overflow-y-auto',
+          termChanged ? 'sm:max-w-lg' : 'sm:max-w-md',
+        )}
+      >
         <DialogHeader>
           <DialogTitle>Sandbox details</DialogTitle>
           <DialogDescription>
@@ -232,6 +256,7 @@ function EditSandboxDialog({
               label="Start date"
               value={termStart}
               onChange={v => setTermStart(v ?? '')}
+              required
             />
             <div className="space-y-2">
               <Label>Length</Label>
@@ -266,11 +291,38 @@ function EditSandboxDialog({
               {previewSentence(start, termMonths)}
             </p>
           )}
-          {termChanged && (
-            <p className="rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token">
-              Changing the term regenerates the timeline. Group start dates that
-              used the old term start move with it.
-            </p>
+          {termChanged && start && (
+            <div className="space-y-3 border-t border-line pt-4">
+              <div>
+                <p className="text-sm font-medium text-ink">
+                  What happens to the timeline
+                </p>
+                <p className="text-xs text-ink-3">
+                  Group start dates that used the old term start move with it.
+                </p>
+              </div>
+              <RegeneratePreviewList
+                preview={preview.data}
+                isLoading={preview.isLoading}
+              />
+              {handCount > 0 && (
+                <label className="flex cursor-pointer items-start gap-2.5 text-sm">
+                  <Checkbox
+                    checked={overwrite}
+                    onCheckedChange={v => setOverwrite(v === true)}
+                    className="mt-0.5"
+                    data-testid="regen-overwrite"
+                  />
+                  <span className="text-ink-2">
+                    Reset the {pluralise(handCount, 'hand adjustment')} too
+                    <span className="block text-xs text-ink-3">
+                      Otherwise moved windows, removed events and events added
+                      by hand stay as they are.
+                    </span>
+                  </span>
+                </label>
+              )}
+            </div>
           )}
         </div>
         <DialogFooter>
@@ -279,10 +331,15 @@ function EditSandboxDialog({
           </Button>
           <Button
             className="bg-ink text-ink-on-dark hover:bg-ink/90"
-            disabled={!canSave}
+            disabled={!canSave || (termChanged && preview.isLoading)}
             onClick={save}
+            data-testid="edit-sandbox-save"
           >
-            {update.isPending ? 'Saving…' : 'Save'}
+            {update.isPending
+              ? 'Saving…'
+              : termChanged
+                ? 'Save and regenerate'
+                : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

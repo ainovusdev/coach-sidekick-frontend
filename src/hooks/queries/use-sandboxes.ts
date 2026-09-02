@@ -40,6 +40,35 @@ export function useTermPreview(start: string | null, months: number | null) {
   })
 }
 
+/**
+ * Before/after of regenerating the timeline for a term. `start`/`months`
+ * default to the sandbox's current term on the server.
+ */
+export function useRegeneratePreview(
+  sandboxId: string,
+  start: string | null,
+  months: number | null,
+  overwrite: boolean,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.regeneratePreview(
+      sandboxId,
+      start ?? '',
+      months ?? 0,
+      overwrite,
+    ),
+    queryFn: () =>
+      SandboxService.regeneratePreview(sandboxId, {
+        term_start: start ?? undefined,
+        term_months: months ?? undefined,
+        overwrite_hand_adjusted: overwrite,
+      }),
+    enabled: enabled && !!sandboxId,
+    staleTime: 0,
+  })
+}
+
 export function useSandboxPeopleSearch(
   q: string,
   sandboxId?: string,
