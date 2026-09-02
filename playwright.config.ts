@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test'
 
 /**
  * End-to-end tests against the LOCAL stack:
- *   backend  http://localhost:8000  (Docker Postgres on :5434)
+ *   backend  http://localhost:8001  (Docker Postgres on :5434)
  *   frontend http://localhost:3010  (`pnpm exec next dev --turbopack -p 3010`)
  *
  * `pnpm e2e` — the global setup reseeds the fixtures through the backend's

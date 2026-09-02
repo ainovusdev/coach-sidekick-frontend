@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import type { APIRequestContext, Page } from '@playwright/test'
 
-export const API = process.env.E2E_API_URL || 'http://localhost:8000/api/v1'
+export const API = process.env.E2E_API_URL || 'http://localhost:8001/api/v1'
 export const PASSWORD = 'Password123!'
 
 export const USERS = {
