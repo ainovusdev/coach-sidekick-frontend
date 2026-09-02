@@ -20,10 +20,15 @@ import {
 
 interface ForgotPasswordRequestProps {
   onBack?: () => void
+  /** Prefill (e.g. from `/auth?forgot=1&email=…`); the user can still edit it. */
+  initialEmail?: string
 }
 
-export function ForgotPasswordRequest({ onBack }: ForgotPasswordRequestProps) {
-  const [email, setEmail] = useState('')
+export function ForgotPasswordRequest({
+  onBack,
+  initialEmail = '',
+}: ForgotPasswordRequestProps) {
+  const [email, setEmail] = useState(initialEmail)
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')

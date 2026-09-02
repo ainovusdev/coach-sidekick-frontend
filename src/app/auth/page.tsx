@@ -3,7 +3,7 @@
 import { useAuth } from '@/contexts/auth-context'
 import { AuthForm } from '@/components/auth/auth-form'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { Suspense, useEffect } from 'react'
 
 export default function AuthPage() {
   const { isAuthenticated, loading, roles } = useAuth()
@@ -50,5 +50,11 @@ export default function AuthPage() {
     )
   }
 
-  return <AuthForm />
+  // AuthForm reads `?forgot=` / `?email=` via useSearchParams, which Next 15
+  // requires to sit under a Suspense boundary for static prerendering.
+  return (
+    <Suspense fallback={null}>
+      <AuthForm />
+    </Suspense>
+  )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import posthog from 'posthog-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,14 +21,21 @@ import authService from '@/services/auth-service'
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
 import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
+// Mirrors backend `InvitationValidation`. An unusable token comes back as
+// `valid: false` + `reason` (HTTP 200, not 400) so we can branch on *why*:
+// `already_accepted` is the everyday case — a client re-opens the original
+// invite email long after signing up — and needs "sign in", not "ask your coach".
+type InvalidInvitationReason = 'already_accepted' | 'expired' | 'invalid'
+
 interface InvitationInfo {
   valid: boolean
-  client_name: string
-  coach_name: string
-  email: string
-  expires_at: string
-  existing_user?: boolean // NEW: Whether email is already registered
-  existing_roles?: string[] // NEW: Existing user's roles
+  reason?: InvalidInvitationReason
+  client_name?: string
+  coach_name?: string
+  email?: string
+  expires_at?: string
+  existing_user?: boolean // Whether email is already registered (active account)
+  existing_roles?: string[] // Existing user's roles
 }
 
 function ClientSignupContent() {
@@ -64,11 +72,18 @@ function ClientSignupContent() {
     try {
       const apiUrl =
         process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
-      const response = await ApiClient.get(
+      const response: InvitationInfo = await ApiClient.get(
         `${apiUrl}/invitations/validate/${inviteToken}`,
       )
       setInvitationInfo(response)
-      setFullName(response.client_name)
+      if (response.client_name) setFullName(response.client_name)
+      if (!response.valid) {
+        // Measures how often clients land on a dead invite link (and why) so
+        // the "can't access my Sidekick" support pattern is visible.
+        posthog.capture('client_invitation_link_unusable', {
+          reason: response.reason ?? 'invalid',
+        })
+      }
     } catch (err: any) {
       setError(err.message || 'Invalid or expired invitation link')
     } finally {
@@ -149,15 +164,76 @@ function ClientSignupContent() {
   }
 
   if (!invitationInfo?.valid) {
+    const reason = invitationInfo?.reason
+    const email = invitationInfo?.email
+    const emailQuery = email ? `&email=${encodeURIComponent(email)}` : ''
+    const signInHref = email ? `/auth?${emailQuery.slice(1)}` : '/auth'
+    const forgotHref = `/auth?forgot=1${emailQuery}`
+
+    if (reason === 'already_accepted') {
+      // The link was used to create the account (possibly weeks ago). Sending
+      // them to "contact your coach" here is a dead end — the coach can't
+      // re-invite a linked client either. Steer to sign-in / password reset.
+      return (
+        <div className="min-h-screen flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Your account is already set up</CardTitle>
+              <p className="text-sm text-muted-foreground mt-2">
+                This invitation link was already used to create your Sidekick
+                account
+                {email ? (
+                  <>
+                    {' '}
+                    for <strong>{email}</strong>
+                  </>
+                ) : null}
+                . Invitation links only work once &mdash; sign in to open your
+                Sidekick.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Button asChild className="w-full">
+                <Link href={signInHref}>Sign in</Link>
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                Forgot your password?{' '}
+                <Link href={forgotHref} className="underline">
+                  Reset it here
+                </Link>
+                .
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      )
+    }
+
     return (
-      <div className="min-h-screen flex items-center justify-center  p-4">
-        <Alert className="max-w-md">
-          <AlertDescription>
-            {error || 'This invitation link is invalid or has expired.'}
-            <br />
-            Please contact your coach for a new invitation.
-          </AlertDescription>
-        </Alert>
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>
+              {reason === 'expired'
+                ? 'This invitation has expired'
+                : 'Invalid invitation link'}
+            </CardTitle>
+            <p className="text-sm text-muted-foreground mt-2">
+              {reason === 'expired'
+                ? `Ask ${invitationInfo?.coach_name || 'your coach'} to send you a new invitation.`
+                : error ||
+                  'This invitation link is invalid or has expired. Please contact your coach for a new invitation.'}
+            </p>
+          </CardHeader>
+          <CardContent>
+            <p className="text-xs text-center text-muted-foreground">
+              Already have an account?{' '}
+              <Link href={signInHref} className="underline">
+                Sign in
+              </Link>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     )
   }
