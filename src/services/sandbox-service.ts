@@ -10,6 +10,7 @@ import type {
   InvitationAcceptResponse,
   InvitationSendRequest,
   InvitationValidation,
+  MemberGroupsUpdate,
   PersonSearchResult,
   PortalSandbox,
   SandboxCreate,
@@ -155,6 +156,25 @@ export class SandboxService {
     data: SandboxMemberUpdate,
   ): Promise<SandboxMember> {
     return ApiClient.patch(`${BASE}/${id}/members/${memberId}`, data)
+  }
+
+  /** Set exactly which groups a person is in, and as what (People page). */
+  static setMemberGroups(
+    id: string,
+    memberId: string,
+    data: MemberGroupsUpdate,
+  ): Promise<SandboxOverview> {
+    return ApiClient.put(`${BASE}/${id}/members/${memberId}/groups`, data)
+  }
+
+  /** Bulk removal: roles and group memberships go together. */
+  static removeMembers(
+    id: string,
+    memberIds: string[],
+  ): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/members/remove`, {
+      member_ids: memberIds,
+    })
   }
 
   static removeMember(

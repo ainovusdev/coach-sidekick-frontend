@@ -123,7 +123,21 @@ export interface SandboxMember {
   group_ids: string[]
   group_names: string[]
   group_kinds: string[]
+  /** The (group, kind) pairs behind the flat lists above. */
+  memberships: SandboxMembership[]
   created_at: string
+}
+
+export interface SandboxMembership {
+  row_id: string
+  group_id: string
+  group_name: string
+  kind: GroupMemberKind
+}
+
+/** Set a person's group memberships exactly (People page → Change groups). */
+export interface MemberGroupsUpdate {
+  memberships: { group_id: string; kind: GroupMemberKind }[]
 }
 
 export interface EmailLookup {

@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
@@ -41,10 +42,17 @@ export function TeamPanel({
             {members.length}
           </span>
         </h2>
-        <span className="text-xs text-ink-3">
+        <span className="flex items-center gap-3 text-xs text-ink-3">
           {anyoneInvited
             ? 'Invitations are managed below'
             : 'No one is emailed yet'}
+          <Link
+            href={`/admin/sandboxes/${sandbox.id}/people`}
+            className="font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
+            data-testid="people-link"
+          >
+            All people →
+          </Link>
         </span>
       </header>
 

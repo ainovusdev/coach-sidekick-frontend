@@ -5,6 +5,7 @@ import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { SandboxService } from '@/services/sandbox-service'
 import type {
   InvitationSendRequest,
+  MemberGroupsUpdate,
   SandboxCreate,
   SandboxErrorDetail,
   SandboxGroupCreate,
@@ -62,10 +63,10 @@ export function useUpdateSandbox(sandboxId: string) {
   })
 }
 
-// ------------------------------------------------------------------ timeline
+// ------------------------------------------------- overview-returning mutations
 
-/** Every timeline mutation returns the fresh overview; put it straight in the cache. */
-function useTimelineMutation<TVars>(
+/** Mutations that return the fresh overview put it straight in the cache. */
+function useOverviewMutation<TVars>(
   sandboxId: string,
   mutationFn: (vars: TVars) => Promise<SandboxOverview>,
   successMessage: string | ((vars: TVars, overview: SandboxOverview) => string),
@@ -94,7 +95,7 @@ function useTimelineMutation<TVars>(
 }
 
 export function useMoveEvent(sandboxId: string) {
-  return useTimelineMutation(
+  return useOverviewMutation(
     sandboxId,
     ({ eventId, data }: { eventId: string; data: TimelineEventUpdate }) =>
       SandboxService.moveEvent(sandboxId, eventId, data),
@@ -107,7 +108,7 @@ export function useMoveEvent(sandboxId: string) {
 }
 
 export function useAddEvent(sandboxId: string) {
-  return useTimelineMutation(
+  return useOverviewMutation(
     sandboxId,
     (data: TimelineEventCreate) => SandboxService.addEvent(sandboxId, data),
     'Event added',
@@ -116,7 +117,7 @@ export function useAddEvent(sandboxId: string) {
 }
 
 export function useRemoveEvent(sandboxId: string) {
-  return useTimelineMutation(
+  return useOverviewMutation(
     sandboxId,
     ({ eventId, reason }: { eventId: string; reason: string }) =>
       SandboxService.removeEvent(sandboxId, eventId, reason),
@@ -126,7 +127,7 @@ export function useRemoveEvent(sandboxId: string) {
 }
 
 export function useRestoreEvent(sandboxId: string) {
-  return useTimelineMutation(
+  return useOverviewMutation(
     sandboxId,
     (eventId: string) => SandboxService.restoreEvent(sandboxId, eventId),
     'Event restored',
@@ -135,12 +136,36 @@ export function useRestoreEvent(sandboxId: string) {
 }
 
 export function useRegenerateTimeline(sandboxId: string) {
-  return useTimelineMutation(
+  return useOverviewMutation(
     sandboxId,
     (overwrite: boolean) =>
       SandboxService.regenerateTimeline(sandboxId, overwrite),
     'Timeline regenerated',
     'Could not regenerate the timeline',
+  )
+}
+
+/** People page → Change groups: set a person's (group, kind) pairs exactly. */
+export function useSetMemberGroups(sandboxId: string) {
+  return useOverviewMutation(
+    sandboxId,
+    ({ memberId, data }: { memberId: string; data: MemberGroupsUpdate }) =>
+      SandboxService.setMemberGroups(sandboxId, memberId, data),
+    'Groups updated',
+    'Could not change their groups',
+  )
+}
+
+/** People page bulk removal — roles and group memberships go together. */
+export function useRemoveMembers(sandboxId: string) {
+  return useOverviewMutation(
+    sandboxId,
+    (memberIds: string[]) => SandboxService.removeMembers(sandboxId, memberIds),
+    memberIds =>
+      memberIds.length === 1
+        ? 'Removed from the sandbox'
+        : `${memberIds.length} people removed from the sandbox`,
+    'Could not remove them',
   )
 }
 
