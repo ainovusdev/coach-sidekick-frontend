@@ -112,7 +112,7 @@ test.describe('Sandboxes — People page', () => {
     const marcusRow = row(page, 'Marcus Bell')
     await expect(marcusRow).toContainText('Lead coach')
     await expect(marcusRow).toContainText('Coach')
-    await expect(marcusRow).toContainText('Staff')
+    await expect(marcusRow.getByTestId('notified')).toContainText('Emailed')
 
     await expect(row(page, USERS.dana.name)).toContainText('Supervisor')
     await expect(

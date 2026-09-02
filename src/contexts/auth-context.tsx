@@ -218,7 +218,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else if (authService.isClient()) {
         router.push('/client-portal/dashboard')
       } else {
-        router.push('/')
+        // No app role at all: a client-side sandbox member (primary client,
+        // supervisor …). The sandbox is their whole product.
+        router.push('/sandboxes')
       }
 
       return { error: null }

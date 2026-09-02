@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { ExternalLink, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import { cn } from '@/lib/utils'
 import type { SandboxLink, SandboxOverview } from '@/types/sandbox'
@@ -16,6 +17,13 @@ export function LinksCard({ overview }: { overview: SandboxOverview }) {
   const [url, setUrl] = useState('')
 
   const links = sandbox.links ?? []
+  const view = useSandboxView()
+  const canEdit = view.can.editSandbox
+
+  // Our working links are not the client's business; and a read-only
+  // viewer with nothing to read gets no card at all.
+  if (!view.can.seeLinks) return null
+  if (!canEdit && links.length === 0) return null
 
   const save = async (next: SandboxLink[]) => {
     await update.mutateAsync({ links: next })
@@ -35,7 +43,7 @@ export function LinksCard({ overview }: { overview: SandboxOverview }) {
     <div
       className={cn(
         'rounded-xl border bg-paper p-5',
-        links.length === 0 && !adding
+        links.length === 0 && !adding && canEdit
           ? 'border-dashed border-ink-4'
           : 'border-line',
       )}
@@ -45,7 +53,7 @@ export function LinksCard({ overview }: { overview: SandboxOverview }) {
         <h2 className="text-xs font-semibold uppercase tracking-wider text-ink-3">
           Links
         </h2>
-        {!adding && (
+        {!adding && canEdit && (
           <Button
             variant="ghost"
             size="sm"
@@ -58,7 +66,7 @@ export function LinksCard({ overview }: { overview: SandboxOverview }) {
         )}
       </div>
 
-      {links.length === 0 && !adding && (
+      {links.length === 0 && !adding && canEdit && (
         <p className="mt-2 text-xs text-ink-3">
           Proposal, HubSpot, Slack channel — wherever this contract lives
           elsewhere.
@@ -78,14 +86,16 @@ export function LinksCard({ overview }: { overview: SandboxOverview }) {
                 <span className="truncate">{l.label}</span>
                 <ExternalLink className="h-3 w-3 shrink-0" />
               </a>
-              <button
-                type="button"
-                aria-label={`Remove ${l.label}`}
-                onClick={() => remove(i)}
-                className="rounded p-0.5 text-ink-4 opacity-0 transition-opacity hover:text-ink group-hover:opacity-100 focus:opacity-100"
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
+              {canEdit && (
+                <button
+                  type="button"
+                  aria-label={`Remove ${l.label}`}
+                  onClick={() => remove(i)}
+                  className="rounded p-0.5 text-ink-4 opacity-0 transition-opacity hover:text-ink group-hover:opacity-100 focus:opacity-100"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </li>
           ))}
         </ul>

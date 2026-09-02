@@ -1,6 +1,6 @@
 /**
- * Sandbox Service — API client for Sandbox v2 (admin panel) and the
- * invitation flow the invited people use.
+ * Sandbox Service — API client for Sandbox v2 (admin panel and the member
+ * view) and the invitation flow the invited people use.
  */
 
 import { ApiClient } from '@/lib/api-client'
@@ -53,6 +53,11 @@ export class SandboxService {
 
   static create(data: SandboxCreate): Promise<SandboxOverview> {
     return ApiClient.post(`${BASE}/`, data)
+  }
+
+  /** Sandboxes the signed-in person is a member of (any role, any side). */
+  static mine(): Promise<SandboxListResponse> {
+    return ApiClient.get(`${BASE}/mine`)
   }
 
   static overview(id: string): Promise<SandboxOverview> {
@@ -260,6 +265,23 @@ export class SandboxService {
     return ApiClient.get(
       `${BASE}/${id}/invitations/preview?member_id=${memberId}`,
     )
+  }
+
+  /** The "you were added" email our own people get (preview / resend). */
+  static previewAddedEmail(
+    id: string,
+    memberId: string,
+  ): Promise<EmailPreview> {
+    return ApiClient.get(
+      `${BASE}/${id}/members/${memberId}/added-email/preview`,
+    )
+  }
+
+  static resendAddedEmail(
+    id: string,
+    memberId: string,
+  ): Promise<SandboxMember> {
+    return ApiClient.post(`${BASE}/${id}/members/${memberId}/added-email`, {})
   }
 
   // ------------------------------------------------------ invited people

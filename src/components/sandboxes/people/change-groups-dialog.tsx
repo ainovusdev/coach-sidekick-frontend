@@ -12,6 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useSetMemberGroups } from '@/hooks/mutations/use-sandbox-mutations'
 import { firstName, pluralise } from '@/lib/sandbox/format'
 import type {
@@ -46,6 +47,7 @@ export function ChangeGroupsDialog({
 }) {
   const { sandbox, groups } = overview
   const setGroups = useSetMemberGroups(sandbox.id)
+  const view = useSandboxView()
   const [picked, setPicked] = useState<Set<string>>(new Set())
 
   const initial = useMemo(
@@ -109,7 +111,7 @@ export function ChangeGroupsDialog({
           <p className="rounded-lg border border-dashed border-line px-4 py-6 text-center text-sm text-ink-3">
             No groups yet.{' '}
             <Link
-              href={`/admin/sandboxes/${sandbox.id}#groups`}
+              href={view.href.groups(sandbox.id)}
               className="text-ink underline-offset-2 hover:underline"
             >
               Build one on the overview

@@ -25,9 +25,13 @@ export function CoachRoute({ children }: CoachRouteProps) {
         )
 
         if (!hasCoachAccess) {
-          // User is logged in but only has client role
-          // Redirect them to client portal
-          router.push('/client-portal/dashboard')
+          // Only a client role → the portal. No app role at all → the
+          // sandboxes they were invited to (client-side management roles).
+          router.push(
+            roles.includes('client')
+              ? '/client-portal/dashboard'
+              : '/sandboxes',
+          )
         }
       }
     }

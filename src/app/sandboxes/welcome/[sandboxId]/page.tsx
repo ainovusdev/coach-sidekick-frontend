@@ -30,6 +30,14 @@ export default function SandboxWelcomePage() {
 
   const data = welcome.data
 
+  // The invitation email links here; the sandbox itself is where people land now.
+  useEffect(() => {
+    if (!data || !sandboxId) return
+    router.replace(
+      data.is_coachee ? '/client-portal/dashboard' : `/sandboxes/${sandboxId}`,
+    )
+  }, [data, sandboxId, router])
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-paper p-4">
       <Card

@@ -1,6 +1,7 @@
 'use client'
 
 import { AlertCircle, CheckCircle2, Circle } from 'lucide-react'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
@@ -23,6 +24,9 @@ export function SetupCard({
   onSelect: (target: SetupTarget) => void
 }) {
   const { sandbox, checklist } = overview
+  const view = useSandboxView()
+  // The checklist is the account executive's; scoped viewers never get it.
+  if (!view.can.seeSetup || !checklist) return null
   const inv = checklist.invitations
   const waiting = inv.pending_count + inv.expired_count
   const groupsDone =

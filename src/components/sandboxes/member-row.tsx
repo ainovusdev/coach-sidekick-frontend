@@ -14,9 +14,10 @@ import { fmtDay } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SandboxMember } from '@/types/sandbox'
 
+/** Every handler is optional: a read-only viewer passes none and gets no menu. */
 export interface MemberActions {
-  onChangeRoles: (member: SandboxMember) => void
-  onRemove: (member: SandboxMember) => void
+  onChangeRoles?: (member: SandboxMember) => void
+  onRemove?: (member: SandboxMember) => void
   onInvite?: (member: SandboxMember) => void
   onResend?: (member: SandboxMember) => void
   onRevoke?: (member: SandboxMember) => void
@@ -43,8 +44,11 @@ export function invitationText(member: SandboxMember): string | null {
       return 'Invitation expired'
     case 'has_account':
       return 'Has an account · not yet connected'
-    default:
+    case 'not_sent':
       return 'Not yet invited'
+    default:
+      // Scoped viewers get invitation fields blanked — say nothing.
+      return null
   }
 }
 
@@ -62,6 +66,57 @@ export function MemberRow({
     : 'No role yet'
   const invite = invitationText(member)
   const uninvited = isUninvited(member)
+
+  const theirs = member.side === 'theirs'
+  const inviteItems: React.ReactNode[] = []
+  if (theirs) {
+    if (
+      (member.invitation_status === 'not_sent' ||
+        member.invitation_status === 'has_account') &&
+      actions.onInvite
+    )
+      inviteItems.push(
+        <DropdownMenuItem
+          key="invite"
+          onClick={() => actions.onInvite!(member)}
+        >
+          Send invitation
+        </DropdownMenuItem>,
+      )
+    if (
+      (member.invitation_status === 'sent' ||
+        member.invitation_status === 'expired') &&
+      actions.onResend
+    )
+      inviteItems.push(
+        <DropdownMenuItem
+          key="resend"
+          onClick={() => actions.onResend!(member)}
+        >
+          Resend invitation
+        </DropdownMenuItem>,
+      )
+    if (member.invitation_status === 'sent' && actions.onRevoke)
+      inviteItems.push(
+        <DropdownMenuItem
+          key="revoke"
+          onClick={() => actions.onRevoke!(member)}
+        >
+          Revoke invitation
+        </DropdownMenuItem>,
+      )
+    if (member.invitation_status !== 'accepted' && actions.onPreview)
+      inviteItems.push(
+        <DropdownMenuItem
+          key="preview"
+          onClick={() => actions.onPreview!(member)}
+        >
+          Preview email
+        </DropdownMenuItem>,
+      )
+  }
+  const hasMenu =
+    !!actions.onChangeRoles || !!actions.onRemove || inviteItems.length > 0
 
   return (
     <li
@@ -98,59 +153,46 @@ export function MemberRow({
           )}
         </p>
       </div>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-ink-3"
-            aria-label={`Actions for ${member.name || member.email}`}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-48">
-          <DropdownMenuItem onClick={() => actions.onChangeRoles(member)}>
-            Change roles
-          </DropdownMenuItem>
-          {member.side === 'theirs' && (
-            <>
-              <DropdownMenuSeparator />
-              {(member.invitation_status === 'not_sent' ||
-                member.invitation_status === 'has_account') &&
-                actions.onInvite && (
-                  <DropdownMenuItem onClick={() => actions.onInvite!(member)}>
-                    Send invitation
-                  </DropdownMenuItem>
+      {hasMenu && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-ink-3"
+              aria-label={`Actions for ${member.name || member.email}`}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            {actions.onChangeRoles && (
+              <DropdownMenuItem onClick={() => actions.onChangeRoles!(member)}>
+                Change roles
+              </DropdownMenuItem>
+            )}
+            {inviteItems.length > 0 && (
+              <>
+                {actions.onChangeRoles && <DropdownMenuSeparator />}
+                {inviteItems}
+              </>
+            )}
+            {actions.onRemove && (
+              <>
+                {(actions.onChangeRoles || inviteItems.length > 0) && (
+                  <DropdownMenuSeparator />
                 )}
-              {(member.invitation_status === 'sent' ||
-                member.invitation_status === 'expired') &&
-                actions.onResend && (
-                  <DropdownMenuItem onClick={() => actions.onResend!(member)}>
-                    Resend invitation
-                  </DropdownMenuItem>
-                )}
-              {member.invitation_status === 'sent' && actions.onRevoke && (
-                <DropdownMenuItem onClick={() => actions.onRevoke!(member)}>
-                  Revoke invitation
+                <DropdownMenuItem
+                  className="text-vermillion focus:text-vermillion"
+                  onClick={() => actions.onRemove!(member)}
+                >
+                  Remove from sandbox
                 </DropdownMenuItem>
-              )}
-              {member.invitation_status !== 'accepted' && actions.onPreview && (
-                <DropdownMenuItem onClick={() => actions.onPreview!(member)}>
-                  Preview email
-                </DropdownMenuItem>
-              )}
-            </>
-          )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="text-vermillion focus:text-vermillion"
-            onClick={() => actions.onRemove(member)}
-          >
-            Remove from sandbox
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
     </li>
   )
 }

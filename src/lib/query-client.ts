@@ -261,6 +261,9 @@ export const queryKeys = {
       ] as const,
     emailPreview: (id: string, memberId: string) =>
       [...queryKeys.sandboxes.detail(id), 'email-preview', memberId] as const,
+    addedEmailPreview: (id: string, memberId: string) =>
+      [...queryKeys.sandboxes.detail(id), 'added-email', memberId] as const,
+    mine: () => [...queryKeys.sandboxes.all, 'mine'] as const,
     welcome: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'welcome'] as const,
     portalMine: () => [...queryKeys.sandboxes.all, 'portal-mine'] as const,

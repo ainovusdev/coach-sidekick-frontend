@@ -334,11 +334,19 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.waitForTimeout(3000)
     await expect(page.getByTestId('sandboxes-page')).toHaveCount(0)
 
+    // The ops table stays admin-only; the member view is where a coach goes.
     const coachToken = await apiToken(request, USERS.marcus.email)
     const resp = await request.get(`${API}/sandboxes/`, {
       headers: auth(coachToken),
     })
     expect(resp.status()).toBe(403)
+    const mine = await request.get(`${API}/sandboxes/mine`, {
+      headers: auth(coachToken),
+    })
+    expect(mine.status()).toBe(200)
+    expect(
+      (await mine.json()).sandboxes.map((s: { id: string }) => s.id),
+    ).toContain(sandboxId)
   })
 
   test('sends, revokes and resends invitations', async ({ page }) => {
@@ -429,12 +437,13 @@ test.describe('Sandboxes — admin creation flow', () => {
     ).toBeVisible()
     await page.getByTestId('invite-password').fill(PASSWORD)
     await page.getByTestId('invite-submit').click()
-    await page.waitForURL(/\/sandboxes\/welcome\//, { timeout: 45_000 })
-    await expect(page.getByTestId('sandbox-welcome')).toContainText(
-      SANDBOX_NAME,
-    )
-    await expect(page.getByTestId('sandbox-welcome')).toContainText(
-      'Supervisor',
+    // The welcome page hands straight over to the sandbox itself.
+    await page.waitForURL(/\/sandboxes\/[0-9a-f-]{36}$/, { timeout: 45_000 })
+    await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
+    await expect(page.getByTestId('identity-card')).toContainText(SANDBOX_NAME)
+    await expect(page.getByTestId('sandbox-view')).toHaveAttribute(
+      'data-audience',
+      'theirs',
     )
     await context.close()
   })

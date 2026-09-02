@@ -4,13 +4,19 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Boxes } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
-import { PeopleSkeleton } from '@/components/sandboxes/skeletons'
 import { PeoplePage } from '@/components/sandboxes/people/people-page'
+import { PeopleSkeleton } from '@/components/sandboxes/skeletons'
+import {
+  SandboxViewProvider,
+  viewFromOverview,
+} from '@/components/sandboxes/sandbox-view-context'
+import { useAuth } from '@/contexts/auth-context'
 import { useSandboxOverview } from '@/hooks/queries/use-sandboxes'
 
-export default function SandboxPeopleRoute() {
+export default function MemberSandboxPeoplePage() {
   const params = useParams<{ sandboxId: string }>()
   const router = useRouter()
+  const { isAdmin, isCoach } = useAuth()
   const sandboxId = params?.sandboxId
   const { data, isLoading, isError } = useSandboxOverview(sandboxId)
 
@@ -19,24 +25,29 @@ export default function SandboxPeopleRoute() {
   if (isError || !data) {
     return (
       <div className="max-w-xl">
-        <Link
-          href="/admin/sandboxes"
-          className="text-sm text-ink-3 hover:text-ink"
-        >
+        <Link href="/sandboxes" className="text-sm text-ink-3 hover:text-ink">
           ← Sandboxes
         </Link>
         <EmptyState
           icon={Boxes}
           title="Sandbox not found"
-          description="It may have been removed, or the link is wrong."
+          description="You may not be on this sandbox, or the link is wrong."
           action={{
-            label: 'Back to sandboxes',
-            onClick: () => router.push('/admin/sandboxes'),
+            label: 'Your sandboxes',
+            onClick: () => router.push('/sandboxes'),
           }}
         />
       </div>
     )
   }
 
-  return <PeoplePage overview={data} />
+  const view = viewFromOverview(data, {
+    isAdmin: isAdmin(),
+    isOurs: isAdmin() || isCoach(),
+  })
+  return (
+    <SandboxViewProvider value={view}>
+      <PeoplePage overview={data} />
+    </SandboxViewProvider>
+  )
 }

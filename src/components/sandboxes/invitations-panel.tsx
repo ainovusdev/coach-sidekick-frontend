@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { PersonAvatar } from '@/components/ui/person-avatar'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SandboxMember, SandboxOverview } from '@/types/sandbox'
@@ -34,6 +35,8 @@ export function willSee(member: SandboxMember): string {
 
 export function InvitationBadge({ member }: { member: SandboxMember }) {
   const status = member.invitation_status
+  // Scoped viewers get invitation fields blanked — show nothing.
+  if (status === null) return null
   const cls =
     status === 'sent'
       ? 'bg-indigo-bg text-indigo'
@@ -83,8 +86,10 @@ export function InvitationsPanel({
   actions: InvitationActions
 }) {
   const [showAll, setShowAll] = useState(false)
+  const view = useSandboxView()
   const theirs = overview.members.filter(m => m.side === 'theirs')
-  if (theirs.length === 0) return null
+  // Sending is the account executive's job; nobody else gets the table.
+  if (!view.can.seeInvitations || theirs.length === 0) return null
 
   const waiting = theirs.filter(isWaiting)
   const accepted = theirs.filter(m => m.invitation_status === 'accepted')

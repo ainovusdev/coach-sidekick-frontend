@@ -16,6 +16,7 @@ import {
 } from '@/components/sandboxes/timeline-event-dialog'
 import { RemoveEventDialog } from '@/components/sandboxes/remove-event-dialog'
 import { RegenerateDialog } from '@/components/sandboxes/regenerate-dialog'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useRestoreEvent } from '@/hooks/mutations/use-sandbox-mutations'
 import { fmtWindow, pluralise } from '@/lib/sandbox/format'
 import { daysBetween, parseDateOnly } from '@/lib/sandbox/term'
@@ -56,6 +57,7 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
   const [regenOpen, setRegenOpen] = useState(false)
   const [showRemoved, setShowRemoved] = useState(false)
   const restore = useRestoreEvent(sandbox.id)
+  const canEdit = useSandboxView().can.editTimeline
 
   const showToday = sandbox.status === 'active'
   // Insert the TODAY marker after the last event that has started.
@@ -83,30 +85,32 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
             {caption}
           </span>
         </div>
-        <div className="flex items-center gap-1">
-          {adjusted > 0 && (
+        {canEdit && (
+          <div className="flex items-center gap-1">
+            {adjusted > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 gap-1.5 px-2 text-xs text-ink-2"
+                onClick={() => setRegenOpen(true)}
+                data-testid="regenerate-timeline"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Regenerate…
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
               className="h-7 gap-1.5 px-2 text-xs text-ink-2"
-              onClick={() => setRegenOpen(true)}
-              data-testid="regenerate-timeline"
+              onClick={() => setDialog({ mode: 'add' })}
+              data-testid="add-event"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Regenerate…
+              <Plus className="h-3.5 w-3.5" />
+              Add event
             </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 gap-1.5 px-2 text-xs text-ink-2"
-            onClick={() => setDialog({ mode: 'add' })}
-            data-testid="add-event"
-          >
-            <Plus className="h-3.5 w-3.5" />
-            Add event
-          </Button>
-        </div>
+          </div>
+        )}
       </header>
 
       <div className="overflow-x-auto px-5 py-4">
@@ -137,35 +141,39 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
                   >
                     {ev.label}
                   </span>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="-mr-1.5 -mt-1 h-6 w-6 shrink-0 text-ink-4 hover:text-ink"
-                        aria-label={`Actions for ${ev.label}`}
-                        data-testid="event-menu"
-                      >
-                        <MoreHorizontal className="h-3.5 w-3.5" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-44">
-                      <DropdownMenuItem
-                        onClick={() => setDialog({ mode: 'adjust', event: ev })}
-                        data-testid="adjust-window"
-                      >
-                        Adjust window
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() => setRemoving(ev)}
-                        data-testid="remove-event"
-                      >
-                        Remove…
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  {canEdit && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="-mr-1.5 -mt-1 h-6 w-6 shrink-0 text-ink-4 hover:text-ink"
+                          aria-label={`Actions for ${ev.label}`}
+                          data-testid="event-menu"
+                        >
+                          <MoreHorizontal className="h-3.5 w-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-44">
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setDialog({ mode: 'adjust', event: ev })
+                          }
+                          data-testid="adjust-window"
+                        >
+                          Adjust window
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          className="text-destructive focus:text-destructive"
+                          onClick={() => setRemoving(ev)}
+                          data-testid="remove-event"
+                        >
+                          Remove…
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </div>
                 <span className="mt-1 font-mono text-[11px] text-ink-3">
                   {fmtWindow(ev.window_start, ev.window_end)}
@@ -215,10 +223,11 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
       <div className="border-t border-line px-5 py-3 text-xs text-ink-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <p>
-            Changing the term offers to regenerate. Hand-adjusted events are
-            kept unless you say otherwise.
+            {canEdit
+              ? 'Changing the term offers to regenerate. Hand-adjusted events are kept unless you say otherwise.'
+              : 'Windows are set by the account executive. Dates can move.'}
           </p>
-          {removed.length > 0 && (
+          {canEdit && removed.length > 0 && (
             <button
               type="button"
               className="text-ink-2 underline-offset-2 hover:underline"
@@ -230,7 +239,7 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
             </button>
           )}
         </div>
-        {showRemoved && removed.length > 0 && (
+        {canEdit && showRemoved && removed.length > 0 && (
           <ul className="mt-3 divide-y divide-line rounded-lg border border-dashed border-line">
             {removed.map(ev => (
               <li
@@ -265,21 +274,25 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
         )}
       </div>
 
-      <TimelineEventDialog
-        state={dialog}
-        onClose={() => setDialog(null)}
-        overview={overview}
-      />
-      <RemoveEventDialog
-        event={removing}
-        onOpenChange={o => !o && setRemoving(null)}
-        sandboxId={sandbox.id}
-      />
-      <RegenerateDialog
-        open={regenOpen}
-        onOpenChange={setRegenOpen}
-        overview={overview}
-      />
+      {canEdit && (
+        <>
+          <TimelineEventDialog
+            state={dialog}
+            onClose={() => setDialog(null)}
+            overview={overview}
+          />
+          <RemoveEventDialog
+            event={removing}
+            onOpenChange={o => !o && setRemoving(null)}
+            sandboxId={sandbox.id}
+          />
+          <RegenerateDialog
+            open={regenOpen}
+            onOpenChange={setRegenOpen}
+            overview={overview}
+          />
+        </>
+      )}
     </section>
   )
 }

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/auth-context'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   MemberRow,
   type MemberActions,
@@ -22,6 +23,7 @@ export function TeamPanel({
   onAddTheirs: () => void
 }) {
   const { user } = useAuth()
+  const view = useSandboxView()
   const { members, sandbox } = overview
   const ours = members.filter(m => m.side === 'ours')
   const theirs = members.filter(m => m.side === 'theirs')
@@ -43,16 +45,19 @@ export function TeamPanel({
           </span>
         </h2>
         <span className="flex items-center gap-3 text-xs text-ink-3">
-          {anyoneInvited
-            ? 'Invitations are managed below'
-            : 'No one is emailed yet'}
-          <Link
-            href={`/admin/sandboxes/${sandbox.id}/people`}
-            className="font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
-            data-testid="people-link"
-          >
-            All people →
-          </Link>
+          {view.can.invite &&
+            (anyoneInvited
+              ? 'Invitations are managed below'
+              : 'No one is emailed yet')}
+          {view.can.seePeople && (
+            <Link
+              href={view.href.people(sandbox.id)}
+              className="font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
+              data-testid="people-link"
+            >
+              All people →
+            </Link>
+          )}
         </span>
       </header>
 
@@ -64,7 +69,7 @@ export function TeamPanel({
           actions={actions}
           selfId={user?.id}
           footer="Add from our people"
-          onAdd={onAddOurs}
+          onAdd={view.can.editTeam ? onAddOurs : undefined}
           empty="No one from our side yet."
           testId="our-side"
         />
@@ -75,7 +80,7 @@ export function TeamPanel({
           actions={actions}
           selfId={user?.id}
           footer="Add by email"
-          onAdd={onAddTheirs}
+          onAdd={view.can.editTeam ? onAddTheirs : undefined}
           empty={`No one from ${sandbox.organisation} yet.`}
           testId="their-side"
         />
@@ -101,12 +106,12 @@ function SideColumn({
   actions: MemberActions
   selfId?: string
   footer: string
-  onAdd: () => void
+  onAdd?: () => void
   empty: string
   testId: string
 }) {
   return (
-    <div data-testid={testId}>
+    <div className="min-w-0" data-testid={testId}>
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-ink-3">
         {title} <span className="text-ink-4">· {subtitle}</span>
       </h3>
@@ -124,15 +129,17 @@ function SideColumn({
           ))}
         </ul>
       )}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mt-2 -ml-2 h-8 text-ink-2"
-        onClick={onAdd}
-      >
-        <Plus className="h-4 w-4" />
-        {footer}
-      </Button>
+      {onAdd && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="mt-2 -ml-2 h-8 text-ink-2"
+          onClick={onAdd}
+        >
+          <Plus className="h-4 w-4" />
+          {footer}
+        </Button>
+      )}
     </div>
   )
 }

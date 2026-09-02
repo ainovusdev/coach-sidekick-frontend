@@ -32,6 +32,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useAuth } from '@/contexts/auth-context'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { AddOurPeopleDialog } from '@/components/sandboxes/add-our-people-dialog'
 import { AddTheirPeopleDialog } from '@/components/sandboxes/add-their-people-dialog'
 import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
@@ -47,6 +48,7 @@ import {
   useResendInvitation,
   useRevokeInvitation,
   useSendInvitations,
+  useResendAddedEmail,
 } from '@/hooks/mutations/use-sandbox-mutations'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { toDateOnly } from '@/lib/sandbox/term'
@@ -114,6 +116,10 @@ function groupsText(member: SandboxMember): string {
 
 export function PeoplePage({ overview }: { overview: SandboxOverview }) {
   const { user } = useAuth()
+  const view = useSandboxView()
+  const { can } = view
+  const resendAdded = useResendAddedEmail(overview.sandbox.id)
+  const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
   const { sandbox, members, groups } = overview
   const sandboxId = sandbox.id
 
@@ -209,18 +215,19 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
 
   const ours = members.filter(m => m.side === 'ours').length
   const theirs = members.length - ours
+  const hasRowMenu = can.editTeam || can.editGroups || can.invite
 
   return (
     <div className="space-y-6" data-testid="people-page">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <nav className="text-xs text-ink-3">
-            <Link href="/admin/sandboxes" className="hover:text-ink">
-              Sandboxes
+            <Link href={view.href.index()} className="hover:text-ink">
+              {view.indexLabel}
             </Link>
             <span className="mx-1">/</span>
             <Link
-              href={`/admin/sandboxes/${sandboxId}`}
+              href={view.href.overview(sandboxId)}
               className="hover:text-ink"
               data-testid="back-to-overview"
             >
@@ -233,19 +240,21 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
             {theirs} from {sandbox.organisation}
           </p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setAddOurs(true)}>
-            <Plus className="h-4 w-4" />
-            Add from our people
-          </Button>
-          <Button
-            className="bg-ink text-ink-on-dark hover:bg-ink/90"
-            onClick={() => setAddTheirs(true)}
-          >
-            <Plus className="h-4 w-4" />
-            Add by email
-          </Button>
-        </div>
+        {can.editTeam && (
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setAddOurs(true)}>
+              <Plus className="h-4 w-4" />
+              Add from our people
+            </Button>
+            <Button
+              className="bg-ink text-ink-on-dark hover:bg-ink/90"
+              onClick={() => setAddTheirs(true)}
+            >
+              <Plus className="h-4 w-4" />
+              Add by email
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -330,15 +339,19 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
         >
           <span className="font-medium text-ink">{selected.size} selected</span>
           <span className="text-ink-4">·</span>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={selectedWaiting.length === 0 || sendInvitations.isPending}
-            onClick={() => setBulkInviteOpen(true)}
-            data-testid="bulk-invite"
-          >
-            Send {pluralise(selectedWaiting.length, 'invitation')}
-          </Button>
+          {can.invite && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={
+                selectedWaiting.length === 0 || sendInvitations.isPending
+              }
+              onClick={() => setBulkInviteOpen(true)}
+              data-testid="bulk-invite"
+            >
+              Send {pluralise(selectedWaiting.length, 'invitation')}
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -371,27 +384,29 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
           <Table>
             <TableHeader>
               <TableRow className="hover:bg-transparent">
-                <TableHead className="w-10 pl-4">
-                  <Checkbox
-                    aria-label="Select everyone shown"
-                    checked={
-                      allVisibleSelected
-                        ? true
-                        : someVisibleSelected
-                          ? 'indeterminate'
-                          : false
-                    }
-                    onCheckedChange={v => toggleAll(v === true)}
-                    data-testid="select-all"
-                  />
-                </TableHead>
+                {can.editTeam && (
+                  <TableHead className="w-10 pl-4">
+                    <Checkbox
+                      aria-label="Select everyone shown"
+                      checked={
+                        allVisibleSelected
+                          ? true
+                          : someVisibleSelected
+                            ? 'indeterminate'
+                            : false
+                      }
+                      onCheckedChange={v => toggleAll(v === true)}
+                      data-testid="select-all"
+                    />
+                  </TableHead>
+                )}
                 <TableHead>Person</TableHead>
                 <TableHead>Side</TableHead>
                 <TableHead>Roles</TableHead>
                 <TableHead>Groups</TableHead>
                 <TableHead>Invitation</TableHead>
                 <TableHead>Added</TableHead>
-                <TableHead className="w-12" />
+                {hasRowMenu && <TableHead className="w-12" />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -407,13 +422,15 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                     data-state={selected.has(m.id) ? 'selected' : undefined}
                     className={cn(selected.has(m.id) && 'bg-surface-2')}
                   >
-                    <TableCell className="pl-4">
-                      <Checkbox
-                        aria-label={`Select ${who}`}
-                        checked={selected.has(m.id)}
-                        onCheckedChange={v => toggle(m.id, v === true)}
-                      />
-                    </TableCell>
+                    {can.editTeam && (
+                      <TableCell className="pl-4">
+                        <Checkbox
+                          aria-label={`Select ${who}`}
+                          checked={selected.has(m.id)}
+                          onCheckedChange={v => toggle(m.id, v === true)}
+                        />
+                      </TableCell>
+                    )}
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <PersonAvatar
@@ -474,83 +491,122 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                       {m.side === 'theirs' ? (
                         <InvitationBadge member={m} />
                       ) : (
-                        <span className="text-xs text-ink-3">Staff</span>
+                        <span
+                          className="whitespace-nowrap text-xs text-ink-3"
+                          data-testid="notified"
+                        >
+                          {m.notified_at
+                            ? `Emailed ${fmtDay(toDateOnly(new Date(m.notified_at)))}`
+                            : 'Not emailed'}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell className="whitespace-nowrap font-mono text-[11px] text-ink-3">
                       {fmtDay(toDateOnly(new Date(m.created_at)), true)}
                     </TableCell>
-                    <TableCell className="pr-2 text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-ink-3"
-                            aria-label={`Actions for ${who}`}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-52">
-                          <DropdownMenuItem onClick={() => setRolesMember(m)}>
-                            Change roles
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setGroupsMember(m)}>
-                            Change groups
-                          </DropdownMenuItem>
-                          {m.side === 'theirs' && (
-                            <>
-                              <DropdownMenuSeparator />
-                              {(m.invitation_status === 'not_sent' ||
-                                m.invitation_status === 'has_account') && (
+                    {hasRowMenu && (
+                      <TableCell className="pr-2 text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-ink-3"
+                              aria-label={`Actions for ${who}`}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-52">
+                            {can.editTeam && (
+                              <DropdownMenuItem
+                                onClick={() => setRolesMember(m)}
+                              >
+                                Change roles
+                              </DropdownMenuItem>
+                            )}
+                            {can.editGroups && (
+                              <DropdownMenuItem
+                                onClick={() => setGroupsMember(m)}
+                              >
+                                Change groups
+                              </DropdownMenuItem>
+                            )}
+                            {m.side === 'ours' && can.editTeam && (
+                              <>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  onClick={() =>
-                                    sendInvitations.mutate({
-                                      member_ids: [m.id],
-                                    })
-                                  }
+                                  onClick={() => resendAdded.mutate(m.id)}
+                                  data-testid="resend-added"
                                 >
-                                  Send invitation
+                                  {m.notified_at
+                                    ? 'Send the added email again'
+                                    : 'Send the added email'}
                                 </DropdownMenuItem>
-                              )}
-                              {(m.invitation_status === 'sent' ||
-                                m.invitation_status === 'expired') && (
                                 <DropdownMenuItem
-                                  onClick={() =>
-                                    m.invitation_id &&
-                                    resendInvitation.mutate(m.invitation_id)
-                                  }
-                                >
-                                  Resend invitation
-                                </DropdownMenuItem>
-                              )}
-                              {m.invitation_status === 'sent' && (
-                                <DropdownMenuItem
-                                  onClick={() => setRevokeMember(m)}
-                                >
-                                  Revoke invitation
-                                </DropdownMenuItem>
-                              )}
-                              {m.invitation_status !== 'accepted' && (
-                                <DropdownMenuItem
-                                  onClick={() => setPreviewMemberId(m.id)}
+                                  onClick={() => setAddedPreviewId(m.id)}
                                 >
                                   Preview email
                                 </DropdownMenuItem>
-                              )}
-                            </>
-                          )}
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onClick={() => setRemoveMember(m)}
-                          >
-                            Remove from sandbox
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                              </>
+                            )}
+                            {m.side === 'theirs' && can.invite && (
+                              <>
+                                <DropdownMenuSeparator />
+                                {(m.invitation_status === 'not_sent' ||
+                                  m.invitation_status === 'has_account') && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      sendInvitations.mutate({
+                                        member_ids: [m.id],
+                                      })
+                                    }
+                                  >
+                                    Send invitation
+                                  </DropdownMenuItem>
+                                )}
+                                {(m.invitation_status === 'sent' ||
+                                  m.invitation_status === 'expired') && (
+                                  <DropdownMenuItem
+                                    onClick={() =>
+                                      m.invitation_id &&
+                                      resendInvitation.mutate(m.invitation_id)
+                                    }
+                                  >
+                                    Resend invitation
+                                  </DropdownMenuItem>
+                                )}
+                                {m.invitation_status === 'sent' && (
+                                  <DropdownMenuItem
+                                    onClick={() => setRevokeMember(m)}
+                                  >
+                                    Revoke invitation
+                                  </DropdownMenuItem>
+                                )}
+                                {m.invitation_status !== 'accepted' && (
+                                  <DropdownMenuItem
+                                    onClick={() => setPreviewMemberId(m.id)}
+                                  >
+                                    Preview email
+                                  </DropdownMenuItem>
+                                )}
+                              </>
+                            )}
+                            {can.editTeam && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => setRemoveMember(m)}
+                                >
+                                  Remove from sandbox
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 )
               })}
@@ -596,6 +652,12 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
         sandboxId={sandboxId}
         memberId={previewMemberId}
         onOpenChange={o => !o && setPreviewMemberId(null)}
+      />
+      <EmailPreviewDialog
+        sandboxId={sandboxId}
+        memberId={addedPreviewId}
+        kind="added"
+        onOpenChange={o => !o && setAddedPreviewId(null)}
       />
       <BulkRemoveDialog
         open={bulkRemoveOpen}

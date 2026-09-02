@@ -106,6 +106,27 @@ export function useInvitationPreview(
   })
 }
 
+export function useMySandboxes(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.mine(),
+    queryFn: () => SandboxService.mine(),
+    enabled,
+    staleTime: 60 * 1000,
+  })
+}
+
+export function useAddedEmailPreview(
+  sandboxId: string,
+  memberId: string | null,
+) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.addedEmailPreview(sandboxId, memberId ?? ''),
+    queryFn: () =>
+      SandboxService.previewAddedEmail(sandboxId, memberId as string),
+    enabled: !!sandboxId && !!memberId,
+  })
+}
+
 export function useSandboxWelcome(sandboxId: string | null) {
   return useQuery({
     queryKey: queryKeys.sandboxes.welcome(sandboxId ?? ''),

@@ -8,25 +8,43 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useInvitationPreview } from '@/hooks/queries/use-sandboxes'
+import {
+  useAddedEmailPreview,
+  useInvitationPreview,
+} from '@/hooks/queries/use-sandboxes'
 
+/**
+ * Shows an email exactly as it will be sent. `kind` picks which one: the
+ * client-side invitation, or the "you were added" notice our own people get.
+ */
 export function EmailPreviewDialog({
   sandboxId,
   memberId,
+  kind = 'invitation',
   onOpenChange,
 }: {
   sandboxId: string
   memberId: string | null
+  kind?: 'invitation' | 'added'
   onOpenChange: (open: boolean) => void
 }) {
-  const preview = useInvitationPreview(sandboxId, memberId)
+  const invitation = useInvitationPreview(
+    sandboxId,
+    kind === 'invitation' ? memberId : null,
+  )
+  const added = useAddedEmailPreview(
+    sandboxId,
+    kind === 'added' ? memberId : null,
+  )
+  const preview = kind === 'added' ? added : invitation
 
   return (
     <Dialog open={!!memberId} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl" data-testid="email-preview">
         <DialogHeader>
           <DialogTitle>
-            {preview.data?.subject ?? 'Invitation email'}
+            {preview.data?.subject ??
+              (kind === 'added' ? 'Added to the sandbox' : 'Invitation email')}
           </DialogTitle>
           <DialogDescription>
             {preview.data

@@ -40,8 +40,8 @@ export function GroupCard({
   onDelete,
 }: {
   group: SandboxGroup
-  onEdit: (group: SandboxGroup) => void
-  onDelete: (group: SandboxGroup) => void
+  onEdit?: (group: SandboxGroup) => void
+  onDelete?: (group: SandboxGroup) => void
 }) {
   const incomplete = !group.is_complete
   const kind = incomplete
@@ -70,30 +70,36 @@ export function GroupCard({
         >
           {kind}
         </span>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="-mr-2 -mt-1.5 h-7 w-7 text-ink-3"
-              aria-label={`Actions for ${group.display_name}`}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onClick={() => onEdit(group)}>
-              {incomplete ? 'Finish this group' : 'Edit group'}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-vermillion focus:text-vermillion"
-              onClick={() => onDelete(group)}
-            >
-              Remove group
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {(onEdit || onDelete) && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="-mr-2 -mt-1.5 h-7 w-7 text-ink-3"
+                aria-label={`Actions for ${group.display_name}`}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              {onEdit && (
+                <DropdownMenuItem onClick={() => onEdit(group)}>
+                  {incomplete ? 'Finish this group' : 'Edit group'}
+                </DropdownMenuItem>
+              )}
+              {onEdit && onDelete && <DropdownMenuSeparator />}
+              {onDelete && (
+                <DropdownMenuItem
+                  className="text-vermillion focus:text-vermillion"
+                  onClick={() => onDelete(group)}
+                >
+                  Remove group
+                </DropdownMenuItem>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
 
       <div className="mt-3 flex items-center gap-2">
@@ -135,15 +141,17 @@ export function GroupCard({
               {MISSING_LABEL[m]}
             </p>
           ))}
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-2 w-full border-amber-token/40 text-ink"
-            onClick={() => onEdit(group)}
-            data-testid="finish-group"
-          >
-            Finish this group
-          </Button>
+          {onEdit && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="mt-2 w-full border-amber-token/40 text-ink"
+              onClick={() => onEdit(group)}
+              data-testid="finish-group"
+            >
+              Finish this group
+            </Button>
+          )}
         </div>
       ) : (
         <p className="mt-3 border-t border-line pt-3 text-xs text-ink-3">

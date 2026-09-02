@@ -3,6 +3,7 @@
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GroupCard } from '@/components/sandboxes/group-card'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { pluralise } from '@/lib/sandbox/format'
 import type { SandboxGroup, SandboxOverview } from '@/types/sandbox'
 
@@ -18,6 +19,11 @@ export function GroupsPanel({
   onDelete: (group: SandboxGroup) => void
 }) {
   const { groups, checklist } = overview
+  const view = useSandboxView()
+  const canEdit = view.can.editGroups
+  const coacheeCount =
+    checklist?.groups.coachee_count ??
+    new Set(groups.flatMap(g => g.coachees.map(c => c.member_id))).size
 
   return (
     <section
@@ -30,11 +36,10 @@ export function GroupsPanel({
           Groups{' '}
           <span className="ml-1 text-sm font-normal text-ink-3">
             {groups.length}
-            {groups.length > 0 &&
-              ` · ${pluralise(checklist.groups.coachee_count, 'coachee')}`}
+            {groups.length > 0 && ` · ${pluralise(coacheeCount, 'coachee')}`}
           </span>
         </h2>
-        {groups.length > 0 && (
+        {groups.length > 0 && canEdit && (
           <Button
             variant="outline"
             size="sm"
@@ -47,8 +52,22 @@ export function GroupsPanel({
         )}
       </header>
 
+      {!view.can.seeAllGroups && (
+        <p
+          className="border-b border-line px-5 py-2 text-xs text-ink-3"
+          data-testid="groups-scope-note"
+        >
+          Your groups. Other groups on this sandbox aren’t shown.
+        </p>
+      )}
       <div className="px-5 py-4">
-        {groups.length === 0 ? (
+        {groups.length === 0 && !canEdit ? (
+          <p className="text-sm text-ink-3" data-testid="groups-empty">
+            {view.can.seeAllGroups
+              ? 'No groups yet.'
+              : 'You’re not in a group yet.'}
+          </p>
+        ) : groups.length === 0 ? (
           <div className="flex flex-col items-center rounded-xl border border-dashed border-ink-4 px-6 py-10 text-center">
             <p className="text-sm font-medium text-ink">No groups yet</p>
             <p className="mt-1 max-w-md text-sm text-ink-3">
@@ -71,19 +90,21 @@ export function GroupsPanel({
               <GroupCard
                 key={g.id}
                 group={g}
-                onEdit={onEdit}
-                onDelete={onDelete}
+                onEdit={canEdit ? onEdit : undefined}
+                onDelete={canEdit ? onDelete : undefined}
               />
             ))}
-            <button
-              type="button"
-              onClick={onNew}
-              className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-ink-4 text-sm text-ink-3 transition-colors hover:border-ink hover:text-ink"
-              data-testid="add-another-group"
-            >
-              <Plus className="mr-1.5 h-4 w-4" />
-              Add another group
-            </button>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={onNew}
+                className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-ink-4 text-sm text-ink-3 transition-colors hover:border-ink hover:text-ink"
+                data-testid="add-another-group"
+              >
+                <Plus className="mr-1.5 h-4 w-4" />
+                Add another group
+              </button>
+            )}
           </div>
         )}
       </div>

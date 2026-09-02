@@ -78,6 +78,20 @@ export interface Sandbox {
   updated_at: string
 }
 
+/** What the caller may do on a sandbox (mirrors services/sandbox_access.py). */
+export type SandboxCapability =
+  | 'sandbox.read'
+  | 'sandbox.manage'
+  | 'timeline.manage'
+  | 'people.manage'
+  | 'groups.manage'
+  | 'invitations.manage'
+  | 'links.read'
+  | 'delivery.read'
+
+/** How much of the sandbox the caller sees. */
+export type SandboxScope = 'all' | 'groups' | 'self'
+
 export interface SandboxSummary extends Sandbox {
   member_count: number
   group_count: number
@@ -86,6 +100,8 @@ export interface SandboxSummary extends Sandbox {
   account_executive_names: string[]
   owner_names: string[]
   my_roles: string[]
+  my_capabilities: SandboxCapability[]
+  my_scope: SandboxScope
 }
 
 export interface SandboxListResponse {
@@ -125,6 +141,8 @@ export interface SandboxMember {
   group_kinds: string[]
   /** The (group, kind) pairs behind the flat lists above. */
   memberships: SandboxMembership[]
+  /** Our side: when the "you were added" email went out. */
+  notified_at: string | null
   created_at: string
 }
 
@@ -323,9 +341,12 @@ export interface SandboxOverview {
   timeline: TimelineEvent[]
   /** Events taken out by hand, newest removal first. Restorable. */
   timeline_removed: TimelineEvent[]
-  checklist: SetupChecklist
+  /** Ops artefacts: null / empty unless the caller manages invitations. */
+  checklist: SetupChecklist | null
   invitations: SandboxInvitation[]
   my_roles: string[]
+  my_capabilities: SandboxCapability[]
+  my_scope: SandboxScope
   today: string
 }
 

@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import type { SandboxOverview } from '@/types/sandbox'
 
@@ -24,6 +25,7 @@ export function VisionPanel({
   onOpenChange: (open: boolean) => void
 }) {
   const { sandbox, members } = overview
+  const canEdit = useSandboxView().can.editSandbox
   const vision = (sandbox.vision || '').trim()
   const primaryClient = members.find(m => m.roles.includes('primary_client'))
 
@@ -35,7 +37,7 @@ export function VisionPanel({
     >
       <header className="flex items-baseline justify-between border-b border-line px-5 py-4">
         <h2 className="text-base font-semibold text-ink">Vision</h2>
-        {vision && (
+        {vision && canEdit && (
           <Button
             variant="ghost"
             size="sm"
@@ -58,6 +60,10 @@ export function VisionPanel({
               </figcaption>
             )}
           </figure>
+        ) : !canEdit ? (
+          <p className="text-sm text-ink-3" data-testid="vision-empty">
+            The vision hasn’t been written yet.
+          </p>
         ) : (
           <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="max-w-md text-sm text-ink-3">
@@ -75,11 +81,13 @@ export function VisionPanel({
           </div>
         )}
       </div>
-      <VisionDialog
-        open={open}
-        onOpenChange={onOpenChange}
-        overview={overview}
-      />
+      {canEdit && (
+        <VisionDialog
+          open={open}
+          onOpenChange={onOpenChange}
+          overview={overview}
+        />
+      )}
     </section>
   )
 }

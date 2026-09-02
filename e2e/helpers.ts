@@ -11,6 +11,7 @@ export const USERS = {
   marcus: { email: 'e2e-marcus@novus-e2e.com', name: 'Marcus Bell' },
   priya: { email: 'e2e-priya@novus-e2e.com', name: 'Priya Raman' },
   dana: { email: 'e2e-dana@ptg-e2e.com', name: 'Dana Whitfield' }, // existing active account
+  omar: { email: 'e2e-omar@ptg-e2e.com', name: 'Omar Haddad' }, // client-side admin, no app role
 }
 
 /** Locate the backend checkout: env override, sibling of the repo, or sibling of the worktree root. */

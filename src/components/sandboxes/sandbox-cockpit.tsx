@@ -23,12 +23,14 @@ import {
   isWaiting,
 } from '@/components/sandboxes/invitations-panel'
 import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   useDeleteGroup,
   useResendInvitation,
   useRevokeInvitation,
   useSendInvitations,
 } from '@/hooks/mutations/use-sandbox-mutations'
+import { cn } from '@/lib/utils'
 import type {
   SandboxGroup,
   SandboxMember,
@@ -43,6 +45,8 @@ function scrollTo(id: string) {
 
 export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const sandboxId = overview.sandbox.id
+  const view = useSandboxView()
+  const { can } = view
   const [visionOpen, setVisionOpen] = useState(false)
   const [addOurs, setAddOurs] = useState(false)
   const [addTheirs, setAddTheirs] = useState(false)
@@ -67,6 +71,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
 
   const onSetupSelect = (target: SetupTarget) => {
     const c = overview.checklist
+    if (!c) return
     switch (target) {
       case 'term':
         scrollTo('timeline')
@@ -94,15 +99,21 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     }
   }
 
+  // Only the actions the viewer may take become menu items.
   const memberActions = {
-    onChangeRoles: setRolesMember,
-    onRemove: setRemoveMember,
-    onInvite: (m: SandboxMember) =>
-      sendInvitations.mutate({ member_ids: [m.id] }),
-    onResend: (m: SandboxMember) =>
-      m.invitation_id && resendInvitation.mutate(m.invitation_id),
-    onRevoke: (m: SandboxMember) => setRevokeMember(m),
-    onPreview: (m: SandboxMember) => setPreviewMemberId(m.id),
+    ...(can.editTeam
+      ? { onChangeRoles: setRolesMember, onRemove: setRemoveMember }
+      : {}),
+    ...(can.invite
+      ? {
+          onInvite: (m: SandboxMember) =>
+            sendInvitations.mutate({ member_ids: [m.id] }),
+          onResend: (m: SandboxMember) =>
+            m.invitation_id && resendInvitation.mutate(m.invitation_id),
+          onRevoke: (m: SandboxMember) => setRevokeMember(m),
+          onPreview: (m: SandboxMember) => setPreviewMemberId(m.id),
+        }
+      : {}),
   }
 
   const waitingCount = overview.members.filter(
@@ -118,17 +129,21 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
       className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
       data-testid="sandbox-cockpit"
     >
-      <aside className="space-y-4 xl:sticky xl:top-0 xl:self-start">
+      <aside
+        className={cn('space-y-4 xl:sticky xl:self-start', view.railTopClass)}
+      >
         <IdentityCard overview={overview} />
         <SetupCard overview={overview} onSelect={onSetupSelect} />
         <LinksCard overview={overview} />
       </aside>
 
       <div className="min-w-0 space-y-6">
-        <IncompleteBanner
-          groups={overview.groups}
-          onFinish={g => openDrawer(g)}
-        />
+        {can.editGroups && (
+          <IncompleteBanner
+            groups={overview.groups}
+            onFinish={g => openDrawer(g)}
+          />
+        )}
         <TimelinePanel overview={overview} />
         <VisionPanel
           overview={overview}
@@ -147,59 +162,70 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           onEdit={g => openDrawer(g)}
           onDelete={setDeleteGroup}
         />
-        <InvitationsPanel
-          overview={overview}
-          actions={{
-            onInvite: memberActions.onInvite,
-            onResend: memberActions.onResend,
-            onRevoke: memberActions.onRevoke,
-            onPreview: memberActions.onPreview,
-            onSendAll: () => setSendAllOpen(true),
-            sending,
-          }}
-        />
+        {can.invite && (
+          <InvitationsPanel
+            overview={overview}
+            actions={{
+              onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
+              onResend: m =>
+                m.invitation_id && resendInvitation.mutate(m.invitation_id),
+              onRevoke: m => setRevokeMember(m),
+              onPreview: m => setPreviewMemberId(m.id),
+              onSendAll: () => setSendAllOpen(true),
+              sending,
+            }}
+          />
+        )}
       </div>
 
-      {/* Dialogs and drawers */}
-      <AddOurPeopleDialog
-        open={addOurs}
-        onOpenChange={setAddOurs}
-        sandboxId={sandboxId}
-      />
-      <AddTheirPeopleDialog
-        open={addTheirs}
-        onOpenChange={setAddTheirs}
-        sandboxId={sandboxId}
-        organisation={overview.sandbox.organisation}
-        onEditExisting={memberId => {
-          const m = overview.members.find(x => x.id === memberId)
-          if (m) {
-            setAddTheirs(false)
-            setRolesMember(m)
-          }
-        }}
-      />
-      <ChangeRolesDialog
-        member={rolesMember}
-        onOpenChange={o => !o && setRolesMember(null)}
-        sandboxId={sandboxId}
-      />
-      <RemoveMemberDialog
-        member={removeMember}
-        onOpenChange={o => !o && setRemoveMember(null)}
-        sandboxId={sandboxId}
-      />
-      <GroupDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        overview={overview}
-        group={drawerGroup}
-      />
-      <EmailPreviewDialog
-        sandboxId={sandboxId}
-        memberId={previewMemberId}
-        onOpenChange={o => !o && setPreviewMemberId(null)}
-      />
+      {/* Dialogs and drawers — mounted only for people who may use them */}
+      {can.editTeam && (
+        <>
+          <AddOurPeopleDialog
+            open={addOurs}
+            onOpenChange={setAddOurs}
+            sandboxId={sandboxId}
+          />
+          <AddTheirPeopleDialog
+            open={addTheirs}
+            onOpenChange={setAddTheirs}
+            sandboxId={sandboxId}
+            organisation={overview.sandbox.organisation}
+            onEditExisting={memberId => {
+              const m = overview.members.find(x => x.id === memberId)
+              if (m) {
+                setAddTheirs(false)
+                setRolesMember(m)
+              }
+            }}
+          />
+          <ChangeRolesDialog
+            member={rolesMember}
+            onOpenChange={o => !o && setRolesMember(null)}
+            sandboxId={sandboxId}
+          />
+          <RemoveMemberDialog
+            member={removeMember}
+            onOpenChange={o => !o && setRemoveMember(null)}
+            sandboxId={sandboxId}
+          />
+        </>
+      )}
+      {can.editGroups && (
+        <GroupDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          overview={overview}
+          group={drawerGroup}
+        />
+      )}
+      {can.invite && (
+        <EmailPreviewDialog
+          sandboxId={sandboxId}
+          memberId={previewMemberId}
+          onOpenChange={o => !o && setPreviewMemberId(null)}
+        />
+      )}
 
       <ConfirmationDialog
         open={!!deleteGroup}

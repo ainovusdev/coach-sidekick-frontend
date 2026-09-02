@@ -210,6 +210,20 @@ export function useUpdateMember(sandboxId: string) {
   })
 }
 
+export function useResendAddedEmail(sandboxId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (memberId: string) =>
+      SandboxService.resendAddedEmail(sandboxId, memberId),
+    onSuccess: member => {
+      invalidateQueries.afterSandboxUpdate(queryClient, sandboxId)
+      toast.success(`Email sent to ${member.name || member.email}`)
+    },
+    onError: error =>
+      toast.error(errorMessage(error, 'Could not send that email')),
+  })
+}
+
 export function useRemoveMember(sandboxId: string) {
   const queryClient = useQueryClient()
   return useMutation({

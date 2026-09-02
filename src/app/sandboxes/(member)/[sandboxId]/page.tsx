@@ -4,13 +4,19 @@ import Link from 'next/link'
 import { useParams, useRouter } from 'next/navigation'
 import { Boxes } from 'lucide-react'
 import { EmptyState } from '@/components/ui/empty-state'
-import { CockpitSkeleton } from '@/components/sandboxes/skeletons'
 import { SandboxCockpit } from '@/components/sandboxes/sandbox-cockpit'
+import { CockpitSkeleton } from '@/components/sandboxes/skeletons'
+import {
+  SandboxViewProvider,
+  viewFromOverview,
+} from '@/components/sandboxes/sandbox-view-context'
+import { useAuth } from '@/contexts/auth-context'
 import { useSandboxOverview } from '@/hooks/queries/use-sandboxes'
 
-export default function SandboxOverviewPage() {
+export default function MemberSandboxPage() {
   const params = useParams<{ sandboxId: string }>()
   const router = useRouter()
+  const { isAdmin, isCoach } = useAuth()
   const sandboxId = params?.sandboxId
   const { data, isLoading, isError } = useSandboxOverview(sandboxId)
 
@@ -19,24 +25,29 @@ export default function SandboxOverviewPage() {
   if (isError || !data) {
     return (
       <div className="max-w-xl">
-        <Link
-          href="/admin/sandboxes"
-          className="text-sm text-ink-3 hover:text-ink"
-        >
+        <Link href="/sandboxes" className="text-sm text-ink-3 hover:text-ink">
           ← Sandboxes
         </Link>
         <EmptyState
           icon={Boxes}
           title="Sandbox not found"
-          description="It may have been removed, or the link is wrong."
+          description="You may not be on this sandbox, or the link is wrong."
           action={{
-            label: 'Back to sandboxes',
-            onClick: () => router.push('/admin/sandboxes'),
+            label: 'Your sandboxes',
+            onClick: () => router.push('/sandboxes'),
           }}
         />
       </div>
     )
   }
 
-  return <SandboxCockpit overview={data} />
+  const view = viewFromOverview(data, {
+    isAdmin: isAdmin(),
+    isOurs: isAdmin() || isCoach(),
+  })
+  return (
+    <SandboxViewProvider value={view}>
+      <SandboxCockpit overview={data} />
+    </SandboxViewProvider>
+  )
 }

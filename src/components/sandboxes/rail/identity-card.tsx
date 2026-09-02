@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DueDateField } from '@/components/ui/due-date-field'
 import { RegeneratePreviewList } from '@/components/sandboxes/regenerate-dialog'
+import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import { useRegeneratePreview } from '@/hooks/queries/use-sandboxes'
 import {
@@ -44,6 +45,7 @@ import {
 
 export function IdentityCard({ overview }: { overview: SandboxOverview }) {
   const { sandbox, members, today } = overview
+  const view = useSandboxView()
   const [editing, setEditing] = useState(false)
 
   const start = parseDateOnly(sandbox.term_start)!
@@ -76,8 +78,8 @@ export function IdentityCard({ overview }: { overview: SandboxOverview }) {
       data-testid="identity-card"
     >
       <nav className="text-xs text-ink-3">
-        <Link href="/admin/sandboxes" className="hover:text-ink">
-          Sandboxes
+        <Link href={view.href.index()} className="hover:text-ink">
+          {view.indexLabel}
         </Link>
         <span className="mx-1">/</span>
         <span className="text-ink-2">{sandbox.name}</span>
@@ -89,15 +91,17 @@ export function IdentityCard({ overview }: { overview: SandboxOverview }) {
           </h1>
           <p className="text-sm text-ink-3">{sandbox.organisation}</p>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0 text-ink-3"
-          aria-label="Edit sandbox details"
-          onClick={() => setEditing(true)}
-        >
-          <Pencil className="h-4 w-4" />
-        </Button>
+        {view.can.editSandbox && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-ink-3"
+            aria-label="Edit sandbox details"
+            onClick={() => setEditing(true)}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <div className="mt-4 flex items-center gap-2">
@@ -135,27 +139,31 @@ export function IdentityCard({ overview }: { overview: SandboxOverview }) {
       </div>
 
       <dl className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
-        <div className="flex justify-between gap-3">
-          <dt className="text-ink-3">Owner</dt>
-          <dd className="text-right text-ink-2">
-            {owners.length ? (
-              listNames(owners, 2)
-            ) : (
-              <span className="text-ink-4">Not set</span>
-            )}
-          </dd>
-        </div>
+        {(owners.length > 0 || view.can.editSandbox) && (
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-3">Owner</dt>
+            <dd className="text-right text-ink-2">
+              {owners.length ? (
+                listNames(owners, 2)
+              ) : (
+                <span className="text-ink-4">Not set</span>
+              )}
+            </dd>
+          </div>
+        )}
         <div className="flex justify-between gap-3">
           <dt className="text-ink-3">Account executive</dt>
           <dd className="text-right text-ink-2">{listNames(aes, 2) || '—'}</dd>
         </div>
       </dl>
 
-      <EditSandboxDialog
-        open={editing}
-        onOpenChange={setEditing}
-        overview={overview}
-      />
+      {view.can.editSandbox && (
+        <EditSandboxDialog
+          open={editing}
+          onOpenChange={setEditing}
+          overview={overview}
+        />
+      )}
     </div>
   )
 }
