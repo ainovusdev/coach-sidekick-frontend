@@ -49,6 +49,7 @@ import {
 } from 'lucide-react'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
+import { SandboxNote } from '@/components/sandboxes/sandbox-note'
 
 interface DashboardData {
   client_info: {
@@ -307,6 +308,7 @@ export default function ClientDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-14">
+      <SandboxNote />
       {/* Header — calm greeting */}
       <div className="mb-7">
         <p className="text-[12px] font-medium text-ink-3 mb-1">{todayLabel}</p>

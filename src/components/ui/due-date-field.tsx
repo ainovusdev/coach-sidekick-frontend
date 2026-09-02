@@ -20,6 +20,14 @@ import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { parseDateForPicker, formatDateOnly } from '@/lib/date-utils'
 
+/** The picked calendar day as YYYY-MM-DD in local time (toISOString would shift it by the timezone offset). */
+function toLocalDateOnly(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 interface DueDateFieldProps {
   value?: string | null
   onChange: (value: string | null) => void
@@ -61,7 +69,7 @@ export function DueDateField({
               mode="single"
               selected={parseDateForPicker(value ?? undefined)}
               onSelect={date => {
-                onChange(date ? date.toISOString().split('T')[0] : null)
+                onChange(date ? toLocalDateOnly(date) : null)
                 setOpen(false)
               }}
               initialFocus

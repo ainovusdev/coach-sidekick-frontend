@@ -225,6 +225,34 @@ export const queryKeys = {
       [...queryKeys.groupSessions.detail(id), 'participants'] as const,
   },
 
+  // Sandbox v2 (client contracts, admin panel)
+  sandboxes: {
+    all: ['sandboxes'] as const,
+    lists: () => [...queryKeys.sandboxes.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.sandboxes.lists(), { filters }] as const,
+    details: () => [...queryKeys.sandboxes.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.sandboxes.details(), id] as const,
+    overview: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'overview'] as const,
+    peopleSearch: (q: string, sandboxId?: string) =>
+      [
+        ...queryKeys.sandboxes.all,
+        'people-search',
+        q,
+        sandboxId ?? null,
+      ] as const,
+    lookup: (id: string, email: string) =>
+      [...queryKeys.sandboxes.detail(id), 'lookup', email] as const,
+    termPreview: (start: string, months: number) =>
+      [...queryKeys.sandboxes.all, 'term-preview', start, months] as const,
+    emailPreview: (id: string, memberId: string) =>
+      [...queryKeys.sandboxes.detail(id), 'email-preview', memberId] as const,
+    welcome: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'welcome'] as const,
+    portalMine: () => [...queryKeys.sandboxes.all, 'portal-mine'] as const,
+  },
+
   // Client portal keys
   clientPortal: {
     all: ['client-portal'] as const,
@@ -326,6 +354,19 @@ export const queryKeys = {
  * Example: After creating a session, invalidate both sessions list and client sessions
  */
 export const invalidateQueries = {
+  afterSandboxUpdate: async (queryClient: QueryClient, sandboxId?: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.lists() }),
+      sandboxId
+        ? queryClient.invalidateQueries({
+            queryKey: queryKeys.sandboxes.detail(sandboxId),
+          })
+        : queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
+      // coachees become clients of the group's coaches
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
+    ])
+  },
+
   afterGroupSessionUpdate: async (
     queryClient: QueryClient,
     sessionId?: string,

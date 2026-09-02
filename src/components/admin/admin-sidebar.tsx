@@ -17,6 +17,7 @@ import {
   Sparkles,
   GitMerge,
   MessagesSquare,
+  Boxes,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -50,6 +51,12 @@ const menuItems = [
     href: '/admin/clients',
     icon: Users2,
     requiredRole: ['super_admin'],
+  },
+  {
+    title: 'Sandboxes',
+    href: '/admin/sandboxes',
+    icon: Boxes,
+    requiredRole: ['admin', 'super_admin'],
   },
   {
     title: 'Global Resources',
