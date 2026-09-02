@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -20,13 +21,20 @@ export function AuthForm() {
   // so this form is sign-in only. Public self-registration was removed because it
   // created accounts with no role, stranding users at the client-portal gate.
   const { signIn } = useAuth()
+  // Deep-link support: `/auth?forgot=1&email=…` opens the reset form with the
+  // email filled in (used by the "invitation already used" screen), `?email=…`
+  // alone just prefills sign-in.
+  const searchParams = useSearchParams()
+  const prefillEmail = searchParams.get('email') ?? ''
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(
+    searchParams.get('forgot') === '1',
+  )
 
   const [formData, setFormData] = useState({
-    email: '',
+    email: prefillEmail,
     password: '',
   })
 
@@ -111,7 +119,10 @@ export function AuthForm() {
 
         {/* Auth Card or Forgot Password Form */}
         {showForgotPassword ? (
-          <ForgotPasswordRequest onBack={() => setShowForgotPassword(false)} />
+          <ForgotPasswordRequest
+            onBack={() => setShowForgotPassword(false)}
+            initialEmail={prefillEmail}
+          />
         ) : (
           <Card className="border-border/60 shadow-xl shadow-black/[0.04] dark:shadow-black/20 bg-card/80 backdrop-blur-xl">
             <CardHeader className="pb-4 pt-6 px-6">
