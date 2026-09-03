@@ -1,3 +1,4 @@
+import type { CoacheeOutcomeState, Outcome } from '@/types/sandbox-outcomes'
 // Sandbox delivery + dashboards (phase 3). Mirrors app/schemas/sandbox_delivery.py
 // and app/schemas/sandbox_dashboard.py. Everything is derived server-side.
 
@@ -124,6 +125,14 @@ export interface ClientSandboxContext {
   current_event: EventBrief | null
   next_event: EventBrief | null
   today: string
+  // Gold sealing
+  member_id: string | null
+  sealing_window: EventBrief | null
+  outcome_state: CoacheeOutcomeState
+  outcomes: Outcome[]
+  can_propose: boolean
+  can_approve: boolean
+  approver_names: string[]
 }
 
 // ---------------------------------------------------------------- dashboard
@@ -135,12 +144,16 @@ export type AttentionKind =
   | 'window_opening'
   | 'no_session_yet'
   | 'behind'
+  | 'outcomes_to_seal'
+  | 'outcome_awaiting_approval'
+  | 'outcome_changes_requested'
 export type AttentionSeverity = 'info' | 'warn' | 'urgent'
 export type AttentionSection =
   | 'invitations'
   | 'groups'
   | 'timeline'
   | 'delivery'
+  | 'outcomes'
 export type Persona = 'portfolio' | 'coach' | 'client_side' | 'coachee'
 
 export interface AttentionItem {
@@ -176,6 +189,10 @@ export interface SandboxCard {
   next_event: TimelineEvent | null
   my_groups: GroupDelivery[]
   attention_count: number
+  outcome_coachees: number
+  outcomes_sealed: number
+  outcomes_to_seal: number
+  outcomes_awaiting_approval: number
 }
 
 export interface DashboardTotals {
@@ -189,6 +206,8 @@ export interface DashboardTotals {
   windows_opening: number
   delivered_sessions: number
   expected_sessions: number | null
+  outcomes_to_seal: number
+  outcomes_awaiting_approval: number
 }
 
 export interface SandboxDashboard {

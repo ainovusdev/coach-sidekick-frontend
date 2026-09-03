@@ -56,7 +56,7 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
   return (
     <section
       id="timeline"
-      className="scroll-mt-6 rounded-xl border border-line bg-paper"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
       data-testid="timeline-panel"
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3.5">

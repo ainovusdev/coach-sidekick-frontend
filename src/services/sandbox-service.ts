@@ -5,6 +5,13 @@
 
 import { ApiClient } from '@/lib/api-client'
 import type {
+  Outcome,
+  OutcomeCreate,
+  OutcomeDecision,
+  OutcomeUpdate,
+  SandboxOutcomes,
+} from '@/types/sandbox-outcomes'
+import type {
   EmailLookup,
   EmailPreview,
   InvitationAcceptResponse,
@@ -315,6 +322,51 @@ export class SandboxService {
   /** The coachee's own sandbox card, keyed on the active profile (X-Active-Client). */
   static coacheeSandbox(): Promise<ClientSandboxContext[]> {
     return ApiClient.get(`${BACKEND_URL}/client-portal/sandbox`)
+  }
+
+  // ---- gold sealing -----------------------------------------------------
+
+  /** Outcomes per coachee the caller may see, with what they may do. */
+  static outcomes(id: string): Promise<SandboxOutcomes> {
+    return ApiClient.get(`${BASE}/${id}/outcomes`)
+  }
+
+  static createOutcome(id: string, data: OutcomeCreate): Promise<Outcome> {
+    return ApiClient.post(`${BASE}/${id}/outcomes`, data)
+  }
+
+  static updateOutcome(
+    id: string,
+    outcomeId: string,
+    data: OutcomeUpdate,
+  ): Promise<Outcome> {
+    return ApiClient.patch(`${BASE}/${id}/outcomes/${outcomeId}`, data)
+  }
+
+  static proposeOutcome(id: string, outcomeId: string): Promise<Outcome> {
+    return ApiClient.post(`${BASE}/${id}/outcomes/${outcomeId}/propose`, {})
+  }
+
+  static decideOutcome(
+    id: string,
+    outcomeId: string,
+    data: OutcomeDecision,
+  ): Promise<Outcome> {
+    return ApiClient.post(`${BASE}/${id}/outcomes/${outcomeId}/decide`, data)
+  }
+
+  static reopenOutcome(
+    id: string,
+    outcomeId: string,
+    reason: string,
+  ): Promise<Outcome> {
+    return ApiClient.post(`${BASE}/${id}/outcomes/${outcomeId}/reopen`, {
+      reason,
+    })
+  }
+
+  static deleteOutcome(id: string, outcomeId: string): Promise<void> {
+    return ApiClient.delete(`${BASE}/${id}/outcomes/${outcomeId}`)
   }
 
   /** Public — no auth header needed; plain fetch keeps it independent of login state. */

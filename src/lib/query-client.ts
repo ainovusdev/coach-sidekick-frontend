@@ -287,6 +287,14 @@ export const queryKeys = {
       [...queryKeys.sandboxes.all, 'client-context', clientId] as const,
     coachee: (activeClientId: string | null) =>
       [...queryKeys.sandboxes.all, 'coachee', activeClientId] as const,
+    outcomes: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'outcomes'] as const,
+  },
+  notifications: {
+    all: ['notifications'] as const,
+    list: (unreadOnly: boolean) =>
+      [...queryKeys.notifications.all, 'list', unreadOnly] as const,
+    unread: () => [...queryKeys.notifications.all, 'unread'] as const,
   },
 
   // Client portal keys
@@ -390,6 +398,24 @@ export const queryKeys = {
  * Example: After creating a session, invalidate both sessions list and client sessions
  */
 export const invalidateQueries = {
+  /** An outcome moved: the panel, both cards, the dashboards and the bell. */
+  afterOutcomeChange: async (queryClient: QueryClient, sandboxId: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sandboxes.outcomes(sandboxId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'client-context'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'coachee'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'dashboard'],
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    ])
+  },
   afterSandboxUpdate: async (queryClient: QueryClient, sandboxId?: string) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.lists() }),

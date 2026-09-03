@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { useAuth } from '@/contexts/auth-context'
 
 /**
@@ -55,6 +56,7 @@ export function SandboxHeader({ showIndexLink }: { showIndexLink: boolean }) {
             )}
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

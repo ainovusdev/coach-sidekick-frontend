@@ -38,7 +38,10 @@ export function StatStrip({
       className={cn(
         'grid divide-line',
         size === 'md'
-          ? 'grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line sm:grid-cols-4'
+          ? cn(
+              'grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line',
+              items.length >= 5 ? 'sm:grid-cols-5' : 'sm:grid-cols-4',
+            )
           : 'grid-cols-2 gap-x-6 gap-y-3 sm:flex sm:flex-wrap',
         className,
       )}

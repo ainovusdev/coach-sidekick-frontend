@@ -184,3 +184,14 @@ export function useCoacheeSandbox(enabled = true) {
     staleTime: 60 * 1000,
   })
 }
+
+/** Gold sealing: outcomes per coachee, for the coachees the caller may see. */
+export function useSandboxOutcomes(id: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.outcomes(id ?? ''),
+    queryFn: () => SandboxService.outcomes(id as string),
+    enabled: !!id,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}

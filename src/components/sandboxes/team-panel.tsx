@@ -34,7 +34,7 @@ export function TeamPanel({
   return (
     <section
       id="team"
-      className="scroll-mt-6 rounded-xl border border-line bg-paper"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
       data-testid="team-panel"
     >
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-b border-line px-5 py-4">

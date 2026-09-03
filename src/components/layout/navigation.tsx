@@ -6,6 +6,7 @@ import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { AskSidekickBar } from '@/components/agent/ask-sidekick-bar'
 import {
   BarChart3,
@@ -179,6 +180,8 @@ export default function Navigation() {
                       </span>
                     </div>
                   </div>
+
+                  <NotificationBell />
 
                   <ThemeToggle />
 

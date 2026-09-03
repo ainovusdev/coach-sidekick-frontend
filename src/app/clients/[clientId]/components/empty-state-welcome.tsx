@@ -7,6 +7,7 @@ import {
   CalendarClock,
   ChevronRight,
 } from 'lucide-react'
+import { SandboxContextCard } from '@/components/sandboxes/sandbox-context-card'
 
 interface EmptyStateWelcomeProps {
   client: any
@@ -29,6 +30,11 @@ export function EmptyStateWelcome({
       <div className="mb-10">
         <h1 className="text-2xl font-bold text-ink mb-1">{client.name}</h1>
         <p className="text-ink-3 ">No sessions yet</p>
+      </div>
+
+      {/* Sandbox coachees: the contract and outcomes matter before the first session */}
+      <div className="mb-8 text-left">
+        <SandboxContextCard clientId={client.id} clientName={client.name} />
       </div>
 
       {/* Primary Action - Start Session */}

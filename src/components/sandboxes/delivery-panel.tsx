@@ -150,7 +150,7 @@ export function DeliveryPanel({ overview }: { overview: SandboxOverview }) {
   return (
     <section
       id="delivery"
-      className="scroll-mt-6 rounded-xl border border-line bg-paper"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
       data-testid="delivery-panel"
       data-state={data?.state}
     >

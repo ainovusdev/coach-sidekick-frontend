@@ -130,7 +130,7 @@ export function OverviewTab({
   return (
     <div className="space-y-6">
       {/* Sandbox contract + delivery, only for clients coached inside a sandbox */}
-      <SandboxContextCard clientId={client.id} />
+      <SandboxContextCard clientId={client.id} clientName={client.name} />
 
       {/* Top Section: Client Profile and Last Session Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

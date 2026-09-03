@@ -6,12 +6,19 @@ import { StatStrip } from '@/components/ui/stat-strip'
 import { PaceChip } from '@/components/sandboxes/pace-chip'
 import { ProgressRail } from '@/components/sandboxes/progress-rail'
 import { WindowChip } from '@/components/sandboxes/window-chip'
+import { OutcomesBlock } from '@/components/sandboxes/outcomes/outcomes-block'
 import { useClientSandboxContext } from '@/hooks/queries/use-sandboxes'
 import { fmtHoursShort, NO_CONTRACT_COPY } from '@/lib/sandbox/delivery'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import type { ClientSandboxContext } from '@/types/sandbox-delivery'
 
-function ContextCard({ ctx }: { ctx: ClientSandboxContext }) {
+function ContextCard({
+  ctx,
+  clientName,
+}: {
+  ctx: ClientSandboxContext
+  clientName?: string
+}) {
   const window = ctx.current_event ?? ctx.next_event
   const expected = ctx.expected_sessions
   return (
@@ -107,6 +114,8 @@ function ContextCard({ ctx }: { ctx: ClientSandboxContext }) {
         </p>
       )}
 
+      <OutcomesBlock ctx={ctx} coacheeName={clientName || 'this client'} />
+
       <Link
         href={`/sandboxes/${ctx.sandbox_id}`}
         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
@@ -119,13 +128,23 @@ function ContextCard({ ctx }: { ctx: ClientSandboxContext }) {
 }
 
 /** Client profile → the sandbox this client is coached in (nothing for other clients). */
-export function SandboxContextCard({ clientId }: { clientId: string }) {
+export function SandboxContextCard({
+  clientId,
+  clientName,
+}: {
+  clientId: string
+  clientName?: string
+}) {
   const { data } = useClientSandboxContext(clientId)
   if (!data || data.length === 0) return null
   return (
     <div className="space-y-4">
       {data.map(ctx => (
-        <ContextCard key={`${ctx.sandbox_id}-${ctx.group_id}`} ctx={ctx} />
+        <ContextCard
+          key={`${ctx.sandbox_id}-${ctx.group_id}`}
+          ctx={ctx}
+          clientName={clientName}
+        />
       ))}
     </div>
   )

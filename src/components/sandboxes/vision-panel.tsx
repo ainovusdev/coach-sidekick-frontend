@@ -32,7 +32,7 @@ export function VisionPanel({
   return (
     <section
       id="vision"
-      className="scroll-mt-6 rounded-xl border border-line bg-paper"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
       data-testid="vision-panel"
     >
       <header className="flex items-baseline justify-between border-b border-line px-5 py-4">

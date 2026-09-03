@@ -65,6 +65,12 @@ function totalsFor(d: Dashboard): StatItem[] {
           tone: t.invitations_outstanding > 0 ? 'warning' : 'default',
           testId: 'stat-invitations',
         },
+        {
+          label: 'Outcomes to seal',
+          value: t.outcomes_to_seal,
+          tone: t.outcomes_to_seal > 0 ? 'warning' : 'good',
+          testId: 'stat-outcomes',
+        },
       ]
     case 'coach':
       return [
@@ -96,6 +102,12 @@ function totalsFor(d: Dashboard): StatItem[] {
           value: t.windows_open,
           tone: t.windows_open > 0 ? 'warning' : 'default',
           testId: 'stat-windows',
+        },
+        {
+          label: 'Waiting for your gold seal',
+          value: t.outcomes_awaiting_approval,
+          tone: t.outcomes_awaiting_approval > 0 ? 'warning' : 'good',
+          testId: 'stat-outcomes',
         },
       ]
     default:

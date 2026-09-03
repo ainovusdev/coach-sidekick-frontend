@@ -1,0 +1,174 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Bell, Check } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  useMarkAllNotificationsRead,
+  useMarkNotificationRead,
+} from '@/hooks/mutations/use-notification-mutations'
+import {
+  useNotifications,
+  useUnreadNotifications,
+} from '@/hooks/queries/use-notifications'
+import { cn } from '@/lib/utils'
+import type { AppNotification } from '@/types/notifications'
+
+function timeAgo(iso: string): string {
+  const ms = Date.now() - new Date(iso).getTime()
+  const m = Math.max(0, Math.round(ms / 60000))
+  if (m < 1) return 'just now'
+  if (m < 60) return `${m}m ago`
+  const h = Math.round(m / 60)
+  if (h < 24) return `${h}h ago`
+  const d = Math.round(h / 24)
+  if (d < 7) return `${d}d ago`
+  const w = Math.round(d / 7)
+  return `${w}w ago`
+}
+
+/**
+ * The bell: unread count on the icon, the latest notifications in a popover.
+ * Clicking one marks it read and follows its link. Same component in every
+ * header (coach, client portal, the minimal sandbox header).
+ */
+export function NotificationBell({ className }: { className?: string }) {
+  const router = useRouter()
+  const [open, setOpen] = useState(false)
+  const { data: unread } = useUnreadNotifications()
+  const { data, isLoading } = useNotifications(open)
+  const markRead = useMarkNotificationRead()
+  const markAll = useMarkAllNotificationsRead()
+  // the count query is always live; the list is only fetched while open
+  const count = unread?.unread ?? data?.unread ?? 0
+  const items = data?.items ?? []
+
+  const openOne = (n: AppNotification) => {
+    if (!n.is_read) markRead.mutate(n.id)
+    setOpen(false)
+    const url = typeof n.data?.url === 'string' ? n.data.url : null
+    if (url) router.push(url)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={
+            count > 0 ? `Notifications, ${count} unread` : 'Notifications'
+          }
+          className={cn(
+            'relative inline-flex h-9 w-9 items-center justify-center rounded-md text-ink-3 transition-colors hover:bg-surface-3 hover:text-ink',
+            className,
+          )}
+          data-testid="notification-bell"
+          data-unread={count}
+        >
+          <Bell className="h-4 w-4" strokeWidth={1.75} />
+          {count > 0 && (
+            <span
+              className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-vermillion px-1 text-[10px] font-semibold leading-none text-white"
+              data-testid="notification-badge"
+            >
+              {count > 99 ? '99+' : count}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-[380px] p-0"
+        data-testid="notification-popover"
+      >
+        <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
+          <p className="text-sm font-semibold text-ink">Notifications</p>
+          {count > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 text-xs text-ink-3"
+              onClick={() => markAll.mutate()}
+              disabled={markAll.isPending}
+              data-testid="notifications-read-all"
+            >
+              <Check className="h-3.5 w-3.5" /> Mark all read
+            </Button>
+          )}
+        </div>
+        <ul className="max-h-[420px] overflow-y-auto">
+          {isLoading && items.length === 0 ? (
+            <li className="px-4 py-6 text-center text-sm text-ink-3">
+              Loading…
+            </li>
+          ) : items.length === 0 ? (
+            <li
+              className="px-4 py-8 text-center"
+              data-testid="notifications-empty"
+            >
+              <p className="text-sm font-medium text-ink">
+                You’re all caught up
+              </p>
+              <p className="mt-1 text-xs text-ink-3">
+                Nothing new since you last looked.
+              </p>
+            </li>
+          ) : (
+            items.map(n => (
+              <li key={n.id} className="border-b border-line last:border-b-0">
+                <button
+                  type="button"
+                  onClick={() => openOne(n)}
+                  className={cn(
+                    'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-2',
+                    !n.is_read && 'bg-surface-2/50',
+                  )}
+                  data-testid="notification-item"
+                  data-read={n.is_read}
+                  data-type={n.type}
+                >
+                  <span
+                    className={cn(
+                      'mt-1.5 h-2 w-2 shrink-0 rounded-full',
+                      n.is_read ? 'bg-transparent' : 'bg-vermillion',
+                    )}
+                    aria-hidden
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-baseline justify-between gap-3">
+                      <span
+                        className={cn(
+                          'truncate text-sm',
+                          n.is_read ? 'text-ink-2' : 'font-medium text-ink',
+                        )}
+                      >
+                        {n.title}
+                      </span>
+                      <span className="shrink-0 text-[11px] text-ink-4">
+                        {timeAgo(n.created_at)}
+                      </span>
+                    </span>
+                    <span className="mt-0.5 line-clamp-2 block text-xs text-ink-3">
+                      {n.message}
+                    </span>
+                    {typeof n.data?.sandbox_name === 'string' && (
+                      <span className="mt-0.5 block truncate text-[11px] text-ink-4">
+                        {n.data.sandbox_name}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      </PopoverContent>
+    </Popover>
+  )
+}

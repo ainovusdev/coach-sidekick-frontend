@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowRight, Boxes } from 'lucide-react'
 import { ProgressRail } from '@/components/sandboxes/progress-rail'
 import { WindowChip } from '@/components/sandboxes/window-chip'
+import { OutcomesBlock } from '@/components/sandboxes/outcomes/outcomes-block'
 import { useCoacheeSandbox } from '@/hooks/queries/use-sandboxes'
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
 import { fmtDay, listNames, pluralise } from '@/lib/sandbox/format'
@@ -76,6 +77,8 @@ export function SandboxNote() {
                 {ctx.vision}
               </blockquote>
             )}
+
+            <OutcomesBlock ctx={ctx} coacheeName="you" />
 
             <Link
               href={`/sandboxes/${ctx.sandbox_id}`}

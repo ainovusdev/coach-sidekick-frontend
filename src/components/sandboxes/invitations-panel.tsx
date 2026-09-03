@@ -114,7 +114,7 @@ export function InvitationsPanel({
   return (
     <section
       id="invitations"
-      className="scroll-mt-6 rounded-xl border border-line bg-paper"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
       data-testid="invitations-panel"
     >
       <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">

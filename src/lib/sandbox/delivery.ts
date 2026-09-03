@@ -119,6 +119,9 @@ export const SEVERITY_TONE: Record<AttentionSeverity, Tone> = {
 export const ATTENTION_GROUP_LABEL: Record<AttentionKind, string> = {
   behind: 'Behind',
   no_session_yet: 'No session yet',
+  outcome_awaiting_approval: 'Waiting for your gold seal',
+  outcomes_to_seal: 'Outcomes to seal',
+  outcome_changes_requested: 'Changes requested',
   invitation_not_accepted: 'Invitations',
   group_incomplete: 'Groups to finish',
   window_open: 'Windows open',
@@ -128,6 +131,9 @@ export const ATTENTION_GROUP_LABEL: Record<AttentionKind, string> = {
 export const ATTENTION_ORDER: AttentionKind[] = [
   'behind',
   'no_session_yet',
+  'outcome_awaiting_approval',
+  'outcomes_to_seal',
+  'outcome_changes_requested',
   'invitation_not_accepted',
   'group_incomplete',
   'window_open',
