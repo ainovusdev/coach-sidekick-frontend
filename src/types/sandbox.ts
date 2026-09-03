@@ -156,6 +156,8 @@ export interface SandboxMembership {
 /** Set a person's group memberships exactly (People page → Change groups). */
 export interface MemberGroupsUpdate {
   memberships: { group_id: string; kind: GroupMemberKind }[]
+  /** Go ahead although they have had sessions in a group they leave. */
+  force?: boolean
 }
 
 export interface EmailLookup {
@@ -480,10 +482,25 @@ export type SandboxErrorCode =
   | 'member_in_groups'
   | 'already_member'
   | 'already_in_group'
+  | 'has_sessions'
+  | 'group_has_sessions'
+
+/** A group someone is leaving although they have had sessions in it. */
+export interface GroupWithSessions {
+  group_id: string
+  group_name: string
+  kind: GroupMemberKind
+  sessions: number
+}
 
 export interface SandboxErrorDetail {
   code: SandboxErrorCode
   message: string
   group_names?: string[]
   member_id?: string
+  /** member_in_groups / has_sessions / group_has_sessions: sessions on record */
+  sessions?: number
+  name?: string
+  groups?: GroupWithSessions[]
+  coachee_names?: string[]
 }

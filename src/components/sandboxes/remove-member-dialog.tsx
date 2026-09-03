@@ -14,6 +14,7 @@ import {
   sandboxErrorDetail,
   useRemoveMember,
 } from '@/hooks/mutations/use-sandbox-mutations'
+import { pluralise } from '@/lib/sandbox/format'
 import type { SandboxMember } from '@/types/sandbox'
 
 export function RemoveMemberDialog({
@@ -27,10 +28,12 @@ export function RemoveMemberDialog({
 }) {
   const remove = useRemoveMember(sandboxId)
   const [groupNames, setGroupNames] = useState<string[] | null>(null)
+  const [sessions, setSessions] = useState(0)
   const [blocked, setBlocked] = useState<string | null>(null)
 
   useEffect(() => {
     setGroupNames(null)
+    setSessions(0)
     setBlocked(null)
   }, [member])
 
@@ -45,6 +48,7 @@ export function RemoveMemberDialog({
       const detail = sandboxErrorDetail(error)
       if (detail?.code === 'member_in_groups') {
         setGroupNames(detail.group_names ?? [])
+        setSessions(detail.sessions ?? 0)
       } else if (detail?.code === 'last_account_executive') {
         setBlocked(detail.message)
       } else {
@@ -62,7 +66,11 @@ export function RemoveMemberDialog({
             {groupNames
               ? `${who} is in ${groupNames.join(', ')}. Removing them from the sandbox takes them out of ${
                   groupNames.length === 1 ? 'that group' : 'those groups'
-                } too. Client records their coaches already have are kept.`
+                } too.${
+                  sessions > 0
+                    ? ` They have had ${pluralise(sessions, 'session')} there, which stay on record.`
+                    : ''
+                } Client records their coaches already have are kept.`
               : member.side === 'theirs'
                 ? `They lose access to this sandbox. Any live invitation is voided. Nothing else is deleted.`
                 : `They lose their roles on this sandbox. Nothing else is deleted.`}

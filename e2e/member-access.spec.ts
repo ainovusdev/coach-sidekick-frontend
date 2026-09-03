@@ -224,7 +224,10 @@ test.describe('Sandboxes — member access', () => {
     expect(resp.status()).toBe(404)
     await login(page, USERS.priya.email)
     await page.goto(`/sandboxes/${otherSandboxId}`)
-    await expect(page.getByText('Sandbox not found')).toBeVisible()
+    // the heading, not the 404 toast that carries the same words for a moment
+    await expect(
+      page.getByRole('heading', { name: 'Sandbox not found' }),
+    ).toBeVisible()
   })
 
   test('a primary client admin with no app role lands in the minimal chrome and sees the whole sandbox, read-only', async ({

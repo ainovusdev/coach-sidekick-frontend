@@ -35,6 +35,14 @@ function errorMessage(error: unknown, fallback: string): string {
   return (e && e.message) || fallback
 }
 
+/** 409s that are a decision for the dialog to present, not an error to toast. */
+const DECISION_CODES = new Set(['has_sessions'])
+
+function isDecision(error: unknown): boolean {
+  const code = sandboxErrorDetail(error)?.code
+  return !!code && DECISION_CODES.has(code)
+}
+
 export function useCreateSandbox() {
   const queryClient = useQueryClient()
   return useMutation({
@@ -88,6 +96,7 @@ function useOverviewMutation<TVars>(
       if (message) toast.success(message)
     },
     onError: error => {
+      if (isDecision(error)) return
       const detail = sandboxErrorDetail(error)
       toast.error(detail?.message || errorMessage(error, fallbackError))
     },
@@ -296,8 +305,12 @@ export function useDeleteGroup(sandboxId: string) {
       toast.success('Group removed')
       invalidateQueries.afterSandboxUpdate(queryClient, sandboxId)
     },
-    onError: error =>
-      toast.error(errorMessage(error, 'Could not remove the group')),
+    onError: error => {
+      const detail = sandboxErrorDetail(error)
+      toast.error(
+        detail?.message || errorMessage(error, 'Could not remove the group'),
+      )
+    },
   })
 }
 
@@ -328,14 +341,25 @@ export function useRemoveGroupMember(sandboxId: string) {
     mutationFn: ({
       groupId,
       groupMemberId,
+      force,
     }: {
       groupId: string
       groupMemberId: string
-    }) => SandboxService.removeGroupMember(sandboxId, groupId, groupMemberId),
+      force?: boolean
+    }) =>
+      SandboxService.removeGroupMember(
+        sandboxId,
+        groupId,
+        groupMemberId,
+        force,
+      ),
     onSuccess: () =>
       invalidateQueries.afterSandboxUpdate(queryClient, sandboxId),
-    onError: error =>
-      toast.error(errorMessage(error, 'Could not remove from the group')),
+    onError: error => {
+      // has_sessions is a decision the drawer presents, not an error.
+      if (isDecision(error)) return
+      toast.error(errorMessage(error, 'Could not remove from the group'))
+    },
   })
 }
 

@@ -1,4 +1,9 @@
-import { expect, test, type APIRequestContext } from '@playwright/test'
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Page,
+} from '@playwright/test'
 import {
   API,
   USERS,
@@ -41,6 +46,11 @@ function isoDaysAgo(days: number): string {
   const d = new Date()
   d.setUTCDate(d.getUTCDate() - days)
   return d.toISOString().slice(0, 10)
+}
+
+/** Marcus's group card (cards show avatars, not names; the other group is "Managers"). */
+function marcusCard(page: Page) {
+  return page.getByTestId('group-card').filter({ hasNotText: 'Managers' })
 }
 
 /** The 1st of the month three months back — a 6-month term at about halfway. */
@@ -348,5 +358,140 @@ test.describe('Sandboxes — delivery and dashboards', () => {
       'coachee',
     )
     await expect(page.getByTestId('attention-section')).toHaveCount(0)
+  })
+
+  // ---- chunk 6 leftovers: once sessions exist, changes warn and removal blocks
+
+  test('a group with sessions on record cannot be removed', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    await page.goto(`/sandboxes/${sandboxId}`)
+    const card = marcusCard(page)
+    await card.getByRole('button', { name: /Actions for/ }).click()
+    await page.getByRole('menuitem', { name: 'Remove group' }).click()
+    const blocked = page.getByTestId('group-blocked')
+    await expect(blocked).toContainText('can’t be removed yet')
+    await expect(blocked).toContainText('3 sessions on record')
+    await expect(blocked).toContainText(KOFI.name)
+    await blocked.getByRole('button', { name: 'Got it' }).click()
+    await expect(blocked).toHaveCount(0)
+    await expect(marcusCard(page)).toBeVisible()
+  })
+
+  test('taking a coachee with sessions out of a group warns first', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    await page.goto(`/sandboxes/${sandboxId}`)
+    const card = marcusCard(page)
+    await card.getByRole('button', { name: /Actions for/ }).click()
+    await page.getByRole('menuitem', { name: 'Edit group' }).click()
+    const drawer = page.getByTestId('group-drawer')
+    await drawer.getByRole('button', { name: `Remove ${KOFI.name}` }).click()
+    await drawer.getByTestId('submit-group').click()
+    const warning = drawer.getByTestId('leaving-with-sessions')
+    await expect(warning).toContainText(`${KOFI.name} has had 3 sessions`)
+    await expect(warning).toContainText('keeps every session on record')
+    // still in the group until we say so
+    await expect(
+      page.getByTestId('delivery-coachee').filter({ hasText: KOFI.name }),
+    ).toBeVisible()
+    await drawer.getByTestId('submit-group-anyway').click()
+    await expect(drawer).toHaveCount(0)
+    // Lena is the only coachee left, so the group reads as a 1:1 again
+    await expect(marcusCard(page)).toContainText('Marcus → Lena')
+    await expect(
+      page.getByTestId('delivery-coachee').filter({ hasText: KOFI.name }),
+    ).toHaveCount(0)
+  })
+
+  test('the People page warns the same way and moves without a word otherwise', async ({
+    page,
+    request,
+  }) => {
+    // Kofi left the sandbox with his last group (no hat, no group). Put him back
+    // with Marcus — adding never warns — then move him out via People.
+    const token = await apiToken(request, USERS.admin.email)
+    let overview = await api(
+      request,
+      token,
+      'get',
+      `/sandboxes/${sandboxId}/overview`,
+    )
+    const before = overview.groups.find(
+      (g: { display_name: string }) => g.display_name !== 'Managers',
+    )
+    await api(
+      request,
+      token,
+      'post',
+      `/sandboxes/${sandboxId}/groups/${before.id}/members`,
+      {
+        kind: 'coachee',
+        email: KOFI.email,
+        name: KOFI.name,
+      },
+    )
+    overview = await api(
+      request,
+      token,
+      'get',
+      `/sandboxes/${sandboxId}/overview`,
+    )
+    const marcusGroup = overview.groups.find(
+      (g: { id: string }) => g.id === before.id,
+    )
+    expect(
+      marcusGroup.coachees.map((c: { email: string }) => c.email),
+    ).toContain(KOFI.email)
+
+    await login(page, USERS.admin.email)
+    await page.goto(`/sandboxes/${sandboxId}/people`)
+    const row = (text: string) =>
+      page.getByTestId('person-row').filter({ hasText: text })
+    await row(KOFI.name)
+      .getByRole('button', { name: `Actions for ${KOFI.name}` })
+      .click()
+    await page.getByRole('menuitem', { name: 'Change groups' }).click()
+    const dialog = page.getByTestId('groups-dialog')
+    // the group's display name changes as people move (1:1 ↔ "Group 1"), so pick by id
+    const marcusOption = dialog.locator(
+      `[data-testid="group-option"][data-group="${marcusGroup.id}"]`,
+    )
+    const managersOption = dialog
+      .getByTestId('group-option')
+      .filter({ hasText: 'Managers' })
+    await marcusOption.getByTestId('group-coachee').click()
+    await managersOption.getByTestId('group-coachee').click()
+    await page.getByTestId('save-groups').click()
+    const warning = dialog.getByTestId('leaving-with-sessions')
+    await expect(warning).toContainText(
+      `${KOFI.name.split(' ')[0]} has had 3 sessions`,
+    )
+    await expect(dialog).toBeVisible()
+    await page.getByTestId('save-groups-anyway').click()
+    await expect(dialog).toHaveCount(0)
+    await expect(row(KOFI.name)).toContainText('Managers')
+
+    // Lena has had no session → straight through
+    await row(LENA.name)
+      .getByRole('button', { name: `Actions for ${LENA.name}` })
+      .click()
+    await page.getByRole('menuitem', { name: 'Change groups' }).click()
+    await marcusOption.getByTestId('group-coachee').click()
+    await managersOption.getByTestId('group-coachee').click()
+    await page.getByTestId('save-groups').click()
+    await expect(dialog).toHaveCount(0)
+    await expect(row(LENA.name)).toContainText('Managers')
+
+    // Marcus's group has no coachees left, so it can go
+    await page.getByTestId('back-to-overview').click()
+    await marcusCard(page)
+      .getByRole('button', { name: /Actions for/ })
+      .click()
+    await page.getByRole('menuitem', { name: 'Remove group' }).click()
+    await page.getByRole('button', { name: 'Remove group' }).click()
+    await expect(page.getByTestId('group-card')).toHaveCount(1)
   })
 })

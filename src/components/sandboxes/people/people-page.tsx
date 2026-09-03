@@ -44,6 +44,7 @@ import {
 import { RemoveMemberDialog } from '@/components/sandboxes/remove-member-dialog'
 import { ChangeGroupsDialog } from '@/components/sandboxes/people/change-groups-dialog'
 import { BulkRemoveDialog } from '@/components/sandboxes/people/bulk-remove-dialog'
+import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
 import {
   useResendInvitation,
   useRevokeInvitation,
@@ -122,6 +123,16 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
   const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
   const { sandbox, members, groups } = overview
   const sandboxId = sandbox.id
+  // Sessions on record per coachee — what bulk removal has to mention.
+  const { data: delivery } = useSandboxDelivery(sandboxId)
+  const sessionsByMember = useMemo(() => {
+    const out: Record<string, number> = {}
+    for (const g of delivery?.groups ?? [])
+      for (const c of g.coachees)
+        out[c.member_id] =
+          (out[c.member_id] ?? 0) + c.delivered.sessions + c.delivered.in_flight
+    return out
+  }, [delivery])
 
   const [search, setSearch] = useState('')
   const [side, setSide] = useState<SideFilter>('all')
@@ -664,6 +675,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
         onOpenChange={setBulkRemoveOpen}
         overview={overview}
         members={selectedMembers}
+        sessionsByMember={sessionsByMember}
         onRemoved={() => setSelected(new Set())}
       />
       <ConfirmationDialog

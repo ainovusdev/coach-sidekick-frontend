@@ -31,6 +31,16 @@ function reportUnexpectedQueryError(
  * - Shows cached data immediately while fetching fresh data in background
  * - Provides instant navigation with eventual consistency
  */
+/** 4xx responses are the server's final answer; only retry anything else, once. */
+function retryOnceUnlessClientError(
+  failureCount: number,
+  error: unknown,
+): boolean {
+  const status = (error as { status?: number } | null)?.status
+  if (typeof status === 'number' && status >= 400 && status < 500) return false
+  return failureCount < 1
+}
+
 export const queryClient = new QueryClient({
   // Report every query/mutation failure to PostHog error tracking. Doing it at
   // the cache level instruments all ~25 hook files at once; individual hooks
@@ -67,8 +77,9 @@ export const queryClient = new QueryClient({
       // Refetch when network connection is restored
       refetchOnReconnect: true,
 
-      // Retry failed requests once
-      retry: 1,
+      // Retry failed requests once — but never a 4xx, which fails the same
+      // way again (and a 409 is a decision the UI has to present right away)
+      retry: retryOnceUnlessClientError,
 
       // Retry delay with exponential backoff
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -77,8 +88,10 @@ export const queryClient = new QueryClient({
       networkMode: 'online',
     },
     mutations: {
-      // Retry failed mutations once
-      retry: 1,
+      // Retry failed mutations once, never on a 4xx (see above). A retry also
+      // waits while the tab is hidden, which held a 409 back for as long as
+      // the tab stayed in the background.
+      retry: retryOnceUnlessClientError,
 
       // Network mode for mutations
       networkMode: 'online',

@@ -228,9 +228,10 @@ export class SandboxService {
     id: string,
     groupId: string,
     groupMemberId: string,
+    force = false,
   ): Promise<void> {
     return ApiClient.delete(
-      `${BASE}/${id}/groups/${groupId}/members/${groupMemberId}`,
+      `${BASE}/${id}/groups/${groupId}/members/${groupMemberId}${force ? '?force=true' : ''}`,
     )
   }
 

@@ -13,10 +13,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
-import { useSetMemberGroups } from '@/hooks/mutations/use-sandbox-mutations'
+import {
+  sandboxErrorDetail,
+  useSetMemberGroups,
+} from '@/hooks/mutations/use-sandbox-mutations'
 import { firstName, pluralise } from '@/lib/sandbox/format'
 import type {
   GroupMemberKind,
+  GroupWithSessions,
   SandboxGroup,
   SandboxMember,
   SandboxOverview,
@@ -49,6 +53,8 @@ export function ChangeGroupsDialog({
   const setGroups = useSetMemberGroups(sandbox.id)
   const view = useSandboxView()
   const [picked, setPicked] = useState<Set<string>>(new Set())
+  // Groups they'd leave although they have had sessions there (409 has_sessions).
+  const [leaving, setLeaving] = useState<GroupWithSessions[] | null>(null)
 
   const initial = useMemo(
     () => new Set(member?.memberships.map(m => key(m.group_id, m.kind)) ?? []),
@@ -56,6 +62,7 @@ export function ChangeGroupsDialog({
   )
   useEffect(() => {
     if (member) setPicked(new Set(initial))
+    setLeaving(null)
   }, [member, initial])
 
   if (!member) return null
@@ -73,22 +80,35 @@ export function ChangeGroupsDialog({
     picked.size !== initial.size || [...picked].some(k => !initial.has(k))
   const leavesSandbox = member.roles.length === 0 && picked.size === 0
 
-  const toggle = (groupId: string, kind: GroupMemberKind, on: boolean) =>
+  const toggle = (groupId: string, kind: GroupMemberKind, on: boolean) => {
+    setLeaving(null)
     setPicked(prev => {
       const next = new Set(prev)
       if (on) next.add(key(groupId, kind))
       else next.delete(key(groupId, kind))
       return next
     })
+  }
 
-  const save = async () => {
+  const save = async (force = false) => {
     const memberships = [...picked].map(k => {
       const [group_id, kind] = k.split(':') as [string, GroupMemberKind]
       return { group_id, kind }
     })
-    await setGroups.mutateAsync({ memberId: member.id, data: { memberships } })
-    onOpenChange(false)
+    try {
+      await setGroups.mutateAsync({
+        memberId: member.id,
+        data: { memberships, force },
+      })
+      onOpenChange(false)
+    } catch (error) {
+      const detail = sandboxErrorDetail(error)
+      if (detail?.code === 'has_sessions') setLeaving(detail.groups ?? [])
+      // anything else was toasted by the hook
+    }
   }
+
+  const sessionsLeaving = leaving?.reduce((n, g) => n + g.sessions, 0) ?? 0
 
   return (
     <Dialog open={!!member} onOpenChange={onOpenChange}>
@@ -165,6 +185,17 @@ export function ChangeGroupsDialog({
           </ul>
         )}
 
+        {leaving && leaving.length > 0 && (
+          <p
+            className="rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
+            data-testid="leaving-with-sessions"
+          >
+            {first} has {leaving[0].kind === 'coach' ? 'held' : 'had'}{' '}
+            {pluralise(sessionsLeaving, 'session')} in{' '}
+            {leaving.map(g => g.group_name).join(', ')}. Leaving keeps every
+            session on record; nothing is deleted.
+          </p>
+        )}
         {leavesSandbox && changed && (
           <p
             className="rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
@@ -182,10 +213,10 @@ export function ChangeGroupsDialog({
           <Button
             className="bg-ink text-ink-on-dark hover:bg-ink/90"
             disabled={!changed || setGroups.isPending}
-            onClick={save}
-            data-testid="save-groups"
+            onClick={() => save(!!leaving)}
+            data-testid={leaving ? 'save-groups-anyway' : 'save-groups'}
           >
-            {setGroups.isPending ? 'Saving…' : 'Save'}
+            {setGroups.isPending ? 'Saving…' : leaving ? 'Save anyway' : 'Save'}
           </Button>
         </DialogFooter>
       </DialogContent>

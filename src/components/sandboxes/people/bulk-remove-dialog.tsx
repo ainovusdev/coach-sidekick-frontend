@@ -14,7 +14,7 @@ import { pluralise } from '@/lib/sandbox/format'
 import type { SandboxMember, SandboxOverview } from '@/types/sandbox'
 
 /** "Lead coach · coaches Group 1, Group 2" — everything that goes with them. */
-function whatGoes(m: SandboxMember): string {
+function whatGoes(m: SandboxMember, sessions: number): string {
   const parts: string[] = []
   if (m.role_labels.length) {
     parts.push(
@@ -31,7 +31,10 @@ function whatGoes(m: SandboxMember): string {
     parts.push(`supervises ${byKind.supervisor.join(', ')}`)
   if (m.side === 'theirs' && m.invitation_status === 'sent')
     parts.push('a live invitation')
-  return parts.filter(Boolean).join(' · ') || 'nothing else'
+  const line = parts.filter(Boolean).join(' · ') || 'nothing else'
+  return sessions > 0
+    ? `${line} · ${pluralise(sessions, 'session')} on record stay`
+    : line
 }
 
 export function BulkRemoveDialog({
@@ -39,12 +42,15 @@ export function BulkRemoveDialog({
   onOpenChange,
   overview,
   members,
+  sessionsByMember = {},
   onRemoved,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   overview: SandboxOverview
   members: SandboxMember[]
+  /** sandbox member id → sessions they have had in their groups */
+  sessionsByMember?: Record<string, number>
   onRemoved: () => void
 }) {
   const remove = useRemoveMembers(overview.sandbox.id)
@@ -85,7 +91,9 @@ export function BulkRemoveDialog({
               <p className="text-sm font-medium text-ink">
                 {m.name || m.email}
               </p>
-              <p className="text-xs text-ink-3">Goes: {whatGoes(m)}</p>
+              <p className="text-xs text-ink-3">
+                Goes: {whatGoes(m, sessionsByMember[m.id] ?? 0)}
+              </p>
             </li>
           ))}
         </ul>

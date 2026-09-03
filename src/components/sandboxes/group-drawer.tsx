@@ -21,6 +21,7 @@ import {
   useSandboxPeopleSearch,
 } from '@/hooks/queries/use-sandboxes'
 import {
+  sandboxErrorDetail,
   useAddGroupMember,
   useCreateGroup,
   useRemoveGroupMember,
@@ -37,6 +38,7 @@ import type {
   Cadence,
   GroupMissingField,
   PersonSearchResult,
+  SandboxErrorDetail,
   SandboxGroup,
   SandboxMember,
   SandboxOverview,
@@ -91,11 +93,15 @@ export function GroupDrawer({
   const [startsOn, setStartsOn] = useState<string | null>(null)
   const [name, setName] = useState('')
   const [saving, setSaving] = useState(false)
+  // Someone being taken out has had sessions here (409 has_sessions): say so,
+  // then save again with force. Nothing is deleted either way.
+  const [leaving, setLeaving] = useState<SandboxErrorDetail | null>(null)
   const [cadenceKey, setCadenceKey] = useState(0)
 
   // Reset the draft every time the drawer opens.
   useEffect(() => {
     if (!open) return
+    setLeaving(null)
     setCoaches(
       (group?.coaches ?? []).map(c => ({
         user_id: c.user_id,
@@ -171,7 +177,7 @@ export function GroupDrawer({
     starts_on: startsOn,
   })
 
-  const submit = async () => {
+  const submit = async (force = false) => {
     setSaving(true)
     try {
       if (!group) {
@@ -208,11 +214,13 @@ export function GroupDrawer({
           await removeGroupMember.mutateAsync({
             groupId: group.id,
             groupMemberId: c.id,
+            force,
           })
         for (const c of removedCoachees)
           await removeGroupMember.mutateAsync({
             groupId: group.id,
             groupMemberId: c.id,
+            force,
           })
         for (const s of removedSupervisors)
           await removeGroupMember.mutateAsync({
@@ -242,8 +250,10 @@ export function GroupDrawer({
         })
       }
       onOpenChange(false)
-    } catch {
-      // the mutation hooks already toasted
+    } catch (error) {
+      const detail = sandboxErrorDetail(error)
+      if (detail?.code === 'has_sessions') setLeaving(detail)
+      // anything else was toasted by the mutation hook
     } finally {
       setSaving(false)
     }
@@ -428,6 +438,14 @@ export function GroupDrawer({
             </span>
             <span className="ml-auto text-xs text-ink-3">per coachee</span>
           </div>
+          {leaving && (
+            <p
+              className="mt-3 rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
+              data-testid="leaving-with-sessions"
+            >
+              {leaving.message} Save anyway to go ahead.
+            </p>
+          )}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <p className="text-xs text-ink-3 sm:flex-1">
               {pluralise(coachees.length, 'coachee')} ·{' '}
@@ -456,7 +474,7 @@ export function GroupDrawer({
                   variant="ghost"
                   size="sm"
                   disabled={!anything || saving}
-                  onClick={submit}
+                  onClick={() => submit()}
                   data-testid="save-incomplete"
                 >
                   {saving ? 'Saving…' : 'Save as incomplete'}
@@ -476,16 +494,18 @@ export function GroupDrawer({
                 disabled={
                   saving || (!group && !complete) || (!!group && !anything)
                 }
-                onClick={submit}
-                data-testid="submit-group"
+                onClick={() => submit(!!leaving)}
+                data-testid={leaving ? 'submit-group-anyway' : 'submit-group'}
               >
                 {saving
                   ? 'Saving…'
-                  : !group
-                    ? 'Create group'
-                    : complete
-                      ? 'Save group'
-                      : 'Save as incomplete'}
+                  : leaving
+                    ? 'Save anyway'
+                    : !group
+                      ? 'Create group'
+                      : complete
+                        ? 'Save group'
+                        : 'Save as incomplete'}
               </Button>
             </div>
           </div>

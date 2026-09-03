@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { IdentityCard } from '@/components/sandboxes/rail/identity-card'
 import {
@@ -20,11 +20,16 @@ import { GroupsPanel } from '@/components/sandboxes/groups-panel'
 import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
 import { GroupDrawer } from '@/components/sandboxes/group-drawer'
 import {
+  GroupBlockedDialog,
+  type GroupBlock,
+} from '@/components/sandboxes/group-blocked-dialog'
+import {
   InvitationsPanel,
   isWaiting,
 } from '@/components/sandboxes/invitations-panel'
 import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
+import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
 import {
   useDeleteGroup,
   useResendInvitation,
@@ -64,6 +69,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [drawerGroup, setDrawerGroup] = useState<SandboxGroup | null>(null)
   const [deleteGroup, setDeleteGroup] = useState<SandboxGroup | null>(null)
+  const [blockedGroup, setBlockedGroup] = useState<GroupBlock | null>(null)
   const [previewMemberId, setPreviewMemberId] = useState<string | null>(null)
   const [sendAllOpen, setSendAllOpen] = useState(false)
   const [revokeMember, setRevokeMember] = useState<SandboxMember | null>(null)
@@ -72,6 +78,38 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const resendInvitation = useResendInvitation(sandboxId)
   const revokeInvitation = useRevokeInvitation(sandboxId)
   const deleteGroupMutation = useDeleteGroup(sandboxId)
+  // Same query the Delivery panel reads (one request, shared cache) — a group
+  // with sessions on record can't be removed, and we say so before asking.
+  const { data: delivery } = useSandboxDelivery(sandboxId)
+  // The Delivery panel arrives after the first hash scroll and pushes the
+  // sections below it down; scroll once more when it lands.
+  const rescrolled = useRef(false)
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (!hash || !delivery || rescrolled.current) return
+    rescrolled.current = true
+    scrollTo(hash)
+  }, [delivery])
+  const askToRemoveGroup = (group: SandboxGroup) => {
+    const held = delivery?.groups.find(g => g.group_id === group.id)
+    const withSessions =
+      held?.coachees.filter(
+        c => c.delivered.sessions + c.delivered.in_flight > 0,
+      ) ?? []
+    const sessions = withSessions.reduce(
+      (n, c) => n + c.delivered.sessions + c.delivered.in_flight,
+      0,
+    )
+    if (sessions > 0) {
+      setBlockedGroup({
+        groupName: group.display_name,
+        sessions,
+        coacheeNames: withSessions.map(c => c.name ?? c.email),
+      })
+      return
+    }
+    setDeleteGroup(group)
+  }
 
   const openDrawer = (group: SandboxGroup | null) => {
     setDrawerGroup(group)
@@ -170,7 +208,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           overview={overview}
           onNew={() => openDrawer(null)}
           onEdit={g => openDrawer(g)}
-          onDelete={setDeleteGroup}
+          onDelete={askToRemoveGroup}
         />
         {can.invite && (
           <InvitationsPanel
@@ -237,6 +275,10 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
         />
       )}
 
+      <GroupBlockedDialog
+        block={blockedGroup}
+        onOpenChange={o => !o && setBlockedGroup(null)}
+      />
       <ConfirmationDialog
         open={!!deleteGroup}
         onOpenChange={o => !o && setDeleteGroup(null)}
