@@ -266,7 +266,14 @@ export const queryKeys = {
     mine: () => [...queryKeys.sandboxes.all, 'mine'] as const,
     welcome: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'welcome'] as const,
-    portalMine: () => [...queryKeys.sandboxes.all, 'portal-mine'] as const,
+    dashboard: (includeEnded: boolean) =>
+      [...queryKeys.sandboxes.all, 'dashboard', includeEnded] as const,
+    delivery: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'delivery'] as const,
+    clientContext: (clientId: string) =>
+      [...queryKeys.sandboxes.all, 'client-context', clientId] as const,
+    coachee: (activeClientId: string | null) =>
+      [...queryKeys.sandboxes.all, 'coachee', activeClientId] as const,
   },
 
   // Client portal keys

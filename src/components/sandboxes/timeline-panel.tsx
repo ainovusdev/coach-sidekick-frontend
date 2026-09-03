@@ -19,28 +19,9 @@ import { RegenerateDialog } from '@/components/sandboxes/regenerate-dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useRestoreEvent } from '@/hooks/mutations/use-sandbox-mutations'
 import { fmtWindow, pluralise } from '@/lib/sandbox/format'
-import { daysBetween, parseDateOnly } from '@/lib/sandbox/term'
+import { eventStateLabel } from '@/lib/sandbox/timeline'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview, TimelineEvent } from '@/types/sandbox'
-
-function stateLabel(
-  ev: TimelineEvent,
-  index: number,
-  events: TimelineEvent[],
-  today: string,
-): string {
-  if (ev.state === 'past') return 'Past'
-  if (ev.state === 'current') return 'Current'
-  const firstUpcoming = events.findIndex(e => e.state === 'upcoming')
-  if (index !== firstUpcoming) return 'Upcoming'
-  if (index === 0) return 'First'
-  const days = daysBetween(
-    parseDateOnly(today)!,
-    parseDateOnly(ev.window_start)!,
-  )
-  if (days <= 0) return 'Next'
-  return `Next · in ${pluralise(days, 'day')}`
-}
 
 /** Count of hand-touched rows: moved windows, added events, removed events. */
 export function handAdjustedCount(overview: SandboxOverview): number {
@@ -196,7 +177,7 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
                       ev.state === 'current' ? 'text-vermillion' : 'text-ink-3',
                     )}
                   >
-                    {stateLabel(ev, i, timeline, today)}
+                    {eventStateLabel(ev, i, timeline, today)}
                   </span>
                   {ev.is_hand_adjusted && (
                     <span

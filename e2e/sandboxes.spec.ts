@@ -7,6 +7,7 @@ import {
   auth,
   invitationToken,
   login,
+  muteAgent,
 } from './helpers'
 
 test.describe.configure({ mode: 'serial' })
@@ -411,6 +412,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     const { token } = invitationToken(NADIA.email)
     const context = await browser.newContext()
     const page = await context.newPage()
+    await muteAgent(page)
     await page.goto(`/sandboxes/invite/${token}`)
     await expect(page.getByText(`invited you to ${SANDBOX_NAME}`)).toBeVisible()
     await expect(page.getByTestId('invite-name')).toHaveValue(NADIA.name)
@@ -419,7 +421,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.getByTestId('invite-submit').click()
     await page.waitForURL(/\/client-portal\/dashboard/, { timeout: 45_000 })
     await expect(page.getByTestId('sandbox-note')).toContainText(
-      `You’re part of ${SANDBOX_NAME} with ${ORG}`,
+      `${SANDBOX_NAME} with ${ORG}`,
     )
     await expect(page.getByTestId('sandbox-note')).toContainText('Marcus')
     await context.close()
@@ -431,6 +433,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     const { token } = invitationToken(USERS.dana.email)
     const context = await browser.newContext()
     const page = await context.newPage()
+    await muteAgent(page)
     await page.goto(`/sandboxes/invite/${token}`)
     await expect(
       page.getByText('You already have a Coach Sidekick account'),

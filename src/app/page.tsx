@@ -20,6 +20,7 @@ import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
 import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
 import { UpcomingSessions } from '@/components/dashboard/upcoming-sessions'
+import { SandboxStrip } from '@/components/sandboxes/sandbox-strip'
 import {
   Eye,
   Plus,
@@ -311,6 +312,9 @@ export default function CoachDashboard() {
 
           {/* Upcoming Scheduled Sessions */}
           {canCreateMeeting && <UpcomingSessions />}
+
+          {/* Sandboxes this coach delivers (renders nothing when none) */}
+          <SandboxStrip />
 
           {/* Top Section: Clients (2/3) and Start Session (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:items-stretch">

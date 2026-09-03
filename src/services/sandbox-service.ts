@@ -12,7 +12,6 @@ import type {
   InvitationValidation,
   MemberGroupsUpdate,
   PersonSearchResult,
-  PortalSandbox,
   SandboxCreate,
   SandboxGroup,
   SandboxGroupCreate,
@@ -33,6 +32,11 @@ import type {
   TimelineRegeneratePreview,
   WelcomeData,
 } from '@/types/sandbox'
+import type {
+  ClientSandboxContext,
+  SandboxDashboard,
+  SandboxDelivery,
+} from '@/types/sandbox-delivery'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -289,8 +293,27 @@ export class SandboxService {
     return ApiClient.get(`${BASE}/${id}/welcome`)
   }
 
-  static portalMine(): Promise<PortalSandbox[]> {
-    return ApiClient.get(`${BASE}/portal/mine`)
+  // ---------------------------------------------------- delivery + dashboards
+  /** One dashboard for every persona (portfolio / coach / client side / coachee). */
+  static dashboard(includeEnded = false): Promise<SandboxDashboard> {
+    return ApiClient.get(
+      `${BASE}/dashboard${includeEnded ? '?include_ended=true' : ''}`,
+    )
+  }
+
+  /** Delivered vs expected per coachee, for the groups the caller may see. */
+  static delivery(id: string): Promise<SandboxDelivery> {
+    return ApiClient.get(`${BASE}/${id}/delivery`)
+  }
+
+  /** The sandbox group(s) a client row belongs to — the client-profile card. */
+  static clientContext(clientId: string): Promise<ClientSandboxContext[]> {
+    return ApiClient.get(`${BACKEND_URL}/clients/${clientId}/sandbox`)
+  }
+
+  /** The coachee's own sandbox card, keyed on the active profile (X-Active-Client). */
+  static coacheeSandbox(): Promise<ClientSandboxContext[]> {
+    return ApiClient.get(`${BACKEND_URL}/client-portal/sandbox`)
   }
 
   /** Public — no auth header needed; plain fetch keeps it independent of login state. */

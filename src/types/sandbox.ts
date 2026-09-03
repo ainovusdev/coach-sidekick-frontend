@@ -445,13 +445,6 @@ export interface WelcomeData {
   status: SandboxStatus
 }
 
-export interface PortalSandbox {
-  id: string
-  name: string
-  organisation: string
-  coach_names: string[]
-}
-
 export interface InvitationValidation {
   valid: boolean
   reason: 'invalid' | 'expired' | 'revoked' | 'accepted' | null

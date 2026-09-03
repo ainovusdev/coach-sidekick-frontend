@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { DueDateField } from '@/components/ui/due-date-field'
 import { RegeneratePreviewList } from '@/components/sandboxes/regenerate-dialog'
+import { ProgressRail } from '@/components/sandboxes/progress-rail'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import { useRegeneratePreview } from '@/hooks/queries/use-sandboxes'
@@ -117,26 +118,18 @@ export function IdentityCard({ overview }: { overview: SandboxOverview }) {
         <span className="text-xs text-ink-3">{caption}</span>
       </div>
 
-      <div className="mt-4">
-        <div className="relative h-1.5 rounded-full bg-surface-3">
-          <div
-            className="h-full rounded-full bg-ink transition-[width]"
-            style={{ width: `${Math.round(progress * 100)}%` }}
-          />
-          {sandbox.status === 'active' && (
-            <span
-              className="absolute -top-[3px] h-3 w-0.5 rounded bg-vermillion"
-              style={{ left: `calc(${(progress * 100).toFixed(1)}% - 1px)` }}
-              aria-hidden
-            />
-          )}
-        </div>
-        <div className="mt-1.5 flex justify-between font-mono text-[11px] text-ink-3">
-          <span>{fmtDay(sandbox.term_start)}</span>
-          <span>{sandbox.term_months} months</span>
-          <span>{fmtDay(sandbox.term_end)}</span>
-        </div>
-      </div>
+      <ProgressRail
+        className="mt-4"
+        value={progress}
+        max={1}
+        marker={sandbox.status === 'active' ? progress : null}
+        markerLabel="Today"
+        captions={[
+          fmtDay(sandbox.term_start),
+          `${sandbox.term_months} months`,
+          fmtDay(sandbox.term_end),
+        ]}
+      />
 
       <dl className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
         {(owners.length > 0 || view.can.editSandbox) && (

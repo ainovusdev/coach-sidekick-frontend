@@ -38,6 +38,32 @@ export function seedFixtures(): void {
   })
 }
 
+/**
+ * Insert one coaching session for a coach's client row — delivery fixtures.
+ * `daysAgo` may be negative for a future scheduled session.
+ */
+export function seedSession(opts: {
+  coachEmail: string
+  clientEmail: string
+  daysAgo: number
+  status?: 'completed' | 'ended' | 'scheduled' | 'active' | 'stopped'
+  minutes?: number
+}): { id: string; client_id: string } {
+  const args = [
+    'session',
+    opts.coachEmail,
+    opts.clientEmail,
+    String(opts.daysAgo),
+    opts.status ?? 'completed',
+    String(opts.minutes ?? 45),
+  ]
+  const out = execSync(
+    `poetry run python scripts/seed_local_sandbox_fixtures.py ${args.join(' ')}`,
+    { cwd: backendDir(), stdio: 'pipe' },
+  ).toString()
+  return JSON.parse(out.trim().split('\n').pop() as string)
+}
+
 export function invitationToken(email: string): {
   token: string
   status: string
@@ -52,11 +78,21 @@ export function invitationToken(email: string): {
   return JSON.parse(out.trim().split('\n').pop() as string)
 }
 
+/**
+ * Client-profile and portal pages fire the AI prep agent on load. Locally it has
+ * no LLM keys or read-only DSN and stalls the single-worker backend for minutes,
+ * which makes every later test time out — so browser tests never let it start.
+ */
+export async function muteAgent(page: Page): Promise<void> {
+  await page.route('**/agent/**', route => route.abort())
+}
+
 export async function login(
   page: Page,
   email: string,
   password = PASSWORD,
 ): Promise<void> {
+  await muteAgent(page)
   await page.goto('/auth')
   await page.fill('#email', email)
   await page.fill('#password', password)

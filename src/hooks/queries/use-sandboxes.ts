@@ -135,11 +135,52 @@ export function useSandboxWelcome(sandboxId: string | null) {
   })
 }
 
-export function usePortalSandboxes(enabled = true) {
+/** Query-driven, no sockets: fresh for a minute, refetched on focus. */
+export function useSandboxDashboard(includeEnded = false, enabled = true) {
   return useQuery({
-    queryKey: queryKeys.sandboxes.portalMine(),
-    queryFn: () => SandboxService.portalMine(),
+    queryKey: queryKeys.sandboxes.dashboard(includeEnded),
+    queryFn: () => SandboxService.dashboard(includeEnded),
     enabled,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useSandboxDelivery(id: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.delivery(id ?? ''),
+    queryFn: () => SandboxService.delivery(id as string),
+    enabled: !!id,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function useClientSandboxContext(clientId: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.clientContext(clientId ?? ''),
+    queryFn: () => SandboxService.clientContext(clientId as string),
+    enabled: !!clientId,
+    staleTime: 60 * 1000,
+  })
+}
+
+function activeClientId(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return sessionStorage.getItem('active_client_id')
+  } catch {
+    return null
+  }
+}
+
+/** The coachee's card, keyed by the active profile so switching profiles refetches. */
+export function useCoacheeSandbox(enabled = true) {
+  const active = activeClientId()
+  return useQuery({
+    queryKey: queryKeys.sandboxes.coachee(active),
+    queryFn: () => SandboxService.coacheeSandbox(),
+    enabled,
+    staleTime: 60 * 1000,
   })
 }

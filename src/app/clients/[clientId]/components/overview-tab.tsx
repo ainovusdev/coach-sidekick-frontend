@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { ClientProfileSection } from './client-profile-section'
 import { LastSessionInsightsCard } from './last-session-insights-card'
+import { SandboxContextCard } from '@/components/sandboxes/sandbox-context-card'
 import { SprintKanbanBoard } from '@/components/sprints/sprint-kanban-board'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useGoals } from '@/hooks/queries/use-goals'
@@ -128,6 +129,9 @@ export function OverviewTab({
 
   return (
     <div className="space-y-6">
+      {/* Sandbox contract + delivery, only for clients coached inside a sandbox */}
+      <SandboxContextCard clientId={client.id} />
+
       {/* Top Section: Client Profile and Last Session Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: Client Profile */}

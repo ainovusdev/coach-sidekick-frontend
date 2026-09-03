@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { IdentityCard } from '@/components/sandboxes/rail/identity-card'
 import {
@@ -17,6 +17,7 @@ import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
 import { RemoveMemberDialog } from '@/components/sandboxes/remove-member-dialog'
 import { IncompleteBanner } from '@/components/sandboxes/incomplete-banner'
 import { GroupsPanel } from '@/components/sandboxes/groups-panel'
+import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
 import { GroupDrawer } from '@/components/sandboxes/group-drawer'
 import {
   InvitationsPanel,
@@ -46,6 +47,14 @@ function scrollTo(id: string) {
 export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const sandboxId = overview.sandbox.id
   const view = useSandboxView()
+  // Deep links (#delivery, #invitations, …) arrive before the data does.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (hash) {
+      const t = setTimeout(() => scrollTo(hash), 50)
+      return () => clearTimeout(t)
+    }
+  }, [sandboxId])
   const { can } = view
   const [visionOpen, setVisionOpen] = useState(false)
   const [addOurs, setAddOurs] = useState(false)
@@ -156,6 +165,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           onAddOurs={() => setAddOurs(true)}
           onAddTheirs={() => setAddTheirs(true)}
         />
+        <DeliveryPanel overview={overview} />
         <GroupsPanel
           overview={overview}
           onNew={() => openDrawer(null)}

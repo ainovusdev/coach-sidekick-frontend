@@ -64,12 +64,21 @@ export default function SandboxesPage() {
         description="A client's coaching contract: term, team, groups and invitations."
         icon={Boxes}
         actions={
-          <Button asChild className="bg-ink text-ink-on-dark hover:bg-ink/90">
-            <Link href="/admin/sandboxes/new" data-testid="new-sandbox">
-              <Plus className="h-4 w-4" />
-              New sandbox
+          <div className="flex items-center gap-4">
+            <Link
+              href="/sandboxes"
+              className="text-sm font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
+              data-testid="needs-attention-link"
+            >
+              Needs attention →
             </Link>
-          </Button>
+            <Button asChild className="bg-ink text-ink-on-dark hover:bg-ink/90">
+              <Link href="/admin/sandboxes/new" data-testid="new-sandbox">
+                <Plus className="h-4 w-4" />
+                New sandbox
+              </Link>
+            </Button>
+          </div>
         }
       />
 
