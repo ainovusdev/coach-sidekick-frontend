@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import {
   Popover,
   PopoverContent,
@@ -12,8 +13,10 @@ import {
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
+  useUpdateNotificationSettings,
 } from '@/hooks/mutations/use-notification-mutations'
 import {
+  useNotificationSettings,
   useNotifications,
   useUnreadNotifications,
 } from '@/hooks/queries/use-notifications'
@@ -34,9 +37,11 @@ function timeAgo(iso: string): string {
 }
 
 /**
- * The bell: unread count on the icon, the latest notifications in a popover.
- * Clicking one marks it read and follows its link. Same component in every
- * header (coach, client portal, the minimal sandbox header).
+ * The bell: unread count on the icon, the latest notifications in a popover,
+ * and the person's own switch for the email half (every notification is also
+ * emailed unless they turn that off). Clicking one marks it read and follows
+ * its link. Same component in every header (coach, client portal, the minimal
+ * sandbox header).
  */
 export function NotificationBell({ className }: { className?: string }) {
   const router = useRouter()
@@ -45,6 +50,8 @@ export function NotificationBell({ className }: { className?: string }) {
   const { data, isLoading } = useNotifications(open)
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllNotificationsRead()
+  const { data: settings } = useNotificationSettings(open)
+  const updateSettings = useUpdateNotificationSettings()
   // the count query is always live; the list is only fetched while open
   const count = unread?.unread ?? data?.unread ?? 0
   const items = data?.items ?? []
@@ -168,6 +175,31 @@ export function NotificationBell({ className }: { className?: string }) {
             ))
           )}
         </ul>
+        {settings && (
+          <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-2.5">
+            <label
+              htmlFor="notification-email-toggle"
+              className="min-w-0 cursor-pointer"
+            >
+              <span className="block text-xs font-medium text-ink">
+                Email me too
+              </span>
+              <span className="block truncate text-[11px] text-ink-4">
+                {settings.email_enabled
+                  ? `Every notification also goes to ${settings.email ?? 'your email'}`
+                  : 'Only shown here, no emails'}
+              </span>
+            </label>
+            <Switch
+              id="notification-email-toggle"
+              checked={settings.email_enabled}
+              onCheckedChange={checked => updateSettings.mutate(checked)}
+              disabled={updateSettings.isPending}
+              aria-label="Email me every notification"
+              data-testid="notification-email-toggle"
+            />
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )

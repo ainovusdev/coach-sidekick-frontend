@@ -295,6 +295,7 @@ export const queryKeys = {
     list: (unreadOnly: boolean) =>
       [...queryKeys.notifications.all, 'list', unreadOnly] as const,
     unread: () => [...queryKeys.notifications.all, 'unread'] as const,
+    settings: () => [...queryKeys.notifications.all, 'settings'] as const,
   },
 
   // Client portal keys

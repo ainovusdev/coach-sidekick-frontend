@@ -24,3 +24,13 @@ export function useUnreadNotifications(enabled = true) {
     refetchOnWindowFocus: true,
   })
 }
+
+/** The person's email switch — fetched only while the bell is open. */
+export function useNotificationSettings(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.notifications.settings(),
+    queryFn: () => NotificationService.settings(),
+    enabled,
+    staleTime: 5 * 60 * 1000,
+  })
+}

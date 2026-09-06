@@ -4,7 +4,10 @@
  * several profiles sees the active profile's rows plus the user-level ones.
  */
 import { ApiClient } from '@/lib/api-client'
-import type { NotificationList } from '@/types/notifications'
+import type {
+  NotificationList,
+  NotificationSettings,
+} from '@/types/notifications'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -27,5 +30,13 @@ export class NotificationService {
 
   static markAllRead(): Promise<{ updated: number; unread: number }> {
     return ApiClient.post(`${BASE}/read-all`, {})
+  }
+
+  static settings(): Promise<NotificationSettings> {
+    return ApiClient.get(`${BASE}/settings`)
+  }
+
+  static updateSettings(emailEnabled: boolean): Promise<NotificationSettings> {
+    return ApiClient.put(`${BASE}/settings`, { email_enabled: emailEnabled })
   }
 }
