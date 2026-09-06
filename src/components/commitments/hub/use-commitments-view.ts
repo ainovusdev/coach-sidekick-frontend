@@ -81,7 +81,9 @@ export function useCommitmentsView(audience: HubAudience) {
   const sandboxFilter = searchParams.get('sandbox') || null
   const dueParam = searchParams.get('due')
   const dueFilter: DueFilter =
-    dueParam === 'overdue' || dueParam === 'soon' ? dueParam : null
+    dueParam === 'overdue' || dueParam === 'soon' || dueParam === 'today'
+      ? dueParam
+      : null
   const openId = searchParams.get('open') || null
 
   const setParams = useCallback(

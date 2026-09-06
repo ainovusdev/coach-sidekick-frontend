@@ -21,6 +21,7 @@ import {
 import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 import { AssigneeChip } from '@/components/people/assignee-chip'
+import { AutomaticChip } from './automatic-chip'
 import { assigneeOf } from '@/lib/commitments/assignee'
 import { PRIORITY_BADGE, priorityInfo } from '@/lib/commitments/labels'
 
@@ -134,6 +135,7 @@ export function CommitmentKanbanCard({
               size="xs"
               className="min-w-0"
             />
+            <AutomaticChip commitment={commitment} />
             {isOverdue && (
               <Badge variant="destructive" className="text-xs">
                 <AlertCircle className="h-3 w-3 mr-1" />

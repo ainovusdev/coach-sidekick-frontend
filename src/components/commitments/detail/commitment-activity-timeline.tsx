@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   UserRound,
   MessageSquare,
+  Zap,
 } from 'lucide-react'
 import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
@@ -50,6 +51,12 @@ function ItemIcon({ item }: { item: ActivityItem }) {
       return <UserRound className={cn(base, 'text-ink-3')} />
     case 'completed':
       return <CheckCircle2 className={cn(base, 'text-forest')} />
+    case 'auto_resolved':
+      return item.toStatus === 'completed' ? (
+        <CheckCircle2 className={cn(base, 'text-forest')} />
+      ) : (
+        <Zap className={cn(base, 'text-ink-3')} />
+      )
     default:
       return <div className="h-2 w-2 rounded-full bg-line" />
   }
@@ -92,6 +99,16 @@ function ItemBody({
   }
   switch (item.kind) {
     case 'created':
+      if (item.autoRule) {
+        return (
+          <span className="text-ink-3" data-testid="activity-created-auto">
+            <span className="inline-flex items-center gap-1">
+              <Zap className="h-3 w-3 text-ink-3" />
+              Created automatically · {item.autoRule}
+            </span>
+          </span>
+        )
+      }
       return (
         <span className="text-ink-3">
           {extractedByAi ? (
@@ -105,6 +122,14 @@ function ItemBody({
               this commitment
             </>
           )}
+        </span>
+      )
+    case 'auto_resolved':
+      return (
+        <span className="text-ink-3" data-testid="activity-auto-resolved">
+          {item.toStatus === 'completed' ? 'Completed' : 'Dismissed'}{' '}
+          automatically
+          {item.reason ? ` — ${item.reason}` : ''}
         </span>
       )
     case 'status':

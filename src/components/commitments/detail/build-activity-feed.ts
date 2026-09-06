@@ -11,6 +11,7 @@
 import type { Commitment, CommitmentUpdateEntry } from '@/types/commitment'
 import { commentPersonName, type Comment } from '@/types/comment'
 import { htmlToPlainText } from '@/components/ui/rich-text-editor'
+import { autoInfo } from '@/lib/commitments/automatic'
 
 export type ActivityKind =
   | 'comment'
@@ -19,6 +20,7 @@ export type ActivityKind =
   | 'created'
   | 'completed'
   | 'assigned'
+  | 'auto_resolved'
 
 export interface ActivityItem {
   id: string
@@ -41,6 +43,10 @@ export interface ActivityItem {
   toAssigneeId?: string | null
   toAssigneeName?: string | null
   toClient?: boolean
+  /** created — set when a rule made the row; the label for "· session prep" */
+  autoRule?: string
+  /** auto_resolved — why Coach Sidekick closed it */
+  reason?: string
 }
 
 export interface ActivityGroup {
@@ -180,6 +186,7 @@ export function buildActivityFeed(
   }
 
   // There is no DB row for creation — synthesize one so the feed has an origin.
+  const auto = autoInfo(commitment)
   groups.unshift({
     key: 'created',
     at: commitment.created_at,
@@ -192,9 +199,27 @@ export function buildActivityFeed(
         at: commitment.created_at,
         actorId: commitment.created_by_id ?? undefined,
         actorName: commitment.creator_name,
+        autoRule: auto?.label,
       },
     ],
   })
+
+  // A rule closed it (silently — no ledger row): say so, with its reason.
+  if (auto?.resolved) {
+    groups.push({
+      key: 'auto_resolved',
+      at: auto.resolved.at,
+      items: [
+        {
+          id: 'auto_resolved',
+          kind: 'auto_resolved',
+          at: auto.resolved.at,
+          toStatus: auto.resolved.action,
+          reason: auto.resolved.reason,
+        },
+      ],
+    })
+  }
 
   // Only synthesize completion when no status_change row already covers it,
   // otherwise the same event appears twice.

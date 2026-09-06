@@ -59,6 +59,10 @@ export function CommitmentsEmptyState({
     title = 'Nothing overdue'
     message = 'No commitments are past their due date. Nice work.'
     Icon = AlertCircle
+  } else if (dueFilter === 'today' && !searchActive) {
+    title = 'Nothing due today'
+    message = 'No commitment on your list is due today.'
+    Icon = AlertCircle
   } else if (tab === 'drafts' && !searchActive) {
     title = 'No drafts to review'
     message =

@@ -64,6 +64,44 @@ export function seedSession(opts: {
   return JSON.parse(out.trim().split('\n').pop() as string)
 }
 
+/** A *scheduled* 1:1 `hoursFromNow` hours ahead (the automatic-commitment rules). */
+export function seedScheduledSession(opts: {
+  coachEmail: string
+  clientEmail: string
+  hoursFromNow: number
+  questionnaireSent?: boolean
+}): { id: string; client_id: string; scheduled_for: string } {
+  const args = [
+    'scheduled',
+    opts.coachEmail,
+    opts.clientEmail,
+    String(opts.hoursFromNow),
+    ...(opts.questionnaireSent ? ['questionnaire_sent'] : []),
+  ]
+  const out = execSync(
+    `poetry run python scripts/seed_local_sandbox_fixtures.py ${args.join(' ')}`,
+    { cwd: backendDir(), stdio: 'pipe' },
+  ).toString()
+  return JSON.parse(out.trim().split('\n').pop() as string)
+}
+
+/**
+ * One automation tick (create / resolve / nudge). The background sweeper is
+ * off locally (`COMMITMENT_SWEEPER_ENABLED=false`), so a spec runs it when
+ * it wants one.
+ */
+export function sweepCommitments(): {
+  created: number
+  resolved: number
+  nudged: number
+} {
+  const out = execSync(
+    'poetry run python scripts/seed_local_sandbox_fixtures.py sweep',
+    { cwd: backendDir(), stdio: 'pipe' },
+  ).toString()
+  return JSON.parse(out.trim().split('\n').pop() as string)
+}
+
 /**
  * Ensure `coachEmail` has a client row for `clientEmail`, linked to that
  * person's login when one exists. The API never links an existing active

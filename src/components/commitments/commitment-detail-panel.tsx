@@ -58,6 +58,8 @@ import {
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { CommentThread } from '@/components/comments/comment-thread'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AutomaticChip } from './automatic-chip'
+import { tomorrowIso } from '@/lib/commitments/automatic'
 import { cn } from '@/lib/utils'
 import {
   formatDate,
@@ -67,6 +69,7 @@ import {
 import {
   X,
   MoreVertical,
+  BellOff,
   Calendar as CalendarIcon,
   Plus,
   Trash2,
@@ -209,6 +212,8 @@ export function CommitmentDetailPanel({
       {/* Panel */}
       <div
         ref={panelRef}
+        data-testid="commitment-detail-panel"
+        data-open={isOpen ? 'true' : 'false'}
         className={cn(
           'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-surface-1 border-l border-line shadow-2xl',
           'transition-transform duration-300 ease-in-out',
@@ -324,6 +329,9 @@ export function PanelHeader({
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(commitment.title)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const isAutomatic = commitment.source === 'rule'
+  const isOpenStatus =
+    commitment.status !== 'completed' && commitment.status !== 'abandoned'
 
   useEffect(() => {
     setTitleValue(commitment.title)
@@ -370,6 +378,11 @@ export function PanelHeader({
             {commitment.title}
           </h2>
         )}
+        {isAutomatic && (
+          <div className="mt-1.5">
+            <AutomaticChip commitment={commitment} />
+          </div>
+        )}
       </div>
 
       {/* Actions */}
@@ -390,7 +403,13 @@ export function PanelHeader({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              aria-label="More actions"
+              data-testid="commitment-menu"
+            >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -401,10 +420,30 @@ export function PanelHeader({
                 Copy link
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDelete} className="text-vermillion">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
+            {isAutomatic && isOpenStatus && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => onFieldUpdate('target_date', tomorrowIso())}
+                  data-testid="commitment-snooze"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Snooze to tomorrow
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onFieldUpdate('status', 'abandoned')}
+                  data-testid="commitment-dismiss"
+                >
+                  <BellOff className="h-4 w-4 mr-2" />
+                  Dismiss
+                </DropdownMenuItem>
+              </>
+            )}
+            {commitment.can_delete !== false && (
+              <DropdownMenuItem onClick={onDelete} className="text-vermillion">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
         <Button

@@ -24,7 +24,7 @@ export type CommitmentGroupBy =
   | 'session'
   | 'status'
   | 'assignee'
-export type DueFilter = 'overdue' | 'soon' | null
+export type DueFilter = 'overdue' | 'soon' | 'today' | null
 
 /**
  * Who a row is for, from the viewer's seat. The flat list's sections and the
@@ -108,6 +108,11 @@ export function isOverdue(c: Commitment): boolean {
   return days !== null && days < 0
 }
 
+export function isDueToday(c: Commitment): boolean {
+  if (CLOSED_STATUSES.includes(c.status)) return false
+  return daysUntilDue(c) === 0
+}
+
 export function isDueSoon(c: Commitment): boolean {
   if (CLOSED_STATUSES.includes(c.status)) return false
   const days = daysUntilDue(c)
@@ -168,6 +173,7 @@ export function matchesSearch(c: Commitment, query: string): boolean {
 export function matchesDueFilter(c: Commitment, due: DueFilter): boolean {
   if (due === 'overdue') return isOverdue(c)
   if (due === 'soon') return isDueSoon(c)
+  if (due === 'today') return isDueToday(c)
   return true
 }
 

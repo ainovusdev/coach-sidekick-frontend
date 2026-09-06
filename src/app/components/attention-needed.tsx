@@ -9,7 +9,8 @@ import {
 import { useViewerId } from '@/hooks/use-viewer-id'
 import { isAssignedTo } from '@/lib/commitments/assignee'
 import { SimpleClient } from '@/services/client-service'
-import { Clock, UserX, ArrowRight, Inbox } from 'lucide-react'
+import { Clock, UserX, ArrowRight, Inbox, CalendarCheck } from 'lucide-react'
+import { isDueToday } from '@/components/commitments/hub/commitment-view'
 
 interface AttentionNeededProps {
   clients: SimpleClient[]
@@ -38,6 +39,12 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
         new Date(c.target_date) < now,
     ).length
   }, [myCommitmentsData])
+
+  /** On my list, due on today's date (includes automatic rows). */
+  const dueTodayCount = useMemo(
+    () => (myCommitmentsData?.commitments ?? []).filter(isDueToday).length,
+    [myCommitmentsData],
+  )
 
   /** Handed to me by someone else in the last week, still open. */
   const newForMeCount = useMemo(() => {
@@ -85,6 +92,17 @@ export function AttentionNeeded({ clients }: AttentionNeededProps) {
             'bg-vermillion-bg text-vermillion border-vermillion hover:bg-vermillion-bg ',
           iconColor: 'text-vermillion',
           testId: 'attention-overdue',
+        }
+      : null,
+    dueTodayCount > 0
+      ? {
+          label: `${dueTodayCount} due today`,
+          icon: CalendarCheck,
+          href: '/commitments?view=mine&due=today',
+          color:
+            'bg-amber-token-bg text-amber-token border-amber-token hover:bg-amber-token-bg ',
+          iconColor: 'text-amber-token',
+          testId: 'attention-due-today',
         }
       : null,
     newForMeCount > 0

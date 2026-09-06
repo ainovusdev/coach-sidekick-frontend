@@ -21,6 +21,7 @@ import { isAssignedTo, isClientsOwn } from '@/lib/commitments/assignee'
 import { priorityInfo } from '@/lib/commitments/labels'
 import { TONE_CLASS } from '@/lib/tone'
 import { AssigneeChip } from '@/components/people/assignee-chip'
+import { AutomaticChip } from '@/components/commitments/automatic-chip'
 import { commitmentTypeLabels } from '@/types/commitment'
 import type { Commitment } from '@/types/commitment'
 
@@ -174,6 +175,7 @@ function Row({
         </p>
         <div className="flex items-center gap-2 mt-0.5">
           {!mine && <AssigneeChip commitment={commitment} size="xs" />}
+          <AutomaticChip commitment={commitment} />
           <span
             className={cn(
               'inline-flex h-4 items-center rounded-full px-1.5 text-[10px] font-medium',

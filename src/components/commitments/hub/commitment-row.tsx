@@ -40,6 +40,7 @@ import {
   XCircle,
 } from 'lucide-react'
 import { daysUntilDue, isOverdue } from './commitment-view'
+import { AutomaticChip } from '../automatic-chip'
 
 export interface CommitmentRowHandlers {
   onEdit: (c: Commitment) => void
@@ -172,6 +173,7 @@ export function CommitmentRow({
               AI
             </span>
           )}
+          <AutomaticChip commitment={commitment} />
           {/* A client's own commitment already names the client in the context link — no second chip. */}
           {showAssignee && assigneeKindOf(commitment) !== 'client' && (
             <AssigneeChip commitment={commitment} size="xs" />

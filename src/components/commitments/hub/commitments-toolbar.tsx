@@ -361,7 +361,11 @@ export function CommitmentsToolbar({
               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-vermillion-bg text-vermillion border border-vermillion hover:opacity-80 transition-opacity"
             >
               <AlertCircle className="h-3 w-3" />
-              {dueFilter === 'overdue' ? 'Overdue only' : 'Due within 7 days'}
+              {dueFilter === 'overdue'
+                ? 'Overdue only'
+                : dueFilter === 'today'
+                  ? 'Due today'
+                  : 'Due within 7 days'}
               <X className="h-3 w-3" />
             </button>
           )}
