@@ -15,23 +15,18 @@ import {
   CheckCircle2,
   Trophy,
   AlertTriangle,
+  UserRound,
 } from 'lucide-react'
+import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/date-utils'
+import { statusInfo } from '@/lib/commitments/labels'
 import type { Commitment } from '@/types/commitment'
 import {
   buildActivityFeed,
   resolveActorName,
   type ActivityItem,
 } from './build-activity-feed'
-
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  active: 'Active',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  abandoned: 'Abandoned',
-}
 
 function ItemIcon({ item }: { item: ActivityItem }) {
   const base = 'h-3.5 w-3.5'
@@ -46,6 +41,8 @@ function ItemIcon({ item }: { item: ActivityItem }) {
       )
     case 'progress':
       return <TrendingUp className={cn(base, 'text-amber-token')} />
+    case 'assigned':
+      return <UserRound className={cn(base, 'text-ink-3')} />
     case 'completed':
       return <CheckCircle2 className={cn(base, 'text-forest')} />
     default:
@@ -57,10 +54,14 @@ function ItemBody({
   item,
   actor,
   extractedByAi,
+  currentUserId,
+  clientFirstName,
 }: {
   item: ActivityItem
   actor: string
   extractedByAi?: boolean
+  currentUserId?: string
+  clientFirstName?: string
 }) {
   switch (item.kind) {
     case 'created':
@@ -84,7 +85,7 @@ function ItemBody({
         <span className="text-ink-3">
           <span className="text-ink-2 font-medium">{actor}</span> moved it to{' '}
           <span className="text-ink-2 font-medium">
-            {STATUS_LABELS[item.toStatus || ''] || item.toStatus}
+            {statusInfo(item.toStatus).label}
           </span>
         </span>
       )
@@ -105,6 +106,25 @@ function ItemBody({
       )
     case 'completed':
       return <span className="text-ink-3">Marked complete</span>
+    case 'assigned':
+      return (
+        <span className="text-ink-3">
+          <span className="text-ink-2 font-medium">{actor}</span>
+          {item.toClient ? (
+            <> handed this back to {clientFirstName ?? 'the client'}</>
+          ) : (
+            <>
+              {' '}
+              assigned this to{' '}
+              <span className="text-ink-2 font-medium">
+                {item.toAssigneeId && item.toAssigneeId === currentUserId
+                  ? 'you'
+                  : item.toAssigneeName || 'someone'}
+              </span>
+            </>
+          )}
+        </span>
+      )
     default:
       return (
         <div className="space-y-1.5">
@@ -141,9 +161,9 @@ export function CommitmentActivityTimeline({
 
   const ctx = {
     currentUserId,
-    assignedToId: commitment.assigned_to_id,
-    assignedToName: commitment.assigned_to_name,
-    createdById: commitment.created_by_id,
+    assignedToId: commitment.assigned_to_id ?? undefined,
+    assignedToName: commitment.assigned_to_name ?? undefined,
+    createdById: commitment.created_by_id ?? undefined,
     creatorName: commitment.creator_name,
   }
 
@@ -168,6 +188,10 @@ export function CommitmentActivityTimeline({
                     item={item}
                     actor={actor}
                     extractedByAi={commitment.extracted_from_transcript}
+                    currentUserId={currentUserId}
+                    clientFirstName={
+                      firstName(commitment.client_name) || undefined
+                    }
                   />
                 </div>
               ))}

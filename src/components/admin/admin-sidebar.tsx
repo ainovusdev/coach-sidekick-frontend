@@ -18,6 +18,7 @@ import {
   GitMerge,
   MessagesSquare,
   Boxes,
+  ListChecks,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
 
@@ -56,6 +57,12 @@ const menuItems = [
     title: 'Sandboxes',
     href: '/admin/sandboxes',
     icon: Boxes,
+    requiredRole: ['admin', 'super_admin'],
+  },
+  {
+    title: 'Commitments',
+    href: '/admin/commitments',
+    icon: ListChecks,
     requiredRole: ['admin', 'super_admin'],
   },
   {
@@ -135,7 +142,8 @@ export function AdminSidebar() {
         <ul className="space-y-1 px-2">
           {filteredMenuItems.map(item => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`)
 
             return (
               <li key={item.href}>

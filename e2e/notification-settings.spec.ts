@@ -21,7 +21,7 @@ test('the email switch lives in the bell and sticks', async ({
   await expect(popover).toBeVisible()
   const toggle = popover.getByTestId('notification-email-toggle')
   await expect(toggle).toHaveAttribute('data-state', 'checked')
-  await expect(popover).toContainText(`also goes to ${WHO}`)
+  await expect(popover).toContainText(`also go to ${WHO}`)
 
   await toggle.click()
   await expect(toggle).toHaveAttribute('data-state', 'unchecked')

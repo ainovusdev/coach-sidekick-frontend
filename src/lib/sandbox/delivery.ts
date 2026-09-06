@@ -8,7 +8,12 @@ import type {
   Pace,
 } from '@/types/sandbox-delivery'
 
-export type Tone = 'default' | 'good' | 'warning' | 'danger' | 'muted'
+import { type Tone } from '@/lib/tone'
+
+// Tone tokens moved to `@/lib/tone` (shared with commitments); re-exported
+// so existing imports keep working.
+export { TONE_CLASS, TONE_DOT, TONE_TEXT } from '@/lib/tone'
+export type { Tone } from '@/lib/tone'
 
 export const STATE_LABEL: Record<DeliveryState, string> = {
   unknown: 'No contract yet',
@@ -34,30 +39,6 @@ export function stateTone(state: DeliveryState): Tone {
     default:
       return 'muted'
   }
-}
-
-export const TONE_CLASS: Record<Tone, string> = {
-  default: 'bg-surface-3 text-ink-2',
-  good: 'bg-forest-bg text-forest',
-  warning: 'bg-amber-token-bg text-amber-token',
-  danger: 'bg-vermillion-bg text-vermillion',
-  muted: 'bg-surface-3 text-ink-3',
-}
-
-export const TONE_DOT: Record<Tone, string> = {
-  default: 'bg-ink-3',
-  good: 'bg-forest',
-  warning: 'bg-amber-token',
-  danger: 'bg-vermillion',
-  muted: 'bg-ink-4',
-}
-
-export const TONE_TEXT: Record<Tone, string> = {
-  default: 'text-ink',
-  good: 'text-forest',
-  warning: 'text-amber-token',
-  danger: 'text-vermillion',
-  muted: 'text-ink-3',
 }
 
 /** "6.5 h" / "13 h" */

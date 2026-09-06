@@ -87,6 +87,17 @@ export async function muteAgent(page: Page): Promise<void> {
   await page.route('**/agent/**', route => route.abort())
 }
 
+/**
+ * The React Query devtools bubble (dev builds only) floats bottom-right,
+ * exactly where side-panel footers put their primary button, so it can swallow
+ * clicks. Hide it for the current document; call again after a full `goto`.
+ */
+export async function hideDevtools(page: Page): Promise<void> {
+  await page
+    .addStyleTag({ content: '.tsqd-parent-container{display:none!important}' })
+    .catch(() => undefined)
+}
+
 export async function login(
   page: Page,
   email: string,
@@ -100,6 +111,7 @@ export async function login(
   await page.waitForURL(url => !url.pathname.startsWith('/auth'), {
     timeout: 30_000,
   })
+  await hideDevtools(page)
 }
 
 export async function apiToken(

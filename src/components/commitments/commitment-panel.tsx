@@ -28,8 +28,6 @@ import {
   Check,
   Target,
   CalendarIcon,
-  User,
-  Briefcase,
   Loader2,
   Pencil,
   Trash2,
@@ -45,6 +43,27 @@ import {
   Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  PersonPicker,
+  type PickedPerson,
+} from '@/components/people/person-picker'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import {
+  assigneeKindOf,
+  assigneeOf,
+  firstName,
+} from '@/lib/commitments/assignee'
+import {
+  PRIORITY_BADGE,
+  priorityInfo,
+  statusInfo,
+} from '@/lib/commitments/labels'
+import { TONE_CLASS } from '@/lib/tone'
+import type {
+  Assignee,
+  AssigneeKind,
+  CommitmentPriority,
+} from '@/types/commitment'
 
 // ─── Shared Types ───
 
@@ -59,8 +78,12 @@ export interface PanelCommitment {
   created_at: string
   updated_at: string
   is_coach_commitment?: boolean
-  assigned_to_id?: string
-  assigned_to_name?: string
+  assigned_to_id?: string | null
+  assigned_to_name?: string | null
+  assignee?: Assignee | null
+  assignee_kind?: AssigneeKind
+  client_id?: string | null
+  client_name?: string | null
   type?: string
   session_id?: string | null
   extracted_from_transcript?: boolean
@@ -91,6 +114,14 @@ export interface PanelCommitmentGroup {
 export interface CommitmentPanelProps {
   variant: 'coach' | 'client'
 
+  /** The client this panel is about — lets the picker offer "the client". */
+  client?: {
+    id: string
+    name: string | null
+    email?: string | null
+    user_id?: string | null
+  } | null
+
   sessionCommitments: PanelCommitment[]
   loadingSession: boolean
 
@@ -109,7 +140,8 @@ export interface CommitmentPanelProps {
     title: string
     target_date?: string
     target_ids?: string[]
-    assigned_to_id?: string
+    /** null = the client themself; a user id = that person. */
+    assigned_to_id?: string | null
   }) => Promise<void> | void
   isSaving?: boolean
 
@@ -360,13 +392,29 @@ export function CommitmentPanel({
   onRejectDraft,
   onOpenFull,
   currentUserId,
+  client,
 }: CommitmentPanelProps) {
   const isCoach = variant === 'coach'
 
   // Form state
   const [title, setTitle] = useState('')
   const [targetDate, setTargetDate] = useState<Date | undefined>(undefined)
-  const [assigneeType, setAssigneeType] = useState<'client' | 'coach'>('client')
+  // Who the new commitment is for. Defaults to the client; a person once picked.
+  const [pickedAssignee, setPickedAssignee] = useState<PickedPerson | null>(
+    null,
+  )
+  const [assigneeTouched, setAssigneeTouched] = useState(false)
+  const clientPick: PickedPerson | null = client
+    ? {
+        user_id: null,
+        client_id: client.id,
+        name: client.name,
+        email: client.email ?? null,
+        has_account: !!client.user_id,
+      }
+    : null
+  const assignee = assigneeTouched ? pickedAssignee : clientPick
+  const assigneeIsMe = !!assignee?.user_id && assignee.user_id === currentUserId
   const [showCalendar, setShowCalendar] = useState(false)
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [showOutcomes, setShowOutcomes] = useState(true)
@@ -416,8 +464,8 @@ export function CommitmentPanel({
       title: title.trim(),
       target_date: targetDate ? format(targetDate, 'yyyy-MM-dd') : undefined,
       target_ids: selectedTargetIds.length > 0 ? selectedTargetIds : undefined,
-      assigned_to_id:
-        isCoach && assigneeType === 'coach' ? currentUserId : undefined,
+      // Coach surface: null = the client themself, a user id = that person.
+      assigned_to_id: isCoach ? (assignee?.user_id ?? null) : undefined,
     }
 
     // Clear form optimistically
@@ -428,7 +476,10 @@ export function CommitmentPanel({
     setTargetDate(undefined)
     setSelectedTargetIds([])
     setSelectedSprintIds([])
-    if (isCoach) setAssigneeType('client')
+    if (isCoach) {
+      setAssigneeTouched(false)
+      setPickedAssignee(null)
+    }
 
     try {
       await onCreateCommitment(data)
@@ -499,18 +550,17 @@ export function CommitmentPanel({
 
   // ─── Helpers ───
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'bg-vermillion-bg text-vermillion border-vermillion '
-      case 'high':
-        return 'bg-amber-token-bg text-amber-token border-amber-token '
-      case 'medium':
-        return 'bg-amber-token-bg text-amber-token border-amber-token '
-      default:
-        return 'bg-surface-3 text-ink-3 border-line '
-    }
-  }
+  const getPriorityColor = (priority: string) =>
+    PRIORITY_BADGE[priority as CommitmentPriority] ?? PRIORITY_BADGE.low
+
+  // Chip for a row: the person it's for. Rows from the API carry `assignee`;
+  // older rows fall back to the flat fields and the panel's client.
+  const rowAssignee = (c: PanelCommitment): Assignee | null =>
+    assigneeOf({
+      ...c,
+      client_id: c.client_id ?? client?.id ?? null,
+      client_name: c.client_name ?? client?.name ?? null,
+    })
 
   // ─── Render: Commitment Item (Session & Active tabs) ───
 
@@ -713,23 +763,12 @@ export function CommitmentPanel({
 
             {/* Meta info row */}
             <div className="flex items-center gap-2 mt-2 flex-wrap">
-              {isCoach && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    'text-xs px-1.5 py-0 h-5',
-                    commitment.is_coach_commitment
-                      ? 'border-line-strong text-ink-2 bg-paper '
-                      : 'border-ds-accent text-ds-accent bg-ds-accent-bg ',
-                  )}
-                >
-                  {commitment.is_coach_commitment ? (
-                    <Briefcase className="h-2.5 w-2.5 mr-1" />
-                  ) : (
-                    <User className="h-2.5 w-2.5 mr-1" />
-                  )}
-                  {commitment.is_coach_commitment ? 'Coach' : 'Client'}
-                </Badge>
+              {(isCoach || assigneeKindOf(commitment) === 'user') && (
+                <AssigneeChip
+                  assignee={rowAssignee(commitment)}
+                  size="xs"
+                  viewerId={currentUserId ?? null}
+                />
               )}
 
               {isCoach &&
@@ -742,7 +781,7 @@ export function CommitmentPanel({
                       getPriorityColor(commitment.priority),
                     )}
                   >
-                    {commitment.priority}
+                    {priorityInfo(commitment.priority).label}
                   </Badge>
                 )}
 
@@ -880,16 +919,10 @@ export function CommitmentPanel({
                         variant="secondary"
                         className={cn(
                           'text-[10px] px-1.5 py-0',
-                          commitment.status === 'completed'
-                            ? 'bg-forest-bg text-forest '
-                            : commitment.status === 'abandoned'
-                              ? 'bg-vermillion-bg text-vermillion '
-                              : commitment.status === 'active'
-                                ? 'bg-ds-accent-bg text-ds-accent '
-                                : 'bg-surface-3 text-ink-2 ',
+                          TONE_CLASS[statusInfo(commitment.status).tone],
                         )}
                       >
-                        {commitment.status}
+                        {statusInfo(commitment.status).label}
                       </Badge>
                       {commitment.target_date && (
                         <span className="text-[10px] text-ink-4 flex items-center gap-0.5">
@@ -897,14 +930,13 @@ export function CommitmentPanel({
                           {formatDateOnly(commitment.target_date, 'MMM d')}
                         </span>
                       )}
-                      {isCoach && commitment.is_coach_commitment && (
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] px-1 py-0 border-line-strong "
-                        >
-                          <Briefcase className="h-2 w-2 mr-0.5" />
-                          Coach
-                        </Badge>
+                      {(isCoach || assigneeKindOf(commitment) === 'user') && (
+                        <AssigneeChip
+                          assignee={rowAssignee(commitment)}
+                          size="xs"
+                          showName={assigneeKindOf(commitment) === 'user'}
+                          viewerId={currentUserId ?? null}
+                        />
                       )}
                     </div>
                   </div>
@@ -983,32 +1015,28 @@ export function CommitmentPanel({
         </div>
 
         {isCoach && (
-          <div className="flex items-center gap-0.5 bg-surface-3 rounded-md p-0.5">
-            <button
-              onClick={() => setAssigneeType('client')}
-              className={cn(
-                'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
-                assigneeType === 'client'
-                  ? 'bg-surface-1 text-ink shadow-sm'
-                  : 'text-ink-3 hover:text-ink-2 ',
-              )}
-            >
-              <User className="h-3 w-3" />
-              Client
-            </button>
-            <button
-              onClick={() => setAssigneeType('coach')}
-              className={cn(
-                'flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors',
-                assigneeType === 'coach'
-                  ? 'bg-surface-1 text-ink shadow-sm'
-                  : 'text-ink-3 hover:text-ink-2 ',
-              )}
-            >
-              <Briefcase className="h-3 w-3" />
-              Coach
-            </button>
-          </div>
+          <PersonPicker
+            value={assignee}
+            onChange={next => {
+              setPickedAssignee(next)
+              setAssigneeTouched(true)
+            }}
+            context={{ clientId: client?.id ?? null }}
+            clientOption={
+              client
+                ? {
+                    client_id: client.id,
+                    name: client.name,
+                    email: client.email ?? null,
+                    user_id: client.user_id ?? null,
+                  }
+                : null
+            }
+            placeholder="For…"
+            size="sm"
+            className="max-w-[180px]"
+            data-testid="panel-assignee-picker"
+          />
         )}
       </div>
 
@@ -1017,11 +1045,9 @@ export function CommitmentPanel({
         <div className="space-y-3">
           <Input
             placeholder={
-              isCoach
-                ? assigneeType === 'client'
-                  ? 'What will the client commit to?'
-                  : 'What will you (coach) commit to?'
-                : 'What will you commit to?'
+              !isCoach || assigneeIsMe
+                ? 'What will you commit to?'
+                : `What will ${firstName(assignee?.name) || 'they'} commit to?`
             }
             value={title}
             onChange={e => setTitle(e.target.value)}

@@ -133,6 +133,27 @@ export default function ClientDashboard() {
     fetchDashboardData()
   }, [])
 
+  // Deep link from a notification: /client-portal/dashboard?commitment=<id>[&comment=<id>]
+  // opens that commitment. Read from the URL directly (no useSearchParams, so
+  // this client page needs no Suspense boundary). Closing clears both params.
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    const id = params.get('commitment')
+    if (id) setSelectedCommitmentId(id)
+  }, [])
+
+  const closeCommitment = () => {
+    setSelectedCommitmentId(null)
+    if (typeof window === 'undefined') return
+    const url = new URL(window.location.href)
+    if (url.searchParams.has('commitment') || url.searchParams.has('comment')) {
+      url.searchParams.delete('commitment')
+      url.searchParams.delete('comment')
+      window.history.replaceState(window.history.state, '', url.toString())
+    }
+  }
+
   const fetchDashboardData = async () => {
     try {
       if (!isTokenValid()) {
@@ -462,7 +483,10 @@ export default function ClientDashboard() {
           <ClientLastSessionInsights session={lastSession} />
 
           {/* Upcoming Commitments */}
-          <UpcomingTasksWidget clientId={clientId} />
+          <UpcomingTasksWidget
+            clientId={clientId}
+            onOpen={c => setSelectedCommitmentId(c.id)}
+          />
 
           {/* Recent Resources */}
           <RecentResourcesWidget />
@@ -606,7 +630,7 @@ export default function ClientDashboard() {
           <CommitmentDetailPanel
             commitmentId={selectedCommitmentId}
             clientId={clientId}
-            onClose={() => setSelectedCommitmentId(null)}
+            onClose={closeCommitment}
             onCommitmentUpdate={invalidateAll}
             clientMode
           />

@@ -67,6 +67,10 @@ export class CommitmentService {
     if (filters?.assigned_to_type)
       params.append('assigned_to_type', filters.assigned_to_type)
     if (filters?.my_clients_only) params.append('my_clients_only', 'true')
+    if (filters?.sandbox_id) params.append('sandbox_id', filters.sandbox_id)
+    if (filters?.involving_me) params.append('involving_me', 'true')
+    if (filters?.created_by_me) params.append('created_by_me', 'true')
+    if (filters?.assignee) params.append('assignee', filters.assignee)
 
     const queryString = params.toString()
     const url = `${BACKEND_URL}/commitments/${queryString ? `?${queryString}` : ''}`

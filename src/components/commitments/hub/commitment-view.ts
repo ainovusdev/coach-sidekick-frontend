@@ -4,11 +4,50 @@ import {
   CommitmentPriority,
   CommitmentStatus,
 } from '@/types/commitment'
+import {
+  COMMITMENT_STATUS_LABEL,
+  COMMITMENT_STATUS_ORDER,
+  DRAFT_GROUP_LABEL,
+} from '@/lib/commitments/labels'
+import {
+  assigneeKindOf,
+  assigneeOf,
+  isAssignedTo,
+} from '@/lib/commitments/assignee'
 
 export type CommitmentTab = 'all' | 'active' | 'drafts' | 'completed'
 export type CommitmentSort = 'smart' | 'due' | 'priority' | 'created' | 'client'
-export type CommitmentGroupBy = 'none' | 'client' | 'session' | 'status'
+export type CommitmentGroupBy =
+  | 'none'
+  | 'client'
+  | 'sandbox'
+  | 'session'
+  | 'status'
+  | 'assignee'
 export type DueFilter = 'overdue' | 'soon' | null
+
+/**
+ * Who a row is for, from the viewer's seat. The flat list's sections and the
+ * `view=` URL param share this vocabulary, so a section heading and a filter
+ * always mean the same thing.
+ */
+export type CommitmentSection = 'mine' | 'unassigned' | 'clients' | 'others'
+export type CommitmentView = 'all' | CommitmentSection
+/** `view=assigned` reads better in a URL than `view=others`. */
+export const VIEW_PARAM: Record<CommitmentView, string> = {
+  all: 'all',
+  mine: 'mine',
+  unassigned: 'unassigned',
+  clients: 'clients',
+  others: 'assigned',
+}
+export const VIEW_FROM_PARAM: Record<string, CommitmentView> = {
+  all: 'all',
+  mine: 'mine',
+  unassigned: 'unassigned',
+  clients: 'clients',
+  assigned: 'others',
+}
 
 export const COMMITMENT_TABS: CommitmentTab[] = [
   'all',
@@ -16,6 +55,34 @@ export const COMMITMENT_TABS: CommitmentTab[] = [
   'drafts',
   'completed',
 ]
+
+export const COMMITMENT_GROUP_BYS: CommitmentGroupBy[] = [
+  'none',
+  'client',
+  'sandbox',
+  'session',
+  'status',
+  'assignee',
+]
+
+export const SECTION_ORDER: CommitmentSection[] = [
+  'mine',
+  'unassigned',
+  'clients',
+  'others',
+]
+
+export const SECTION_LABELS: Record<CommitmentSection, string> = {
+  mine: 'Assigned to me',
+  unassigned: 'Unassigned',
+  clients: 'Assigned to clients',
+  others: 'Assigned to others',
+}
+
+export const VIEW_LABELS: Record<CommitmentView, string> = {
+  all: 'Everyone',
+  ...SECTION_LABELS,
+}
 
 export const CLOSED_STATUSES: CommitmentStatus[] = ['completed', 'abandoned']
 
@@ -31,6 +98,10 @@ export function daysUntilDue(c: Commitment): number | null {
   return differenceInCalendarDays(parseISO(c.target_date), new Date())
 }
 
+export function isOpen(c: Commitment): boolean {
+  return !CLOSED_STATUSES.includes(c.status)
+}
+
 export function isOverdue(c: Commitment): boolean {
   if (CLOSED_STATUSES.includes(c.status)) return false
   const days = daysUntilDue(c)
@@ -43,6 +114,18 @@ export function isDueSoon(c: Commitment): boolean {
   return days !== null && days >= 0 && days <= 7
 }
 
+/** Which section a row belongs to, from `viewerId`'s seat. */
+export function sectionOf(
+  c: Commitment,
+  viewerId: string | null | undefined,
+): CommitmentSection {
+  if (isAssignedTo(c, viewerId)) return 'mine'
+  const kind = assigneeKindOf(c)
+  if (kind === 'none') return 'unassigned'
+  if (kind === 'client') return 'clients'
+  return 'others'
+}
+
 export function matchesTab(c: Commitment, tab: CommitmentTab): boolean {
   if (tab === 'active') return c.status === 'active'
   if (tab === 'drafts') return c.status === 'draft'
@@ -50,12 +133,36 @@ export function matchesTab(c: Commitment, tab: CommitmentTab): boolean {
   return true
 }
 
+export function matchesView(
+  c: Commitment,
+  view: CommitmentView,
+  viewerId: string | null | undefined,
+): boolean {
+  if (view === 'all') return true
+  return sectionOf(c, viewerId) === view
+}
+
+/** A specific person (`assignee=<userId>`) — beats `view` when set. */
+export function matchesAssignee(
+  c: Commitment,
+  assigneeId: string | null,
+): boolean {
+  if (!assigneeId) return true
+  return assigneeOf(c)?.user_id === assigneeId
+}
+
 export function matchesSearch(c: Commitment, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (!q) return true
-  return [c.title, c.description, c.client_name].some(
-    field => field && field.toLowerCase().includes(q),
-  )
+  const a = assigneeOf(c)
+  return [
+    c.title,
+    c.description,
+    c.client_name,
+    c.sandbox_name,
+    a?.name,
+    a?.email,
+  ].some(field => field && field.toLowerCase().includes(q))
 }
 
 export function matchesDueFilter(c: Commitment, due: DueFilter): boolean {
@@ -109,6 +216,11 @@ export function compareSmart(a: Commitment, b: Commitment): number {
   return tieBreak(a, b)
 }
 
+/** The row's context name: the client, else the sandbox. */
+function contextName(c: Commitment): string {
+  return c.client_name || c.sandbox_name || ''
+}
+
 export const SORT_COMPARATORS: Record<
   CommitmentSort,
   (a: Commitment, b: Commitment) => number
@@ -121,8 +233,7 @@ export const SORT_COMPARATORS: Record<
     byCreatedDesc(a, b),
   created: (a, b) => byCreatedDesc(a, b) || tieBreak(a, b),
   client: (a, b) =>
-    (a.client_name || '').localeCompare(b.client_name || '') ||
-    compareSmart(a, b),
+    contextName(a).localeCompare(contextName(b)) || compareSmart(a, b),
 }
 
 export interface CommitmentGroup {
@@ -136,21 +247,7 @@ export interface CommitmentGroup {
   completedCount: number
 }
 
-const STATUS_GROUP_ORDER: CommitmentStatus[] = [
-  'draft',
-  'active',
-  'in_progress',
-  'completed',
-  'abandoned',
-]
-
-const STATUS_GROUP_LABELS: Record<CommitmentStatus, string> = {
-  draft: 'Drafts — needs review',
-  active: 'Active',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  abandoned: 'Abandoned',
-}
+const NO_GROUP_KEY = '__none__'
 
 function buildGroup(key: string, label: string): CommitmentGroup {
   return {
@@ -171,28 +268,55 @@ function addToGroup(group: CommitmentGroup, c: Commitment) {
   else if (c.status === 'completed') group.completedCount++
 }
 
+function groupKeyAndLabel(
+  c: Commitment,
+  groupBy: Exclude<CommitmentGroupBy, 'none'>,
+  viewerId: string | null | undefined,
+): { key: string; label: string } {
+  switch (groupBy) {
+    case 'client':
+      return c.client_id
+        ? { key: c.client_id, label: c.client_name || 'Unknown client' }
+        : { key: NO_GROUP_KEY, label: 'No client' }
+    case 'sandbox':
+      return c.sandbox_id
+        ? { key: c.sandbox_id, label: c.sandbox_name || 'Sandbox' }
+        : { key: NO_GROUP_KEY, label: 'No sandbox' }
+    case 'session':
+      return c.session_id
+        ? { key: c.session_id, label: c.session_title || 'Session' }
+        : { key: NO_GROUP_KEY, label: 'Manually created' }
+    case 'assignee': {
+      const a = assigneeOf(c)
+      if (!a) return { key: NO_GROUP_KEY, label: 'Unassigned' }
+      if (viewerId && a.user_id === viewerId)
+        return { key: viewerId, label: 'You' }
+      return {
+        key: a.user_id ?? `client:${a.client_id}`,
+        label: a.name || a.email || 'Someone',
+      }
+    }
+    case 'status':
+      return {
+        key: c.status,
+        label:
+          c.status === 'draft'
+            ? DRAFT_GROUP_LABEL
+            : COMMITMENT_STATUS_LABEL[c.status],
+      }
+  }
+}
+
 export function groupCommitments(
   commitments: Commitment[],
   groupBy: Exclude<CommitmentGroupBy, 'none'>,
   sort: CommitmentSort,
+  viewerId?: string | null,
 ): CommitmentGroup[] {
   const map = new Map<string, CommitmentGroup>()
 
   for (const c of commitments) {
-    let key: string
-    let label: string
-
-    if (groupBy === 'client') {
-      key = c.client_id
-      label = c.client_name || 'Unknown Client'
-    } else if (groupBy === 'session') {
-      key = c.session_id || '__manual__'
-      label = c.session_id ? c.session_title || 'Session' : 'Manually Created'
-    } else {
-      key = c.status
-      label = STATUS_GROUP_LABELS[c.status]
-    }
-
+    const { key, label } = groupKeyAndLabel(c, groupBy, viewerId)
     let group = map.get(key)
     if (!group) {
       group = buildGroup(key, label)
@@ -210,23 +334,30 @@ export function groupCommitments(
     group.commitments.sort(comparator)
   }
 
-  if (groupBy === 'client') {
-    groups.sort((a, b) => a.label.localeCompare(b.label))
-  } else if (groupBy === 'session') {
+  if (groupBy === 'session') {
     // Newest session first; the manual bucket goes last
     groups.sort((a, b) => {
-      if (a.key === '__manual__') return 1
-      if (b.key === '__manual__') return -1
+      if (a.key === NO_GROUP_KEY) return 1
+      if (b.key === NO_GROUP_KEY) return -1
       if (!a.dateISO) return 1
       if (!b.dateISO) return -1
       return new Date(b.dateISO).getTime() - new Date(a.dateISO).getTime()
     })
-  } else {
+  } else if (groupBy === 'status') {
     groups.sort(
       (a, b) =>
-        STATUS_GROUP_ORDER.indexOf(a.key as CommitmentStatus) -
-        STATUS_GROUP_ORDER.indexOf(b.key as CommitmentStatus),
+        COMMITMENT_STATUS_ORDER.indexOf(a.key as CommitmentStatus) -
+        COMMITMENT_STATUS_ORDER.indexOf(b.key as CommitmentStatus),
     )
+  } else {
+    // Alphabetical; "You" first, the no-context bucket last
+    groups.sort((a, b) => {
+      if (a.key === NO_GROUP_KEY) return 1
+      if (b.key === NO_GROUP_KEY) return -1
+      if (viewerId && a.key === viewerId) return -1
+      if (viewerId && b.key === viewerId) return 1
+      return a.label.localeCompare(b.label)
+    })
   }
 
   return groups

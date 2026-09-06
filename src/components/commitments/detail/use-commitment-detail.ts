@@ -159,8 +159,13 @@ export function useCommitmentDetail({
 
   const queryClient = useQueryClient()
 
-  const handleFieldUpdate = useCallback(
-    (field: string, value: any) => {
+  /**
+   * Patch several fields in one request. `optimistic` is what the cached row
+   * should look like meanwhile when it differs from the patch itself — e.g.
+   * sending `{ assigned_to_id }` while showing the full `assignee` object.
+   */
+  const handleFieldsUpdate = useCallback(
+    (patch: Record<string, any>, optimistic?: Record<string, any>) => {
       if (!commitmentId) return
 
       const key = queryKeys.commitments.detail(commitmentId)
@@ -168,12 +173,12 @@ export function useCommitmentDetail({
       const previous = queryClient.getQueryData(key)
       const rollback = () => {
         queryClient.setQueryData(key, previous)
-        toast.error('Failed to update commitment')
+        toast.error("Couldn't save")
       }
 
       queryClient.setQueryData(key, (old: any) => {
         if (!old) return old
-        return { ...old, [field]: value }
+        return { ...old, ...patch, ...(optimistic ?? {}) }
       })
 
       if (guestContext) {
@@ -181,13 +186,13 @@ export function useCommitmentDetail({
           guestContext.meetingToken,
           guestContext.guestToken,
           commitmentId,
-          { [field]: value },
+          patch,
         )
           .then(() => onCommitmentUpdate?.())
           .catch(rollback)
       } else {
         updateCommitment.mutate(
-          { commitmentId, data: { [field]: value } },
+          { commitmentId, data: patch },
           {
             onSuccess: () => onCommitmentUpdate?.(),
             onError: rollback,
@@ -202,6 +207,11 @@ export function useCommitmentDetail({
       onCommitmentUpdate,
       guestContext,
     ],
+  )
+
+  const handleFieldUpdate = useCallback(
+    (field: string, value: any) => handleFieldsUpdate({ [field]: value }),
+    [handleFieldsUpdate],
   )
 
   const handleDelete = useCallback(() => {
@@ -242,6 +252,7 @@ export function useCommitmentDetail({
     mode,
     capabilities: capabilitiesFor(mode, !!commitment?.session_id),
     handleFieldUpdate,
+    handleFieldsUpdate,
     handleDelete,
   }
 }

@@ -85,12 +85,30 @@ import {
   Zap,
   Maximize2,
   Link as LinkIcon,
+  Lock,
 } from 'lucide-react'
 import type {
   Commitment,
   CommitmentAttachment,
+  CommitmentPriority,
   Milestone,
 } from '@/types/commitment'
+import {
+  PersonPicker,
+  type PickedPerson,
+} from '@/components/people/person-picker'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import { assigneeFromPick, assigneeOf } from '@/lib/commitments/assignee'
+import {
+  COMMITMENT_PRIORITY_LABEL,
+  COMMITMENT_PRIORITY_TONE,
+  COMMITMENT_STATUS_LABEL,
+  COMMITMENT_STATUS_TONE,
+  SETTABLE_STATUSES,
+  TONE_CHIP,
+  statusInfo,
+} from '@/lib/commitments/labels'
+import { TONE_DOT } from '@/lib/tone'
 import { TargetService } from '@/services/target-service'
 import { LiveMeetingService } from '@/services/live-meeting-service'
 import { useTargets } from '@/hooks/queries/use-targets'
@@ -135,6 +153,7 @@ export function CommitmentDetailPanel({
     isLoading,
     capabilities,
     handleFieldUpdate,
+    handleFieldsUpdate,
     handleDelete,
   } = useCommitmentDetail({
     commitmentId,
@@ -151,7 +170,8 @@ export function CommitmentDetailPanel({
   // which is hostile.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      // A picker or menu inside that already took Escape leaves the panel open.
+      if (e.key === 'Escape' && !e.defaultPrevented) onClose()
     }
     if (commitmentId) {
       document.addEventListener('keydown', handleKeyDown)
@@ -206,10 +226,11 @@ export function CommitmentDetailPanel({
                 <FieldsGrid
                   commitment={commitment}
                   onFieldUpdate={handleFieldUpdate}
+                  onFieldsUpdate={handleFieldsUpdate}
                 />
 
-                {/* Linked Meta Performance Outcomes & Sprints - hidden in client mode (no client-portal TargetService) */}
-                {!clientMode && (
+                {/* Linked Meta Performance Outcomes & Sprints - hidden in client mode (no client-portal TargetService) and for commitments with no client */}
+                {!clientMode && commitment.client_id && (
                   <LinkedOutcomesSection
                     commitment={commitment}
                     commitmentId={commitmentId!}
@@ -388,55 +409,32 @@ export function PanelHeader({
 export function FieldsGrid({
   commitment,
   onFieldUpdate,
+  onFieldsUpdate,
 }: {
   commitment: Commitment
   onFieldUpdate: (field: string, value: any) => void
+  /** Optional multi-field patch with its own optimistic shape (assignee). */
+  onFieldsUpdate?: (
+    patch: Record<string, any>,
+    optimistic?: Record<string, any>,
+  ) => void
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
+
+  // The viewer may read this row but not change it (assignee-only, viewer
+  // role, another coach's private note). The API says so per row.
+  const readOnly = commitment.can_edit === false
 
   // Settable statuses. `in_progress` MUST be here: the kanban board and three
   // other surfaces write it, so without it an In Progress commitment opened
   // here showed no selected chip and picking any option silently lost the state.
-  const statusOptions: {
-    value: string
-    label: string
-    selected: string
-    unselected: string
-  }[] = [
-    {
-      value: 'active',
-      label: 'Active',
-      selected: 'bg-ds-accent-bg text-ds-accent border-ds-accent ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-ds-accent-bg hover:text-ds-accent hover:border-ds-accent ',
-    },
-    {
-      value: 'in_progress',
-      label: 'In Progress',
-      selected: 'bg-amber-token-bg text-amber-token border-amber-token ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-amber-token-bg hover:text-amber-token hover:border-amber-token ',
-    },
-    {
-      value: 'completed',
-      label: 'Completed',
-      selected: 'bg-forest-bg text-forest border-forest ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-forest-bg hover:text-forest hover:border-forest ',
-    },
-    {
-      value: 'abandoned',
-      label: 'Abandoned',
-      selected: 'bg-vermillion-bg text-vermillion border-vermillion ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-vermillion-bg hover:text-vermillion hover:border-vermillion ',
-    },
-  ]
-
+  //
   // Guard the whole class of bug rather than the one instance: any status that
   // isn't settable here (today `draft`) still renders, read-only, so the
   // control can never show "nothing selected".
-  const isKnownStatus = statusOptions.some(o => o.value === commitment.status)
+  const isKnownStatus = (SETTABLE_STATUSES as string[]).includes(
+    commitment.status,
+  )
 
   // Milestone-derived progress, used when reopening a completed commitment so
   // we restore real progress instead of hard-zeroing it.
@@ -449,50 +447,107 @@ export function FieldsGrid({
       )
     : 0
 
+  const assignee = assigneeOf(commitment)
+  const pickerValue: PickedPerson | null = assignee
+    ? {
+        user_id: assignee.user_id,
+        client_id: assignee.client_id,
+        name: assignee.name,
+        email: assignee.email,
+        has_account: assignee.has_account,
+        roles: assignee.roles,
+      }
+    : null
+
+  const handleAssign = (next: PickedPerson | null) => {
+    // null user_id = the client themself (login or not); a user id = that person.
+    const assignedToId = next?.user_id ?? null
+    const optimisticAssignee = assigneeFromPick(next, commitment.client_id)
+    const optimistic = {
+      assigned_to_id: assignedToId,
+      assigned_to_name: assignedToId ? (next?.name ?? null) : null,
+      assignee: optimisticAssignee,
+      assignee_kind: assignedToId
+        ? 'user'
+        : commitment.client_id
+          ? 'client'
+          : 'none',
+      is_coach_commitment: !!assignedToId,
+    }
+    if (onFieldsUpdate)
+      onFieldsUpdate({ assigned_to_id: assignedToId }, optimistic)
+    else onFieldUpdate('assigned_to_id', assignedToId)
+  }
+
   return (
-    <div className="p-4 bg-paper rounded-lg space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div
+      className="p-4 bg-paper rounded-lg space-y-4"
+      data-testid="commitment-fields"
+    >
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {/* Assignee — first: who it's for is the first thing to know */}
+        <div className="space-y-1 min-w-0">
+          <label className="text-xs font-medium text-ink-3 ">Assignee</label>
+          {readOnly ? (
+            <div className="h-9 flex items-center">
+              <AssigneeChip assignee={assignee} size="sm" />
+            </div>
+          ) : (
+            <PersonPicker
+              value={pickerValue}
+              onChange={handleAssign}
+              context={{
+                clientId: commitment.client_id ?? null,
+                sandboxId: commitment.sandbox_id ?? null,
+              }}
+              clientOption={
+                commitment.client_id
+                  ? {
+                      client_id: commitment.client_id,
+                      name: commitment.client_name ?? null,
+                      // Known only while the client is the assignee; the picker
+                      // then folds their login into the one "client" row.
+                      user_id: assignee?.client_id
+                        ? assignee.user_id
+                        : undefined,
+                    }
+                  : null
+              }
+              allowClear={!commitment.client_id}
+              className="h-9 w-full"
+              contentClassName="z-[80]"
+              data-testid="detail-assignee-picker"
+            />
+          )}
+        </div>
+
         {/* Priority */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-ink-3 ">Priority</label>
           <Select
             value={commitment.priority}
             onValueChange={value => onFieldUpdate('priority', value)}
+            disabled={readOnly}
           >
             <SelectTrigger className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[80]">
-              <SelectItem value="low">
-                <div className="flex items-center gap-2">
-                  <div className={cn('w-2 h-2 rounded-full', 'bg-line')} />
-                  Low
-                </div>
-              </SelectItem>
-              <SelectItem value="medium">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
-                  />
-                  Medium
-                </div>
-              </SelectItem>
-              <SelectItem value="high">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
-                  />
-                  High
-                </div>
-              </SelectItem>
-              <SelectItem value="urgent">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-vermillion')}
-                  />
-                  Urgent
-                </div>
-              </SelectItem>
+              {(
+                Object.keys(COMMITMENT_PRIORITY_LABEL) as CommitmentPriority[]
+              ).map(p => (
+                <SelectItem key={p} value={p}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'w-2 h-2 rounded-full',
+                        TONE_DOT[COMMITMENT_PRIORITY_TONE[p]],
+                      )}
+                    />
+                    {COMMITMENT_PRIORITY_LABEL[p]}
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
@@ -500,10 +555,14 @@ export function FieldsGrid({
         {/* Due Date */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-ink-3 ">Due Date</label>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <Popover
+            open={calendarOpen}
+            onOpenChange={readOnly ? undefined : setCalendarOpen}
+          >
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
+                disabled={readOnly}
                 className={cn(
                   'h-9 w-full justify-start text-left text-sm font-normal',
                   !commitment.target_date && 'text-ink-3',
@@ -535,27 +594,36 @@ export function FieldsGrid({
       {/* Status */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-ink-3 ">Status</label>
-        <div className="flex flex-wrap gap-1.5">
+        <div
+          className="flex flex-wrap gap-1.5"
+          data-testid="commitment-status-chips"
+        >
           {!isKnownStatus && (
             <span
-              className="px-2.5 py-1 rounded-full text-xs font-medium border bg-surface-3 text-ink-2 border-line capitalize"
+              className={cn(
+                'px-2.5 py-1 rounded-full text-xs font-medium border',
+                TONE_CHIP[COMMITMENT_STATUS_TONE[commitment.status] ?? 'muted']
+                  .selected,
+              )}
               title="Current status — set elsewhere and not directly settable here"
             >
-              {commitment.status.replace('_', ' ')}
+              {statusInfo(commitment.status).label}
             </span>
           )}
-          {statusOptions.map(opt => {
-            const isSelected = commitment.status === opt.value
+          {SETTABLE_STATUSES.map(value => {
+            const isSelected = commitment.status === value
+            const chip = TONE_CHIP[COMMITMENT_STATUS_TONE[value]]
             return (
               <button
-                key={opt.value}
+                key={value}
                 type="button"
+                disabled={readOnly && !isSelected}
                 onClick={() => {
-                  if (isSelected) return
-                  onFieldUpdate('status', opt.value)
+                  if (isSelected || readOnly) return
+                  onFieldUpdate('status', value)
                   // Progress rules live here, in one place, rather than being
                   // implied by whichever button was pressed.
-                  if (opt.value === 'completed') {
+                  if (value === 'completed') {
                     onFieldUpdate('progress_percentage', 100)
                   } else if (commitment.status === 'completed') {
                     // Reopening: restore milestone-derived progress rather than
@@ -568,15 +636,37 @@ export function FieldsGrid({
                 aria-pressed={isSelected}
                 className={cn(
                   'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                  isSelected ? opt.selected : opt.unselected,
+                  isSelected ? chip.selected : chip.unselected,
+                  readOnly && !isSelected && 'opacity-40 cursor-not-allowed',
                 )}
               >
-                {opt.label}
+                {COMMITMENT_STATUS_LABEL[value]}
               </button>
             )
           })}
         </div>
       </div>
+
+      {/* Visibility — only meaningful on a sandbox, where two sides can look */}
+      {commitment.sandbox_id && (
+        <label
+          className={cn(
+            'flex items-center gap-2 text-xs text-ink-2',
+            readOnly ? 'cursor-default' : 'cursor-pointer',
+          )}
+        >
+          <Checkbox
+            checked={commitment.visibility === 'private'}
+            disabled={readOnly}
+            onCheckedChange={v =>
+              onFieldUpdate('visibility', v === true ? 'private' : 'shared')
+            }
+            data-testid="detail-private-toggle"
+          />
+          <Lock className="h-3 w-3 text-ink-3" />
+          Only people on this commitment can see it
+        </label>
+      )}
     </div>
   )
 }

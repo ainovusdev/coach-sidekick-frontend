@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button'
 import {
   Plus,
   User,
-  Briefcase,
+  UserRound,
   Users,
   BookOpen,
   ArrowRight,
@@ -26,6 +26,12 @@ import { useDiscardCommitment } from '@/hooks/mutations/use-commitment-mutations
 import { useResources } from '@/hooks/queries/use-resources'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 import { formatDate } from '@/lib/date-utils'
+import { useViewerId } from '@/hooks/use-viewer-id'
+import {
+  firstName,
+  isAssignedTo,
+  isClientsOwn,
+} from '@/lib/commitments/assignee'
 
 interface OverviewTabProps {
   client: any
@@ -84,17 +90,19 @@ export function OverviewTab({
     limit: 3,
   })
 
-  // Filter commitments based on selection
+  // Filter by who it's for — by id, never by role.
+  const userId = useViewerId()
+  const clientFirstName = firstName(client?.name) || 'Client'
   const filteredCommitments = useMemo(() => {
     const all = commitmentsData?.commitments || []
     if (commitmentFilter === 'client') {
-      return all.filter((c: any) => !c.is_coach_commitment)
+      return all.filter((c: any) => isClientsOwn(c))
     }
     if (commitmentFilter === 'coach') {
-      return all.filter((c: any) => c.is_coach_commitment)
+      return all.filter((c: any) => isAssignedTo(c, userId))
     }
     return all
-  }, [commitmentsData?.commitments, commitmentFilter])
+  }, [commitmentsData?.commitments, commitmentFilter, userId])
 
   // Calculate stats (always from all commitments, not filtered)
   const totalCommitments = commitmentsData?.commitments?.length || 0
@@ -185,7 +193,7 @@ export function OverviewTab({
                   className="rounded-none border-0"
                 >
                   <User className="h-3 w-3 mr-1" />
-                  Client
+                  {clientFirstName}
                 </Button>
                 <Button
                   variant={commitmentFilter === 'coach' ? 'default' : 'ghost'}
@@ -193,8 +201,8 @@ export function OverviewTab({
                   onClick={() => setCommitmentFilter('coach')}
                   className="rounded-none border-0"
                 >
-                  <Briefcase className="h-3 w-3 mr-1" />
-                  My Tasks
+                  <UserRound className="h-3 w-3 mr-1" />
+                  Me
                 </Button>
               </div>
               {!isViewer && onCreateCommitment && (

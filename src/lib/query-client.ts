@@ -238,6 +238,13 @@ export const queryKeys = {
       [...queryKeys.groupSessions.detail(id), 'participants'] as const,
   },
 
+  // People search (assign / mention pickers)
+  people: {
+    all: ['people'] as const,
+    search: (q: string, context?: string | null) =>
+      [...queryKeys.people.all, 'search', q, context ?? null] as const,
+  },
+
   // Sandbox v2 (client contracts, admin panel)
   sandboxes: {
     all: ['sandboxes'] as const,

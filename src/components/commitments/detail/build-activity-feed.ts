@@ -16,6 +16,7 @@ export type ActivityKind =
   | 'progress'
   | 'created'
   | 'completed'
+  | 'assigned'
 
 export interface ActivityItem {
   id: string
@@ -32,6 +33,10 @@ export interface ActivityItem {
   /** progress */
   fromProgress?: number
   toProgress?: number
+  /** assigned — who it went to (null = back to the client) */
+  toAssigneeId?: string | null
+  toAssigneeName?: string | null
+  toClient?: boolean
 }
 
 export interface ActivityGroup {
@@ -68,6 +73,20 @@ export function buildActivityFeed(commitment: Commitment): ActivityGroup[] {
       at: u.created_at,
       actorId: u.updated_by_id,
       actorName: u.updated_by_name,
+    }
+
+    // Ledger rows written by the service on reassignment:
+    // metadata = { kind: 'assignment', assigned_to_id, assigned_to_name?, previous_assignee_id }
+    const meta = (u.metadata ?? {}) as Record<string, any>
+    if (meta.kind === 'assignment') {
+      items.push({
+        ...base,
+        id: `${u.id}:assigned`,
+        kind: 'assigned',
+        toAssigneeId: meta.assigned_to_id ?? null,
+        toAssigneeName: meta.assigned_to_name ?? null,
+        toClient: !meta.assigned_to_id,
+      })
     }
 
     if (u.status_change) {
@@ -121,14 +140,14 @@ export function buildActivityFeed(commitment: Commitment): ActivityGroup[] {
   groups.unshift({
     key: 'created',
     at: commitment.created_at,
-    actorId: commitment.created_by_id,
+    actorId: commitment.created_by_id ?? undefined,
     actorName: commitment.creator_name,
     items: [
       {
         id: 'created',
         kind: 'created',
         at: commitment.created_at,
-        actorId: commitment.created_by_id,
+        actorId: commitment.created_by_id ?? undefined,
         actorName: commitment.creator_name,
       },
     ],

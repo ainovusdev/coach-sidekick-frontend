@@ -7,18 +7,25 @@ interface CommitmentsStatsProps {
   stats?: CommitmentStats
   fallbackActive: number
   fallbackCompleted: number
+  /** Open commitments on the viewer. Doubles as the "assigned to me" filter. */
+  forYou: number
+  forYouActive: boolean
+  onToggleForYou: () => void
   overdueFilterActive: boolean
   onToggleOverdue: () => void
 }
 
 /**
- * One quiet inline strip instead of stat cards. "At risk" is the only
- * colored + interactive figure — it doubles as the overdue quick-filter.
+ * One quiet inline strip instead of stat cards. Two figures are interactive:
+ * "for you" toggles the assigned-to-me view, "at risk" the overdue filter.
  */
 export function CommitmentsStats({
   stats,
   fallbackActive,
   fallbackCompleted,
+  forYou,
+  forYouActive,
+  onToggleForYou,
   overdueFilterActive,
   onToggleOverdue,
 }: CommitmentsStatsProps) {
@@ -26,6 +33,31 @@ export function CommitmentsStats({
 
   return (
     <div className="flex flex-wrap items-center gap-x-8 gap-y-2 mb-6 px-1">
+      <button
+        onClick={onToggleForYou}
+        aria-pressed={forYouActive}
+        data-testid="hub-stat-for-you"
+        title={
+          forYouActive
+            ? 'Showing what is on you — click to show everyone'
+            : 'Show only what is on you'
+        }
+        className={cn(
+          'flex items-baseline gap-1.5 rounded-md -mx-2 px-2 py-0.5 transition-colors',
+          'hover:bg-surface-3',
+          forYouActive && 'bg-surface-3 ring-1 ring-line-strong',
+        )}
+      >
+        <span className="text-lg font-semibold text-ink tabular-nums">
+          {forYou}
+        </span>
+        <span
+          className={cn('text-xs', forYouActive ? 'text-ink' : 'text-ink-3')}
+        >
+          for you
+        </span>
+      </button>
+
       <div className="flex items-baseline gap-1.5">
         <span className="text-lg font-semibold text-ink tabular-nums">
           {stats?.total_active ?? fallbackActive}

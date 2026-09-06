@@ -16,15 +16,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import {
-  Commitment,
-  CommitmentPriority,
-  CommitmentStatus,
-} from '@/types/commitment'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import { assigneeKindOf } from '@/lib/commitments/assignee'
+import { Commitment, CommitmentStatus } from '@/types/commitment'
+import { priorityInfo, statusInfo } from '@/lib/commitments/labels'
+import { TONE_DOT, TONE_TEXT } from '@/lib/tone'
 import { formatDateOnly } from '@/lib/date-utils'
 import { parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
+  Boxes,
   Calendar,
   Check,
   CheckCircle2,
@@ -37,28 +38,7 @@ import {
   Trash2,
   XCircle,
 } from 'lucide-react'
-import { daysUntilDue, isOverdue } from '../utils/commitment-view'
-
-export const statusConfig: Record<
-  CommitmentStatus,
-  { label: string; dot: string }
-> = {
-  draft: { label: 'Draft', dot: 'bg-ink-4' },
-  active: { label: 'Active', dot: 'bg-ds-accent' },
-  in_progress: { label: 'In Progress', dot: 'bg-amber-token' },
-  completed: { label: 'Completed', dot: 'bg-forest' },
-  abandoned: { label: 'Abandoned', dot: 'bg-vermillion' },
-}
-
-export const priorityConfig: Record<
-  CommitmentPriority,
-  { label: string; className: string }
-> = {
-  low: { label: 'Low', className: 'text-ink-3' },
-  medium: { label: 'Medium', className: 'text-ink-3' },
-  high: { label: 'High', className: 'text-amber-token' },
-  urgent: { label: 'Urgent', className: 'text-vermillion' },
-}
+import { daysUntilDue, isOverdue } from './commitment-view'
 
 export interface CommitmentRowHandlers {
   onEdit: (c: Commitment) => void
@@ -73,8 +53,10 @@ export interface CommitmentRowHandlers {
 interface CommitmentRowProps extends CommitmentRowHandlers {
   commitment: Commitment
   isSelected?: boolean
-  /** Show a client chip on the row (flat / session / status views) */
+  /** Show the context (client, else sandbox) on the row */
   showClient?: boolean
+  /** Show who the row is for (hidden inside "Assigned to me" / by-person groups) */
+  showAssignee?: boolean
 }
 
 export function CommitmentRow({
@@ -88,6 +70,7 @@ export function CommitmentRow({
   isSelected,
   onSelect,
   showClient = false,
+  showAssignee = false,
 }: CommitmentRowProps) {
   const [actionLoading, setActionLoading] = useState<
     'approve' | 'reject' | null
@@ -111,13 +94,17 @@ export function CommitmentRow({
     }
   }
 
-  const status = statusConfig[commitment.status]
-  const priority = priorityConfig[commitment.priority]
+  const status = statusInfo(commitment.status)
+  const priority = priorityInfo(commitment.priority)
   const showPriority =
     commitment.priority === 'high' || commitment.priority === 'urgent'
   const isDraft = commitment.status === 'draft'
   const overdue = isOverdue(commitment)
   const daysUntil = daysUntilDue(commitment)
+  // The API says what the viewer may do; older cached rows say nothing, so
+  // only an explicit `false` locks a row.
+  const canEdit = commitment.can_edit !== false
+  const canDelete = commitment.can_delete !== false
 
   // Hover-revealed controls stay keyboard-reachable via focus-visible
   const revealOnHover =
@@ -125,6 +112,8 @@ export function CommitmentRow({
 
   return (
     <div
+      data-testid="commitment-row"
+      data-id={commitment.id}
       className={cn(
         'group flex items-start gap-3 px-4 py-3 border-b border-line last:border-b-0 hover:bg-paper transition-colors',
         overdue && 'border-l-2 border-l-vermillion',
@@ -132,7 +121,7 @@ export function CommitmentRow({
       )}
     >
       {/* Checkbox for drafts */}
-      {isDraft && (
+      {isDraft && canEdit && (
         <Checkbox
           checked={isSelected}
           onCheckedChange={() => onSelect?.(commitment.id)}
@@ -150,6 +139,7 @@ export function CommitmentRow({
           <Link
             href={`/commitments/${commitment.id}`}
             className="text-sm font-medium text-ink hover:underline"
+            data-testid="commitment-row-title"
             onClick={e => {
               if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
               e.preventDefault()
@@ -159,7 +149,9 @@ export function CommitmentRow({
             {commitment.title}
           </Link>
           {showPriority && (
-            <span className={cn('text-xs font-medium', priority.className)}>
+            <span
+              className={cn('text-xs font-medium', TONE_TEXT[priority.tone])}
+            >
               {priority.label}
             </span>
           )}
@@ -169,13 +161,27 @@ export function CommitmentRow({
               AI
             </span>
           )}
-          {showClient && commitment.client_name && (
+          {/* A client's own commitment already names the client in the context link — no second chip. */}
+          {showAssignee && assigneeKindOf(commitment) !== 'client' && (
+            <AssigneeChip commitment={commitment} size="xs" />
+          )}
+          {showClient && commitment.client_id && commitment.client_name && (
             <Link
               href={`/clients/${commitment.client_id}`}
               className="text-xs text-ink-4 hover:text-ink hover:underline"
               onClick={e => e.stopPropagation()}
             >
               {commitment.client_name}
+            </Link>
+          )}
+          {showClient && !commitment.client_id && commitment.sandbox_id && (
+            <Link
+              href={`/sandboxes/${commitment.sandbox_id}`}
+              className="inline-flex items-center gap-1 text-xs text-ink-4 hover:text-ink hover:underline"
+              onClick={e => e.stopPropagation()}
+            >
+              <Boxes className="h-3 w-3" />
+              {commitment.sandbox_name || 'Sandbox'}
             </Link>
           )}
         </div>
@@ -199,16 +205,26 @@ export function CommitmentRow({
       <div className="flex items-center gap-1 flex-shrink-0">
         {/* Inline status dropdown — quiet dot + label */}
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          <DropdownMenuTrigger asChild disabled={!canEdit}>
             <button
-              className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium text-ink-2 cursor-pointer transition-colors hover:bg-surface-3"
+              className={cn(
+                'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium text-ink-2 transition-colors',
+                canEdit
+                  ? 'cursor-pointer hover:bg-surface-3'
+                  : 'cursor-default',
+              )}
               aria-label={`Status: ${status.label}`}
+              data-testid="commitment-row-status"
             >
-              <span className={cn('h-2 w-2 rounded-full', status.dot)} />
-              {status.label}
-              <ChevronDown
-                className={cn('h-3 w-3 text-ink-4', revealOnHover)}
+              <span
+                className={cn('h-2 w-2 rounded-full', TONE_DOT[status.tone])}
               />
+              {status.label}
+              {canEdit && (
+                <ChevronDown
+                  className={cn('h-3 w-3 text-ink-4', revealOnHover)}
+                />
+              )}
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -231,7 +247,7 @@ export function CommitmentRow({
                 onClick={() => onStatusChange(commitment.id, 'in_progress')}
               >
                 <Circle className="h-3.5 w-3.5 mr-2 text-amber-token" />
-                In Progress
+                In progress
               </DropdownMenuItem>
             )}
             {commitment.status !== 'completed' && (
@@ -254,17 +270,24 @@ export function CommitmentRow({
         </DropdownMenu>
 
         {/* Inline due date picker — colored only when it needs attention */}
-        <Popover open={dateOpen} onOpenChange={setDateOpen}>
-          <PopoverTrigger asChild>
+        <Popover
+          open={dateOpen}
+          onOpenChange={open => setDateOpen(canEdit && open)}
+        >
+          <PopoverTrigger asChild disabled={!canEdit}>
             <button
               className={cn(
-                'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs cursor-pointer transition-colors hover:bg-surface-3',
+                'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs transition-colors',
+                canEdit
+                  ? 'cursor-pointer hover:bg-surface-3'
+                  : 'cursor-default',
                 overdue
                   ? 'text-vermillion font-medium'
                   : daysUntil !== null && daysUntil <= 7
                     ? 'text-amber-token'
                     : 'text-ink-3',
                 !commitment.target_date && cn('text-ink-4', revealOnHover),
+                !commitment.target_date && !canEdit && 'hidden',
               )}
             >
               <Calendar className="h-3 w-3" />
@@ -298,7 +321,7 @@ export function CommitmentRow({
         </Popover>
 
         {/* Draft: Approve / Reject stay always visible — primary actions */}
-        {isDraft && (
+        {isDraft && canEdit && (
           <>
             <Button
               variant="outline"
@@ -331,7 +354,7 @@ export function CommitmentRow({
           </>
         )}
 
-        {/* Edit / Delete — icon-only, revealed on hover */}
+        {/* Open / Delete — icon-only, revealed on hover */}
         <Button
           variant="ghost"
           size="sm"
@@ -340,24 +363,26 @@ export function CommitmentRow({
             revealOnHover,
           )}
           onClick={() => onEdit(commitment)}
-          aria-label="Edit commitment"
-          title="Edit"
+          aria-label={canEdit ? 'Edit commitment' : 'Open commitment'}
+          title={canEdit ? 'Edit' : 'Open'}
         >
           <Edit className="h-3.5 w-3.5" />
         </Button>
-        <Button
-          variant="ghost"
-          size="sm"
-          className={cn(
-            'h-7 w-7 p-0 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg',
-            revealOnHover,
-          )}
-          onClick={() => onDelete(commitment)}
-          aria-label="Delete commitment"
-          title="Delete"
-        >
-          <Trash2 className="h-3.5 w-3.5" />
-        </Button>
+        {canDelete && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              'h-7 w-7 p-0 text-ink-4 hover:text-vermillion hover:bg-vermillion-bg',
+              revealOnHover,
+            )}
+            onClick={() => onDelete(commitment)}
+            aria-label="Delete commitment"
+            title="Delete"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
+        )}
       </div>
     </div>
   )

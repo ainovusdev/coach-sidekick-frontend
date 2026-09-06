@@ -4,7 +4,19 @@ export interface AppNotification {
   type: string
   title: string
   message: string
-  data: Record<string, unknown> & { url?: string; sandbox_id?: string }
+  data: Record<string, unknown> & {
+    url?: string
+    sandbox_id?: string
+    sandbox_name?: string
+    /** 'commitment' for commitment events */
+    kind?: string
+    /** commitment_assigned | commitment_reassigned | commitment_commented | … */
+    event?: string
+    commitment_id?: string
+    comment_id?: string
+    client_id?: string
+    client_name?: string
+  }
   is_read: boolean
   read_at: string | null
   /** when the email half went out; null = switched off, no address, or failed */

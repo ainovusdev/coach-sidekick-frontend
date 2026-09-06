@@ -2,7 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Bell, Check } from 'lucide-react'
+import {
+  AtSign,
+  Bell,
+  Check,
+  CheckCircle2,
+  Clock,
+  MessageSquare,
+  UserPlus,
+  type LucideIcon,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -36,12 +45,31 @@ function timeAgo(iso: string): string {
   return `${w}w ago`
 }
 
+/** Leading icon by commitment event; sandbox/outcome rows keep the dot only. */
+const EVENT_ICON: Record<string, LucideIcon> = {
+  commitment_assigned: UserPlus,
+  commitment_reassigned: UserPlus,
+  commitment_commented: MessageSquare,
+  commitment_mentioned: AtSign,
+  commitment_completed: CheckCircle2,
+  commitment_status_changed: CheckCircle2,
+  commitment_rescheduled: Clock,
+  commitment_due_today: Clock,
+  commitment_overdue: Clock,
+}
+
+function contextLine(n: AppNotification): string {
+  return [n.data?.client_name, n.data?.sandbox_name]
+    .filter((v): v is string => typeof v === 'string' && v.length > 0)
+    .join(' · ')
+}
+
 /**
  * The bell: unread count on the icon, the latest notifications in a popover,
- * and the person's own switch for the email half (every notification is also
- * emailed unless they turn that off). Clicking one marks it read and follows
- * its link. Same component in every header (coach, client portal, the minimal
- * sandbox header).
+ * and the person's own switch for the email half (sandbox and outcome events
+ * are emailed unless they turn that off; commitment events are in-app only).
+ * Clicking one marks it read and follows its link. Same component in every
+ * header (coach, client portal, admin, the minimal sandbox header).
  */
 export function NotificationBell({ className }: { className?: string }) {
   const router = useRouter()
@@ -127,52 +155,75 @@ export function NotificationBell({ className }: { className?: string }) {
               </p>
             </li>
           ) : (
-            items.map(n => (
-              <li key={n.id} className="border-b border-line last:border-b-0">
-                <button
-                  type="button"
-                  onClick={() => openOne(n)}
-                  className={cn(
-                    'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-2',
-                    !n.is_read && 'bg-surface-2/50',
-                  )}
-                  data-testid="notification-item"
-                  data-read={n.is_read}
-                  data-type={n.type}
-                >
-                  <span
+            items.map(n => {
+              const event =
+                typeof n.data?.event === 'string' ? n.data.event : undefined
+              const Icon = event ? EVENT_ICON[event] : undefined
+              const context = contextLine(n)
+              return (
+                <li key={n.id} className="border-b border-line last:border-b-0">
+                  <button
+                    type="button"
+                    onClick={() => openOne(n)}
                     className={cn(
-                      'mt-1.5 h-2 w-2 shrink-0 rounded-full',
-                      n.is_read ? 'bg-transparent' : 'bg-vermillion',
+                      'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-2',
+                      !n.is_read && 'bg-surface-2/50',
                     )}
-                    aria-hidden
-                  />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-baseline justify-between gap-3">
+                    data-testid="notification-item"
+                    data-read={n.is_read}
+                    data-type={n.type}
+                    data-event={event}
+                  >
+                    {Icon ? (
+                      <span className="relative mt-0.5 shrink-0" aria-hidden>
+                        <span
+                          className={cn(
+                            'flex h-6 w-6 items-center justify-center rounded-full bg-surface-3',
+                            n.is_read ? 'text-ink-3' : 'text-ink',
+                          )}
+                        >
+                          <Icon className="h-3.5 w-3.5" strokeWidth={1.75} />
+                        </span>
+                        {!n.is_read && (
+                          <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-vermillion ring-2 ring-paper" />
+                        )}
+                      </span>
+                    ) : (
                       <span
                         className={cn(
-                          'truncate text-sm',
-                          n.is_read ? 'text-ink-2' : 'font-medium text-ink',
+                          'mt-1.5 h-2 w-2 shrink-0 rounded-full',
+                          n.is_read ? 'bg-transparent' : 'bg-vermillion',
                         )}
-                      >
-                        {n.title}
-                      </span>
-                      <span className="shrink-0 text-[11px] text-ink-4">
-                        {timeAgo(n.created_at)}
-                      </span>
-                    </span>
-                    <span className="mt-0.5 line-clamp-2 block text-xs text-ink-3">
-                      {n.message}
-                    </span>
-                    {typeof n.data?.sandbox_name === 'string' && (
-                      <span className="mt-0.5 block truncate text-[11px] text-ink-4">
-                        {n.data.sandbox_name}
-                      </span>
+                        aria-hidden
+                      />
                     )}
-                  </span>
-                </button>
-              </li>
-            ))
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-3">
+                        <span
+                          className={cn(
+                            'truncate text-sm',
+                            n.is_read ? 'text-ink-2' : 'font-medium text-ink',
+                          )}
+                        >
+                          {n.title}
+                        </span>
+                        <span className="shrink-0 text-[11px] text-ink-4">
+                          {timeAgo(n.created_at)}
+                        </span>
+                      </span>
+                      <span className="mt-0.5 line-clamp-2 block text-xs text-ink-3">
+                        {n.message}
+                      </span>
+                      {context && (
+                        <span className="mt-0.5 block truncate text-[11px] text-ink-4">
+                          {context}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                </li>
+              )
+            })
           )}
         </ul>
         {settings && (
@@ -186,7 +237,7 @@ export function NotificationBell({ className }: { className?: string }) {
               </span>
               <span className="block truncate text-[11px] text-ink-4">
                 {settings.email_enabled
-                  ? `Every notification also goes to ${settings.email ?? 'your email'}`
+                  ? `Sandbox and outcome updates also go to ${settings.email ?? 'your email'}.`
                   : 'Only shown here, no emails'}
               </span>
             </label>
@@ -195,7 +246,7 @@ export function NotificationBell({ className }: { className?: string }) {
               checked={settings.email_enabled}
               onCheckedChange={checked => updateSettings.mutate(checked)}
               disabled={updateSettings.isPending}
-              aria-label="Email me every notification"
+              aria-label="Email me sandbox and outcome updates"
               data-testid="notification-email-toggle"
             />
           </div>

@@ -47,6 +47,12 @@ import { NotesList } from '@/components/session-notes/notes-list'
 import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { CommitmentService } from '@/services/commitment-service'
 import { commitmentTypeLabels } from '@/types/commitment'
+import type { Commitment } from '@/types/commitment'
+import { useAuth } from '@/contexts/auth-context'
+import { isAssignedTo, isClientsOwn } from '@/lib/commitments/assignee'
+import { statusInfo } from '@/lib/commitments/labels'
+import { TONE_CLASS } from '@/lib/tone'
+import { AssigneeChip } from '@/components/people/assignee-chip'
 import { toast } from 'sonner'
 import type { ClientSessionDetailData } from '@/hooks/queries/use-client-sessions'
 
@@ -96,8 +102,17 @@ function CommitmentItem({
   commitment: any
   onUpdate: () => void
 }) {
+  const { userId } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
+  // Someone else's commitment on this profile (the coach's, say): readable,
+  // labelled by the person, never editable here. `can_edit` is the server's
+  // word; the assignee check covers rows cached before it was on the wire.
+  const mine =
+    isClientsOwn(commitment as Commitment) ||
+    isAssignedTo(commitment as Commitment, userId)
+  const readOnly = commitment.can_edit === false || !mine
+  const status = statusInfo(commitment.status)
   const [editTitle, setEditTitle] = useState(commitment.title)
   const [editDescription, setEditDescription] = useState(
     commitment.description || '',
@@ -172,7 +187,12 @@ function CommitmentItem({
   }
 
   return (
-    <div className="border border-line rounded-lg overflow-hidden">
+    <div
+      className="border border-line rounded-lg overflow-hidden"
+      data-testid="portal-session-commitment"
+      data-mine={mine}
+      data-commitment={commitment.id}
+    >
       <div className="flex items-center justify-between gap-2 p-3 hover:bg-paper transition-colors">
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <div className="flex-shrink-0">
@@ -197,34 +217,50 @@ function CommitmentItem({
           >
             {commitment.title}
           </p>
+          {!mine && (
+            <AssigneeChip
+              commitment={commitment as Commitment}
+              size="xs"
+              className="shrink-0"
+            />
+          )}
         </div>
-        <Select value={commitment.status} onValueChange={handleStatusChange}>
-          <SelectTrigger
-            className={`h-8 w-[130px] text-xs border ${getStatusColor(commitment.status)}`}
+        {readOnly ? (
+          <span
+            className={`inline-flex h-6 shrink-0 items-center rounded-full px-2 text-[11px] font-medium ${TONE_CLASS[status.tone]}`}
+            data-testid="portal-commitment-status"
           >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="active">
-              <div className="flex items-center gap-2">
-                <Circle className="h-3 w-3" />
-                Committed
-              </div>
-            </SelectItem>
-            <SelectItem value="in_progress">
-              <div className="flex items-center gap-2">
-                <PlayCircle className="h-3 w-3" />
-                In Progress
-              </div>
-            </SelectItem>
-            <SelectItem value="completed">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="h-3 w-3" />
-                Done
-              </div>
-            </SelectItem>
-          </SelectContent>
-        </Select>
+            {status.label}
+          </span>
+        ) : (
+          <Select value={commitment.status} onValueChange={handleStatusChange}>
+            <SelectTrigger
+              className={`h-8 w-[130px] text-xs border ${getStatusColor(commitment.status)}`}
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">
+                <div className="flex items-center gap-2">
+                  <Circle className="h-3 w-3" />
+                  Committed
+                </div>
+              </SelectItem>
+              <SelectItem value="in_progress">
+                <div className="flex items-center gap-2">
+                  <PlayCircle className="h-3 w-3" />
+                  In Progress
+                </div>
+              </SelectItem>
+              <SelectItem value="completed">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Done
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
       {isExpanded && (
         <div className="px-3 pb-3 pt-1 space-y-3 border-t border-line bg-paper ">
@@ -318,15 +354,17 @@ function CommitmentItem({
                     </span>
                   )}
                 </div>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setIsEditing(true)}
-                  className="h-7 text-xs gap-1 text-ink-3 hover:text-ink-2 "
-                >
-                  <Pencil className="h-3 w-3" />
-                  Edit
-                </Button>
+                {!readOnly && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setIsEditing(true)}
+                    className="h-7 text-xs gap-1 text-ink-3 hover:text-ink-2 "
+                  >
+                    <Pencil className="h-3 w-3" />
+                    Edit
+                  </Button>
+                )}
               </div>
             </>
           )}

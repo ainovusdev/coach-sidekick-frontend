@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { User, LogOut, Settings, Shield } from 'lucide-react'
 
 export function AdminHeader() {
@@ -68,6 +69,9 @@ export function AdminHeader() {
                 </Badge>
               ))}
             </div>
+
+            {/* Notifications — commitments handed to admins land here */}
+            <NotificationBell />
 
             {/* Role Switcher */}
             <RoleSwitcher />

@@ -50,6 +50,11 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
+  assigneeKindOf,
+  isAssignedTo,
+  isClientsOwn,
+} from '@/lib/commitments/assignee'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -400,11 +405,16 @@ export function GoalsTreeView({
       }
     }
 
-    // Then filter by assignee
+    // Then filter by who it's for — by id, never by role. In the portal the
+    // viewer IS the client, so "client" = their own, "coach" = someone else.
     if (assigneeFilter === 'coach') {
-      filtered = filtered.filter((c: any) => c.is_coach_commitment === true)
+      filtered = filtered.filter((c: any) =>
+        isClientPortal
+          ? assigneeKindOf(c) === 'user'
+          : isAssignedTo(c, user?.id),
+      )
     } else if (assigneeFilter === 'client') {
-      filtered = filtered.filter((c: any) => !c.is_coach_commitment)
+      filtered = filtered.filter((c: any) => isClientsOwn(c))
     }
 
     // Filter by status
@@ -426,6 +436,8 @@ export function GoalsTreeView({
     assigneeFilter,
     statusFilter,
     priorityFilter,
+    isClientPortal,
+    user?.id,
   ])
 
   const toggleGoal = (goalId: string) => {

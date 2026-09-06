@@ -10,7 +10,7 @@ import {
 import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 import { ChevronRight } from 'lucide-react'
-import { CommitmentGroup, CommitmentGroupBy } from '../utils/commitment-view'
+import { CommitmentGroup, CommitmentGroupBy } from './commitment-view'
 import { CommitmentRow, CommitmentRowHandlers } from './commitment-row'
 
 interface CommitmentsGroupedListProps {
@@ -36,8 +36,9 @@ function groupSummary(
 }
 
 /**
- * Collapsible group cards for the By client / By session / By status views.
- * Collapse state lives here — remount with `key={groupBy}` to reset it.
+ * Collapsible group cards for the By client / sandbox / session / status /
+ * person views. Collapse state lives here — remount with `key={groupBy}` to
+ * reset it.
  */
 export function CommitmentsGroupedList({
   groups,
@@ -67,7 +68,11 @@ export function CommitmentsGroupedList({
             open={isOpen}
             onOpenChange={() => toggle(group.key)}
           >
-            <Card className="border-line overflow-hidden py-0 gap-0">
+            <Card
+              className="border-line overflow-hidden py-0 gap-0"
+              data-testid="hub-group"
+              data-group={group.key}
+            >
               <CollapsibleTrigger asChild>
                 <button className="w-full flex items-center gap-3 px-4 py-3 hover:bg-paper transition-colors text-left">
                   <ChevronRight
@@ -99,7 +104,8 @@ export function CommitmentsGroupedList({
                     <CommitmentRow
                       key={commitment.id}
                       commitment={commitment}
-                      showClient={groupBy !== 'client'}
+                      showClient={groupBy !== 'client' && groupBy !== 'sandbox'}
+                      showAssignee={groupBy !== 'assignee'}
                       isSelected={selectedDraftIds.has(commitment.id)}
                       {...rowHandlers}
                     />
