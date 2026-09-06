@@ -159,6 +159,13 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.commitments.all, id] as const,
   },
 
+  // Generic comment threads (commitments today; more targets later)
+  comments: {
+    all: ['comments'] as const,
+    list: (targetType: string, targetId: string) =>
+      [...queryKeys.comments.all, targetType, targetId] as const,
+  },
+
   // Sprint keys
   sprints: {
     all: ['sprints'] as const,
@@ -450,6 +457,27 @@ export const invalidateQueries = {
         queryClient.invalidateQueries({
           queryKey: queryKeys.groupSessions.detail(sessionId),
         }),
+    ])
+  },
+
+  /**
+   * A comment was posted / edited / deleted on `targetId`. The commitment
+   * detail embeds the thread, and a mention or reply lands in the bell.
+   */
+  afterCommentChange: async (
+    queryClient: QueryClient,
+    targetType: string,
+    targetId: string,
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.comments.list(targetType, targetId),
+      }),
+      targetType === 'commitment' &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.commitments.detail(targetId),
+        }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
     ])
   },
 }

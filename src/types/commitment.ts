@@ -1,3 +1,5 @@
+import type { Comment } from './comment'
+
 /**
  * TypeScript interfaces for the Commitments System
  * Matches backend schema from implementation plan
@@ -143,6 +145,8 @@ export interface Commitment extends CommitmentBase {
   // Related data
   attachments?: CommitmentAttachment[]
   updates?: CommitmentUpdateEntry[]
+  /** Threaded comments (top-level with `replies`), embedded by the detail endpoint. */
+  comments?: Comment[]
   milestones?: Milestone[]
   linked_target_ids?: string[] // IDs of linked targets/desired wins
   target_links?: Array<{ target_id: string }> // Junction table links to targets

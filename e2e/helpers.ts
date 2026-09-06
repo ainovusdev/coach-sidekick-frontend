@@ -64,6 +64,33 @@ export function seedSession(opts: {
   return JSON.parse(out.trim().split('\n').pop() as string)
 }
 
+/**
+ * Ensure `coachEmail` has a client row for `clientEmail`, linked to that
+ * person's login when one exists. The API never links an existing active
+ * account (that goes through the accept-request flow), so the seed script
+ * does it directly. Idempotent; `reset` removes it again.
+ */
+export function seedClient(opts: {
+  coachEmail: string
+  clientEmail: string
+  name?: string
+  /** Other coaches granted access to the row (ClientAccess). */
+  grantTo?: string[]
+}): { id: string; user_id: string | null; name: string } {
+  const args = [
+    'client',
+    opts.coachEmail,
+    opts.clientEmail,
+    JSON.stringify(opts.name ?? ''),
+  ]
+  for (const email of opts.grantTo ?? []) args.push(email)
+  const out = execSync(
+    `poetry run python scripts/seed_local_sandbox_fixtures.py ${args.join(' ')}`,
+    { cwd: backendDir(), stdio: 'pipe' },
+  ).toString()
+  return JSON.parse(out.trim().split('\n').pop() as string)
+}
+
 export function invitationToken(email: string): {
   token: string
   status: string

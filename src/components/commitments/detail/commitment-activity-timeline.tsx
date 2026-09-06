@@ -16,12 +16,14 @@ import {
   Trophy,
   AlertTriangle,
   UserRound,
+  MessageSquare,
 } from 'lucide-react'
 import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/date-utils'
 import { statusInfo } from '@/lib/commitments/labels'
 import type { Commitment } from '@/types/commitment'
+import type { Comment } from '@/types/comment'
 import {
   buildActivityFeed,
   resolveActorName,
@@ -30,6 +32,9 @@ import {
 
 function ItemIcon({ item }: { item: ActivityItem }) {
   const base = 'h-3.5 w-3.5'
+  if (item.commentId) {
+    return <MessageSquare className={cn(base, 'text-ink-3')} />
+  }
   switch (item.kind) {
     case 'created':
       return <Plus className={cn(base, 'text-ink-3')} />
@@ -63,6 +68,28 @@ function ItemBody({
   currentUserId?: string
   clientFirstName?: string
 }) {
+  if (item.commentId) {
+    const anchor = `comment-${item.commentId}`
+    return (
+      <div className="space-y-0.5">
+        <span className="text-ink-3">
+          <span className="text-ink-2 font-medium">{actor}</span> commented
+        </span>
+        <a
+          href={`#${anchor}`}
+          className="block text-sm text-ink-2 line-clamp-2 hover:underline"
+          onClick={e => {
+            const el = document.getElementById(anchor)
+            if (!el) return
+            e.preventDefault()
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+        >
+          {item.note}
+        </a>
+      </div>
+    )
+  }
   switch (item.kind) {
     case 'created':
       return (
@@ -153,11 +180,14 @@ function ItemBody({
 export function CommitmentActivityTimeline({
   commitment,
   currentUserId,
+  comments,
 }: {
   commitment: Commitment
   currentUserId?: string
+  /** Live thread (from useComments); falls back to the embedded one. */
+  comments?: Comment[]
 }) {
-  const groups = buildActivityFeed(commitment)
+  const groups = buildActivityFeed(commitment, comments)
 
   const ctx = {
     currentUserId,

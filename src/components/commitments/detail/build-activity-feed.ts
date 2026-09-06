@@ -9,6 +9,8 @@
  */
 
 import type { Commitment, CommitmentUpdateEntry } from '@/types/commitment'
+import { commentPersonName, type Comment } from '@/types/comment'
+import { htmlToPlainText } from '@/components/ui/rich-text-editor'
 
 export type ActivityKind =
   | 'comment'
@@ -24,10 +26,12 @@ export interface ActivityItem {
   at: string
   actorId?: string
   actorName?: string
-  /** comment */
+  /** comment — `note` is the ledger note, or the excerpt of a thread comment */
   note?: string
   wins?: string
   blockers?: string
+  /** Set for thread comments: links to `#comment-{id}`. */
+  commentId?: string
   /** status */
   toStatus?: string
   /** progress */
@@ -53,7 +57,24 @@ function sameDay(a?: string | null, b?: string | null) {
   return new Date(a).toDateString() === new Date(b).toDateString()
 }
 
-export function buildActivityFeed(commitment: Commitment): ActivityGroup[] {
+const EXCERPT_LENGTH = 160
+
+function excerptOf(html: string): string {
+  const text = htmlToPlainText(html).replace(/\s+/g, ' ').trim()
+  return text.length > EXCERPT_LENGTH
+    ? `${text.slice(0, EXCERPT_LENGTH - 1).trimEnd()}…`
+    : text
+}
+
+/** Top-level comments and their replies, flattened; deleted rows skipped. */
+function flattenComments(comments: Comment[]): Comment[] {
+  return comments.flatMap(c => [c, ...(c.replies ?? [])])
+}
+
+export function buildActivityFeed(
+  commitment: Commitment,
+  comments: Comment[] = commitment.comments ?? [],
+): ActivityGroup[] {
   const updates: CommitmentUpdateEntry[] = [...(commitment.updates || [])]
 
   // Ascending first, so progress deltas can be computed against the running
@@ -134,6 +155,28 @@ export function buildActivityFeed(commitment: Commitment): ActivityGroup[] {
         items,
       })
     }
+  }
+
+  // Thread comments (Slice 2) sit in the same column as the ledger.
+  for (const c of flattenComments(comments)) {
+    if (c.deleted_at) continue
+    groups.push({
+      key: `comment:${c.id}`,
+      at: c.created_at,
+      actorId: c.author.id,
+      actorName: commentPersonName(c.author),
+      items: [
+        {
+          id: `comment:${c.id}`,
+          kind: 'comment',
+          at: c.created_at,
+          actorId: c.author.id,
+          actorName: commentPersonName(c.author),
+          note: excerptOf(c.body),
+          commentId: c.id,
+        },
+      ],
+    })
   }
 
   // There is no DB row for creation — synthesize one so the feed has an origin.

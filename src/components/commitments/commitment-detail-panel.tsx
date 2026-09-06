@@ -56,6 +56,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import {
@@ -71,8 +72,6 @@ import {
   Trash2,
   Sparkles,
   Clock,
-  Trophy,
-  AlertTriangle,
   ChevronUp,
   ChevronDown,
   Paperclip,
@@ -91,6 +90,7 @@ import type {
   Commitment,
   CommitmentAttachment,
   CommitmentPriority,
+  CommitmentUpdateCreate,
   Milestone,
 } from '@/types/commitment'
 import {
@@ -165,6 +165,21 @@ export function CommitmentDetailPanel({
   })
 
   const panelRef = useRef<HTMLDivElement>(null)
+
+  // Deep link from a notification: `?open=<id>&comment=<cid>` (hub) or
+  // `?commitment=<id>&comment=<cid>` (portal dashboard). Read once per open.
+  const [highlightCommentId, setHighlightCommentId] = useState<string | null>(
+    null,
+  )
+  useEffect(() => {
+    if (!commitmentId) {
+      setHighlightCommentId(null)
+      return
+    }
+    setHighlightCommentId(
+      new URLSearchParams(window.location.search).get('comment'),
+    )
+  }, [commitmentId])
 
   // Close on Escape. Panel-only: on the page route this would navigate away,
   // which is hostile.
@@ -270,6 +285,7 @@ export function CommitmentDetailPanel({
                     commitmentId={commitmentId!}
                     onCommitmentUpdate={onCommitmentUpdate}
                     clientMode={clientMode}
+                    highlightCommentId={highlightCommentId}
                   />
                 )}
 
@@ -1414,61 +1430,92 @@ export function ActivitySection({
   commitmentId,
   onCommitmentUpdate,
   clientMode,
-  hideHistory,
+  highlightCommentId,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
   clientMode?: boolean
-  /**
-   * Render the composer only. The page route pairs this with
-   * CommitmentActivityTimeline, which shows the same updates plus the status
-   * and progress events this flat list drops.
-   */
-  hideHistory?: boolean
+  /** Deep link (`?comment=<id>`): scroll to and ring that comment. */
+  highlightCommentId?: string | null
 }) {
-  const [note, setNote] = useState('')
-  const [showExtras, setShowExtras] = useState(false)
+  return (
+    <div className="space-y-3">
+      <label className="text-sm font-medium text-ink-2 ">Comments</label>
+
+      <CommentThread
+        targetType="commitment"
+        targetId={commitmentId}
+        context={{
+          clientId: commitment.client_id ?? undefined,
+          sandboxId: commitment.sandbox_id ?? undefined,
+        }}
+        initialComments={commitment.comments}
+        highlightId={highlightCommentId}
+      />
+
+      <LogProgress
+        commitment={commitment}
+        commitmentId={commitmentId}
+        clientMode={clientMode}
+        onCommitmentUpdate={onCommitmentUpdate}
+      />
+    </div>
+  )
+}
+
+/**
+ * Wins / blockers / progress go to the `/progress` ledger (they drive the
+ * timeline and the client's weekly digest); conversation lives in the thread.
+ */
+function LogProgress({
+  commitment,
+  commitmentId,
+  clientMode,
+  onCommitmentUpdate,
+}: {
+  commitment: Commitment
+  commitmentId: string
+  clientMode?: boolean
+  onCommitmentUpdate?: () => void
+}) {
+  const [open, setOpen] = useState(false)
   const [wins, setWins] = useState('')
   const [blockers, setBlockers] = useState('')
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  // Resolved after mount: `navigator` is undefined during server rendering,
-  // and this component now also renders under a page route.
-  const [isMac, setIsMac] = useState(false)
-  useEffect(() => {
-    setIsMac(/Mac|iPhone|iPad/.test(navigator.platform || ''))
-  }, [])
+  // Blank = leave progress as it is.
+  const [progress, setProgress] = useState('')
 
   const coachUpdateProgress = useUpdateCommitmentProgress()
   const clientUpdateProgress = useClientUpdateCommitmentProgress()
   const updateProgress = clientMode ? clientUpdateProgress : coachUpdateProgress
 
-  const updates = [...(commitment.updates || [])].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  )
+  const nextProgress =
+    progress.trim() === ''
+      ? undefined
+      : Math.max(0, Math.min(100, Math.round(Number(progress))))
+  const progressChanged =
+    nextProgress !== undefined &&
+    !Number.isNaN(nextProgress) &&
+    nextProgress !== commitment.progress_percentage
+  const hasSomething = !!wins.trim() || !!blockers.trim() || progressChanged
 
-  const handleSubmit = () => {
-    const data: any = {}
-    if (note.trim()) data.note = note.trim()
-    if (wins.trim()) data.wins = wins.trim()
-    if (blockers.trim()) data.blockers = blockers.trim()
-
-    if (Object.keys(data).length === 0) return
-
-    // Clear form instantly — the mutation hook handles the optimistic update
-    setNote('')
+  const reset = () => {
     setWins('')
     setBlockers('')
-    setShowExtras(false)
+    setProgress('')
+    setOpen(false)
+  }
 
+  const handleSubmit = () => {
+    if (!hasSomething) return
+    const data: CommitmentUpdateCreate = {}
+    if (wins.trim()) data.wins = wins.trim()
+    if (blockers.trim()) data.blockers = blockers.trim()
+    if (progressChanged) data.progress_percentage = nextProgress
+    reset()
     updateProgress.mutate(
       { commitmentId, data },
-      {
-        onSettled: () => {
-          onCommitmentUpdate?.()
-        },
-      },
+      { onSettled: () => onCommitmentUpdate?.() },
     )
   }
 
@@ -1476,122 +1523,87 @@ export function ActivitySection({
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
       e.preventDefault()
       handleSubmit()
+    } else if (e.key === 'Escape') {
+      // Keep the panel open; just fold the form.
+      e.preventDefault()
+      reset()
     }
   }
 
+  if (!open) {
+    return (
+      <button
+        type="button"
+        data-testid="log-progress-toggle"
+        className="flex items-center gap-1 text-xs text-ink-3 hover:text-ink-2"
+        onClick={() => setOpen(true)}
+      >
+        <ChevronDown className="h-3 w-3" />
+        Log progress
+      </button>
+    )
+  }
+
   return (
-    <div className="space-y-3">
-      <label className="text-sm font-medium text-ink-2 ">Comments</label>
-
-      {/* Always-visible comment input */}
-      <div className="space-y-2">
+    <div
+      className="space-y-2 rounded-lg border border-line bg-surface-2 p-3"
+      onKeyDown={handleKeyDown}
+    >
+      <button
+        type="button"
+        data-testid="log-progress-toggle"
+        className="flex items-center gap-1 text-xs font-medium text-ink-2"
+        onClick={reset}
+      >
+        <ChevronUp className="h-3 w-3" />
+        Log progress
+      </button>
+      <div>
+        <label className="text-xs text-forest font-medium">Wins</label>
         <Textarea
-          ref={inputRef}
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a comment..."
-          rows={2}
-          className="resize-none text-sm"
+          value={wins}
+          onChange={e => setWins(e.target.value)}
+          placeholder="What went well?"
+          rows={1}
+          autoFocus
+          className="resize-none text-sm mt-1 bg-surface-1"
         />
-
-        {/* Expandable wins/blockers */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            className="text-xs text-ink-3 hover:text-ink-2 flex items-center gap-1"
-            onClick={() => setShowExtras(!showExtras)}
-          >
-            {showExtras ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-            Wins & Blockers
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-ink-4 ">
-              {isMac ? '⌘' : 'Ctrl'}+Enter
-            </span>
-            <Button
-              size="sm"
-              className="h-7 text-xs px-3"
-              onClick={handleSubmit}
-              disabled={!note.trim() && !wins.trim() && !blockers.trim()}
-            >
-              Post
-            </Button>
-          </div>
-        </div>
-
-        {showExtras && (
-          <div className="space-y-2">
-            <div>
-              <label className="text-xs text-forest font-medium">Wins</label>
-              <Textarea
-                value={wins}
-                onChange={e => setWins(e.target.value)}
-                placeholder="What went well?"
-                rows={1}
-                className="resize-none text-sm mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-vermillion font-medium">
-                Blockers
-              </label>
-              <Textarea
-                value={blockers}
-                onChange={e => setBlockers(e.target.value)}
-                placeholder="What's blocking progress?"
-                rows={1}
-                className="resize-none text-sm mt-1"
-              />
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Comments feed — suppressed on the page route, which renders the
-          richer CommitmentActivityTimeline in its place. */}
-      {hideHistory ? null : updates.length > 0 ? (
-        <div className="space-y-2">
-          {updates.map(update => (
-            <div
-              key={update.id}
-              className="pl-3 border-l-2 border-line space-y-1.5"
-            >
-              {/* Timestamp */}
-              <span className="text-xs text-ink-4 ">
-                {formatRelativeTime(update.created_at)}
-              </span>
-
-              {/* Note */}
-              {update.note && (
-                <p className="text-sm text-ink-2 ">{update.note}</p>
-              )}
-
-              {/* Wins */}
-              {update.wins && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-forest-bg rounded text-sm">
-                  <Trophy className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
-                  <span className="text-forest ">{update.wins}</span>
-                </div>
-              )}
-
-              {/* Blockers */}
-              {update.blockers && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-vermillion-bg rounded text-sm">
-                  <AlertTriangle className="h-3.5 w-3.5 text-vermillion mt-0.5 flex-shrink-0" />
-                  <span className="text-vermillion ">{update.blockers}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-ink-4 text-center py-2">No comments yet</p>
-      )}
+      <div>
+        <label className="text-xs text-vermillion font-medium">Blockers</label>
+        <Textarea
+          value={blockers}
+          onChange={e => setBlockers(e.target.value)}
+          placeholder="What's blocking progress?"
+          rows={1}
+          className="resize-none text-sm mt-1 bg-surface-1"
+        />
+      </div>
+      <div className="flex items-center justify-between gap-2 pt-1">
+        <label className="flex items-center gap-2 text-xs text-ink-3">
+          Progress
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            inputMode="numeric"
+            value={progress}
+            onChange={e => setProgress(e.target.value)}
+            placeholder={String(commitment.progress_percentage ?? 0)}
+            className="h-7 w-16 px-2 text-xs bg-surface-1"
+          />
+          %
+        </label>
+        <Button
+          size="sm"
+          className="h-7 text-xs px-3"
+          data-testid="log-progress-submit"
+          onClick={handleSubmit}
+          disabled={!hasSomething || updateProgress.isPending}
+        >
+          Save
+        </Button>
+      </div>
     </div>
   )
 }

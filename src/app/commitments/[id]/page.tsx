@@ -12,7 +12,7 @@
  * column with properties beside it, rather than a 640px panel stretched wide.
  */
 
-import { use, useState } from 'react'
+import { use, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { ArrowLeft, ChevronRight, Link as LinkIcon, Target } from 'lucide-react'
@@ -23,6 +23,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { useAuth } from '@/contexts/auth-context'
+import { useComments } from '@/hooks/queries/use-comments'
 
 import {
   useCommitmentDetail,
@@ -91,6 +92,17 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
   const { user } = useAuth()
   const [confirmDelete, setConfirmDelete] = useState(false)
 
+  // Deep link from a notification: /commitments/[id]?comment=<id>. Read from
+  // the URL directly (no useSearchParams, so no Suspense boundary needed).
+  const [highlightCommentId, setHighlightCommentId] = useState<string | null>(
+    null,
+  )
+  useEffect(() => {
+    setHighlightCommentId(
+      new URLSearchParams(window.location.search).get('comment'),
+    )
+  }, [commitmentId])
+
   const {
     commitment,
     isLoading,
@@ -103,6 +115,11 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
     // The page has no surrounding list to refresh; the mutations already
     // invalidate the ['commitments'] prefix.
     onDeleted: () => router.replace('/commitments'),
+  })
+
+  // Same cache entry the thread below uses, so the timeline stays in step.
+  const { data: thread } = useComments('commitment', commitment?.id, {
+    initialData: commitment?.comments,
   })
 
   if (isLoading) return <PageSkeleton />
@@ -191,11 +208,12 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
               <ActivitySection
                 commitment={commitment}
                 commitmentId={commitment.id}
-                hideHistory
+                highlightCommentId={highlightCommentId}
               />
               <CommitmentActivityTimeline
                 commitment={commitment}
                 currentUserId={user?.id}
+                comments={thread?.comments}
               />
             </section>
           )}

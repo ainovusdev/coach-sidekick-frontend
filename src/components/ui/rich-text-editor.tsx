@@ -1,10 +1,16 @@
 'use client'
 
-import { useEditor, EditorContent } from '@tiptap/react'
+import {
+  useEditor,
+  EditorContent,
+  Extension,
+  type AnyExtension,
+  type Editor,
+} from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
 import {
   Bold,
   Italic,
@@ -23,7 +29,50 @@ interface RichTextEditorProps {
   disabled?: boolean
   minHeight?: string
   onKeyDown?: (e: React.KeyboardEvent) => void
+  /**
+   * `document` (default) is the full editor with a toolbar. `comment` is the
+   * compact composer: no toolbar, tighter padding, 56px tall until typed in.
+   */
+  variant?: 'document' | 'comment'
+  /** Extra tiptap extensions appended after the built-in set (e.g. Mention). */
+  extensions?: AnyExtension[]
+  /** Cmd/Ctrl+Enter. */
+  onSubmit?: () => void
+  /**
+   * Escape, when nothing inside the editor (a mention popup) took it first.
+   * Return true to swallow the key so an enclosing panel stays open.
+   */
+  onEscape?: () => boolean | void
+  autoFocus?: boolean
+  /** Merged into the ProseMirror content element's attributes (test ids, aria). */
+  editorAttributes?: Record<string, string>
+  /** The live editor, once created — for clearContent() / getJSON() from outside. */
+  onEditorReady?: (editor: Editor) => void
 }
+
+/**
+ * Composer keys. Priority 50 so the Mention suggestion plugin (default 100)
+ * sees Enter / Escape first while its popup is open.
+ */
+const ComposerKeys = Extension.create<{
+  onSubmit: () => boolean
+  onEscape: () => boolean
+}>({
+  name: 'composerKeys',
+  // Above StarterKit (100): HardBreak also binds Mod-Enter and would insert a
+  // line break first. Escape still reaches the mention popup because the
+  // composer's onEscape returns false while the popup is open.
+  priority: 1000,
+  addOptions() {
+    return { onSubmit: () => false, onEscape: () => false }
+  },
+  addKeyboardShortcuts() {
+    return {
+      'Mod-Enter': () => this.options.onSubmit(),
+      Escape: () => this.options.onEscape(),
+    }
+  },
+})
 
 interface ToolbarButtonProps {
   onClick: () => void
@@ -65,15 +114,43 @@ export function RichTextEditor({
   className,
   editorClassName,
   disabled = false,
-  minHeight = '120px',
+  minHeight,
   onKeyDown,
+  variant = 'document',
+  extensions,
+  onSubmit,
+  onEscape,
+  autoFocus = false,
+  editorAttributes,
+  onEditorReady,
 }: RichTextEditorProps) {
+  const isComment = variant === 'comment'
+  const resolvedMinHeight = minHeight ?? (isComment ? '56px' : '120px')
   const [isMounted, setIsMounted] = useState(false)
 
   // Prevent SSR hydration issues
   useEffect(() => {
     setIsMounted(true)
   }, [])
+
+  // The editor is created once; the key handlers read the latest callbacks
+  // through refs so a re-render never has to rebuild it.
+  const onSubmitRef = useRef(onSubmit)
+  const onEscapeRef = useRef(onEscape)
+  onSubmitRef.current = onSubmit
+  onEscapeRef.current = onEscape
+  const composerKeys = useMemo(
+    () =>
+      ComposerKeys.configure({
+        onSubmit: () => {
+          if (!onSubmitRef.current) return false
+          onSubmitRef.current()
+          return true
+        },
+        onEscape: () => onEscapeRef.current?.() === true,
+      }),
+    [],
+  )
 
   const editor = useEditor({
     extensions: [
@@ -93,9 +170,12 @@ export function RichTextEditor({
         emptyEditorClass:
           'before:content-[attr(data-placeholder)] before:text-ink-4 before:float-left before:h-0 before:pointer-events-none',
       }),
+      ...(onSubmit || onEscape ? [composerKeys] : []),
+      ...(extensions ?? []),
     ],
     content,
     editable: !disabled,
+    autofocus: autoFocus ? 'end' : false,
     // Prevent SSR rendering issues
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
@@ -103,6 +183,7 @@ export function RichTextEditor({
     },
     editorProps: {
       attributes: {
+        ...editorAttributes,
         class: cn(
           'prose prose-sm dark:prose-invert max-w-none focus:outline-none',
           'min-h-[var(--editor-min-height)]',
@@ -112,10 +193,16 @@ export function RichTextEditor({
           '[&_p]:my-1',
           editorClassName,
         ),
-        style: `--editor-min-height: ${minHeight}`,
+        style: `--editor-min-height: ${resolvedMinHeight}`,
       },
     },
   })
+
+  useEffect(() => {
+    if (editor) onEditorReady?.(editor)
+    // Only when the editor instance itself changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor])
 
   // Update content when prop changes externally
   useEffect(() => {
@@ -161,16 +248,21 @@ export function RichTextEditor({
         )}
       >
         {/* Toolbar placeholder */}
-        <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper ">
-          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
-          <div className="w-px h-5 bg-line mx-1" />
-          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
-          <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
-        </div>
+        {!isComment && (
+          <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper ">
+            <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+            <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+            <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+            <div className="w-px h-5 bg-line mx-1" />
+            <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+            <div className="h-7 w-7 bg-surface-3 rounded-md animate-pulse" />
+          </div>
+        )}
         {/* Content placeholder */}
-        <div className="px-3 py-2" style={{ minHeight }}>
+        <div
+          className={isComment ? 'px-3 py-1.5' : 'px-3 py-2'}
+          style={{ minHeight: resolvedMinHeight }}
+        >
           <div className="h-4 bg-surface-3 rounded w-3/4 animate-pulse" />
         </div>
       </div>
@@ -187,58 +279,65 @@ export function RichTextEditor({
       )}
       onKeyDown={onKeyDown}
     >
-      {/* Toolbar */}
-      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper flex-shrink-0">
-        <ToolbarButton
-          onClick={toggleBold}
-          isActive={editor.isActive('bold')}
-          disabled={disabled}
-          title="Bold (Cmd+B)"
-        >
-          <Bold className="h-4 w-4" />
-        </ToolbarButton>
+      {/* Toolbar — the comment variant has none */}
+      {!isComment && (
+        <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-line bg-paper flex-shrink-0">
+          <ToolbarButton
+            onClick={toggleBold}
+            isActive={editor.isActive('bold')}
+            disabled={disabled}
+            title="Bold (Cmd+B)"
+          >
+            <Bold className="h-4 w-4" />
+          </ToolbarButton>
 
-        <ToolbarButton
-          onClick={toggleItalic}
-          isActive={editor.isActive('italic')}
-          disabled={disabled}
-          title="Italic (Cmd+I)"
-        >
-          <Italic className="h-4 w-4" />
-        </ToolbarButton>
+          <ToolbarButton
+            onClick={toggleItalic}
+            isActive={editor.isActive('italic')}
+            disabled={disabled}
+            title="Italic (Cmd+I)"
+          >
+            <Italic className="h-4 w-4" />
+          </ToolbarButton>
 
-        <ToolbarButton
-          onClick={toggleUnderline}
-          isActive={editor.isActive('underline')}
-          disabled={disabled}
-          title="Underline (Cmd+U)"
-        >
-          <UnderlineIcon className="h-4 w-4" />
-        </ToolbarButton>
+          <ToolbarButton
+            onClick={toggleUnderline}
+            isActive={editor.isActive('underline')}
+            disabled={disabled}
+            title="Underline (Cmd+U)"
+          >
+            <UnderlineIcon className="h-4 w-4" />
+          </ToolbarButton>
 
-        <div className="w-px h-5 bg-line mx-1" />
+          <div className="w-px h-5 bg-line mx-1" />
 
-        <ToolbarButton
-          onClick={toggleBulletList}
-          isActive={editor.isActive('bulletList')}
-          disabled={disabled}
-          title="Bullet List"
-        >
-          <List className="h-4 w-4" />
-        </ToolbarButton>
+          <ToolbarButton
+            onClick={toggleBulletList}
+            isActive={editor.isActive('bulletList')}
+            disabled={disabled}
+            title="Bullet List"
+          >
+            <List className="h-4 w-4" />
+          </ToolbarButton>
 
-        <ToolbarButton
-          onClick={toggleOrderedList}
-          isActive={editor.isActive('orderedList')}
-          disabled={disabled}
-          title="Numbered List"
-        >
-          <ListOrdered className="h-4 w-4" />
-        </ToolbarButton>
-      </div>
+          <ToolbarButton
+            onClick={toggleOrderedList}
+            isActive={editor.isActive('orderedList')}
+            disabled={disabled}
+            title="Numbered List"
+          >
+            <ListOrdered className="h-4 w-4" />
+          </ToolbarButton>
+        </div>
+      )}
 
       {/* Editor Content */}
-      <div className="px-3 py-2 flex-1 overflow-y-auto text-ink ">
+      <div
+        className={cn(
+          'flex-1 overflow-y-auto text-ink ',
+          isComment ? 'px-3 py-1.5' : 'px-3 py-2',
+        )}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>
