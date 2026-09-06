@@ -72,6 +72,8 @@ interface CommitmentCreatePanelProps {
   clientMode?: boolean
   /** Pre-pick someone (e.g. an admin's "for Marcus" button). */
   defaultAssignee?: PickedPerson | null
+  /** Sandbox context: start with the private switch on (our side, their side present). */
+  defaultPrivate?: boolean
 }
 
 export function CommitmentCreatePanel({
@@ -84,6 +86,7 @@ export function CommitmentCreatePanel({
   context,
   clientMode,
   defaultAssignee,
+  defaultPrivate = false,
 }: CommitmentCreatePanelProps) {
   const { user } = useAuth()
   const userId = useViewerId()
@@ -101,7 +104,7 @@ export function CommitmentCreatePanel({
   const [selectedTargetIds, setSelectedTargetIds] = useState<string[]>([])
   const [selectedSprintIds, setSelectedSprintIds] = useState<string[]>([])
   const [dueDateOpen, setDueDateOpen] = useState(false)
-  const [isPrivate, setIsPrivate] = useState(false)
+  const [isPrivate, setIsPrivate] = useState(defaultPrivate)
 
   // Client: fixed by the caller, or picked here when the panel has none.
   const [pickedClient, setPickedClient] = useState<CreatePanelClient | null>(
@@ -181,14 +184,14 @@ export function CommitmentCreatePanel({
       setTargetDate(undefined)
       setSelectedTargetIds([])
       setSelectedSprintIds([])
-      setIsPrivate(false)
+      setIsPrivate(defaultPrivate)
       setPickedClient(null)
       setAssignee(null)
       setAssigneeTouched(false)
       // Focus title after panel animation
       setTimeout(() => titleInputRef.current?.focus(), 350)
     }
-  }, [isOpen])
+  }, [isOpen, defaultPrivate])
 
   // Close on Escape — unless a picker or menu inside already took it.
   useEffect(() => {

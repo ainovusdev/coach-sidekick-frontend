@@ -26,6 +26,7 @@ import { parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
 import {
   Boxes,
+  Lock,
   Calendar,
   Check,
   CheckCircle2,
@@ -148,6 +149,16 @@ export function CommitmentRow({
           >
             {commitment.title}
           </Link>
+          {commitment.visibility === 'private' && (
+            <span
+              className="inline-flex items-center text-ink-4"
+              title="Only people on this commitment can see it"
+              data-testid="commitment-private"
+            >
+              <Lock className="h-3 w-3" aria-hidden />
+              <span className="sr-only">Private</span>
+            </span>
+          )}
           {showPriority && (
             <span
               className={cn('text-xs font-medium', TONE_TEXT[priority.tone])}

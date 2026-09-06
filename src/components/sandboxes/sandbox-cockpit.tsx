@@ -19,6 +19,7 @@ import { IncompleteBanner } from '@/components/sandboxes/incomplete-banner'
 import { GroupsPanel } from '@/components/sandboxes/groups-panel'
 import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
 import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
+import { CommitmentsPanel } from '@/components/sandboxes/commitments-panel'
 import { GroupDrawer } from '@/components/sandboxes/group-drawer'
 import {
   GroupBlockedDialog,
@@ -199,6 +200,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           onOpenChange={setVisionOpen}
         />
         <OutcomesPanel overview={overview} />
+        <CommitmentsPanel overview={overview} />
         <TeamPanel
           overview={overview}
           actions={memberActions}
