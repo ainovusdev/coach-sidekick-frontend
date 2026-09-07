@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { CommitmentService } from '@/services/commitment-service'
 import { ClientCommitmentService } from '@/services/client-commitment-service'
 import {
-  useUpdateCommitmentProgress,
   useAddMilestone,
   useUpdateMilestone,
   useDeleteMilestone,
@@ -13,7 +12,6 @@ import {
   useDeleteAttachment,
 } from '@/hooks/mutations/use-commitment-mutations'
 import {
-  useClientUpdateCommitmentProgress,
   useClientAddMilestone,
   useClientUpdateMilestone,
   useClientDeleteMilestone,
@@ -23,7 +21,6 @@ import {
 import { queryKeys } from '@/lib/query-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Calendar } from '@/components/ui/calendar'
@@ -75,8 +72,6 @@ import {
   Trash2,
   Sparkles,
   Clock,
-  ChevronUp,
-  ChevronDown,
   Paperclip,
   Upload,
   FileText,
@@ -93,7 +88,6 @@ import type {
   Commitment,
   CommitmentAttachment,
   CommitmentPriority,
-  CommitmentUpdateCreate,
   Milestone,
 } from '@/types/commitment'
 import {
@@ -288,8 +282,6 @@ export function CommitmentDetailPanel({
                   <ActivitySection
                     commitment={commitment}
                     commitmentId={commitmentId!}
-                    onCommitmentUpdate={onCommitmentUpdate}
-                    clientMode={clientMode}
                     highlightCommentId={highlightCommentId}
                   />
                 )}
@@ -1467,14 +1459,10 @@ function MilestoneItem({
 export function ActivitySection({
   commitment,
   commitmentId,
-  onCommitmentUpdate,
-  clientMode,
   highlightCommentId,
 }: {
   commitment: Commitment
   commitmentId: string
-  onCommitmentUpdate?: () => void
-  clientMode?: boolean
   /** Deep link (`?comment=<id>`): scroll to and ring that comment. */
   highlightCommentId?: string | null
 }) {
@@ -1492,157 +1480,6 @@ export function ActivitySection({
         initialComments={commitment.comments}
         highlightId={highlightCommentId}
       />
-
-      <LogProgress
-        commitment={commitment}
-        commitmentId={commitmentId}
-        clientMode={clientMode}
-        onCommitmentUpdate={onCommitmentUpdate}
-      />
-    </div>
-  )
-}
-
-/**
- * Wins / blockers / progress go to the `/progress` ledger (they drive the
- * timeline and the client's weekly digest); conversation lives in the thread.
- */
-function LogProgress({
-  commitment,
-  commitmentId,
-  clientMode,
-  onCommitmentUpdate,
-}: {
-  commitment: Commitment
-  commitmentId: string
-  clientMode?: boolean
-  onCommitmentUpdate?: () => void
-}) {
-  const [open, setOpen] = useState(false)
-  const [wins, setWins] = useState('')
-  const [blockers, setBlockers] = useState('')
-  // Blank = leave progress as it is.
-  const [progress, setProgress] = useState('')
-
-  const coachUpdateProgress = useUpdateCommitmentProgress()
-  const clientUpdateProgress = useClientUpdateCommitmentProgress()
-  const updateProgress = clientMode ? clientUpdateProgress : coachUpdateProgress
-
-  const nextProgress =
-    progress.trim() === ''
-      ? undefined
-      : Math.max(0, Math.min(100, Math.round(Number(progress))))
-  const progressChanged =
-    nextProgress !== undefined &&
-    !Number.isNaN(nextProgress) &&
-    nextProgress !== commitment.progress_percentage
-  const hasSomething = !!wins.trim() || !!blockers.trim() || progressChanged
-
-  const reset = () => {
-    setWins('')
-    setBlockers('')
-    setProgress('')
-    setOpen(false)
-  }
-
-  const handleSubmit = () => {
-    if (!hasSomething) return
-    const data: CommitmentUpdateCreate = {}
-    if (wins.trim()) data.wins = wins.trim()
-    if (blockers.trim()) data.blockers = blockers.trim()
-    if (progressChanged) data.progress_percentage = nextProgress
-    reset()
-    updateProgress.mutate(
-      { commitmentId, data },
-      { onSettled: () => onCommitmentUpdate?.() },
-    )
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      handleSubmit()
-    } else if (e.key === 'Escape') {
-      // Keep the panel open; just fold the form.
-      e.preventDefault()
-      reset()
-    }
-  }
-
-  if (!open) {
-    return (
-      <button
-        type="button"
-        data-testid="log-progress-toggle"
-        className="flex items-center gap-1 text-xs text-ink-3 hover:text-ink-2"
-        onClick={() => setOpen(true)}
-      >
-        <ChevronDown className="h-3 w-3" />
-        Log progress
-      </button>
-    )
-  }
-
-  return (
-    <div
-      className="space-y-2 rounded-lg border border-line bg-surface-2 p-3"
-      onKeyDown={handleKeyDown}
-    >
-      <button
-        type="button"
-        data-testid="log-progress-toggle"
-        className="flex items-center gap-1 text-xs font-medium text-ink-2"
-        onClick={reset}
-      >
-        <ChevronUp className="h-3 w-3" />
-        Log progress
-      </button>
-      <div>
-        <label className="text-xs text-forest font-medium">Wins</label>
-        <Textarea
-          value={wins}
-          onChange={e => setWins(e.target.value)}
-          placeholder="What went well?"
-          rows={1}
-          autoFocus
-          className="resize-none text-sm mt-1 bg-surface-1"
-        />
-      </div>
-      <div>
-        <label className="text-xs text-vermillion font-medium">Blockers</label>
-        <Textarea
-          value={blockers}
-          onChange={e => setBlockers(e.target.value)}
-          placeholder="What's blocking progress?"
-          rows={1}
-          className="resize-none text-sm mt-1 bg-surface-1"
-        />
-      </div>
-      <div className="flex items-center justify-between gap-2 pt-1">
-        <label className="flex items-center gap-2 text-xs text-ink-3">
-          Progress
-          <Input
-            type="number"
-            min={0}
-            max={100}
-            inputMode="numeric"
-            value={progress}
-            onChange={e => setProgress(e.target.value)}
-            placeholder={String(commitment.progress_percentage ?? 0)}
-            className="h-7 w-16 px-2 text-xs bg-surface-1"
-          />
-          %
-        </label>
-        <Button
-          size="sm"
-          className="h-7 text-xs px-3"
-          data-testid="log-progress-submit"
-          onClick={handleSubmit}
-          disabled={!hasSomething || updateProgress.isPending}
-        >
-          Save
-        </Button>
-      </div>
     </div>
   )
 }
