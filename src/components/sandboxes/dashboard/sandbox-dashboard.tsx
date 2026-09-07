@@ -2,7 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Boxes } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Boxes, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { EmptyState } from '@/components/ui/empty-state'
 import { PageHeader } from '@/components/ui/page-header'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -28,7 +30,7 @@ const COPY: Record<
     title: 'Your sandboxes',
     description: 'The coaching contracts you deliver.',
     empty:
-      'When an account executive puts you in a sandbox group, it appears here.',
+      'Open one for a new contract, or wait for an account executive to put you in a group — either way it appears here.',
   },
   client_side: {
     title: 'Sandboxes',
@@ -116,8 +118,17 @@ function totalsFor(d: Dashboard): StatItem[] {
 }
 
 /** `/sandboxes` — the one dashboard, rendered per persona. */
-export function SandboxDashboardPage({ isAdmin }: { isAdmin: boolean }) {
+export function SandboxDashboardPage({
+  isAdmin,
+  canCreate = false,
+}: {
+  isAdmin: boolean
+  /** Our staff may open a sandbox; the creator becomes its account executive. */
+  canCreate?: boolean
+}) {
+  const router = useRouter()
   const [includeEnded, setIncludeEnded] = useState(false)
+  const newHref = isAdmin ? '/admin/sandboxes/new' : '/sandboxes/new'
   const { data, isLoading, isError } = useSandboxDashboard(includeEnded)
   const persona: Persona = data?.persona ?? (isAdmin ? 'portfolio' : 'coach')
   const copy = COPY[persona]
@@ -155,6 +166,18 @@ export function SandboxDashboardPage({ isAdmin }: { isAdmin: boolean }) {
                 Manage all sandboxes →
               </Link>
             )}
+            {canCreate && (
+              <Button
+                asChild
+                size="sm"
+                className="bg-ink text-ink-on-dark hover:bg-ink/90"
+              >
+                <Link href={newHref} data-testid="new-sandbox">
+                  <Plus className="h-4 w-4" />
+                  New sandbox
+                </Link>
+              </Button>
+            )}
           </div>
         }
       />
@@ -184,6 +207,11 @@ export function SandboxDashboardPage({ isAdmin }: { isAdmin: boolean }) {
               : 'You’re not on a sandbox yet'
           }
           description={copy.empty}
+          action={
+            canCreate
+              ? { label: 'New sandbox', onClick: () => router.push(newHref) }
+              : undefined
+          }
         />
       ) : (
         <>

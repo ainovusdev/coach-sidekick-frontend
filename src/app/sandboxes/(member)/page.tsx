@@ -5,10 +5,13 @@ import { useAuth } from '@/contexts/auth-context'
 
 /** `/sandboxes` — the dashboard for whoever is signed in (persona from the API). */
 export default function MySandboxesPage() {
-  const { isAdmin } = useAuth()
+  const { isAdmin, isCoach } = useAuth()
   return (
     <div data-testid="my-sandboxes">
-      <SandboxDashboardPage isAdmin={isAdmin()} />
+      <SandboxDashboardPage
+        isAdmin={isAdmin()}
+        canCreate={isAdmin() || isCoach()}
+      />
     </div>
   )
 }

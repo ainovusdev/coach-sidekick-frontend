@@ -13,10 +13,12 @@ export function useDebouncedValue<T>(value: T, delay = 200): T {
   return debounced
 }
 
-export function useSandboxes(filters: SandboxListFilters = {}) {
+/** The portfolio list — admin-only on the API, so callers gate with `enabled`. */
+export function useSandboxes(filters: SandboxListFilters = {}, enabled = true) {
   return useQuery({
     queryKey: queryKeys.sandboxes.list(filters),
     queryFn: () => SandboxService.list(filters),
+    enabled,
     staleTime: 60 * 1000,
   })
 }
