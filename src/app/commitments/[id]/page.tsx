@@ -219,26 +219,36 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
           )}
         </main>
 
-        <aside className="order-1 lg:order-2 space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:border-l lg:border-line lg:pl-6">
+        {/* Property rail: one plain column of sections divided by rules — the
+            rail already has a frame, so the fields don't get a second one. */}
+        <aside className="order-1 lg:order-2 space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:border-l lg:border-line lg:pl-6">
           <FieldsGrid
             commitment={commitment}
             onFieldUpdate={handleFieldUpdate}
+            variant="plain"
           />
 
+          {/* Each section carries its own rule, so one that renders nothing
+              (no outcomes to link, no session siblings) leaves no empty band. */}
           <CommitmentProgressControl
             commitment={commitment}
             commitmentId={commitment.id}
+            className="border-t border-line pt-4"
           />
 
           {capabilities.canLinkOutcomes && (
             <LinkedOutcomesSection
               commitment={commitment}
               commitmentId={commitment.id}
+              className="border-t border-line pt-4"
             />
           )}
 
           {capabilities.canSeeSiblings && (
-            <CommitmentSiblings commitment={commitment} />
+            <CommitmentSiblings
+              commitment={commitment}
+              className="border-t border-line pt-4"
+            />
           )}
 
           <MetadataFooter commitment={commitment} />

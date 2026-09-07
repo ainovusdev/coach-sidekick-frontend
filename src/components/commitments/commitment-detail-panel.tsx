@@ -457,6 +457,7 @@ export function FieldsGrid({
   commitment,
   onFieldUpdate,
   onFieldsUpdate,
+  variant = 'card',
 }: {
   commitment: Commitment
   onFieldUpdate: (field: string, value: any) => void
@@ -465,6 +466,11 @@ export function FieldsGrid({
     patch: Record<string, any>,
     optimistic?: Record<string, any>,
   ) => void
+  /**
+   * `card` (default) draws the grey panel used inside the side panel; `plain`
+   * is for the detail page's property rail, which already has its own frame.
+   */
+  variant?: 'card' | 'plain'
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
 
@@ -528,10 +534,17 @@ export function FieldsGrid({
 
   return (
     <div
-      className="p-4 bg-paper rounded-lg space-y-4"
+      className={cn(
+        '@container space-y-4',
+        variant === 'card' && 'p-4 bg-paper rounded-lg',
+      )}
       data-testid="commitment-fields"
     >
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+      {/* Sized by the container, not the viewport: the same grid sits in the
+          640px side panel (three columns) and the 320px rail on the detail
+          page, where three columns clipped the date and hid the assignee's
+          name. Below ~28rem every field gets the full width. */}
+      <div className="grid grid-cols-1 @md:grid-cols-3 gap-4">
         {/* Assignee — first: who it's for is the first thing to know */}
         <div className="space-y-1 min-w-0">
           <label className="text-xs font-medium text-ink-3 ">Assignee</label>
@@ -642,13 +655,13 @@ export function FieldsGrid({
       <div className="space-y-1">
         <label className="text-xs font-medium text-ink-3 ">Status</label>
         <div
-          className="flex flex-wrap gap-1.5"
+          className="grid grid-cols-2 gap-1.5 @md:flex @md:flex-wrap"
           data-testid="commitment-status-chips"
         >
           {!isKnownStatus && (
             <span
               className={cn(
-                'px-2.5 py-1 rounded-full text-xs font-medium border',
+                'px-2.5 py-1 rounded-full text-xs font-medium border text-center',
                 TONE_CHIP[COMMITMENT_STATUS_TONE[commitment.status] ?? 'muted']
                   .selected,
               )}
@@ -682,7 +695,7 @@ export function FieldsGrid({
                 }}
                 aria-pressed={isSelected}
                 className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
+                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors text-center',
                   isSelected ? chip.selected : chip.unselected,
                   readOnly && !isSelected && 'opacity-40 cursor-not-allowed',
                 )}
@@ -698,7 +711,7 @@ export function FieldsGrid({
       {commitment.sandbox_id && (
         <label
           className={cn(
-            'flex items-center gap-2 text-xs text-ink-2',
+            'flex items-start gap-2 text-xs leading-4 text-ink-2',
             readOnly ? 'cursor-default' : 'cursor-pointer',
           )}
         >
@@ -710,8 +723,8 @@ export function FieldsGrid({
             }
             data-testid="detail-private-toggle"
           />
-          <Lock className="h-3 w-3 text-ink-3" />
-          Only people on this commitment can see it
+          <Lock className="mt-0.5 h-3 w-3 shrink-0 text-ink-3" />
+          <span>Only people on this commitment can see it</span>
         </label>
       )}
     </div>
@@ -725,11 +738,14 @@ export function LinkedOutcomesSection({
   commitmentId,
   onCommitmentUpdate,
   guestContext,
+  className,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
   guestContext?: GuestContext
+  /** Applied to the root only when the section renders (null otherwise). */
+  className?: string
 }) {
   const queryClient = useQueryClient()
   // In guest mode, disable fetching — cache is pre-seeded by ClientCommitmentPanel
@@ -855,8 +871,12 @@ export function LinkedOutcomesSection({
 
   if (allTargets.length === 0 && allSprints.length === 0) return null
 
+  // Nothing to link (no client outcomes or sprints) → no section at all, so
+  // the detail page rail doesn't draw an empty ruled block.
+  if (allTargets.length === 0 && allSprints.length === 0) return null
+
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', className)}>
       {/* Outcomes as tags */}
       {allTargets.length > 0 && (
         <div className="space-y-2">

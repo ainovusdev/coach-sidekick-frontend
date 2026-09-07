@@ -23,7 +23,14 @@ const STATUS_DOT: Record<string, string> = {
   abandoned: 'bg-vermillion',
 }
 
-export function CommitmentSiblings({ commitment }: { commitment: Commitment }) {
+export function CommitmentSiblings({
+  commitment,
+  className,
+}: {
+  commitment: Commitment
+  /** Applied to the root only when there is something to show. */
+  className?: string
+}) {
   const { data } = useCommitments({
     session_id: commitment.session_id,
     include_drafts: true,
@@ -39,7 +46,7 @@ export function CommitmentSiblings({ commitment }: { commitment: Commitment }) {
   if (siblings.length === 0) return null
 
   return (
-    <div className="space-y-2">
+    <div className={cn('space-y-2', className)}>
       <h3 className="text-xs font-medium text-ink-3">From this session</h3>
       <div className="space-y-1">
         {siblings.map(sibling => (
