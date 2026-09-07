@@ -477,6 +477,9 @@ export const invalidateQueries = {
         queryClient.invalidateQueries({
           queryKey: queryKeys.commitments.detail(targetId),
         }),
+      // Outcome rows carry a comment count, on the cockpit and both cards.
+      targetType === 'outcome' &&
+        queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
     ])
   },

@@ -1,7 +1,9 @@
 'use client'
 
-import { Award, Pencil, Trash2 } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Award, MessageSquare, Pencil, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { TONE_CLASS, TONE_DOT } from '@/lib/sandbox/delivery'
 import {
   OUTCOME_STATUS_LABEL,
@@ -49,7 +51,8 @@ export interface OutcomeActions {
 
 /**
  * One outcome: status, the statement, how we'll know, who did the last thing.
- * The buttons are whatever the viewer may do next — nothing else is drawn.
+ * The buttons are whatever the viewer may do next — nothing else is drawn,
+ * except the comment thread everyone who sees the outcome may open.
  */
 export function OutcomeRow({
   outcome: o,
@@ -58,6 +61,8 @@ export function OutcomeRow({
   canReopen,
   actions,
   busy,
+  commentsOpen,
+  highlightCommentId,
 }: {
   outcome: Outcome
   canPropose: boolean
@@ -65,7 +70,17 @@ export function OutcomeRow({
   canReopen: boolean
   actions: OutcomeActions
   busy?: boolean
+  /** Deep link: open the thread on mount (and whenever it flips to true). */
+  commentsOpen?: boolean
+  /** Deep link: the comment to scroll to and ring inside that thread. */
+  highlightCommentId?: string | null
 }) {
+  const [open, setOpen] = useState(!!commentsOpen)
+  useEffect(() => {
+    if (commentsOpen) setOpen(true)
+  }, [commentsOpen])
+  const count = o.comment_count ?? 0
+
   const buttons: React.ReactNode[] = []
   if (canApprove && o.status === 'proposed') {
     buttons.push(
@@ -147,6 +162,26 @@ export function OutcomeRow({
       </Button>,
     )
   }
+  buttons.push(
+    <Button
+      key="comments"
+      size="sm"
+      variant="ghost"
+      className={cn('text-ink-3', open && 'bg-surface-3 text-ink')}
+      onClick={() => setOpen(v => !v)}
+      aria-expanded={open}
+      aria-label={
+        count > 0
+          ? `${count} comment${count === 1 ? '' : 's'} on this outcome`
+          : 'Comment on this outcome'
+      }
+      data-testid="outcome-comments-toggle"
+      data-count={count}
+    >
+      <MessageSquare className="h-3.5 w-3.5" />
+      {count > 0 ? `${count} comment${count === 1 ? '' : 's'}` : 'Comment'}
+    </Button>,
+  )
 
   return (
     <li
@@ -182,10 +217,21 @@ export function OutcomeRow({
             </p>
           )}
         </div>
-        {buttons.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5">{buttons}</div>
-        )}
+        <div className="flex flex-wrap items-center gap-1.5">{buttons}</div>
       </div>
+      {open && (
+        <div
+          className="mt-3 rounded-lg border border-line bg-surface-1 px-3 py-2"
+          data-testid="outcome-comments"
+        >
+          <CommentThread
+            targetType="outcome"
+            targetId={o.id}
+            context={{ sandboxId: o.sandbox_id }}
+            highlightId={highlightCommentId}
+          />
+        </div>
+      )}
     </li>
   )
 }

@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
@@ -36,18 +37,43 @@ export function CoacheeStateChip({
   )
 }
 
+interface DeepLink {
+  outcome: string | null
+  comment: string | null
+}
+
+/**
+ * `?outcome=<id>[&comment=<id>]#outcomes` — the bell's link to a comment on
+ * an outcome — opens that thread and rings the comment. Read from the URL
+ * directly (no useSearchParams, so the page keeps its static shell).
+ */
+function useOutcomeDeepLink(): DeepLink {
+  const [link, setLink] = useState<DeepLink>({ outcome: null, comment: null })
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const outcome = params.get('outcome')
+    if (outcome) setLink({ outcome, comment: params.get('comment') })
+    if (window.location.hash === '#outcomes') {
+      document.getElementById('outcomes')?.scrollIntoView({ block: 'start' })
+    }
+  }, [])
+  return link
+}
+
 function CoacheeBlock({
   sandboxId,
   coachee,
   canReopen,
   maxPerCoachee,
   showGroup,
+  deepLink,
 }: {
   sandboxId: string
   coachee: CoacheeOutcomes
   canReopen: boolean
   maxPerCoachee: number
   showGroup: boolean
+  deepLink: DeepLink
 }) {
   return (
     <div
@@ -78,6 +104,8 @@ function CoacheeBlock({
         coachee={coachee}
         canReopen={canReopen}
         maxPerCoachee={maxPerCoachee}
+        openCommentsFor={deepLink.outcome}
+        highlightCommentId={deepLink.comment}
       />
     </div>
   )
@@ -93,6 +121,7 @@ export function OutcomesPanel({ overview }: { overview: SandboxOverview }) {
   const coachees = data?.coachees ?? []
   const totals = data?.totals
   const showGroup = overview.groups.length > 1
+  const deepLink = useOutcomeDeepLink()
 
   return (
     <section
@@ -143,6 +172,7 @@ export function OutcomesPanel({ overview }: { overview: SandboxOverview }) {
               canReopen={!!data?.can_reopen}
               maxPerCoachee={data?.max_per_coachee ?? 2}
               showGroup={showGroup}
+              deepLink={deepLink}
             />
           ))
         )}

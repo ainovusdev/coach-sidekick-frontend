@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import type { SandboxOverview } from '@/types/sandbox'
@@ -28,6 +29,18 @@ export function VisionPanel({
   const canEdit = useSandboxView().can.editSandbox
   const vision = (sandbox.vision || '').trim()
   const primaryClient = members.find(m => m.roles.includes('primary_client'))
+
+  // `?comment=<id>#vision` — the bell's link to a comment under the vision.
+  const [highlightCommentId, setHighlightCommentId] = useState<string | null>(
+    null,
+  )
+  useEffect(() => {
+    if (window.location.hash !== '#vision') return
+    setHighlightCommentId(
+      new URLSearchParams(window.location.search).get('comment'),
+    )
+    document.getElementById('vision')?.scrollIntoView({ block: 'start' })
+  }, [])
 
   return (
     <section
@@ -80,6 +93,20 @@ export function VisionPanel({
             </Button>
           </div>
         )}
+      </div>
+      <div
+        className="border-t border-line px-5 py-4"
+        data-testid="vision-comments"
+      >
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-4">
+          Comments
+        </h3>
+        <CommentThread
+          targetType="sandbox_vision"
+          targetId={sandbox.id}
+          context={{ sandboxId: sandbox.id }}
+          highlightId={highlightCommentId}
+        />
       </div>
       {canEdit && (
         <VisionDialog

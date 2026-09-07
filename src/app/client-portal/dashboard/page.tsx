@@ -136,11 +136,25 @@ export default function ClientDashboard() {
   // Deep link from a notification: /client-portal/dashboard?commitment=<id>[&comment=<id>]
   // opens that commitment. Read from the URL directly (no useSearchParams, so
   // this client page needs no Suspense boundary). Closing clears both params.
+  const [treeDeepLink, setTreeDeepLink] = useState<{
+    node: { type: 'goal' | 'outcome' | 'sprint'; id: string } | null
+    comment: string | null
+  }>({ node: null, comment: null })
   useEffect(() => {
     if (typeof window === 'undefined') return
     const params = new URLSearchParams(window.location.search)
     const id = params.get('commitment')
     if (id) setSelectedCommitmentId(id)
+    // …and ?goal|target|sprint=<id>&comment=<id> opens that record's panel
+    // on the board below, with the comment ringed.
+    const node = params.get('goal')
+      ? { type: 'goal' as const, id: params.get('goal') as string }
+      : params.get('target')
+        ? { type: 'outcome' as const, id: params.get('target') as string }
+        : params.get('sprint')
+          ? { type: 'sprint' as const, id: params.get('sprint') as string }
+          : null
+    if (node) setTreeDeepLink({ node, comment: params.get('comment') })
   }, [])
 
   const closeCommitment = () => {
@@ -425,6 +439,8 @@ export default function ClientDashboard() {
             clientId={clientId}
             clientName={dashboardData?.client_info?.name}
             isClientPortal
+            openNode={treeDeepLink.node}
+            highlightCommentId={treeDeepLink.comment}
             onCreateNew={() => setUnifiedCreateOpen(true)}
             onCreateGoal={() => setGoalModalOpen(true)}
             onCreateSprint={() => setSprintModalOpen(true)}

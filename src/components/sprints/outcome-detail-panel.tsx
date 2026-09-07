@@ -19,6 +19,7 @@ import {
   LinkedItem,
   CommitmentsSection,
 } from '@/components/ui/detail-side-panel'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { formatDateOnly } from '@/lib/date-utils'
 import type { Target, Sprint } from '@/types/sprint'
 
@@ -31,6 +32,8 @@ interface OutcomeDetailPanelProps {
   onComplete?: () => void
   onDelete?: () => void
   onCommitmentClick?: (commitment: any) => void
+  /** Deep link: the comment to scroll to and ring. */
+  highlightCommentId?: string | null
 }
 
 export function OutcomeDetailPanel({
@@ -42,6 +45,7 @@ export function OutcomeDetailPanel({
   onComplete,
   onDelete,
   onCommitmentClick,
+  highlightCommentId,
 }: OutcomeDetailPanelProps) {
   const visionTitles = outcome.goal_titles || []
   const total = outcome.commitment_count ?? 0
@@ -125,6 +129,15 @@ export function OutcomeDetailPanel({
         commitments={commitments}
         onCommitmentClick={onCommitmentClick}
       />
+
+      <DetailSection title="Comments">
+        <CommentThread
+          targetType="target"
+          targetId={outcome.id}
+          context={{ clientId: outcome.client_id }}
+          highlightId={highlightCommentId}
+        />
+      </DetailSection>
 
       <DetailSection title="Metadata">
         <DetailRow label="Created">

@@ -92,6 +92,36 @@ export default function ClientDetailPage({
   const [sprintToDelete, setSprintToDelete] = useState<any>(null)
   const [isDeletingSprint, setIsDeletingSprint] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
+  // Deep link from a bell row about a comment on a vision / outcome / sprint:
+  // /clients/{id}?tab=goals&goal|target|sprint=<id>&comment=<id>. Read from
+  // the URL directly (no useSearchParams, so the page keeps its shell).
+  const [treeDeepLink, setTreeDeepLink] = useState<{
+    node: { type: 'goal' | 'outcome' | 'sprint'; id: string } | null
+    comment: string | null
+  }>({ node: null, comment: null })
+  // A link that names a tab or a record wants the full interface even before
+  // the first session (goals can exist before any session is recorded).
+  const [deepLinked, setDeepLinked] = useState(false)
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search)
+    const tab = p.get('tab')
+    if (tab) {
+      setActiveTab(tab)
+      setDeepLinked(true)
+    }
+    const node = p.get('goal')
+      ? { type: 'goal' as const, id: p.get('goal') as string }
+      : p.get('target')
+        ? { type: 'outcome' as const, id: p.get('target') as string }
+        : p.get('sprint')
+          ? { type: 'sprint' as const, id: p.get('sprint') as string }
+          : null
+    if (node) {
+      setActiveTab('goals')
+      setDeepLinked(true)
+      setTreeDeepLink({ node, comment: p.get('comment') })
+    }
+  }, [])
   const [selectedCommitmentId, setSelectedCommitmentId] = useState<
     string | null
   >(null)
@@ -372,7 +402,7 @@ export default function ClientDetailPage({
           </div>
 
           {/* Conditional Rendering: Empty State or Full Interface */}
-          {hasNoSessions && !isViewer ? (
+          {hasNoSessions && !isViewer && !deepLinked ? (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               <EmptyStateWelcome
                 client={client}
@@ -517,6 +547,8 @@ export default function ClientDetailPage({
                     <GoalsTreeView
                       clientId={client.id}
                       clientName={client.name}
+                      openNode={treeDeepLink.node}
+                      highlightCommentId={treeDeepLink.comment}
                       onCreateNew={() =>
                         modalState.setIsUnifiedCreateModalOpen(true)
                       }

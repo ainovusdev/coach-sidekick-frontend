@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -82,6 +82,10 @@ interface GoalsTreeViewProps {
   onEditSprint?: (sprint: any) => void
   onDeleteSprint?: (sprint: any) => void
   onCompleteSprint?: (sprint: any) => void
+  /** Deep link: open this record's panel once its list has loaded. */
+  openNode?: { type: 'goal' | 'outcome' | 'sprint'; id: string } | null
+  /** Deep link: the comment to scroll to and ring inside that panel. */
+  highlightCommentId?: string | null
 }
 
 interface TreeNodeProps {
@@ -296,6 +300,8 @@ export function GoalsTreeView({
   onEditSprint,
   onDeleteSprint,
   onCompleteSprint,
+  openNode,
+  highlightCommentId,
 }: GoalsTreeViewProps) {
   const queryClient = useQueryClient()
   const { user } = useAuth()
@@ -480,6 +486,35 @@ export function GoalsTreeView({
           : allSprints.find((s: any) => s.id === id)
     if (data) setDetailNode({ type, data })
   }
+
+  // Deep link (a bell row about a comment on a vision / outcome / sprint):
+  // open that record's panel once its list has loaded, once per link.
+  const openedNodeRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!openNode) return
+    const key = `${openNode.type}:${openNode.id}`
+    if (openedNodeRef.current === key) return
+    if (goalsLoading || targetsLoading || sprintsLoading) return
+    const data =
+      openNode.type === 'goal'
+        ? goals.find((g: any) => g.id === openNode.id)
+        : openNode.type === 'outcome'
+          ? clientTargets.find((t: any) => t.id === openNode.id)
+          : allSprints.find((s: any) => s.id === openNode.id)
+    openedNodeRef.current = key
+    if (!data) return
+    setSelectedNodeId(openNode.id)
+    setSelectedNodeType(openNode.type)
+    setDetailNode({ type: openNode.type, data })
+  }, [
+    openNode,
+    goalsLoading,
+    targetsLoading,
+    sprintsLoading,
+    goals,
+    clientTargets,
+    allSprints,
+  ])
 
   // Commitments associated with a node — reuses the same association rules as
   // `filteredCommitments` (node scope only; no assignee/status/priority filters).
@@ -1276,6 +1311,7 @@ export function GoalsTreeView({
       {detailNode?.type === 'goal' && (
         <VisionDetailPanel
           goal={detailNode.data}
+          highlightCommentId={highlightCommentId}
           linkedOutcomes={clientTargets.filter((t: any) =>
             (t.goal_ids || []).includes(detailNode.data.id),
           )}
@@ -1310,6 +1346,7 @@ export function GoalsTreeView({
       {detailNode?.type === 'outcome' && (
         <OutcomeDetailPanel
           outcome={detailNode.data}
+          highlightCommentId={highlightCommentId}
           linkedSprints={allSprints.filter((s: any) =>
             (detailNode.data.sprint_ids || []).includes(s.id),
           )}
@@ -1352,6 +1389,7 @@ export function GoalsTreeView({
       {detailNode?.type === 'sprint' && (
         <SprintDetailPanel
           sprint={detailNode.data}
+          highlightCommentId={highlightCommentId}
           commitments={getCommitmentsForNode(detailNode.data.id, 'sprint')}
           onCommitmentClick={
             onCommitmentClick

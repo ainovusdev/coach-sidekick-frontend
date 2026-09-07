@@ -1,9 +1,18 @@
 /**
- * Generic comments (Slice 2). One thread per target; today the only target
- * is a commitment. Replies nest one level (`parent_id`), never deeper.
+ * Generic comments. One thread per target — a commitment, the three records
+ * on a client's goals tree (goal = vision, target = meta performance outcome,
+ * sprint), a sandbox outcome, or the thread under a sandbox's vision (its
+ * target id is the sandbox). Replies nest one level (`parent_id`), never
+ * deeper.
  */
 
-export type CommentTargetType = 'commitment'
+export type CommentTargetType =
+  | 'commitment'
+  | 'goal'
+  | 'target'
+  | 'sprint'
+  | 'outcome'
+  | 'sandbox_vision'
 
 export interface CommentPerson {
   id: string

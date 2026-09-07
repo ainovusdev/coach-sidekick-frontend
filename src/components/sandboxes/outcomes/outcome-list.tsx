@@ -36,12 +36,17 @@ export function OutcomeList({
   canReopen = false,
   maxPerCoachee = 2,
   className,
+  openCommentsFor,
+  highlightCommentId,
 }: {
   sandboxId: string
   coachee: CoacheeOutcomes
   canReopen?: boolean
   maxPerCoachee?: number
   className?: string
+  /** Deep link: the outcome whose thread opens on mount. */
+  openCommentsFor?: string | null
+  highlightCommentId?: string | null
 }) {
   const propose = useProposeOutcome(sandboxId)
   const remove = useDeleteOutcome(sandboxId)
@@ -78,6 +83,10 @@ export function OutcomeList({
               canApprove={coachee.can_approve}
               canReopen={canReopen}
               busy={busy}
+              commentsOpen={openCommentsFor === o.id}
+              highlightCommentId={
+                openCommentsFor === o.id ? highlightCommentId : null
+              }
               actions={{
                 onEdit: setEditing,
                 onPropose: o => propose.mutate(o.id),

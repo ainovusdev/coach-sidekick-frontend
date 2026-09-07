@@ -40,6 +40,8 @@ export interface Outcome {
   decision_note: string | null
   sealed_at: string | null
   history: OutcomeHistoryEntry[]
+  /** Live comments on the thread under this outcome. */
+  comment_count: number
   created_at: string
   updated_at: string
 }

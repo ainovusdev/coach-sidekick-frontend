@@ -56,6 +56,9 @@ const EVENT_ICON: Record<string, LucideIcon> = {
   commitment_rescheduled: Clock,
   commitment_due_today: Clock,
   commitment_overdue: Clock,
+  // comments on goals, outcomes, sprints, sandbox outcomes and visions
+  commented: MessageSquare,
+  mentioned: AtSign,
 }
 
 function contextLine(n: AppNotification): string {
@@ -88,7 +91,13 @@ export function NotificationBell({ className }: { className?: string }) {
     if (!n.is_read) markRead.mutate(n.id)
     setOpen(false)
     const url = typeof n.data?.url === 'string' ? n.data.url : null
-    if (url) router.push(url)
+    if (!url) return
+    // Deep links (`?commitment=`, `?outcome=`, `#vision`…) are read when the
+    // page mounts. A soft push to the page we are already on would keep it
+    // mounted and read nothing, so that case reloads.
+    const next = new URL(url, window.location.origin)
+    if (next.pathname === window.location.pathname) window.location.assign(url)
+    else router.push(url)
   }
 
   return (
