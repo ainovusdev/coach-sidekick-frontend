@@ -111,10 +111,8 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
     return rows.filter(isOpen)
   }, [rows, filter, viewerId])
 
-  // Our side, with their side in the room: start new rows private.
-  const defaultPrivate =
-    view.audience !== 'theirs' &&
-    overview.members.some(m => m.side === 'theirs')
+  // Shared on a sandbox means our side of it — their side never reads the
+  // team's list — so new rows start shared even with their side in the room.
   const hubHref =
     view.audience === 'admin'
       ? `/admin/commitments?sandbox=${sandboxId}`
@@ -247,11 +245,11 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
         isOpen={creating}
         onClose={() => setCreating(false)}
         context={{ sandboxId, sandboxName: overview.sandbox.name }}
-        defaultPrivate={defaultPrivate}
       />
       <CommitmentDetailPanel
         commitmentId={openId}
         onClose={close}
+        onNavigate={setOpenId}
         onOpenInPage={
           view.audience === 'ours' && openId
             ? () => router.push(`/commitments/${openId}`)

@@ -69,6 +69,26 @@ export class ClientCommitmentService {
     )
   }
 
+  /** Relate two commitments on my profile (symmetric, idempotent). */
+  static async relateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<Commitment> {
+    return ApiClient.post(
+      `${BACKEND_URL}/client-portal/commitments/${commitmentId}/related`,
+      { related_id: relatedId },
+    )
+  }
+
+  static async unrelateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<void> {
+    await ApiClient.delete(
+      `${BACKEND_URL}/client-portal/commitments/${commitmentId}/related/${relatedId}`,
+    )
+  }
+
   static async addMilestone(
     commitmentId: string,
     data: MilestoneCreate,

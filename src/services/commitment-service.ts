@@ -122,6 +122,33 @@ export class CommitmentService {
   }
 
   /**
+   * Relate two commitments (symmetric, idempotent). Returns the other one.
+   */
+  static async relateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<Commitment> {
+    return ApiClient.post(
+      `${BACKEND_URL}/commitments/${commitmentId}/related`,
+      {
+        related_id: relatedId,
+      },
+    )
+  }
+
+  /**
+   * Remove the relation between two commitments.
+   */
+  static async unrelateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<void> {
+    await ApiClient.delete(
+      `${BACKEND_URL}/commitments/${commitmentId}/related/${relatedId}`,
+    )
+  }
+
+  /**
    * Confirm a draft commitment (make it active)
    */
   static async confirmCommitment(commitmentId: string): Promise<Commitment> {

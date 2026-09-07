@@ -461,6 +461,26 @@ export const invalidateQueries = {
   },
 
   /**
+   * A commitment changed shape (related, created alongside another, ticked
+   * from a related list): every list and detail under the prefix, the
+   * sandbox overview when it sits on one (timeline cards carry counts), and
+   * the bell for whoever was assigned.
+   */
+  afterCommitmentChange: async (
+    queryClient: QueryClient,
+    opts: { sandboxId?: string | null } = {},
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
+      opts.sandboxId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.sandboxes.detail(opts.sandboxId),
+        }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    ])
+  },
+
+  /**
    * A comment was posted / edited / deleted on `targetId`. The commitment
    * detail embeds the thread, and a mention or reply lands in the bell.
    */

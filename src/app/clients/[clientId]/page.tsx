@@ -957,6 +957,7 @@ export default function ClientDetailPage({
           clientId={clientId || undefined}
           onClose={() => setSelectedCommitmentId(null)}
           onCommitmentUpdate={refetch}
+          onNavigate={setSelectedCommitmentId}
         />
       </PageLayout>
     </ProtectedRoute>

@@ -38,6 +38,7 @@ import {
   Target,
   Trash2,
   XCircle,
+  Link2,
 } from 'lucide-react'
 import { daysUntilDue, isOverdue } from './commitment-view'
 import { AutomaticChip } from '../automatic-chip'
@@ -174,6 +175,16 @@ export function CommitmentRow({
             </span>
           )}
           <AutomaticChip commitment={commitment} />
+          {(commitment.related_total ?? 0) > 0 && (
+            <span
+              className="inline-flex items-center gap-1 text-xs text-ink-4"
+              title="Related commitments"
+              data-testid="commitment-related-count"
+            >
+              <Link2 className="h-3 w-3" aria-hidden />
+              {commitment.related_total} related
+            </span>
+          )}
           {/* A client's own commitment already names the client in the context link — no second chip. */}
           {showAssignee && assigneeKindOf(commitment) !== 'client' && (
             <AssigneeChip commitment={commitment} size="xs" />

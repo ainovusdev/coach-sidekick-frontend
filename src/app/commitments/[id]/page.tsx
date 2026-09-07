@@ -34,6 +34,7 @@ import { CommitmentContextHeader } from '@/components/commitments/detail/commitm
 import { CommitmentActivityTimeline } from '@/components/commitments/detail/commitment-activity-timeline'
 import { CommitmentProgressControl } from '@/components/commitments/detail/commitment-progress-control'
 import { CommitmentSiblings } from '@/components/commitments/detail/commitment-siblings'
+import { RelatedCommitmentsSection } from '@/components/commitments/detail/related-commitments-section'
 import {
   PanelHeader,
   FieldsGrid,
@@ -195,6 +196,12 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
               commitmentId={commitment.id}
             />
           )}
+
+          <RelatedCommitmentsSection
+            commitment={commitment}
+            commitmentId={commitment.id}
+            onNavigate={id => router.push(`/commitments/${id}`)}
+          />
 
           {capabilities.canAttach && (
             <AttachmentsSection

@@ -17,6 +17,7 @@ import {
   MoreVertical,
   Edit,
   Trash2,
+  Link2,
 } from 'lucide-react'
 import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
@@ -136,6 +137,16 @@ export function CommitmentKanbanCard({
               className="min-w-0"
             />
             <AutomaticChip commitment={commitment} />
+            {(commitment.related_total ?? 0) > 0 && (
+              <span
+                className="inline-flex items-center gap-1 text-xs text-ink-4"
+                title="Related commitments"
+                data-testid="commitment-related-count"
+              >
+                <Link2 className="h-3 w-3" aria-hidden />
+                {commitment.related_total}
+              </span>
+            )}
             {isOverdue && (
               <Badge variant="destructive" className="text-xs">
                 <AlertCircle className="h-3 w-3 mr-1" />

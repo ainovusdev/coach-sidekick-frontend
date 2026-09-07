@@ -367,7 +367,7 @@ export function CommitmentCreatePanel({
                       </span>
                     </label>
                     <p className="text-xs text-ink-3 pl-6">
-                      Otherwise everyone on{' '}
+                      Otherwise our whole team on{' '}
                       {context.sandboxName || 'the sandbox'} can.
                     </p>
                   </div>

@@ -648,6 +648,7 @@ export default function ClientDashboard() {
             clientId={clientId}
             onClose={closeCommitment}
             onCommitmentUpdate={invalidateAll}
+            onNavigate={setSelectedCommitmentId}
             clientMode
           />
         </>

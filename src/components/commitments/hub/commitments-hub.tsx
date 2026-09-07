@@ -310,6 +310,7 @@ export function CommitmentsHub({ audience }: { audience: HubAudience }) {
       <CommitmentDetailPanel
         commitmentId={view.openId}
         onClose={() => view.setOpenId(null)}
+        onNavigate={id => view.setOpenId(id)}
         onOpenInPage={
           view.openId
             ? () => router.push(`/commitments/${view.openId}`)

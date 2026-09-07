@@ -84,7 +84,21 @@ export interface CommitmentCreate extends CommitmentBase {
   assigned_to_id?: string | null // null with a client = the client themself
   visibility?: CommitmentVisibility
   target_ids?: string[] // Target IDs to link to (legacy)
+  /** Commitments to relate the new one to (each must be visible to the caller). */
+  related_ids?: string[]
   metadata?: Record<string, unknown>
+}
+
+/** The sandbox timeline event a commitment *is* (see `Commitment.timeline_event`). */
+export interface TimelineEventBrief {
+  id: string
+  sandbox_id: string | null
+  kind: string
+  label: string
+  window_start: string
+  window_end: string
+  state: 'past' | 'current' | 'upcoming'
+  removed: boolean
 }
 
 // Update commitment request
@@ -151,6 +165,16 @@ export interface Commitment extends CommitmentBase {
   linked_target_ids?: string[] // IDs of linked targets/desired wins
   target_links?: Array<{ target_id: string }> // Junction table links to targets
   metadata?: Record<string, any> // Flexible metadata field
+
+  // Related commitments — symmetric pairs. The detail view fills `related`
+  // with the rows the viewer may see; the counts are on every row and count
+  // every relation.
+  related?: Commitment[]
+  related_total?: number
+  related_done?: number
+  /** Set when this commitment *is* a sandbox timeline event: title and dates follow it. */
+  timeline_event_id?: string | null
+  timeline_event?: TimelineEventBrief | null
 }
 
 // Commitment progress update

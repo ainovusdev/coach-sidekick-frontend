@@ -1081,6 +1081,7 @@ export default function SessionDetailsPage({
             clientId={clientId || undefined}
             onClose={() => setSelectedCommitmentId(null)}
             onCommitmentUpdate={refreshCommitments}
+            onNavigate={setSelectedCommitmentId}
           />
 
           {/* Delete Confirmation Dialog */}

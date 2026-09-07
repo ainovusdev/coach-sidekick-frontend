@@ -119,6 +119,9 @@ import {
   type GuestContext,
 } from './detail/use-commitment-detail'
 import { copyCommitmentLink } from './detail/commitment-links'
+import { RelatedCommitmentsSection } from './detail/related-commitments-section'
+import { WindowChip } from '@/components/sandboxes/window-chip'
+import { toDateOnly } from '@/lib/sandbox/term'
 
 // Re-exported so the six existing mount sites keep importing GuestContext from
 // here unchanged; the definition now lives with the shared controller.
@@ -133,6 +136,11 @@ interface CommitmentDetailPanelProps {
   clientMode?: boolean
   /** Show the "open full page" affordance. Coach surfaces only. */
   onOpenInPage?: () => void
+  /**
+   * Open another commitment in this same panel (a related row). The owner of
+   * `commitmentId` passes its setter; without it the row links to the page.
+   */
+  onNavigate?: (id: string) => void
 }
 
 export function CommitmentDetailPanel({
@@ -143,6 +151,7 @@ export function CommitmentDetailPanel({
   guestContext,
   clientMode,
   onOpenInPage,
+  onNavigate,
 }: CommitmentDetailPanelProps) {
   // All data + mutation logic is shared with the /commitments/[id] page.
   const {
@@ -277,6 +286,16 @@ export function CommitmentDetailPanel({
                   />
                 )}
 
+                {/* Related commitments - hidden in guest mode (no guest API) */}
+                {!guestContext && (
+                  <RelatedCommitmentsSection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                    clientMode={clientMode}
+                    onNavigate={onNavigate}
+                  />
+                )}
+
                 {/* Comments - hidden in guest mode (no guest API) */}
                 {!guestContext && (
                   <ActivitySection
@@ -322,6 +341,9 @@ export function PanelHeader({
   const [titleValue, setTitleValue] = useState(commitment.title)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const isAutomatic = commitment.source === 'rule'
+  // A commitment that *is* a timeline event: the title and dates are the
+  // event's, changed on the timeline, so the title is not editable here.
+  const event = commitment.timeline_event ?? null
   const isOpenStatus =
     commitment.status !== 'completed' && commitment.status !== 'abandoned'
 
@@ -347,6 +369,11 @@ export function PanelHeader({
     <div className="flex items-center gap-3">
       {/* Title */}
       <div className="flex-1 min-w-0">
+        {event && (
+          <div className="mb-1.5" data-testid="event-header">
+            <WindowChip event={event} today={toDateOnly(new Date())} />
+          </div>
+        )}
         {isEditingTitle ? (
           <Input
             ref={titleInputRef}
@@ -364,8 +391,17 @@ export function PanelHeader({
           />
         ) : (
           <h2
-            className="text-xl font-bold text-ink cursor-pointer hover:bg-surface-3 rounded px-2 py-1 -mx-2 break-words"
-            onClick={() => setIsEditingTitle(true)}
+            className={cn(
+              'text-xl font-bold text-ink rounded px-2 py-1 -mx-2 break-words',
+              !event && 'cursor-pointer hover:bg-surface-3',
+            )}
+            onClick={event ? undefined : () => setIsEditingTitle(true)}
+            title={
+              event
+                ? 'This is a timeline event — rename it on the timeline'
+                : undefined
+            }
+            data-testid="commitment-panel-title"
           >
             {commitment.title}
           </h2>
@@ -477,6 +513,8 @@ export function FieldsGrid({
   // The viewer may read this row but not change it (assignee-only, viewer
   // role, another coach's private note). The API says so per row.
   const readOnly = commitment.can_edit === false
+  // The dates of a timeline event's commitment are the event's window.
+  const dateLocked = !!commitment.timeline_event
 
   // Settable statuses. `in_progress` MUST be here: the kanban board and three
   // other surfaces write it, so without it an In Progress commitment opened
@@ -612,17 +650,19 @@ export function FieldsGrid({
           </Select>
         </div>
 
-        {/* Due Date */}
+        {/* Due Date — an event commitment's follows the event window */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-ink-3 ">Due Date</label>
           <Popover
             open={calendarOpen}
-            onOpenChange={readOnly ? undefined : setCalendarOpen}
+            onOpenChange={readOnly || dateLocked ? undefined : setCalendarOpen}
           >
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                disabled={readOnly}
+                disabled={readOnly || dateLocked}
+                title={dateLocked ? 'Follows the event window' : undefined}
+                data-testid={dateLocked ? 'due-locked' : undefined}
                 className={cn(
                   'h-9 w-full justify-start text-left text-sm font-normal',
                   !commitment.target_date && 'text-ink-3',
@@ -632,6 +672,9 @@ export function FieldsGrid({
                 {commitment.target_date
                   ? formatDateOnly(commitment.target_date, 'MMM d, yyyy')
                   : 'Set date'}
+                {dateLocked && (
+                  <Lock className="ml-auto h-3 w-3 text-ink-4" aria-hidden />
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[80]" align="start">

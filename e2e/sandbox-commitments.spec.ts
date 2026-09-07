@@ -113,8 +113,11 @@ test.describe('Sandboxes — commitments', () => {
     await page
       .getByTestId('commitment-title-input')
       .fill('Prep the kickoff deck')
-    // Their side is on this sandbox → private by default.
+    // Shared means our side of the sandbox (their side never reads the
+    // team's list), so the row starts shared; make this one private by hand.
     const priv = page.getByTestId('create-private-toggle')
+    await expect(priv).toHaveAttribute('aria-checked', 'false')
+    await priv.click()
     await expect(priv).toHaveAttribute('aria-checked', 'true')
 
     await page.getByTestId('create-assignee-picker').click()

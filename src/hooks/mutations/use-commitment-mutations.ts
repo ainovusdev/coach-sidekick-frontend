@@ -2,13 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { CommitmentService } from '@/services/commitment-service'
 import {
+  Commitment,
   CommitmentAttachment,
   CommitmentCreate,
   CommitmentUpdate,
   CommitmentUpdateCreate,
   MilestoneCreate,
 } from '@/types/commitment'
-import { queryKeys } from '@/lib/query-client'
+import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
 import { nowUTC } from '@/lib/date-utils'
 import { useAuth } from '@/contexts/auth-context'
@@ -461,6 +462,100 @@ export function useBulkDiscardCommitments() {
     },
   })
 }
+
+// ---------------------------------------------------------------------------
+// Related commitments (symmetric). `related` is the row being related when the
+// caller already has it, so the parent's list can show it before the server
+// answers.
+// ---------------------------------------------------------------------------
+
+export interface RelateVariables {
+  commitmentId: string
+  relatedId: string
+  related?: Commitment
+  sandboxId?: string | null
+}
+
+function addRelated(old: any, row: Commitment | undefined, relatedId: string) {
+  if (!old) return old
+  const present = (old.related ?? []).some(
+    (r: Commitment) => r.id === relatedId,
+  )
+  if (present) return old
+  return {
+    ...old,
+    related: row ? [...(old.related ?? []), row] : old.related,
+    related_total: (old.related_total ?? 0) + 1,
+    related_done:
+      (old.related_done ?? 0) + (row?.status === 'completed' ? 1 : 0),
+  }
+}
+
+function dropRelated(old: any, relatedId: string) {
+  if (!old) return old
+  const gone = (old.related ?? []).find((r: Commitment) => r.id === relatedId)
+  return {
+    ...old,
+    related: (old.related ?? []).filter((r: Commitment) => r.id !== relatedId),
+    related_total: Math.max(0, (old.related_total ?? 0) - 1),
+    related_done: Math.max(
+      0,
+      (old.related_done ?? 0) - (gone?.status === 'completed' ? 1 : 0),
+    ),
+  }
+}
+
+export function useRelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      CommitmentService.relateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId, related }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) =>
+        addRelated(old, related, relatedId),
+      )
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't relate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: (_data, _err, { sandboxId }) =>
+      invalidateQueries.afterCommitmentChange(queryClient, { sandboxId }),
+  })
+}
+
+export function useUnrelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      CommitmentService.unrelateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) => dropRelated(old, relatedId))
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't unrelate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: (_data, _err, { sandboxId }) =>
+      invalidateQueries.afterCommitmentChange(queryClient, { sandboxId }),
+  })
+}
+
+export { addRelated as _addRelated, dropRelated as _dropRelated }
 
 export function useAddMilestone(commitmentId: string) {
   const queryClient = useQueryClient()

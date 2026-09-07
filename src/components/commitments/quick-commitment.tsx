@@ -292,6 +292,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
         commitmentId={detailCommitmentId}
         clientId={clientId}
         onClose={() => setDetailCommitmentId(null)}
+        onNavigate={setDetailCommitmentId}
         onCommitmentUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['commitments'] })
         }}
