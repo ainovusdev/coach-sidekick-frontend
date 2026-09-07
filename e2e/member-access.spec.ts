@@ -30,6 +30,7 @@ const NAME = 'E2E Access'
 const ORG = 'PTG'
 const YUSUF = { email: 'e2e-yusuf@ptg-e2e.com', name: 'Yusuf Bello' }
 const WREN = { email: 'e2e-wren@ptg-e2e.com', name: 'Wren Adeyemi' }
+const IMANI = { email: 'e2e-imani@ptg-e2e.com', name: 'Imani Cole' }
 
 let sandboxId = ''
 let otherSandboxId = ''
@@ -138,6 +139,31 @@ test.describe('Sandboxes — member access', () => {
       },
     )
     expect(signup.ok()).toBeTruthy()
+
+    // Imani, the primary client, signs up too. Not a coachee, so no app role.
+    const imani = await api(
+      request,
+      token,
+      'post',
+      `/sandboxes/${sandboxId}/members`,
+      {
+        side: 'theirs',
+        roles: ['primary_client'],
+        email: IMANI.email,
+        name: IMANI.name,
+      },
+    )
+    await api(request, token, 'post', `/sandboxes/${sandboxId}/invitations`, {
+      member_ids: [imani.id],
+    })
+    const { token: imaniInvite } = invitationToken(IMANI.email)
+    const imaniSignup = await request.post(
+      `${API}/sandbox-invitations/accept-signup`,
+      {
+        data: { token: imaniInvite, password: PASSWORD, full_name: IMANI.name },
+      },
+    )
+    expect(imaniSignup.ok()).toBeTruthy()
 
     // A second sandbox nobody but the admin is on.
     const other = await api(request, token, 'post', '/sandboxes/', {
@@ -253,6 +279,19 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('team-panel')).not.toContainText(
       'No one is emailed yet',
     )
+  })
+
+  test('a primary client who signed up from her invitation signs in to the sandboxes list, not the portal', async ({
+    page,
+  }) => {
+    await login(page, IMANI.email)
+    await page.waitForURL(/\/sandboxes$/)
+    await expect(
+      page.getByText("You don't have access to the portal"),
+    ).toHaveCount(0)
+    await expect(
+      page.getByTestId('sandbox-card').filter({ hasText: NAME }),
+    ).toBeVisible()
   })
 
   test('a supervisor sees only the group they supervise', async ({ page }) => {
