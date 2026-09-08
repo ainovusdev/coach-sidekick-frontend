@@ -158,6 +158,17 @@ export function useSandboxDelivery(id: string | null | undefined) {
   })
 }
 
+/** What needs a look on this sandbox today, ranked as the dashboard ranks it. */
+export function useSandboxAttention(id: string | null | undefined) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.attention(id ?? ''),
+    queryFn: () => SandboxService.attention(id as string),
+    enabled: !!id,
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
+  })
+}
+
 export function useClientSandboxContext(clientId: string | null | undefined) {
   return useQuery({
     queryKey: queryKeys.sandboxes.clientContext(clientId ?? ''),

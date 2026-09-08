@@ -40,6 +40,7 @@ import type {
   WelcomeData,
 } from '@/types/sandbox'
 import type {
+  AttentionItem,
   ClientSandboxContext,
   SandboxDashboard,
   SandboxDelivery,
@@ -312,6 +313,11 @@ export class SandboxService {
   /** Delivered vs expected per coachee, for the groups the caller may see. */
   static delivery(id: string): Promise<SandboxDelivery> {
     return ApiClient.get(`${BASE}/${id}/delivery`)
+  }
+
+  /** What needs a look on one sandbox — the dashboard's rows, for one of them. */
+  static attention(id: string): Promise<AttentionItem[]> {
+    return ApiClient.get(`${BASE}/${id}/attention`)
   }
 
   /** The sandbox group(s) a client row belongs to — the client-profile card. */

@@ -23,6 +23,7 @@ export function NeedsAttentionList({
   basePath = '/sandboxes',
   limit,
   className,
+  onSelect,
 }: {
   items: AttentionItem[]
   /** Name the sandbox on each row (when the list spans several). */
@@ -31,6 +32,12 @@ export function NeedsAttentionList({
   /** Show only the first N rows overall (home strip). */
   limit?: number
   className?: string
+  /**
+   * Handle the click here instead of linking out. The sandbox page is already
+   * on the sandbox a row names, and a link that only changes the hash would not
+   * reach it — the tab has to be switched in place.
+   */
+  onSelect?: (item: AttentionItem) => void
 }) {
   const shown = limit ? items.slice(0, limit) : items
   const groups = ATTENTION_ORDER.map(kind => ({
@@ -69,17 +76,11 @@ export function NeedsAttentionList({
             </span>
           </h3>
           <ul className="divide-y divide-line">
-            {rows.map((item, i) => (
-              <li
-                key={`${item.kind}-${item.sandbox_id}-${item.member_id ?? item.group_id ?? item.event_id ?? i}`}
-              >
-                <Link
-                  href={attentionHref(item, basePath)}
-                  className="group flex items-center gap-3 px-5 py-2.5 transition-colors hover:bg-surface-2"
-                  data-testid="attention-row"
-                  data-kind={item.kind}
-                  data-severity={item.severity}
-                >
+            {rows.map((item, i) => {
+              const rowClass =
+                'group flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-surface-2'
+              const body = (
+                <>
                   <span
                     className={cn(
                       'h-2 w-2 shrink-0 rounded-full',
@@ -104,9 +105,37 @@ export function NeedsAttentionList({
                     </span>
                   </span>
                   <ArrowRight className="h-4 w-4 shrink-0 text-ink-4 transition-colors group-hover:text-ink" />
-                </Link>
-              </li>
-            ))}
+                </>
+              )
+              return (
+                <li
+                  key={`${item.kind}-${item.sandbox_id}-${item.member_id ?? item.group_id ?? item.event_id ?? i}`}
+                >
+                  {onSelect ? (
+                    <button
+                      type="button"
+                      onClick={() => onSelect(item)}
+                      className={rowClass}
+                      data-testid="attention-row"
+                      data-kind={item.kind}
+                      data-severity={item.severity}
+                    >
+                      {body}
+                    </button>
+                  ) : (
+                    <Link
+                      href={attentionHref(item, basePath)}
+                      className={rowClass}
+                      data-testid="attention-row"
+                      data-kind={item.kind}
+                      data-severity={item.severity}
+                    >
+                      {body}
+                    </Link>
+                  )}
+                </li>
+              )
+            })}
           </ul>
         </div>
       ))}

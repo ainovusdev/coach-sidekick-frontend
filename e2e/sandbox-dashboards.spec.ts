@@ -200,6 +200,43 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(page.getByTestId('groups-panel')).toBeVisible()
   })
 
+  test('Today lists what needs this sandbox, and a row moves the tab', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    await page.goto(`/sandboxes/${sandboxId}`)
+    const attention = page.getByTestId('attention-panel')
+    await expect(attention.getByTestId('attention-row').first()).toBeVisible()
+    // Only the first few rows show until asked, urgent first.
+    const more = page.getByTestId('attention-more')
+    if (await more.count()) await more.click()
+
+    // the same rows the dashboard shows, for this sandbox alone
+    await expect(
+      attention
+        .getByTestId('attention-row')
+        .filter({ hasText: 'Lena hasn’t had a session yet' }),
+    ).toBeVisible()
+    await expect(
+      attention
+        .getByTestId('attention-row')
+        .filter({ hasText: `${KOFI.name} hasn’t been invited` }),
+    ).toBeVisible()
+    // the sandbox is not named on its own rows
+    await expect(attention).not.toContainText(NAME)
+
+    // a row moves the tab in place — the page is already on this sandbox
+    await attention
+      .getByTestId('attention-row')
+      .filter({ hasText: 'Managers isn’t finished' })
+      .click()
+    await expect(page.getByTestId('sandbox-tab-groups')).toHaveAttribute(
+      'data-state',
+      'active',
+    )
+    await expect(page.getByTestId('groups-panel')).toBeVisible()
+  })
+
   test('the cockpit shows delivery per coachee with the contract', async ({
     page,
   }) => {

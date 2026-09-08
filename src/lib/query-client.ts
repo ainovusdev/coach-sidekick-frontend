@@ -297,6 +297,8 @@ export const queryKeys = {
       [...queryKeys.sandboxes.all, 'dashboard', includeEnded] as const,
     delivery: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'delivery'] as const,
+    attention: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'attention'] as const,
     clientContext: (clientId: string) =>
       [...queryKeys.sandboxes.all, 'client-context', clientId] as const,
     coachee: (activeClientId: string | null) =>

@@ -19,6 +19,7 @@ import { AddOurPeopleDialog } from '@/components/sandboxes/add-our-people-dialog
 import { AddTheirPeopleDialog } from '@/components/sandboxes/add-their-people-dialog'
 import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
 import { RemoveMemberDialog } from '@/components/sandboxes/remove-member-dialog'
+import { AttentionPanel } from '@/components/sandboxes/attention-panel'
 import { IncompleteBanner } from '@/components/sandboxes/incomplete-banner'
 import { GroupsPanel } from '@/components/sandboxes/groups-panel'
 import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
@@ -276,12 +277,12 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
         </TabsList>
 
         <TabsContent value="today" className="space-y-6">
-          {can.editGroups && (
-            <IncompleteBanner
-              groups={overview.groups}
-              onFinish={g => openDrawer(g)}
-            />
-          )}
+          {/* The incomplete-group banner lives on Groups; here the same thing
+              arrives as an attention row, so Today stays one list. */}
+          <AttentionPanel
+            sandboxId={sandboxId}
+            onSelect={item => goToSection(item.section)}
+          />
           <SetupCard overview={overview} onSelect={onSetupSelect} />
           <CommitmentsPanel
             overview={overview}
