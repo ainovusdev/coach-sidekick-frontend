@@ -34,6 +34,14 @@ export function handAdjustedCount(overview: SandboxOverview): number {
 /** What a card says under its window about the event's commitment. */
 function progressText(ev: TimelineEvent): string {
   if (ev.commitment_status === 'completed') return 'Done'
+  // The event's own checklist leads; related work is what has been handed out
+  // on top of it. A hand-added event has neither.
+  if (ev.milestone_total > 0) {
+    const steps = `${ev.milestone_done}/${ev.milestone_total} subtasks`
+    return ev.related_total > 0
+      ? `${steps} · ${ev.related_total} related`
+      : steps
+  }
   if (ev.related_total === 0) return 'Nothing related yet'
   return `${ev.related_total} related · ${ev.related_done} done`
 }

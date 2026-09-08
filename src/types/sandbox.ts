@@ -263,6 +263,9 @@ export interface TimelineEvent {
   commitment_status: string | null
   related_total: number
   related_done: number
+  /** The event's own checklist: the steps behind the call. */
+  milestone_total: number
+  milestone_done: number
 }
 
 export interface TimelineEventCreate {

@@ -101,9 +101,7 @@ test.describe('Sandboxes — events are commitments', () => {
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
     )
     await expect(card).toHaveAttribute('data-commitment-id', /.+/)
-    await expect(card.getByTestId('event-progress')).toHaveText(
-      'Nothing related yet',
-    )
+    await expect(card.getByTestId('event-progress')).toHaveText('0/4 subtasks')
 
     await card.click()
     const panel = page.getByTestId('commitment-detail-panel')
@@ -148,7 +146,7 @@ test.describe('Sandboxes — events are commitments', () => {
     await page.keyboard.press('Escape')
     await expect(panel).toHaveAttribute('data-open', 'false')
     await expect(card.getByTestId('event-progress')).toHaveText(
-      '1 related · 0 done',
+      '0/4 subtasks · 1 related',
     )
     const list = page.getByTestId('commitments-panel')
     await expect(
@@ -179,7 +177,7 @@ test.describe('Sandboxes — events are commitments', () => {
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
     )
     await expect(card.getByTestId('event-progress')).toHaveText(
-      '1 related · 0 done',
+      '0/4 subtasks · 1 related',
     )
     await card.focus()
     await page.keyboard.press('Enter')
@@ -206,8 +204,55 @@ test.describe('Sandboxes — events are commitments', () => {
 
     await page.keyboard.press('Escape')
     await expect(card.getByTestId('event-progress')).toHaveText(
-      '1 related · 1 done',
+      '0/4 subtasks · 1 related',
     )
+  })
+
+  test('a check-in opens with its checklist, grouped and dated', async ({
+    page,
+  }) => {
+    await login(page, USERS.priya.email)
+    await page.goto(`/sandboxes/${sandboxId}`)
+    await hideDevtools(page)
+    const card = page
+      .locator('[data-testid="timeline-event"][data-kind="check_in"]')
+      .first()
+    await expect(card.getByTestId('event-progress')).toHaveText('0/8 subtasks')
+
+    await card.click()
+    const panel = page.getByTestId('commitment-detail-panel')
+    const subtasks = panel.getByTestId('subtasks')
+    await expect(subtasks.getByTestId('subtask-count')).toHaveText('0/8')
+    await expect(subtasks.getByTestId('subtask-section')).toHaveCount(4)
+    await expect(
+      subtasks.getByTestId('subtask-section').first(),
+    ).toHaveAttribute('data-section', 'Scheduling · 45–60 days before')
+    await expect(
+      subtasks.getByTestId('subtask-section').last(),
+    ).toHaveAttribute('data-section', 'After the call')
+    const rows = subtasks.getByTestId('subtask-row')
+    await expect(rows).toHaveCount(8)
+    await expect(rows.first()).toContainText(
+      'Confirm the check-in timeline with the lead coach',
+    )
+    // Every seeded step carries the date it is due.
+    await expect(subtasks.getByTestId('subtask-due')).toHaveCount(8)
+
+    // Tick the first: the header, the card and the row all move.
+    await rows.first().getByTestId('subtask-toggle').click()
+    await expect(subtasks.getByTestId('subtask-count')).toHaveText('1/8')
+    await expect(rows.first()).toHaveAttribute('data-status', 'completed')
+    await page.keyboard.press('Escape')
+    await expect(card.getByTestId('event-progress')).toHaveText('1/8 subtasks')
+
+    // Removing a step leaves the rest of the checklist alone.
+    await card.click()
+    await rows.nth(7).hover()
+    await rows.nth(7).getByTestId('subtask-delete').click()
+    await expect(rows).toHaveCount(7)
+    await expect(subtasks.getByTestId('subtask-count')).toHaveText('1/7')
+    await page.keyboard.press('Escape')
+    await expect(card.getByTestId('event-progress')).toHaveText('1/7 subtasks')
   })
 
   test('their side sees a calendar', async ({ page }) => {

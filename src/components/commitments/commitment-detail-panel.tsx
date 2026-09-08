@@ -1386,33 +1386,62 @@ export function MilestonesSection({
     }
   }
 
+  // A seeded checklist arrives grouped (see the backend's event checklists):
+  // consecutive rows sharing a section sit under its heading, and anything
+  // added by hand carries none, so it lands unheaded at the bottom.
+  const groups: { section: string | null; rows: Milestone[] }[] = []
+  for (const milestone of milestones) {
+    const section = milestone.section ?? null
+    const last = groups[groups.length - 1]
+    if (last && last.section === section) last.rows.push(milestone)
+    else groups.push({ section, rows: [milestone] })
+  }
+
+  const renderRow = (milestone: Milestone) => (
+    <MilestoneItem
+      key={milestone.id}
+      milestone={milestone}
+      onToggle={() => toggleMilestoneStatus(milestone)}
+      onDelete={() => deleteMilestone.mutate(milestone.id)}
+      onUpdateTitle={(title: string) =>
+        updateMilestone.mutate({
+          milestoneId: milestone.id,
+          data: { title },
+        })
+      }
+    />
+  )
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="subtasks">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-ink-2 ">Subtasks</label>
         {milestones.length > 0 && (
-          <span className="text-xs text-ink-3 ">
+          <span className="text-xs text-ink-3 " data-testid="subtask-count">
             {completedCount}/{milestones.length}
           </span>
         )}
       </div>
 
-      {/* Milestone list */}
+      {/* Milestone list, under their headings where they have one */}
       <div className="space-y-1">
-        {milestones.map(milestone => (
-          <MilestoneItem
-            key={milestone.id}
-            milestone={milestone}
-            onToggle={() => toggleMilestoneStatus(milestone)}
-            onDelete={() => deleteMilestone.mutate(milestone.id)}
-            onUpdateTitle={(title: string) =>
-              updateMilestone.mutate({
-                milestoneId: milestone.id,
-                data: { title },
-              })
-            }
-          />
-        ))}
+        {groups.map(group =>
+          group.section === null ? (
+            group.rows.map(renderRow)
+          ) : (
+            <div
+              key={group.section}
+              className="pt-1 first:pt-0"
+              data-testid="subtask-section"
+              data-section={group.section}
+            >
+              <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-4">
+                {group.section}
+              </p>
+              {group.rows.map(renderRow)}
+            </div>
+          ),
+        )}
       </div>
 
       {/* Add milestone input */}
@@ -1423,6 +1452,7 @@ export function MilestonesSection({
           onChange={e => setNewMilestoneTitle(e.target.value)}
           placeholder="Add a subtask..."
           className="h-8 text-sm border-none shadow-none focus-visible:ring-0 px-0"
+          data-testid="subtask-add-input"
           onKeyDown={e => {
             if (e.key === 'Enter') handleAddMilestone()
           }}
@@ -1468,11 +1498,17 @@ function MilestoneItem({
   const isCompleted = milestone.status === 'completed'
 
   return (
-    <div className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-paper ">
+    <div
+      className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-paper "
+      data-testid="subtask-row"
+      data-id={milestone.id}
+      data-status={milestone.status}
+    >
       <Checkbox
         checked={isCompleted}
         onCheckedChange={onToggle}
         className="flex-shrink-0"
+        data-testid="subtask-toggle"
       />
       {isEditing ? (
         <Input
@@ -1496,12 +1532,13 @@ function MilestoneItem({
             isCompleted && 'line-through text-ink-4 ',
           )}
           onClick={() => setIsEditing(true)}
+          data-testid="subtask-title"
         >
           {milestone.title}
         </span>
       )}
       {milestone.target_date && (
-        <span className="text-xs text-ink-4 ">
+        <span className="text-xs text-ink-4 " data-testid="subtask-due">
           {formatDateOnly(milestone.target_date, 'MMM d')}
         </span>
       )}
@@ -1510,6 +1547,7 @@ function MilestoneItem({
         size="sm"
         className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
         onClick={onDelete}
+        data-testid="subtask-delete"
       >
         <X className="h-3 w-3" />
       </Button>

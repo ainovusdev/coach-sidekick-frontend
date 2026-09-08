@@ -213,6 +213,10 @@ export interface Milestone {
   completed_date?: string
   order_index: number
   status: MilestoneStatus
+  /** Heading a seeded checklist step sits under; null for anything added by hand. */
+  section?: string | null
+  /** Stable identity of a seeded step ("check_in:prep_agenda"); null when hand-added. */
+  template_key?: string | null
   created_at: string
   updated_at: string
 }

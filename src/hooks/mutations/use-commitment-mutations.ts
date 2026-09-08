@@ -612,6 +612,8 @@ export function useAddMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -669,6 +671,8 @@ export function useUpdateMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -709,6 +713,8 @@ export function useDeleteMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
