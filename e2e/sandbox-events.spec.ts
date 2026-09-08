@@ -1,5 +1,13 @@
 import { test, expect, type APIRequestContext } from '@playwright/test'
-import { API, USERS, apiToken, auth, hideDevtools, login } from './helpers'
+import {
+  API,
+  USERS,
+  apiToken,
+  auth,
+  gotoSandboxTab,
+  hideDevtools,
+  login,
+} from './helpers'
 
 /**
  * Every timeline event is a commitment.
@@ -95,7 +103,7 @@ test.describe('Sandboxes — events are commitments', () => {
     request,
   }) => {
     await login(page, USERS.priya.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
     await hideDevtools(page)
     const card = page.locator(
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
@@ -148,6 +156,7 @@ test.describe('Sandboxes — events are commitments', () => {
     await expect(card.getByTestId('event-progress')).toHaveText(
       '0/4 subtasks · 1 related',
     )
+    await page.getByTestId('sandbox-tab-today').click()
     const list = page.getByTestId('commitments-panel')
     await expect(
       list.getByTestId('commitment-row').filter({ hasText: 'Gold sealing' }),
@@ -171,7 +180,7 @@ test.describe('Sandboxes — events are commitments', () => {
     ).toBeVisible()
     await page.keyboard.press('Escape')
 
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
     await hideDevtools(page)
     const card = page.locator(
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
@@ -212,7 +221,7 @@ test.describe('Sandboxes — events are commitments', () => {
     page,
   }) => {
     await login(page, USERS.priya.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
     await hideDevtools(page)
     const card = page
       .locator('[data-testid="timeline-event"][data-kind="check_in"]')
@@ -257,7 +266,7 @@ test.describe('Sandboxes — events are commitments', () => {
 
   test('their side sees a calendar', async ({ page }) => {
     await login(page, USERS.dana.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
     await hideDevtools(page)
     await expect(page.getByTestId('timeline-event').first()).toBeVisible()
     await expect(page.locator('[data-commitment-id]')).toHaveCount(0)

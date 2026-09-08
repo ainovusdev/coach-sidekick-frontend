@@ -179,7 +179,9 @@ test.describe('Sandboxes — comment threads', () => {
     )
     await expect(toggle).toHaveText('1 comment')
 
-    // Under the vision, no mention.
+    // Under the vision, no mention. The vision reads as reference, so it sits
+    // on General rather than beside the work.
+    await page.getByTestId('sandbox-tab-general').click()
     const vision = page.getByTestId('vision-comments')
     await vision.scrollIntoViewIfNeeded()
     await expect(vision.getByTestId('comment-item')).toHaveCount(0)

@@ -16,8 +16,7 @@
  */
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { ArrowUpRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -27,7 +26,6 @@ import {
   type CommitmentRowHandlers,
 } from '@/components/commitments/hub/commitment-row'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
-import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   useConfirmCommitment,
@@ -53,16 +51,6 @@ function isOpen(c: Commitment): boolean {
   return c.status !== 'completed' && c.status !== 'abandoned'
 }
 
-/** Drop the deep-link params without touching the rest of the URL. */
-function clearDeepLink() {
-  const url = new URL(window.location.href)
-  if (!url.searchParams.has('commitment') && !url.searchParams.has('comment'))
-    return
-  url.searchParams.delete('commitment')
-  url.searchParams.delete('comment')
-  window.history.replaceState(null, '', url.pathname + url.search + url.hash)
-}
-
 export function CommitmentsPanel({
   overview,
   openId,
@@ -73,7 +61,6 @@ export function CommitmentsPanel({
   onOpenChange: (id: string | null) => void
 }) {
   const view = useSandboxView()
-  const router = useRouter()
   const viewerId = useViewerId()
   const sandboxId = overview.sandbox.id
 
@@ -92,20 +79,14 @@ export function CommitmentsPanel({
   const confirmMutation = useConfirmCommitment()
   const discardMutation = useDiscardCommitment()
 
-  // Deep link in, and scroll the section into view when the hash names it.
+  // The cockpit owns the detail panel — it opens from a timeline card too, on
+  // a tab where this section is not mounted — so it reads `?commitment=` and
+  // this section only scrolls itself into view.
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    const id = params.get('commitment')
-    if (id) onOpenChange(id)
     if (window.location.hash === '#commitments') {
       document.getElementById('commitments')?.scrollIntoView({ block: 'start' })
     }
-  }, [onOpenChange])
-
-  const close = useCallback(() => {
-    onOpenChange(null)
-    clearDeepLink()
-  }, [onOpenChange])
+  }, [])
 
   const counts = useMemo(
     () => ({
@@ -257,16 +238,6 @@ export function CommitmentsPanel({
         onClose={() => setCreating(false)}
         context={{ sandboxId, sandboxName: overview.sandbox.name }}
       />
-      <CommitmentDetailPanel
-        commitmentId={openId}
-        onClose={close}
-        onNavigate={onOpenChange}
-        onOpenInPage={
-          view.audience === 'ours' && openId
-            ? () => router.push(`/commitments/${openId}`)
-            : undefined
-        }
-      />
       <ConfirmationDialog
         open={!!toDelete}
         onOpenChange={o => !o && setToDelete(null)}
@@ -279,7 +250,7 @@ export function CommitmentsPanel({
         onConfirm={async () => {
           if (!toDelete) return
           await discardMutation.mutateAsync(toDelete.id)
-          if (openId === toDelete.id) close()
+          if (openId === toDelete.id) onOpenChange(null)
           setToDelete(null)
         }}
       />

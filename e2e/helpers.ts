@@ -3,6 +3,8 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import type { APIRequestContext, Page } from '@playwright/test'
 
+import type { SandboxTab } from '../src/components/sandboxes/sandbox-tabs'
+
 export const API = process.env.E2E_API_URL || 'http://localhost:8001/api/v1'
 export const PASSWORD = 'Password123!'
 
@@ -177,6 +179,21 @@ export async function login(
     timeout: 30_000,
   })
   await hideDevtools(page)
+}
+
+/**
+ * Open a sandbox on one of its tabs and wait for the bar to be there.
+ *
+ * The page opens on Today, so anything asserting on the timeline, the team,
+ * the groups, the outcomes or the settings has to say which tab it means.
+ */
+export async function gotoSandboxTab(
+  page: Page,
+  base: string,
+  tab: SandboxTab,
+): Promise<void> {
+  await page.goto(`${base}?tab=${tab}`)
+  await page.getByTestId(`sandbox-tab-${tab}`).waitFor()
 }
 
 export async function apiToken(

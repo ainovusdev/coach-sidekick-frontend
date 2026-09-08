@@ -9,6 +9,7 @@ import {
   USERS,
   apiToken,
   auth,
+  gotoSandboxTab,
   invitationToken,
   login,
   seedSession,
@@ -203,7 +204,8 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    // Delivery sits with the groups it is delivered by.
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const panel = page.getByTestId('delivery-panel')
     await expect(panel).toBeVisible()
     const groups = panel.getByTestId('delivery-group')
@@ -301,7 +303,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(
       page.getByTestId('attention-row').filter({ hasText: 'invited' }),
     ).toHaveCount(0)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const panel = page.getByTestId('delivery-panel')
     await expect(panel.getByTestId('delivery-group')).toHaveCount(1)
     await expect(panel).toContainText('Managers')
@@ -368,7 +370,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Remove group' }).click()
@@ -385,7 +387,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Edit group' }).click()
@@ -489,6 +491,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
 
     // Marcus's group has no coachees left, so it can go
     await page.getByTestId('back-to-overview').click()
+    await page.getByTestId('sandbox-tab-groups').click()
     await marcusCard(page)
       .getByRole('button', { name: /Actions for/ })
       .click()

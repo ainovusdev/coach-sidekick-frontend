@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
-import { API, USERS, apiToken, auth, login } from './helpers'
+import { API, USERS, apiToken, auth, gotoSandboxTab, login } from './helpers'
 
 /**
  * Chunk 4 — timeline hand adjustment + regeneration, on its own sandbox
@@ -65,7 +65,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     sandboxId = (await resp.json()).sandbox.id
 
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
     await expect(events(page)).toHaveCount(5)
     await expect(page.getByTestId('timeline-caption')).toHaveText(
       '5 events, generated from the term',
@@ -78,7 +78,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
     await openMenu(page, 'Check-in 1', 'Adjust window')
     const dialog = page.getByRole('dialog')
@@ -109,7 +109,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
 
   test('keeps the results review after the term', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
     await openMenu(page, 'Results review', 'Adjust window')
     await pickDay(page, 'event-start', d('2026-12-01'), d('2026-11-16'))
@@ -124,7 +124,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
     await page.getByTestId('add-event').click()
     await page.fill('#event-label', 'Board offsite')
@@ -145,7 +145,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
 
   test('removes an event with a reason, then restores it', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
     await openMenu(page, 'Midpoint reporting', 'Remove…')
     await expect(page.getByTestId('remove-event-confirm')).toBeDisabled()
@@ -171,15 +171,16 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
+    // The pencil in the header is a shortcut to Settings, where the term lives.
     await page.getByRole('button', { name: 'Edit sandbox details' }).click()
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toContainText('Sandbox details')
+    const settings = page.getByTestId('settings-panel')
+    await expect(settings).toContainText('Sandbox details')
     await expect(page.getByTestId('regen-preview')).toHaveCount(0)
 
-    await dialog.getByRole('radio', { name: '12' }).click()
-    await expect(dialog).toContainText('What happens to the timeline')
+    await settings.getByRole('radio', { name: '12' }).click()
+    await expect(settings).toContainText('What happens to the timeline')
     const rows = page.getByTestId('regen-row')
     await expect(rows).toHaveCount(9) // the 6 on the timeline today + 3 new
     await expect(
@@ -199,13 +200,13 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     )
     await expect(page.getByTestId('regen-summary')).toContainText('3 new')
     await expect(page.getByTestId('regen-overwrite')).toBeVisible()
-    await expect(page.getByTestId('edit-sandbox-save')).toHaveText(
+    await expect(page.getByTestId('settings-save')).toHaveText(
       'Save and regenerate',
     )
-    await page.getByTestId('edit-sandbox-save').click()
-    await expect(dialog).toHaveCount(0)
+    await page.getByTestId('settings-save').click()
 
     await expect(page.getByTestId('identity-card')).toContainText('12 months')
+    await page.getByTestId('sandbox-tab-timeline').click()
     await expect(events(page)).toHaveCount(9) // 8 generated + the added one
     const checkin1 = events(page).filter({ hasText: 'Check-in 1' })
     await expect(checkin1).toContainText('3 – 14 Aug')
@@ -223,7 +224,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
 
     await page.getByTestId('regenerate-timeline').click()
     const dialog = page.getByRole('dialog')

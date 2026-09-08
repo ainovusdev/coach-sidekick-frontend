@@ -56,14 +56,19 @@ async function expectReadOnlyCockpit(page: Page) {
   await expect(
     page.getByRole('button', { name: 'Edit sandbox details' }),
   ).toHaveCount(0)
-  await expect(page.getByTestId('add-event')).toHaveCount(0)
-  await expect(page.getByTestId('event-menu')).toHaveCount(0)
+  // Nothing that writes: no Settings tab, no setup checklist, no invitations.
+  await expect(page.getByTestId('sandbox-tab-settings')).toHaveCount(0)
   await expect(page.getByTestId('setup-card')).toHaveCount(0)
+  await page.getByTestId('sandbox-tab-team').click()
   await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
+  await page.getByTestId('sandbox-tab-groups').click()
   await expect(page.getByTestId('new-group')).toHaveCount(0)
   await expect(page.getByTestId('add-another-group')).toHaveCount(0)
   // The timeline is a calendar: no card opens its commitment.
+  await page.getByTestId('sandbox-tab-timeline').click()
   await expect(page.getByTestId('timeline-event').first()).toBeVisible()
+  await expect(page.getByTestId('add-event')).toHaveCount(0)
+  await expect(page.getByTestId('event-menu')).toHaveCount(0)
   await expect(page.locator('[data-commitment-id]')).toHaveCount(0)
   await expect(page.getByTestId('event-progress')).toHaveCount(0)
 }
@@ -203,8 +208,10 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
     await expect(page.getByTestId('people-link')).toHaveCount(0)
     // our side keeps the working links
+    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
     // a lead coach manages groups: sees every group and the group tools
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('group-card')).toHaveCount(2)
     await expect(page.getByTestId('new-group')).toBeVisible()
     await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
@@ -227,12 +234,14 @@ test.describe('Sandboxes — member access', () => {
     await login(page, USERS.priya.email)
     await page.goto(`/sandboxes/${sandboxId}`)
     await expectReadOnlyCockpit(page)
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('groups-scope-note')).toBeVisible()
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Managers')
     await expect(
       page.getByRole('button', { name: 'Actions for Managers' }),
     ).toHaveCount(0)
+    await page.getByTestId('sandbox-tab-team').click()
     const team = page.getByTestId('team-panel')
     await expect(team).toContainText(WREN.name)
     await expect(team).toContainText(USERS.marcus.name) // lead coach is a contact
@@ -274,11 +283,15 @@ test.describe('Sandboxes — member access', () => {
       'theirs',
     )
     await expectReadOnlyCockpit(page)
+    // The read-only check leaves the page on Timeline.
+    await expect(page.getByTestId('timeline-event')).toHaveCount(5)
+    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toHaveCount(0)
     await expect(page.getByTestId('vision-empty')).toBeVisible()
-    await expect(page.getByTestId('timeline-event')).toHaveCount(5)
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('group-card')).toHaveCount(2)
     await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
+    await page.getByTestId('sandbox-tab-team').click()
     await expect(page.getByTestId('people-link')).toHaveCount(0)
     await expect(page.getByTestId('team-panel')).not.toContainText(
       'No one is emailed yet',
@@ -302,11 +315,15 @@ test.describe('Sandboxes — member access', () => {
     await login(page, USERS.dana.email)
     await page.goto(`/sandboxes/${sandboxId}`)
     await expectReadOnlyCockpit(page)
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('groups-scope-note')).toBeVisible()
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Managers')
+    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toHaveCount(0)
+    await page.getByTestId('sandbox-tab-team').click()
     await expect(page.getByTestId('team-panel')).not.toContainText(YUSUF.name)
+    await page.getByTestId('sandbox-tab-timeline').click()
     await expect(page.getByTestId('timeline-event')).toHaveCount(5)
   })
 
@@ -320,9 +337,12 @@ test.describe('Sandboxes — member access', () => {
       'coachee',
     )
     await expectReadOnlyCockpit(page)
+    // The read-only check leaves the page on Timeline.
+    await expect(page.getByTestId('timeline-event')).toHaveCount(2)
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Marcus')
-    await expect(page.getByTestId('timeline-event')).toHaveCount(2)
+    await page.getByTestId('sandbox-tab-team').click()
     await expect(page.getByTestId('team-panel')).not.toContainText(WREN.name)
   })
 
@@ -343,10 +363,13 @@ test.describe('Sandboxes — member access', () => {
     await expect(
       page.getByRole('button', { name: 'Edit sandbox details' }),
     ).toBeVisible()
-    await expect(page.getByTestId('add-event')).toBeVisible()
     await expect(page.getByTestId('setup-card')).toBeVisible()
-    await expect(page.getByTestId('invitations-panel')).toBeVisible()
+    await page.getByTestId('sandbox-tab-timeline').click()
+    await expect(page.getByTestId('add-event')).toBeVisible()
+    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
+    await page.getByTestId('sandbox-tab-team').click()
+    await expect(page.getByTestId('invitations-panel')).toBeVisible()
     // the People page under the member route, with the member breadcrumb
     await page.getByTestId('people-link').click()
     await page.waitForURL(new RegExp(`/sandboxes/${sandboxId}/people$`))

@@ -5,10 +5,12 @@ import {
   USERS,
   apiToken,
   auth,
+  gotoSandboxTab,
   invitationToken,
   login,
   muteAgent,
 } from './helpers'
+import type { SandboxTab } from '../src/components/sandboxes/sandbox-tabs'
 
 test.describe.configure({ mode: 'serial' })
 
@@ -21,8 +23,8 @@ const LENA = { email: 'e2e-lena@ptg-e2e.com', name: 'Lena Fischer' }
 let sandboxUrl = ''
 let sandboxId = ''
 
-async function openSandbox(page: Page) {
-  await page.goto(sandboxUrl)
+async function openSandbox(page: Page, tab?: SandboxTab) {
+  await page.goto(tab ? `${sandboxUrl}?tab=${tab}` : sandboxUrl)
   await expect(page.getByTestId('identity-card')).toContainText(SANDBOX_NAME)
 }
 
@@ -82,7 +84,9 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(page.getByTestId('identity-card')).toContainText(ORG)
     await expect(page.getByTestId('status-pill')).toHaveText('Upcoming')
     await expect(page.getByTestId('setup-progress')).toHaveText('2 of 5 done')
+    await page.getByTestId('sandbox-tab-timeline').click()
     await expect(page.getByTestId('timeline-event')).toHaveCount(5)
+    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('vision-panel')).toContainText(
       'weekly one-to-one',
     )
@@ -106,7 +110,11 @@ test.describe('Sandboxes — admin creation flow', () => {
     const created = await resp.json()
 
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${created.sandbox.id}`)
+    await gotoSandboxTab(
+      page,
+      `/admin/sandboxes/${created.sandbox.id}`,
+      'timeline',
+    )
     const events = page.getByTestId('timeline-event')
     await expect(events).toHaveCount(5)
     await expect(events.nth(0)).toContainText('1 Jun – 1 Jul')
@@ -129,6 +137,7 @@ test.describe('Sandboxes — admin creation flow', () => {
   test('builds the team on both sides', async ({ page }) => {
     await login(page, USERS.admin.email)
     await openSandbox(page)
+    await page.getByTestId('sandbox-tab-team').click()
 
     // our side: Marcus as lead coach
     await page.getByRole('button', { name: 'Add from our people' }).click()
@@ -183,6 +192,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     )
     await page.keyboard.press('Escape')
 
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-progress')).toHaveText('3 of 5 done')
     await expect(page.getByTestId('setup-team')).toContainText(
       '2 ours · 2 theirs',
@@ -193,7 +203,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page)
+    await openSandbox(page, 'groups')
 
     await page.getByTestId('build-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -238,6 +248,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(card).toContainText('One to one')
     await expect(card).toContainText('13.5 h at 45 min → 18 sessions')
     await expect(card).toContainText('2–3 per month')
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-progress')).toHaveText('4 of 5 done')
   })
 
@@ -245,7 +256,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page)
+    await openSandbox(page, 'groups')
 
     await page.getByTestId('new-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -279,7 +290,9 @@ test.describe('Sandboxes — admin creation flow', () => {
     )
     await expect(incomplete).toHaveCount(1)
     await expect(incomplete).toContainText('Needs hours per coachee')
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-groups')).toContainText('1 incomplete')
+    await page.getByTestId('sandbox-tab-groups').click()
 
     await incomplete.getByTestId('finish-group').click()
     await expect(drawer).toContainText('Finish Group 2')
@@ -317,6 +330,7 @@ test.describe('Sandboxes — admin creation flow', () => {
       .getByTestId('group-card')
       .filter({ hasText: 'Group 2' })
     await expect(groupCard).toContainText('2 coaches, 2 coachees')
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-groups')).toContainText(
       '2 groups · 3 coachees',
     )
@@ -352,7 +366,7 @@ test.describe('Sandboxes — admin creation flow', () => {
 
   test('sends, revokes and resends invitations', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page)
+    await openSandbox(page, 'team')
 
     const panel = page.getByTestId('invitations-panel')
     await expect(panel.getByTestId('invitations-title')).toHaveText(
@@ -401,6 +415,7 @@ test.describe('Sandboxes — admin creation flow', () => {
       page.getByText('Invitation resent with a fresh link'),
     ).toBeVisible()
 
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-invitations')).toContainText(
       'still waiting',
     )
@@ -464,7 +479,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await context.close()
 
     await login(page, USERS.admin.email)
-    await openSandbox(page)
+    await openSandbox(page, 'team')
     const panel = page.getByTestId('invitations-panel')
     await expect(
       panel
@@ -490,7 +505,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page)
+    await openSandbox(page, 'team')
 
     const kofiRow = page
       .getByTestId('their-side')
@@ -504,6 +519,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(page.getByRole('dialog')).toContainText('is in Group 2')
     await page.getByTestId('remove-anyway').click()
     await expect(kofiRow).toHaveCount(0)
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(
       page.getByTestId('group-card').filter({ hasText: 'Group 2' }),
     ).toContainText('2 coaches, 1 coachee')

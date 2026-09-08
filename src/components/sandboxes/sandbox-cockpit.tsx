@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IdentityCard } from '@/components/sandboxes/rail/identity-card'
 import {
   SetupCard,
@@ -20,6 +23,7 @@ import { GroupsPanel } from '@/components/sandboxes/groups-panel'
 import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
 import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
 import { CommitmentsPanel } from '@/components/sandboxes/commitments-panel'
+import { SettingsPanel } from '@/components/sandboxes/settings-panel'
 import { GroupDrawer } from '@/components/sandboxes/group-drawer'
 import {
   GroupBlockedDialog,
@@ -31,6 +35,14 @@ import {
 } from '@/components/sandboxes/invitations-panel'
 import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
+import {
+  DEFAULT_TAB,
+  isSandboxTab,
+  TAB_FOR_ANCHOR,
+  TAB_LABEL,
+  tabsFor,
+  type SandboxTab,
+} from '@/components/sandboxes/sandbox-tabs'
 import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
 import {
   useDeleteGroup,
@@ -54,15 +66,63 @@ function scrollTo(id: string) {
 export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const sandboxId = overview.sandbox.id
   const view = useSandboxView()
-  // Deep links (#delivery, #invitations, …) arrive before the data does.
+  const router = useRouter()
+  const { can } = view
+  const tabs = tabsFor(can)
+
+  const [tab, setTab] = useState<SandboxTab>(DEFAULT_TAB)
+
+  // Where a link lands. A `#section` anchor comes from a notification or from
+  // the dashboard's attention rows and was written before the tabs existed, so
+  // it wins over `?tab=`: pick the tab that owns the section, then scroll to it
+  // once that tab has painted — an unmounted section has no element to find.
+  //
+  // A second link to the same sandbox only changes the hash, which the browser
+  // handles without reloading, so the same reading runs again on `hashchange`.
   useEffect(() => {
-    const hash = window.location.hash.slice(1)
-    if (hash) {
-      const t = setTimeout(() => scrollTo(hash), 50)
-      return () => clearTimeout(t)
+    let frame = 0
+    const land = () => {
+      const hash = window.location.hash.slice(1)
+      const wanted = TAB_FOR_ANCHOR[hash]
+      const params = new URLSearchParams(window.location.search)
+      const asked = params.get('tab')
+      const next = wanted ?? (isSandboxTab(asked) ? asked : null)
+      if (next) setTab(next)
+      const deepCommitment = params.get('commitment')
+      if (deepCommitment) setOpenCommitmentId(deepCommitment)
+      if (!hash) return
+      frame = requestAnimationFrame(() =>
+        requestAnimationFrame(() => scrollTo(hash)),
+      )
+    }
+    land()
+    window.addEventListener('hashchange', land)
+    return () => {
+      cancelAnimationFrame(frame)
+      window.removeEventListener('hashchange', land)
     }
   }, [sandboxId])
-  const { can } = view
+
+  // Remember the tab in the URL without navigating: a refresh or a copied link
+  // comes back here, and the page keeps its static shell.
+  const goToTab = useCallback((next: SandboxTab) => {
+    setTab(next)
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', next)
+    url.hash = ''
+    window.history.replaceState(null, '', url)
+  }, [])
+
+  /** Switch tab, then scroll to a section inside it. */
+  const goToSection = useCallback(
+    (anchor: string) => {
+      const owner = TAB_FOR_ANCHOR[anchor]
+      if (owner) goToTab(owner)
+      requestAnimationFrame(() => requestAnimationFrame(() => scrollTo(anchor)))
+    },
+    [goToTab],
+  )
+
   const [visionOpen, setVisionOpen] = useState(false)
   const [addOurs, setAddOurs] = useState(false)
   const [addTheirs, setAddTheirs] = useState(false)
@@ -75,9 +135,19 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const [previewMemberId, setPreviewMemberId] = useState<string | null>(null)
   const [sendAllOpen, setSendAllOpen] = useState(false)
   const [revokeMember, setRevokeMember] = useState<SandboxMember | null>(null)
-  // One commitment panel for the whole cockpit: the Commitments section owns
-  // it, and a timeline card opens its event's commitment in the same panel.
+  // One commitment panel for the whole page, mounted here rather than inside
+  // the Commitments section: a timeline card opens its event's commitment from
+  // the Timeline tab, where that section is not mounted at all.
   const [openCommitmentId, setOpenCommitmentId] = useState<string | null>(null)
+  const closeCommitment = useCallback(() => {
+    setOpenCommitmentId(null)
+    const url = new URL(window.location.href)
+    if (!url.searchParams.has('commitment') && !url.searchParams.has('comment'))
+      return
+    url.searchParams.delete('commitment')
+    url.searchParams.delete('comment')
+    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
+  }, [])
 
   const sendInvitations = useSendInvitations(sandboxId)
   const resendInvitation = useResendInvitation(sandboxId)
@@ -86,15 +156,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   // Same query the Delivery panel reads (one request, shared cache) — a group
   // with sessions on record can't be removed, and we say so before asking.
   const { data: delivery } = useSandboxDelivery(sandboxId)
-  // The Delivery panel arrives after the first hash scroll and pushes the
-  // sections below it down; scroll once more when it lands.
-  const rescrolled = useRef(false)
-  useEffect(() => {
-    const hash = window.location.hash.slice(1)
-    if (!hash || !delivery || rescrolled.current) return
-    rescrolled.current = true
-    scrollTo(hash)
-  }, [delivery])
+
   const askToRemoveGroup = (group: SandboxGroup) => {
     const held = delivery?.groups.find(g => g.group_id === group.id)
     const withSessions =
@@ -121,28 +183,33 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     setDrawerOpen(true)
   }
 
+  // The setup checklist is a table of contents: each step opens the tab that
+  // owns the work, and the dialog when there is nothing to look at yet.
   const onSetupSelect = (target: SetupTarget) => {
     const c = overview.checklist
     if (!c) return
     switch (target) {
       case 'term':
-        scrollTo('timeline')
+        goToTab('timeline')
         break
       case 'vision':
-        if (c.vision_added) scrollTo('vision')
-        else setVisionOpen(true)
+        if (c.vision_added) goToSection('vision')
+        else {
+          goToTab('general')
+          setVisionOpen(true)
+        }
         break
       case 'team':
-        scrollTo('team')
+        goToTab('team')
         if (overview.members.length === 0) setAddOurs(true)
         else if (!c.their_side_count) setAddTheirs(true)
         break
       case 'groups':
         if (c.groups.count === 0) openDrawer(null)
-        else scrollTo('groups')
+        else goToTab('groups')
         break
       case 'invitations':
-        scrollTo(
+        goToSection(
           overview.members.some(m => m.side === 'theirs')
             ? 'invitations'
             : 'team',
@@ -177,68 +244,127 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     revokeInvitation.isPending
 
   return (
-    <div
-      className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
-      data-testid="sandbox-cockpit"
-    >
-      <aside
-        className={cn('space-y-4 xl:sticky xl:self-start', view.railTopClass)}
-      >
-        <IdentityCard overview={overview} />
-        <SetupCard overview={overview} onSelect={onSetupSelect} />
-        <LinksCard overview={overview} />
-      </aside>
+    <div className="space-y-4" data-testid="sandbox-cockpit">
+      <IdentityCard overview={overview} onEdit={() => goToTab('settings')} />
 
-      <div className="min-w-0 space-y-6">
-        {can.editGroups && (
-          <IncompleteBanner
-            groups={overview.groups}
-            onFinish={g => openDrawer(g)}
-          />
-        )}
-        <TimelinePanel
-          overview={overview}
-          onOpenCommitment={setOpenCommitmentId}
-        />
-        <VisionPanel
-          overview={overview}
-          open={visionOpen}
-          onOpenChange={setVisionOpen}
-        />
-        <OutcomesPanel overview={overview} />
-        <CommitmentsPanel
-          overview={overview}
-          openId={openCommitmentId}
-          onOpenChange={setOpenCommitmentId}
-        />
-        <TeamPanel
-          overview={overview}
-          actions={memberActions}
-          onAddOurs={() => setAddOurs(true)}
-          onAddTheirs={() => setAddTheirs(true)}
-        />
-        <DeliveryPanel overview={overview} />
-        <GroupsPanel
-          overview={overview}
-          onNew={() => openDrawer(null)}
-          onEdit={g => openDrawer(g)}
-          onDelete={askToRemoveGroup}
-        />
-        {can.invite && (
-          <InvitationsPanel
+      <Tabs
+        value={tab}
+        onValueChange={v => goToTab(v as SandboxTab)}
+        className="gap-4"
+      >
+        <TabsList
+          data-testid="sandbox-tabs"
+          className={cn(
+            'h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
+            'border border-line bg-paper p-1',
+          )}
+        >
+          {tabs.map(t => (
+            <TabsTrigger
+              key={t}
+              value={t}
+              data-testid={`sandbox-tab-${t}`}
+              className={cn(
+                'flex-none rounded-lg px-3 py-1.5 text-sm text-ink-3',
+                'data-[state=active]:bg-surface-2 data-[state=active]:text-ink',
+              )}
+            >
+              {TAB_LABEL[t]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value="today" className="space-y-6">
+          {can.editGroups && (
+            <IncompleteBanner
+              groups={overview.groups}
+              onFinish={g => openDrawer(g)}
+            />
+          )}
+          <SetupCard overview={overview} onSelect={onSetupSelect} />
+          <CommitmentsPanel
             overview={overview}
-            actions={{
-              onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
-              onResend: m =>
-                m.invitation_id && resendInvitation.mutate(m.invitation_id),
-              onRevoke: m => setRevokeMember(m),
-              onPreview: m => setPreviewMemberId(m.id),
-              onSendAll: () => setSendAllOpen(true),
-              sending,
-            }}
+            openId={openCommitmentId}
+            onOpenChange={setOpenCommitmentId}
           />
+        </TabsContent>
+
+        <TabsContent value="outcomes">
+          <OutcomesPanel overview={overview} />
+        </TabsContent>
+
+        <TabsContent value="team" className="space-y-6">
+          <TeamPanel
+            overview={overview}
+            actions={memberActions}
+            onAddOurs={() => setAddOurs(true)}
+            onAddTheirs={() => setAddTheirs(true)}
+          />
+          {can.invite && (
+            <InvitationsPanel
+              overview={overview}
+              actions={{
+                onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
+                onResend: m =>
+                  m.invitation_id && resendInvitation.mutate(m.invitation_id),
+                onRevoke: m => setRevokeMember(m),
+                onPreview: m => setPreviewMemberId(m.id),
+                onSendAll: () => setSendAllOpen(true),
+                sending,
+              }}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="groups" className="space-y-6">
+          {can.editGroups && (
+            <IncompleteBanner
+              groups={overview.groups}
+              onFinish={g => openDrawer(g)}
+            />
+          )}
+          <GroupsPanel
+            overview={overview}
+            onNew={() => openDrawer(null)}
+            onEdit={g => openDrawer(g)}
+            onDelete={askToRemoveGroup}
+          />
+          <DeliveryPanel overview={overview} />
+        </TabsContent>
+
+        <TabsContent value="timeline">
+          <TimelinePanel
+            overview={overview}
+            onOpenCommitment={setOpenCommitmentId}
+          />
+        </TabsContent>
+
+        <TabsContent value="general" className="space-y-6">
+          <VisionPanel
+            overview={overview}
+            open={visionOpen}
+            onOpenChange={setVisionOpen}
+          />
+          <LinksCard overview={overview} />
+        </TabsContent>
+
+        {can.editSandbox && (
+          <TabsContent value="settings">
+            <SettingsPanel overview={overview} />
+          </TabsContent>
         )}
-      </div>
+      </Tabs>
+
+      <CommitmentDetailPanel
+        commitmentId={openCommitmentId}
+        onClose={closeCommitment}
+        onNavigate={setOpenCommitmentId}
+        onOpenInPage={
+          view.audience === 'ours' && openCommitmentId
+            ? () => router.push(`/commitments/${openCommitmentId}`)
+            : undefined
+        }
+      />
 
       {/* Dialogs and drawers — mounted only for people who may use them */}
       {can.editTeam && (

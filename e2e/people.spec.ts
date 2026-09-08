@@ -204,6 +204,7 @@ test.describe('Sandboxes — People page', () => {
 
     // The overview reflects it straight away.
     await page.getByTestId('back-to-overview').click()
+    await page.getByTestId('sandbox-tab-groups').click()
     const managers = page
       .getByTestId('group-card')
       .filter({ hasText: 'Managers' })
@@ -258,6 +259,7 @@ test.describe('Sandboxes — People page', () => {
   test('the overview links to People', async ({ page }) => {
     await login(page, USERS.admin.email)
     await page.goto(`/admin/sandboxes/${sandboxId}`)
+    await page.getByTestId('sandbox-tab-team').click()
     await page.getByTestId('people-link').click()
     await page.waitForURL(/\/people$/)
     await expect(page.getByTestId('people-page')).toBeVisible()
