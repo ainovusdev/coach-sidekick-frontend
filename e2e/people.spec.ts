@@ -4,11 +4,12 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, login } from './helpers'
+import { API, USERS, apiToken, auth, gotoSandboxTab, login } from './helpers'
 
 /**
- * Chunk 7 — the People page: everyone on the sandbox in one table, filters,
- * per-row actions (change groups), bulk invite and bulk remove.
+ * The Team tab's people table: everyone on the sandbox in one table, filters,
+ * per-row actions (change groups), bulk invite and bulk remove. It was a page
+ * of its own until the sandbox became tabbed; `/people` still redirects here.
  *
  * Fixture (built through the API): admin (AE) · Marcus (lead coach, coaches
  * Amara 1:1) · Priya (coaches "Managers" with Tariq) · Amara (primary client)
@@ -96,10 +97,10 @@ test.describe('Sandboxes — People page', () => {
     })
 
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
-    await expect(page.getByTestId('people-page')).toBeVisible()
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await expect(page.getByTestId('people-table')).toContainText('Team 6')
     await expect(page.getByTestId('people-summary')).toHaveText(
-      `6 people · 3 ours · 3 from ${ORG}`,
+      `3 ours · 3 from ${ORG}`,
     )
     await expect(page.getByTestId('person-row')).toHaveCount(6)
 
@@ -126,7 +127,7 @@ test.describe('Sandboxes — People page', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
     const rows = page.getByTestId('person-row')
     await expect(rows).toHaveCount(6)
 
@@ -162,7 +163,7 @@ test.describe('Sandboxes — People page', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
 
     await row(page, AMARA.name)
       .getByRole('button', { name: `Actions for ${AMARA.name}` })
@@ -202,8 +203,7 @@ test.describe('Sandboxes — People page', () => {
       'Managers (supervises)',
     )
 
-    // The overview reflects it straight away.
-    await page.getByTestId('back-to-overview').click()
+    // The Groups tab reflects it straight away.
     await page.getByTestId('sandbox-tab-groups').click()
     const managers = page
       .getByTestId('group-card')
@@ -214,7 +214,7 @@ test.describe('Sandboxes — People page', () => {
 
   test('bulk invite and bulk remove', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
 
     await page.getByRole('checkbox', { name: `Select ${AMARA.name}` }).click()
     await page.getByRole('checkbox', { name: `Select ${TARIQ.name}` }).click()
@@ -241,14 +241,14 @@ test.describe('Sandboxes — People page', () => {
     )
     await page.getByTestId('bulk-remove-confirm').click()
     await expect(row(page, TARIQ.name)).toHaveCount(0)
-    await expect(page.getByTestId('people-summary')).toContainText('5 people')
+    await expect(page.getByTestId('person-row')).toHaveCount(5)
   })
 
   test('bulk removal will not take the last account executive', async ({
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
     await page.getByRole('checkbox', { name: 'Select E2E Admin' }).click()
     await page.getByTestId('bulk-remove').click()
     await expect(page.getByTestId('bulk-remove-blocked')).toBeVisible()
@@ -256,12 +256,10 @@ test.describe('Sandboxes — People page', () => {
     await page.getByRole('button', { name: 'Keep them' }).click()
   })
 
-  test('the overview links to People', async ({ page }) => {
+  test('the old People link lands on the Team tab', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await page.goto(`/admin/sandboxes/${sandboxId}`)
-    await page.getByTestId('sandbox-tab-team').click()
-    await page.getByTestId('people-link').click()
-    await page.waitForURL(/\/people$/)
-    await expect(page.getByTestId('people-page')).toBeVisible()
+    await page.goto(`/admin/sandboxes/${sandboxId}/people`)
+    await page.waitForURL(/\?tab=team$/)
+    await expect(page.getByTestId('people-table')).toBeVisible()
   })
 })

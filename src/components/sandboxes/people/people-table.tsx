@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import Link from 'next/link'
 import { MoreHorizontal, Plus, Search, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -33,21 +32,16 @@ import {
 } from '@/components/ui/table'
 import { useAuth } from '@/contexts/auth-context'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
-import { AddOurPeopleDialog } from '@/components/sandboxes/add-our-people-dialog'
-import { AddTheirPeopleDialog } from '@/components/sandboxes/add-their-people-dialog'
-import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
 import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
 import {
   InvitationBadge,
   isWaiting,
 } from '@/components/sandboxes/invitations-panel'
-import { RemoveMemberDialog } from '@/components/sandboxes/remove-member-dialog'
+import type { MemberActions } from '@/components/sandboxes/member-row'
 import { ChangeGroupsDialog } from '@/components/sandboxes/people/change-groups-dialog'
 import { BulkRemoveDialog } from '@/components/sandboxes/people/bulk-remove-dialog'
 import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
 import {
-  useResendInvitation,
-  useRevokeInvitation,
   useSendInvitations,
   useResendAddedEmail,
 } from '@/hooks/mutations/use-sandbox-mutations'
@@ -89,6 +83,11 @@ const INVITATION_OPTIONS: { value: InvitationStatus; label: string }[] = [
 
 type SideFilter = 'all' | 'ours' | 'theirs'
 
+export type PeopleTableActions = MemberActions & {
+  onAddOurs: () => void
+  onAddTheirs: () => void
+}
+
 /** Hats plus the derived coach/coachee, as the chips a row shows. */
 function roleChips(
   member: SandboxMember,
@@ -115,14 +114,29 @@ function groupsText(member: SandboxMember): string {
   return Array.from(new Set(parts)).join(', ')
 }
 
-export function PeoplePage({ overview }: { overview: SandboxOverview }) {
+/**
+ * Everyone on the sandbox, as the Team tab shows them to whoever runs it.
+ *
+ * This was a page of its own until the sandbox became tabbed; folding it in
+ * means one list rather than a roster and a table saying the same thing twice.
+ * The dialogs the cockpit already owns arrive as `actions` — only the ones it
+ * has no use for elsewhere (groups, bulk removal, bulk invitations) live here.
+ */
+export function PeopleTable({
+  overview,
+  actions,
+}: {
+  overview: SandboxOverview
+  actions: PeopleTableActions
+}) {
   const { user } = useAuth()
-  const view = useSandboxView()
-  const { can } = view
-  const resendAdded = useResendAddedEmail(overview.sandbox.id)
-  const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
+  const { can } = useSandboxView()
   const { sandbox, members, groups } = overview
   const sandboxId = sandbox.id
+  const resendAdded = useResendAddedEmail(sandboxId)
+  const sendInvitations = useSendInvitations(sandboxId)
+  const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
+
   // Sessions on record per coachee — what bulk removal has to mention.
   const { data: delivery } = useSandboxDelivery(sandboxId)
   const sessionsByMember = useMemo(() => {
@@ -141,19 +155,9 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
   const [invitation, setInvitation] = useState('all')
   const [selected, setSelected] = useState<Set<string>>(new Set())
 
-  const [addOurs, setAddOurs] = useState(false)
-  const [addTheirs, setAddTheirs] = useState(false)
-  const [rolesMember, setRolesMember] = useState<SandboxMember | null>(null)
   const [groupsMember, setGroupsMember] = useState<SandboxMember | null>(null)
-  const [removeMember, setRemoveMember] = useState<SandboxMember | null>(null)
-  const [previewMemberId, setPreviewMemberId] = useState<string | null>(null)
-  const [revokeMember, setRevokeMember] = useState<SandboxMember | null>(null)
   const [bulkRemoveOpen, setBulkRemoveOpen] = useState(false)
   const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
-
-  const sendInvitations = useSendInvitations(sandboxId)
-  const resendInvitation = useResendInvitation(sandboxId)
-  const revokeInvitation = useRevokeInvitation(sandboxId)
 
   const q = search.trim().toLowerCase()
   const isFiltered =
@@ -229,161 +233,161 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
   const hasRowMenu = can.editTeam || can.editGroups || can.invite
 
   return (
-    <div className="space-y-6" data-testid="people-page">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section
+      id="team"
+      className="scroll-mt-20 rounded-xl border border-line bg-paper"
+      data-testid="people-table"
+    >
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">
         <div>
-          <nav className="text-xs text-ink-3">
-            <Link href={view.href.index()} className="hover:text-ink">
-              {view.indexLabel}
-            </Link>
-            <span className="mx-1">/</span>
-            <Link
-              href={view.href.overview(sandboxId)}
-              className="hover:text-ink"
-              data-testid="back-to-overview"
-            >
-              {sandbox.name}
-            </Link>
-          </nav>
-          <h1 className="mt-1 text-2xl font-semibold text-ink">People</h1>
-          <p className="text-sm text-ink-3" data-testid="people-summary">
-            {pluralise(members.length, 'person', 'people')} · {ours} ours ·{' '}
-            {theirs} from {sandbox.organisation}
+          <h2 className="text-base font-semibold text-ink">
+            Team{' '}
+            <span className="ml-1 text-sm font-normal text-ink-3">
+              {members.length}
+            </span>
+          </h2>
+          <p className="text-xs text-ink-3" data-testid="people-summary">
+            {ours} ours · {theirs} from {sandbox.organisation}
           </p>
         </div>
         {can.editTeam && (
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setAddOurs(true)}>
+            <Button variant="outline" size="sm" onClick={actions.onAddOurs}>
               <Plus className="h-4 w-4" />
               Add from our people
             </Button>
             <Button
+              size="sm"
               className="bg-ink text-ink-on-dark hover:bg-ink/90"
-              onClick={() => setAddTheirs(true)}
+              onClick={actions.onAddTheirs}
             >
               <Plus className="h-4 w-4" />
               Add by email
             </Button>
           </div>
         )}
-      </div>
+      </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-full sm:w-64">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
-          <Input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search by name or email"
-            className="pl-8"
-            aria-label="Search people"
-            data-testid="people-search"
-          />
+      <div className="space-y-3 px-5 py-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
+            <Input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name or email"
+              className="pl-8"
+              aria-label="Search people"
+              data-testid="people-search"
+            />
+          </div>
+          <Select value={side} onValueChange={v => setSide(v as SideFilter)}>
+            <SelectTrigger className="w-full sm:w-36" aria-label="Side">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Both sides</SelectItem>
+              <SelectItem value="ours">Our side</SelectItem>
+              <SelectItem value="theirs">Their side</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={role} onValueChange={setRole}>
+            <SelectTrigger className="w-full sm:w-44" aria-label="Role">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any role</SelectItem>
+              {ROLE_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={group} onValueChange={setGroup}>
+            <SelectTrigger className="w-full sm:w-44" aria-label="Group">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any group</SelectItem>
+              <SelectItem value="none">No group</SelectItem>
+              {groups.map(g => (
+                <SelectItem key={g.id} value={g.id}>
+                  {g.display_name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={invitation} onValueChange={setInvitation}>
+            <SelectTrigger className="w-full sm:w-40" aria-label="Invitation">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Any invitation</SelectItem>
+              {INVITATION_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {isFiltered && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-ink-3"
+              onClick={clearFilters}
+              data-testid="clear-filters"
+            >
+              Clear
+            </Button>
+          )}
         </div>
-        <Select value={side} onValueChange={v => setSide(v as SideFilter)}>
-          <SelectTrigger className="w-full sm:w-36" aria-label="Side">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Both sides</SelectItem>
-            <SelectItem value="ours">Our side</SelectItem>
-            <SelectItem value="theirs">Their side</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={role} onValueChange={setRole}>
-          <SelectTrigger className="w-full sm:w-44" aria-label="Role">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Any role</SelectItem>
-            {ROLE_OPTIONS.map(o => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={group} onValueChange={setGroup}>
-          <SelectTrigger className="w-full sm:w-44" aria-label="Group">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Any group</SelectItem>
-            <SelectItem value="none">No group</SelectItem>
-            {groups.map(g => (
-              <SelectItem key={g.id} value={g.id}>
-                {g.display_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={invitation} onValueChange={setInvitation}>
-          <SelectTrigger className="w-full sm:w-40" aria-label="Invitation">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Any invitation</SelectItem>
-            {INVITATION_OPTIONS.map(o => (
-              <SelectItem key={o.value} value={o.value}>
-                {o.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {isFiltered && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-ink-3"
-            onClick={clearFilters}
-            data-testid="clear-filters"
-          >
-            Clear
-          </Button>
-        )}
-      </div>
 
-      {selected.size > 0 && (
-        <div
-          className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm"
-          data-testid="bulk-bar"
-        >
-          <span className="font-medium text-ink">{selected.size} selected</span>
-          <span className="text-ink-4">·</span>
-          {can.invite && (
+        {selected.size > 0 && (
+          <div
+            className="flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface-2 px-3 py-2 text-sm"
+            data-testid="bulk-bar"
+          >
+            <span className="font-medium text-ink">
+              {selected.size} selected
+            </span>
+            <span className="text-ink-4">·</span>
+            {can.invite && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={
+                  selectedWaiting.length === 0 || sendInvitations.isPending
+                }
+                onClick={() => setBulkInviteOpen(true)}
+                data-testid="bulk-invite"
+              >
+                Send {pluralise(selectedWaiting.length, 'invitation')}
+              </Button>
+            )}
             <Button
               variant="outline"
               size="sm"
-              disabled={
-                selectedWaiting.length === 0 || sendInvitations.isPending
-              }
-              onClick={() => setBulkInviteOpen(true)}
-              data-testid="bulk-invite"
+              className="text-destructive hover:text-destructive"
+              onClick={() => setBulkRemoveOpen(true)}
+              data-testid="bulk-remove"
             >
-              Send {pluralise(selectedWaiting.length, 'invitation')}
+              Remove from sandbox
             </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-destructive hover:text-destructive"
-            onClick={() => setBulkRemoveOpen(true)}
-            data-testid="bulk-remove"
-          >
-            Remove from sandbox
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="ml-auto text-ink-3"
-            onClick={() => setSelected(new Set())}
-          >
-            Clear selection
-          </Button>
-        </div>
-      )}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="ml-auto text-ink-3"
+              onClick={() => setSelected(new Set())}
+            >
+              Clear selection
+            </Button>
+          </div>
+        )}
+      </div>
 
-      <div className="overflow-x-auto rounded-xl border border-line bg-paper">
+      <div className="overflow-x-auto border-t border-line">
         {rows.length === 0 ? (
           <EmptyState
             icon={Users}
@@ -396,7 +400,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 {can.editTeam && (
-                  <TableHead className="w-10 pl-4">
+                  <TableHead className="w-10 pl-5">
                     <Checkbox
                       aria-label="Select everyone shown"
                       checked={
@@ -411,7 +415,9 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                     />
                   </TableHead>
                 )}
-                <TableHead>Person</TableHead>
+                <TableHead className={cn(!can.editTeam && 'pl-5')}>
+                  Person
+                </TableHead>
                 <TableHead>Side</TableHead>
                 <TableHead>Roles</TableHead>
                 <TableHead>Groups</TableHead>
@@ -434,7 +440,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                     className={cn(selected.has(m.id) && 'bg-surface-2')}
                   >
                     {can.editTeam && (
-                      <TableCell className="pl-4">
+                      <TableCell className="pl-5">
                         <Checkbox
                           aria-label={`Select ${who}`}
                           checked={selected.has(m.id)}
@@ -442,7 +448,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                         />
                       </TableCell>
                     )}
-                    <TableCell>
+                    <TableCell className={cn(!can.editTeam && 'pl-5')}>
                       <div className="flex items-center gap-3">
                         <PersonAvatar
                           name={m.name}
@@ -516,7 +522,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                       {fmtDay(toDateOnly(new Date(m.created_at)), true)}
                     </TableCell>
                     {hasRowMenu && (
-                      <TableCell className="pr-2 text-right">
+                      <TableCell className="pr-3 text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button
@@ -529,9 +535,9 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-52">
-                            {can.editTeam && (
+                            {actions.onChangeRoles && (
                               <DropdownMenuItem
-                                onClick={() => setRolesMember(m)}
+                                onClick={() => actions.onChangeRoles?.(m)}
                               >
                                 Change roles
                               </DropdownMenuItem>
@@ -567,11 +573,7 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                                 {(m.invitation_status === 'not_sent' ||
                                   m.invitation_status === 'has_account') && (
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      sendInvitations.mutate({
-                                        member_ids: [m.id],
-                                      })
-                                    }
+                                    onClick={() => actions.onInvite?.(m)}
                                   >
                                     Send invitation
                                   </DropdownMenuItem>
@@ -579,36 +581,33 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
                                 {(m.invitation_status === 'sent' ||
                                   m.invitation_status === 'expired') && (
                                   <DropdownMenuItem
-                                    onClick={() =>
-                                      m.invitation_id &&
-                                      resendInvitation.mutate(m.invitation_id)
-                                    }
+                                    onClick={() => actions.onResend?.(m)}
                                   >
                                     Resend invitation
                                   </DropdownMenuItem>
                                 )}
                                 {m.invitation_status === 'sent' && (
                                   <DropdownMenuItem
-                                    onClick={() => setRevokeMember(m)}
+                                    onClick={() => actions.onRevoke?.(m)}
                                   >
                                     Revoke invitation
                                   </DropdownMenuItem>
                                 )}
                                 {m.invitation_status !== 'accepted' && (
                                   <DropdownMenuItem
-                                    onClick={() => setPreviewMemberId(m.id)}
+                                    onClick={() => actions.onPreview?.(m)}
                                   >
                                     Preview email
                                   </DropdownMenuItem>
                                 )}
                               </>
                             )}
-                            {can.editTeam && (
+                            {actions.onRemove && (
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
                                   className="text-destructive focus:text-destructive"
-                                  onClick={() => setRemoveMember(m)}
+                                  onClick={() => actions.onRemove?.(m)}
                                 >
                                   Remove from sandbox
                                 </DropdownMenuItem>
@@ -626,43 +625,10 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
         )}
       </div>
 
-      <AddOurPeopleDialog
-        open={addOurs}
-        onOpenChange={setAddOurs}
-        sandboxId={sandboxId}
-      />
-      <AddTheirPeopleDialog
-        open={addTheirs}
-        onOpenChange={setAddTheirs}
-        sandboxId={sandboxId}
-        organisation={sandbox.organisation}
-        onEditExisting={memberId => {
-          const m = members.find(x => x.id === memberId)
-          if (m) {
-            setAddTheirs(false)
-            setRolesMember(m)
-          }
-        }}
-      />
-      <ChangeRolesDialog
-        member={rolesMember}
-        onOpenChange={o => !o && setRolesMember(null)}
-        sandboxId={sandboxId}
-      />
       <ChangeGroupsDialog
         member={groupsMember}
         onOpenChange={o => !o && setGroupsMember(null)}
         overview={overview}
-      />
-      <RemoveMemberDialog
-        member={removeMember}
-        onOpenChange={o => !o && setRemoveMember(null)}
-        sandboxId={sandboxId}
-      />
-      <EmailPreviewDialog
-        sandboxId={sandboxId}
-        memberId={previewMemberId}
-        onOpenChange={o => !o && setPreviewMemberId(null)}
       />
       <EmailPreviewDialog
         sandboxId={sandboxId}
@@ -692,19 +658,6 @@ export function PeoplePage({ overview }: { overview: SandboxOverview }) {
           setSelected(new Set())
         }}
       />
-      <ConfirmationDialog
-        open={!!revokeMember}
-        onOpenChange={o => !o && setRevokeMember(null)}
-        title={`Revoke the invitation for ${revokeMember?.name || revokeMember?.email || ''}?`}
-        description="Their link stops working. You can send a fresh one later."
-        confirmText="Revoke"
-        variant="destructive"
-        onConfirm={async () => {
-          if (revokeMember?.invitation_id)
-            await revokeInvitation.mutateAsync(revokeMember.invitation_id)
-          setRevokeMember(null)
-        }}
-      />
-    </div>
+    </section>
   )
 }

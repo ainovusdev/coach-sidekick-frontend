@@ -1,42 +1,21 @@
 'use client'
 
-import Link from 'next/link'
+import { useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Boxes } from 'lucide-react'
-import { EmptyState } from '@/components/ui/empty-state'
 import { PeopleSkeleton } from '@/components/sandboxes/skeletons'
-import { PeoplePage } from '@/components/sandboxes/people/people-page'
-import { useSandboxOverview } from '@/hooks/queries/use-sandboxes'
 
-export default function SandboxPeopleRoute() {
+/**
+ * People used to be a page of its own. It is the sandbox's Team tab now, so
+ * older links — a bookmark, an email, a notification — land there instead.
+ */
+export default function SandboxPeopleRedirect() {
   const params = useParams<{ sandboxId: string }>()
   const router = useRouter()
   const sandboxId = params?.sandboxId
-  const { data, isLoading, isError } = useSandboxOverview(sandboxId)
 
-  if (isLoading || (!data && !isError)) return <PeopleSkeleton />
+  useEffect(() => {
+    if (sandboxId) router.replace(`/admin/sandboxes/${sandboxId}?tab=team`)
+  }, [router, sandboxId])
 
-  if (isError || !data) {
-    return (
-      <div className="max-w-xl">
-        <Link
-          href="/admin/sandboxes"
-          className="text-sm text-ink-3 hover:text-ink"
-        >
-          ← Sandboxes
-        </Link>
-        <EmptyState
-          icon={Boxes}
-          title="Sandbox not found"
-          description="It may have been removed, or the link is wrong."
-          action={{
-            label: 'Back to sandboxes',
-            onClick: () => router.push('/admin/sandboxes'),
-          }}
-        />
-      </div>
-    )
-  }
-
-  return <PeoplePage overview={data} />
+  return <PeopleSkeleton />
 }

@@ -206,7 +206,7 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('add-event')).toHaveCount(0)
     await expect(page.getByTestId('setup-card')).toHaveCount(0)
     await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
-    await expect(page.getByTestId('people-link')).toHaveCount(0)
+    await expect(page.getByTestId('people-table')).toHaveCount(0)
     // our side keeps the working links
     await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
@@ -292,7 +292,7 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('group-card')).toHaveCount(2)
     await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
     await page.getByTestId('sandbox-tab-team').click()
-    await expect(page.getByTestId('people-link')).toHaveCount(0)
+    await expect(page.getByTestId('people-table')).toHaveCount(0)
     await expect(page.getByTestId('team-panel')).not.toContainText(
       'No one is emailed yet',
     )
@@ -370,14 +370,9 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
     await page.getByTestId('sandbox-tab-team').click()
     await expect(page.getByTestId('invitations-panel')).toBeVisible()
-    // the People page under the member route, with the member breadcrumb
-    await page.getByTestId('people-link').click()
-    await page.waitForURL(new RegExp(`/sandboxes/${sandboxId}/people$`))
-    await expect(page.getByTestId('people-page')).toBeVisible()
-    await expect(page.getByTestId('back-to-overview')).toHaveAttribute(
-      'href',
-      `/sandboxes/${sandboxId}`,
-    )
+    // whoever runs the sandbox gets the people table, not the plain roster
+    await expect(page.getByTestId('people-table')).toBeVisible()
+    await expect(page.getByTestId('team-panel')).toHaveCount(0)
     // our side shows when the added email went out, and can send it again
     const marcus = page
       .getByTestId('person-row')

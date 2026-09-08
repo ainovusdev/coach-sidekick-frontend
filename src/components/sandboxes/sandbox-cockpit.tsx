@@ -14,6 +14,7 @@ import { LinksCard } from '@/components/sandboxes/rail/links-card'
 import { TimelinePanel } from '@/components/sandboxes/timeline-panel'
 import { VisionPanel } from '@/components/sandboxes/vision-panel'
 import { TeamPanel } from '@/components/sandboxes/team-panel'
+import { PeopleTable } from '@/components/sandboxes/people/people-table'
 import { AddOurPeopleDialog } from '@/components/sandboxes/add-our-people-dialog'
 import { AddTheirPeopleDialog } from '@/components/sandboxes/add-their-people-dialog'
 import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
@@ -294,12 +295,26 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
         </TabsContent>
 
         <TabsContent value="team" className="space-y-6">
-          <TeamPanel
-            overview={overview}
-            actions={memberActions}
-            onAddOurs={() => setAddOurs(true)}
-            onAddTheirs={() => setAddTheirs(true)}
-          />
+          {/* Whoever runs the sandbox gets the full table — filters, bulk
+              actions, the lot. Everyone else gets the two-sided roster, which
+              is all their capabilities allow them to see. */}
+          {can.seePeople ? (
+            <PeopleTable
+              overview={overview}
+              actions={{
+                ...memberActions,
+                onAddOurs: () => setAddOurs(true),
+                onAddTheirs: () => setAddTheirs(true),
+              }}
+            />
+          ) : (
+            <TeamPanel
+              overview={overview}
+              actions={memberActions}
+              onAddOurs={() => setAddOurs(true)}
+              onAddTheirs={() => setAddTheirs(true)}
+            />
+          )}
           {can.invite && (
             <InvitationsPanel
               overview={overview}

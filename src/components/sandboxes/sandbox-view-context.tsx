@@ -40,13 +40,10 @@ export interface SandboxView {
   scope: SandboxScope
   basePath: '/admin/sandboxes' | '/sandboxes'
   indexLabel: string
-  /** the sticky rail offset: admin's main scrolls, member chrome has a 64px header */
-  railTopClass: 'xl:top-0' | 'xl:top-20'
   can: SandboxCan
   href: {
     index: () => string
     overview: (id: string) => string
-    people: (id: string) => string
     groups: (id: string) => string
   }
 }
@@ -68,8 +65,7 @@ function hrefs(basePath: SandboxView['basePath']): SandboxView['href'] {
   return {
     index: () => basePath,
     overview: id => `${basePath}/${id}`,
-    people: id => `${basePath}/${id}/people`,
-    groups: id => `${basePath}/${id}#groups`,
+    groups: id => `${basePath}/${id}?tab=groups`,
   }
 }
 
@@ -78,7 +74,6 @@ export const ADMIN_SANDBOX_VIEW: SandboxView = {
   scope: 'all',
   basePath: '/admin/sandboxes',
   indexLabel: 'Sandboxes',
-  railTopClass: 'xl:top-0',
   can: ALL_ON,
   href: hrefs('/admin/sandboxes'),
 }
@@ -115,7 +110,6 @@ export function viewFromOverview(
     scope: opts.isAdmin ? 'all' : overview.my_scope,
     basePath: '/sandboxes',
     indexLabel: opts.isAdmin ? 'Sandboxes' : 'My sandboxes',
-    railTopClass: 'xl:top-20',
     can,
     href: hrefs('/sandboxes'),
   }

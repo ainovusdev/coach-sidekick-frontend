@@ -149,10 +149,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.getByTestId('role-lead_coach').click()
     await page.getByTestId('add-our-person').click()
     await expect(
-      page
-        .getByTestId('our-side')
-        .getByTestId('member-row')
-        .filter({ hasText: 'Marcus Bell' }),
+      page.getByTestId('person-row').filter({ hasText: 'Marcus Bell' }),
     ).toContainText('Lead coach')
 
     // their side: Nadia as primary client (new person, by email)
@@ -161,11 +158,10 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.fill('#their-name-0', NADIA.name)
     await page.getByTestId('add-their-people').click()
     const nadiaRow = page
-      .getByTestId('their-side')
-      .getByTestId('member-row')
+      .getByTestId('person-row')
       .filter({ hasText: NADIA.name })
     await expect(nadiaRow).toContainText('Primary client')
-    await expect(nadiaRow).toContainText('Not yet invited')
+    await expect(nadiaRow).toContainText('Not sent')
 
     // their side: Dana, who already has an account, as supervisor
     await page.getByRole('button', { name: 'Add by email' }).click()
@@ -178,8 +174,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.getByRole('option', { name: 'Supervisor' }).click()
     await page.getByTestId('add-their-people').click()
     const danaRow = page
-      .getByTestId('their-side')
-      .getByTestId('member-row')
+      .getByTestId('person-row')
       .filter({ hasText: USERS.dana.name })
     await expect(danaRow).toContainText('Supervisor')
     await expect(danaRow).toContainText('Has an account')
@@ -494,11 +489,8 @@ test.describe('Sandboxes — admin creation flow', () => {
         .getByTestId('invitation-badge'),
     ).toHaveText('Accepted')
     await expect(
-      page
-        .getByTestId('their-side')
-        .getByTestId('member-row')
-        .filter({ hasText: NADIA.name }),
-    ).toContainText('Has access')
+      page.getByTestId('person-row').filter({ hasText: NADIA.name }),
+    ).toContainText('Accepted')
   })
 
   test('removing a member who is in a group asks first, then removes from the group too', async ({
@@ -508,8 +500,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await openSandbox(page, 'team')
 
     const kofiRow = page
-      .getByTestId('their-side')
-      .getByTestId('member-row')
+      .getByTestId('person-row')
       .filter({ hasText: KOFI.name })
     await kofiRow
       .getByRole('button', { name: `Actions for ${KOFI.name}` })

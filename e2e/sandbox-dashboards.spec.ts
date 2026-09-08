@@ -410,12 +410,12 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     ).toHaveCount(0)
   })
 
-  test('the People page warns the same way and moves without a word otherwise', async ({
+  test('the people table warns the same way and moves without a word otherwise', async ({
     page,
     request,
   }) => {
     // Kofi left the sandbox with his last group (no hat, no group). Put him back
-    // with Marcus — adding never warns — then move him out via People.
+    // with Marcus — adding never warns — then move him out from the Team tab.
     const token = await apiToken(request, USERS.admin.email)
     let overview = await api(
       request,
@@ -451,7 +451,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     ).toContain(KOFI.email)
 
     await login(page, USERS.admin.email)
-    await page.goto(`/sandboxes/${sandboxId}/people`)
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'team')
     const row = (text: string) =>
       page.getByTestId('person-row').filter({ hasText: text })
     await row(KOFI.name)
@@ -490,7 +490,6 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(row(LENA.name)).toContainText('Managers')
 
     // Marcus's group has no coachees left, so it can go
-    await page.getByTestId('back-to-overview').click()
     await page.getByTestId('sandbox-tab-groups').click()
     await marcusCard(page)
       .getByRole('button', { name: /Actions for/ })

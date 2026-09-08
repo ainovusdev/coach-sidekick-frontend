@@ -89,7 +89,7 @@ test.describe('Sandboxes — the page is tabbed', () => {
     }
     await on('timeline', 'timeline-panel')
     await on('outcomes', 'outcomes-panel')
-    await on('team', 'team-panel')
+    await on('team', 'people-table')
     await on('groups', 'delivery-panel')
     await on('general', 'vision-panel')
     await on('settings', 'settings-panel')

@@ -43,7 +43,7 @@ test.describe('Sandboxes — a coach opens their own', () => {
     await expect(page.getByTestId('identity-card')).toContainText(NAME)
     await expect(page.getByTestId('identity-card')).toContainText(ORG)
     await page.getByTestId('sandbox-tab-team').click()
-    const team = page.getByTestId('team-panel')
+    const team = page.getByTestId('people-table')
     await expect(team).toContainText(USERS.priya.name)
     await expect(team).toContainText(/account executive/i)
 
