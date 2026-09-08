@@ -56,7 +56,9 @@ export function NeedsAttentionList({
       >
         <p className="text-sm font-medium text-ink">Nothing needs you</p>
         <p className="mt-1 text-sm text-ink-3">
-          Every sandbox is on pace and every invitation has landed.
+          {showSandbox
+            ? 'Every sandbox is on pace and every invitation has landed.'
+            : 'This one is on pace and every invitation has landed.'}
         </p>
       </div>
     )
