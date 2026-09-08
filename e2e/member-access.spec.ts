@@ -62,6 +62,10 @@ async function expectReadOnlyCockpit(page: Page) {
   await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
   await expect(page.getByTestId('new-group')).toHaveCount(0)
   await expect(page.getByTestId('add-another-group')).toHaveCount(0)
+  // The timeline is a calendar: no card opens its commitment.
+  await expect(page.getByTestId('timeline-event').first()).toBeVisible()
+  await expect(page.locator('[data-commitment-id]')).toHaveCount(0)
+  await expect(page.getByTestId('event-progress')).toHaveCount(0)
 }
 
 test.describe('Sandboxes — member access', () => {

@@ -254,6 +254,15 @@ export interface TimelineEvent {
   note: string | null
   removed_at: string | null
   removed_reason: string | null
+  /**
+   * The commitment this event *is* (title = label, dates = window), with how
+   * its related commitments stand. Only our side with the whole list and
+   * platform admins get it; null leaves the card inert (a calendar).
+   */
+  commitment_id: string | null
+  commitment_status: string | null
+  related_total: number
+  related_done: number
 }
 
 export interface TimelineEventCreate {

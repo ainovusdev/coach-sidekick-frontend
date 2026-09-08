@@ -9,6 +9,10 @@
  * Deep links: `?commitment=<id>[&comment=<id>]#commitments` opens the
  * detail panel (the panel itself rings the comment). Closing it clears
  * the params again so a reload doesn't reopen it.
+ *
+ * The open row's id lives in the cockpit (`openId` / `onOpenChange`): the
+ * panel mounted here is the one for the whole page, so a timeline card can
+ * open its event's commitment in it too.
  */
 
 import Link from 'next/link'
@@ -59,7 +63,15 @@ function clearDeepLink() {
   window.history.replaceState(null, '', url.pathname + url.search + url.hash)
 }
 
-export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
+export function CommitmentsPanel({
+  overview,
+  openId,
+  onOpenChange,
+}: {
+  overview: SandboxOverview
+  openId: string | null
+  onOpenChange: (id: string | null) => void
+}) {
   const view = useSandboxView()
   const router = useRouter()
   const viewerId = useViewerId()
@@ -73,7 +85,6 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
   const rows = useMemo(() => data?.commitments ?? [], [data])
 
   const [filter, setFilter] = useState<Filter>('all')
-  const [openId, setOpenId] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [toDelete, setToDelete] = useState<Commitment | null>(null)
 
@@ -85,16 +96,16 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
     const id = params.get('commitment')
-    if (id) setOpenId(id)
+    if (id) onOpenChange(id)
     if (window.location.hash === '#commitments') {
       document.getElementById('commitments')?.scrollIntoView({ block: 'start' })
     }
-  }, [])
+  }, [onOpenChange])
 
   const close = useCallback(() => {
-    setOpenId(null)
+    onOpenChange(null)
     clearDeepLink()
-  }, [])
+  }, [onOpenChange])
 
   const counts = useMemo(
     () => ({
@@ -121,7 +132,7 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
         : null
 
   const handlers: CommitmentRowHandlers = {
-    onEdit: c => setOpenId(c.id),
+    onEdit: c => onOpenChange(c.id),
     onDelete: c => setToDelete(c),
     onConfirm: id => confirmMutation.mutateAsync(id).then(() => undefined),
     onReject: id => discardMutation.mutateAsync(id).then(() => undefined),
@@ -249,7 +260,7 @@ export function CommitmentsPanel({ overview }: { overview: SandboxOverview }) {
       <CommitmentDetailPanel
         commitmentId={openId}
         onClose={close}
-        onNavigate={setOpenId}
+        onNavigate={onOpenChange}
         onOpenInPage={
           view.audience === 'ours' && openId
             ? () => router.push(`/commitments/${openId}`)

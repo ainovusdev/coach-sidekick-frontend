@@ -126,6 +126,8 @@ export function useCreateCommitment() {
       // Refetch to get the real data from server; the assignee's bell too.
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -205,6 +207,8 @@ export function useUpdateCommitment(options?: { silent?: boolean }) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -227,6 +231,8 @@ export function useConfirmCommitment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
 
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
 
       toast.success('Confirmed', {
         description: data.title,
@@ -423,6 +429,8 @@ export function useBulkConfirmCommitments() {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
 
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
 
       toast.success(`${data.length} confirmed`)
     },

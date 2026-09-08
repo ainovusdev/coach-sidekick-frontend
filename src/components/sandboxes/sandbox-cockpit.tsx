@@ -75,6 +75,9 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const [previewMemberId, setPreviewMemberId] = useState<string | null>(null)
   const [sendAllOpen, setSendAllOpen] = useState(false)
   const [revokeMember, setRevokeMember] = useState<SandboxMember | null>(null)
+  // One commitment panel for the whole cockpit: the Commitments section owns
+  // it, and a timeline card opens its event's commitment in the same panel.
+  const [openCommitmentId, setOpenCommitmentId] = useState<string | null>(null)
 
   const sendInvitations = useSendInvitations(sandboxId)
   const resendInvitation = useResendInvitation(sandboxId)
@@ -193,14 +196,21 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
             onFinish={g => openDrawer(g)}
           />
         )}
-        <TimelinePanel overview={overview} />
+        <TimelinePanel
+          overview={overview}
+          onOpenCommitment={setOpenCommitmentId}
+        />
         <VisionPanel
           overview={overview}
           open={visionOpen}
           onOpenChange={setVisionOpen}
         />
         <OutcomesPanel overview={overview} />
-        <CommitmentsPanel overview={overview} />
+        <CommitmentsPanel
+          overview={overview}
+          openId={openCommitmentId}
+          onOpenChange={setOpenCommitmentId}
+        />
         <TeamPanel
           overview={overview}
           actions={memberActions}

@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useState } from 'react'
-import { MoreHorizontal, Pencil, Plus, RotateCcw } from 'lucide-react'
+import { Check, MoreHorizontal, Pencil, Plus, RotateCcw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -31,7 +31,21 @@ export function handAdjustedCount(overview: SandboxOverview): number {
   )
 }
 
-export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
+/** What a card says under its window about the event's commitment. */
+function progressText(ev: TimelineEvent): string {
+  if (ev.commitment_status === 'completed') return 'Done'
+  if (ev.related_total === 0) return 'Nothing related yet'
+  return `${ev.related_total} related · ${ev.related_done} done`
+}
+
+export function TimelinePanel({
+  overview,
+  onOpenCommitment,
+}: {
+  overview: SandboxOverview
+  /** Opens the commitment behind a card; cards without one stay inert. */
+  onOpenCommitment?: (commitmentId: string) => void
+}) {
   const { timeline, timeline_removed: removed, today, sandbox } = overview
   const [dialog, setDialog] = useState<TimelineDialogState>(null)
   const [removing, setRemoving] = useState<TimelineEvent | null>(null)
@@ -47,6 +61,8 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
     : -1
   const adjusted = handAdjustedCount(overview)
   const movedCount = timeline.filter(e => e.is_hand_adjusted).length
+  const anyOpenable =
+    !!onOpenCommitment && timeline.some(e => e.commitment_id !== null)
 
   const caption =
     adjusted === 0
@@ -96,107 +112,151 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
 
       <div className="overflow-x-auto px-5 py-4">
         <ol className="flex min-w-max items-stretch gap-3">
-          {timeline.map((ev, i) => (
-            <Fragment key={ev.id}>
-              {showToday && todayIndex === i && <TodayMarker />}
-              <li
-                className={cn(
-                  'group relative flex w-48 flex-col rounded-lg border px-3.5 py-3',
-                  ev.state === 'current'
-                    ? 'border-vermillion/40 bg-vermillion-bg'
-                    : ev.state === 'past'
-                      ? 'border-line bg-surface-2'
-                      : 'border-line bg-paper',
-                )}
-                data-testid="timeline-event"
-                data-kind={ev.kind}
-                data-adjusted={ev.is_hand_adjusted ? 'true' : 'false'}
-              >
-                <div className="flex items-start justify-between gap-1">
-                  <span
-                    className={cn(
-                      'text-sm font-medium leading-tight',
-                      ev.state === 'past' ? 'text-ink-3' : 'text-ink',
-                    )}
-                    title={ev.is_custom && ev.note ? ev.note : undefined}
-                  >
-                    {ev.label}
-                  </span>
-                  {canEdit && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="-mr-1.5 -mt-1 h-6 w-6 shrink-0 text-ink-4 hover:text-ink"
-                          aria-label={`Actions for ${ev.label}`}
-                          data-testid="event-menu"
-                        >
-                          <MoreHorizontal className="h-3.5 w-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-44">
-                        <DropdownMenuItem
-                          onClick={() =>
-                            setDialog({ mode: 'adjust', event: ev })
-                          }
-                          data-testid="adjust-window"
-                        >
-                          Adjust window
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          className="text-destructive focus:text-destructive"
-                          onClick={() => setRemoving(ev)}
-                          data-testid="remove-event"
-                        >
-                          Remove…
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-                <span className="mt-1 font-mono text-[11px] text-ink-3">
-                  {fmtWindow(ev.window_start, ev.window_end)}
-                </span>
-                <span
+          {timeline.map((ev, i) => {
+            const commitmentId = onOpenCommitment ? ev.commitment_id : null
+            const open = () => commitmentId && onOpenCommitment?.(commitmentId)
+            return (
+              <Fragment key={ev.id}>
+                {showToday && todayIndex === i && <TodayMarker />}
+                <li
                   className={cn(
-                    'mt-3 h-1 rounded-full',
+                    'group relative flex w-48 flex-col rounded-lg border px-3.5 py-3',
                     ev.state === 'current'
-                      ? 'bg-vermillion'
+                      ? 'border-vermillion/40 bg-vermillion-bg'
                       : ev.state === 'past'
-                        ? 'bg-ink-4'
-                        : 'bg-surface-3',
+                        ? 'border-line bg-surface-2'
+                        : 'border-line bg-paper',
+                    commitmentId &&
+                      'cursor-pointer transition-shadow hover:ring-2 hover:ring-ink/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink/30',
                   )}
-                  aria-hidden
-                />
-                <span className="mt-2 flex items-center justify-between gap-2">
-                  <span
-                    className={cn(
-                      'whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider',
-                      ev.state === 'current' ? 'text-vermillion' : 'text-ink-3',
-                    )}
-                  >
-                    {eventStateLabel(ev, i, timeline, today)}
-                  </span>
-                  {ev.is_hand_adjusted && (
+                  data-testid="timeline-event"
+                  data-kind={ev.kind}
+                  data-adjusted={ev.is_hand_adjusted ? 'true' : 'false'}
+                  data-commitment-id={commitmentId ?? undefined}
+                  role={commitmentId ? 'button' : undefined}
+                  tabIndex={commitmentId ? 0 : undefined}
+                  onClick={commitmentId ? open : undefined}
+                  onKeyDown={
+                    commitmentId
+                      ? e => {
+                          if (e.target !== e.currentTarget) return
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            open()
+                          }
+                        }
+                      : undefined
+                  }
+                >
+                  <div className="flex items-start justify-between gap-1">
                     <span
-                      className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium text-ink-3"
-                      title={
-                        ev.is_custom
-                          ? 'Added by hand'
-                          : 'Moved by hand — kept when the timeline regenerates'
-                      }
-                      data-testid="hand-adjusted"
+                      className={cn(
+                        'text-sm font-medium leading-tight',
+                        ev.state === 'past' ? 'text-ink-3' : 'text-ink',
+                      )}
+                      title={ev.is_custom && ev.note ? ev.note : undefined}
                     >
-                      <Pencil className="h-2.5 w-2.5" aria-hidden />
-                      {ev.is_custom ? 'Added' : 'Adjusted'}
+                      {ev.label}
+                    </span>
+                    {canEdit && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="-mr-1.5 -mt-1 h-6 w-6 shrink-0 text-ink-4 hover:text-ink"
+                            aria-label={`Actions for ${ev.label}`}
+                            data-testid="event-menu"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-3.5 w-3.5" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="w-44"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <DropdownMenuItem
+                            onClick={() =>
+                              setDialog({ mode: 'adjust', event: ev })
+                            }
+                            data-testid="adjust-window"
+                          >
+                            Adjust window
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            className="text-destructive focus:text-destructive"
+                            onClick={() => setRemoving(ev)}
+                            data-testid="remove-event"
+                          >
+                            Remove…
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
+                  <span className="mt-1 font-mono text-[11px] text-ink-3">
+                    {fmtWindow(ev.window_start, ev.window_end)}
+                  </span>
+                  {commitmentId && (
+                    <span
+                      className={cn(
+                        'mt-1.5 inline-flex items-center gap-1 text-[11px]',
+                        ev.commitment_status === 'completed'
+                          ? 'font-medium text-forest'
+                          : 'text-ink-3',
+                      )}
+                      data-testid="event-progress"
+                    >
+                      {ev.commitment_status === 'completed' && (
+                        <Check className="h-3 w-3" aria-hidden />
+                      )}
+                      {progressText(ev)}
                     </span>
                   )}
-                </span>
-              </li>
-            </Fragment>
-          ))}
+                  <span
+                    className={cn(
+                      'mt-3 h-1 rounded-full',
+                      ev.state === 'current'
+                        ? 'bg-vermillion'
+                        : ev.state === 'past'
+                          ? 'bg-ink-4'
+                          : 'bg-surface-3',
+                    )}
+                    aria-hidden
+                  />
+                  <span className="mt-2 flex items-center justify-between gap-2">
+                    <span
+                      className={cn(
+                        'whitespace-nowrap text-[10px] font-semibold uppercase tracking-wider',
+                        ev.state === 'current'
+                          ? 'text-vermillion'
+                          : 'text-ink-3',
+                      )}
+                    >
+                      {eventStateLabel(ev, i, timeline, today)}
+                    </span>
+                    {ev.is_hand_adjusted && (
+                      <span
+                        className="inline-flex shrink-0 items-center gap-1 text-[10px] font-medium text-ink-3"
+                        title={
+                          ev.is_custom
+                            ? 'Added by hand'
+                            : 'Moved by hand — kept when the timeline regenerates'
+                        }
+                        data-testid="hand-adjusted"
+                      >
+                        <Pencil className="h-2.5 w-2.5" aria-hidden />
+                        {ev.is_custom ? 'Added' : 'Adjusted'}
+                      </span>
+                    )}
+                  </span>
+                </li>
+              </Fragment>
+            )
+          })}
           {showToday && todayIndex >= timeline.length && <TodayMarker />}
         </ol>
       </div>
@@ -204,6 +264,7 @@ export function TimelinePanel({ overview }: { overview: SandboxOverview }) {
       <div className="border-t border-line px-5 py-3 text-xs text-ink-3">
         <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
           <p>
+            {anyOpenable && 'Open an event for the work around it. '}
             {canEdit
               ? 'Changing the term offers to regenerate. Hand-adjusted events are kept unless you say otherwise.'
               : 'Windows are set by the account executive. Dates can move.'}
