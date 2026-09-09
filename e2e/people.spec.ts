@@ -123,7 +123,7 @@ test.describe('Sandboxes — People page', () => {
     await expect(row(page, 'E2E Admin')).toContainText('(you)')
   })
 
-  test('filters by side, role, group and invitation, and searches', async ({
+  test('splits the two sides, and filters by role, group and invitation', async ({
     page,
   }) => {
     await login(page, USERS.admin.email)
@@ -131,11 +131,19 @@ test.describe('Sandboxes — People page', () => {
     const rows = page.getByTestId('person-row')
     await expect(rows).toHaveCount(6)
 
-    await pick(page, 'Side', 'Their side')
-    await expect(rows).toHaveCount(3)
+    // each side is its own list, and only theirs talks about invitations
+    const our = page.getByTestId('our-side')
+    const their = page.getByTestId('their-side')
+    await expect(our.getByTestId('person-row')).toHaveCount(3)
+    await expect(their.getByTestId('person-row')).toHaveCount(3)
+    await expect(our).toContainText('Notified')
+    await expect(their).toContainText('Invitation')
+
+    // a filter narrows both, and a side with nothing left says so
     await pick(page, 'Role', 'Supervisor')
     await expect(rows).toHaveCount(1)
     await expect(rows).toContainText(USERS.dana.name)
+    await expect(our).toContainText('No one from our side matches')
 
     await page.getByTestId('clear-filters').click()
     await expect(rows).toHaveCount(6)
