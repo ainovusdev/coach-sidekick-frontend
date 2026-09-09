@@ -22,7 +22,8 @@ import type { SandboxOverview } from '@/types/sandbox'
 
 /**
  * Which sandbox this is: the name, the organisation, who runs it and where the
- * term has got to. The page's header — the tabs sit directly beneath it.
+ * term has got to. Top of the rail, in view whichever tab is open — the pencil
+ * opens Settings rather than a dialog.
  */
 export function IdentityCard({
   overview,
@@ -60,7 +61,7 @@ export function IdentityCard({
 
   return (
     <div
-      className="rounded-xl border border-line bg-paper px-5 py-4"
+      className="rounded-xl border border-line bg-paper p-5"
       data-testid="identity-card"
     >
       <nav className="text-xs text-ink-3">
@@ -70,61 +71,37 @@ export function IdentityCard({
         <span className="mx-1">/</span>
         <span className="text-ink-2">{sandbox.name}</span>
       </nav>
-
-      {/* Name and organisation on the left; who runs it on the right. The
-          progress rail spans the width underneath, so the term reads as one
-          line rather than a column of facts. */}
-      <div className="mt-2 flex flex-wrap items-start justify-between gap-x-6 gap-y-3">
+      <div className="mt-2 flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <h1 className="text-xl font-semibold leading-tight text-ink break-words">
-              {sandbox.name}
-            </h1>
-            {view.can.editSandbox && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 shrink-0 text-ink-3"
-                aria-label="Edit sandbox details"
-                onClick={onEdit}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          <h1 className="text-xl font-semibold leading-tight text-ink break-words">
+            {sandbox.name}
+          </h1>
           <p className="text-sm text-ink-3">{sandbox.organisation}</p>
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span
-              className={cn(
-                'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                STATUS_CLASS[sandbox.status],
-              )}
-              data-testid="status-pill"
-            >
-              {STATUS_LABEL[sandbox.status]}
-            </span>
-            <span className="text-xs text-ink-3">{caption}</span>
-          </div>
         </div>
+        {view.can.editSandbox && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 shrink-0 text-ink-3"
+            aria-label="Edit sandbox details"
+            onClick={onEdit}
+          >
+            <Pencil className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
 
-        <dl className="flex flex-wrap gap-x-8 gap-y-1.5 text-sm">
-          {(owners.length > 0 || view.can.editSandbox) && (
-            <div>
-              <dt className="text-xs text-ink-3">Owner</dt>
-              <dd className="text-ink-2">
-                {owners.length ? (
-                  listNames(owners, 2)
-                ) : (
-                  <span className="text-ink-4">Not set</span>
-                )}
-              </dd>
-            </div>
+      <div className="mt-4 flex items-center gap-2">
+        <span
+          className={cn(
+            'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+            STATUS_CLASS[sandbox.status],
           )}
-          <div>
-            <dt className="text-xs text-ink-3">Account executive</dt>
-            <dd className="text-ink-2">{listNames(aes, 2) || '—'}</dd>
-          </div>
-        </dl>
+          data-testid="status-pill"
+        >
+          {STATUS_LABEL[sandbox.status]}
+        </span>
+        <span className="text-xs text-ink-3">{caption}</span>
       </div>
 
       <ProgressRail
@@ -139,6 +116,25 @@ export function IdentityCard({
           fmtDay(sandbox.term_end),
         ]}
       />
+
+      <dl className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
+        {(owners.length > 0 || view.can.editSandbox) && (
+          <div className="flex justify-between gap-3">
+            <dt className="text-ink-3">Owner</dt>
+            <dd className="text-right text-ink-2">
+              {owners.length ? (
+                listNames(owners, 2)
+              ) : (
+                <span className="text-ink-4">Not set</span>
+              )}
+            </dd>
+          </div>
+        )}
+        <div className="flex justify-between gap-3">
+          <dt className="text-ink-3">Account executive</dt>
+          <dd className="text-right text-ink-2">{listNames(aes, 2) || '—'}</dd>
+        </div>
+      </dl>
     </div>
   )
 }

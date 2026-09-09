@@ -246,130 +246,141 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     revokeInvitation.isPending
 
   return (
-    <div className="space-y-4" data-testid="sandbox-cockpit">
-      <IdentityCard overview={overview} onEdit={() => goToTab('settings')} />
-
-      <Tabs
-        value={tab}
-        onValueChange={v => goToTab(v as SandboxTab)}
-        className="gap-4"
+    <div
+      className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
+      data-testid="sandbox-cockpit"
+    >
+      {/* What stays in view whichever tab is open: which sandbox this is, what
+          is left to set up, and the working links. */}
+      <aside
+        className={cn('space-y-4 xl:sticky xl:self-start', view.railTopClass)}
       >
-        <TabsList
-          data-testid="sandbox-tabs"
-          className={cn(
-            'h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
-            'border border-line bg-paper p-1',
-          )}
+        <IdentityCard overview={overview} onEdit={() => goToTab('settings')} />
+        <SetupCard overview={overview} onSelect={onSetupSelect} />
+        <LinksCard overview={overview} />
+      </aside>
+
+      <div className="min-w-0">
+        <Tabs
+          value={tab}
+          onValueChange={v => goToTab(v as SandboxTab)}
+          className="gap-4"
         >
-          {tabs.map(t => (
-            <TabsTrigger
-              key={t}
-              value={t}
-              data-testid={`sandbox-tab-${t}`}
-              className={cn(
-                'flex-none rounded-lg px-3 py-1.5 text-sm text-ink-3',
-                'data-[state=active]:bg-surface-2 data-[state=active]:text-ink',
-              )}
-            >
-              {TAB_LABEL[t]}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+          <TabsList
+            data-testid="sandbox-tabs"
+            className={cn(
+              'h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
+              'border border-line bg-paper p-1',
+            )}
+          >
+            {tabs.map(t => (
+              <TabsTrigger
+                key={t}
+                value={t}
+                data-testid={`sandbox-tab-${t}`}
+                className={cn(
+                  'flex-none rounded-lg px-3 py-1.5 text-sm text-ink-3',
+                  'data-[state=active]:bg-surface-2 data-[state=active]:text-ink',
+                )}
+              >
+                {TAB_LABEL[t]}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-        <TabsContent value="today" className="space-y-6">
-          {/* The incomplete-group banner lives on Groups; here the same thing
+          <TabsContent value="today" className="space-y-6">
+            {/* The incomplete-group banner lives on Groups; here the same thing
               arrives as an attention row, so Today stays one list. */}
-          <AttentionPanel
-            sandboxId={sandboxId}
-            onSelect={item => goToSection(item.section)}
-          />
-          <SetupCard overview={overview} onSelect={onSetupSelect} />
-          <CommitmentsPanel
-            overview={overview}
-            openId={openCommitmentId}
-            onOpenChange={setOpenCommitmentId}
-          />
-        </TabsContent>
+            <AttentionPanel
+              sandboxId={sandboxId}
+              onSelect={item => goToSection(item.section)}
+            />
+            <CommitmentsPanel
+              overview={overview}
+              openId={openCommitmentId}
+              onOpenChange={setOpenCommitmentId}
+            />
+          </TabsContent>
 
-        <TabsContent value="outcomes">
-          <OutcomesPanel overview={overview} />
-        </TabsContent>
+          <TabsContent value="outcomes">
+            <OutcomesPanel overview={overview} />
+          </TabsContent>
 
-        <TabsContent value="team" className="space-y-6">
-          {/* Whoever runs the sandbox gets the full table — filters, bulk
+          <TabsContent value="team" className="space-y-6">
+            {/* Whoever runs the sandbox gets the full table — filters, bulk
               actions, the lot. Everyone else gets the two-sided roster, which
               is all their capabilities allow them to see. */}
-          {can.seePeople ? (
-            <PeopleTable
-              overview={overview}
-              actions={{
-                ...memberActions,
-                onAddOurs: () => setAddOurs(true),
-                onAddTheirs: () => setAddTheirs(true),
-              }}
-            />
-          ) : (
-            <TeamPanel
-              overview={overview}
-              actions={memberActions}
-              onAddOurs={() => setAddOurs(true)}
-              onAddTheirs={() => setAddTheirs(true)}
-            />
-          )}
-          {can.invite && (
-            <InvitationsPanel
-              overview={overview}
-              actions={{
-                onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
-                onResend: m =>
-                  m.invitation_id && resendInvitation.mutate(m.invitation_id),
-                onRevoke: m => setRevokeMember(m),
-                onPreview: m => setPreviewMemberId(m.id),
-                onSendAll: () => setSendAllOpen(true),
-                sending,
-              }}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="groups" className="space-y-6">
-          {can.editGroups && (
-            <IncompleteBanner
-              groups={overview.groups}
-              onFinish={g => openDrawer(g)}
-            />
-          )}
-          <GroupsPanel
-            overview={overview}
-            onNew={() => openDrawer(null)}
-            onEdit={g => openDrawer(g)}
-            onDelete={askToRemoveGroup}
-          />
-          <DeliveryPanel overview={overview} />
-        </TabsContent>
-
-        <TabsContent value="timeline">
-          <TimelinePanel
-            overview={overview}
-            onOpenCommitment={setOpenCommitmentId}
-          />
-        </TabsContent>
-
-        <TabsContent value="general" className="space-y-6">
-          <VisionPanel
-            overview={overview}
-            open={visionOpen}
-            onOpenChange={setVisionOpen}
-          />
-          <LinksCard overview={overview} />
-        </TabsContent>
-
-        {can.editSandbox && (
-          <TabsContent value="settings">
-            <SettingsPanel overview={overview} />
+            {can.seePeople ? (
+              <PeopleTable
+                overview={overview}
+                actions={{
+                  ...memberActions,
+                  onAddOurs: () => setAddOurs(true),
+                  onAddTheirs: () => setAddTheirs(true),
+                }}
+              />
+            ) : (
+              <TeamPanel
+                overview={overview}
+                actions={memberActions}
+                onAddOurs={() => setAddOurs(true)}
+                onAddTheirs={() => setAddTheirs(true)}
+              />
+            )}
+            {can.invite && (
+              <InvitationsPanel
+                overview={overview}
+                actions={{
+                  onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
+                  onResend: m =>
+                    m.invitation_id && resendInvitation.mutate(m.invitation_id),
+                  onRevoke: m => setRevokeMember(m),
+                  onPreview: m => setPreviewMemberId(m.id),
+                  onSendAll: () => setSendAllOpen(true),
+                  sending,
+                }}
+              />
+            )}
           </TabsContent>
-        )}
-      </Tabs>
+
+          <TabsContent value="groups" className="space-y-6">
+            {can.editGroups && (
+              <IncompleteBanner
+                groups={overview.groups}
+                onFinish={g => openDrawer(g)}
+              />
+            )}
+            <GroupsPanel
+              overview={overview}
+              onNew={() => openDrawer(null)}
+              onEdit={g => openDrawer(g)}
+              onDelete={askToRemoveGroup}
+            />
+            <DeliveryPanel overview={overview} />
+          </TabsContent>
+
+          <TabsContent value="timeline">
+            <TimelinePanel
+              overview={overview}
+              onOpenCommitment={setOpenCommitmentId}
+            />
+          </TabsContent>
+
+          <TabsContent value="general">
+            <VisionPanel
+              overview={overview}
+              open={visionOpen}
+              onOpenChange={setVisionOpen}
+            />
+          </TabsContent>
+
+          {can.editSandbox && (
+            <TabsContent value="settings">
+              <SettingsPanel overview={overview} />
+            </TabsContent>
+          )}
+        </Tabs>
+      </div>
 
       <CommitmentDetailPanel
         commitmentId={openCommitmentId}
