@@ -307,6 +307,7 @@ export function useDeleteGroup(sandboxId: string) {
     },
     onError: error => {
       const detail = sandboxErrorDetail(error)
+      if (detail?.code === 'group_has_sessions') return
       toast.error(
         detail?.message || errorMessage(error, 'Could not remove the group'),
       )

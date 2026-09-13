@@ -7,6 +7,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Client } from '@/types/meeting'
 import { useClientsSimple, useClient } from '@/hooks/queries/use-clients'
 import { SimpleClient } from '@/services/client-service'
+import {
+  SandboxClientBadge,
+  SandboxAssignmentHint,
+  useSandboxClientMarkers,
+} from '@/components/sandboxes/session-attribution'
 import { Plus } from 'lucide-react'
 
 interface ClientSelectorProps {
@@ -31,6 +36,7 @@ export default function ClientSelector({
   // Use lightweight clients query for fast loading
   const { data: clientsData, isLoading: loading } = useClientsSimple()
   const clients: SimpleClient[] = clientsData?.clients ?? []
+  const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   // Fetch selected client if provided (uses cache if available)
   const { data: fetchedSelectedClient } = useClient(
@@ -90,6 +96,9 @@ export default function ClientSelector({
               <div>
                 <span className="font-medium text-ink ">
                   {selectedClient.name}
+                  <SandboxClientBadge
+                    contexts={sandboxMarkers[selectedClient.id]}
+                  />
                 </span>
                 {selectedClient.notes && (
                   <span className="text-sm text-ink-3 ml-2 truncate max-w-[200px] inline-block align-middle">
@@ -188,6 +197,9 @@ export default function ClientSelector({
                       <span className="font-medium text-ink truncate">
                         {client.name}
                       </span>
+                      <SandboxClientBadge
+                        contexts={sandboxMarkers[client.id]}
+                      />
                     </div>
                     {client.email && (
                       <div className="text-sm text-ink-3 truncate">
@@ -202,6 +214,11 @@ export default function ClientSelector({
         </div>
       )}
 
+      {selectedClient && (
+        <div className="mt-2">
+          <SandboxAssignmentHint clientIds={[selectedClient.id]} />
+        </div>
+      )}
       {isOpen && (
         <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
       )}

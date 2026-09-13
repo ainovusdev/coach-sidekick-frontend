@@ -21,7 +21,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-export default function Navigation() {
+export default function Navigation({ compact = false }: { compact?: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isAuthenticated, hasAnyRole, roles } = useAuth()
@@ -109,8 +109,20 @@ export default function Navigation() {
       )}
       <header className="bg-paper border-b border-line sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-10">
+          <div
+            className={
+              compact
+                ? 'flex min-h-16 flex-wrap items-center justify-between gap-3 py-3'
+                : 'flex items-center justify-between h-16'
+            }
+          >
+            <div
+              className={
+                compact
+                  ? 'flex min-w-0 flex-wrap items-center gap-4'
+                  : 'flex items-center gap-10'
+              }
+            >
               <button
                 onClick={() => router.push('/')}
                 className="flex items-center gap-3 group"
@@ -124,7 +136,11 @@ export default function Navigation() {
                     className="object-contain filter brightness-0 invert"
                   />
                 </div>
-                <div className="flex flex-col">
+                <div
+                  className={
+                    compact ? 'hidden flex-col sm:flex' : 'flex flex-col'
+                  }
+                >
                   <h1 className="text-xl font-bold text-ink">Coach Sidekick</h1>
                 </div>
               </button>
@@ -147,7 +163,7 @@ export default function Navigation() {
                         key={item.path}
                         onClick={() => router.push(item.path)}
                         className={`
-                        flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+                        flex items-center gap-2 ${compact ? 'px-2' : 'px-4'} py-2 rounded-md text-sm font-medium
                         transition-colors duration-200 cursor-pointer
                         ${
                           isActive
@@ -165,10 +181,22 @@ export default function Navigation() {
               </nav>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div
+              className={
+                compact
+                  ? 'flex shrink-0 items-center gap-2'
+                  : 'flex items-center gap-4'
+              }
+            >
               {isAuthenticated && (
                 <>
-                  <AskSidekickBar />
+                  <AskSidekickBar
+                    className={
+                      compact
+                        ? 'w-9 p-2.5 lg:w-9 [&>span]:hidden [&>kbd]:hidden'
+                        : undefined
+                    }
+                  />
                   <div className="hidden lg:flex items-center">
                     <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
                       <div className="relative">

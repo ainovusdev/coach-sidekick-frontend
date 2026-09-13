@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -87,7 +88,12 @@ function CoacheeBlock({
           <PersonAvatar name={coachee.name} email={coachee.email} size="sm" />
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">
-              {coachee.name || coachee.email}
+              <Link
+                href={`/sandbox/${sandboxId}/client/${coachee.member_id}`}
+                className="hover:text-ds-accent hover:underline"
+              >
+                {coachee.name || coachee.email}
+              </Link>
             </p>
             {showGroup && coachee.group_names.length > 0 && (
               <p className="truncate text-xs text-ink-3">

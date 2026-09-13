@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -119,7 +120,12 @@ export function GroupCard({
       </div>
 
       <h3 className="mt-3 text-base font-semibold leading-tight text-ink">
-        {group.display_name}
+        <Link
+          href={`/sandbox/${group.sandbox_id}/groups/${group.id}`}
+          className="hover:text-ds-accent hover:underline"
+        >
+          {group.display_name}
+        </Link>
       </h3>
 
       <p className="mt-1.5 font-mono text-xs text-ink-2">

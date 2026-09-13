@@ -117,11 +117,15 @@ function ContextCard({
       <OutcomesBlock ctx={ctx} coacheeName={clientName || 'this client'} />
 
       <Link
-        href={`/sandboxes/${ctx.sandbox_id}`}
+        href={
+          ctx.member_id
+            ? `/sandbox/${ctx.sandbox_id}/client/${ctx.member_id}`
+            : `/sandboxes/${ctx.sandbox_id}`
+        }
         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
         data-testid="ctx-open"
       >
-        Open sandbox <ArrowRight className="h-3.5 w-3.5" />
+        View coaching progress <ArrowRight className="h-3.5 w-3.5" />
       </Link>
     </div>
   )

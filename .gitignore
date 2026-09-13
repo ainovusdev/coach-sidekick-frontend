@@ -44,3 +44,6 @@ next-env.d.ts
 # playwright
 /test-results/
 /playwright-report/
+
+# Local sandbox detail browser review artifacts
+/.cache/sandbox-entity-review/

@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  SandboxClientBadge,
+  SandboxAssignmentHint,
+  useSandboxClientMarkers,
+} from '@/components/sandboxes/session-attribution'
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -34,6 +39,7 @@ function CreateManualSessionContent() {
   // Use lightweight clients query for fast loading
   const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
+  const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   const [creating, setCreating] = useState(false)
 
@@ -156,12 +162,19 @@ function CreateManualSessionContent() {
                     {clients.map(client => (
                       <SelectItem key={client.id} value={client.id}>
                         {client.name}
+                        <SandboxClientBadge
+                          contexts={sandboxMarkers[client.id]}
+                        />
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
+              <SandboxAssignmentHint
+                clientIds={[formData.client_id]}
+                onDate={formData.session_date}
+              />
               {/* Session Date */}
               <div className="space-y-2">
                 <Label

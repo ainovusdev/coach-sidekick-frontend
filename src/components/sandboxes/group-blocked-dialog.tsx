@@ -18,8 +18,7 @@ export interface GroupBlock {
 }
 
 /**
- * "Removing a group with sessions in it is blocked; empty it first." Shown
- * instead of the remove confirmation when the group has sessions on record.
+ * A group with recorded delivery is retained, including former participants.
  */
 export function GroupBlockedDialog({
   block,
@@ -33,7 +32,7 @@ export function GroupBlockedDialog({
       <AlertDialogContent data-testid="group-blocked">
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {block?.groupName ?? 'This group'} can’t be removed yet
+            {block?.groupName ?? 'This group'} can’t be removed
           </AlertDialogTitle>
           <AlertDialogDescription>
             {block &&
@@ -41,7 +40,7 @@ export function GroupBlockedDialog({
                 block.coacheeNames.length
                   ? ` with ${listNames(block.coacheeNames, 3)}`
                   : ''
-              }. Sessions are never deleted, so move or remove its coachees first. Their history stays with their coaches.`}
+              }. The group keeps its delivery history, including sessions for people who have moved to another group or left the sandbox.`}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>

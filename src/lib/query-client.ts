@@ -418,6 +418,8 @@ export const invalidateQueries = {
   /** An outcome moved: the panel, both cards, the dashboards and the bell. */
   afterOutcomeChange: async (queryClient: QueryClient, sandboxId: string) => {
     await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
       queryClient.invalidateQueries({
         queryKey: queryKeys.sandboxes.outcomes(sandboxId),
       }),

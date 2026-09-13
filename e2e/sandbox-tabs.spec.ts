@@ -87,6 +87,7 @@ test.describe('Sandboxes — the page is tabbed', () => {
       await page.goto(`/admin/sandboxes/${sandboxId}?tab=${tab}`)
       await expect(page.getByTestId(testid)).toBeVisible()
     }
+    await on('insights', 'insights-panel')
     await on('timeline', 'timeline-panel')
     await on('outcomes', 'outcomes-panel')
     await on('team', 'people-table')
@@ -100,6 +101,7 @@ test.describe('Sandboxes — the page is tabbed', () => {
     await login(page, USERS.admin.email)
     // Written by notification payloads and by attentionHref on the dashboard.
     const landings: [string, string][] = [
+      ['insights', 'insights'],
       ['timeline', 'timeline'],
       ['vision', 'general'],
       ['outcomes', 'outcomes'],

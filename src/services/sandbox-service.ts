@@ -3,6 +3,11 @@
  * view) and the invitation flow the invited people use.
  */
 
+import type {
+  InsightSelection,
+  SandboxAnalytics,
+} from '@/types/sandbox-analytics'
+import type { SandboxInsights } from '@/types/sandbox-insights'
 import { ApiClient } from '@/lib/api-client'
 import type {
   Outcome,
@@ -52,7 +57,40 @@ const BACKEND_URL =
 const BASE = `${BACKEND_URL}/sandboxes`
 const PUBLIC = `${BACKEND_URL}/sandbox-invitations`
 
+function reportingQuery(selection: InsightSelection): string {
+  const params = new URLSearchParams({ period: selection.period })
+  if (selection.group_id) params.set('group_id', selection.group_id)
+  if (selection.subject_member_id)
+    params.set('subject_member_id', selection.subject_member_id)
+  if (selection.coach_user_id)
+    params.set('coach_user_id', selection.coach_user_id)
+  if (selection.entity_kind) params.set('entity_kind', selection.entity_kind)
+  return params.toString()
+}
+
 export class SandboxService {
+  static analytics(
+    id: string,
+    selection: InsightSelection,
+  ): Promise<SandboxAnalytics> {
+    return ApiClient.get(`${BASE}/${id}/analytics?${reportingQuery(selection)}`)
+  }
+  static insights(
+    id: string,
+    selection: InsightSelection,
+  ): Promise<SandboxInsights> {
+    return ApiClient.get(`${BASE}/${id}/insights?${reportingQuery(selection)}`)
+  }
+  static generateInsights(
+    id: string,
+    selection: InsightSelection,
+  ): Promise<SandboxInsights> {
+    return ApiClient.post(`${BASE}/${id}/insights/generate`, selection)
+  }
+  static insightRun(id: string, runId: string): Promise<SandboxInsights> {
+    return ApiClient.get(`${BASE}/${id}/insights/runs/${runId}`)
+  }
+
   // -------------------------------------------------------------- sandboxes
   static list(filters: SandboxListFilters = {}): Promise<SandboxListResponse> {
     const params = new URLSearchParams()

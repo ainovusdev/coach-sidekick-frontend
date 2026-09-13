@@ -293,7 +293,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(card.getByTestId('ctx-hours')).toContainText('of 13.5 h')
     await expect(card.getByTestId('ctx-open')).toHaveAttribute(
       'href',
-      `/sandboxes/${sandboxId}`,
+      new RegExp(`^/sandbox/${sandboxId}/client/[0-9a-f-]+$`),
     )
 
     // his own dashboard (Marcus is a lead coach elsewhere, so he may rank as portfolio)
@@ -392,6 +392,22 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     )
     await expect(note.getByTestId('progress-rail')).toBeVisible()
 
+    const progressLink = note.getByTestId('portal-open-sandbox')
+    await expect(progressLink).toHaveText('View progress and insights')
+    await expect(progressLink).toHaveAttribute(
+      'href',
+      `/sandboxes/${sandboxId}#insights`,
+    )
+    await progressLink.click()
+    await expect(page.getByTestId('sandbox-tab-insights')).toHaveAttribute(
+      'data-state',
+      'active',
+    )
+    await expect(
+      page.getByRole('heading', { name: 'Your coaching and learning' }),
+    ).toBeVisible()
+    await expect(page.getByLabel('Delivery comparisons')).toHaveCount(0)
+
     // and his own dashboard is the coachee persona with just himself
     await page.goto('/sandboxes')
     await expect(page.getByTestId('sandbox-dashboard')).toHaveAttribute(
@@ -412,7 +428,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Remove group' }).click()
     const blocked = page.getByTestId('group-blocked')
-    await expect(blocked).toContainText('can’t be removed yet')
+    await expect(blocked).toContainText('can’t be removed')
     await expect(blocked).toContainText('3 sessions on record')
     await expect(blocked).toContainText(KOFI.name)
     await blocked.getByRole('button', { name: 'Got it' }).click()
@@ -526,13 +542,19 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(dialog).toHaveCount(0)
     await expect(row(LENA.name)).toContainText('Managers')
 
-    // Marcus's group has no coachees left, so it can go
+    // Former delivery keeps the empty group on record after both transfers.
     await page.getByTestId('sandbox-tab-groups').click()
     await marcusCard(page)
       .getByRole('button', { name: /Actions for/ })
       .click()
     await page.getByRole('menuitem', { name: 'Remove group' }).click()
     await page.getByRole('button', { name: 'Remove group' }).click()
-    await expect(page.getByTestId('group-card')).toHaveCount(1)
+    const blocked = page.getByTestId('group-blocked')
+    await expect(blocked).toContainText('3 sessions on record')
+    await expect(blocked).toContainText(
+      'including sessions for people who have moved',
+    )
+    await blocked.getByRole('button', { name: 'Got it' }).click()
+    await expect(page.getByTestId('group-card')).toHaveCount(2)
   })
 })

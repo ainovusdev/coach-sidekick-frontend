@@ -81,11 +81,11 @@ export function SandboxNote() {
             <OutcomesBlock ctx={ctx} coacheeName="you" />
 
             <Link
-              href={`/sandboxes/${ctx.sandbox_id}`}
+              href={`/sandboxes/${ctx.sandbox_id}#insights`}
               className="mt-3 inline-flex items-center gap-1 text-[13px] font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
               data-testid="portal-open-sandbox"
             >
-              See the timeline <ArrowRight className="h-3.5 w-3.5" />
+              View progress and insights <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </div>
         )

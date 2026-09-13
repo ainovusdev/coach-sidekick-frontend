@@ -1,5 +1,6 @@
 'use client'
 
+import { SessionAttribution } from '@/components/sandboxes/session-attribution'
 import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { ProtectedRoute } from '@/components/auth/protected-route'
@@ -629,6 +630,9 @@ export default function SessionDetailsPage({
             }
           />
 
+          <div className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
+            <SessionAttribution sessionId={session.id} />
+          </div>
           {/* Main Content */}
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             {/* Scheduled Session State */}

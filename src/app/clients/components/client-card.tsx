@@ -1,5 +1,9 @@
 'use client'
 
+import {
+  SandboxClientBadge,
+  type ClientSandboxMarker,
+} from '@/components/sandboxes/session-attribution'
 import { Card, CardContent } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -26,6 +30,7 @@ import {
 
 interface ClientCardProps {
   client: Client
+  sandboxContexts?: ClientSandboxMarker[]
   isAssigned?: boolean
   isViewer: boolean
   onView: () => void
@@ -37,6 +42,7 @@ interface ClientCardProps {
 
 export default function ClientCard({
   client,
+  sandboxContexts,
   isAssigned = false,
   isViewer,
   onView,
@@ -121,6 +127,7 @@ export default function ClientCard({
             <div className="min-w-0">
               <h3 className="font-semibold text-ink truncate group-hover:text-ink-2 transition-colors">
                 {client.name}
+                <SandboxClientBadge contexts={sandboxContexts} />
               </h3>
               {isAssigned && client.coach_name && (
                 <p className="text-xs text-ds-accent truncate">

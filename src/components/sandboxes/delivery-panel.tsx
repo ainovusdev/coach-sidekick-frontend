@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { PaceChip } from '@/components/sandboxes/pace-chip'
@@ -33,7 +34,15 @@ function lastAndNext(c: CoacheeDelivery): string {
   return parts.join(' · ')
 }
 
-function CoacheeRow({ c, g }: { c: CoacheeDelivery; g: GroupDelivery }) {
+function CoacheeRow({
+  c,
+  g,
+  sandboxId,
+}: {
+  c: CoacheeDelivery
+  g: GroupDelivery
+  sandboxId: string
+}) {
   return (
     <li
       className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2.5"
@@ -44,7 +53,12 @@ function CoacheeRow({ c, g }: { c: CoacheeDelivery; g: GroupDelivery }) {
       <PersonAvatar name={c.name} email={c.email} size="sm" />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink">
-          {c.name || c.email}
+          <Link
+            href={`/sandbox/${sandboxId}/client/${c.member_id}`}
+            className="hover:text-ds-accent hover:underline"
+          >
+            {c.name || c.email}
+          </Link>
         </p>
         <p className="truncate text-xs text-ink-3">
           {c.pace.state === 'unknown'
@@ -60,7 +74,15 @@ function CoacheeRow({ c, g }: { c: CoacheeDelivery; g: GroupDelivery }) {
   )
 }
 
-function GroupBlock({ g, today }: { g: GroupDelivery; today: string }) {
+function GroupBlock({
+  g,
+  today,
+  sandboxId,
+}: {
+  g: GroupDelivery
+  today: string
+  sandboxId: string
+}) {
   const expectedTotal = g.expected_total ?? 0
   const byToday =
     g.expected_sessions != null
@@ -76,7 +98,14 @@ function GroupBlock({ g, today }: { g: GroupDelivery; today: string }) {
     >
       <div className="px-4 pt-3">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h3 className="text-sm font-semibold text-ink">{g.display_name}</h3>
+          <h3 className="text-sm font-semibold text-ink">
+            <Link
+              href={`/sandbox/${sandboxId}/groups/${g.group_id}`}
+              className="hover:text-ds-accent hover:underline"
+            >
+              {g.display_name}
+            </Link>
+          </h3>
           <span className="text-xs text-ink-3">
             {g.coach_names.length > 0 &&
               `Coached by ${listNames(g.coach_names, 2)} · `}
@@ -125,7 +154,7 @@ function GroupBlock({ g, today }: { g: GroupDelivery; today: string }) {
       </div>
       <ul className="mt-2 divide-y divide-line border-t border-line px-4">
         {g.coachees.map(c => (
-          <CoacheeRow key={c.member_id} c={c} g={g} />
+          <CoacheeRow key={c.member_id} c={c} g={g} sandboxId={sandboxId} />
         ))}
         {g.coachees.length === 0 && (
           <li className="py-2.5 text-xs text-ink-3">
@@ -201,7 +230,12 @@ export function DeliveryPanel({ overview }: { overview: SandboxOverview }) {
           </p>
         ) : (
           groups.map(g => (
-            <GroupBlock key={g.group_id} g={g} today={data!.today} />
+            <GroupBlock
+              key={g.group_id}
+              g={g}
+              today={data!.today}
+              sandboxId={overview.sandbox.id}
+            />
           ))
         )}
       </div>

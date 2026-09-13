@@ -45,8 +45,17 @@ import {
   tabsFor,
   type SandboxTab,
 } from '@/components/sandboxes/sandbox-tabs'
+import {
+  useInsightViewer,
+  useSandboxReporting,
+} from '@/hooks/queries/use-sandbox-insights'
+import type { InsightSelection } from '@/types/sandbox-analytics'
+import { InsightsPanel } from './insights/insights-panel'
+import { DeliverySummary } from './insights/delivery-summary'
+import { LearningPanel } from './insights/learning-panel'
 import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
 import {
+  sandboxErrorDetail,
   useDeleteGroup,
   useResendInvitation,
   useRevokeInvitation,
@@ -73,6 +82,31 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const tabs = tabsFor(can)
 
   const [tab, setTab] = useState<SandboxTab>(DEFAULT_TAB)
+  const [selection, setSelection] = useState<InsightSelection>({
+    period: 'term',
+    group_id: null,
+  })
+  const viewer = useInsightViewer()
+  const termReporting = useSandboxReporting(sandboxId, viewer, {
+    period: 'term',
+    group_id: null,
+  })
+  const isTermSelection =
+    selection.period === 'term' && selection.group_id === null
+  const filteredReporting = useSandboxReporting(
+    sandboxId,
+    isTermSelection ? null : viewer,
+    selection,
+  )
+  const selectedReporting = isTermSelection ? termReporting : filteredReporting
+  const onSelection = useCallback((next: InsightSelection) => {
+    setSelection(next)
+    const url = new URL(window.location.href)
+    url.searchParams.set('period', next.period)
+    if (next.group_id) url.searchParams.set('group_id', next.group_id)
+    else url.searchParams.delete('group_id')
+    window.history.replaceState(null, '', url)
+  }, [])
 
   // Where a link lands. A `#section` anchor comes from a notification or from
   // the dashboard's attention rows and was written before the tabs existed, so
@@ -87,6 +121,11 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
       const hash = window.location.hash.slice(1)
       const wanted = TAB_FOR_ANCHOR[hash]
       const params = new URLSearchParams(window.location.search)
+      const period = params.get('period')
+      setSelection({
+        period: period === '30d' || period === '90d' ? period : 'term',
+        group_id: params.get('group_id'),
+      })
       const asked = params.get('tab')
       const next = wanted ?? (isSandboxTab(asked) ? asked : null)
       if (next) setTab(next)
@@ -289,6 +328,17 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           </TabsList>
 
           <TabsContent value="today" className="space-y-6">
+            {termReporting.analytics && (
+              <DeliverySummary data={termReporting.analytics} />
+            )}
+            <LearningPanel
+              reporting={termReporting}
+              preview
+              onNavigate={anchor => {
+                onSelection({ period: 'term', group_id: null })
+                goToSection(anchor)
+              }}
+            />
             {/* The incomplete-group banner lives on Groups; here the same thing
               arrives as an attention row, so Today stays one list. */}
             <AttentionPanel
@@ -299,6 +349,15 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
               overview={overview}
               openId={openCommitmentId}
               onOpenChange={setOpenCommitmentId}
+            />
+          </TabsContent>
+
+          <TabsContent value="insights">
+            <InsightsPanel
+              reporting={selectedReporting}
+              selection={selection}
+              onSelection={onSelection}
+              onNavigate={goToSection}
             />
           </TabsContent>
 
@@ -454,8 +513,20 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
         confirmText="Remove group"
         variant="destructive"
         onConfirm={async () => {
-          if (deleteGroup) await deleteGroupMutation.mutateAsync(deleteGroup.id)
-          setDeleteGroup(null)
+          if (!deleteGroup) return
+          try {
+            await deleteGroupMutation.mutateAsync(deleteGroup.id)
+            setDeleteGroup(null)
+          } catch (error) {
+            const detail = sandboxErrorDetail(error)
+            if (detail?.code !== 'group_has_sessions') throw error
+            setBlockedGroup({
+              groupName: deleteGroup.display_name,
+              sessions: detail.sessions ?? 0,
+              coacheeNames: detail.coachee_names ?? [],
+            })
+            setDeleteGroup(null)
+          }
         }}
       />
       <ConfirmationDialog

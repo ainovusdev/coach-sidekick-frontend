@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { sandboxMemberHref } from '@/lib/sandbox/detail-links'
 import { useMemo, useState } from 'react'
 import { MoreHorizontal, Plus, Search, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -622,7 +624,16 @@ function SideCard({
                       />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink">
-                          {name}
+                          {sandboxMemberHref(m) ? (
+                            <Link
+                              href={sandboxMemberHref(m)!}
+                              className="hover:text-ds-accent hover:underline"
+                            >
+                              {name}
+                            </Link>
+                          ) : (
+                            name
+                          )}
                           {isSelf && (
                             <span className="ml-1.5 text-xs font-normal text-ink-3">
                               (you)

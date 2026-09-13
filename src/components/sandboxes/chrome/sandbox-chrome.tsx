@@ -34,7 +34,7 @@ export function SandboxChrome({ children }: { children: ReactNode }) {
       data-audience={chrome}
     >
       {chrome === 'ours' ? (
-        <Navigation />
+        <Navigation compact />
       ) : chrome === 'coachee' ? (
         <ClientNavigation />
       ) : (

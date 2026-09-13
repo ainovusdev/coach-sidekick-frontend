@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { sandboxMemberHref } from '@/lib/sandbox/detail-links'
 import { MoreHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -132,7 +134,16 @@ export function MemberRow({
       />
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink">
-          {member.name || member.email}
+          {sandboxMemberHref(member) ? (
+            <Link
+              href={sandboxMemberHref(member)!}
+              className="hover:text-ds-accent hover:underline"
+            >
+              {member.name || member.email}
+            </Link>
+          ) : (
+            member.name || member.email
+          )}
           {isSelf && (
             <span className="ml-1.5 text-xs font-normal text-ink-3">(you)</span>
           )}

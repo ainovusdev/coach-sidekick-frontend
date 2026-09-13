@@ -10,6 +10,7 @@ import type { SandboxCan } from '@/components/sandboxes/sandbox-view-context'
 
 export const SANDBOX_TABS = [
   'today',
+  'insights',
   'outcomes',
   'team',
   'groups',
@@ -24,6 +25,7 @@ export const DEFAULT_TAB: SandboxTab = 'today'
 
 export const TAB_LABEL: Record<SandboxTab, string> = {
   today: 'Today',
+  insights: 'Insights',
   outcomes: 'Outcomes',
   team: 'Team',
   groups: 'Groups',
@@ -41,6 +43,7 @@ export const TAB_LABEL: Record<SandboxTab, string> = {
  * arriving from outside picks the tab before anything scrolls.
  */
 export const TAB_FOR_ANCHOR: Record<string, SandboxTab> = {
+  insights: 'insights',
   timeline: 'timeline',
   vision: 'general',
   outcomes: 'outcomes',

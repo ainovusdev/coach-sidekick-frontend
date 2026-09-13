@@ -1,5 +1,6 @@
 'use client'
 
+import { useSandboxClientMarkers } from '@/components/sandboxes/session-attribution'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Client } from '@/types/meeting'
@@ -37,6 +38,9 @@ export default function ClientsList({
   onDeleteClient,
   onCreateClient,
 }: ClientsListProps) {
+  const sandboxMarkers = useSandboxClientMarkers(
+    [...myClients, ...assignedClients].map(c => c.id),
+  )
   // Loading skeleton
   if (loading) {
     return (
@@ -124,6 +128,7 @@ export default function ClientsList({
               <ClientCard
                 key={client.id}
                 client={client}
+                sandboxContexts={sandboxMarkers[client.id]}
                 isAssigned={false}
                 isViewer={isViewer}
                 onView={() => onClientClick(client.id)}
@@ -153,6 +158,7 @@ export default function ClientsList({
               <ClientCard
                 key={client.id}
                 client={client}
+                sandboxContexts={sandboxMarkers[client.id]}
                 isAssigned={true}
                 isViewer={isViewer}
                 onView={() => onClientClick(client.id)}
