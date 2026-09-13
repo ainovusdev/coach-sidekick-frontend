@@ -86,10 +86,11 @@ export function useSandboxReporting(
     gcTime: 0,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
+    // Poll only while a run is in flight; otherwise focus and mount refetch.
     refetchInterval: query =>
       ['queued', 'generating'].includes(query.state.data?.status ?? '')
         ? 2000
-        : 30000,
+        : false,
   })
   const generation = useMutation({
     mutationKey: [...context, 'generate'],

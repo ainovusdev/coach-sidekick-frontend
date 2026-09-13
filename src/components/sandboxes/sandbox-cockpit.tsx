@@ -87,15 +87,20 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     group_id: null,
   })
   const viewer = useInsightViewer()
-  const termReporting = useSandboxReporting(sandboxId, viewer, {
-    period: 'term',
-    group_id: null,
-  })
   const isTermSelection =
     selection.period === 'term' && selection.group_id === null
+  // Reporting is the heaviest read on the page: fetch it only for the tab
+  // that shows it.
+  const showsTerm = tab === 'today' || (tab === 'insights' && isTermSelection)
+  const termReporting = useSandboxReporting(
+    sandboxId,
+    viewer,
+    { period: 'term', group_id: null },
+    { analytics: showsTerm, learning: showsTerm },
+  )
   const filteredReporting = useSandboxReporting(
     sandboxId,
-    isTermSelection ? null : viewer,
+    tab === 'insights' && !isTermSelection ? viewer : null,
     selection,
   )
   const selectedReporting = isTermSelection ? termReporting : filteredReporting
