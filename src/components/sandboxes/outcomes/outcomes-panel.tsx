@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
 import type { CoacheeOutcomes } from '@/types/sandbox-outcomes'
 import { OutcomeList } from './outcome-list'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 export function CoacheeStateChip({
   state,
@@ -89,7 +90,7 @@ function CoacheeBlock({
           <div className="min-w-0">
             <p className="truncate text-sm font-semibold text-ink">
               <Link
-                href={`/sandbox/${sandboxId}/client/${coachee.member_id}`}
+                href={sandboxEntityHref(sandboxId, 'client', coachee.member_id)}
                 className="hover:text-ds-accent hover:underline"
               >
                 {coachee.name || coachee.email}

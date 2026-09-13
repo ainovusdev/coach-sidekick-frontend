@@ -14,6 +14,7 @@ import { AvatarStack } from '@/components/ui/person-avatar'
 import { fmtContract, fmtDay, firstName, pluralise } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SandboxGroup, SandboxGroupMember } from '@/types/sandbox'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 const MISSING_LABEL: Record<SandboxGroup['missing'][number], string> = {
   coach: 'Needs a coach',
@@ -121,7 +122,7 @@ export function GroupCard({
 
       <h3 className="mt-3 text-base font-semibold leading-tight text-ink">
         <Link
-          href={`/sandbox/${group.sandbox_id}/groups/${group.id}`}
+          href={sandboxEntityHref(group.sandbox_id, 'group', group.id)}
           className="hover:text-ds-accent hover:underline"
         >
           {group.display_name}

@@ -11,6 +11,7 @@ import { useClientSandboxContext } from '@/hooks/queries/use-sandboxes'
 import { fmtHoursShort, NO_CONTRACT_COPY } from '@/lib/sandbox/delivery'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import type { ClientSandboxContext } from '@/types/sandbox-delivery'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 function ContextCard({
   ctx,
@@ -119,7 +120,7 @@ function ContextCard({
       <Link
         href={
           ctx.member_id
-            ? `/sandbox/${ctx.sandbox_id}/client/${ctx.member_id}`
+            ? sandboxEntityHref(ctx.sandbox_id, 'client', ctx.member_id)
             : `/sandboxes/${ctx.sandbox_id}`
         }
         className="mt-4 inline-flex items-center gap-1 text-sm font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"

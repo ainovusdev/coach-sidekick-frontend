@@ -16,6 +16,7 @@ import { fmtDay, listNames, pluralise } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
 import type { CoacheeDelivery, GroupDelivery } from '@/types/sandbox-delivery'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 function contractLine(g: GroupDelivery): string {
   if (g.hours_per_coachee == null) return 'Hours per coachee not set'
@@ -54,7 +55,7 @@ function CoacheeRow({
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-medium text-ink">
           <Link
-            href={`/sandbox/${sandboxId}/client/${c.member_id}`}
+            href={sandboxEntityHref(sandboxId, 'client', c.member_id)}
             className="hover:text-ds-accent hover:underline"
           >
             {c.name || c.email}
@@ -100,7 +101,7 @@ function GroupBlock({
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h3 className="text-sm font-semibold text-ink">
             <Link
-              href={`/sandbox/${sandboxId}/groups/${g.group_id}`}
+              href={sandboxEntityHref(sandboxId, 'group', g.group_id)}
               className="hover:text-ds-accent hover:underline"
             >
               {g.display_name}

@@ -12,6 +12,7 @@ import {
   withSandboxViewer,
 } from '@/hooks/queries/use-sandbox-insights'
 import { detailControl } from './details/detail-chart'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 const base = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/sandboxes`
 export interface ClientSandboxMarker {
@@ -100,7 +101,11 @@ export function SandboxAssignmentHint({
               Counts toward{' '}
               <Link
                 className="font-medium text-ink-2 hover:underline"
-                href={`/sandbox/${row.contexts[0].sandbox_id}/client/${row.contexts[0].member_id}`}
+                href={sandboxEntityHref(
+                  row.contexts[0].sandbox_id,
+                  'client',
+                  row.contexts[0].member_id,
+                )}
               >
                 {row.contexts[0].sandbox_name}
               </Link>{' '}

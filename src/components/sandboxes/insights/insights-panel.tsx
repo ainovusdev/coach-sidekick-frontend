@@ -23,6 +23,7 @@ import type {
   SandboxAnalytics,
 } from '@/types/sandbox-analytics'
 import type { SandboxReporting } from '@/hooks/queries/use-sandbox-insights'
+import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
 const control =
   'rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-ds-accent'
@@ -220,7 +221,11 @@ function Comparisons({ data }: { data: SandboxAnalytics }) {
                   <tr key={coach.user_id} className="border-t border-line">
                     <th className={cell}>
                       <Link
-                        href={`/sandbox/${data.sandbox_id}/coach/${coach.user_id}`}
+                        href={sandboxEntityHref(
+                          data.sandbox_id,
+                          'coach',
+                          coach.user_id,
+                        )}
                         className="hover:text-ds-accent hover:underline"
                       >
                         {coach.name}
@@ -248,7 +253,11 @@ function Comparisons({ data }: { data: SandboxAnalytics }) {
             >
               <summary className="cursor-pointer text-sm text-ink">
                 <Link
-                  href={`/sandbox/${data.sandbox_id}/groups/${group.group_id}`}
+                  href={sandboxEntityHref(
+                    data.sandbox_id,
+                    'group',
+                    group.group_id,
+                  )}
                   className="font-medium hover:text-ds-accent hover:underline"
                 >
                   {group.display_name}
