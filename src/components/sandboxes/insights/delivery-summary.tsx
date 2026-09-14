@@ -125,7 +125,9 @@ export function DeliverySummary({
             ? `Expected by today: ${fmtHoursShort(current.expected_hours)} (the vertical marker).`
             : 'Expected delivery is unavailable until contract hours and dates are set.'}
           {current.coachees_unmeasurable > 0 &&
-            ` ${current.coachees_unmeasurable} coachees have unmeasurable coaching relationships.`}
+            (current.coachees_unmeasurable === 1
+              ? ' 1 coachee has an unmeasurable coaching relationship.'
+              : ` ${current.coachees_unmeasurable} coachees have unmeasurable coaching relationships.`)}
         </p>
       </div>
     </section>
