@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 import { API, USERS, apiToken, login } from './helpers'
 
 /**
@@ -9,6 +9,15 @@ import { API, USERS, apiToken, login } from './helpers'
 test.describe.configure({ mode: 'serial' })
 
 const WHO = USERS.priya.email
+
+/** The switch flips before its save lands, so wait for the save itself. */
+function saved(page: Page) {
+  return page.waitForResponse(
+    response =>
+      response.url().endsWith('/notifications/settings') &&
+      response.request().method() === 'PUT',
+  )
+}
 
 test('the email switch lives in the bell and sticks', async ({
   page,
@@ -23,9 +32,11 @@ test('the email switch lives in the bell and sticks', async ({
   await expect(toggle).toHaveAttribute('data-state', 'checked')
   await expect(popover).toContainText(`also go to ${WHO}`)
 
+  const off = saved(page)
   await toggle.click()
   await expect(toggle).toHaveAttribute('data-state', 'unchecked')
   await expect(popover).toContainText('Only shown here, no emails')
+  expect((await off).ok()).toBeTruthy()
 
   // persisted on the server, not just in the popover
   const token = await apiToken(request, WHO)
@@ -43,8 +54,10 @@ test('the email switch lives in the bell and sticks', async ({
   await expect(again).toHaveAttribute('data-state', 'unchecked')
 
   // and back on, so the fixture user is left as it was
+  const on = saved(page)
   await again.click()
   await expect(again).toHaveAttribute('data-state', 'checked')
+  expect((await on).ok()).toBeTruthy()
   const restored = await request.get(`${API}/notifications/settings`, {
     headers: { Authorization: `Bearer ${token}` },
   })
