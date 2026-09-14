@@ -298,8 +298,17 @@ function Comparisons({ data }: { data: SandboxAnalytics }) {
                     className="flex flex-wrap items-center justify-between gap-2 text-sm text-ink-2"
                   >
                     <span>
-                      {person.name || person.email} ·{' '}
-                      {fmtHoursShort(person.delivered.hours)} received to date
+                      <Link
+                        href={sandboxEntityHref(
+                          data.sandbox_id,
+                          'client',
+                          person.member_id,
+                        )}
+                        className="font-medium text-ink hover:text-ds-accent hover:underline"
+                      >
+                        {person.name || person.email}
+                      </Link>{' '}
+                      · {fmtHoursShort(person.delivered.hours)} received to date
                     </span>
                     <PaceChip pace={person.pace} />
                   </li>

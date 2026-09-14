@@ -2,11 +2,42 @@ import { expect, test, type Page } from '@playwright/test'
 import { API, USERS, apiToken, auth, hideDevtools, login } from './helpers'
 import type { SandboxAnalytics } from '../src/types/sandbox-analytics'
 import type { SandboxInsights } from '../src/types/sandbox-insights'
+import type { CoacheeDelivery } from '../src/types/sandbox-delivery'
 
 // API state fixtures exercise the UI without invoking a model or altering review data.
 let sandboxId = ''
 let viewerId = ''
 const groupId = 'c5a52f6c-a2c3-4c15-8750-6c15bc3a52d0'
+const coachee: CoacheeDelivery = {
+  member_id: 'c5a52f6c-a2c3-4c15-8750-6c15bc3a52d1',
+  user_id: 'c5a52f6c-a2c3-4c15-8750-6c15bc3a52d2',
+  name: 'Rowan Hale',
+  email: 'rowan@example.invalid',
+  client_ids: [],
+  delivered: {
+    sessions: 9,
+    minutes: 540,
+    hours: 9,
+    first_on: '2026-06-03',
+    last_on: '2026-09-08',
+    next_scheduled_on: null,
+    in_flight: 0,
+  },
+  pace: {
+    state: 'on_track',
+    expected_sessions: 18,
+    expected_by_today: 9,
+    delivered_sessions: 9,
+    remaining_sessions: 9,
+    hours_promised: 18,
+    hours_delivered: 9,
+    hours_remaining: 9,
+    elapsed_fraction: 0.5,
+    tolerance: 1,
+    variance: 0,
+    sentence: 'On track: 9 of 18 hours received.',
+  },
+}
 function analytics(personal = false): SandboxAnalytics {
   return {
     sandbox_id: sandboxId,
@@ -67,7 +98,7 @@ function analytics(personal = false): SandboxAnalytics {
         last_activity_on: '2026-09-08',
         next_activity_on: '2026-09-13',
         state: 'on_track',
-        coachees: [],
+        coachees: personal ? [] : [coachee],
       },
     ],
     coaches: [
@@ -279,6 +310,20 @@ test.describe.serial('Sandbox delivery and learning', () => {
     await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('analytics-sessions')).toContainText('45')
     expect(state.posts).toBe(0)
+  })
+
+  test('group coachees link to their client pages', async ({ page }) => {
+    const state = { current: insights(), posts: 0, gets: [] as string[] }
+    await mockReporting(page, state)
+    await login(page, USERS.admin.email)
+    await page.goto(`/admin/sandboxes/${sandboxId}#insights`)
+    const group = page.getByTestId('analytics-group')
+    await group.getByText('45 sessions held').click()
+    const person = group.getByRole('link', { name: 'Rowan Hale' })
+    const href = `/sandboxes/${sandboxId}/clients/${coachee.member_id}`
+    await expect(person).toHaveAttribute('href', href)
+    await person.click()
+    await expect(page).toHaveURL(new RegExp(`${href}$`))
   })
 
   test('explicit generation survives navigation and shares its ready preview', async ({
