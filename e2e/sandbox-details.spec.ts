@@ -261,7 +261,7 @@ async function mocked(
     release: () => {},
   }
   let concerns: Record<string, unknown>[] = []
-  await page.route(`**/sandboxes/${sid}/**`, async route => {
+  await page.route(`**/api/v1/sandboxes/${sid}/**`, async route => {
     const url = new URL(route.request().url())
     const pieces = url.pathname.split('/')
     const kind: SandboxEntityKind = pieces.includes('clients')
@@ -624,7 +624,7 @@ test.describe('Sandbox entity details', () => {
       .getByRole('button', { name: /Coaching session.*Morgan Taylor/ })
       .click()
     await expect(page.getByRole('dialog')).toBeVisible()
-    await page.route(`**/sandboxes/${sid}/clients/**`, route =>
+    await page.route(`**/api/v1/sandboxes/${sid}/clients/**`, route =>
       route.fulfill({ status: 404, json: { detail: 'Not found' } }),
     )
     await page.evaluate(() => {
