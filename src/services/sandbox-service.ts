@@ -105,9 +105,14 @@ export class SandboxService {
     return ApiClient.post(`${BASE}/`, data)
   }
 
-  /** Sandboxes the signed-in person is a member of (any role, any side). */
-  static mine(): Promise<SandboxListResponse> {
-    return ApiClient.get(`${BASE}/mine`)
+  /** Sandboxes the signed-in person is a member of (any role, any side).
+   * Ended terms are left out unless `includeEnded`. */
+  static mine(
+    opts: { includeEnded?: boolean } = {},
+  ): Promise<SandboxListResponse> {
+    return ApiClient.get(
+      `${BASE}/mine${opts.includeEnded ? '?include_ended=true' : ''}`,
+    )
   }
 
   static overview(id: string): Promise<SandboxOverview> {

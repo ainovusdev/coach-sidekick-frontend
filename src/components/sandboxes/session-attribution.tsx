@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Boxes } from 'lucide-react'
 import { ApiClient } from '@/lib/api-client'
+import { queryKeys } from '@/lib/query-client'
+import { SandboxService } from '@/services/sandbox-service'
 import { fmtDay } from '@/lib/sandbox/format'
 import { Button } from '@/components/ui/button'
 import {
@@ -30,6 +32,18 @@ export function useSandboxClientMarkers(
 ) {
   const viewer = useInsightViewer()
   const ids = [...new Set(clientIds.filter((id): id is string => !!id))].sort()
+  // Most coaches are in no sandbox: ask once whether this viewer is in any
+  // (ended terms too, for backdated sessions) before sending client ids.
+  const membership = useQuery({
+    queryKey: [...queryKeys.sandboxes.mine(), 'any', viewer],
+    queryFn: () =>
+      withSandboxViewer(viewer, () =>
+        SandboxService.mine({ includeEnded: true }),
+      ),
+    enabled: !!viewer,
+    staleTime: 60 * 1000,
+  })
+  const inSandbox = (membership.data?.total ?? 0) > 0
   const query = useQuery({
     queryKey: ['sandbox-client-markers', viewer, ids, onDate ?? null],
     queryFn: () =>
@@ -54,11 +68,11 @@ export function useSandboxClientMarkers(
             .map(row => [row.client_id, row.contexts]),
         )
       }),
-    enabled: !!viewer && ids.length > 0,
+    enabled: !!viewer && inSandbox && ids.length > 0,
     gcTime: 0,
     staleTime: 30000,
   })
-  return viewer && !query.isError ? (query.data ?? {}) : {}
+  return viewer && inSandbox && !query.isError ? (query.data ?? {}) : {}
 }
 export function SandboxClientBadge({
   contexts = [],

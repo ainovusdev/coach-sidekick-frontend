@@ -683,6 +683,10 @@ test.describe('Sandbox entity details', () => {
         },
       })
     })
+    // Markers are only requested for a viewer who is in a sandbox.
+    await page.route('**/sandboxes/mine*', route =>
+      route.fulfill({ json: { sandboxes: [], total: 1 } }),
+    )
     await login(page, USERS.admin.email)
     await page.goto(`/sessions/create/manual?clientId=${client}`)
     await expect(page.getByTestId('sandbox-assignment-hint')).toContainText(
