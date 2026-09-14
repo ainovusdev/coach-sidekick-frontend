@@ -1,12 +1,18 @@
 import type { SandboxMember } from '@/types/sandbox'
 import type { SandboxEntityKind } from '@/types/sandbox-details'
 
+const SEGMENTS: Record<SandboxEntityKind, string> = {
+  client: 'clients',
+  coach: 'coaches',
+  group: 'groups',
+}
+
 export function sandboxEntityHref(
   sandboxId: string,
   kind: SandboxEntityKind,
   id: string,
 ) {
-  return `/sandbox/${sandboxId}/${kind === 'group' ? 'groups' : kind}/${id}`
+  return `/sandboxes/${sandboxId}/${SEGMENTS[kind]}/${id}`
 }
 export function sandboxMemberHref(member: SandboxMember): string | null {
   if (member.group_kinds.includes('coachee'))

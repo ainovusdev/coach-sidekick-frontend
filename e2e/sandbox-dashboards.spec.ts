@@ -293,7 +293,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(card.getByTestId('ctx-hours')).toContainText('of 13.5 h')
     await expect(card.getByTestId('ctx-open')).toHaveAttribute(
       'href',
-      new RegExp(`^/sandbox/${sandboxId}/client/[0-9a-f-]+$`),
+      new RegExp(`^/sandboxes/${sandboxId}/clients/[0-9a-f-]+$`),
     )
 
     // his own dashboard (Marcus is a lead coach elsewhere, so he may rank as portfolio)

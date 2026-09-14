@@ -15,7 +15,7 @@ const coach = '49b94918-5214-472c-a30e-23498ea06a53'
 const group = '49b94918-5214-472c-a30e-23498ea06a54'
 const session = '49b94918-5214-472c-a30e-23498ea06a55'
 const viewer = '49b94918-5214-472c-a30e-23498ea06a56'
-const base = `/sandbox/${sid}`
+const base = `/sandboxes/${sid}`
 function analytics(selection: InsightSelection): SandboxAnalytics {
   return {
     sandbox_id: sid,
@@ -175,7 +175,7 @@ function detail(
         user_id: viewer,
         name: 'Alex Morgan',
         active: true,
-        href: `${base}/client/${client}`,
+        href: `${base}/clients/${client}`,
       },
       ...(!personal
         ? [
@@ -185,7 +185,7 @@ function detail(
               user_id: coach,
               name: 'Morgan Taylor',
               active: true,
-              href: `${base}/coach/${coach}`,
+              href: `${base}/coaches/${coach}`,
             },
           ]
         : []),
@@ -223,7 +223,7 @@ function detail(
         severity: 'info',
         headline: 'Review the next coaching steps',
         detail: 'A recorded agreement is ready for discussion.',
-        href: `${base}/client/${client}?tab=outcomes`,
+        href: `${base}/clients/${client}?tab=outcomes`,
         member_id: client,
       },
     ],
@@ -410,7 +410,7 @@ test.describe('Sandbox entity details', () => {
   }) => {
     const state = await mocked(page)
     await login(page, USERS.admin.email)
-    await page.goto(`${base}/client/${client}`)
+    await page.goto(`${base}/clients/${client}`)
     await expect(
       page.getByRole('heading', { name: 'Alex Morgan', exact: true }),
     ).toBeVisible()
@@ -455,7 +455,7 @@ test.describe('Sandbox entity details', () => {
   }) => {
     await mocked(page, { external: true })
     await login(page, USERS.admin.email)
-    await page.goto(`${base}/client/${client}`)
+    await page.goto(`${base}/clients/${client}`)
     await expect(
       page.getByRole('heading', { name: 'Alex Morgan', exact: true }),
     ).toBeVisible()
@@ -479,7 +479,7 @@ test.describe('Sandbox entity details', () => {
   }) => {
     const state = await mocked(page)
     await login(page, USERS.admin.email)
-    await page.goto(`${base}/coach/${coach}`)
+    await page.goto(`${base}/coaches/${coach}`)
     await expect(
       page.getByRole('heading', { name: 'Morgan Taylor', exact: true }),
     ).toBeVisible()
@@ -505,7 +505,7 @@ test.describe('Sandbox entity details', () => {
     await page.getByRole('tab', { name: 'Coachees' }).click()
     await expect(
       page.getByRole('link', { name: 'Alex Morgan', exact: true }),
-    ).toHaveAttribute('href', `${base}/client/${client}`)
+    ).toHaveAttribute('href', `${base}/clients/${client}`)
   })
   test('concerns require recorded text and a resolution note and preserve revisions', async ({
     page,
@@ -618,7 +618,7 @@ test.describe('Sandbox entity details', () => {
   }) => {
     await mocked(page)
     await login(page, USERS.admin.email)
-    await page.goto(`${base}/client/${client}`)
+    await page.goto(`${base}/clients/${client}`)
     await page.getByRole('tab', { name: 'Activity' }).click()
     await page
       .getByRole('button', { name: /Coaching session.*Morgan Taylor/ })
@@ -779,9 +779,9 @@ test.describe('Sandbox entity details', () => {
     for (const kind of ['client', 'coach', 'group'] as const) {
       const path =
         kind === 'client'
-          ? `client/${client}`
+          ? `clients/${client}`
           : kind === 'coach'
-            ? `coach/${coach}`
+            ? `coaches/${coach}`
             : `groups/${group}`
       await page.goto(`${base}/${path}`)
       await expect(page.getByTestId('sandbox-entity-detail')).toHaveAttribute(
