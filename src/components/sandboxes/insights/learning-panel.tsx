@@ -9,10 +9,17 @@ import { fmtDay } from '@/lib/sandbox/format'
 export function LearningPanel({
   reporting,
   preview = false,
+  allowGenerate = true,
   onNavigate,
 }: {
   reporting: SandboxReporting
   preview?: boolean
+  /**
+   * Off where the reader cannot be the one to run it: the client view reads
+   * the summary, and the client layout shown to our side reads it too rather
+   * than offering a button that would write from behind a preview.
+   */
+  allowGenerate?: boolean
   onNavigate: (anchor: string) => void
 }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
@@ -307,22 +314,24 @@ export function LearningPanel({
               The generation request failed. Please try again.
             </p>
           )}
-          {data.can_generate && (data.status !== 'ready' || data.stale) && (
-            <Button
-              size="sm"
-              disabled={active}
-              onClick={reporting.generate}
-              data-testid="generate-insights"
-            >
-              {active
-                ? 'Generating…'
-                : data.status === 'failed'
-                  ? 'Retry insights'
-                  : result || data.stale
-                    ? 'Update insights'
-                    : 'Generate insights'}
-            </Button>
-          )}
+          {allowGenerate &&
+            data.can_generate &&
+            (data.status !== 'ready' || data.stale) && (
+              <Button
+                size="sm"
+                disabled={active}
+                onClick={reporting.generate}
+                data-testid="generate-insights"
+              >
+                {active
+                  ? 'Generating…'
+                  : data.status === 'failed'
+                    ? 'Retry insights'
+                    : result || data.stale
+                      ? 'Update insights'
+                      : 'Generate insights'}
+              </Button>
+            )}
         </>
       )}
     </section>

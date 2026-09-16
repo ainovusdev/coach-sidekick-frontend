@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
@@ -39,12 +39,18 @@ import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   DEFAULT_TAB,
-  isSandboxTab,
   TAB_FOR_ANCHOR,
   TAB_LABEL,
   tabsFor,
   type SandboxTab,
 } from '@/components/sandboxes/sandbox-tabs'
+import {
+  replaceParams,
+  scrollToSection,
+  useCloseCommitment,
+  useSandboxLanding,
+  writeSelection,
+} from '@/components/sandboxes/use-sandbox-landing'
 import {
   useInsightViewer,
   useSandboxReporting,
@@ -67,12 +73,6 @@ import type {
   SandboxMember,
   SandboxOverview,
 } from '@/types/sandbox'
-
-function scrollTo(id: string) {
-  document
-    .getElementById(id)
-    ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
 
 export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const sandboxId = overview.sandbox.id
@@ -106,57 +106,23 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const selectedReporting = isTermSelection ? termReporting : filteredReporting
   const onSelection = useCallback((next: InsightSelection) => {
     setSelection(next)
-    const url = new URL(window.location.href)
-    url.searchParams.set('period', next.period)
-    if (next.group_id) url.searchParams.set('group_id', next.group_id)
-    else url.searchParams.delete('group_id')
-    window.history.replaceState(null, '', url)
+    writeSelection(next)
   }, [])
 
-  // Where a link lands. A `#section` anchor comes from a notification or from
-  // the dashboard's attention rows and was written before the tabs existed, so
-  // it wins over `?tab=`: pick the tab that owns the section, then scroll to it
-  // once that tab has painted — an unmounted section has no element to find.
-  //
-  // A second link to the same sandbox only changes the hash, which the browser
-  // handles without reloading, so the same reading runs again on `hashchange`.
-  useEffect(() => {
-    let frame = 0
-    const land = () => {
-      const hash = window.location.hash.slice(1)
-      const wanted = TAB_FOR_ANCHOR[hash]
-      const params = new URLSearchParams(window.location.search)
-      const period = params.get('period')
-      setSelection({
-        period: period === '30d' || period === '90d' ? period : 'term',
-        group_id: params.get('group_id'),
-      })
-      const asked = params.get('tab')
-      const next = wanted ?? (isSandboxTab(asked) ? asked : null)
-      if (next) setTab(next)
-      const deepCommitment = params.get('commitment')
-      if (deepCommitment) setOpenCommitmentId(deepCommitment)
-      if (!hash) return
-      frame = requestAnimationFrame(() =>
-        requestAnimationFrame(() => scrollTo(hash)),
-      )
-    }
-    land()
-    window.addEventListener('hashchange', land)
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('hashchange', land)
-    }
-  }, [sandboxId])
+  // Where a link lands (the rules live in `use-sandbox-landing.ts`).
+  useSandboxLanding(sandboxId, landing => {
+    setSelection(landing.selection)
+    const next = TAB_FOR_ANCHOR[landing.hash] ?? landing.tab
+    if (next) setTab(next)
+    if (landing.commitment) setOpenCommitmentId(landing.commitment)
+    if (landing.hash) scrollToSection(landing.hash)
+  })
 
   // Remember the tab in the URL without navigating: a refresh or a copied link
   // comes back here, and the page keeps its static shell.
   const goToTab = useCallback((next: SandboxTab) => {
     setTab(next)
-    const url = new URL(window.location.href)
-    url.searchParams.set('tab', next)
-    url.hash = ''
-    window.history.replaceState(null, '', url)
+    replaceParams(url => url.searchParams.set('tab', next), { keepHash: false })
   }, [])
 
   /** Switch tab, then scroll to a section inside it. */
@@ -164,7 +130,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     (anchor: string) => {
       const owner = TAB_FOR_ANCHOR[anchor]
       if (owner) goToTab(owner)
-      requestAnimationFrame(() => requestAnimationFrame(() => scrollTo(anchor)))
+      scrollToSection(anchor)
     },
     [goToTab],
   )
@@ -185,15 +151,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   // the Commitments section: a timeline card opens its event's commitment from
   // the Timeline tab, where that section is not mounted at all.
   const [openCommitmentId, setOpenCommitmentId] = useState<string | null>(null)
-  const closeCommitment = useCallback(() => {
-    setOpenCommitmentId(null)
-    const url = new URL(window.location.href)
-    if (!url.searchParams.has('commitment') && !url.searchParams.has('comment'))
-      return
-    url.searchParams.delete('commitment')
-    url.searchParams.delete('comment')
-    window.history.replaceState(null, '', url.pathname + url.search + url.hash)
-  }, [])
+  const closeCommitment = useCloseCommitment(setOpenCommitmentId)
 
   const sendInvitations = useSendInvitations(sandboxId)
   const resendInvitation = useResendInvitation(sandboxId)

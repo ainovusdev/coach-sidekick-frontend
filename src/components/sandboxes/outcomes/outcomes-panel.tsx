@@ -11,7 +11,7 @@ import { TONE_CLASS, TONE_DOT } from '@/lib/sandbox/delivery'
 import { COACHEE_STATE_LABEL, coacheeStateTone } from '@/lib/sandbox/outcomes'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
-import type { CoacheeOutcomes } from '@/types/sandbox-outcomes'
+import type { CoacheeOutcomes, OutcomeTotals } from '@/types/sandbox-outcomes'
 import { OutcomeList } from './outcome-list'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 
@@ -119,6 +119,27 @@ function CoacheeBlock({
 }
 
 /**
+ * The one number the section is about, said the same way wherever the
+ * outcomes are shown — the cockpit's panel and the client view's section.
+ */
+export function OutcomesSummary({
+  totals,
+}: {
+  totals: OutcomeTotals | null | undefined
+}) {
+  if (!totals || totals.coachees === 0) return null
+  return (
+    <span
+      className="text-sm font-normal text-ink-3"
+      data-testid="outcomes-summary"
+    >
+      {totals.sealed} of {totals.coachees} gold sealed
+      {totals.proposed > 0 && ` · ${totals.proposed} waiting`}
+    </span>
+  )
+}
+
+/**
  * Gold sealing, per coachee the viewer may see. Everyone reads it; the
  * buttons are whatever each viewer may do for each coachee.
  */
@@ -138,16 +159,7 @@ export function OutcomesPanel({ overview }: { overview: SandboxOverview }) {
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">
         <h2 className="text-base font-semibold text-ink">
-          Outcomes{' '}
-          {totals && totals.coachees > 0 && (
-            <span
-              className="ml-1 text-sm font-normal text-ink-3"
-              data-testid="outcomes-summary"
-            >
-              {totals.sealed} of {totals.coachees} gold sealed
-              {totals.proposed > 0 && ` · ${totals.proposed} waiting`}
-            </span>
-          )}
+          Outcomes <OutcomesSummary totals={totals} />
         </h2>
         {data?.window && <WindowChip event={data.window} today={data.today} />}
       </header>

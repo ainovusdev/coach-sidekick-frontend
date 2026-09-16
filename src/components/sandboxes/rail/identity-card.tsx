@@ -1,10 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Pencil } from 'lucide-react'
+import { Eye, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ProgressRail } from '@/components/sandboxes/progress-rail'
-import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
+import {
+  canPreviewClientView,
+  useSandboxView,
+} from '@/components/sandboxes/sandbox-view-context'
 import {
   fmtDay,
   listNames,
@@ -51,6 +54,15 @@ export function IdentityCard({
       : sandbox.status === 'active'
         ? `Month ${monthOfTerm(start, now)} of ${sandbox.term_months} · today ${fmtDay(today)}`
         : `Ended ${fmtDay(sandbox.term_end, true)}`
+
+  // Our side can read the page their client reads — under our own access, so
+  // no data crosses and nothing can be written as them.
+  const canPreview = canPreviewClientView(overview, view.audience === 'admin')
+  // `from` is the route we are on, not the hat we wear: an admin reading a
+  // sandbox at /sandboxes expects "Back to your view" to return there.
+  const previewHref = `/sandboxes/${sandbox.id}?view=client&from=${
+    view.basePath === '/admin/sandboxes' ? 'admin' : 'member'
+  }`
 
   const owners = members
     .filter(m => m.roles.includes('sandbox_owner'))
@@ -116,6 +128,20 @@ export function IdentityCard({
           fmtDay(sandbox.term_end),
         ]}
       />
+
+      {canPreview && (
+        // A plain anchor on purpose: this only changes the query string on the
+        // route we are already on, and a client-side push would leave the page
+        // mounted with the old reading of the URL.
+        <a
+          href={previewHref}
+          className="mt-4 inline-flex items-center gap-1.5 text-xs text-ink-3 underline-offset-4 hover:text-ink hover:underline"
+          data-testid="see-client-view"
+        >
+          <Eye className="h-3.5 w-3.5" aria-hidden />
+          See the client’s view
+        </a>
+      )}
 
       <dl className="mt-4 space-y-1.5 border-t border-line pt-4 text-sm">
         {(owners.length > 0 || view.can.editSandbox) && (

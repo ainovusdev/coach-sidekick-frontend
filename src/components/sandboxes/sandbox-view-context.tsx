@@ -63,6 +63,19 @@ const ALL_ON: SandboxCan = {
   seeAllGroups: true,
 }
 
+const ALL_OFF: SandboxCan = {
+  editSandbox: false,
+  editTimeline: false,
+  editTeam: false,
+  editGroups: false,
+  invite: false,
+  seeSetup: false,
+  seeInvitations: false,
+  seePeople: false,
+  seeLinks: false,
+  seeAllGroups: true,
+}
+
 function hrefs(basePath: SandboxView['basePath']): SandboxView['href'] {
   return {
     index: () => basePath,
@@ -115,6 +128,57 @@ export function viewFromOverview(
     indexLabel: opts.isAdmin ? 'Sandboxes' : 'My sandboxes',
     railTopClass: 'xl:top-20',
     can,
+    href: hrefs('/sandboxes'),
+  }
+}
+
+/**
+ * Hats that belong to the client's own side of a sandbox, and hats that belong
+ * to ours. A member row has exactly one side, so a person cannot hold both.
+ */
+const THEIR_HATS = ['primary_client', 'primary_client_admin', 'supervisor']
+const OUR_HATS = ['account_executive', 'sandbox_owner', 'lead_coach', 'coach']
+
+/**
+ * Who gets the client view: decided by the hats on *this sandbox*, never by
+ * the app role the person happens to hold elsewhere.
+ *
+ * A primary client who also coaches somewhere else in the product is still a
+ * client here. A platform admin keeps the cockpit (they run the thing), and a
+ * plain coachee keeps it too — their page is already their own coaching.
+ */
+export function isClientAudience(
+  overview: Pick<SandboxOverview, 'my_roles'>,
+  isAdmin: boolean,
+): boolean {
+  if (isAdmin) return false
+  const roles = overview.my_roles
+  return (
+    roles.some(r => THEIR_HATS.includes(r)) &&
+    !roles.some(r => OUR_HATS.includes(r))
+  )
+}
+
+/** Our side may see every group, so their numbers match the client's. */
+export function canPreviewClientView(
+  overview: Pick<SandboxOverview, 'my_scope'>,
+  isAdmin: boolean,
+): boolean {
+  return isAdmin || overview.my_scope === 'all'
+}
+
+/**
+ * The client layout under the viewer's own access: same reads, no write
+ * controls. There is no identity switch — nothing is fetched as anyone else.
+ */
+export function previewClientView(from: 'admin' | 'member'): SandboxView {
+  return {
+    audience: 'theirs',
+    scope: 'all',
+    basePath: '/sandboxes',
+    indexLabel: from === 'admin' ? 'Sandboxes' : 'My sandboxes',
+    railTopClass: 'xl:top-20',
+    can: ALL_OFF,
     href: hrefs('/sandboxes'),
   }
 }
