@@ -40,9 +40,9 @@ test.describe('Sandboxes — a coach opens their own', () => {
 
     // A coach lands on the member cockpit, not the admin console.
     await page.waitForURL(/\/sandboxes\/[0-9a-f-]{36}$/)
-    await expect(page.getByTestId('identity-card')).toContainText(NAME)
-    await expect(page.getByTestId('identity-card')).toContainText(ORG)
-    await page.getByTestId('sandbox-tab-team').click()
+    await expect(page.getByTestId('sandbox-hero')).toContainText(NAME)
+    await expect(page.getByTestId('sandbox-hero')).toContainText(ORG)
+    await page.getByTestId('sandbox-tab-people').click()
     const team = page.getByTestId('people-table')
     await expect(team).toContainText(USERS.priya.name)
     await expect(team).toContainText(/account executive/i)

@@ -214,11 +214,16 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     if (await more.count()) await more.click()
 
     // the same rows the dashboard shows, for this sandbox alone
-    await expect(
-      attention
-        .getByTestId('attention-row')
-        .filter({ hasText: 'Lena hasn’t had a session yet' }),
-    ).toBeVisible()
+    const lenaRow = attention
+      .getByTestId('attention-row')
+      .filter({ hasText: 'Lena hasn’t had a session yet' })
+    await expect(lenaRow).toBeVisible()
+    // `since` has been on the wire all along and nothing rendered it, so a
+    // correctly ranked list still could not say which of two rows had been
+    // waiting since May.
+    await expect(lenaRow.getByTestId('attention-when')).toContainText(
+      /Waiting \d+ days/,
+    )
     await expect(
       attention
         .getByTestId('attention-row')
@@ -226,13 +231,19 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     ).toBeVisible()
     // the sandbox is not named on its own rows
     await expect(attention).not.toContainText(NAME)
+    // …and the timeline directly above already names every open window, so
+    // those rows are not repeated underneath it.
+    await expect(attention.locator('[data-kind="window_open"]')).toHaveCount(0)
+    await expect(attention.locator('[data-kind="window_opening"]')).toHaveCount(
+      0,
+    )
 
     // a row moves the tab in place — the page is already on this sandbox
     await attention
       .getByTestId('attention-row')
       .filter({ hasText: 'Managers isn’t finished' })
       .click()
-    await expect(page.getByTestId('sandbox-tab-groups')).toHaveAttribute(
+    await expect(page.getByTestId('sandbox-tab-people')).toHaveAttribute(
       'data-state',
       'active',
     )
@@ -243,23 +254,30 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    // Delivery sits with the groups it is delivered by.
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
+    // One surface for delivery now: the group details on the Delivery tab,
+    // which carry the contract as well as the period's activity.
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'delivery')
     const panel = page.getByTestId('delivery-panel')
     await expect(panel).toBeVisible()
-    const groups = panel.getByTestId('delivery-group')
+    const groups = panel.getByTestId('analytics-group')
     await expect(groups).toHaveCount(2)
 
-    const kofi = panel
-      .getByTestId('delivery-coachee')
-      .filter({ hasText: KOFI.name })
+    // The contract the group was sold on is on the closed summary.
+    const marcus = groups.filter({ hasNotText: 'Managers' })
+    await expect(marcus).toContainText('13.5 h at 45 min → 18 sessions')
+    await expect(marcus).toContainText(USERS.marcus.name)
+    await marcus.locator('summary').click()
+
+    const kofi = marcus.getByTestId('delivery-coachee').filter({
+      hasText: KOFI.name,
+    })
     await expect(kofi).toContainText('3 of 18 sessions')
     await expect(kofi.getByTestId('pace-chip')).toBeVisible()
     await expect(kofi).toContainText('Next')
 
-    const lena = panel
-      .getByTestId('delivery-coachee')
-      .filter({ hasText: LENA.name })
+    const lena = marcus.getByTestId('delivery-coachee').filter({
+      hasText: LENA.name,
+    })
     await expect(lena).toContainText('No sessions yet')
     await expect(lena.getByTestId('pace-chip')).toHaveAttribute(
       'data-state',
@@ -271,6 +289,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(managers.getByTestId('delivery-no-contract')).toContainText(
       'Hours per coachee isn’t set',
     )
+    await managers.locator('summary').click()
     await expect(
       managers.getByTestId('delivery-coachee').filter({ hasText: ZARA.name }),
     ).toBeVisible()
@@ -402,14 +421,23 @@ test.describe('Sandboxes — delivery and dashboards', () => {
       `/sandboxes/${sandboxId}#insights`,
     )
     await progressLink.click()
-    await expect(page.getByTestId('sandbox-tab-insights')).toHaveAttribute(
+    await expect(page.getByTestId('sandbox-tab-delivery')).toHaveAttribute(
       'data-state',
       'active',
     )
     await expect(
       page.getByRole('heading', { name: 'Your coaching and learning' }),
     ).toBeVisible()
-    await expect(page.getByLabel('Delivery comparisons')).toHaveCount(0)
+    // A coachee has no one to compare with — but they still get their own
+    // group and their own row, which the old early return took away.
+    await expect(page.getByTestId('delivery-panel')).toContainText(
+      'Delivery by group',
+    )
+    await expect(page.getByLabel('Compare')).toHaveCount(0)
+    await page.getByTestId('analytics-group').first().locator('summary').click()
+    await expect(
+      page.getByTestId('delivery-coachee').filter({ hasText: KOFI.name }),
+    ).toBeVisible()
 
     // and his own dashboard is the coachee persona with just himself
     await page.goto('/sandboxes')
@@ -426,7 +454,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'people')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Remove group' }).click()
@@ -443,7 +471,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'people')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Edit group' }).click()
@@ -454,16 +482,11 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(warning).toContainText(`${KOFI.name} has had 3 sessions`)
     await expect(warning).toContainText('keeps every session on record')
     // still in the group until we say so
-    await expect(
-      page.getByTestId('delivery-coachee').filter({ hasText: KOFI.name }),
-    ).toBeVisible()
+    await expect(marcusCard(page)).toContainText('2 coachees')
     await drawer.getByTestId('submit-group-anyway').click()
     await expect(drawer).toHaveCount(0)
     // Lena is the only coachee left, so the group reads as a 1:1 again
     await expect(marcusCard(page)).toContainText('Marcus → Lena')
-    await expect(
-      page.getByTestId('delivery-coachee').filter({ hasText: KOFI.name }),
-    ).toHaveCount(0)
   })
 
   test('the people table warns the same way and moves without a word otherwise', async ({
@@ -507,7 +530,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     ).toContain(KOFI.email)
 
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'people')
     const row = (text: string) =>
       page.getByTestId('person-row').filter({ hasText: text })
     await row(KOFI.name)
@@ -546,7 +569,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(row(LENA.name)).toContainText('Managers')
 
     // Former delivery keeps the empty group on record after both transfers.
-    await page.getByTestId('sandbox-tab-groups').click()
+    await page.getByTestId('sandbox-tab-people').click()
     await marcusCard(page)
       .getByRole('button', { name: /Actions for/ })
       .click()

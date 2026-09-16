@@ -25,7 +25,7 @@ let sandboxId = ''
 
 async function openSandbox(page: Page, tab?: SandboxTab) {
   await page.goto(tab ? `${sandboxUrl}?tab=${tab}` : sandboxUrl)
-  await expect(page.getByTestId('identity-card')).toContainText(SANDBOX_NAME)
+  await expect(page.getByTestId('sandbox-hero')).toContainText(SANDBOX_NAME)
 }
 
 test.describe('Sandboxes — admin creation flow', () => {
@@ -80,13 +80,13 @@ test.describe('Sandboxes — admin creation flow', () => {
     sandboxUrl = page.url()
     sandboxId = sandboxUrl.split('/').pop() as string
 
-    await expect(page.getByTestId('identity-card')).toContainText(SANDBOX_NAME)
-    await expect(page.getByTestId('identity-card')).toContainText(ORG)
+    await expect(page.getByTestId('sandbox-hero')).toContainText(SANDBOX_NAME)
+    await expect(page.getByTestId('sandbox-hero')).toContainText(ORG)
     await expect(page.getByTestId('status-pill')).toHaveText('Upcoming')
     await expect(page.getByTestId('setup-progress')).toHaveText('2 of 5 done')
-    await page.getByTestId('sandbox-tab-timeline').click()
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('timeline-event')).toHaveCount(5)
-    await page.getByTestId('sandbox-tab-general').click()
+    await page.getByTestId('sandbox-tab-settings').click()
     await expect(page.getByTestId('vision-panel')).toContainText(
       'weekly one-to-one',
     )
@@ -113,7 +113,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await gotoSandboxTab(
       page,
       `/admin/sandboxes/${created.sandbox.id}`,
-      'timeline',
+      'today',
     )
     const events = page.getByTestId('timeline-event')
     await expect(events).toHaveCount(5)
@@ -122,7 +122,9 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(events.nth(2)).toContainText('1 – 31 Aug')
     await expect(events.nth(3)).toContainText('28 Sep – 9 Oct')
     await expect(events.nth(4)).toContainText('1 – 11 Dec')
-    await expect(page.getByTestId('identity-card')).toContainText('Month')
+    // The hero counts the term in weeks, not months: a term is lived in
+    // sessions, and "Month 5 of 6" hides the three weeks that are left.
+    await expect(page.getByTestId('term-life')).toContainText('Week')
 
     // the list shows both sandboxes
     await page.goto('/admin/sandboxes')
@@ -137,7 +139,7 @@ test.describe('Sandboxes — admin creation flow', () => {
   test('builds the team on both sides', async ({ page }) => {
     await login(page, USERS.admin.email)
     await openSandbox(page)
-    await page.getByTestId('sandbox-tab-team').click()
+    await page.getByTestId('sandbox-tab-people').click()
 
     // our side: Marcus as lead coach
     await page.getByRole('button', { name: 'Add from our people' }).click()
@@ -198,7 +200,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'groups')
+    await openSandbox(page, 'people')
 
     await page.getByTestId('build-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -251,7 +253,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'groups')
+    await openSandbox(page, 'people')
 
     await page.getByTestId('new-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -287,7 +289,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(incomplete).toContainText('Needs hours per coachee')
     await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-groups')).toContainText('1 incomplete')
-    await page.getByTestId('sandbox-tab-groups').click()
+    await page.getByTestId('sandbox-tab-people').click()
 
     await incomplete.getByTestId('finish-group').click()
     await expect(drawer).toContainText('Finish Group 2')
@@ -361,32 +363,44 @@ test.describe('Sandboxes — admin creation flow', () => {
 
   test('sends, revokes and resends invitations', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'team')
+    await openSandbox(page, 'people')
 
-    const panel = page.getByTestId('invitations-panel')
-    await expect(panel.getByTestId('invitations-title')).toHaveText(
+    // Invitations are run from the their-side card of the roster itself —
+    // the same names, the same badges, one list instead of two.
+    const panel = page.getByTestId('their-side')
+    await expect(panel.getByTestId('invitations-title')).toContainText(
       '4 people are waiting on an invitation',
     )
     const row = (email: string) =>
-      panel.locator(`[data-testid="invitation-row"][data-email="${email}"]`)
+      panel.locator(`[data-testid="person-row"][data-email="${email}"]`)
     await expect(
       row(USERS.dana.email).getByTestId('invitation-badge'),
     ).toHaveText('Has an account')
-    await expect(row(NADIA.email)).toContainText('Vision, timeline, all groups')
-    await expect(row(KOFI.email)).toContainText('Their own sessions')
+    // Only a row that is still waiting says what the person will see.
+    await expect(row(NADIA.email).getByTestId('will-see')).toHaveText(
+      'Vision, timeline, all groups',
+    )
+    await expect(row(KOFI.email).getByTestId('will-see')).toHaveText(
+      'Their own sessions',
+    )
 
-    await panel.getByTestId('preview-email').click()
+    // The preview is checked once, so it stays in the row menu.
+    await row(NADIA.email)
+      .getByRole('button', { name: `Actions for ${NADIA.name}` })
+      .click()
+    await page.getByRole('menuitem', { name: 'Preview email' }).click()
     await expect(page.getByTestId('email-preview')).toContainText(
       'invited you to',
     )
     await expect(
       page.getByTestId('email-preview').locator('iframe'),
     ).toBeVisible()
-    await page.keyboard.press('Escape')
+    await page.getByTestId('close-preview').click()
+    await expect(page.getByTestId('email-preview')).toHaveCount(0)
 
     await panel.getByTestId('send-all').click()
     await page.getByRole('button', { name: 'Send', exact: true }).click()
-    await expect(panel.getByTestId('invitations-title')).toHaveText(
+    await expect(panel.getByTestId('invitations-title')).toContainText(
       'Everyone has been invited',
     )
     await expect(
@@ -395,22 +409,28 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(
       row(USERS.dana.email).getByTestId('invitation-badge'),
     ).toContainText('Sent')
+    // Nobody is waiting, so nobody is promised anything yet.
+    await expect(panel.getByTestId('will-see')).toHaveCount(0)
 
-    await row(LENA.email).getByTestId('revoke-one').click()
+    await row(LENA.email)
+      .getByRole('button', { name: `Actions for ${LENA.name}` })
+      .click()
+    await page.getByRole('menuitem', { name: 'Revoke invitation' }).click()
     await page.getByRole('button', { name: 'Revoke', exact: true }).click()
     await expect(row(LENA.email).getByTestId('invitation-badge')).toHaveText(
       'Not sent',
     )
-    await expect(panel.getByTestId('invitations-title')).toHaveText(
+    await expect(panel.getByTestId('invitations-title')).toContainText(
       'One person is waiting on an invitation',
     )
+    // …and the one action that applies is one click away, beside the badge.
+    await expect(row(LENA.email).getByTestId('invite-one')).toBeVisible()
 
     await row(KOFI.email).getByTestId('resend-one').click()
     await expect(
       page.getByText('Invitation resent with a fresh link'),
     ).toBeVisible()
 
-    await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-invitations')).toContainText(
       'still waiting',
     )
@@ -475,18 +495,16 @@ test.describe('Sandboxes — admin creation flow', () => {
     await context.close()
 
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'team')
-    const panel = page.getByTestId('invitations-panel')
+    await openSandbox(page, 'people')
+    const panel = page.getByTestId('their-side')
     await expect(
       panel
-        .locator(`[data-testid="invitation-row"][data-email="${NADIA.email}"]`)
+        .locator(`[data-testid="person-row"][data-email="${NADIA.email}"]`)
         .getByTestId('invitation-badge'),
     ).toHaveText('Accepted')
     await expect(
       panel
-        .locator(
-          `[data-testid="invitation-row"][data-email="${USERS.dana.email}"]`,
-        )
+        .locator(`[data-testid="person-row"][data-email="${USERS.dana.email}"]`)
         .getByTestId('invitation-badge'),
     ).toHaveText('Accepted')
     await expect(
@@ -498,7 +516,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'team')
+    await openSandbox(page, 'people')
 
     const kofiRow = page
       .getByTestId('person-row')
@@ -511,7 +529,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(page.getByRole('dialog')).toContainText('is in Group 2')
     await page.getByTestId('remove-anyway').click()
     await expect(kofiRow).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-groups').click()
+    await page.getByTestId('sandbox-tab-people').click()
     await expect(
       page.getByTestId('group-card').filter({ hasText: 'Group 2' }),
     ).toContainText('2 coaches, 1 coachee')

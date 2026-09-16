@@ -67,11 +67,9 @@ async function expectReadOnlyClientView(page: Page) {
   await expect(page.getByTestId('client-view')).toBeVisible()
   await expect(page.getByTestId('sandbox-cockpit')).toHaveCount(0)
   await expect(page.getByTestId('sandbox-tabs')).toHaveCount(0)
-  await expect(
-    page.getByRole('button', { name: 'Edit sandbox details' }),
-  ).toHaveCount(0)
+  await expect(page.getByTestId('edit-sandbox')).toHaveCount(0)
   await expect(page.getByTestId('setup-card')).toHaveCount(0)
-  await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
+  await expect(page.getByTestId('send-all')).toHaveCount(0)
   await expect(page.getByTestId('people-table')).toHaveCount(0)
   await expect(page.getByTestId('new-group')).toHaveCount(0)
   await expect(page.getByTestId('add-event')).toHaveCount(0)
@@ -85,19 +83,28 @@ async function expectReadOnlyClientView(page: Page) {
 
 async function expectReadOnlyCockpit(page: Page) {
   await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
-  await expect(
-    page.getByRole('button', { name: 'Edit sandbox details' }),
-  ).toHaveCount(0)
-  // Nothing that writes: no Settings tab, no setup checklist, no invitations.
-  await expect(page.getByTestId('sandbox-tab-settings')).toHaveCount(0)
+  await expect(page.getByTestId('edit-sandbox')).toHaveCount(0)
   await expect(page.getByTestId('setup-card')).toHaveCount(0)
-  await page.getByTestId('sandbox-tab-team').click()
-  await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
-  await page.getByTestId('sandbox-tab-groups').click()
+
+  /**
+   * Settings is a place, not a permission: everyone stands here, because the
+   * vision lives here and every member of a sandbox may read it and comment on
+   * it. What is gated is the configuration — so the assertion is "no
+   * configuration controls", not "nothing writable".
+   */
+  await page.getByTestId('sandbox-tab-settings').click()
+  await expect(page.getByTestId('vision-panel')).toBeVisible()
+  await expect(page.getByTestId('settings-details')).toHaveCount(0)
+  await expect(page.getByTestId('settings-save')).toHaveCount(0)
+  await expect(page.getByTestId('settings-regenerate')).toHaveCount(0)
+  await expect(page.getByTestId('write-vision')).toHaveCount(0)
+
+  await page.getByTestId('sandbox-tab-people').click()
+  await expect(page.getByTestId('send-all')).toHaveCount(0)
   await expect(page.getByTestId('new-group')).toHaveCount(0)
   await expect(page.getByTestId('add-another-group')).toHaveCount(0)
   // The timeline is a calendar: no card opens its commitment.
-  await page.getByTestId('sandbox-tab-timeline').click()
+  await page.getByTestId('sandbox-tab-today').click()
   await expect(page.getByTestId('timeline-event').first()).toBeVisible()
   await expect(page.getByTestId('add-event')).toHaveCount(0)
   await expect(page.getByTestId('event-menu')).toHaveCount(0)
@@ -232,18 +239,19 @@ test.describe('Sandboxes — member access', () => {
       'ours',
     )
     await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: 'Edit sandbox details' }),
-    ).toHaveCount(0)
+    await expect(page.getByTestId('edit-sandbox')).toHaveCount(0)
     await expect(page.getByTestId('add-event')).toHaveCount(0)
     await expect(page.getByTestId('setup-card')).toHaveCount(0)
-    await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
+    await expect(page.getByTestId('send-all')).toHaveCount(0)
     await expect(page.getByTestId('people-table')).toHaveCount(0)
-    // our side keeps the working links
-    await page.getByTestId('sandbox-tab-general').click()
+    // our side keeps the working links, beside them on every tab
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
+    // …and the vision, which is why Settings is everyone's
+    await page.getByTestId('sandbox-tab-settings').click()
+    await expect(page.getByTestId('vision-panel')).toBeVisible()
+    await expect(page.getByTestId('settings-details')).toHaveCount(0)
     // a lead coach manages groups: sees every group and the group tools
-    await page.getByTestId('sandbox-tab-groups').click()
+    await page.getByTestId('sandbox-tab-people').click()
     await expect(page.getByTestId('group-card')).toHaveCount(2)
     await expect(page.getByTestId('new-group')).toBeVisible()
     await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
@@ -254,7 +262,7 @@ test.describe('Sandboxes — member access', () => {
     await page.keyboard.press('Escape')
     // the breadcrumb leads back to the member index, not the admin panel
     await expect(
-      page.getByTestId('identity-card').getByRole('link', {
+      page.getByTestId('sandbox-hero').getByRole('link', {
         name: 'My sandboxes',
       }),
     ).toHaveAttribute('href', '/sandboxes')
@@ -266,14 +274,14 @@ test.describe('Sandboxes — member access', () => {
     await login(page, USERS.priya.email)
     await page.goto(`/sandboxes/${sandboxId}`)
     await expectReadOnlyCockpit(page)
-    await page.getByTestId('sandbox-tab-groups').click()
+    await page.getByTestId('sandbox-tab-people').click()
     await expect(page.getByTestId('groups-scope-note')).toBeVisible()
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Managers')
     await expect(
       page.getByRole('button', { name: 'Actions for Managers' }),
     ).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-team').click()
+    await page.getByTestId('sandbox-tab-people').click()
     const team = page.getByTestId('team-panel')
     await expect(team).toContainText(WREN.name)
     await expect(team).toContainText(USERS.marcus.name) // lead coach is a contact
@@ -385,12 +393,15 @@ test.describe('Sandboxes — member access', () => {
       'coachee',
     )
     await expectReadOnlyCockpit(page)
-    // The read-only check leaves the page on Timeline.
+    // The read-only check leaves the page on Today, where the timeline is.
     await expect(page.getByTestId('timeline-event')).toHaveCount(2)
-    await page.getByTestId('sandbox-tab-groups').click()
+    // A coachee has neither rail card, so the page is one column.
+    await expect(page.getByTestId('setup-card')).toHaveCount(0)
+    await expect(page.getByTestId('links-card')).toHaveCount(0)
+    await page.getByTestId('sandbox-tab-people').click()
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Marcus')
-    await page.getByTestId('sandbox-tab-team').click()
+    await page.getByTestId('sandbox-tab-people').click()
     await expect(page.getByTestId('team-panel')).not.toContainText(WREN.name)
   })
 
@@ -408,16 +419,12 @@ test.describe('Sandboxes — member access', () => {
       'data-audience',
       'ours',
     )
-    await expect(
-      page.getByRole('button', { name: 'Edit sandbox details' }),
-    ).toBeVisible()
+    await expect(page.getByTestId('edit-sandbox')).toBeVisible()
     await expect(page.getByTestId('setup-card')).toBeVisible()
-    await page.getByTestId('sandbox-tab-timeline').click()
-    await expect(page.getByTestId('add-event')).toBeVisible()
-    await page.getByTestId('sandbox-tab-general').click()
     await expect(page.getByTestId('links-card')).toContainText('Proposal')
-    await page.getByTestId('sandbox-tab-team').click()
-    await expect(page.getByTestId('invitations-panel')).toBeVisible()
+    await expect(page.getByTestId('add-event')).toBeVisible()
+    await page.getByTestId('sandbox-tab-people').click()
+    await expect(page.getByTestId('invitations-title')).toBeVisible()
     // whoever runs the sandbox gets the people table, not the plain roster
     await expect(page.getByTestId('people-table')).toBeVisible()
     await expect(page.getByTestId('team-panel')).toHaveCount(0)

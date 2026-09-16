@@ -294,7 +294,7 @@ test.describe.serial('Sandbox delivery and learning', () => {
     await mockReporting(page, state)
     await login(page, USERS.admin.email)
     await page.goto(`/admin/sandboxes/${sandboxId}?keep=1#insights`)
-    await expect(page.getByTestId('sandbox-tab-insights')).toHaveAttribute(
+    await expect(page.getByTestId('sandbox-tab-delivery')).toHaveAttribute(
       'data-state',
       'active',
     )
@@ -335,7 +335,7 @@ test.describe.serial('Sandbox delivery and learning', () => {
     await page.goto(`/admin/sandboxes/${sandboxId}`)
     await page.getByTestId('generate-insights').click()
     await expect(page.getByTestId('insight-state')).toContainText('queued')
-    await page.getByTestId('sandbox-tab-insights').click()
+    await page.getByTestId('sandbox-tab-delivery').click()
     await expect(page.getByTestId('generate-insights')).toBeDisabled()
     expect(state.posts).toBe(1)
     state.current = insights('ready')
@@ -419,7 +419,10 @@ test.describe.serial('Sandbox delivery and learning', () => {
     await expect(
       page.getByText('Your delegation practice', { exact: true }),
     ).toBeVisible()
-    await expect(page.getByLabel('Delivery comparisons')).toHaveCount(0)
+    // Nobody to compare with: no Compare control, no coach table, no peers.
+    // The section itself stays — it is where this person's own rows live.
+    await expect(page.getByTestId('delivery-panel')).toBeVisible()
+    await expect(page.getByLabel('Compare')).toHaveCount(0)
     await expect(page.getByText('Morgan Taylor')).toHaveCount(0)
     await expect(page.getByText('Shared delegation work')).toHaveCount(0)
     await expect(page.getByText('Ideas for your next session')).toBeVisible()

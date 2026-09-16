@@ -551,6 +551,10 @@ test.describe('Sandboxes — the client view', () => {
     page,
   }) => {
     await login(page, CLARA.email)
+    // These `?tab=` names mean something else on the cockpit — `insights` is
+    // its Delivery tab, `groups` is its People tab — so the shared URL parser
+    // keeps the raw word and each layout reads it for itself. This table is
+    // what proves the cockpit's aliases never reached here.
     for (const [link, section] of [
       ['#outcomes', 'outcomes'],
       ['#timeline', 'timeline'],
@@ -596,7 +600,7 @@ test.describe('Sandboxes — the client view', () => {
     // invitation ledger and the proposal link.
     await expect(view).not.toContainText(CONCERN)
     await expect(page.getByTestId('setup-card')).toHaveCount(0)
-    await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
+    await expect(page.getByTestId('invitations-title')).toHaveCount(0)
     await expect(page.getByTestId('links-card')).toHaveCount(0)
     await expect(page.getByTestId('people-table')).toHaveCount(0)
 

@@ -105,7 +105,7 @@ test.describe('Sandboxes — events are commitments', () => {
     request,
   }) => {
     await login(page, USERS.priya.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'today')
     await hideDevtools(page)
     const card = page.locator(
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
@@ -182,7 +182,7 @@ test.describe('Sandboxes — events are commitments', () => {
     ).toBeVisible()
     await page.keyboard.press('Escape')
 
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'today')
     await hideDevtools(page)
     const card = page.locator(
       '[data-testid="timeline-event"][data-kind="gold_sealing"]',
@@ -223,7 +223,7 @@ test.describe('Sandboxes — events are commitments', () => {
     page,
   }) => {
     await login(page, USERS.priya.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'today')
     await hideDevtools(page)
     const card = page
       .locator('[data-testid="timeline-event"][data-kind="check_in"]')

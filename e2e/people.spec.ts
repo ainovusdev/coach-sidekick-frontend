@@ -97,7 +97,7 @@ test.describe('Sandboxes — People page', () => {
     })
 
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
     await expect(page.getByTestId('people-table')).toContainText('Team 6')
     await expect(page.getByTestId('people-summary')).toHaveText(
       `3 ours · 3 from ${ORG}`,
@@ -127,7 +127,7 @@ test.describe('Sandboxes — People page', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
     const rows = page.getByTestId('person-row')
     await expect(rows).toHaveCount(6)
 
@@ -171,7 +171,7 @@ test.describe('Sandboxes — People page', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
 
     await row(page, AMARA.name)
       .getByRole('button', { name: `Actions for ${AMARA.name}` })
@@ -211,8 +211,7 @@ test.describe('Sandboxes — People page', () => {
       'Managers (supervises)',
     )
 
-    // The Groups tab reflects it straight away.
-    await page.getByTestId('sandbox-tab-groups').click()
+    // The groups above the roster reflect it straight away.
     const managers = page
       .getByTestId('group-card')
       .filter({ hasText: 'Managers' })
@@ -222,7 +221,7 @@ test.describe('Sandboxes — People page', () => {
 
   test('bulk invite and bulk remove', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
 
     await page.getByRole('checkbox', { name: `Select ${AMARA.name}` }).click()
     await page.getByRole('checkbox', { name: `Select ${TARIQ.name}` }).click()
@@ -256,7 +255,7 @@ test.describe('Sandboxes — People page', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'team')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
     await page.getByRole('checkbox', { name: 'Select E2E Admin' }).click()
     await page.getByTestId('bulk-remove').click()
     await expect(page.getByTestId('bulk-remove-blocked')).toBeVisible()
@@ -264,10 +263,10 @@ test.describe('Sandboxes — People page', () => {
     await page.getByRole('button', { name: 'Keep them' }).click()
   })
 
-  test('the old People link lands on the Team tab', async ({ page }) => {
+  test('the old People link lands on the People tab', async ({ page }) => {
     await login(page, USERS.admin.email)
     await page.goto(`/admin/sandboxes/${sandboxId}/people`)
-    await page.waitForURL(/\?tab=team$/)
+    await page.waitForURL(/\?tab=people$/)
     await expect(page.getByTestId('people-table')).toBeVisible()
   })
 })

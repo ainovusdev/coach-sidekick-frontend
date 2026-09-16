@@ -10,12 +10,14 @@ import {
 } from './helpers'
 
 /**
- * The sandbox page is tabbed. What has to keep working:
+ * The sandbox page is tabbed — five of them, one per job. What has to keep
+ * working:
  *
  *   • it opens on Today, and the tab you pick survives a refresh
  *   • every `#section` link written before the tabs existed still lands —
  *     notification payloads and the dashboard's attention rows use them
- *   • a person only gets the tabs they have something in
+ *   • so do the tab names from when there were eight of them, which are in
+ *     bookmarks and in copied links
  *   • the commitment panel opens from any tab, not only the one that lists
  *     commitments
  */
@@ -26,8 +28,22 @@ const ORG = 'PTG Tabs'
 
 let sandboxId = ''
 
-const activeTab = (page: import('@playwright/test').Page) =>
+type Page = import('@playwright/test').Page
+
+const activeTab = (page: Page) =>
   page.getByTestId('sandbox-tabs').locator('[role="tab"][data-state="active"]')
+
+/** Visible is not the same as reachable: a sticky bar can sit on top of it. */
+function inView(page: Page, id: string) {
+  return page.evaluate(section => {
+    const el = document.getElementById(section)
+    if (!el) return 'missing'
+    const box = el.getBoundingClientRect()
+    return box.top < window.innerHeight && box.bottom > 0
+      ? 'in view'
+      : 'off screen'
+  }, id)
+}
 
 test.describe('Sandboxes — the page is tabbed', () => {
   test('builds the fixture', async ({ request }) => {
@@ -71,15 +87,15 @@ test.describe('Sandboxes — the page is tabbed', () => {
       'data-testid',
       'sandbox-tab-today',
     )
-    await page.getByTestId('sandbox-tab-groups').click()
-    await expect(page).toHaveURL(/\?tab=groups$/)
+    await page.getByTestId('sandbox-tab-people').click()
+    await expect(page).toHaveURL(/\?tab=people$/)
     await expect(page.getByTestId('groups-panel')).toBeVisible()
 
     // A refresh comes back to the same place.
     await page.reload()
     await expect(activeTab(page)).toHaveAttribute(
       'data-testid',
-      'sandbox-tab-groups',
+      'sandbox-tab-people',
     )
     // Nonsense in the URL falls back to Today rather than showing nothing.
     await page.goto(`/admin/sandboxes/${sandboxId}?tab=nowhere`)
@@ -89,35 +105,54 @@ test.describe('Sandboxes — the page is tabbed', () => {
     )
   })
 
-  test('each section keeps its own tab', async ({ page }) => {
+  test('each tab shows its own work', async ({ page }) => {
     await login(page, USERS.admin.email)
     const on = async (tab: string, testid: string) => {
       await page.goto(`/admin/sandboxes/${sandboxId}?tab=${tab}`)
       await expect(page.getByTestId(testid)).toBeVisible()
     }
-    await on('insights', 'insights-panel')
-    await on('timeline', 'timeline-panel')
-    await on('outcomes', 'outcomes-panel')
-    await on('team', 'people-table')
-    await on('groups', 'delivery-panel')
-    await on('general', 'vision-panel')
-    await on('settings', 'settings-panel')
+    await on('today', 'timeline-panel')
     await on('today', 'commitments-panel')
+    await on('delivery', 'insights-panel')
+    await on('outcomes', 'outcomes-panel')
+    await on('people', 'people-table')
+    await on('people', 'groups-panel')
+    await on('settings', 'settings-panel')
+    await on('settings', 'vision-panel')
+  })
+
+  test('the tab names from the eight-tab page still land', async ({ page }) => {
+    await login(page, USERS.admin.email)
+    // In bookmarks, in copied links, and in whatever is open right now.
+    const aliases: [string, string][] = [
+      ['insights', 'delivery'],
+      ['timeline', 'today'],
+      ['team', 'people'],
+      ['groups', 'people'],
+      ['general', 'settings'],
+    ]
+    for (const [was, now] of aliases) {
+      await page.goto(`/admin/sandboxes/${sandboxId}?tab=${was}`)
+      await expect(activeTab(page)).toHaveAttribute(
+        'data-testid',
+        `sandbox-tab-${now}`,
+      )
+    }
   })
 
   test('the anchors older links use still land', async ({ page }) => {
     await login(page, USERS.admin.email)
     // Written by notification payloads and by attentionHref on the dashboard.
     const landings: [string, string][] = [
-      ['insights', 'insights'],
-      ['timeline', 'timeline'],
-      ['vision', 'general'],
-      ['outcomes', 'outcomes'],
+      ['insights', 'delivery'],
+      ['delivery', 'delivery'],
+      ['timeline', 'today'],
       ['commitments', 'today'],
-      ['team', 'team'],
-      ['invitations', 'team'],
-      ['delivery', 'groups'],
-      ['groups', 'groups'],
+      ['outcomes', 'outcomes'],
+      ['team', 'people'],
+      ['invitations', 'people'],
+      ['groups', 'people'],
+      ['vision', 'settings'],
     ]
     for (const [anchor, tab] of landings) {
       await page.goto(`/admin/sandboxes/${sandboxId}#${anchor}`)
@@ -127,6 +162,44 @@ test.describe('Sandboxes — the page is tabbed', () => {
       )
       await expect(page.locator(`#${anchor}`)).toBeVisible()
     }
+  })
+
+  test('#delivery lands in the viewport even when reporting is slow', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    // Delivery mounts nothing until analytics arrives, and the scroll fires
+    // two frames after the tab is picked — so without landing a second time
+    // the link picks the right tab and scrolls nowhere.
+    await page.route('**/analytics?*', async route => {
+      await new Promise(resolve => setTimeout(resolve, 1200))
+      await route.continue()
+    })
+    await page.goto(`/admin/sandboxes/${sandboxId}#delivery`)
+    await hideDevtools(page)
+    await expect(activeTab(page)).toHaveAttribute(
+      'data-testid',
+      'sandbox-tab-delivery',
+    )
+    await expect(page.getByTestId('delivery-panel')).toBeVisible()
+    await expect.poll(() => inView(page, 'delivery')).toBe('in view')
+    await page.unroute('**/analytics?*')
+  })
+
+  test('#invitations lands even when the roster is filtered to nobody', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    await page.goto(`/admin/sandboxes/${sandboxId}?tab=people`)
+    await hideDevtools(page)
+    // Both side cards disappear when nothing matches, so the anchor cannot
+    // live on one of them.
+    await page.getByTestId('people-search').fill('nobody at all')
+    await expect(page.getByTestId('their-side')).toHaveCount(0)
+    await page.evaluate(() => {
+      window.location.hash = '#invitations'
+    })
+    await expect.poll(() => inView(page, 'invitations')).toBe('in view')
   })
 
   test('a commitment opens from the tab you are on', async ({
@@ -154,9 +227,16 @@ test.describe('Sandboxes — the page is tabbed', () => {
     await expect(panel).toHaveAttribute('data-open', 'false')
     await expect(page).not.toHaveURL(/commitment=/)
 
-    // And it opens from a timeline card, where no commitment list is mounted.
-    await page.goto(`/admin/sandboxes/${sandboxId}?tab=timeline`)
+    // And it opens on a tab where no commitment list is mounted at all.
+    await page.goto(
+      `/admin/sandboxes/${sandboxId}?tab=delivery&commitment=${commitmentId}`,
+    )
     await expect(page.getByTestId('commitments-panel')).toHaveCount(0)
+    await expect(panel).toHaveAttribute('data-open', 'true')
+    await expect(panel).toContainText('book the room')
+
+    // A timeline card opens its event's commitment from Today.
+    await page.goto(`/admin/sandboxes/${sandboxId}?tab=today`)
     await page.getByTestId('timeline-event').first().click()
     await expect(panel).toHaveAttribute('data-open', 'true')
   })

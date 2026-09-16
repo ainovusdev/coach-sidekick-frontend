@@ -65,7 +65,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     sandboxId = (await resp.json()).sandbox.id
 
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
     await expect(events(page)).toHaveCount(5)
     await expect(page.getByTestId('timeline-caption')).toHaveText(
       '5 events, generated from the term',
@@ -78,7 +78,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
     await openMenu(page, 'Check-in 1', 'Adjust window')
     const dialog = page.getByRole('dialog')
@@ -109,7 +109,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
 
   test('keeps the results review after the term', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
     await openMenu(page, 'Results review', 'Adjust window')
     await pickDay(page, 'event-start', d('2026-12-01'), d('2026-11-16'))
@@ -124,7 +124,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
     await page.getByTestId('add-event').click()
     await page.fill('#event-label', 'Board offsite')
@@ -145,7 +145,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
 
   test('removes an event with a reason, then restores it', async ({ page }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
     await openMenu(page, 'Midpoint reporting', 'Remove…')
     await expect(page.getByTestId('remove-event-confirm')).toBeDisabled()
@@ -171,10 +171,10 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
-    // The pencil in the header is a shortcut to Settings, where the term lives.
-    await page.getByRole('button', { name: 'Edit sandbox details' }).click()
+    // The pencil in the hero is a shortcut to Settings, where the term lives.
+    await page.getByTestId('edit-sandbox').click()
     const settings = page.getByTestId('settings-panel')
     await expect(settings).toContainText('Sandbox details')
     await expect(page.getByTestId('regen-preview')).toHaveCount(0)
@@ -205,8 +205,9 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     )
     await page.getByTestId('settings-save').click()
 
-    await expect(page.getByTestId('identity-card')).toContainText('12 months')
-    await page.getByTestId('sandbox-tab-timeline').click()
+    // The term is 12 months now; the hero counts it in weeks.
+    await expect(page.getByTestId('term-life')).toContainText(/Week \d+ of 5\d/)
+    await page.getByTestId('sandbox-tab-today').click()
     await expect(events(page)).toHaveCount(9) // 8 generated + the added one
     const checkin1 = events(page).filter({ hasText: 'Check-in 1' })
     await expect(checkin1).toContainText('3 – 14 Aug')
@@ -224,7 +225,7 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'timeline')
+    await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'today')
 
     await page.getByTestId('regenerate-timeline').click()
     const dialog = page.getByRole('dialog')

@@ -148,9 +148,10 @@ test.describe('Sandboxes — commitments', () => {
     await expect(row.getByTestId('assignee-chip')).toContainText('Priya')
     commitmentId = (await row.getAttribute('data-id')) ?? ''
     expect(commitmentId).not.toBe('')
+    // The header repeated these counts; now only the chips carry them.
     await expect(
-      panel.getByTestId('sandbox-commitments-summary'),
-    ).toContainText('1 open')
+      panel.getByTestId('sandbox-commitments-filter-all'),
+    ).toContainText('1')
   })
 
   test('their side does not see it', async ({ page, request }) => {
@@ -227,8 +228,8 @@ test.describe('Sandboxes — commitments', () => {
     await expect(row).toBeVisible()
     await expect(row.getByTestId('commitment-private')).toBeVisible()
     await expect(
-      panel.getByTestId('sandbox-commitments-summary'),
-    ).toContainText('1 for you')
+      panel.getByTestId('sandbox-commitments-filter-mine'),
+    ).toContainText('1')
     await panel.getByTestId('sandbox-commitments-filter-mine').click()
     await expect(row).toBeVisible()
 
