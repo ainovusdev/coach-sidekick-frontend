@@ -9,6 +9,8 @@ import {
   USERS,
   apiToken,
   auth,
+  clientSection,
+  gotoClientView,
   gotoSandboxTab,
   invitationToken,
   login,
@@ -340,11 +342,12 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(
       page.getByTestId('attention-row').filter({ hasText: 'invited' }),
     ).toHaveCount(0)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
-    const panel = page.getByTestId('delivery-panel')
-    await expect(panel.getByTestId('delivery-group')).toHaveCount(1)
-    await expect(panel).toContainText('Managers')
-    await expect(panel).not.toContainText(KOFI.name)
+    // On her own page delivery is the Groups section, scoped the same way.
+    await gotoClientView(page, `/sandboxes/${sandboxId}`, '?tab=groups')
+    const groups = clientSection(page, 'groups')
+    await expect(groups.getByTestId('client-group-row')).toHaveCount(1)
+    await expect(groups).toContainText('Managers')
+    await expect(page.getByTestId('client-view')).not.toContainText(KOFI.name)
   })
 
   test('the coachee sees expected vs delivered on the portal', async ({

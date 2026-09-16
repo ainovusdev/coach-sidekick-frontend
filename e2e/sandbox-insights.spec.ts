@@ -506,6 +506,9 @@ test.describe.serial('Sandbox delivery and learning', () => {
     expect(state.posts).toBe(0)
   })
 
+  // Dana is this sandbox's primary client, so she now reads the client view;
+  // the cockpit's chart is checked here, and `sandbox-client-view.spec.ts`
+  // mirrors this test on her side of it.
   test('charts have a data table and controls work by keyboard at narrow widths', async ({
     page,
   }) => {
@@ -513,7 +516,7 @@ test.describe.serial('Sandbox delivery and learning', () => {
     page.on('pageerror', error => errors.push(error.message))
     const state = { current: insights('ready'), posts: 0, gets: [] as string[] }
     await mockReporting(page, state)
-    await login(page, USERS.dana.email)
+    await login(page, USERS.admin.email)
     await page.goto(`/sandboxes/${sandboxId}#insights`)
     await hideDevtools(page)
     await page.getByText('View chart data table', { exact: true }).focus()

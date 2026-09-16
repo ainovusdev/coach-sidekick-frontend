@@ -4,7 +4,16 @@ import {
   request as playwrightRequest,
   type APIRequestContext,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, hideDevtools, login } from './helpers'
+import {
+  API,
+  USERS,
+  apiToken,
+  auth,
+  clientSection,
+  gotoClientView,
+  hideDevtools,
+  login,
+} from './helpers'
 
 /**
  * Slice 3 — commitments on a sandbox.
@@ -156,16 +165,19 @@ test.describe('Sandboxes — commitments', () => {
     const rows = Array.isArray(list) ? list : list.commitments
     expect(rows).toHaveLength(0)
 
+    // Their side reads the client view, where `#commitments` means "what
+    // needs you": our internal work never reaches it, by any name.
     await login(page, USERS.dana.email)
-    await page.goto(`/sandboxes/${sandboxId}#commitments`)
+    await gotoClientView(page, `/sandboxes/${sandboxId}`, '#commitments')
     await hideDevtools(page)
-    const panel = page.getByTestId('commitments-panel')
-    await expect(panel).toBeVisible()
-    await expect(panel.getByTestId('sandbox-commitments-empty')).toBeVisible()
-    await expect(panel.getByTestId('commitment-row')).toHaveCount(0)
-    // Their side has no hub to open.
-    await expect(panel.getByTestId('sandbox-commitments-open-hub')).toHaveCount(
-      0,
+    await expect(page.getByTestId('commitments-panel')).toHaveCount(0)
+    await expect(page.getByTestId('commitment-row')).toHaveCount(0)
+    await expect(page.getByTestId('needs-commitment')).toHaveCount(0)
+    await expect(
+      clientSection(page, 'needs').getByTestId('needs-you-empty'),
+    ).toBeVisible()
+    await expect(page.getByTestId('client-view')).not.toContainText(
+      'Prep the kickoff deck',
     )
   })
 

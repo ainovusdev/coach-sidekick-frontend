@@ -1,5 +1,13 @@
 import { expect, test } from '@playwright/test'
-import { API, USERS, apiToken, auth, hideDevtools, login } from './helpers'
+import {
+  API,
+  USERS,
+  apiToken,
+  auth,
+  gotoClientView,
+  hideDevtools,
+  login,
+} from './helpers'
 
 /**
  * The sandbox page is tabbed. What has to keep working:
@@ -153,16 +161,20 @@ test.describe('Sandboxes — the page is tabbed', () => {
     await expect(panel).toHaveAttribute('data-open', 'true')
   })
 
-  test('their side gets no Settings tab', async ({ page }) => {
+  test('their side gets no tabs at all, and no settings by hand', async ({
+    page,
+  }) => {
     await login(page, USERS.dana.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
+    await gotoClientView(page, `/sandboxes/${sandboxId}`)
     await hideDevtools(page)
-    await expect(page.getByTestId('sandbox-tabs')).toBeVisible()
+    // The client view is one page: the tab bar and Settings are both ours.
+    await expect(page.getByTestId('sandbox-tabs')).toHaveCount(0)
     await expect(page.getByTestId('sandbox-tab-settings')).toHaveCount(0)
-    await expect(page.getByTestId('sandbox-tab-today')).toBeVisible()
-    // …and asking for it by hand still shows them the page, on Today.
-    await page.goto(`/sandboxes/${sandboxId}?tab=settings`)
+    await expect(page.getByTestId('client-nav')).toBeVisible()
+    // …and asking for Settings by hand still shows them their own page.
+    await gotoClientView(page, `/sandboxes/${sandboxId}`, '?tab=settings')
     await expect(page.getByTestId('settings-panel')).toHaveCount(0)
-    await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
+    await expect(page.getByTestId('sandbox-cockpit')).toHaveCount(0)
+    await expect(page.getByTestId('client-hero')).toBeVisible()
   })
 })

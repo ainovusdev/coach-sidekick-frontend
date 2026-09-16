@@ -4,6 +4,8 @@ import {
   USERS,
   apiToken,
   auth,
+  clientPanel,
+  gotoClientView,
   gotoSandboxTab,
   hideDevtools,
   login,
@@ -265,11 +267,17 @@ test.describe('Sandboxes — events are commitments', () => {
   })
 
   test('their side sees a calendar', async ({ page }) => {
+    // `?tab=timeline` was written against the cockpit; on the client view it
+    // lands on the Milestones panel, which lists the same events with no way
+    // into the commitment behind them.
     await login(page, USERS.dana.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'timeline')
+    await gotoClientView(page, `/sandboxes/${sandboxId}`, '?tab=timeline')
     await hideDevtools(page)
-    await expect(page.getByTestId('timeline-event').first()).toBeVisible()
+    const milestones = clientPanel(page, 'timeline')
+    await expect(milestones.getByTestId('timeline-event').first()).toBeVisible()
     await expect(page.locator('[data-commitment-id]')).toHaveCount(0)
     await expect(page.getByTestId('event-progress')).toHaveCount(0)
+    await expect(page.getByTestId('add-event')).toHaveCount(0)
+    await expect(page.getByTestId('event-menu')).toHaveCount(0)
   })
 })

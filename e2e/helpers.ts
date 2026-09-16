@@ -165,6 +165,11 @@ export async function hideDevtools(page: Page): Promise<void> {
     .catch(() => undefined)
 }
 
+/**
+ * Be this person. A test that meets a sandbox as several people in turn has to
+ * sign the last one out first: a signed-in tab is bounced away from /auth, so
+ * the form never arrives and the fill times out.
+ */
 export async function login(
   page: Page,
   email: string,
@@ -172,6 +177,18 @@ export async function login(
 ): Promise<void> {
   await muteAgent(page)
   await page.goto('/auth')
+  const form = await page
+    .waitForSelector('#email', { timeout: 5_000 })
+    .catch(() => null)
+  if (!form) {
+    await page.evaluate(() => {
+      localStorage.clear()
+      sessionStorage.clear()
+    })
+    await page.context().clearCookies()
+    await page.goto('/auth')
+    await page.waitForSelector('#email')
+  }
   await page.fill('#email', email)
   await page.fill('#password', password)
   await page.click('button[type="submit"]')
@@ -194,6 +211,30 @@ export async function gotoSandboxTab(
 ): Promise<void> {
   await page.goto(`${base}?tab=${tab}`)
   await page.getByTestId(`sandbox-tab-${tab}`).waitFor()
+}
+
+/**
+ * Open a sandbox as its client side reads it — one long page, no tabs — and
+ * wait for it to be there. `link` is whatever the caller would have put on the
+ * URL (`#outcomes`, `?tab=insights`); the view maps it to one of its sections.
+ */
+export async function gotoClientView(
+  page: Page,
+  base: string,
+  link = '',
+): Promise<void> {
+  await page.goto(`${base}${link}`)
+  await page.getByTestId('client-view').waitFor()
+}
+
+/** A section in the main column: `needs`, `groups`, `people`, `outcomes`… */
+export function clientSection(page: Page, id: string) {
+  return page.getByTestId(`client-section-${id}`)
+}
+
+/** A panel in the rail: `watch`, `coming`, `timeline`, `updates`, `team`… */
+export function clientPanel(page: Page, id: string) {
+  return page.getByTestId(`client-panel-${id}`)
 }
 
 export async function apiToken(

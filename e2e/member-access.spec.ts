@@ -10,6 +10,9 @@ import {
   USERS,
   apiToken,
   auth,
+  clientPanel,
+  clientSection,
+  gotoClientView,
   invitationToken,
   login,
 } from './helpers'
@@ -23,6 +26,10 @@ import {
  * · Dana (has an account) supervises Managers · Omar (has an account, no
  * app role) is the primary client admin · Kofi-like coachee Yusuf accepts
  * his invitation so he has a portal.
+ *
+ * Their side no longer meets the cockpit: a primary client, a client admin
+ * and a supervisor get the client view, which is one page with no tabs. A
+ * coachee and every one of our own hats keep the cockpit.
  */
 test.describe.configure({ mode: 'serial' })
 
@@ -49,6 +56,31 @@ async function api(
   if (!resp.ok())
     throw new Error(`${method} ${path} → ${resp.status()} ${await resp.text()}`)
   return resp.json()
+}
+
+/**
+ * The client view writes nothing: no cockpit, no tabs, no setup, no
+ * invitations, no group tools, and a milestone list that is a calendar rather
+ * than a way into our commitments.
+ */
+async function expectReadOnlyClientView(page: Page) {
+  await expect(page.getByTestId('client-view')).toBeVisible()
+  await expect(page.getByTestId('sandbox-cockpit')).toHaveCount(0)
+  await expect(page.getByTestId('sandbox-tabs')).toHaveCount(0)
+  await expect(
+    page.getByRole('button', { name: 'Edit sandbox details' }),
+  ).toHaveCount(0)
+  await expect(page.getByTestId('setup-card')).toHaveCount(0)
+  await expect(page.getByTestId('invitations-panel')).toHaveCount(0)
+  await expect(page.getByTestId('people-table')).toHaveCount(0)
+  await expect(page.getByTestId('new-group')).toHaveCount(0)
+  await expect(page.getByTestId('add-event')).toHaveCount(0)
+  await expect(page.getByTestId('event-menu')).toHaveCount(0)
+  await expect(
+    clientPanel(page, 'timeline').getByTestId('timeline-event').first(),
+  ).toBeVisible()
+  await expect(page.locator('[data-commitment-id]')).toHaveCount(0)
+  await expect(page.getByTestId('event-progress')).toHaveCount(0)
 }
 
 async function expectReadOnlyCockpit(page: Page) {
@@ -269,7 +301,7 @@ test.describe('Sandboxes — member access', () => {
     ).toBeVisible()
   })
 
-  test('a primary client admin with no app role lands in the minimal chrome and sees the whole sandbox, read-only', async ({
+  test('a primary client admin with no app role lands in the minimal chrome and reads the client view of the whole sandbox', async ({
     page,
   }) => {
     await login(page, USERS.omar.email)
@@ -282,18 +314,25 @@ test.describe('Sandboxes — member access', () => {
       'data-audience',
       'theirs',
     )
-    await expectReadOnlyCockpit(page)
-    // The read-only check leaves the page on Timeline.
-    await expect(page.getByTestId('timeline-event')).toHaveCount(5)
-    await page.getByTestId('sandbox-tab-general').click()
+    await expectReadOnlyClientView(page)
+    await expect(page.getByTestId('client-view')).toHaveAttribute(
+      'data-scope',
+      'all',
+    )
+    // The whole programme, and no scope note: this reads every group.
+    await expect(page.getByTestId('client-hero')).toContainText(ORG)
+    await expect(page.getByTestId('client-hero')).toContainText(
+      '6-month programme',
+    )
+    await expect(page.getByTestId('client-vision')).toHaveCount(0)
+    await expect(page.getByTestId('client-group-row')).toHaveCount(2)
+    await expect(clientSection(page, 'groups')).not.toContainText('your groups')
+    await expect(
+      clientPanel(page, 'timeline').getByTestId('timeline-event'),
+    ).toHaveCount(5)
+    // Our own working links and the invitation ledger stay on our side.
     await expect(page.getByTestId('links-card')).toHaveCount(0)
-    await expect(page.getByTestId('vision-empty')).toBeVisible()
-    await page.getByTestId('sandbox-tab-groups').click()
-    await expect(page.getByTestId('group-card')).toHaveCount(2)
-    await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-team').click()
-    await expect(page.getByTestId('people-table')).toHaveCount(0)
-    await expect(page.getByTestId('team-panel')).not.toContainText(
+    await expect(clientPanel(page, 'team')).not.toContainText(
       'No one is emailed yet',
     )
   })
@@ -311,20 +350,29 @@ test.describe('Sandboxes — member access', () => {
     ).toBeVisible()
   })
 
-  test('a supervisor sees only the group they supervise', async ({ page }) => {
+  test('a supervisor gets the client view scoped to the group they supervise', async ({
+    page,
+  }) => {
     await login(page, USERS.dana.email)
-    await page.goto(`/sandboxes/${sandboxId}`)
-    await expectReadOnlyCockpit(page)
-    await page.getByTestId('sandbox-tab-groups').click()
-    await expect(page.getByTestId('groups-scope-note')).toBeVisible()
-    await expect(page.getByTestId('group-card')).toHaveCount(1)
-    await expect(page.getByTestId('group-card')).toContainText('Managers')
-    await page.getByTestId('sandbox-tab-general').click()
+    await gotoClientView(page, `/sandboxes/${sandboxId}`)
+    await expectReadOnlyClientView(page)
+    await expect(page.getByTestId('client-view')).toHaveAttribute(
+      'data-scope',
+      'groups',
+    )
+    // The wording follows the scope rather than second-guessing it.
+    await expect(page.getByTestId('client-hero')).toContainText(
+      'Your groups: Managers',
+    )
+    await expect(clientSection(page, 'groups')).toContainText('your groups')
+    await expect(page.getByTestId('client-group-row')).toHaveCount(1)
+    await expect(page.getByTestId('client-group-row')).toContainText('Managers')
+    // The other group's coachee is not hers to see, anywhere on the page.
+    await expect(page.getByTestId('client-view')).not.toContainText(YUSUF.name)
     await expect(page.getByTestId('links-card')).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-team').click()
-    await expect(page.getByTestId('team-panel')).not.toContainText(YUSUF.name)
-    await page.getByTestId('sandbox-tab-timeline').click()
-    await expect(page.getByTestId('timeline-event')).toHaveCount(5)
+    await expect(
+      clientPanel(page, 'timeline').getByTestId('timeline-event'),
+    ).toHaveCount(5)
   })
 
   test('a coachee sees their own coaching under the portal header', async ({
@@ -350,7 +398,7 @@ test.describe('Sandboxes — member access', () => {
     await login(page, USERS.omar.email)
     await page.goto(`/sandboxes/welcome/${sandboxId}`)
     await page.waitForURL(new RegExp(`/sandboxes/${sandboxId}$`))
-    await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
+    await expect(page.getByTestId('client-view')).toBeVisible()
   })
 
   test('an admin at /sandboxes/{id} keeps every control', async ({ page }) => {

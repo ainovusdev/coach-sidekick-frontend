@@ -450,10 +450,11 @@ test.describe('Sandboxes — admin creation flow', () => {
     ).toBeVisible()
     await page.getByTestId('invite-password').fill(PASSWORD)
     await page.getByTestId('invite-submit').click()
-    // The welcome page hands straight over to the sandbox itself.
+    // The welcome page hands straight over to the sandbox itself — and Dana
+    // supervises this one, so what she arrives at is the client view.
     await page.waitForURL(/\/sandboxes\/[0-9a-f-]{36}$/, { timeout: 45_000 })
-    await expect(page.getByTestId('sandbox-cockpit')).toBeVisible()
-    await expect(page.getByTestId('identity-card')).toContainText(SANDBOX_NAME)
+    await expect(page.getByTestId('client-view')).toBeVisible()
+    await expect(page.getByTestId('client-hero')).toContainText(SANDBOX_NAME)
     await expect(page.getByTestId('sandbox-view')).toHaveAttribute(
       'data-audience',
       'theirs',
