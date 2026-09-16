@@ -12,21 +12,23 @@ import {
 } from '@/components/ui/dialog'
 import { Textarea } from '@/components/ui/textarea'
 import { CommentThread } from '@/components/comments/comment-thread'
+import { Section } from '@/components/sandboxes/section'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useUpdateSandbox } from '@/hooks/mutations/use-sandbox-mutations'
 import type { SandboxOverview } from '@/types/sandbox'
 
-export function VisionPanel({
-  overview,
-  open,
-  onOpenChange,
-}: {
-  overview: SandboxOverview
-  open: boolean
-  onOpenChange: (open: boolean) => void
-}) {
+/**
+ * What the client wants to be true by the end of the term.
+ *
+ * It owns its own editor state: the panel is reached from Settings and from the
+ * setup checklist, and nothing above it needs to know whether the dialog is
+ * open. There is no read gate — every member of a sandbox may read the vision
+ * and comment on it; only the editing is gated.
+ */
+export function VisionPanel({ overview }: { overview: SandboxOverview }) {
   const { sandbox, members } = overview
   const canEdit = useSandboxView().can.editSandbox
+  const [open, onOpenChange] = useState(false)
   const vision = (sandbox.vision || '').trim()
   const primaryClient = members.find(m => m.roles.includes('primary_client'))
 
@@ -43,14 +45,13 @@ export function VisionPanel({
   }, [])
 
   return (
-    <section
+    <Section
       id="vision"
-      className="scroll-mt-20 rounded-xl border border-line bg-paper"
-      data-testid="vision-panel"
-    >
-      <header className="flex items-baseline justify-between border-b border-line px-5 py-4">
-        <h2 className="text-base font-semibold text-ink">Vision</h2>
-        {vision && canEdit && (
+      title="Vision"
+      testId="vision-panel"
+      aside={
+        vision &&
+        canEdit && (
           <Button
             variant="ghost"
             size="sm"
@@ -59,55 +60,53 @@ export function VisionPanel({
           >
             Edit
           </Button>
-        )}
-      </header>
-      <div className="px-5 py-5">
-        {vision ? (
-          <figure>
-            <blockquote className="text-lg leading-relaxed text-ink">
-              “{vision}”
-            </blockquote>
-            {primaryClient && (
-              <figcaption className="mt-3 text-sm text-ink-3">
-                {primaryClient.name || primaryClient.email}, primary client
-              </figcaption>
-            )}
-          </figure>
-        ) : !canEdit ? (
-          <p className="text-sm text-ink-3" data-testid="vision-empty">
-            The vision hasn’t been written yet.
+        )
+      }
+      footer={
+        <div data-testid="vision-comments">
+          <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-ink-3">
+            Comments
+          </h3>
+          <CommentThread
+            targetType="sandbox_vision"
+            targetId={sandbox.id}
+            context={{ sandboxId: sandbox.id }}
+            highlightId={highlightCommentId}
+          />
+        </div>
+      }
+    >
+      {vision ? (
+        <figure>
+          <blockquote className="max-w-prose border-l-2 border-line pl-4 text-[15px] leading-relaxed text-ink-2">
+            “{vision}”
+          </blockquote>
+          {primaryClient && (
+            <figcaption className="mt-3 text-sm text-ink-3">
+              {primaryClient.name || primaryClient.email}, primary client
+            </figcaption>
+          )}
+        </figure>
+      ) : !canEdit ? (
+        <p className="text-sm text-ink-3" data-testid="vision-empty">
+          The vision hasn’t been written yet.
+        </p>
+      ) : (
+        <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-md text-sm text-ink-3">
+            What does the client want to be true by the end of the term? One or
+            two sentences, in their words.
           </p>
-        ) : (
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="max-w-md text-sm text-ink-3">
-              What does the client want to be true by the end of the term? One
-              or two sentences, in their words.
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onOpenChange(true)}
-              data-testid="write-vision"
-            >
-              Write the vision
-            </Button>
-          </div>
-        )}
-      </div>
-      <div
-        className="border-t border-line px-5 py-4"
-        data-testid="vision-comments"
-      >
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-4">
-          Comments
-        </h3>
-        <CommentThread
-          targetType="sandbox_vision"
-          targetId={sandbox.id}
-          context={{ sandboxId: sandbox.id }}
-          highlightId={highlightCommentId}
-        />
-      </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onOpenChange(true)}
+            data-testid="write-vision"
+          >
+            Write the vision
+          </Button>
+        </div>
+      )}
       {canEdit && (
         <VisionDialog
           open={open}
@@ -115,7 +114,7 @@ export function VisionPanel({
           overview={overview}
         />
       )}
-    </section>
+    </Section>
   )
 }
 

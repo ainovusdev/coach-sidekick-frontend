@@ -14,7 +14,7 @@ export default function MemberSandboxPeopleRedirect() {
   const sandboxId = params?.sandboxId
 
   useEffect(() => {
-    if (sandboxId) router.replace(`/sandboxes/${sandboxId}?tab=team`)
+    if (sandboxId) router.replace(`/sandboxes/${sandboxId}?tab=people`)
   }, [router, sandboxId])
 
   return <PeopleSkeleton />

@@ -2,19 +2,11 @@
 
 import { Video } from 'lucide-react'
 import { fmtDay } from '@/lib/sandbox/format'
+import { KIND_TONE } from '@/lib/sandbox/timeline'
 import { cn } from '@/lib/utils'
 import { whenLabel } from './client-view-copy'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { ClientViewModel, ComingUpItem } from './client-view-model'
-import type { TimelineEvent } from '@/types/sandbox'
-
-const KIND_DOT: Record<TimelineEvent['kind'], string> = {
-  gold_sealing: 'bg-amber-token',
-  check_in: 'bg-indigo',
-  midpoint_reporting: 'bg-ds-accent',
-  results_review: 'bg-forest',
-  custom: 'bg-ink-3',
-}
 
 function timeOf(at: string | null): string | null {
   if (!at) return null
@@ -58,7 +50,7 @@ export function ComingUp({
                 <span
                   className={cn(
                     'h-1.5 w-1.5 shrink-0 rounded-full',
-                    KIND_DOT[row.milestoneKind ?? 'custom'],
+                    KIND_TONE[row.milestoneKind ?? 'custom'],
                   )}
                   aria-hidden
                 />

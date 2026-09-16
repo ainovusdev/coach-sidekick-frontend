@@ -1,5 +1,6 @@
 // The one place the pace vocabulary lives (labels, tones, short strings).
 import { fmtDay } from '@/lib/sandbox/format'
+import { daysBetween, parseDateOnly } from '@/lib/sandbox/term'
 import type {
   AttentionItem,
   AttentionKind,
@@ -127,4 +128,44 @@ export function attentionHref(
   basePath = '/sandboxes',
 ): string {
   return `${basePath}/${item.sandbox_id}#${item.section}`
+}
+
+/**
+ * When a row started waiting, or when it is due — "Waiting 12 days", "Due
+ * 3 Oct", "3 days over".
+ *
+ * Both dates are on the wire already and neither was ever rendered, so a list
+ * ranked correctly by the server still could not tell you which of two behind
+ * coachees had been behind since May. A due date wins over a start date: it is
+ * the one with a deadline attached.
+ *
+ * `today` comes from the sandbox, never the browser clock — every other date on
+ * these pages is date-only and server-anchored.
+ */
+export function attentionWhen(
+  item: Pick<AttentionItem, 'since' | 'due'>,
+  today: string,
+): { text: string; overdue: boolean } | null {
+  const now = parseDateOnly(today)
+  if (!now) return null
+  const due = parseDateOnly(item.due)
+  if (due) {
+    const days = daysBetween(now, due)
+    if (days < 0) {
+      const over = Math.abs(days)
+      return {
+        text: `${over} ${over === 1 ? 'day' : 'days'} over`,
+        overdue: true,
+      }
+    }
+    if (days === 0) return { text: 'Due today', overdue: true }
+    if (days === 1) return { text: 'Due tomorrow', overdue: false }
+    return { text: `Due ${fmtDay(item.due)}`, overdue: false }
+  }
+  const since = parseDateOnly(item.since)
+  if (!since) return null
+  const days = daysBetween(since, now)
+  if (days <= 0) return { text: 'Since today', overdue: false }
+  if (days === 1) return { text: 'Waiting a day', overdue: false }
+  return { text: `Waiting ${days} days`, overdue: false }
 }

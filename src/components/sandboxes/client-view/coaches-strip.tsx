@@ -1,6 +1,6 @@
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { pluralise } from '@/lib/sandbox/format'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { SandboxAnalytics } from '@/types/sandbox-analytics'
 
 /**

@@ -1,6 +1,6 @@
 import { Mail } from 'lucide-react'
 import { PersonAvatar } from '@/components/ui/person-avatar'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { SandboxMember } from '@/types/sandbox'
 
 /** Who to ask. Our side's contacts, with a way to reach them. */

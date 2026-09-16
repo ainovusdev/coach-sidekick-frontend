@@ -28,10 +28,10 @@ export function GroupsPanel({
   return (
     <section
       id="groups"
-      className="scroll-mt-20 rounded-xl border border-line bg-paper"
+      className="scroll-mt-(--section-offset) rounded-xl border border-line bg-paper"
       data-testid="groups-panel"
     >
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3.5">
         <h2 className="text-base font-semibold text-ink">
           Groups{' '}
           <span className="ml-1 text-sm font-normal text-ink-3">
@@ -85,7 +85,10 @@ export function GroupsPanel({
             </Button>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          // Sized by content, not by viewport: the rail takes 340px out of the
+          // page, so a viewport breakpoint snapped the cards between one and
+          // three across at a single pixel of window width.
+          <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(16rem,1fr))]">
             {groups.map(g => (
               <GroupCard
                 key={g.id}

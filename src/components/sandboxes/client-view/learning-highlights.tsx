@@ -22,7 +22,7 @@ export function LearningHighlights({
   onNavigate: (anchor: string) => void
 }) {
   return (
-    <div id="learning" className="scroll-mt-28 space-y-2">
+    <div id="learning" className="scroll-mt-(--section-offset) space-y-2">
       <LearningPanel
         reporting={reporting}
         allowGenerate={allowGenerate}

@@ -1,5 +1,6 @@
 import { StatStrip } from '@/components/ui/stat-strip'
 import { ProgressRail } from '@/components/sandboxes/progress-rail'
+import { Section } from '@/components/sandboxes/section'
 import {
   STATE_LABEL,
   stateTone,
@@ -7,105 +8,143 @@ import {
   fmtHoursShort,
 } from '@/lib/sandbox/delivery'
 import { fmtDay } from '@/lib/sandbox/format'
+import { cn } from '@/lib/utils'
 import type { SandboxAnalytics } from '@/types/sandbox-analytics'
 
+/**
+ * The four numbers, and where they sit against the contract.
+ *
+ * `compact` is Today's version: the strip and one sentence with the state
+ * pill, and nothing else. The rail, the expected-by-today marker and the
+ * definitions are reporting, and reporting is a tab away — on Today they were
+ * three screens of it above the work.
+ */
 export function DeliverySummary({
   data,
   period = false,
+  compact = false,
 }: {
   data: SandboxAnalytics
   period?: boolean
+  compact?: boolean
 }) {
   const personal = data.presentation_mode === 'personal'
   const current = data.current_contract
+  const tone = stateTone(current.state)
   const headcount = (v: { count: number; total: number }) =>
     `${v.count} / ${v.total}`
-  return (
-    <section
-      className="space-y-4"
-      aria-label="Delivery summary"
-      data-testid="delivery-summary"
-    >
-      <h2 className="text-lg font-semibold text-ink">
-        {period
-          ? 'Activity in the selected period'
-          : 'Your coaching at a glance'}
-      </h2>
-      <StatStrip
-        items={[
-          {
-            label: personal ? 'Your sessions held' : 'Sessions held',
-            value: data.metrics.sessions_held,
-            testId: 'analytics-sessions',
-          },
-          {
-            label: personal ? 'Your hours received' : 'Hours received',
-            value: fmtHoursShort(data.metrics.hours_received),
-          },
-          period
+
+  const strip = (
+    <StatStrip
+      items={[
+        {
+          label: personal ? 'Your sessions held' : 'Sessions held',
+          value: data.metrics.sessions_held,
+          testId: 'analytics-sessions',
+        },
+        {
+          label: personal ? 'Your hours received' : 'Hours received',
+          value: fmtHoursShort(data.metrics.hours_received),
+        },
+        period
+          ? {
+              label: 'Recorded participation',
+              value: personal
+                ? data.metrics.participation.count
+                  ? 'Recorded'
+                  : 'None recorded'
+                : headcount(data.metrics.participation),
+              sub: 'Not verified attendance',
+            }
+          : personal
             ? {
-                label: 'Recorded participation',
-                value: personal
-                  ? data.metrics.participation.count
-                    ? 'Recorded'
-                    : 'None recorded'
-                  : headcount(data.metrics.participation),
-                sub: 'Not verified attendance',
+                label: 'Your current pace',
+                value: (
+                  <span className="text-base">
+                    {STATE_LABEL[current.state]}
+                  </span>
+                ),
               }
-            : personal
-              ? {
-                  label: 'Your current pace',
-                  value: (
-                    <span className="text-base">
-                      {STATE_LABEL[current.state]}
-                    </span>
-                  ),
-                }
-              : {
-                  label: 'Coachees on track',
-                  value: current.coachees_on_track.total
-                    ? headcount(current.coachees_on_track)
-                    : 'Unavailable',
-                  sub: 'Started, measurable coaching',
-                },
-          {
-            label: personal ? 'Your agreed outcomes' : 'Agreed outcomes',
-            value: personal
-              ? data.metrics.agreed_outcomes.count
-                ? 'Sealed'
-                : 'Not sealed'
-              : headcount(data.metrics.agreed_outcomes),
-            sub: personal
-              ? 'Agreement, not achievement'
-              : 'Coachees with a sealed outcome',
-          },
-        ]}
-      />
-      <p className="text-xs text-ink-3">
-        Hours are credited per participating coachee: a one-hour group meeting
-        with four participants counts as four hours received, and one session
-        held.
-      </p>
-      <div className="space-y-3 rounded-xl border border-line bg-paper p-5">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h3 className="font-medium text-ink">
-            Delivery against the contract
-          </h3>
-          <span
-            className={`rounded-full px-2 py-1 text-xs ${TONE_CLASS[stateTone(current.state)]}`}
-          >
-            {STATE_LABEL[current.state]}
+            : {
+                label: 'Coachees on track',
+                value: current.coachees_on_track.total
+                  ? headcount(current.coachees_on_track)
+                  : 'Unavailable',
+                sub: 'Started, measurable coaching',
+              },
+        {
+          label: personal ? 'Your agreed outcomes' : 'Agreed outcomes',
+          value: personal
+            ? data.metrics.agreed_outcomes.count
+              ? 'Sealed'
+              : 'Not sealed'
+            : headcount(data.metrics.agreed_outcomes),
+          sub: personal
+            ? 'Agreement, not achievement'
+            : 'Coachees with a sealed outcome',
+        },
+      ]}
+    />
+  )
+
+  const againstContract = (
+    <p className="text-sm text-ink-2">
+      {fmtHoursShort(current.hours_received)} received
+      {current.hours_promised == null
+        ? ' · promised hours unavailable'
+        : ` of ${fmtHoursShort(current.hours_promised)} promised`}
+    </p>
+  )
+
+  const pill = (
+    <span
+      className={cn(
+        'rounded-full px-2 py-0.5 text-xs font-medium',
+        TONE_CLASS[tone],
+      )}
+      data-state={current.state}
+    >
+      {STATE_LABEL[current.state]}
+    </span>
+  )
+
+  if (compact) {
+    return (
+      <Section
+        id="at-a-glance"
+        title={personal ? 'Your coaching at a glance' : 'At a glance'}
+        testId="delivery-summary"
+        dataState={current.state}
+        aside={pill}
+        bodyClassName="space-y-4"
+      >
+        {strip}
+        {againstContract}
+      </Section>
+    )
+  }
+
+  return (
+    <Section
+      id="summary"
+      title={
+        period ? 'Activity in the selected period' : 'Your coaching at a glance'
+      }
+      testId="delivery-summary"
+      dataState={current.state}
+      aside={pill}
+      note="Hours are credited per participating coachee: a one-hour group meeting with four participants counts as four hours received, and one session held."
+      bodyClassName="space-y-4"
+    >
+      {strip}
+      <div className="space-y-3 rounded-lg border border-line p-4">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-ink-3">
+          Delivery against the contract
+          <span className="ml-2 font-normal normal-case tracking-normal text-ink-4">
+            as of {fmtDay(current.as_of, true)}
           </span>
-        </div>
-        <p className="text-xs text-ink-3">
-          Current contract status as of {fmtDay(current.as_of, true)}
-        </p>
-        <p className="text-sm text-ink-2">
-          {fmtHoursShort(current.hours_received)} received
-          {current.hours_promised == null
-            ? ' · Promised hours unavailable'
-            : ` of ${fmtHoursShort(current.hours_promised)} promised`}
-        </p>
+        </h3>
+        {againstContract}
         {current.hours_promised != null && current.hours_promised > 0 && (
           <ProgressRail
             value={current.hours_received}
@@ -130,6 +169,6 @@ export function DeliverySummary({
               : ` ${current.coachees_unmeasurable} coachees have unmeasurable coaching relationships.`)}
         </p>
       </div>
-    </section>
+    </Section>
   )
 }

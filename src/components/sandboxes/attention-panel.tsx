@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Skeleton } from '@/components/ui/skeleton'
 import { NeedsAttentionList } from '@/components/sandboxes/dashboard/needs-attention-list'
+import { Section } from '@/components/sandboxes/section'
 import { useSandboxAttention } from '@/hooks/queries/use-sandboxes'
-import type { AttentionItem } from '@/types/sandbox-delivery'
+import type { AttentionItem, AttentionKind } from '@/types/sandbox-delivery'
 
 /** How many rows Today shows before asking. */
 const FIRST = 8
@@ -19,45 +20,66 @@ const FIRST = 8
  */
 export function AttentionPanel({
   sandboxId,
+  today,
+  hide,
   onSelect,
 }: {
   sandboxId: string
+  /** The sandbox's today, so each row can say how long it has been waiting. */
+  today: string
+  /**
+   * Kinds something else on the same screen already says. The timeline sits
+   * directly above this list and shows every open window, so repeating them
+   * here is two rows for one fact. The cross-sandbox dashboard keeps them —
+   * there is no timeline beside it.
+   */
+  hide?: AttentionKind[]
   onSelect: (item: AttentionItem) => void
 }) {
   const { data, isLoading } = useSandboxAttention(sandboxId)
   const [expanded, setExpanded] = useState(false)
-  const items = data ?? []
+  const items = useMemo(
+    () => (data ?? []).filter(i => !hide?.includes(i.kind)),
+    [data, hide],
+  )
   // A busy sandbox can run to thirty rows; the urgent ones sort first, so the
   // rest wait behind one click rather than burying the whole tab.
   const shown = expanded ? items : items.slice(0, FIRST)
 
   return (
-    <section className="space-y-3" data-testid="attention-panel">
-      <h2 className="text-sm font-semibold text-ink">
-        Needs you
-        {items.length > 0 && (
-          <span className="ml-1.5 font-normal text-ink-3">{items.length}</span>
-        )}
-      </h2>
+    <Section
+      id="attention"
+      title="Needs you"
+      sub={items.length > 0 ? items.length : undefined}
+      testId="attention-panel"
+      className="overflow-hidden"
+      // The list brings its own rows and group bands; the section owns the
+      // shell, so it hands over the whole body rather than padding it twice.
+      bodyClassName="p-0"
+      aside={
+        items.length > FIRST && (
+          <button
+            type="button"
+            onClick={() => setExpanded(v => !v)}
+            className="text-xs font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
+            data-testid="attention-more"
+          >
+            {expanded ? 'Show fewer' : `Show all ${items.length}`}
+          </button>
+        )
+      }
+    >
       {isLoading ? (
-        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="m-5 h-24 rounded-lg" />
       ) : (
         <NeedsAttentionList
           items={shown}
           showSandbox={false}
+          today={today}
+          className="rounded-none border-0 bg-transparent"
           onSelect={onSelect}
         />
       )}
-      {items.length > FIRST && (
-        <button
-          type="button"
-          onClick={() => setExpanded(v => !v)}
-          className="text-xs font-medium text-ink-2 underline-offset-2 hover:text-ink hover:underline"
-          data-testid="attention-more"
-        >
-          {expanded ? 'Show fewer' : `Show all ${items.length}`}
-        </button>
-      )}
-    </section>
+    </Section>
   )
 }

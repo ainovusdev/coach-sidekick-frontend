@@ -130,23 +130,16 @@ export function CommitmentsPanel({
   return (
     <section
       id="commitments"
-      className="scroll-mt-20 rounded-xl border border-line bg-paper"
+      className="scroll-mt-(--section-offset) rounded-xl border border-line bg-paper"
       data-testid="commitments-panel"
     >
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">
-        <h2 className="text-base font-semibold text-ink">
-          Commitments{' '}
-          {rows.length > 0 && (
-            <span
-              className="ml-1 text-sm font-normal text-ink-3"
-              data-testid="sandbox-commitments-summary"
-            >
-              {counts.all} open
-              {counts.mine > 0 && ` · ${counts.mine} for you`}
-            </span>
-          )}
-        </h2>
-        <div className="flex items-center gap-2">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3.5">
+        {/* No counts here: the filter chips a few pixels below carry the same
+            three numbers, and one of them is always the answer. */}
+        <h2 className="text-base font-semibold text-ink">Commitments</h2>
+        {/* The two buttons are wider than a phone together, so let them wrap
+            rather than push the page sideways. */}
+        <div className="flex flex-wrap items-center gap-2">
           {hubHref && (
             <Button
               asChild
@@ -184,7 +177,7 @@ export function CommitmentsPanel({
                 onClick={() => setFilter(key)}
                 data-testid={`sandbox-commitments-filter-${key}`}
                 className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
+                  'rounded-full border px-3 py-1 text-xs transition-colors',
                   filter === key
                     ? 'border-ink bg-ink text-paper'
                     : 'border-line text-ink-3 hover:border-ink-4 hover:text-ink',

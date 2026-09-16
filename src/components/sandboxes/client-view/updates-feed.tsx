@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Award, CalendarCheck, Undo2, Users, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { whenLabel } from './client-view-copy'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { ClientViewModel } from './client-view-model'
 import type { SandboxActivityItem } from '@/types/sandbox-details'
 

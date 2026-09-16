@@ -4,7 +4,7 @@ import { DetailChart } from '@/components/sandboxes/details/detail-chart'
 import { fmtDay } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import { PERIOD_LABEL } from './client-view-copy'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type {
   InsightSelection,
   ReportingPeriod,
@@ -82,7 +82,7 @@ export function ProgressSection({
     <section
       id="insights"
       data-testid="client-section-insights"
-      className="scroll-mt-28 space-y-3"
+      className="scroll-mt-(--section-offset) space-y-3"
     >
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <h2 className="text-base font-semibold text-ink">Progress</h2>

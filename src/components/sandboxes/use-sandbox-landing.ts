@@ -13,16 +13,20 @@
  */
 
 import { useCallback, useEffect, useRef } from 'react'
-import {
-  isSandboxTab,
-  type SandboxTab,
-} from '@/components/sandboxes/sandbox-tabs'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 
 export interface SandboxLanding {
   /** The `#section` anchor, without the hash. Empty when there is none. */
   hash: string
-  tab: SandboxTab | null
+  /**
+   * `?tab=` exactly as written.
+   *
+   * Both layouts read this, and they give the same word different meanings —
+   * `?tab=timeline` is the cockpit's Today and the client view's Milestones —
+   * so the raw string travels and each layout resolves it. The cockpit uses
+   * `toSandboxTab`; the client view looks it up in its own section map.
+   */
+  tab: string | null
   selection: InsightSelection
   /** `?commitment=` — the row whose detail panel opens. */
   commitment: string | null
@@ -31,10 +35,9 @@ export interface SandboxLanding {
 export function readSandboxLanding(): SandboxLanding {
   const params = new URLSearchParams(window.location.search)
   const period = params.get('period')
-  const tab = params.get('tab')
   return {
     hash: window.location.hash.slice(1),
-    tab: isSandboxTab(tab) ? tab : null,
+    tab: params.get('tab'),
     selection: {
       period: period === '30d' || period === '90d' ? period : 'term',
       group_id: params.get('group_id'),

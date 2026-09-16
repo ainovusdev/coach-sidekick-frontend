@@ -6,7 +6,7 @@ import { ProgressRail } from '@/components/sandboxes/progress-rail'
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
 import { cn } from '@/lib/utils'
 import { PersonCard } from './person-card'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { ClientGroup, ClientPerson } from './client-view-model'
 
 type FilterKey = 'all' | 'behind' | 'on_track' | 'not_started' | 'seal'

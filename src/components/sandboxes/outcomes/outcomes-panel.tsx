@@ -154,7 +154,7 @@ export function OutcomesPanel({ overview }: { overview: SandboxOverview }) {
   return (
     <section
       id="outcomes"
-      className="scroll-mt-20 rounded-xl border border-line bg-paper"
+      className="scroll-mt-(--section-offset) rounded-xl border border-line bg-paper"
       data-testid="outcomes-panel"
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-4">

@@ -122,6 +122,12 @@ body {
 :root {
   --radius: 0.625rem;
 
+  /* How far below the top of the scroll container a linked-to section has to
+     land, and where a sticky rail pins: the chrome above the page plus any
+     sticky bar inside it, plus a little air. This is the client view's number;
+     the cockpit overrides it per chrome (see `sandbox-view-context.tsx`). */
+  --section-offset: 7rem;
+
   /* ---------- Coach Sidekick DS — Ink / paper / surface (light) ---------- */
   --paper: #FFFFFF;
   --surface-1: #FFFFFF;

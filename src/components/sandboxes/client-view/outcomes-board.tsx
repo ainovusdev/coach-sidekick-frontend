@@ -9,7 +9,7 @@ import { CoacheeStateChip } from '@/components/sandboxes/outcomes/outcomes-panel
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 import { sealingLine } from './client-view-copy'
 import { OutcomeStateBar, OutcomeStateLegend } from './scorecards'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { ClientViewModel } from './client-view-model'
 
 interface DeepLink {

@@ -9,7 +9,7 @@ import { fmtHoursShort } from '@/lib/sandbox/delivery'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 import { whenLabel } from './client-view-copy'
 import type { ClientGroup } from './client-view-model'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 
 /** Every group on one line: who coaches it, where its hours are, what is next. */
 export function GroupsTable({

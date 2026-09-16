@@ -3,7 +3,11 @@
  * feedback. The server's /sandboxes/term-preview is the source of truth.
  */
 
-import type { SandboxStatus, TermMonths } from '@/types/sandbox'
+import type {
+  SandboxOverview,
+  SandboxStatus,
+  TermMonths,
+} from '@/types/sandbox'
 
 const CHECKIN_COUNT: Record<TermMonths, number> = {
   3: 1,
@@ -109,4 +113,63 @@ export function termProgress(start: Date, end: Date, today: Date): number {
   const done = daysBetween(start, today) + 1
   if (total <= 0) return 0
   return Math.min(1, Math.max(0, done / total))
+}
+
+// --------------------------------------------------------------- lifecycle
+
+export type LifecycleKind = 'upcoming' | 'active' | 'ended'
+
+export interface Lifecycle {
+  kind: LifecycleKind
+  /** "Week 20 of 26" · "Starts 1 Jun" · "Ended 30 Nov" */
+  label: string
+  week: number
+  weeks: number
+  /** 0…1 through the term, for the term bar. */
+  fraction: number
+}
+
+/**
+ * Where the term has got to, in weeks.
+ *
+ * Weeks rather than months because a coaching term is lived in sessions, and
+ * "Month 5 of 6" hides the three weeks that are left. Both views say it the
+ * same way, so this lives beside the other term arithmetic rather than inside
+ * either layout.
+ */
+export function lifecycleOf(
+  sandbox: Pick<SandboxOverview['sandbox'], 'term_start' | 'term_end'>,
+  today: string,
+  fmtDay: (value: string) => string,
+): Lifecycle {
+  const start = parseDateOnly(sandbox.term_start)
+  const end = parseDateOnly(sandbox.term_end)
+  const now = parseDateOnly(today)
+  if (!start || !end || !now)
+    return { kind: 'active', label: '', week: 0, weeks: 0, fraction: 0 }
+  const weeks = Math.max(1, Math.round(daysBetween(start, end) / 7))
+  if (today < sandbox.term_start)
+    return {
+      kind: 'upcoming',
+      label: `Starts ${fmtDay(sandbox.term_start)}`,
+      week: 0,
+      weeks,
+      fraction: 0,
+    }
+  if (today > sandbox.term_end)
+    return {
+      kind: 'ended',
+      label: `Ended ${fmtDay(sandbox.term_end)}`,
+      week: weeks,
+      weeks,
+      fraction: 1,
+    }
+  const week = Math.min(weeks, Math.floor(daysBetween(start, now) / 7) + 1)
+  return {
+    kind: 'active',
+    label: `Week ${week} of ${weeks}`,
+    week,
+    weeks,
+    fraction: termProgress(start, end, now),
+  }
 }

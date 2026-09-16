@@ -39,8 +39,10 @@ import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
 import {
   InvitationBadge,
+  invitationHeadline,
   isWaiting,
-} from '@/components/sandboxes/invitations-panel'
+  willSee,
+} from '@/components/sandboxes/people/invitation-status'
 import type { MemberActions } from '@/components/sandboxes/member-row'
 import { ChangeGroupsDialog } from '@/components/sandboxes/people/change-groups-dialog'
 import { BulkRemoveDialog } from '@/components/sandboxes/people/bulk-remove-dialog'
@@ -137,14 +139,17 @@ function columnWidths(withCheckbox: boolean, withMenu: boolean): string[] {
 }
 
 /**
- * Everyone on the sandbox, as the Team tab shows them to whoever runs it.
+ * Everyone on the sandbox, as the People tab shows them to whoever runs it.
  *
  * One list per side rather than one list with a Side column: the two sides are
  * managed differently — ours get an added email, theirs get an invitation — and
- * the column that said which was which is what the two cards now say once. The
- * search and the filters sit above both; the dialogs the cockpit already owns
- * arrive as `actions`, and only the ones it has no use for elsewhere (groups,
- * bulk removal, bulk invitations) live here.
+ * the column that said which was which is what the two cards now say once.
+ *
+ * Their side is also where invitations are run from. There used to be a second
+ * panel underneath repeating the same names and the same badges; the one thing
+ * it had that this did not was the headline, the send-to-everyone button and an
+ * action you could reach without opening a menu, so those three moved up here
+ * and the panel went.
  */
 export function PeopleTable({
   overview,
@@ -178,7 +183,9 @@ export function PeopleTable({
   const [groupsMember, setGroupsMember] = useState<SandboxMember | null>(null)
   const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
   const [bulkRemoveSide, setBulkRemoveSide] = useState<SideKey | null>(null)
-  const [bulkInviteOpen, setBulkInviteOpen] = useState(false)
+  // One confirmation for both ways of sending several at once: the bulk bar's
+  // selection, and the header's "everyone waiting".
+  const [inviting, setInviting] = useState<SandboxMember[] | null>(null)
 
   const q = search.trim().toLowerCase()
   const isFiltered =
@@ -210,9 +217,6 @@ export function PeopleTable({
   }, [members, role, group, invitation, q])
 
   const selectedMembers = members.filter(m => selected.has(m.id))
-  const selectedWaiting = selectedMembers.filter(
-    m => m.side === 'theirs' && isWaiting(m),
-  )
 
   const toggle = (id: string, checked: boolean) =>
     setSelected(prev => {
@@ -248,6 +252,7 @@ export function PeopleTable({
 
   const ours = members.filter(m => m.side === 'ours')
   const theirs = members.filter(m => m.side === 'theirs')
+  const invitations = invitationHeadline(theirs)
 
   const sideProps = (side: SideKey) => ({
     side,
@@ -267,14 +272,15 @@ export function PeopleTable({
     onChangeGroups: setGroupsMember,
     onPreviewAdded: (m: SandboxMember) => setAddedPreviewId(m.id),
     onBulkRemove: () => setBulkRemoveSide(side),
-    onBulkInvite: () => setBulkInviteOpen(true),
+    onInviteMany: setInviting,
+    invitations,
     invitePending: sendInvitations.isPending,
   })
 
   return (
     <section
       id="team"
-      className="scroll-mt-20 space-y-4"
+      className="scroll-mt-(--section-offset) space-y-4"
       data-testid="people-table"
     >
       <div>
@@ -365,21 +371,26 @@ export function PeopleTable({
         )}
       </div>
 
-      {isFiltered && rows.length === 0 ? (
-        <div className="rounded-xl border border-line bg-paper">
-          <EmptyState
-            icon={Users}
-            title="No one matches"
-            description="Try a different search or clear the filters."
-            action={{ label: 'Clear filters', onClick: clearFilters }}
-          />
-        </div>
-      ) : (
-        <>
-          <SideCard {...sideProps('ours')} />
-          <SideCard {...sideProps('theirs')} />
-        </>
-      )}
+      {/* `#invitations` has to land whatever the filters say, and both side
+          cards disappear when nothing matches — so the anchor is on a wrapper
+          that always renders rather than on a card that can vanish. */}
+      <div id="invitations" className="scroll-mt-(--section-offset) space-y-4">
+        {isFiltered && rows.length === 0 ? (
+          <div className="rounded-xl border border-line bg-paper">
+            <EmptyState
+              icon={Users}
+              title="No one matches"
+              description="Try a different search or clear the filters."
+              action={{ label: 'Clear filters', onClick: clearFilters }}
+            />
+          </div>
+        ) : (
+          <>
+            <SideCard {...sideProps('ours')} />
+            <SideCard {...sideProps('theirs')} />
+          </>
+        )}
+      </div>
 
       <ChangeGroupsDialog
         member={groupsMember}
@@ -401,16 +412,16 @@ export function PeopleTable({
         onRemoved={() => setSelected(new Set())}
       />
       <ConfirmationDialog
-        open={bulkInviteOpen}
-        onOpenChange={setBulkInviteOpen}
-        title={`Send ${selectedWaiting.length === 1 ? 'the invitation' : `${selectedWaiting.length} invitations`}?`}
+        open={inviting !== null}
+        onOpenChange={o => !o && setInviting(null)}
+        title={`Send ${inviting?.length === 1 ? 'the invitation' : `${inviting?.length ?? 0} invitations`}?`}
         description="Each person gets one email with a link that lasts 7 days. People who already have a live invitation are skipped."
         confirmText="Send"
         onConfirm={async () => {
           await sendInvitations.mutateAsync({
-            member_ids: selectedWaiting.map(m => m.id),
+            member_ids: (inviting ?? []).map(m => m.id),
           })
-          setBulkInviteOpen(false)
+          setInviting(null)
           setSelected(new Set())
         }}
       />
@@ -441,7 +452,8 @@ function SideCard({
   onChangeGroups,
   onPreviewAdded,
   onBulkRemove,
-  onBulkInvite,
+  onInviteMany,
+  invitations,
   invitePending,
 }: {
   side: SideKey
@@ -461,7 +473,8 @@ function SideCard({
   onChangeGroups: (member: SandboxMember) => void
   onPreviewAdded: (member: SandboxMember) => void
   onBulkRemove: () => void
-  onBulkInvite: () => void
+  onInviteMany: (members: SandboxMember[]) => void
+  invitations: ReturnType<typeof invitationHeadline>
   invitePending: boolean
 }) {
   const { can } = useSandboxView()
@@ -471,6 +484,8 @@ function SideCard({
   const who = ours ? 'our side' : organisation
   const hasRowMenu = can.editTeam || can.editGroups || can.invite
   const widths = columnWidths(can.editTeam, hasRowMenu)
+  // Their side is also the invitations desk, for whoever runs them.
+  const runsInvitations = !ours && can.invite && total > 0
 
   const waiting = selectedOnSide.filter(isWaiting)
   const allVisibleSelected =
@@ -486,7 +501,7 @@ function SideCard({
       className="rounded-xl border border-line bg-paper"
       data-testid={ours ? 'our-side' : 'their-side'}
     >
-      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3">
+      <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-2.5">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-ink-3">
           {ours ? 'Our side' : 'Their side'}{' '}
           <span className="text-ink-4">· {ours ? 'Novus' : organisation}</span>
@@ -494,13 +509,38 @@ function SideCard({
             {shown}
           </span>
         </h3>
-        {can.editTeam && (
-          <Button variant="outline" size="sm" onClick={onAdd}>
-            <Plus className="h-4 w-4" />
-            {ours ? 'Add from our people' : 'Add by email'}
-          </Button>
-        )}
+        <div className="flex flex-wrap items-center gap-2">
+          {runsInvitations && invitations.waiting.length > 0 && (
+            <Button
+              size="sm"
+              className="bg-ink text-ink-on-dark hover:bg-ink/90"
+              disabled={invitePending}
+              onClick={() => onInviteMany(invitations.waiting)}
+              data-testid="send-all"
+            >
+              {invitePending
+                ? 'Sending…'
+                : `Send all ${invitations.waiting.length}`}
+            </Button>
+          )}
+          {can.editTeam && (
+            <Button variant="outline" size="sm" onClick={onAdd}>
+              <Plus className="h-4 w-4" />
+              {ours ? 'Add from our people' : 'Add by email'}
+            </Button>
+          )}
+        </div>
       </header>
+
+      {runsInvitations && (
+        <p
+          className="border-b border-line px-5 py-2 text-xs text-ink-3"
+          data-testid="invitations-title"
+        >
+          <span className="font-medium text-ink-2">{invitations.title}</span>{' '}
+          {invitations.detail}
+        </p>
+      )}
 
       {selectedOnSide.length > 0 && (
         <div
@@ -517,7 +557,7 @@ function SideCard({
               variant="outline"
               size="sm"
               disabled={waiting.length === 0 || invitePending}
-              onClick={onBulkInvite}
+              onClick={() => onInviteMany(waiting)}
               data-testid="bulk-invite"
             >
               Send {pluralise(waiting.length, 'invitation')}
@@ -687,7 +727,29 @@ function SideCard({
                           : 'Not emailed'}
                       </span>
                     ) : (
-                      <InvitationBadge member={m} />
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <InvitationBadge member={m} />
+                          {can.invite && (
+                            <InlineInvite
+                              member={m}
+                              actions={actions}
+                              pending={invitePending}
+                            />
+                          )}
+                        </div>
+                        {/* What they get once they accept — checked in the
+                            second before the email goes out, so it is only
+                            worth the line while one is still waiting. */}
+                        {isWaiting(m) && (
+                          <p
+                            className="text-[11px] leading-snug text-ink-3"
+                            data-testid="will-see"
+                          >
+                            {willSee(m)}
+                          </p>
+                        )}
+                      </div>
                     )}
                   </TableCell>
                   <TableCell className="whitespace-nowrap font-mono text-[11px] text-ink-3">
@@ -794,5 +856,42 @@ function SideCard({
         </Table>
       )}
     </section>
+  )
+}
+
+/**
+ * Invite or Resend, right beside the badge.
+ *
+ * Whichever one applies is the action an account executive takes dozens of
+ * times an afternoon, so it is one click rather than a menu. Revoke and the
+ * email preview stay in the row menu — they are checked once, not repeated.
+ */
+function InlineInvite({
+  member,
+  actions,
+  pending,
+}: {
+  member: SandboxMember
+  actions: PeopleTableActions
+  pending: boolean
+}) {
+  const status = member.invitation_status
+  const send =
+    status === 'not_sent' || status === 'has_account'
+      ? { label: 'Invite', run: actions.onInvite, testId: 'invite-one' }
+      : status === 'sent' || status === 'expired'
+        ? { label: 'Resend', run: actions.onResend, testId: 'resend-one' }
+        : null
+  if (!send?.run) return null
+  return (
+    <button
+      type="button"
+      className="text-xs text-ds-accent underline-offset-2 hover:underline disabled:opacity-50"
+      disabled={pending}
+      onClick={() => send.run?.(member)}
+      data-testid={send.testId}
+    >
+      {send.label}
+    </button>
   )
 }

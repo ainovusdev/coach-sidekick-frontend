@@ -9,7 +9,8 @@
  * `/outcomes`, `/attention`, `/activity` and `/commitments` already return.
  */
 
-import { daysBetween, parseDateOnly, termProgress } from '@/lib/sandbox/term'
+import { lifecycleOf } from '@/lib/sandbox/term'
+import type { Lifecycle } from '@/lib/sandbox/term'
 import type {
   SandboxGroup,
   SandboxMember,
@@ -31,6 +32,11 @@ import type {
 } from '@/types/sandbox-outcomes'
 import type { Commitment } from '@/types/commitment'
 
+// "Week 20 of 26" moved beside the other term arithmetic when the cockpit
+// started saying it too; re-exported so this view's callers are untouched.
+export { lifecycleOf }
+export type { Lifecycle, LifecycleKind } from '@/lib/sandbox/term'
+
 /**
  * What a client is shown as something to watch: delivery that has slipped and
  * windows that are open or about to be. Our own operational chores
@@ -50,18 +56,6 @@ export const CONTACT_ROLES = [
   'sandbox_owner',
   'lead_coach',
 ]
-
-export type LifecycleKind = 'upcoming' | 'active' | 'ended'
-
-export interface Lifecycle {
-  kind: LifecycleKind
-  /** "Week 20 of 26" · "Starts 1 Jun" · "Ended 30 Nov" */
-  label: string
-  week: number
-  weeks: number
-  /** 0…1 through the term, for the term bar. */
-  fraction: number
-}
 
 export interface ClientPerson extends CoacheeDelivery {
   groupId: string
@@ -125,45 +119,6 @@ export interface ClientViewModel {
   outcomeTotals: OutcomeTotals | null
   waitingForSeal: number
   sentBack: number
-}
-
-// --------------------------------------------------------------- lifecycle
-
-export function lifecycleOf(
-  sandbox: Pick<SandboxOverview['sandbox'], 'term_start' | 'term_end'>,
-  today: string,
-  fmtDay: (value: string) => string,
-): Lifecycle {
-  const start = parseDateOnly(sandbox.term_start)
-  const end = parseDateOnly(sandbox.term_end)
-  const now = parseDateOnly(today)
-  if (!start || !end || !now)
-    return { kind: 'active', label: '', week: 0, weeks: 0, fraction: 0 }
-  const weeks = Math.max(1, Math.round(daysBetween(start, end) / 7))
-  if (today < sandbox.term_start)
-    return {
-      kind: 'upcoming',
-      label: `Starts ${fmtDay(sandbox.term_start)}`,
-      week: 0,
-      weeks,
-      fraction: 0,
-    }
-  if (today > sandbox.term_end)
-    return {
-      kind: 'ended',
-      label: `Ended ${fmtDay(sandbox.term_end)}`,
-      week: weeks,
-      weeks,
-      fraction: 1,
-    }
-  const week = Math.min(weeks, Math.floor(daysBetween(start, now) / 7) + 1)
-  return {
-    kind: 'active',
-    label: `Week ${week} of ${weeks}`,
-    week,
-    weeks,
-    fraction: termProgress(start, end, now),
-  }
 }
 
 // ------------------------------------------------------------------ people

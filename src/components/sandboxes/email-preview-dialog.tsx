@@ -1,9 +1,12 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -64,9 +67,20 @@ export function EmailPreviewDialog({
             title="Email preview"
             srcDoc={preview.data.html}
             sandbox=""
+            // Out of the tab order on purpose: it is the first focusable thing
+            // in the dialog, and a focused sandboxed frame swallows Escape, so
+            // the only way out would be the mouse.
+            tabIndex={-1}
             className="h-[520px] w-full rounded-lg border border-line bg-white"
           />
         )}
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" data-testid="close-preview">
+              Close
+            </Button>
+          </DialogClose>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

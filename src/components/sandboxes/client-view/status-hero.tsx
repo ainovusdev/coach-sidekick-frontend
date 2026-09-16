@@ -30,7 +30,7 @@ export function StatusHero({
     <section
       id="vision"
       data-testid="client-hero"
-      className="scroll-mt-28 grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]"
+      className="scroll-mt-(--section-offset) grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]"
     >
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wider text-ink-3">

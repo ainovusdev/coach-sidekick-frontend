@@ -6,6 +6,7 @@ import {
   ATTENTION_GROUP_LABEL,
   ATTENTION_ORDER,
   attentionHref,
+  attentionWhen,
   SEVERITY_TONE,
   TONE_DOT,
 } from '@/lib/sandbox/delivery'
@@ -22,6 +23,7 @@ export function NeedsAttentionList({
   showSandbox,
   basePath = '/sandboxes',
   limit,
+  today,
   className,
   onSelect,
 }: {
@@ -31,6 +33,12 @@ export function NeedsAttentionList({
   basePath?: string
   /** Show only the first N rows overall (home strip). */
   limit?: number
+  /**
+   * The sandbox's today, which turns `since`/`due` into "Waiting 12 days" or
+   * "3 days over". Without it the rows say nothing about when — which is what
+   * they did everywhere until now.
+   */
+  today?: string
   className?: string
   /**
    * Handle the click here instead of linking out. The sandbox page is already
@@ -81,6 +89,7 @@ export function NeedsAttentionList({
             {rows.map((item, i) => {
               const rowClass =
                 'group flex w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-surface-2'
+              const when = today ? attentionWhen(item, today) : null
               const body = (
                 <>
                   <span
@@ -106,6 +115,19 @@ export function NeedsAttentionList({
                       {item.detail}
                     </span>
                   </span>
+                  {when && (
+                    <span
+                      className={cn(
+                        'shrink-0 whitespace-nowrap text-xs tabular-nums',
+                        when.overdue
+                          ? 'font-medium text-vermillion'
+                          : 'text-ink-3',
+                      )}
+                      data-testid="attention-when"
+                    >
+                      {when.text}
+                    </span>
+                  )}
                   <ArrowRight className="h-4 w-4 shrink-0 text-ink-4 transition-colors group-hover:text-ink" />
                 </>
               )

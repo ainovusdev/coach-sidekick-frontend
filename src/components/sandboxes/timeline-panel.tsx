@@ -19,7 +19,7 @@ import { RegenerateDialog } from '@/components/sandboxes/regenerate-dialog'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { useRestoreEvent } from '@/hooks/mutations/use-sandbox-mutations'
 import { fmtWindow, pluralise } from '@/lib/sandbox/format'
-import { eventStateLabel } from '@/lib/sandbox/timeline'
+import { eventStateLabel, KIND_TONE } from '@/lib/sandbox/timeline'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview, TimelineEvent } from '@/types/sandbox'
 
@@ -80,7 +80,7 @@ export function TimelinePanel({
   return (
     <section
       id="timeline"
-      className="scroll-mt-20 rounded-xl border border-line bg-paper"
+      className="scroll-mt-(--section-offset) rounded-xl border border-line bg-paper"
       data-testid="timeline-panel"
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-3.5">
@@ -118,8 +118,10 @@ export function TimelinePanel({
         )}
       </header>
 
-      <div className="overflow-x-auto px-5 py-4">
-        <ol className="flex min-w-max items-stretch gap-3">
+      {/* The scroll padding is on the list, not the box, so the last card ends
+          clear of the border instead of flush against it. */}
+      <div className="overflow-x-auto">
+        <ol className="flex min-w-max items-stretch gap-3 px-5 py-4">
           {timeline.map((ev, i) => {
             const commitmentId = onOpenCommitment ? ev.commitment_id : null
             const open = () => commitmentId && onOpenCommitment?.(commitmentId)
@@ -128,7 +130,10 @@ export function TimelinePanel({
                 {showToday && todayIndex === i && <TodayMarker />}
                 <li
                   className={cn(
-                    'group relative flex w-48 flex-col rounded-lg border px-3.5 py-3',
+                    'group relative flex w-52 flex-col overflow-hidden rounded-xl border p-4 pl-5',
+                    // Only the window that is open now tints the whole card —
+                    // that is the one thing worth finding at a glance. The kind
+                    // is the edge below.
                     ev.state === 'current'
                       ? 'border-vermillion/40 bg-vermillion-bg'
                       : ev.state === 'past'
@@ -156,6 +161,14 @@ export function TimelinePanel({
                       : undefined
                   }
                 >
+                  <span
+                    className={cn(
+                      'absolute inset-y-0 left-0 w-[3px]',
+                      KIND_TONE[ev.kind],
+                      ev.state === 'past' && 'opacity-40',
+                    )}
+                    aria-hidden
+                  />
                   <div className="flex items-start justify-between gap-1">
                     <span
                       className={cn(

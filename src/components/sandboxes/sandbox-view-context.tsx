@@ -40,8 +40,22 @@ export interface SandboxView {
   scope: SandboxScope
   basePath: '/admin/sandboxes' | '/sandboxes'
   indexLabel: string
-  /** the sticky rail offset: admin's main scrolls, member chrome has a 64px header */
-  railTopClass: 'xl:top-0' | 'xl:top-20'
+  /**
+   * Where the page's own chrome sits, which the two routes disagree about: the
+   * member chrome scrolls the window under a 64px sticky header with
+   * `px-4 sm:px-6 lg:px-8` gutters, the admin chrome scrolls its own `<main>`
+   * with a 24px gutter and no sticky origin.
+   */
+  /** the sticky tab bar's origin */
+  stickyTopClass: 'top-0' | 'top-16'
+  /** cancels the container gutter so the bar's background reaches the edge */
+  bleedClass: string
+  /**
+   * `--section-offset` for this chrome: the sticky origin plus the 61px tab
+   * bar plus a little air. It is what a linked-to section scrolls clear of and
+   * where the rail pins, so the two can never drift apart.
+   */
+  sectionOffset: '4.5rem' | '8.5rem'
   can: SandboxCan
   href: {
     index: () => string
@@ -80,7 +94,9 @@ function hrefs(basePath: SandboxView['basePath']): SandboxView['href'] {
   return {
     index: () => basePath,
     overview: id => `${basePath}/${id}`,
-    groups: id => `${basePath}/${id}?tab=groups`,
+    // An anchor rather than `?tab=`: the two layouts spell their tabs
+    // differently but both own a `#groups` section.
+    groups: id => `${basePath}/${id}#groups`,
   }
 }
 
@@ -89,7 +105,9 @@ export const ADMIN_SANDBOX_VIEW: SandboxView = {
   scope: 'all',
   basePath: '/admin/sandboxes',
   indexLabel: 'Sandboxes',
-  railTopClass: 'xl:top-0',
+  stickyTopClass: 'top-0',
+  bleedClass: '-mx-6 px-6',
+  sectionOffset: '4.5rem',
   can: ALL_ON,
   href: hrefs('/admin/sandboxes'),
 }
@@ -126,7 +144,9 @@ export function viewFromOverview(
     scope: opts.isAdmin ? 'all' : overview.my_scope,
     basePath: '/sandboxes',
     indexLabel: opts.isAdmin ? 'Sandboxes' : 'My sandboxes',
-    railTopClass: 'xl:top-20',
+    stickyTopClass: 'top-16',
+    bleedClass: '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8',
+    sectionOffset: '8.5rem',
     can,
     href: hrefs('/sandboxes'),
   }
@@ -177,7 +197,9 @@ export function previewClientView(from: 'admin' | 'member'): SandboxView {
     scope: 'all',
     basePath: '/sandboxes',
     indexLabel: from === 'admin' ? 'Sandboxes' : 'My sandboxes',
-    railTopClass: 'xl:top-20',
+    stickyTopClass: 'top-16',
+    bleedClass: '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8',
+    sectionOffset: '8.5rem',
     can: ALL_OFF,
     href: hrefs('/sandboxes'),
   }

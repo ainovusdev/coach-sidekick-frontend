@@ -1,47 +1,32 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react'
 import { useRouter } from 'next/navigation'
-import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { IdentityCard } from '@/components/sandboxes/rail/identity-card'
+import { LinksCard } from '@/components/sandboxes/rail/links-card'
 import {
   SetupCard,
   type SetupTarget,
 } from '@/components/sandboxes/rail/setup-card'
-import { LinksCard } from '@/components/sandboxes/rail/links-card'
-import { TimelinePanel } from '@/components/sandboxes/timeline-panel'
-import { VisionPanel } from '@/components/sandboxes/vision-panel'
-import { TeamPanel } from '@/components/sandboxes/team-panel'
-import { PeopleTable } from '@/components/sandboxes/people/people-table'
-import { AddOurPeopleDialog } from '@/components/sandboxes/add-our-people-dialog'
-import { AddTheirPeopleDialog } from '@/components/sandboxes/add-their-people-dialog'
-import { ChangeRolesDialog } from '@/components/sandboxes/change-roles-dialog'
-import { RemoveMemberDialog } from '@/components/sandboxes/remove-member-dialog'
-import { AttentionPanel } from '@/components/sandboxes/attention-panel'
-import { IncompleteBanner } from '@/components/sandboxes/incomplete-banner'
-import { GroupsPanel } from '@/components/sandboxes/groups-panel'
-import { DeliveryPanel } from '@/components/sandboxes/delivery-panel'
 import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
-import { CommitmentsPanel } from '@/components/sandboxes/commitments-panel'
+import { SandboxHero } from '@/components/sandboxes/sandbox-hero'
 import { SettingsPanel } from '@/components/sandboxes/settings-panel'
-import { GroupDrawer } from '@/components/sandboxes/group-drawer'
-import {
-  GroupBlockedDialog,
-  type GroupBlock,
-} from '@/components/sandboxes/group-blocked-dialog'
-import {
-  InvitationsPanel,
-  isWaiting,
-} from '@/components/sandboxes/invitations-panel'
-import { EmailPreviewDialog } from '@/components/sandboxes/email-preview-dialog'
+import { PeopleTab } from '@/components/sandboxes/tabs/people-tab'
+import { TodayTab } from '@/components/sandboxes/tabs/today-tab'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   DEFAULT_TAB,
   TAB_FOR_ANCHOR,
   TAB_LABEL,
   tabsFor,
+  toSandboxTab,
   type SandboxTab,
 } from '@/components/sandboxes/sandbox-tabs'
 import {
@@ -57,23 +42,17 @@ import {
 } from '@/hooks/queries/use-sandbox-insights'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 import { InsightsPanel } from './insights/insights-panel'
-import { DeliverySummary } from './insights/delivery-summary'
-import { LearningPanel } from './insights/learning-panel'
-import { useSandboxDelivery } from '@/hooks/queries/use-sandboxes'
-import {
-  sandboxErrorDetail,
-  useDeleteGroup,
-  useResendInvitation,
-  useRevokeInvitation,
-  useSendInvitations,
-} from '@/hooks/mutations/use-sandbox-mutations'
 import { cn } from '@/lib/utils'
-import type {
-  SandboxGroup,
-  SandboxMember,
-  SandboxOverview,
-} from '@/types/sandbox'
+import type { SandboxOverview } from '@/types/sandbox'
 
+/**
+ * The page our own side works from: a hero, five tabs, and a rail of things
+ * you want beside you whichever tab is open.
+ *
+ * The shell owns three things and nothing else — which tab is showing, what the
+ * reporting is filtered to, and which commitment is open. Every dialog, drawer
+ * and mutation belongs to the tab that uses it.
+ */
 export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   const sandboxId = overview.sandbox.id
   const view = useSandboxView()
@@ -86,12 +65,15 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     period: 'term',
     group_id: null,
   })
+  const [openCommitmentId, setOpenCommitmentId] = useState<string | null>(null)
+  const closeCommitment = useCloseCommitment(setOpenCommitmentId)
+
   const viewer = useInsightViewer()
   const isTermSelection =
     selection.period === 'term' && selection.group_id === null
-  // Reporting is the heaviest read on the page: fetch it only for the tab
-  // that shows it.
-  const showsTerm = tab === 'today' || (tab === 'insights' && isTermSelection)
+  // Reporting is the heaviest read on the page: fetch it only for the tabs
+  // that show it.
+  const showsTerm = tab === 'today' || (tab === 'delivery' && isTermSelection)
   const termReporting = useSandboxReporting(
     sandboxId,
     viewer,
@@ -100,7 +82,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   )
   const filteredReporting = useSandboxReporting(
     sandboxId,
-    tab === 'insights' && !isTermSelection ? viewer : null,
+    tab === 'delivery' && !isTermSelection ? viewer : null,
     selection,
   )
   const selectedReporting = isTermSelection ? termReporting : filteredReporting
@@ -109,18 +91,45 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     writeSelection(next)
   }, [])
 
-  // Where a link lands (the rules live in `use-sandbox-landing.ts`).
-  useSandboxLanding(sandboxId, landing => {
-    setSelection(landing.selection)
-    const next = TAB_FOR_ANCHOR[landing.hash] ?? landing.tab
+  /** Where the link that opened this page was pointing, until we get there. */
+  const landing = useRef<string | null>(null)
+
+  // Where a link lands (the rules live in `use-sandbox-landing.ts`). The tab
+  // name is converted here rather than in the parser: the client view reads the
+  // same URL and gives `?tab=` its own meanings.
+  useSandboxLanding(sandboxId, url => {
+    setSelection(url.selection)
+    const next = TAB_FOR_ANCHOR[url.hash] ?? toSandboxTab(url.tab)
     if (next) setTab(next)
-    if (landing.commitment) setOpenCommitmentId(landing.commitment)
-    if (landing.hash) scrollToSection(landing.hash)
+    if (url.commitment) setOpenCommitmentId(url.commitment)
+    if (!url.hash) return
+    landing.current = url.hash
+    scrollToSection(url.hash)
   })
+
+  /**
+   * Delivery and Today mount nothing until analytics arrives, and the scroll
+   * fires two frames after the tab is selected — so a cold `#delivery` link
+   * would select the right tab and scroll nowhere. Land again once the read is
+   * in, unless we are already there. The other tabs land on the first pass.
+   */
+  const reportingLoading = !selectedReporting.analytics
+  useEffect(() => {
+    const target = landing.current
+    if (!target) return
+    const owner = TAB_FOR_ANCHOR[target]
+    if ((owner === 'delivery' || owner === 'today') && reportingLoading) return
+    landing.current = null
+    const box = document.getElementById(target)?.getBoundingClientRect()
+    if (!box || (box.top < window.innerHeight && box.bottom > 0)) return
+    scrollToSection(target)
+  }, [reportingLoading, tab])
 
   // Remember the tab in the URL without navigating: a refresh or a copied link
   // comes back here, and the page keeps its static shell.
   const goToTab = useCallback((next: SandboxTab) => {
+    // Whatever the link was chasing, this click supersedes it.
+    landing.current = null
     setTab(next)
     replaceParams(url => url.searchParams.set('tab', next), { keepHash: false })
   }, [])
@@ -130,87 +139,30 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     (anchor: string) => {
       const owner = TAB_FOR_ANCHOR[anchor]
       if (owner) goToTab(owner)
+      landing.current = anchor
       scrollToSection(anchor)
     },
     [goToTab],
   )
 
-  const [visionOpen, setVisionOpen] = useState(false)
-  const [addOurs, setAddOurs] = useState(false)
-  const [addTheirs, setAddTheirs] = useState(false)
-  const [rolesMember, setRolesMember] = useState<SandboxMember | null>(null)
-  const [removeMember, setRemoveMember] = useState<SandboxMember | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [drawerGroup, setDrawerGroup] = useState<SandboxGroup | null>(null)
-  const [deleteGroup, setDeleteGroup] = useState<SandboxGroup | null>(null)
-  const [blockedGroup, setBlockedGroup] = useState<GroupBlock | null>(null)
-  const [previewMemberId, setPreviewMemberId] = useState<string | null>(null)
-  const [sendAllOpen, setSendAllOpen] = useState(false)
-  const [revokeMember, setRevokeMember] = useState<SandboxMember | null>(null)
-  // One commitment panel for the whole page, mounted here rather than inside
-  // the Commitments section: a timeline card opens its event's commitment from
-  // the Timeline tab, where that section is not mounted at all.
-  const [openCommitmentId, setOpenCommitmentId] = useState<string | null>(null)
-  const closeCommitment = useCloseCommitment(setOpenCommitmentId)
-
-  const sendInvitations = useSendInvitations(sandboxId)
-  const resendInvitation = useResendInvitation(sandboxId)
-  const revokeInvitation = useRevokeInvitation(sandboxId)
-  const deleteGroupMutation = useDeleteGroup(sandboxId)
-  // Same query the Delivery panel reads (one request, shared cache) — a group
-  // with sessions on record can't be removed, and we say so before asking.
-  const { data: delivery } = useSandboxDelivery(sandboxId)
-
-  const askToRemoveGroup = (group: SandboxGroup) => {
-    const held = delivery?.groups.find(g => g.group_id === group.id)
-    const withSessions =
-      held?.coachees.filter(
-        c => c.delivered.sessions + c.delivered.in_flight > 0,
-      ) ?? []
-    const sessions = withSessions.reduce(
-      (n, c) => n + c.delivered.sessions + c.delivered.in_flight,
-      0,
-    )
-    if (sessions > 0) {
-      setBlockedGroup({
-        groupName: group.display_name,
-        sessions,
-        coacheeNames: withSessions.map(c => c.name ?? c.email),
-      })
-      return
-    }
-    setDeleteGroup(group)
-  }
-
-  const openDrawer = (group: SandboxGroup | null) => {
-    setDrawerGroup(group)
-    setDrawerOpen(true)
-  }
-
-  // The setup checklist is a table of contents: each step opens the tab that
-  // owns the work, and the dialog when there is nothing to look at yet.
+  /**
+   * The setup checklist is a table of contents: every step goes to the section
+   * that owns the work, and lands on that section's own empty state — which
+   * carries the button the step used to open directly.
+   */
   const onSetupSelect = (target: SetupTarget) => {
-    const c = overview.checklist
-    if (!c) return
     switch (target) {
       case 'term':
-        goToTab('timeline')
+        goToSection('timeline')
         break
       case 'vision':
-        if (c.vision_added) goToSection('vision')
-        else {
-          goToTab('general')
-          setVisionOpen(true)
-        }
+        goToSection('vision')
         break
       case 'team':
-        goToTab('team')
-        if (overview.members.length === 0) setAddOurs(true)
-        else if (!c.their_side_count) setAddTheirs(true)
+        goToSection('team')
         break
       case 'groups':
-        if (c.groups.count === 0) openDrawer(null)
-        else goToTab('groups')
+        goToSection('groups')
         break
       case 'invitations':
         goToSection(
@@ -222,51 +174,34 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
     }
   }
 
-  // Only the actions the viewer may take become menu items.
-  const memberActions = {
-    ...(can.editTeam
-      ? { onChangeRoles: setRolesMember, onRemove: setRemoveMember }
-      : {}),
-    ...(can.invite
-      ? {
-          onInvite: (m: SandboxMember) =>
-            sendInvitations.mutate({ member_ids: [m.id] }),
-          onResend: (m: SandboxMember) =>
-            m.invitation_id && resendInvitation.mutate(m.invitation_id),
-          onRevoke: (m: SandboxMember) => setRevokeMember(m),
-          onPreview: (m: SandboxMember) => setPreviewMemberId(m.id),
-        }
-      : {}),
-  }
-
-  const waitingCount = overview.members.filter(
-    m => m.side === 'theirs' && isWaiting(m),
-  ).length
-  const sending =
-    sendInvitations.isPending ||
-    resendInvitation.isPending ||
-    revokeInvitation.isPending
+  // The rail is only worth a column when something will render in it: a
+  // coachee gets neither card, and so gets the full width instead.
+  const hasRail = can.seeSetup || can.seeLinks
 
   return (
     <div
-      className="grid gap-6 xl:grid-cols-[300px_minmax(0,1fr)]"
+      className="space-y-5"
       data-testid="sandbox-cockpit"
+      // Everything that scrolls to a section, and the rail that pins beside
+      // them, reads one number — how far down this chrome's content starts.
+      style={{ '--section-offset': view.sectionOffset } as CSSProperties}
     >
-      {/* What stays in view whichever tab is open: which sandbox this is, what
-          is left to set up, and the working links. */}
-      <aside
-        className={cn('space-y-4 xl:sticky xl:self-start', view.railTopClass)}
-      >
-        <IdentityCard overview={overview} onEdit={() => goToTab('settings')} />
-        <SetupCard overview={overview} onSelect={onSetupSelect} />
-        <LinksCard overview={overview} />
-      </aside>
+      <SandboxHero overview={overview} onEdit={() => goToTab('settings')} />
 
-      <div className="min-w-0">
-        <Tabs
-          value={tab}
-          onValueChange={v => goToTab(v as SandboxTab)}
-          className="gap-4"
+      <Tabs
+        value={tab}
+        onValueChange={v => goToTab(v as SandboxTab)}
+        className="gap-4"
+      >
+        {/* The bar sticks under the chrome, so the tabs are reachable from
+            anywhere down a long page. It bleeds to the container edges so the
+            content scrolling under it is covered. */}
+        <div
+          className={cn(
+            'sticky z-30 border-b border-line bg-surface-2 py-2',
+            view.stickyTopClass,
+            view.bleedClass,
+          )}
         >
           <TabsList
             data-testid="sandbox-tabs"
@@ -283,127 +218,72 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
                 className={cn(
                   'flex-none rounded-lg px-3 py-1.5 text-sm text-ink-3',
                   'data-[state=active]:bg-surface-2 data-[state=active]:text-ink',
+                  'data-[state=active]:shadow-none',
                 )}
               >
                 {TAB_LABEL[t]}
               </TabsTrigger>
             ))}
           </TabsList>
+        </div>
 
-          <TabsContent value="today" className="space-y-6">
-            {termReporting.analytics && (
-              <DeliverySummary data={termReporting.analytics} />
-            )}
-            <LearningPanel
-              reporting={termReporting}
-              preview
-              onNavigate={anchor => {
-                onSelection({ period: 'term', group_id: null })
-                goToSection(anchor)
-              }}
-            />
-            {/* The incomplete-group banner lives on Groups; here the same thing
-              arrives as an attention row, so Today stays one list. */}
-            <AttentionPanel
-              sandboxId={sandboxId}
-              onSelect={item => goToSection(item.section)}
-            />
-            <CommitmentsPanel
-              overview={overview}
-              openId={openCommitmentId}
-              onOpenChange={setOpenCommitmentId}
-            />
-          </TabsContent>
-
-          <TabsContent value="insights">
-            <InsightsPanel
-              reporting={selectedReporting}
-              selection={selection}
-              onSelection={onSelection}
-              onNavigate={goToSection}
-            />
-          </TabsContent>
-
-          <TabsContent value="outcomes">
-            <OutcomesPanel overview={overview} />
-          </TabsContent>
-
-          <TabsContent value="team" className="space-y-6">
-            {/* Whoever runs the sandbox gets the full table — filters, bulk
-              actions, the lot. Everyone else gets the two-sided roster, which
-              is all their capabilities allow them to see. */}
-            {can.seePeople ? (
-              <PeopleTable
+        <div
+          className={cn(
+            'grid gap-5',
+            // Main first in the DOM so the rail drops *below* the content on a
+            // narrow screen instead of pushing it three cards down.
+            hasRail && 'xl:grid-cols-[minmax(0,1fr)_340px]',
+          )}
+        >
+          <div className="min-w-0">
+            <TabsContent value="today">
+              <TodayTab
                 overview={overview}
-                actions={{
-                  ...memberActions,
-                  onAddOurs: () => setAddOurs(true),
-                  onAddTheirs: () => setAddTheirs(true),
-                }}
+                reporting={termReporting}
+                openCommitmentId={openCommitmentId}
+                onOpenCommitment={setOpenCommitmentId}
+                onNavigate={goToSection}
+                onResetSelection={() =>
+                  onSelection({ period: 'term', group_id: null })
+                }
               />
-            ) : (
-              <TeamPanel
+            </TabsContent>
+
+            <TabsContent value="delivery">
+              <InsightsPanel
                 overview={overview}
-                actions={memberActions}
-                onAddOurs={() => setAddOurs(true)}
-                onAddTheirs={() => setAddTheirs(true)}
+                reporting={selectedReporting}
+                selection={selection}
+                onSelection={onSelection}
+                onNavigate={goToSection}
               />
-            )}
-            {can.invite && (
-              <InvitationsPanel
-                overview={overview}
-                actions={{
-                  onInvite: m => sendInvitations.mutate({ member_ids: [m.id] }),
-                  onResend: m =>
-                    m.invitation_id && resendInvitation.mutate(m.invitation_id),
-                  onRevoke: m => setRevokeMember(m),
-                  onPreview: m => setPreviewMemberId(m.id),
-                  onSendAll: () => setSendAllOpen(true),
-                  sending,
-                }}
-              />
-            )}
-          </TabsContent>
+            </TabsContent>
 
-          <TabsContent value="groups" className="space-y-6">
-            {can.editGroups && (
-              <IncompleteBanner
-                groups={overview.groups}
-                onFinish={g => openDrawer(g)}
-              />
-            )}
-            <GroupsPanel
-              overview={overview}
-              onNew={() => openDrawer(null)}
-              onEdit={g => openDrawer(g)}
-              onDelete={askToRemoveGroup}
-            />
-            <DeliveryPanel overview={overview} />
-          </TabsContent>
+            <TabsContent value="outcomes">
+              <OutcomesPanel overview={overview} />
+            </TabsContent>
 
-          <TabsContent value="timeline">
-            <TimelinePanel
-              overview={overview}
-              onOpenCommitment={setOpenCommitmentId}
-            />
-          </TabsContent>
+            <TabsContent value="people">
+              <PeopleTab overview={overview} />
+            </TabsContent>
 
-          <TabsContent value="general">
-            <VisionPanel
-              overview={overview}
-              open={visionOpen}
-              onOpenChange={setVisionOpen}
-            />
-          </TabsContent>
-
-          {can.editSandbox && (
             <TabsContent value="settings">
               <SettingsPanel overview={overview} />
             </TabsContent>
-          )}
-        </Tabs>
-      </div>
+          </div>
 
+          {hasRail && (
+            <aside className="space-y-4 xl:sticky xl:top-(--section-offset) xl:self-start">
+              <SetupCard overview={overview} onSelect={onSetupSelect} />
+              <LinksCard overview={overview} />
+            </aside>
+          )}
+        </div>
+      </Tabs>
+
+      {/* One commitment panel for the whole page, above the tabs: a
+          `?commitment=` link can arrive alongside `?tab=delivery` or
+          `#outcomes`, where no commitments list is mounted at all. */}
       <CommitmentDetailPanel
         commitmentId={openCommitmentId}
         onClose={closeCommitment}
@@ -413,108 +293,6 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
             ? () => router.push(`/commitments/${openCommitmentId}`)
             : undefined
         }
-      />
-
-      {/* Dialogs and drawers — mounted only for people who may use them */}
-      {can.editTeam && (
-        <>
-          <AddOurPeopleDialog
-            open={addOurs}
-            onOpenChange={setAddOurs}
-            sandboxId={sandboxId}
-          />
-          <AddTheirPeopleDialog
-            open={addTheirs}
-            onOpenChange={setAddTheirs}
-            sandboxId={sandboxId}
-            organisation={overview.sandbox.organisation}
-            onEditExisting={memberId => {
-              const m = overview.members.find(x => x.id === memberId)
-              if (m) {
-                setAddTheirs(false)
-                setRolesMember(m)
-              }
-            }}
-          />
-          <ChangeRolesDialog
-            member={rolesMember}
-            onOpenChange={o => !o && setRolesMember(null)}
-            sandboxId={sandboxId}
-          />
-          <RemoveMemberDialog
-            member={removeMember}
-            onOpenChange={o => !o && setRemoveMember(null)}
-            sandboxId={sandboxId}
-          />
-        </>
-      )}
-      {can.editGroups && (
-        <GroupDrawer
-          open={drawerOpen}
-          onOpenChange={setDrawerOpen}
-          overview={overview}
-          group={drawerGroup}
-        />
-      )}
-      {can.invite && (
-        <EmailPreviewDialog
-          sandboxId={sandboxId}
-          memberId={previewMemberId}
-          onOpenChange={o => !o && setPreviewMemberId(null)}
-        />
-      )}
-
-      <GroupBlockedDialog
-        block={blockedGroup}
-        onOpenChange={o => !o && setBlockedGroup(null)}
-      />
-      <ConfirmationDialog
-        open={!!deleteGroup}
-        onOpenChange={o => !o && setDeleteGroup(null)}
-        title={`Remove ${deleteGroup?.display_name ?? 'this group'}?`}
-        description="The group and its cadence are removed. The coachees stay on the sandbox and keep their client records with their coaches."
-        confirmText="Remove group"
-        variant="destructive"
-        onConfirm={async () => {
-          if (!deleteGroup) return
-          try {
-            await deleteGroupMutation.mutateAsync(deleteGroup.id)
-            setDeleteGroup(null)
-          } catch (error) {
-            const detail = sandboxErrorDetail(error)
-            if (detail?.code !== 'group_has_sessions') throw error
-            setBlockedGroup({
-              groupName: deleteGroup.display_name,
-              sessions: detail.sessions ?? 0,
-              coacheeNames: detail.coachee_names ?? [],
-            })
-            setDeleteGroup(null)
-          }
-        }}
-      />
-      <ConfirmationDialog
-        open={sendAllOpen}
-        onOpenChange={setSendAllOpen}
-        title={`Send ${waitingCount === 1 ? 'the invitation' : `all ${waitingCount} invitations`}?`}
-        description="Each person gets one email with a link that lasts 7 days. People who already have a live invitation are skipped."
-        confirmText="Send"
-        onConfirm={async () => {
-          await sendInvitations.mutateAsync({ all_pending: true })
-          setSendAllOpen(false)
-        }}
-      />
-      <ConfirmationDialog
-        open={!!revokeMember}
-        onOpenChange={o => !o && setRevokeMember(null)}
-        title={`Revoke the invitation for ${revokeMember?.name || revokeMember?.email || ''}?`}
-        description="Their link stops working. You can send a fresh one later."
-        confirmText="Revoke"
-        variant="destructive"
-        onConfirm={async () => {
-          if (revokeMember?.invitation_id)
-            await revokeInvitation.mutateAsync(revokeMember.invitation_id)
-          setRevokeMember(null)
-        }}
       />
     </div>
   )

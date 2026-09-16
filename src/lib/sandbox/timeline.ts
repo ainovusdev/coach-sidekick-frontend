@@ -3,6 +3,19 @@ import { pluralise } from '@/lib/sandbox/format'
 import { daysBetween, parseDateOnly } from '@/lib/sandbox/term'
 import type { EventState, TimelineEvent } from '@/types/sandbox'
 
+/**
+ * One colour per kind of milestone, so the same event reads the same on both
+ * sides of the room — a dot in the client's lists, a 2px edge on the cockpit's
+ * cards. It was these same five lines in two files before this.
+ */
+export const KIND_TONE: Record<TimelineEvent['kind'], string> = {
+  gold_sealing: 'bg-amber-token',
+  check_in: 'bg-indigo',
+  midpoint_reporting: 'bg-ds-accent',
+  results_review: 'bg-forest',
+  custom: 'bg-ink-3',
+}
+
 /** "Past" · "Current" · "Next · in 12 days" · "Upcoming" (position-aware). */
 export function eventStateLabel(
   ev: TimelineEvent,

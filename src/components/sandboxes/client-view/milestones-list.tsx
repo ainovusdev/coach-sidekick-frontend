@@ -1,18 +1,10 @@
 'use client'
 
 import { fmtWindow } from '@/lib/sandbox/format'
-import { eventChipLabel } from '@/lib/sandbox/timeline'
+import { eventChipLabel, KIND_TONE } from '@/lib/sandbox/timeline'
 import { cn } from '@/lib/utils'
-import { Empty } from './section'
+import { Empty } from '@/components/sandboxes/section'
 import type { TimelineEvent } from '@/types/sandbox'
-
-const KIND_DOT: Record<TimelineEvent['kind'], string> = {
-  gold_sealing: 'bg-amber-token',
-  check_in: 'bg-indigo',
-  midpoint_reporting: 'bg-ds-accent',
-  results_review: 'bg-forest',
-  custom: 'bg-ink-3',
-}
 
 /**
  * The client's calendar of the term: every window, when it opens, whether it
@@ -43,7 +35,7 @@ export function MilestonesList({
           <span
             className={cn(
               'h-2 w-2 shrink-0 rounded-full',
-              KIND_DOT[event.kind],
+              KIND_TONE[event.kind],
               event.state === 'past' && 'opacity-40',
             )}
             aria-hidden
