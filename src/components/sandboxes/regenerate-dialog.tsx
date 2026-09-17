@@ -165,12 +165,17 @@ export function RegenerateDialog({
   overview: SandboxOverview
 }) {
   const sandboxId = overview.sandbox.id
-  const [overwrite, setOverwrite] = useState(true)
+  // Off by default, and reset to off every time the dialog opens. Ticking this
+  // hard-deletes every hand-added event, and the delete cascades: the event's
+  // commitment goes with it, and that commitment's subtasks, progress log,
+  // attachments and related links go with *that*. There is no undo and no
+  // audit row, so it is not a box to arrive pre-ticked.
+  const [overwrite, setOverwrite] = useState(false)
   const regenerate = useRegenerateTimeline(sandboxId)
   const preview = useRegeneratePreview(sandboxId, null, null, overwrite, open)
 
   useEffect(() => {
-    if (open) setOverwrite(true)
+    if (open) setOverwrite(false)
   }, [open])
 
   const handCount = preview.data?.hand_adjusted_count ?? 0
@@ -201,8 +206,13 @@ export function RegenerateDialog({
             <span className="text-ink-2">
               Reset the {pluralise(handCount, 'hand adjustment')} too
               <span className="block text-xs text-ink-3">
-                Moved windows go back to their generated dates, removed events
-                come back, and events added by hand are dropped.
+                Moved windows go back to their generated dates and removed
+                events come back. Events added by hand are{' '}
+                <strong className="font-semibold text-ink-2">
+                  permanently deleted
+                </strong>
+                , along with each one&rsquo;s commitment, its subtasks, its
+                progress log and its attachments. This cannot be undone.
               </span>
             </span>
           </label>

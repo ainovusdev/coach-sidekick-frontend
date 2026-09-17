@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import { SandboxCard } from '@/components/sandboxes/dashboard/sandbox-card'
 import { useAuth } from '@/contexts/auth-context'
 import { useSandboxDashboard } from '@/hooks/queries/use-sandboxes'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 const MAX_CARDS = 3
 
@@ -15,7 +16,10 @@ const MAX_CARDS = 3
  */
 export function SandboxStrip() {
   const { isCoach, isAdmin } = useAuth()
-  const enabled = isCoach() || isAdmin()
+  // Behind `sandboxes`: this sits on the coach home page, so with the flag off
+  // it must not even ask the dashboard endpoint.
+  const flagOn = useFeatureFlagEnabled('sandboxes')
+  const enabled = flagOn && (isCoach() || isAdmin())
   const { data } = useSandboxDashboard(false, enabled)
   if (!enabled || !data || data.cards.length === 0) return null
 

@@ -9,6 +9,7 @@ import { useCoacheeSandbox } from '@/hooks/queries/use-sandboxes'
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
 import { fmtDay, listNames, pluralise } from '@/lib/sandbox/format'
 import type { ClientSandboxContext } from '@/types/sandbox-delivery'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 function line(ctx: ClientSandboxContext): string {
   const n = ctx.delivered.sessions
@@ -29,8 +30,11 @@ function line(ctx: ClientSandboxContext): string {
  * Reads the active profile, so switching profiles switches the card.
  */
 export function SandboxNote() {
-  const { data } = useCoacheeSandbox()
-  if (!data || data.length === 0) return null
+  // Behind `sandboxes`: the coachee dashboard renders this for every portal
+  // user, so the flag has to stop the request, not just the markup.
+  const enabled = useFeatureFlagEnabled('sandboxes')
+  const { data } = useCoacheeSandbox(enabled)
+  if (!enabled || !data || data.length === 0) return null
   return (
     <div className="mb-6 space-y-3" data-testid="sandbox-note">
       {data.map(ctx => {

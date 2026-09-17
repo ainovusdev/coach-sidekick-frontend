@@ -230,7 +230,16 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     await page.getByTestId('regenerate-timeline').click()
     const dialog = page.getByRole('dialog')
     await expect(dialog).toContainText('Regenerate the timeline')
-    await expect(page.getByTestId('regen-overwrite')).toBeChecked()
+
+    // Off by default — dropping hand-added events is destructive and cascades
+    // into their commitments, so it is opt-in. Opening the dialog proposes
+    // nothing to apply.
+    await expect(page.getByTestId('regen-overwrite')).not.toBeChecked()
+    await expect(page.getByTestId('regen-summary')).toContainText('3 kept')
+    await expect(page.getByTestId('regen-confirm')).toBeDisabled()
+
+    // Ticking it is what drops the hand-added event and rewrites the moved ones.
+    await page.getByTestId('regen-overwrite').click()
     await expect(page.getByTestId('regen-preview')).toBeVisible()
     const rows = page.getByTestId('regen-row')
     await expect(rows.filter({ hasText: 'Board offsite' })).toHaveAttribute(
@@ -241,11 +250,6 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
       rows.filter({ hasText: 'Check-in 1' }).first(),
     ).toHaveAttribute('data-action', 'overwritten')
 
-    // Unchecking turns it into a no-op: nothing to apply.
-    await page.getByTestId('regen-overwrite').click()
-    await expect(page.getByTestId('regen-summary')).toContainText('3 kept')
-    await expect(page.getByTestId('regen-confirm')).toBeDisabled()
-    await page.getByTestId('regen-overwrite').click()
     await page.getByTestId('regen-confirm').click()
     await expect(dialog).toHaveCount(0)
 

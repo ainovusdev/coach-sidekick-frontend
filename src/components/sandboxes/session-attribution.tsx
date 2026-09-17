@@ -15,6 +15,7 @@ import {
 } from '@/hooks/queries/use-sandbox-insights'
 import { detailControl } from './details/detail-chart'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 const base = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/sandboxes`
 export interface ClientSandboxMarker {
@@ -30,6 +31,9 @@ export function useSandboxClientMarkers(
   clientIds: (string | undefined | null)[],
   onDate?: string,
 ) {
+  // Behind `sandboxes`: these markers hang off session pickers and session
+  // pages that every coach uses, so the flag stops the membership probe itself.
+  const flagOn = useFeatureFlagEnabled('sandboxes')
   const viewer = useInsightViewer()
   const ids = [...new Set(clientIds.filter((id): id is string => !!id))].sort()
   // Most coaches are in no sandbox: ask once whether this viewer is in any
@@ -40,10 +44,10 @@ export function useSandboxClientMarkers(
       withSandboxViewer(viewer, () =>
         SandboxService.mine({ includeEnded: true }),
       ),
-    enabled: !!viewer,
+    enabled: flagOn && !!viewer,
     staleTime: 60 * 1000,
   })
-  const inSandbox = (membership.data?.total ?? 0) > 0
+  const inSandbox = flagOn && (membership.data?.total ?? 0) > 0
   const query = useQuery({
     queryKey: ['sandbox-client-markers', viewer, ids, onDate ?? null],
     queryFn: () =>
@@ -167,7 +171,9 @@ export function SessionAttribution({
   groupId?: string
   coachId?: string
 }) {
+  const flagOn = useFeatureFlagEnabled('sandboxes')
   const viewer = useInsightViewer()
+  if (!flagOn) return null
   return (
     <AttributionContent
       key={`${viewer}:${sessionId}:${sandboxId}:${memberId}:${groupId}:${coachId}`}

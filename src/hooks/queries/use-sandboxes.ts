@@ -169,11 +169,14 @@ export function useSandboxAttention(id: string | null | undefined) {
   })
 }
 
-export function useClientSandboxContext(clientId: string | null | undefined) {
+export function useClientSandboxContext(
+  clientId: string | null | undefined,
+  enabled = true,
+) {
   return useQuery({
     queryKey: queryKeys.sandboxes.clientContext(clientId ?? ''),
     queryFn: () => SandboxService.clientContext(clientId as string),
-    enabled: !!clientId,
+    enabled: enabled && !!clientId,
     staleTime: 60 * 1000,
   })
 }

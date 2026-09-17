@@ -12,6 +12,7 @@ import { fmtHoursShort, NO_CONTRACT_COPY } from '@/lib/sandbox/delivery'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import type { ClientSandboxContext } from '@/types/sandbox-delivery'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 function ContextCard({
   ctx,
@@ -140,8 +141,10 @@ export function SandboxContextCard({
   clientId: string
   clientName?: string
 }) {
-  const { data } = useClientSandboxContext(clientId)
-  if (!data || data.length === 0) return null
+  // Behind `sandboxes`: mounted on the client detail page and its empty state.
+  const enabled = useFeatureFlagEnabled('sandboxes')
+  const { data } = useClientSandboxContext(clientId, enabled)
+  if (!enabled || !data || data.length === 0) return null
   return (
     <div className="space-y-4">
       {data.map(ctx => (

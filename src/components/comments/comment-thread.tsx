@@ -7,6 +7,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useComments } from '@/hooks/queries/use-comments'
 import {
@@ -43,8 +44,14 @@ export function CommentThread({
   highlightId,
   className,
 }: CommentThreadProps) {
+  // Behind the `comment-threads` flag: these threads mount inside four
+  // pre-existing panels (vision, outcome, sprint, commitment) that every coach
+  // and coachee already opens, so the flag has to stop the request too, not
+  // just hide the section.
+  const enabled = useFeatureFlagEnabled('comment-threads')
   const viewerId = useViewerId()
   const { data, isLoading } = useComments(targetType, targetId, {
+    enabled,
     initialData: initialComments,
   })
   const createComment = useCreateComment(targetType, targetId)
@@ -55,6 +62,9 @@ export function CommentThread({
   const canComment = canCommentProp ?? data?.can_comment ?? false
 
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+
+  // After the hooks above, so hook order never changes between renders.
+  const flagOff = !enabled
 
   // --- deep-link flash ----------------------------------------------------
   const [flashId, setFlashId] = useState<string | null>(null)
@@ -108,6 +118,8 @@ export function CommentThread({
     (id: string) => deleteComment.mutate(id),
     [deleteComment],
   )
+
+  if (flagOff) return null
 
   return (
     <div data-testid="comment-thread" className={cn('space-y-3', className)}>

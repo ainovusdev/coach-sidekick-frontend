@@ -21,6 +21,7 @@ import {
   ListChecks,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 const menuItems = [
   {
@@ -58,6 +59,11 @@ const menuItems = [
     href: '/admin/sandboxes',
     icon: Boxes,
     requiredRole: ['admin', 'super_admin'],
+    // The only way into the sandbox product from the app's own navigation, so
+    // this entry is what the `sandboxes` flag actually gates. The routes
+    // themselves stay reachable by URL and are gated by the API, which answers
+    // 404 to anyone who is not on the sandbox.
+    flag: 'sandboxes',
   },
   {
     title: 'Commitments',
@@ -96,8 +102,12 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { hasAnyRole } = useAuth()
 
-  const filteredMenuItems = menuItems.filter(item =>
-    hasAnyRole(item.requiredRole),
+  const sandboxesEnabled = useFeatureFlagEnabled('sandboxes')
+
+  const filteredMenuItems = menuItems.filter(
+    item =>
+      hasAnyRole(item.requiredRole) &&
+      (!('flag' in item) || item.flag !== 'sandboxes' || sandboxesEnabled),
   )
 
   return (

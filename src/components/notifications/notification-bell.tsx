@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import {
   AtSign,
   Bell,
@@ -73,19 +74,28 @@ function contextLine(n: AppNotification): string {
  * are emailed unless they turn that off; commitment events are in-app only).
  * Clicking one marks it read and follows its link. Same component in every
  * header (coach, client portal, admin, the minimal sandbox header).
+ *
+ * Behind the `notifications` flag. This is the one piece of the release every
+ * signed-in user meets on every page, and its count query polls on a timer, so
+ * the flag gates the polling as well as the icon — off means no bell and no
+ * request, not a hidden bell still calling the API every minute.
  */
 export function NotificationBell({ className }: { className?: string }) {
+  const enabled = useFeatureFlagEnabled('notifications')
   const router = useRouter()
   const [open, setOpen] = useState(false)
-  const { data: unread } = useUnreadNotifications()
-  const { data, isLoading } = useNotifications(open)
+  const { data: unread } = useUnreadNotifications(enabled)
+  const { data, isLoading } = useNotifications(open && enabled)
   const markRead = useMarkNotificationRead()
   const markAll = useMarkAllNotificationsRead()
-  const { data: settings } = useNotificationSettings(open)
+  const { data: settings } = useNotificationSettings(open && enabled)
   const updateSettings = useUpdateNotificationSettings()
   // the count query is always live; the list is only fetched while open
   const count = unread?.unread ?? data?.unread ?? 0
   const items = data?.items ?? []
+
+  // After the hooks, never before — hook order has to stay stable.
+  if (!enabled) return null
 
   const openOne = (n: AppNotification) => {
     if (!n.is_read) markRead.mutate(n.id)

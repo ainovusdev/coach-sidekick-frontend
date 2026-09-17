@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { useMySandboxes } from '@/hooks/queries/use-sandboxes'
@@ -23,11 +23,25 @@ export function ClientRoute({ children }: ClientRouteProps) {
   // the onboarding gap have the client role but no client profile row, and
   // rendering the portal for them just turns every backend call into a 403/404
   // (or is impersonating as super_admin)
-  const isImpersonating =
-    typeof window !== 'undefined' &&
-    !!sessionStorage.getItem('view_as_client_id')
+  // `sessionStorage` does not exist on the server, so reading it while
+  // rendering makes the server and the first client render disagree — and this
+  // value feeds `noProfile`, which feeds a query's `enabled`, so the mismatch
+  // reaches React Query as well as the markup. Read it once after mount and
+  // hold the spinner until then, rather than guessing "not impersonating" and
+  // flashing the no-access wall at a super admin viewing a client portal.
+  const [impersonationChecked, setImpersonationChecked] = useState(false)
+  const [isImpersonating, setIsImpersonating] = useState(false)
+  useEffect(() => {
+    setIsImpersonating(!!sessionStorage.getItem('view_as_client_id'))
+    setImpersonationChecked(true)
+  }, [])
+
   const noProfile =
-    !loading && isAuthenticated && !canAccessClientView() && !isImpersonating
+    impersonationChecked &&
+    !loading &&
+    isAuthenticated &&
+    !canAccessClientView() &&
+    !isImpersonating
 
   // Someone with the client role but no coaching profile may still be on a
   // sandbox (a primary client or supervisor whose account was made that way).
@@ -49,7 +63,11 @@ export function ClientRoute({ children }: ClientRouteProps) {
   // Don't redirect other non-clients here - just don't show content
   // This prevents loops with the auth page
 
-  if (loading || (noProfile && (mineLoading || onSandboxes))) {
+  if (
+    loading ||
+    !impersonationChecked ||
+    (noProfile && (mineLoading || onSandboxes))
+  ) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-8 w-8 animate-spin text-ink-4" />
