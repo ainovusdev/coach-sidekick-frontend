@@ -112,14 +112,14 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
           <div
             className={
               compact
-                ? 'flex min-h-16 flex-wrap items-center justify-between gap-3 py-3'
+                ? 'flex h-16 items-center justify-between gap-3'
                 : 'flex items-center justify-between h-16'
             }
           >
             <div
               className={
                 compact
-                  ? 'flex min-w-0 flex-wrap items-center gap-4'
+                  ? 'flex min-w-0 items-center gap-4'
                   : 'flex items-center gap-10'
               }
             >
@@ -145,8 +145,14 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                 </div>
               </button>
 
-              <nav className="hidden md:flex items-center">
-                <div className="flex items-center bg-surface-2 rounded-lg p-1">
+              <nav
+                className={`hidden items-center md:flex ${compact ? 'min-w-0' : ''}`}
+              >
+                <div
+                  className={`flex items-center bg-surface-2 rounded-lg p-1 ${
+                    compact ? 'overflow-x-auto' : ''
+                  }`}
+                >
                   {navItems.map(item => {
                     const Icon = item.icon
                     const isActive =
@@ -197,17 +203,19 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                         : undefined
                     }
                   />
-                  <div className="hidden lg:flex items-center">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
-                      <div className="relative">
-                        <div className="w-2 h-2 bg-forest rounded-full"></div>
-                        <div className="absolute inset-0 w-2 h-2 bg-forest rounded-full animate-ping"></div>
+                  {!compact && (
+                    <div className="hidden lg:flex items-center">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
+                        <div className="relative">
+                          <div className="w-2 h-2 bg-forest rounded-full"></div>
+                          <div className="absolute inset-0 w-2 h-2 bg-forest rounded-full animate-ping"></div>
+                        </div>
+                        <span className="text-sm font-medium text-ink-2">
+                          Active
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-ink-2">
-                        Active
-                      </span>
                     </div>
-                  </div>
+                  )}
 
                   <NotificationBell />
 
