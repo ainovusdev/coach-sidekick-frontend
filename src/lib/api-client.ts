@@ -10,6 +10,31 @@ type ApiError = Error & {
   detail?: Record<string, any>
 }
 
+/**
+ * True once the document has started going away.
+ *
+ * A request the browser kills because the page is unloading rejects with the
+ * same `TypeError: Failed to fetch` a real connectivity failure gives — the
+ * error carries nothing that tells the two apart. Without this flag every
+ * reload, tab close or hard navigation taken while a request is still in
+ * flight reports a network exception that never happened, and the slowest
+ * pages produce the most of them: landing on the admin dashboard and clicking
+ * through before `admin/users?limit=1000` and `client-access/matrix` finish
+ * reports two.
+ *
+ * `pagehide` also fires when the page goes into the back/forward cache, where
+ * it can be restored and keep running, so `pageshow` clears it again.
+ */
+let documentIsUnloading = false
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    documentIsUnloading = true
+  })
+  window.addEventListener('pageshow', () => {
+    documentIsUnloading = false
+  })
+}
+
 export class ApiClient {
   private static DEFAULT_TIMEOUT = 30000 // 30 seconds
 
@@ -188,6 +213,12 @@ export class ApiClient {
       return response
     } catch (error) {
       clearTimeout(timeoutId)
+      // The page is going away; the caller is about to be torn down too.
+      // Stay silent rather than reporting a failure the user never saw.
+      if (documentIsUnloading) {
+        ;(error as ApiError).__phCaptured = true
+        throw error
+      }
       console.error('Fetch error:', error)
       // These never reach a react-query onError with a usable status (the
       // request never completed), so report them here — throttled per endpoint

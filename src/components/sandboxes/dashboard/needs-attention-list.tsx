@@ -63,10 +63,15 @@ export function NeedsAttentionList({
         data-testid="attention-empty"
       >
         <p className="text-sm font-medium text-ink">Nothing needs you</p>
+        {/* Say only what an empty list actually proves. Invitation and group
+            rows are raised for our side alone, and none are raised at all
+            before the term starts — so claiming "every invitation has landed"
+            contradicted the setup checklist sitting next to it on every
+            upcoming sandbox. */}
         <p className="mt-1 text-sm text-ink-3">
           {showSandbox
-            ? 'Every sandbox is on pace and every invitation has landed.'
-            : 'This one is on pace and every invitation has landed.'}
+            ? 'Nothing across your sandboxes is overdue or waiting on you.'
+            : 'Nothing here is overdue or waiting on you.'}
         </p>
       </div>
     )

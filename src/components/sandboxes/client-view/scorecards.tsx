@@ -193,7 +193,7 @@ export function Scorecards({
             </>
           ) : (
             <span className="text-base font-medium text-ink-3">
-              Unavailable
+              Not started
             </span>
           )}
         </p>

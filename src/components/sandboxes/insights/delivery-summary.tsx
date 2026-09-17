@@ -67,9 +67,13 @@ export function DeliverySummary({
               }
             : {
                 label: 'Coachees on track',
+                // Nobody measurable yet is a stage of the programme, not a
+                // fault in the data. "Unavailable" read as an error next to
+                // the plain 0s beside it, and the same metric said "0/0" on
+                // the detail page — one phrase now, everywhere.
                 value: current.coachees_on_track.total
                   ? headcount(current.coachees_on_track)
-                  : 'Unavailable',
+                  : 'Not started',
                 sub: 'Started, measurable coaching',
               },
         {

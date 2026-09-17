@@ -120,7 +120,7 @@ export function TimelinePanel({
 
       {/* The scroll padding is on the list, not the box, so the last card ends
           clear of the border instead of flush against it. */}
-      <div className="overflow-x-auto">
+      <div className="scroll-fade-x overflow-x-auto">
         <ol className="flex min-w-max items-stretch gap-3 px-5 py-4">
           {timeline.map((ev, i) => {
             const commitmentId = onOpenCommitment ? ev.commitment_id : null

@@ -449,7 +449,9 @@ function DetailContent({
                             value:
                               kind === 'client'
                                 ? STATE_LABEL[current.state]
-                                : `${onTrack.count}/${onTrack.total}`,
+                                : onTrack.total
+                                  ? `${onTrack.count}/${onTrack.total}`
+                                  : 'Not started',
                             sub: `As of ${fmtDay(current.as_of)}`,
                           },
                           {

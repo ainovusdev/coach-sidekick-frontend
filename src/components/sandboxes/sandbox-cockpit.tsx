@@ -206,7 +206,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
           <TabsList
             data-testid="sandbox-tabs"
             className={cn(
-              'h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
+              'scroll-fade-x h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
               'border border-line bg-paper p-1',
             )}
           >
