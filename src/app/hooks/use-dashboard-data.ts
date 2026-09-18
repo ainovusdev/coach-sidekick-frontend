@@ -3,6 +3,7 @@ import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useDebounceCallback } from '@/hooks/use-debounce'
 import { MeetingService } from '@/services/meeting-service'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 
 /**
  * Dashboard data hook - uses TanStack Query for clients with session stats
@@ -27,7 +28,11 @@ export function useDashboardData() {
   const { data: clientsData, isLoading: clientsLoading } = useClientsSimple()
   const clients = clientsData?.clients || []
 
-  const handleCreateBotImpl = async (meetingUrl: string, clientId?: string) => {
+  const handleCreateBotImpl = async (
+    meetingUrl: string,
+    clientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
+  ) => {
     // Prevent multiple submissions
     if (loading) {
       return
@@ -40,6 +45,8 @@ export function useDashboardData() {
       const response = await MeetingService.createBot({
         meeting_url: meetingUrl,
         client_id: clientId,
+        sandbox_id: sandbox?.sandbox_id,
+        sandbox_group_id: sandbox?.group_id,
         recording_mode: 'raw_transcript',
         bot_name: 'Coach Sidekick Assistant',
       })

@@ -22,6 +22,7 @@ import { StartStandaloneGroupSessionModal } from '@/components/group-session/sta
 import { UpcomingSessions } from '@/components/dashboard/upcoming-sessions'
 import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { SandboxStrip } from '@/components/sandboxes/sandbox-strip'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import {
   Eye,
   Plus,
@@ -116,9 +117,13 @@ export default function CoachDashboard() {
       }))
   }, [activeSessionsData])
 
-  const handleCreateBot = async (meetingUrl: string, clientId?: string) => {
+  const handleCreateBot = async (
+    meetingUrl: string,
+    clientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
+  ) => {
     try {
-      const botId = await debouncedCreateBot(meetingUrl, clientId)
+      const botId = await debouncedCreateBot(meetingUrl, clientId, sandbox)
       if (botId) {
         router.push(`/meeting/${botId}`)
       }

@@ -61,12 +61,12 @@ test.describe('Sandboxes — admin creation flow', () => {
     )
     await expect(page.getByTestId('term-preview')).toContainText('6 months')
     await expect(page.getByTestId('term-preview')).toContainText(
-      'Creates 2 check-ins, 1 midpoint report and a results review in',
+      'Creates a gold sealing window, 2 check-ins, 1 midpoint report and a results review in',
     )
 
     await page.getByTestId('term-3').click()
     await expect(page.getByTestId('term-preview')).toContainText(
-      'Creates 1 check-in and a results review in',
+      'Creates a gold sealing window, 1 check-in and a results review in',
     )
     await page.getByTestId('term-6').click()
 

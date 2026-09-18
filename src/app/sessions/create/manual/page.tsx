@@ -4,6 +4,7 @@ import {
   SandboxClientBadge,
   SandboxAssignmentHint,
   useSandboxClientMarkers,
+  type SandboxAssignmentChoice,
 } from '@/components/sandboxes/session-attribution'
 import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -42,6 +43,7 @@ function CreateManualSessionContent() {
   const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   const [creating, setCreating] = useState(false)
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(null)
 
   // Get client ID from URL query parameter
   const prefilledClientId = searchParams.get('clientId')
@@ -80,6 +82,8 @@ function CreateManualSessionContent() {
         client_id: formData.client_id,
         session_date: formData.session_date,
         notes: formData.notes,
+        sandbox_id: sandbox?.sandbox_id,
+        sandbox_group_id: sandbox?.group_id,
       })
 
       toast({
@@ -174,6 +178,8 @@ function CreateManualSessionContent() {
               <SandboxAssignmentHint
                 clientIds={[formData.client_id]}
                 onDate={formData.session_date}
+                value={sandbox}
+                onChange={setSandbox}
               />
               {/* Session Date */}
               <div className="space-y-2">

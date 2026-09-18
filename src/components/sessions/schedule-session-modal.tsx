@@ -52,6 +52,8 @@ interface ScheduleSessionModalProps {
   isOpen: boolean
   onClose: () => void
   preselectedClientId?: string
+  /** The sandbox group this was opened from, so the coach is not asked again. */
+  initialSandbox?: SandboxAssignmentChoice | null
 }
 
 // Quick-pick date options
@@ -83,6 +85,7 @@ export function ScheduleSessionModal({
   isOpen,
   onClose,
   preselectedClientId,
+  initialSandbox = null,
 }: ScheduleSessionModalProps) {
   const router = useRouter()
   const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
@@ -102,7 +105,9 @@ export function ScheduleSessionModal({
   const [calendarOpen, setCalendarOpen] = useState(false)
   // Which sandbox agreement this session credits. Filled in for us when there
   // is only one; a choice the coach makes when the coachee is in several.
-  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(null)
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(
+    initialSandbox,
+  )
 
   const quickDates = useMemo(() => getQuickDates(), [])
 
@@ -166,7 +171,7 @@ export function ScheduleSessionModal({
     setTitleManuallySet(false)
     setMeetingUrl('')
     setSendQuestionnaire(true)
-    setSandbox(null)
+    setSandbox(initialSandbox)
     onClose()
   }
 

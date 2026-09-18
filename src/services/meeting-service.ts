@@ -9,6 +9,9 @@ export interface CreateBotRequest {
   recording_mode?: 'raw_transcript' | 'speaker_separated_audio' | 'video'
   bot_name?: string
   session_id?: string
+  /** The sandbox agreement this session credits, when the coach chose one. */
+  sandbox_id?: string
+  sandbox_group_id?: string
 }
 
 export interface CreateBotResponse {

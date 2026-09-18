@@ -2,23 +2,27 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { CalendarClock, Play, Video } from 'lucide-react'
+import { format, isToday, isTomorrow } from 'date-fns'
+import { CalendarClock, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { GroupSessionDialog } from '@/components/sandboxes/group-session-dialog'
 import { PaceChip } from '@/components/sandboxes/pace-chip'
 import { ProgressRail } from '@/components/sandboxes/progress-rail'
 import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
+import { StartSessionModal } from '@/app/clients/[clientId]/components/start-session-modal'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import { useAuth } from '@/contexts/auth-context'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { useSandboxDashboard } from '@/hooks/queries/use-sandboxes'
 import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
-import { fmtContract, fmtDay } from '@/lib/sandbox/format'
+import { fmtContract } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type { SimpleClient } from '@/services/client-service'
 import type {
   CoacheeDelivery,
   GroupDelivery,
   SandboxCard,
+  UpcomingGroupSession,
 } from '@/types/sandbox-delivery'
 
 type Dialog =
@@ -28,7 +32,24 @@ type Dialog =
       sandbox: SandboxCard
       mode: 'start' | 'schedule'
     }
-  | { kind: 'one-to-one'; clientId: string }
+  | {
+      kind: 'one-to-one'
+      mode: 'start' | 'schedule'
+      clientId: string
+      clientName: string
+      // The row it was clicked from already says which agreement this is.
+      sandbox: SandboxAssignmentChoice
+    }
+
+/**
+ * The session already booked for today, if there is one.
+ *
+ * Judged on the coach's own clock from the instant, not on the server's
+ * `on_day`: a 9pm session in Los Angeles is already tomorrow in UTC.
+ */
+function todays(group: GroupDelivery): UpcomingGroupSession | undefined {
+  return group.upcoming_sessions.find(s => isToday(new Date(s.scheduled_for)))
+}
 
 /**
  * This coach's own client row for a coachee.
@@ -48,6 +69,20 @@ function myClientId(
   )?.id
 }
 
+/**
+ * When a booked session is, on the coach's own clock.
+ *
+ * From the instant, not the server's `on_day`: that is a UTC date, so a session
+ * at 4am in Dhaka printed as yesterday, and one at 9pm in Los Angeles as tomorrow.
+ */
+function when(scheduledFor: string): string {
+  const at = new Date(scheduledFor)
+  const time = format(at, 'h:mm a')
+  if (isToday(at)) return `Today, ${time}`
+  if (isTomorrow(at)) return `Tomorrow, ${time}`
+  return `${format(at, 'EEE d MMM')}, ${time}`
+}
+
 function UpcomingLine({ group }: { group: GroupDelivery }) {
   if (!group.upcoming_sessions.length) return null
   return (
@@ -59,28 +94,25 @@ function UpcomingLine({ group }: { group: GroupDelivery }) {
         >
           <CalendarClock className="h-3.5 w-3.5 shrink-0" aria-hidden />
           <Link
-            href={
-              session.is_group_session
-                ? `/sessions/group/${session.session_id}`
-                : `/sessions/${session.session_id}`
-            }
+            href={`/sessions/${session.session_id}`}
             className="font-medium text-ink-2 hover:underline"
           >
-            {fmtDay(session.on_day, true)}
+            {when(session.scheduled_for)}
           </Link>
           <span className="truncate">
             {session.participant_names.join(', ')}
           </span>
-          {session.meeting_url && (
-            <a
-              href={session.meeting_url}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-ds-accent hover:underline"
+          {isToday(new Date(session.scheduled_for)) && (
+            // Not the meeting link: that drops the coach into the call with
+            // nothing recording it. The session page starts the bot first.
+            <Link
+              href={`/sessions/${session.session_id}`}
+              className="inline-flex items-center gap-1 font-medium text-ds-accent hover:underline"
+              data-testid="start-upcoming"
             >
-              <Video className="h-3 w-3" aria-hidden />
-              Join
-            </a>
+              <Play className="h-3 w-3" aria-hidden />
+              Start
+            </Link>
           )}
         </li>
       ))}
@@ -100,6 +132,8 @@ function GroupRow({
   onOpen: (dialog: Dialog) => void
 }) {
   const expected = group.expected_total
+  const booked = todays(group)
+  const choice = { sandbox_id: card.sandbox.id, group_id: group.group_id }
   return (
     <article
       className="flex flex-col gap-3 rounded-xl border border-line bg-paper p-4"
@@ -124,16 +158,28 @@ function GroupRow({
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <Button
-            size="sm"
-            onClick={() =>
-              onOpen({ kind: 'group', group, sandbox: card, mode: 'start' })
-            }
-            data-testid="start-group-session"
-          >
-            <Play className="h-3.5 w-3.5" aria-hidden />
-            Start group session
-          </Button>
+          {booked ? (
+            // Starting fresh here would leave two rows for one meeting: the
+            // recording, and an empty scheduled twin the coach opens later and
+            // reports as "my call wasn't recorded".
+            <Button size="sm" asChild data-testid="start-todays-session">
+              <Link href={`/sessions/${booked.session_id}`}>
+                <Play className="h-3.5 w-3.5" aria-hidden />
+                Start today’s session
+              </Link>
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              onClick={() =>
+                onOpen({ kind: 'group', group, sandbox: card, mode: 'start' })
+              }
+              data-testid="start-group-session"
+            >
+              <Play className="h-3.5 w-3.5" aria-hidden />
+              Start group session
+            </Button>
+          )}
           <Button
             size="sm"
             variant="outline"
@@ -176,14 +222,27 @@ function GroupRow({
                 <PaceChip pace={coachee.pace} startsOn={group.starts_on} />
               </span>
               {clientId && (
-                <button
-                  type="button"
-                  className="text-xs text-ink-3 underline-offset-2 hover:text-ink hover:underline"
-                  onClick={() => onOpen({ kind: 'one-to-one', clientId })}
-                  data-testid="schedule-one-to-one"
-                >
-                  Schedule 1:1
-                </button>
+                <span className="flex shrink-0 items-center gap-3 text-xs text-ink-3">
+                  {(['start', 'schedule'] as const).map(mode => (
+                    <button
+                      key={mode}
+                      type="button"
+                      className="underline-offset-2 hover:text-ink hover:underline"
+                      onClick={() =>
+                        onOpen({
+                          kind: 'one-to-one',
+                          mode,
+                          clientId,
+                          clientName: coachee.name || coachee.email || '',
+                          sandbox: choice,
+                        })
+                      }
+                      data-testid={`${mode}-one-to-one`}
+                    >
+                      {mode === 'start' ? 'Start 1:1' : 'Schedule'}
+                    </button>
+                  ))}
+                </span>
               )}
             </li>
           )
@@ -255,11 +314,21 @@ export function SandboxGroupsSection({
           onClose={() => setDialog(null)}
         />
       )}
-      {dialog?.kind === 'one-to-one' && (
+      {dialog?.kind === 'one-to-one' && dialog.mode === 'schedule' && (
         <ScheduleSessionModal
           isOpen
           onClose={() => setDialog(null)}
           preselectedClientId={dialog.clientId}
+          initialSandbox={dialog.sandbox}
+        />
+      )}
+      {dialog?.kind === 'one-to-one' && dialog.mode === 'start' && (
+        <StartSessionModal
+          isOpen
+          onClose={() => setDialog(null)}
+          clientId={dialog.clientId}
+          clientName={dialog.clientName}
+          initialSandbox={dialog.sandbox}
         />
       )}
     </section>

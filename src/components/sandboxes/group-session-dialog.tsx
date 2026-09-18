@@ -128,12 +128,11 @@ export function GroupSessionDialog({
       return
     }
 
+    // A live session with nothing recording it is a row nothing ever closes, so
+    // the button is disabled without a link and the server refuses one too.
+    if (!meetingUrl.trim()) return
     const session = await create.mutateAsync(shared)
     onClose()
-    if (!meetingUrl.trim()) {
-      router.push(`/sessions/group/${session.id}`)
-      return
-    }
     try {
       setStartingBot(true)
       const bot = await MeetingService.createBot({
@@ -148,6 +147,19 @@ export function GroupSessionDialog({
     } finally {
       setStartingBot(false)
     }
+  }
+
+  // The session already happened: make the row wait for its recording rather
+  // than go live. The session page shows the uploader for `pending_upload`.
+  const upload = async () => {
+    const session = await create.mutateAsync({
+      sandbox_id: sandboxId,
+      sandbox_group_id: group.group_id,
+      title: title.trim() || undefined,
+      session_type: 'manual',
+    })
+    onClose()
+    router.push(`/sessions/${session.id}`)
   }
 
   return (
@@ -268,9 +280,11 @@ export function GroupSessionDialog({
           <div className="space-y-2">
             <Label htmlFor="group-session-url" className="text-sm font-medium">
               Meeting link{' '}
-              <span className="font-normal text-ink-3">
-                {mode === 'start' ? '· records the call' : '· optional'}
-              </span>
+              {mode === 'start' ? (
+                <span className="text-vermillion">*</span>
+              ) : (
+                <span className="font-normal text-ink-3">· optional</span>
+              )}
             </Label>
             <Input
               id="group-session-url"
@@ -279,6 +293,20 @@ export function GroupSessionDialog({
               placeholder="https://zoom.us/j/…"
               data-testid="group-session-url"
             />
+            {mode === 'start' && (
+              <p className="text-xs leading-relaxed text-ink-3">
+                Sidekick joins this call to record it.{' '}
+                <button
+                  type="button"
+                  onClick={upload}
+                  disabled={busy}
+                  className="font-medium text-ink-2 underline underline-offset-2 hover:text-ink disabled:opacity-50"
+                  data-testid="group-session-upload"
+                >
+                  Already had the session? Upload the recording
+                </button>
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -310,7 +338,11 @@ export function GroupSessionDialog({
             </Button>
             <Button
               type="submit"
-              disabled={busy || (mode === 'schedule' && !day)}
+              disabled={
+                busy ||
+                (mode === 'schedule' && !day) ||
+                (mode === 'start' && !meetingUrl.trim())
+              }
               data-testid="group-session-submit"
             >
               {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}

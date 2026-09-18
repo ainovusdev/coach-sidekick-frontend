@@ -9,6 +9,9 @@ export interface ManualSessionCreateDto {
   session_date?: string
   notes?: string
   session_metadata?: Record<string, any>
+  /** The sandbox agreement this session credits, when the coach chose one. */
+  sandbox_id?: string
+  sandbox_group_id?: string
 }
 
 export interface TranscriptionStatus {

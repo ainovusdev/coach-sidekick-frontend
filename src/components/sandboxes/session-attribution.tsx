@@ -135,10 +135,14 @@ export function SandboxAssignmentHint({
     )
   }, [rows])
   const ambiguous = rows.some(row => row.contexts.length > 1)
+  const loaded = rows.length > 0
   const selected = value?.group_id ?? ''
 
   useEffect(() => {
-    if (!onChange) return
+    // Nothing loaded yet is not "no longer an option": a caller that opened this
+    // from a group row arrives with a choice already made, and clearing it
+    // before the markers land would ask the coach a question they answered.
+    if (!onChange || !loaded) return
     // One shared agreement and nothing else in play: say so, and send it, so the
     // session is settled the same way whether or not the coach read the line.
     if (!ambiguous && shared.length === 1) {
@@ -151,11 +155,15 @@ export function SandboxAssignmentHint({
     }
     // The chosen group stopped being an option — a changed date, a changed room.
     if (selected && !shared.some(c => c.group_id === selected)) onChange(null)
-  }, [ambiguous, shared, selected, onChange])
+  }, [ambiguous, shared, selected, onChange, loaded])
 
   if (!rows.length) return null
 
   const one = !ambiguous && shared.length === 1 ? shared[0] : null
+  // Read-only callers get the good news and nothing else. Telling a coach the
+  // assignment "needs review" on a surface with no way to settle it is a dead
+  // end; every surface that can create a session passes `onChange` instead.
+  if (!one && !onChange) return null
   return (
     <div
       className="space-y-2 rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-ink-3"
@@ -172,11 +180,7 @@ export function SandboxAssignmentHint({
           </Link>{' '}
           · {one.group_name}
         </p>
-      ) : !onChange ? (
-        <p>
-          Sandbox assignment needs review. Recording and uploading can continue.
-        </p>
-      ) : shared.length === 0 ? (
+      ) : !onChange ? null : shared.length === 0 ? (
         <p data-testid="sandbox-assignment-none">
           These people are in different agreements, so this session can’t count
           toward one of them. It will wait for review.
