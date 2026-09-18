@@ -20,11 +20,21 @@ import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { parseDateForPicker, formatDateOnly } from '@/lib/date-utils'
 
+/** The picked calendar day as YYYY-MM-DD in local time (toISOString would shift it by the timezone offset). */
+function toLocalDateOnly(date: Date): string {
+  const y = date.getFullYear()
+  const m = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 interface DueDateFieldProps {
   value?: string | null
   onChange: (value: string | null) => void
   label?: string
   id?: string
+  /** A date that must be set: no clear button, no "(optional)" hint. */
+  required?: boolean
 }
 
 export function DueDateField({
@@ -32,6 +42,7 @@ export function DueDateField({
   onChange,
   label = 'Due date',
   id = 'due-date',
+  required = false,
 }: DueDateFieldProps) {
   const [open, setOpen] = useState(false)
 
@@ -53,22 +64,26 @@ export function DueDateField({
               <CalendarIcon className="mr-2 h-4 w-4" />
               {value
                 ? formatDateOnly(value, 'MMM d, yyyy')
-                : 'Set a date (optional)'}
+                : required
+                  ? 'Pick a date'
+                  : 'Set a date (optional)'}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
               selected={parseDateForPicker(value ?? undefined)}
+              // Open on the month of the current value, not on today's month.
+              defaultMonth={parseDateForPicker(value ?? undefined)}
               onSelect={date => {
-                onChange(date ? date.toISOString().split('T')[0] : null)
+                onChange(date ? toLocalDateOnly(date) : null)
                 setOpen(false)
               }}
               initialFocus
             />
           </PopoverContent>
         </Popover>
-        {value && (
+        {value && !required && (
           <Button
             type="button"
             variant="ghost"

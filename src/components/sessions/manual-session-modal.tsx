@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  SandboxClientBadge,
+  SandboxAssignmentHint,
+  useSandboxClientMarkers,
+} from '@/components/sandboxes/session-attribution'
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { format } from 'date-fns'
@@ -48,6 +53,7 @@ export function ManualSessionModal({
   // Use lightweight clients query for fast loading
   const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
+  const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   const [creating, setCreating] = useState(false)
 
@@ -156,6 +162,9 @@ export function ManualSessionModal({
                   {clients.map(client => (
                     <SelectItem key={client.id} value={client.id}>
                       {client.name}
+                      <SandboxClientBadge
+                        contexts={sandboxMarkers[client.id]}
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -163,6 +172,10 @@ export function ManualSessionModal({
             )}
           </div>
 
+          <SandboxAssignmentHint
+            clientIds={[formData.client_id]}
+            onDate={sessionDate ? format(sessionDate, 'yyyy-MM-dd') : undefined}
+          />
           {/* Session Date */}
           <div className="space-y-2">
             <Label

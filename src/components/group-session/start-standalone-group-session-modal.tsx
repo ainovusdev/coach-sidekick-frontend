@@ -1,5 +1,10 @@
 'use client'
 
+import {
+  SandboxClientBadge,
+  SandboxAssignmentHint,
+  useSandboxClientMarkers,
+} from '@/components/sandboxes/session-attribution'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
@@ -32,6 +37,7 @@ export function StartStandaloneGroupSessionModal({
   const router = useRouter()
   const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
+  const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(
     new Set(),
@@ -190,6 +196,9 @@ export function StartStandaloneGroupSessionModal({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium truncate">
                           {client.name}
+                          <SandboxClientBadge
+                            contexts={sandboxMarkers[client.id]}
+                          />
                         </p>
                         {client.email && (
                           <p className="text-xs text-muted-foreground truncate">
@@ -211,6 +220,7 @@ export function StartStandaloneGroupSessionModal({
           </div>
         </div>
 
+        <SandboxAssignmentHint clientIds={[...selectedClientIds]} />
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
             Cancel

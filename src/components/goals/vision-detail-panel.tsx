@@ -19,6 +19,7 @@ import {
   LinkedItem,
   CommitmentsSection,
 } from '@/components/ui/detail-side-panel'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { formatDateOnly } from '@/lib/date-utils'
 import type { Goal } from '@/services/goal-service'
 import type { Target as OutcomeTarget } from '@/types/sprint'
@@ -31,6 +32,8 @@ interface VisionDetailPanelProps {
   onEdit?: () => void
   onDelete?: () => void
   onCommitmentClick?: (commitment: any) => void
+  /** Deep link: the comment to scroll to and ring. */
+  highlightCommentId?: string | null
 }
 
 export function VisionDetailPanel({
@@ -41,6 +44,7 @@ export function VisionDetailPanel({
   onEdit,
   onDelete,
   onCommitmentClick,
+  highlightCommentId,
 }: VisionDetailPanelProps) {
   return (
     <DetailSidePanel
@@ -102,6 +106,15 @@ export function VisionDetailPanel({
         commitments={commitments}
         onCommitmentClick={onCommitmentClick}
       />
+
+      <DetailSection title="Comments">
+        <CommentThread
+          targetType="goal"
+          targetId={goal.id}
+          context={{ clientId: goal.client_id }}
+          highlightId={highlightCommentId}
+        />
+      </DetailSection>
 
       <DetailSection title="Metadata">
         <DetailRow label="Created">{formatDateOnly(goal.created_at)}</DetailRow>

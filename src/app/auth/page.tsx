@@ -23,6 +23,8 @@ export default function AuthPage() {
         router.push('/')
       } else if (isClientOnly) {
         router.push('/client-portal/dashboard')
+      } else if (roles.length === 0) {
+        router.push('/sandboxes')
       }
     }
   }, [isAuthenticated, loading, roles, router])

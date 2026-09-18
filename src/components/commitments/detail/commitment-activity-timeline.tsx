@@ -15,26 +15,27 @@ import {
   CheckCircle2,
   Trophy,
   AlertTriangle,
+  UserRound,
+  MessageSquare,
+  Zap,
 } from 'lucide-react'
+import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
 import { formatDate } from '@/lib/date-utils'
+import { statusInfo } from '@/lib/commitments/labels'
 import type { Commitment } from '@/types/commitment'
+import type { Comment } from '@/types/comment'
 import {
   buildActivityFeed,
   resolveActorName,
   type ActivityItem,
 } from './build-activity-feed'
 
-const STATUS_LABELS: Record<string, string> = {
-  draft: 'Draft',
-  active: 'Active',
-  in_progress: 'In Progress',
-  completed: 'Completed',
-  abandoned: 'Abandoned',
-}
-
 function ItemIcon({ item }: { item: ActivityItem }) {
   const base = 'h-3.5 w-3.5'
+  if (item.commentId) {
+    return <MessageSquare className={cn(base, 'text-ink-3')} />
+  }
   switch (item.kind) {
     case 'created':
       return <Plus className={cn(base, 'text-ink-3')} />
@@ -46,8 +47,16 @@ function ItemIcon({ item }: { item: ActivityItem }) {
       )
     case 'progress':
       return <TrendingUp className={cn(base, 'text-amber-token')} />
+    case 'assigned':
+      return <UserRound className={cn(base, 'text-ink-3')} />
     case 'completed':
       return <CheckCircle2 className={cn(base, 'text-forest')} />
+    case 'auto_resolved':
+      return item.toStatus === 'completed' ? (
+        <CheckCircle2 className={cn(base, 'text-forest')} />
+      ) : (
+        <Zap className={cn(base, 'text-ink-3')} />
+      )
     default:
       return <div className="h-2 w-2 rounded-full bg-line" />
   }
@@ -57,13 +66,49 @@ function ItemBody({
   item,
   actor,
   extractedByAi,
+  currentUserId,
+  clientFirstName,
 }: {
   item: ActivityItem
   actor: string
   extractedByAi?: boolean
+  currentUserId?: string
+  clientFirstName?: string
 }) {
+  if (item.commentId) {
+    const anchor = `comment-${item.commentId}`
+    return (
+      <div className="space-y-0.5">
+        <span className="text-ink-3">
+          <span className="text-ink-2 font-medium">{actor}</span> commented
+        </span>
+        <a
+          href={`#${anchor}`}
+          className="block text-sm text-ink-2 line-clamp-2 hover:underline"
+          onClick={e => {
+            const el = document.getElementById(anchor)
+            if (!el) return
+            e.preventDefault()
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
+        >
+          {item.note}
+        </a>
+      </div>
+    )
+  }
   switch (item.kind) {
     case 'created':
+      if (item.autoRule) {
+        return (
+          <span className="text-ink-3" data-testid="activity-created-auto">
+            <span className="inline-flex items-center gap-1">
+              <Zap className="h-3 w-3 text-ink-3" />
+              Created automatically · {item.autoRule}
+            </span>
+          </span>
+        )
+      }
       return (
         <span className="text-ink-3">
           {extractedByAi ? (
@@ -79,12 +124,20 @@ function ItemBody({
           )}
         </span>
       )
+    case 'auto_resolved':
+      return (
+        <span className="text-ink-3" data-testid="activity-auto-resolved">
+          {item.toStatus === 'completed' ? 'Completed' : 'Dismissed'}{' '}
+          automatically
+          {item.reason ? ` — ${item.reason}` : ''}
+        </span>
+      )
     case 'status':
       return (
         <span className="text-ink-3">
           <span className="text-ink-2 font-medium">{actor}</span> moved it to{' '}
           <span className="text-ink-2 font-medium">
-            {STATUS_LABELS[item.toStatus || ''] || item.toStatus}
+            {statusInfo(item.toStatus).label}
           </span>
         </span>
       )
@@ -105,6 +158,25 @@ function ItemBody({
       )
     case 'completed':
       return <span className="text-ink-3">Marked complete</span>
+    case 'assigned':
+      return (
+        <span className="text-ink-3">
+          <span className="text-ink-2 font-medium">{actor}</span>
+          {item.toClient ? (
+            <> handed this back to {clientFirstName ?? 'the client'}</>
+          ) : (
+            <>
+              {' '}
+              assigned this to{' '}
+              <span className="text-ink-2 font-medium">
+                {item.toAssigneeId && item.toAssigneeId === currentUserId
+                  ? 'you'
+                  : item.toAssigneeName || 'someone'}
+              </span>
+            </>
+          )}
+        </span>
+      )
     default:
       return (
         <div className="space-y-1.5">
@@ -133,17 +205,20 @@ function ItemBody({
 export function CommitmentActivityTimeline({
   commitment,
   currentUserId,
+  comments,
 }: {
   commitment: Commitment
   currentUserId?: string
+  /** Live thread (from useComments); falls back to the embedded one. */
+  comments?: Comment[]
 }) {
-  const groups = buildActivityFeed(commitment)
+  const groups = buildActivityFeed(commitment, comments)
 
   const ctx = {
     currentUserId,
-    assignedToId: commitment.assigned_to_id,
-    assignedToName: commitment.assigned_to_name,
-    createdById: commitment.created_by_id,
+    assignedToId: commitment.assigned_to_id ?? undefined,
+    assignedToName: commitment.assigned_to_name ?? undefined,
+    createdById: commitment.created_by_id ?? undefined,
     creatorName: commitment.creator_name,
   }
 
@@ -168,6 +243,10 @@ export function CommitmentActivityTimeline({
                     item={item}
                     actor={actor}
                     extractedByAi={commitment.extracted_from_transcript}
+                    currentUserId={currentUserId}
+                    clientFirstName={
+                      firstName(commitment.client_name) || undefined
+                    }
                   />
                 </div>
               ))}

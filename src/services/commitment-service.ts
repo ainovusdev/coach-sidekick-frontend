@@ -67,6 +67,10 @@ export class CommitmentService {
     if (filters?.assigned_to_type)
       params.append('assigned_to_type', filters.assigned_to_type)
     if (filters?.my_clients_only) params.append('my_clients_only', 'true')
+    if (filters?.sandbox_id) params.append('sandbox_id', filters.sandbox_id)
+    if (filters?.involving_me) params.append('involving_me', 'true')
+    if (filters?.created_by_me) params.append('created_by_me', 'true')
+    if (filters?.assignee) params.append('assignee', filters.assignee)
 
     const queryString = params.toString()
     const url = `${BACKEND_URL}/commitments/${queryString ? `?${queryString}` : ''}`
@@ -115,6 +119,33 @@ export class CommitmentService {
       data,
     )
     return response
+  }
+
+  /**
+   * Relate two commitments (symmetric, idempotent). Returns the other one.
+   */
+  static async relateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<Commitment> {
+    return ApiClient.post(
+      `${BACKEND_URL}/commitments/${commitmentId}/related`,
+      {
+        related_id: relatedId,
+      },
+    )
+  }
+
+  /**
+   * Remove the relation between two commitments.
+   */
+  static async unrelateCommitment(
+    commitmentId: string,
+    relatedId: string,
+  ): Promise<void> {
+    await ApiClient.delete(
+      `${BACKEND_URL}/commitments/${commitmentId}/related/${relatedId}`,
+    )
   }
 
   /**

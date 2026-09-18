@@ -18,7 +18,6 @@ import {
   UserRound,
   User,
   LogOut,
-  Bell,
   Search,
   Menu,
   X,
@@ -30,6 +29,7 @@ import { useState, useEffect } from 'react'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ProfileSwitcher } from '@/components/client-portal/profile-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 
 const navItems = [
   {
@@ -186,12 +186,7 @@ export function ClientNavigation() {
 
             {/* Right Section */}
             <div className="flex items-center gap-3">
-              <button
-                aria-label="Notifications"
-                className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-3 hover:bg-surface-3 hover:text-ink transition-colors"
-              >
-                <Bell className="h-4 w-4" strokeWidth={1.75} />
-              </button>
+              <NotificationBell className="hidden h-8 w-8 sm:inline-flex" />
               <button
                 aria-label="Search"
                 className="hidden sm:inline-flex h-8 w-8 items-center justify-center rounded-md text-ink-3 hover:bg-surface-3 hover:text-ink transition-colors"

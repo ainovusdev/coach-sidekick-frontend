@@ -21,6 +21,7 @@ import {
   LinkedItem,
   CommitmentsSection,
 } from '@/components/ui/detail-side-panel'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { useSprint } from '@/hooks/queries/use-sprints'
 import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
@@ -34,6 +35,8 @@ interface SprintDetailPanelProps {
   onComplete?: () => void
   onDelete?: () => void
   onCommitmentClick?: (commitment: any) => void
+  /** Deep link: the comment to scroll to and ring. */
+  highlightCommentId?: string | null
 }
 
 export function SprintDetailPanel({
@@ -44,6 +47,7 @@ export function SprintDetailPanel({
   onComplete,
   onDelete,
   onCommitmentClick,
+  highlightCommentId,
 }: SprintDetailPanelProps) {
   // Hydrate linked outcomes; base fields come from the passed row object.
   const { data: detail } = useSprint(sprint.id)
@@ -129,6 +133,15 @@ export function SprintDetailPanel({
         commitments={commitments}
         onCommitmentClick={onCommitmentClick}
       />
+
+      <DetailSection title="Comments">
+        <CommentThread
+          targetType="sprint"
+          targetId={sprint.id}
+          context={{ clientId: sprint.client_id }}
+          highlightId={highlightCommentId}
+        />
+      </DetailSection>
 
       <DetailSection title="Metadata">
         <DetailRow label="Created">

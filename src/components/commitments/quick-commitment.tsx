@@ -12,6 +12,7 @@ import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useTargets } from '@/hooks/queries/use-targets'
 import { useSprints } from '@/hooks/queries/use-sprints'
 import { useAuth } from '@/contexts/auth-context'
+import { useClient } from '@/hooks/queries/use-clients'
 import { CommitmentService } from '@/services/commitment-service'
 import { Commitment } from '@/types/commitment'
 import {
@@ -30,6 +31,8 @@ interface QuickCommitmentProps {
 export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  // Name + login of the client, so the panel's picker can offer "the client".
+  const { data: clientRecord } = useClient(clientId)
   const createCommitment = useCreateCommitment()
   const updateCommitment = useUpdateCommitment()
   const discardCommitment = useDiscardCommitment()
@@ -223,6 +226,12 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
     <>
       <CommitmentPanel
         variant="coach"
+        client={{
+          id: clientId,
+          name: clientRecord?.name ?? null,
+          email: clientRecord?.email ?? null,
+          user_id: clientRecord?.user_id ?? null,
+        }}
         sessionCommitments={sessionCommitments as PanelCommitment[]}
         loadingSession={loadingSession}
         activeCommitments={allActiveCommitments as PanelCommitment[]}
@@ -283,6 +292,7 @@ export function QuickCommitment({ sessionId, clientId }: QuickCommitmentProps) {
         commitmentId={detailCommitmentId}
         clientId={clientId}
         onClose={() => setDetailCommitmentId(null)}
+        onNavigate={setDetailCommitmentId}
         onCommitmentUpdate={() => {
           queryClient.invalidateQueries({ queryKey: ['commitments'] })
         }}

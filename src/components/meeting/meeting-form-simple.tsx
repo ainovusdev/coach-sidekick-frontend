@@ -1,5 +1,6 @@
 'use client'
 
+import { SandboxAssignmentHint } from '@/components/sandboxes/session-attribution'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -90,6 +91,9 @@ export function MeetingFormSimple({
           )}
         </div>
 
+        {preselectedClientId && !showClientSelector && (
+          <SandboxAssignmentHint clientIds={[preselectedClientId]} />
+        )}
         <div className="relative">
           <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4" />
           <Input

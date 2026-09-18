@@ -3,7 +3,37 @@ import { toast } from 'sonner'
 import { captureExceptionThrottled } from '@/lib/posthog-capture'
 
 /** Error thrown by ApiClient, annotated for PostHog dedup at the cache layer. */
-type ApiError = Error & { status?: number; __phCaptured?: boolean }
+type ApiError = Error & {
+  status?: number
+  __phCaptured?: boolean
+  /** Structured `detail` object from the backend (e.g. `{ code, message, ... }`). */
+  detail?: Record<string, any>
+}
+
+/**
+ * True once the document has started going away.
+ *
+ * A request the browser kills because the page is unloading rejects with the
+ * same `TypeError: Failed to fetch` a real connectivity failure gives — the
+ * error carries nothing that tells the two apart. Without this flag every
+ * reload, tab close or hard navigation taken while a request is still in
+ * flight reports a network exception that never happened, and the slowest
+ * pages produce the most of them: landing on the admin dashboard and clicking
+ * through before `admin/users?limit=1000` and `client-access/matrix` finish
+ * reports two.
+ *
+ * `pagehide` also fires when the page goes into the back/forward cache, where
+ * it can be restored and keep running, so `pageshow` clears it again.
+ */
+let documentIsUnloading = false
+if (typeof window !== 'undefined') {
+  window.addEventListener('pagehide', () => {
+    documentIsUnloading = true
+  })
+  window.addEventListener('pageshow', () => {
+    documentIsUnloading = false
+  })
+}
 
 export class ApiClient {
   private static DEFAULT_TIMEOUT = 30000 // 30 seconds
@@ -11,6 +41,7 @@ export class ApiClient {
   private static async handleErrorResponse(response: Response): Promise<never> {
     const status = response.status
     let errorMessage = `HTTP error! status: ${status}`
+    let structuredDetail: Record<string, any> | undefined
 
     try {
       const contentType = response.headers.get('content-type')
@@ -21,6 +52,9 @@ export class ApiClient {
           errorMessage = detail
         } else if (Array.isArray(detail)) {
           errorMessage = detail.map((d: any) => d.msg || String(d)).join('; ')
+        } else if (detail && typeof detail === 'object') {
+          structuredDetail = detail
+          errorMessage = detail.message || errorData.message || errorMessage
         } else {
           errorMessage = errorData.message || errorMessage
         }
@@ -86,14 +120,19 @@ export class ApiClient {
       }
     }
 
-    // Show toast immediately
-    showToast()
+    // Show toast immediately. 409 Conflict carries a structured decision for
+    // the caller to present (e.g. "this person is in a group"), so it is
+    // left to the caller rather than toasted generically.
+    if (status !== 409) {
+      showToast()
+    }
 
     // Small delay to ensure toast is rendered
     await new Promise(resolve => setTimeout(resolve, 50))
 
     const error: ApiError = new Error(errorMessage)
     error.status = status
+    if (structuredDetail) error.detail = structuredDetail
     // Report server errors to PostHog here (throttled per endpoint+status so a
     // retried call doesn't double-report) and flag them so the react-query
     // cache layer skips re-reporting. Routine 4xx are expected user/flow errors
@@ -174,6 +213,12 @@ export class ApiClient {
       return response
     } catch (error) {
       clearTimeout(timeoutId)
+      // The page is going away; the caller is about to be torn down too.
+      // Stay silent rather than reporting a failure the user never saw.
+      if (documentIsUnloading) {
+        ;(error as ApiError).__phCaptured = true
+        throw error
+      }
       console.error('Fetch error:', error)
       // These never reach a react-query onError with a usable status (the
       // request never completed), so report them here — throttled per endpoint

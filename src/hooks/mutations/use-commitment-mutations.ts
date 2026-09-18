@@ -2,15 +2,37 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { CommitmentService } from '@/services/commitment-service'
 import {
+  Commitment,
   CommitmentAttachment,
   CommitmentCreate,
   CommitmentUpdate,
   CommitmentUpdateCreate,
   MilestoneCreate,
 } from '@/types/commitment'
-import { queryKeys } from '@/lib/query-client'
+import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
 import { nowUTC } from '@/lib/date-utils'
+import { useAuth } from '@/contexts/auth-context'
+import { assigneeOf } from '@/lib/commitments/assignee'
+
+/**
+ * "Assigned to Priya" when the row went to someone other than the actor;
+ * null otherwise (own list, or the client themself — nothing to announce).
+ */
+function assignedToast(
+  commitment: {
+    assignee?: any
+    assigned_to_id?: string | null
+    assigned_to_name?: string | null
+    client_id?: string | null
+    client_name?: string | null
+  },
+  currentUserId: string | null,
+): string | null {
+  const a = assigneeOf(commitment)
+  if (!a?.user_id || a.user_id === currentUserId) return null
+  return `Assigned to ${a.name || a.email || 'them'}`
+}
 
 /**
  * Hook to create a new commitment with optimistic updates
@@ -25,6 +47,7 @@ import { nowUTC } from '@/lib/date-utils'
  */
 export function useCreateCommitment() {
   const queryClient = useQueryClient()
+  const { userId: currentUserId } = useAuth()
 
   return useMutation({
     mutationFn: (data: CommitmentCreate) =>
@@ -45,6 +68,11 @@ export function useCreateCommitment() {
         created_at: timestamp,
         updated_at: timestamp,
         is_coach_commitment: !!newCommitment.assigned_to_id,
+        assignee_kind: newCommitment.assigned_to_id
+          ? 'user'
+          : newCommitment.client_id
+            ? 'client'
+            : 'none',
       }
 
       // Get all commitment list queries and update them
@@ -77,7 +105,7 @@ export function useCreateCommitment() {
         })
       }
 
-      toast.error('Failed to create commitment', {
+      toast.error("Couldn't create", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -87,15 +115,19 @@ export function useCreateCommitment() {
         commitment_id: data.id,
         commitment_type: data.type ?? null,
         client_id: data.client_id ?? null,
+        assignee_kind: data.assignee_kind ?? null,
       })
-      toast.success('Commitment created', {
+      toast.success(assignedToast(data, currentUserId) ?? 'Created', {
         description: data.title,
       })
     },
 
     onSettled: () => {
-      // Refetch to get the real data from server
+      // Refetch to get the real data from server; the assignee's bell too.
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -112,6 +144,7 @@ export function useCreateCommitment() {
  */
 export function useUpdateCommitment(options?: { silent?: boolean }) {
   const queryClient = useQueryClient()
+  const { userId: currentUserId } = useAuth()
 
   return useMutation({
     mutationFn: ({
@@ -152,21 +185,30 @@ export function useUpdateCommitment(options?: { silent?: boolean }) {
         )
       }
 
-      toast.error('Failed to update commitment', {
+      toast.error("Couldn't save", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
 
-    onSuccess: data => {
-      if (!options?.silent) {
-        toast.success('Commitment updated', {
-          description: data.title,
-        })
+    onSuccess: (data, { data: patch }) => {
+      // Reassignment always confirms who it went to, even on silent surfaces —
+      // that is the one change the person can't see on the row they're editing.
+      const assigned =
+        patch.assigned_to_id !== undefined
+          ? assignedToast(data, currentUserId)
+          : null
+      if (assigned) {
+        toast.success(assigned, { description: data.title })
+      } else if (!options?.silent) {
+        toast.success('Saved', { description: data.title })
       }
     },
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -188,13 +230,17 @@ export function useConfirmCommitment() {
     onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
 
-      toast.success('Commitment confirmed', {
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+
+      toast.success('Confirmed', {
         description: data.title,
       })
     },
 
     onError: err => {
-      toast.error('Failed to confirm commitment', {
+      toast.error("Couldn't confirm", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -223,7 +269,7 @@ export function useDiscardCommitment() {
       const commitmentData: any = queryClient.getQueryData(
         queryKeys.commitments.detail(commitmentId),
       )
-      const commitmentTitle = commitmentData?.title || 'Commitment'
+      const commitmentTitle = commitmentData?.title
 
       // Snapshot previous value
       const previousList = queryClient.getQueryData(
@@ -254,13 +300,13 @@ export function useDiscardCommitment() {
         )
       }
 
-      toast.error('Failed to delete commitment', {
+      toast.error("Couldn't delete", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
 
     onSuccess: (_data, _commitmentId, context) => {
-      toast.success('Commitment deleted', {
+      toast.success('Deleted', {
         description: context?.commitmentTitle,
       })
     },
@@ -342,7 +388,7 @@ export function useUpdateCommitmentProgress() {
           context.previous,
         )
       }
-      toast.error('Failed to update progress', {
+      toast.error("Couldn't save progress", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -353,7 +399,7 @@ export function useUpdateCommitmentProgress() {
           commitment_id: commitmentId,
         })
       }
-      toast.success('Progress updated')
+      toast.success('Progress saved')
     },
 
     onSettled: (_data, _err, { commitmentId }) => {
@@ -382,13 +428,15 @@ export function useBulkConfirmCommitments() {
     onSuccess: data => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
 
-      toast.success(`${data.length} commitments confirmed`, {
-        description: 'All selected commitments have been confirmed',
-      })
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
+      // A sandbox cockpit shows commitment counts on its timeline cards.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+
+      toast.success(`${data.length} confirmed`)
     },
 
     onError: err => {
-      toast.error('Failed to confirm commitments', {
+      toast.error("Couldn't confirm", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -412,18 +460,110 @@ export function useBulkDiscardCommitments() {
     onSuccess: (_data, commitmentIds) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
 
-      toast.success(`${commitmentIds.length} commitments discarded`, {
-        description: 'Selected commitments have been removed',
-      })
+      toast.success(`${commitmentIds.length} discarded`)
     },
 
     onError: err => {
-      toast.error('Failed to discard commitments', {
+      toast.error("Couldn't discard", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
   })
 }
+
+// ---------------------------------------------------------------------------
+// Related commitments (symmetric). `related` is the row being related when the
+// caller already has it, so the parent's list can show it before the server
+// answers.
+// ---------------------------------------------------------------------------
+
+export interface RelateVariables {
+  commitmentId: string
+  relatedId: string
+  related?: Commitment
+  sandboxId?: string | null
+}
+
+function addRelated(old: any, row: Commitment | undefined, relatedId: string) {
+  if (!old) return old
+  const present = (old.related ?? []).some(
+    (r: Commitment) => r.id === relatedId,
+  )
+  if (present) return old
+  return {
+    ...old,
+    related: row ? [...(old.related ?? []), row] : old.related,
+    related_total: (old.related_total ?? 0) + 1,
+    related_done:
+      (old.related_done ?? 0) + (row?.status === 'completed' ? 1 : 0),
+  }
+}
+
+function dropRelated(old: any, relatedId: string) {
+  if (!old) return old
+  const gone = (old.related ?? []).find((r: Commitment) => r.id === relatedId)
+  return {
+    ...old,
+    related: (old.related ?? []).filter((r: Commitment) => r.id !== relatedId),
+    related_total: Math.max(0, (old.related_total ?? 0) - 1),
+    related_done: Math.max(
+      0,
+      (old.related_done ?? 0) - (gone?.status === 'completed' ? 1 : 0),
+    ),
+  }
+}
+
+export function useRelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      CommitmentService.relateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId, related }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) =>
+        addRelated(old, related, relatedId),
+      )
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't relate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: (_data, _err, { sandboxId }) =>
+      invalidateQueries.afterCommitmentChange(queryClient, { sandboxId }),
+  })
+}
+
+export function useUnrelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      CommitmentService.unrelateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) => dropRelated(old, relatedId))
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't unrelate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: (_data, _err, { sandboxId }) =>
+      invalidateQueries.afterCommitmentChange(queryClient, { sandboxId }),
+  })
+}
+
+export { addRelated as _addRelated, dropRelated as _dropRelated }
 
 export function useAddMilestone(commitmentId: string) {
   const queryClient = useQueryClient()
@@ -464,7 +604,7 @@ export function useAddMilestone(commitmentId: string) {
     onError: (err, _data, context) => {
       if (context?.previous)
         queryClient.setQueryData(detailKey, context.previous)
-      toast.error('Failed to add milestone', {
+      toast.error("Couldn't add milestone", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -472,6 +612,8 @@ export function useAddMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -521,7 +663,7 @@ export function useUpdateMilestone(commitmentId: string) {
     onError: (err, _vars, context) => {
       if (context?.previous)
         queryClient.setQueryData(detailKey, context.previous)
-      toast.error('Failed to update milestone', {
+      toast.error("Couldn't save milestone", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -529,6 +671,8 @@ export function useUpdateMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -561,7 +705,7 @@ export function useDeleteMilestone(commitmentId: string) {
     onError: (err, _milestoneId, context) => {
       if (context?.previous)
         queryClient.setQueryData(detailKey, context.previous)
-      toast.error('Failed to delete milestone', {
+      toast.error("Couldn't delete milestone", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -569,6 +713,8 @@ export function useDeleteMilestone(commitmentId: string) {
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
       queryClient.invalidateQueries({ queryKey: detailKey })
+      // A sandbox timeline card counts the subtasks on its event commitment.
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -619,7 +765,7 @@ export function useUploadAttachment(commitmentId: string) {
     onError: (err, _vars, context) => {
       if (context?.previous)
         queryClient.setQueryData(detailKey, context.previous)
-      toast.error('Failed to upload file', {
+      toast.error("Couldn't upload", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },
@@ -675,7 +821,7 @@ export function useDeleteAttachment(commitmentId: string) {
     onError: (err, _attachmentId, context) => {
       if (context?.previous)
         queryClient.setQueryData(detailKey, context.previous)
-      toast.error('Failed to remove attachment', {
+      toast.error("Couldn't remove attachment", {
         description: err instanceof Error ? err.message : 'Please try again',
       })
     },

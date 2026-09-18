@@ -22,6 +22,9 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { X, Edit2, MoreVertical, CheckCircle2, Trash2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import { assigneeOf } from '@/lib/commitments/assignee'
+import type { Assignee } from '@/types/commitment'
 import { formatDateOnly } from '@/lib/date-utils'
 
 interface DetailSidePanelProps {
@@ -260,13 +263,14 @@ export function CommitmentRow({
   title,
   status,
   dueDate,
-  isCoach,
+  assignee,
   onClick,
 }: {
   title: string
   status?: string
   dueDate?: string
-  isCoach?: boolean
+  /** Who it's for; shown as an avatar only, the title needs the room. */
+  assignee?: Assignee | null
   onClick?: () => void
 }) {
   return (
@@ -278,10 +282,13 @@ export function CommitmentRow({
       <span className="flex-1 text-sm text-ink break-words min-w-0">
         {title}
       </span>
-      {isCoach && (
-        <span className="text-[10px] font-medium uppercase tracking-wide text-ink-4 shrink-0">
-          Coach
-        </span>
+      {assignee !== undefined && (
+        <AssigneeChip
+          assignee={assignee}
+          size="xs"
+          showName={false}
+          className="shrink-0"
+        />
       )}
       {dueDate && (
         <span className="text-xs text-ink-4 shrink-0">{dueDate}</span>
@@ -313,7 +320,7 @@ export function CommitmentsSection({
               dueDate={
                 c.target_date ? formatDateOnly(c.target_date) : undefined
               }
-              isCoach={!!c.is_coach_commitment}
+              assignee={assigneeOf(c)}
               onClick={
                 onCommitmentClick ? () => onCommitmentClick(c) : undefined
               }

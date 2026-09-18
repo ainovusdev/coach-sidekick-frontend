@@ -1,7 +1,8 @@
 'use client'
 
 /**
- * Who / where a commitment belongs to: client, originating session, assignee.
+ * Who / where a commitment belongs to: client, sandbox, originating session,
+ * and the person it is assigned to.
  *
  * This is the enrichment the standalone page most needs. In the panel you
  * always arrive from a list that already shows whose commitment it is; a page
@@ -12,9 +13,10 @@
  */
 
 import Link from 'next/link'
-import { Calendar, User2 } from 'lucide-react'
+import { Calendar, Compass, Lock } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { formatDateOnly } from '@/lib/date-utils'
+import { AssigneeChip } from '@/components/people/assignee-chip'
 import type { Commitment } from '@/types/commitment'
 
 export function CommitmentContextHeader({
@@ -27,8 +29,6 @@ export function CommitmentContextHeader({
   linkable?: boolean
   className?: string
 }) {
-  const assignee = commitment.assigned_to_name || commitment.client_name
-
   const clientNode = commitment.client_name ? (
     linkable && commitment.client_id ? (
       <Link
@@ -40,6 +40,22 @@ export function CommitmentContextHeader({
     ) : (
       <span className="font-medium text-ink-2">{commitment.client_name}</span>
     )
+  ) : null
+
+  const sandboxNode = commitment.sandbox_id ? (
+    <span className="inline-flex items-center gap-1 min-w-0">
+      <Compass className="h-3 w-3 shrink-0" />
+      {linkable ? (
+        <Link
+          href={`/sandboxes/${commitment.sandbox_id}`}
+          className="hover:text-ink hover:underline truncate"
+        >
+          {commitment.sandbox_name || 'Sandbox'}
+        </Link>
+      ) : (
+        <span className="truncate">{commitment.sandbox_name || 'Sandbox'}</span>
+      )}
+    </span>
   ) : null
 
   const sessionLabel = commitment.session_title || 'Session'
@@ -69,16 +85,18 @@ export function CommitmentContextHeader({
 
   const parts = [
     clientNode,
+    sandboxNode,
     sessionNode,
-    assignee ? (
-      <span className="inline-flex items-center gap-1 min-w-0">
-        <User2 className="h-3 w-3 shrink-0" />
-        <span className="truncate">{assignee}</span>
-        {commitment.is_coach_commitment && (
-          <span className="ml-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surface-3 text-ink-2 uppercase tracking-wide">
-            Coach
-          </span>
-        )}
+    // The person is the label — no role words.
+    <AssigneeChip key="assignee" commitment={commitment} size="xs" />,
+    commitment.visibility === 'private' ? (
+      <span
+        key="private"
+        className="inline-flex items-center gap-1 text-ink-3"
+        title="Only people on this commitment can see it"
+      >
+        <Lock className="h-3 w-3 shrink-0" />
+        Private
       </span>
     ) : null,
   ].filter(Boolean)
@@ -91,6 +109,7 @@ export function CommitmentContextHeader({
         'flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-ink-3 min-w-0',
         className,
       )}
+      data-testid="commitment-context"
     >
       {parts.map((node, i) => (
         <span key={i} className="inline-flex items-center gap-2 min-w-0">

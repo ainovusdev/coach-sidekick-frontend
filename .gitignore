@@ -40,3 +40,10 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env.local
+
+# playwright
+/test-results/
+/playwright-report/
+
+# Local sandbox detail browser review artifacts
+/.cache/sandbox-entity-review/

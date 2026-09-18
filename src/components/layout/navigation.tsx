@@ -6,6 +6,7 @@ import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
 import { ThemeToggle } from '@/components/ui/theme-toggle'
+import { NotificationBell } from '@/components/notifications/notification-bell'
 import { AskSidekickBar } from '@/components/agent/ask-sidekick-bar'
 import {
   BarChart3,
@@ -20,7 +21,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 
-export default function Navigation() {
+export default function Navigation({ compact = false }: { compact?: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
   const { isAuthenticated, hasAnyRole, roles } = useAuth()
@@ -108,8 +109,20 @@ export default function Navigation() {
       )}
       <header className="bg-paper border-b border-line sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-10">
+          <div
+            className={
+              compact
+                ? 'flex h-16 items-center justify-between gap-3'
+                : 'flex items-center justify-between h-16'
+            }
+          >
+            <div
+              className={
+                compact
+                  ? 'flex min-w-0 items-center gap-4'
+                  : 'flex items-center gap-10'
+              }
+            >
               <button
                 onClick={() => router.push('/')}
                 className="flex items-center gap-3 group"
@@ -123,13 +136,23 @@ export default function Navigation() {
                     className="object-contain filter brightness-0 invert"
                   />
                 </div>
-                <div className="flex flex-col">
+                <div
+                  className={
+                    compact ? 'hidden flex-col sm:flex' : 'flex flex-col'
+                  }
+                >
                   <h1 className="text-xl font-bold text-ink">Coach Sidekick</h1>
                 </div>
               </button>
 
-              <nav className="hidden md:flex items-center">
-                <div className="flex items-center bg-surface-2 rounded-lg p-1">
+              <nav
+                className={`hidden items-center md:flex ${compact ? 'min-w-0' : ''}`}
+              >
+                <div
+                  className={`flex items-center bg-surface-2 rounded-lg p-1 ${
+                    compact ? 'overflow-x-auto' : ''
+                  }`}
+                >
                   {navItems.map(item => {
                     const Icon = item.icon
                     const isActive =
@@ -146,7 +169,7 @@ export default function Navigation() {
                         key={item.path}
                         onClick={() => router.push(item.path)}
                         className={`
-                        flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium
+                        flex items-center gap-2 ${compact ? 'px-2' : 'px-4'} py-2 rounded-md text-sm font-medium
                         transition-colors duration-200 cursor-pointer
                         ${
                           isActive
@@ -164,21 +187,37 @@ export default function Navigation() {
               </nav>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div
+              className={
+                compact
+                  ? 'flex shrink-0 items-center gap-2'
+                  : 'flex items-center gap-4'
+              }
+            >
               {isAuthenticated && (
                 <>
-                  <AskSidekickBar />
-                  <div className="hidden lg:flex items-center">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
-                      <div className="relative">
-                        <div className="w-2 h-2 bg-forest rounded-full"></div>
-                        <div className="absolute inset-0 w-2 h-2 bg-forest rounded-full animate-ping"></div>
+                  <AskSidekickBar
+                    className={
+                      compact
+                        ? 'w-9 p-2.5 lg:w-9 [&>span]:hidden [&>kbd]:hidden'
+                        : undefined
+                    }
+                  />
+                  {!compact && (
+                    <div className="hidden lg:flex items-center">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
+                        <div className="relative">
+                          <div className="w-2 h-2 bg-forest rounded-full"></div>
+                          <div className="absolute inset-0 w-2 h-2 bg-forest rounded-full animate-ping"></div>
+                        </div>
+                        <span className="text-sm font-medium text-ink-2">
+                          Active
+                        </span>
                       </div>
-                      <span className="text-sm font-medium text-ink-2">
-                        Active
-                      </span>
                     </div>
-                  </div>
+                  )}
+
+                  <NotificationBell />
 
                   <ThemeToggle />
 

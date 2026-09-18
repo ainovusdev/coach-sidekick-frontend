@@ -6,8 +6,62 @@ import {
   CommitmentUpdateCreate,
   MilestoneCreate,
 } from '@/types/commitment'
-import { queryKeys } from '@/lib/query-client'
+import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
+import {
+  _addRelated,
+  _dropRelated,
+  type RelateVariables,
+} from '@/hooks/mutations/use-commitment-mutations'
+
+/** Portal twin of `useRelateCommitment` — same cache shape, portal route. */
+export function useClientRelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      ClientCommitmentService.relateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId, related }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) =>
+        _addRelated(old, related, relatedId),
+      )
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't relate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: () => invalidateQueries.afterCommitmentChange(queryClient),
+  })
+}
+
+export function useClientUnrelateCommitment() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ commitmentId, relatedId }: RelateVariables) =>
+      ClientCommitmentService.unrelateCommitment(commitmentId, relatedId),
+    onMutate: async ({ commitmentId, relatedId }) => {
+      const key = queryKeys.commitments.detail(commitmentId)
+      await queryClient.cancelQueries({ queryKey: key })
+      const previous = queryClient.getQueryData(key)
+      queryClient.setQueryData(key, (old: any) => _dropRelated(old, relatedId))
+      return { previous, key }
+    },
+    onError: (err, _vars, context) => {
+      if (context?.previous)
+        queryClient.setQueryData(context.key, context.previous)
+      toast.error("Couldn't unrelate", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: () => invalidateQueries.afterCommitmentChange(queryClient),
+  })
+}
 
 export function useClientUpdateCommitment(options?: { silent?: boolean }) {
   const queryClient = useQueryClient()

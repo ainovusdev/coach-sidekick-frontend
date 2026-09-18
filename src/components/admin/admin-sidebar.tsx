@@ -17,8 +17,11 @@ import {
   Sparkles,
   GitMerge,
   MessagesSquare,
+  Boxes,
+  ListChecks,
 } from 'lucide-react'
 import { useAuth } from '@/contexts/auth-context'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 
 const menuItems = [
   {
@@ -52,6 +55,23 @@ const menuItems = [
     requiredRole: ['super_admin'],
   },
   {
+    title: 'Sandboxes',
+    href: '/admin/sandboxes',
+    icon: Boxes,
+    requiredRole: ['admin', 'super_admin'],
+    // The only way into the sandbox product from the app's own navigation, so
+    // this entry is what the `sandboxes` flag actually gates. The routes
+    // themselves stay reachable by URL and are gated by the API, which answers
+    // 404 to anyone who is not on the sandbox.
+    flag: 'sandboxes',
+  },
+  {
+    title: 'Commitments',
+    href: '/admin/commitments',
+    icon: ListChecks,
+    requiredRole: ['admin', 'super_admin'],
+  },
+  {
     title: 'Global Resources',
     href: '/admin/resources',
     icon: BookOpen,
@@ -82,8 +102,12 @@ export function AdminSidebar() {
   const pathname = usePathname()
   const { hasAnyRole } = useAuth()
 
-  const filteredMenuItems = menuItems.filter(item =>
-    hasAnyRole(item.requiredRole),
+  const sandboxesEnabled = useFeatureFlagEnabled('sandboxes')
+
+  const filteredMenuItems = menuItems.filter(
+    item =>
+      hasAnyRole(item.requiredRole) &&
+      (!('flag' in item) || item.flag !== 'sandboxes' || sandboxesEnabled),
   )
 
   return (
@@ -128,7 +152,8 @@ export function AdminSidebar() {
         <ul className="space-y-1 px-2">
           {filteredMenuItems.map(item => {
             const Icon = item.icon
-            const isActive = pathname === item.href
+            const isActive =
+              pathname === item.href || pathname.startsWith(`${item.href}/`)
 
             return (
               <li key={item.href}>

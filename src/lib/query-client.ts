@@ -31,6 +31,16 @@ function reportUnexpectedQueryError(
  * - Shows cached data immediately while fetching fresh data in background
  * - Provides instant navigation with eventual consistency
  */
+/** 4xx responses are the server's final answer; only retry anything else, once. */
+function retryOnceUnlessClientError(
+  failureCount: number,
+  error: unknown,
+): boolean {
+  const status = (error as { status?: number } | null)?.status
+  if (typeof status === 'number' && status >= 400 && status < 500) return false
+  return failureCount < 1
+}
+
 export const queryClient = new QueryClient({
   // Report every query/mutation failure to PostHog error tracking. Doing it at
   // the cache level instruments all ~25 hook files at once; individual hooks
@@ -67,8 +77,9 @@ export const queryClient = new QueryClient({
       // Refetch when network connection is restored
       refetchOnReconnect: true,
 
-      // Retry failed requests once
-      retry: 1,
+      // Retry failed requests once — but never a 4xx, which fails the same
+      // way again (and a 409 is a decision the UI has to present right away)
+      retry: retryOnceUnlessClientError,
 
       // Retry delay with exponential backoff
       retryDelay: attemptIndex => Math.min(1000 * 2 ** attemptIndex, 30000),
@@ -77,8 +88,10 @@ export const queryClient = new QueryClient({
       networkMode: 'online',
     },
     mutations: {
-      // Retry failed mutations once
-      retry: 1,
+      // Retry failed mutations once, never on a 4xx (see above). A retry also
+      // waits while the tab is hidden, which held a 409 back for as long as
+      // the tab stayed in the background.
+      retry: retryOnceUnlessClientError,
 
       // Network mode for mutations
       networkMode: 'online',
@@ -144,6 +157,13 @@ export const queryKeys = {
     list: (filters?: Record<string, any>) =>
       [...queryKeys.commitments.lists(), { filters }] as const,
     detail: (id: string) => [...queryKeys.commitments.all, id] as const,
+  },
+
+  // Generic comment threads (commitments today; more targets later)
+  comments: {
+    all: ['comments'] as const,
+    list: (targetType: string, targetId: string) =>
+      [...queryKeys.comments.all, targetType, targetId] as const,
   },
 
   // Sprint keys
@@ -223,6 +243,75 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.groupSessions.details(), id] as const,
     participants: (id: string) =>
       [...queryKeys.groupSessions.detail(id), 'participants'] as const,
+  },
+
+  // People search (assign / mention pickers)
+  people: {
+    all: ['people'] as const,
+    search: (q: string, context?: string | null) =>
+      [...queryKeys.people.all, 'search', q, context ?? null] as const,
+  },
+
+  // Sandbox v2 (client contracts, admin panel)
+  sandboxes: {
+    all: ['sandboxes'] as const,
+    lists: () => [...queryKeys.sandboxes.all, 'list'] as const,
+    list: (filters?: Record<string, any>) =>
+      [...queryKeys.sandboxes.lists(), { filters }] as const,
+    details: () => [...queryKeys.sandboxes.all, 'detail'] as const,
+    detail: (id: string) => [...queryKeys.sandboxes.details(), id] as const,
+    overview: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'overview'] as const,
+    peopleSearch: (q: string, sandboxId?: string) =>
+      [
+        ...queryKeys.sandboxes.all,
+        'people-search',
+        q,
+        sandboxId ?? null,
+      ] as const,
+    lookup: (id: string, email: string) =>
+      [...queryKeys.sandboxes.detail(id), 'lookup', email] as const,
+    termPreview: (start: string, months: number) =>
+      [...queryKeys.sandboxes.all, 'term-preview', start, months] as const,
+    regeneratePreview: (
+      id: string,
+      start: string,
+      months: number,
+      overwrite: boolean,
+    ) =>
+      [
+        ...queryKeys.sandboxes.detail(id),
+        'regenerate-preview',
+        start,
+        months,
+        overwrite,
+      ] as const,
+    emailPreview: (id: string, memberId: string) =>
+      [...queryKeys.sandboxes.detail(id), 'email-preview', memberId] as const,
+    addedEmailPreview: (id: string, memberId: string) =>
+      [...queryKeys.sandboxes.detail(id), 'added-email', memberId] as const,
+    mine: () => [...queryKeys.sandboxes.all, 'mine'] as const,
+    welcome: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'welcome'] as const,
+    dashboard: (includeEnded: boolean) =>
+      [...queryKeys.sandboxes.all, 'dashboard', includeEnded] as const,
+    delivery: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'delivery'] as const,
+    attention: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'attention'] as const,
+    clientContext: (clientId: string) =>
+      [...queryKeys.sandboxes.all, 'client-context', clientId] as const,
+    coachee: (activeClientId: string | null) =>
+      [...queryKeys.sandboxes.all, 'coachee', activeClientId] as const,
+    outcomes: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'outcomes'] as const,
+  },
+  notifications: {
+    all: ['notifications'] as const,
+    list: (unreadOnly: boolean) =>
+      [...queryKeys.notifications.all, 'list', unreadOnly] as const,
+    unread: () => [...queryKeys.notifications.all, 'unread'] as const,
+    settings: () => [...queryKeys.notifications.all, 'settings'] as const,
   },
 
   // Client portal keys
@@ -326,6 +415,39 @@ export const queryKeys = {
  * Example: After creating a session, invalidate both sessions list and client sessions
  */
 export const invalidateQueries = {
+  /** An outcome moved: the panel, both cards, the dashboards and the bell. */
+  afterOutcomeChange: async (queryClient: QueryClient, sandboxId: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sandboxes.outcomes(sandboxId),
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'client-context'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'coachee'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'dashboard'],
+      }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    ])
+  },
+  afterSandboxUpdate: async (queryClient: QueryClient, sandboxId?: string) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.lists() }),
+      sandboxId
+        ? queryClient.invalidateQueries({
+            queryKey: queryKeys.sandboxes.detail(sandboxId),
+          })
+        : queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
+      // coachees become clients of the group's coaches
+      queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
+    ])
+  },
+
   afterGroupSessionUpdate: async (
     queryClient: QueryClient,
     sessionId?: string,
@@ -339,6 +461,50 @@ export const invalidateQueries = {
         queryClient.invalidateQueries({
           queryKey: queryKeys.groupSessions.detail(sessionId),
         }),
+    ])
+  },
+
+  /**
+   * A commitment changed shape (related, created alongside another, ticked
+   * from a related list): every list and detail under the prefix, the
+   * sandbox overview when it sits on one (timeline cards carry counts), and
+   * the bell for whoever was assigned.
+   */
+  afterCommitmentChange: async (
+    queryClient: QueryClient,
+    opts: { sandboxId?: string | null } = {},
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
+      opts.sandboxId &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.sandboxes.detail(opts.sandboxId),
+        }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+    ])
+  },
+
+  /**
+   * A comment was posted / edited / deleted on `targetId`. The commitment
+   * detail embeds the thread, and a mention or reply lands in the bell.
+   */
+  afterCommentChange: async (
+    queryClient: QueryClient,
+    targetType: string,
+    targetId: string,
+  ) => {
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.comments.list(targetType, targetId),
+      }),
+      targetType === 'commitment' &&
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.commitments.detail(targetId),
+        }),
+      // Outcome rows carry a comment count, on the cockpit and both cards.
+      targetType === 'outcome' &&
+        queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
     ])
   },
 }

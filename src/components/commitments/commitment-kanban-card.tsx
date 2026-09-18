@@ -14,14 +14,17 @@ import {
   Target,
   Calendar,
   AlertCircle,
-  Briefcase,
-  User,
   MoreVertical,
   Edit,
   Trash2,
+  Link2,
 } from 'lucide-react'
 import { formatDateOnly } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import { AutomaticChip } from './automatic-chip'
+import { assigneeOf } from '@/lib/commitments/assignee'
+import { PRIORITY_BADGE, priorityInfo } from '@/lib/commitments/labels'
 
 interface CommitmentKanbanCardProps {
   commitment: any
@@ -57,13 +60,6 @@ export function CommitmentKanbanCard({
     commitment.target_date &&
     new Date(commitment.target_date) < new Date() &&
     !isCompleted
-
-  const priorityColors = {
-    urgent: 'bg-vermillion-bg text-vermillion border-vermillion ',
-    high: 'bg-amber-token-bg text-amber-token border-amber-token ',
-    medium: 'bg-amber-token-bg text-amber-token border-amber-token ',
-    low: 'bg-surface-3 text-ink-2 border-line ',
-  }
 
   const getBorderColor = () => {
     if (isCompleted) return 'border-l-green-500'
@@ -132,25 +128,24 @@ export function CommitmentKanbanCard({
       onClick={onClick}
     >
       <CardContent className="p-4 space-y-3">
-        {/* Top row: Assignment badge + actions dropdown */}
+        {/* Top row: who it's for + actions dropdown */}
         <div className="flex items-start justify-between gap-2">
-          <div className="flex flex-wrap gap-1">
-            {commitment.is_coach_commitment ? (
-              <Badge
-                variant="outline"
-                className="bg-amber-token-bg border-amber-token text-amber-token text-xs w-fit"
+          <div className="flex flex-wrap items-center gap-2 min-w-0">
+            <AssigneeChip
+              assignee={assigneeOf(commitment)}
+              size="xs"
+              className="min-w-0"
+            />
+            <AutomaticChip commitment={commitment} />
+            {(commitment.related_total ?? 0) > 0 && (
+              <span
+                className="inline-flex items-center gap-1 text-xs text-ink-4"
+                title="Related commitments"
+                data-testid="commitment-related-count"
               >
-                <Briefcase className="h-3 w-3 mr-1" />
-                Coach Task
-              </Badge>
-            ) : (
-              <Badge
-                variant="outline"
-                className="bg-paper border-line text-ink-3 text-xs w-fit"
-              >
-                <User className="h-3 w-3 mr-1" />
-                Client Task
-              </Badge>
+                <Link2 className="h-3 w-3" aria-hidden />
+                {commitment.related_total}
+              </span>
             )}
             {isOverdue && (
               <Badge variant="destructive" className="text-xs">
@@ -245,12 +240,12 @@ export function CommitmentKanbanCard({
               variant="outline"
               className={cn(
                 'text-xs px-2 py-0.5',
-                priorityColors[
-                  commitment.priority as keyof typeof priorityColors
+                PRIORITY_BADGE[
+                  commitment.priority as keyof typeof PRIORITY_BADGE
                 ],
               )}
             >
-              {commitment.priority}
+              {priorityInfo(commitment.priority).label}
             </Badge>
           )}
         </div>

@@ -16,6 +16,7 @@
 
 import { TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import { Progress } from '@/components/ui/progress'
 import { useUpdateCommitmentProgress } from '@/hooks/mutations/use-commitment-mutations'
 import { useClientUpdateCommitmentProgress } from '@/hooks/mutations/use-client-commitment-mutations'
@@ -27,10 +28,12 @@ export function CommitmentProgressControl({
   commitment,
   commitmentId,
   clientMode,
+  className,
 }: {
   commitment: Commitment
   commitmentId: string
   clientMode?: boolean
+  className?: string
 }) {
   // Both called unconditionally — never make these conditional.
   const coachUpdate = useUpdateCommitmentProgress()
@@ -55,7 +58,7 @@ export function CommitmentProgressControl({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={cn('space-y-2', className)}>
       <div className="flex items-center justify-between">
         <label className="text-xs font-medium text-ink-3">Progress</label>
         <span className="text-xs font-medium text-ink-2 tabular-nums">

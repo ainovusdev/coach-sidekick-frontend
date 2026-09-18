@@ -5,7 +5,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { CommitmentService } from '@/services/commitment-service'
 import { ClientCommitmentService } from '@/services/client-commitment-service'
 import {
-  useUpdateCommitmentProgress,
   useAddMilestone,
   useUpdateMilestone,
   useDeleteMilestone,
@@ -13,7 +12,6 @@ import {
   useDeleteAttachment,
 } from '@/hooks/mutations/use-commitment-mutations'
 import {
-  useClientUpdateCommitmentProgress,
   useClientAddMilestone,
   useClientUpdateMilestone,
   useClientDeleteMilestone,
@@ -23,7 +21,6 @@ import {
 import { queryKeys } from '@/lib/query-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Calendar } from '@/components/ui/calendar'
@@ -56,7 +53,10 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { CommentThread } from '@/components/comments/comment-thread'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { AutomaticChip } from './automatic-chip'
+import { tomorrowIso } from '@/lib/commitments/automatic'
 import { cn } from '@/lib/utils'
 import {
   formatDate,
@@ -66,15 +66,12 @@ import {
 import {
   X,
   MoreVertical,
+  BellOff,
   Calendar as CalendarIcon,
   Plus,
   Trash2,
   Sparkles,
   Clock,
-  Trophy,
-  AlertTriangle,
-  ChevronUp,
-  ChevronDown,
   Paperclip,
   Upload,
   FileText,
@@ -85,12 +82,30 @@ import {
   Zap,
   Maximize2,
   Link as LinkIcon,
+  Lock,
 } from 'lucide-react'
 import type {
   Commitment,
   CommitmentAttachment,
+  CommitmentPriority,
   Milestone,
 } from '@/types/commitment'
+import {
+  PersonPicker,
+  type PickedPerson,
+} from '@/components/people/person-picker'
+import { AssigneeChip } from '@/components/people/assignee-chip'
+import { assigneeFromPick, assigneeOf } from '@/lib/commitments/assignee'
+import {
+  COMMITMENT_PRIORITY_LABEL,
+  COMMITMENT_PRIORITY_TONE,
+  COMMITMENT_STATUS_LABEL,
+  COMMITMENT_STATUS_TONE,
+  SETTABLE_STATUSES,
+  TONE_CHIP,
+  statusInfo,
+} from '@/lib/commitments/labels'
+import { TONE_DOT } from '@/lib/tone'
 import { TargetService } from '@/services/target-service'
 import { LiveMeetingService } from '@/services/live-meeting-service'
 import { useTargets } from '@/hooks/queries/use-targets'
@@ -104,6 +119,9 @@ import {
   type GuestContext,
 } from './detail/use-commitment-detail'
 import { copyCommitmentLink } from './detail/commitment-links'
+import { RelatedCommitmentsSection } from './detail/related-commitments-section'
+import { WindowChip } from '@/components/sandboxes/window-chip'
+import { toDateOnly } from '@/lib/sandbox/term'
 
 // Re-exported so the six existing mount sites keep importing GuestContext from
 // here unchanged; the definition now lives with the shared controller.
@@ -118,6 +136,11 @@ interface CommitmentDetailPanelProps {
   clientMode?: boolean
   /** Show the "open full page" affordance. Coach surfaces only. */
   onOpenInPage?: () => void
+  /**
+   * Open another commitment in this same panel (a related row). The owner of
+   * `commitmentId` passes its setter; without it the row links to the page.
+   */
+  onNavigate?: (id: string) => void
 }
 
 export function CommitmentDetailPanel({
@@ -128,6 +151,7 @@ export function CommitmentDetailPanel({
   guestContext,
   clientMode,
   onOpenInPage,
+  onNavigate,
 }: CommitmentDetailPanelProps) {
   // All data + mutation logic is shared with the /commitments/[id] page.
   const {
@@ -135,6 +159,7 @@ export function CommitmentDetailPanel({
     isLoading,
     capabilities,
     handleFieldUpdate,
+    handleFieldsUpdate,
     handleDelete,
   } = useCommitmentDetail({
     commitmentId,
@@ -147,11 +172,27 @@ export function CommitmentDetailPanel({
 
   const panelRef = useRef<HTMLDivElement>(null)
 
+  // Deep link from a notification: `?open=<id>&comment=<cid>` (hub) or
+  // `?commitment=<id>&comment=<cid>` (portal dashboard). Read once per open.
+  const [highlightCommentId, setHighlightCommentId] = useState<string | null>(
+    null,
+  )
+  useEffect(() => {
+    if (!commitmentId) {
+      setHighlightCommentId(null)
+      return
+    }
+    setHighlightCommentId(
+      new URLSearchParams(window.location.search).get('comment'),
+    )
+  }, [commitmentId])
+
   // Close on Escape. Panel-only: on the page route this would navigate away,
   // which is hostile.
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      // A picker or menu inside that already took Escape leaves the panel open.
+      if (e.key === 'Escape' && !e.defaultPrevented) onClose()
     }
     if (commitmentId) {
       document.addEventListener('keydown', handleKeyDown)
@@ -174,6 +215,8 @@ export function CommitmentDetailPanel({
       {/* Panel */}
       <div
         ref={panelRef}
+        data-testid="commitment-detail-panel"
+        data-open={isOpen ? 'true' : 'false'}
         className={cn(
           'fixed right-0 top-0 h-full w-full md:w-[640px] z-[70] bg-surface-1 border-l border-line shadow-2xl',
           'transition-transform duration-300 ease-in-out',
@@ -206,10 +249,11 @@ export function CommitmentDetailPanel({
                 <FieldsGrid
                   commitment={commitment}
                   onFieldUpdate={handleFieldUpdate}
+                  onFieldsUpdate={handleFieldsUpdate}
                 />
 
-                {/* Linked Meta Performance Outcomes & Sprints - hidden in client mode (no client-portal TargetService) */}
-                {!clientMode && (
+                {/* Linked Meta Performance Outcomes & Sprints - hidden in client mode (no client-portal TargetService) and for commitments with no client */}
+                {!clientMode && commitment.client_id && (
                   <LinkedOutcomesSection
                     commitment={commitment}
                     commitmentId={commitmentId!}
@@ -242,13 +286,22 @@ export function CommitmentDetailPanel({
                   />
                 )}
 
+                {/* Related commitments - hidden in guest mode (no guest API) */}
+                {!guestContext && (
+                  <RelatedCommitmentsSection
+                    commitment={commitment}
+                    commitmentId={commitmentId!}
+                    clientMode={clientMode}
+                    onNavigate={onNavigate}
+                  />
+                )}
+
                 {/* Comments - hidden in guest mode (no guest API) */}
                 {!guestContext && (
                   <ActivitySection
                     commitment={commitment}
                     commitmentId={commitmentId!}
-                    onCommitmentUpdate={onCommitmentUpdate}
-                    clientMode={clientMode}
+                    highlightCommentId={highlightCommentId}
                   />
                 )}
 
@@ -287,6 +340,12 @@ export function PanelHeader({
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(commitment.title)
   const titleInputRef = useRef<HTMLInputElement>(null)
+  const isAutomatic = commitment.source === 'rule'
+  // A commitment that *is* a timeline event: the title and dates are the
+  // event's, changed on the timeline, so the title is not editable here.
+  const event = commitment.timeline_event ?? null
+  const isOpenStatus =
+    commitment.status !== 'completed' && commitment.status !== 'abandoned'
 
   useEffect(() => {
     setTitleValue(commitment.title)
@@ -310,6 +369,11 @@ export function PanelHeader({
     <div className="flex items-center gap-3">
       {/* Title */}
       <div className="flex-1 min-w-0">
+        {event && (
+          <div className="mb-1.5" data-testid="event-header">
+            <WindowChip event={event} today={toDateOnly(new Date())} />
+          </div>
+        )}
         {isEditingTitle ? (
           <Input
             ref={titleInputRef}
@@ -327,11 +391,25 @@ export function PanelHeader({
           />
         ) : (
           <h2
-            className="text-xl font-bold text-ink cursor-pointer hover:bg-surface-3 rounded px-2 py-1 -mx-2 break-words"
-            onClick={() => setIsEditingTitle(true)}
+            className={cn(
+              'text-xl font-bold text-ink rounded px-2 py-1 -mx-2 break-words',
+              !event && 'cursor-pointer hover:bg-surface-3',
+            )}
+            onClick={event ? undefined : () => setIsEditingTitle(true)}
+            title={
+              event
+                ? 'This is a timeline event — rename it on the timeline'
+                : undefined
+            }
+            data-testid="commitment-panel-title"
           >
             {commitment.title}
           </h2>
+        )}
+        {isAutomatic && (
+          <div className="mt-1.5">
+            <AutomaticChip commitment={commitment} />
+          </div>
         )}
       </div>
 
@@ -353,7 +431,13 @@ export function PanelHeader({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              aria-label="More actions"
+              data-testid="commitment-menu"
+            >
               <MoreVertical className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -364,10 +448,30 @@ export function PanelHeader({
                 Copy link
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onClick={onDelete} className="text-vermillion">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </DropdownMenuItem>
+            {isAutomatic && isOpenStatus && (
+              <>
+                <DropdownMenuItem
+                  onClick={() => onFieldUpdate('target_date', tomorrowIso())}
+                  data-testid="commitment-snooze"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Snooze to tomorrow
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onFieldUpdate('status', 'abandoned')}
+                  data-testid="commitment-dismiss"
+                >
+                  <BellOff className="h-4 w-4 mr-2" />
+                  Dismiss
+                </DropdownMenuItem>
+              </>
+            )}
+            {commitment.can_delete !== false && (
+              <DropdownMenuItem onClick={onDelete} className="text-vermillion">
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
         <Button
@@ -388,55 +492,40 @@ export function PanelHeader({
 export function FieldsGrid({
   commitment,
   onFieldUpdate,
+  onFieldsUpdate,
+  variant = 'card',
 }: {
   commitment: Commitment
   onFieldUpdate: (field: string, value: any) => void
+  /** Optional multi-field patch with its own optimistic shape (assignee). */
+  onFieldsUpdate?: (
+    patch: Record<string, any>,
+    optimistic?: Record<string, any>,
+  ) => void
+  /**
+   * `card` (default) draws the grey panel used inside the side panel; `plain`
+   * is for the detail page's property rail, which already has its own frame.
+   */
+  variant?: 'card' | 'plain'
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
+
+  // The viewer may read this row but not change it (assignee-only, viewer
+  // role, another coach's private note). The API says so per row.
+  const readOnly = commitment.can_edit === false
+  // The dates of a timeline event's commitment are the event's window.
+  const dateLocked = !!commitment.timeline_event
 
   // Settable statuses. `in_progress` MUST be here: the kanban board and three
   // other surfaces write it, so without it an In Progress commitment opened
   // here showed no selected chip and picking any option silently lost the state.
-  const statusOptions: {
-    value: string
-    label: string
-    selected: string
-    unselected: string
-  }[] = [
-    {
-      value: 'active',
-      label: 'Active',
-      selected: 'bg-ds-accent-bg text-ds-accent border-ds-accent ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-ds-accent-bg hover:text-ds-accent hover:border-ds-accent ',
-    },
-    {
-      value: 'in_progress',
-      label: 'In Progress',
-      selected: 'bg-amber-token-bg text-amber-token border-amber-token ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-amber-token-bg hover:text-amber-token hover:border-amber-token ',
-    },
-    {
-      value: 'completed',
-      label: 'Completed',
-      selected: 'bg-forest-bg text-forest border-forest ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-forest-bg hover:text-forest hover:border-forest ',
-    },
-    {
-      value: 'abandoned',
-      label: 'Abandoned',
-      selected: 'bg-vermillion-bg text-vermillion border-vermillion ',
-      unselected:
-        'bg-transparent text-ink-3 border-line hover:bg-vermillion-bg hover:text-vermillion hover:border-vermillion ',
-    },
-  ]
-
+  //
   // Guard the whole class of bug rather than the one instance: any status that
   // isn't settable here (today `draft`) still renders, read-only, so the
   // control can never show "nothing selected".
-  const isKnownStatus = statusOptions.some(o => o.value === commitment.status)
+  const isKnownStatus = (SETTABLE_STATUSES as string[]).includes(
+    commitment.status,
+  )
 
   // Milestone-derived progress, used when reopening a completed commitment so
   // we restore real progress instead of hard-zeroing it.
@@ -449,61 +538,131 @@ export function FieldsGrid({
       )
     : 0
 
+  const assignee = assigneeOf(commitment)
+  const pickerValue: PickedPerson | null = assignee
+    ? {
+        user_id: assignee.user_id,
+        client_id: assignee.client_id,
+        name: assignee.name,
+        email: assignee.email,
+        has_account: assignee.has_account,
+        roles: assignee.roles,
+      }
+    : null
+
+  const handleAssign = (next: PickedPerson | null) => {
+    // null user_id = the client themself (login or not); a user id = that person.
+    const assignedToId = next?.user_id ?? null
+    const optimisticAssignee = assigneeFromPick(next, commitment.client_id)
+    const optimistic = {
+      assigned_to_id: assignedToId,
+      assigned_to_name: assignedToId ? (next?.name ?? null) : null,
+      assignee: optimisticAssignee,
+      assignee_kind: assignedToId
+        ? 'user'
+        : commitment.client_id
+          ? 'client'
+          : 'none',
+      is_coach_commitment: !!assignedToId,
+    }
+    if (onFieldsUpdate)
+      onFieldsUpdate({ assigned_to_id: assignedToId }, optimistic)
+    else onFieldUpdate('assigned_to_id', assignedToId)
+  }
+
   return (
-    <div className="p-4 bg-paper rounded-lg space-y-4">
-      <div className="grid grid-cols-2 gap-4">
+    <div
+      className={cn(
+        '@container space-y-4',
+        variant === 'card' && 'p-4 bg-paper rounded-lg',
+      )}
+      data-testid="commitment-fields"
+    >
+      {/* Sized by the container, not the viewport: the same grid sits in the
+          640px side panel (three columns) and the 320px rail on the detail
+          page, where three columns clipped the date and hid the assignee's
+          name. Below ~28rem every field gets the full width. */}
+      <div className="grid grid-cols-1 @md:grid-cols-3 gap-4">
+        {/* Assignee — first: who it's for is the first thing to know */}
+        <div className="space-y-1 min-w-0">
+          <label className="text-xs font-medium text-ink-3 ">Assignee</label>
+          {readOnly ? (
+            <div className="h-9 flex items-center">
+              <AssigneeChip assignee={assignee} size="sm" />
+            </div>
+          ) : (
+            <PersonPicker
+              value={pickerValue}
+              onChange={handleAssign}
+              context={{
+                clientId: commitment.client_id ?? null,
+                sandboxId: commitment.sandbox_id ?? null,
+              }}
+              clientOption={
+                commitment.client_id
+                  ? {
+                      client_id: commitment.client_id,
+                      name: commitment.client_name ?? null,
+                      // Known only while the client is the assignee; the picker
+                      // then folds their login into the one "client" row.
+                      user_id: assignee?.client_id
+                        ? assignee.user_id
+                        : undefined,
+                    }
+                  : null
+              }
+              allowClear={!commitment.client_id}
+              className="h-9 w-full"
+              contentClassName="z-[80]"
+              data-testid="detail-assignee-picker"
+            />
+          )}
+        </div>
+
         {/* Priority */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-ink-3 ">Priority</label>
           <Select
             value={commitment.priority}
             onValueChange={value => onFieldUpdate('priority', value)}
+            disabled={readOnly}
           >
             <SelectTrigger className="h-9 text-sm">
               <SelectValue />
             </SelectTrigger>
             <SelectContent className="z-[80]">
-              <SelectItem value="low">
-                <div className="flex items-center gap-2">
-                  <div className={cn('w-2 h-2 rounded-full', 'bg-line')} />
-                  Low
-                </div>
-              </SelectItem>
-              <SelectItem value="medium">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
-                  />
-                  Medium
-                </div>
-              </SelectItem>
-              <SelectItem value="high">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-amber-token')}
-                  />
-                  High
-                </div>
-              </SelectItem>
-              <SelectItem value="urgent">
-                <div className="flex items-center gap-2">
-                  <div
-                    className={cn('w-2 h-2 rounded-full', 'bg-vermillion')}
-                  />
-                  Urgent
-                </div>
-              </SelectItem>
+              {(
+                Object.keys(COMMITMENT_PRIORITY_LABEL) as CommitmentPriority[]
+              ).map(p => (
+                <SelectItem key={p} value={p}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={cn(
+                        'w-2 h-2 rounded-full',
+                        TONE_DOT[COMMITMENT_PRIORITY_TONE[p]],
+                      )}
+                    />
+                    {COMMITMENT_PRIORITY_LABEL[p]}
+                  </div>
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        {/* Due Date */}
+        {/* Due Date — an event commitment's follows the event window */}
         <div className="space-y-1">
           <label className="text-xs font-medium text-ink-3 ">Due Date</label>
-          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+          <Popover
+            open={calendarOpen}
+            onOpenChange={readOnly || dateLocked ? undefined : setCalendarOpen}
+          >
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
+                disabled={readOnly || dateLocked}
+                title={dateLocked ? 'Follows the event window' : undefined}
+                data-testid={dateLocked ? 'due-locked' : undefined}
                 className={cn(
                   'h-9 w-full justify-start text-left text-sm font-normal',
                   !commitment.target_date && 'text-ink-3',
@@ -513,6 +672,9 @@ export function FieldsGrid({
                 {commitment.target_date
                   ? formatDateOnly(commitment.target_date, 'MMM d, yyyy')
                   : 'Set date'}
+                {dateLocked && (
+                  <Lock className="ml-auto h-3 w-3 text-ink-4" aria-hidden />
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 z-[80]" align="start">
@@ -535,27 +697,36 @@ export function FieldsGrid({
       {/* Status */}
       <div className="space-y-1">
         <label className="text-xs font-medium text-ink-3 ">Status</label>
-        <div className="flex flex-wrap gap-1.5">
+        <div
+          className="grid grid-cols-2 gap-1.5 @md:flex @md:flex-wrap"
+          data-testid="commitment-status-chips"
+        >
           {!isKnownStatus && (
             <span
-              className="px-2.5 py-1 rounded-full text-xs font-medium border bg-surface-3 text-ink-2 border-line capitalize"
+              className={cn(
+                'px-2.5 py-1 rounded-full text-xs font-medium border text-center',
+                TONE_CHIP[COMMITMENT_STATUS_TONE[commitment.status] ?? 'muted']
+                  .selected,
+              )}
               title="Current status — set elsewhere and not directly settable here"
             >
-              {commitment.status.replace('_', ' ')}
+              {statusInfo(commitment.status).label}
             </span>
           )}
-          {statusOptions.map(opt => {
-            const isSelected = commitment.status === opt.value
+          {SETTABLE_STATUSES.map(value => {
+            const isSelected = commitment.status === value
+            const chip = TONE_CHIP[COMMITMENT_STATUS_TONE[value]]
             return (
               <button
-                key={opt.value}
+                key={value}
                 type="button"
+                disabled={readOnly && !isSelected}
                 onClick={() => {
-                  if (isSelected) return
-                  onFieldUpdate('status', opt.value)
+                  if (isSelected || readOnly) return
+                  onFieldUpdate('status', value)
                   // Progress rules live here, in one place, rather than being
                   // implied by whichever button was pressed.
-                  if (opt.value === 'completed') {
+                  if (value === 'completed') {
                     onFieldUpdate('progress_percentage', 100)
                   } else if (commitment.status === 'completed') {
                     // Reopening: restore milestone-derived progress rather than
@@ -567,16 +738,38 @@ export function FieldsGrid({
                 }}
                 aria-pressed={isSelected}
                 className={cn(
-                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors',
-                  isSelected ? opt.selected : opt.unselected,
+                  'px-2.5 py-1 rounded-full text-xs font-medium border transition-colors text-center',
+                  isSelected ? chip.selected : chip.unselected,
+                  readOnly && !isSelected && 'opacity-40 cursor-not-allowed',
                 )}
               >
-                {opt.label}
+                {COMMITMENT_STATUS_LABEL[value]}
               </button>
             )
           })}
         </div>
       </div>
+
+      {/* Visibility — only meaningful on a sandbox, where two sides can look */}
+      {commitment.sandbox_id && (
+        <label
+          className={cn(
+            'flex items-start gap-2 text-xs leading-4 text-ink-2',
+            readOnly ? 'cursor-default' : 'cursor-pointer',
+          )}
+        >
+          <Checkbox
+            checked={commitment.visibility === 'private'}
+            disabled={readOnly}
+            onCheckedChange={v =>
+              onFieldUpdate('visibility', v === true ? 'private' : 'shared')
+            }
+            data-testid="detail-private-toggle"
+          />
+          <Lock className="mt-0.5 h-3 w-3 shrink-0 text-ink-3" />
+          <span>Only people on this commitment can see it</span>
+        </label>
+      )}
     </div>
   )
 }
@@ -588,11 +781,14 @@ export function LinkedOutcomesSection({
   commitmentId,
   onCommitmentUpdate,
   guestContext,
+  className,
 }: {
   commitment: Commitment
   commitmentId: string
   onCommitmentUpdate?: () => void
   guestContext?: GuestContext
+  /** Applied to the root only when the section renders (null otherwise). */
+  className?: string
 }) {
   const queryClient = useQueryClient()
   // In guest mode, disable fetching — cache is pre-seeded by ClientCommitmentPanel
@@ -718,8 +914,12 @@ export function LinkedOutcomesSection({
 
   if (allTargets.length === 0 && allSprints.length === 0) return null
 
+  // Nothing to link (no client outcomes or sprints) → no section at all, so
+  // the detail page rail doesn't draw an empty ruled block.
+  if (allTargets.length === 0 && allSprints.length === 0) return null
+
   return (
-    <div className="space-y-4">
+    <div className={cn('space-y-4', className)}>
       {/* Outcomes as tags */}
       {allTargets.length > 0 && (
         <div className="space-y-2">
@@ -1186,33 +1386,62 @@ export function MilestonesSection({
     }
   }
 
+  // A seeded checklist arrives grouped (see the backend's event checklists):
+  // consecutive rows sharing a section sit under its heading, and anything
+  // added by hand carries none, so it lands unheaded at the bottom.
+  const groups: { section: string | null; rows: Milestone[] }[] = []
+  for (const milestone of milestones) {
+    const section = milestone.section ?? null
+    const last = groups[groups.length - 1]
+    if (last && last.section === section) last.rows.push(milestone)
+    else groups.push({ section, rows: [milestone] })
+  }
+
+  const renderRow = (milestone: Milestone) => (
+    <MilestoneItem
+      key={milestone.id}
+      milestone={milestone}
+      onToggle={() => toggleMilestoneStatus(milestone)}
+      onDelete={() => deleteMilestone.mutate(milestone.id)}
+      onUpdateTitle={(title: string) =>
+        updateMilestone.mutate({
+          milestoneId: milestone.id,
+          data: { title },
+        })
+      }
+    />
+  )
+
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="subtasks">
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-ink-2 ">Subtasks</label>
         {milestones.length > 0 && (
-          <span className="text-xs text-ink-3 ">
+          <span className="text-xs text-ink-3 " data-testid="subtask-count">
             {completedCount}/{milestones.length}
           </span>
         )}
       </div>
 
-      {/* Milestone list */}
+      {/* Milestone list, under their headings where they have one */}
       <div className="space-y-1">
-        {milestones.map(milestone => (
-          <MilestoneItem
-            key={milestone.id}
-            milestone={milestone}
-            onToggle={() => toggleMilestoneStatus(milestone)}
-            onDelete={() => deleteMilestone.mutate(milestone.id)}
-            onUpdateTitle={(title: string) =>
-              updateMilestone.mutate({
-                milestoneId: milestone.id,
-                data: { title },
-              })
-            }
-          />
-        ))}
+        {groups.map(group =>
+          group.section === null ? (
+            group.rows.map(renderRow)
+          ) : (
+            <div
+              key={group.section}
+              className="pt-1 first:pt-0"
+              data-testid="subtask-section"
+              data-section={group.section}
+            >
+              <p className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-ink-4">
+                {group.section}
+              </p>
+              {group.rows.map(renderRow)}
+            </div>
+          ),
+        )}
       </div>
 
       {/* Add milestone input */}
@@ -1223,6 +1452,7 @@ export function MilestonesSection({
           onChange={e => setNewMilestoneTitle(e.target.value)}
           placeholder="Add a subtask..."
           className="h-8 text-sm border-none shadow-none focus-visible:ring-0 px-0"
+          data-testid="subtask-add-input"
           onKeyDown={e => {
             if (e.key === 'Enter') handleAddMilestone()
           }}
@@ -1268,11 +1498,17 @@ function MilestoneItem({
   const isCompleted = milestone.status === 'completed'
 
   return (
-    <div className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-paper ">
+    <div
+      className="flex items-center gap-2 group py-1 px-2 rounded hover:bg-paper "
+      data-testid="subtask-row"
+      data-id={milestone.id}
+      data-status={milestone.status}
+    >
       <Checkbox
         checked={isCompleted}
         onCheckedChange={onToggle}
         className="flex-shrink-0"
+        data-testid="subtask-toggle"
       />
       {isEditing ? (
         <Input
@@ -1296,12 +1532,13 @@ function MilestoneItem({
             isCompleted && 'line-through text-ink-4 ',
           )}
           onClick={() => setIsEditing(true)}
+          data-testid="subtask-title"
         >
           {milestone.title}
         </span>
       )}
       {milestone.target_date && (
-        <span className="text-xs text-ink-4 ">
+        <span className="text-xs text-ink-4 " data-testid="subtask-due">
           {formatDateOnly(milestone.target_date, 'MMM d')}
         </span>
       )}
@@ -1310,6 +1547,7 @@ function MilestoneItem({
         size="sm"
         className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
         onClick={onDelete}
+        data-testid="subtask-delete"
       >
         <X className="h-3 w-3" />
       </Button>
@@ -1322,186 +1560,27 @@ function MilestoneItem({
 export function ActivitySection({
   commitment,
   commitmentId,
-  onCommitmentUpdate,
-  clientMode,
-  hideHistory,
+  highlightCommentId,
 }: {
   commitment: Commitment
   commitmentId: string
-  onCommitmentUpdate?: () => void
-  clientMode?: boolean
-  /**
-   * Render the composer only. The page route pairs this with
-   * CommitmentActivityTimeline, which shows the same updates plus the status
-   * and progress events this flat list drops.
-   */
-  hideHistory?: boolean
+  /** Deep link (`?comment=<id>`): scroll to and ring that comment. */
+  highlightCommentId?: string | null
 }) {
-  const [note, setNote] = useState('')
-  const [showExtras, setShowExtras] = useState(false)
-  const [wins, setWins] = useState('')
-  const [blockers, setBlockers] = useState('')
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  // Resolved after mount: `navigator` is undefined during server rendering,
-  // and this component now also renders under a page route.
-  const [isMac, setIsMac] = useState(false)
-  useEffect(() => {
-    setIsMac(/Mac|iPhone|iPad/.test(navigator.platform || ''))
-  }, [])
-
-  const coachUpdateProgress = useUpdateCommitmentProgress()
-  const clientUpdateProgress = useClientUpdateCommitmentProgress()
-  const updateProgress = clientMode ? clientUpdateProgress : coachUpdateProgress
-
-  const updates = [...(commitment.updates || [])].sort(
-    (a, b) =>
-      new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
-  )
-
-  const handleSubmit = () => {
-    const data: any = {}
-    if (note.trim()) data.note = note.trim()
-    if (wins.trim()) data.wins = wins.trim()
-    if (blockers.trim()) data.blockers = blockers.trim()
-
-    if (Object.keys(data).length === 0) return
-
-    // Clear form instantly — the mutation hook handles the optimistic update
-    setNote('')
-    setWins('')
-    setBlockers('')
-    setShowExtras(false)
-
-    updateProgress.mutate(
-      { commitmentId, data },
-      {
-        onSettled: () => {
-          onCommitmentUpdate?.()
-        },
-      },
-    )
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault()
-      handleSubmit()
-    }
-  }
-
   return (
     <div className="space-y-3">
       <label className="text-sm font-medium text-ink-2 ">Comments</label>
 
-      {/* Always-visible comment input */}
-      <div className="space-y-2">
-        <Textarea
-          ref={inputRef}
-          value={note}
-          onChange={e => setNote(e.target.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Add a comment..."
-          rows={2}
-          className="resize-none text-sm"
-        />
-
-        {/* Expandable wins/blockers */}
-        <div className="flex items-center justify-between">
-          <button
-            type="button"
-            className="text-xs text-ink-3 hover:text-ink-2 flex items-center gap-1"
-            onClick={() => setShowExtras(!showExtras)}
-          >
-            {showExtras ? (
-              <ChevronUp className="h-3 w-3" />
-            ) : (
-              <ChevronDown className="h-3 w-3" />
-            )}
-            Wins & Blockers
-          </button>
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] text-ink-4 ">
-              {isMac ? '⌘' : 'Ctrl'}+Enter
-            </span>
-            <Button
-              size="sm"
-              className="h-7 text-xs px-3"
-              onClick={handleSubmit}
-              disabled={!note.trim() && !wins.trim() && !blockers.trim()}
-            >
-              Post
-            </Button>
-          </div>
-        </div>
-
-        {showExtras && (
-          <div className="space-y-2">
-            <div>
-              <label className="text-xs text-forest font-medium">Wins</label>
-              <Textarea
-                value={wins}
-                onChange={e => setWins(e.target.value)}
-                placeholder="What went well?"
-                rows={1}
-                className="resize-none text-sm mt-1"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-vermillion font-medium">
-                Blockers
-              </label>
-              <Textarea
-                value={blockers}
-                onChange={e => setBlockers(e.target.value)}
-                placeholder="What's blocking progress?"
-                rows={1}
-                className="resize-none text-sm mt-1"
-              />
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Comments feed — suppressed on the page route, which renders the
-          richer CommitmentActivityTimeline in its place. */}
-      {hideHistory ? null : updates.length > 0 ? (
-        <div className="space-y-2">
-          {updates.map(update => (
-            <div
-              key={update.id}
-              className="pl-3 border-l-2 border-line space-y-1.5"
-            >
-              {/* Timestamp */}
-              <span className="text-xs text-ink-4 ">
-                {formatRelativeTime(update.created_at)}
-              </span>
-
-              {/* Note */}
-              {update.note && (
-                <p className="text-sm text-ink-2 ">{update.note}</p>
-              )}
-
-              {/* Wins */}
-              {update.wins && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-forest-bg rounded text-sm">
-                  <Trophy className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
-                  <span className="text-forest ">{update.wins}</span>
-                </div>
-              )}
-
-              {/* Blockers */}
-              {update.blockers && (
-                <div className="flex items-start gap-2 px-2 py-1.5 bg-vermillion-bg rounded text-sm">
-                  <AlertTriangle className="h-3.5 w-3.5 text-vermillion mt-0.5 flex-shrink-0" />
-                  <span className="text-vermillion ">{update.blockers}</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-sm text-ink-4 text-center py-2">No comments yet</p>
-      )}
+      <CommentThread
+        targetType="commitment"
+        targetId={commitmentId}
+        context={{
+          clientId: commitment.client_id ?? undefined,
+          sandboxId: commitment.sandbox_id ?? undefined,
+        }}
+        initialComments={commitment.comments}
+        highlightId={highlightCommentId}
+      />
     </div>
   )
 }
