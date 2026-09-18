@@ -5,6 +5,7 @@ import {
   GroupSessionListResponse,
   GroupSessionFilters,
   GroupSessionParticipant,
+  GroupSessionSchedule,
 } from '@/types/group-session'
 
 const BACKEND_URL =
@@ -15,6 +16,12 @@ export class GroupSessionService {
     data: GroupSessionCreate,
   ): Promise<GroupSession> {
     return await ApiClient.post(`${BACKEND_URL}/group-sessions/`, data)
+  }
+
+  static async scheduleGroupSession(
+    data: GroupSessionSchedule,
+  ): Promise<GroupSession> {
+    return await ApiClient.post(`${BACKEND_URL}/group-sessions/schedule`, data)
   }
 
   static async listGroupSessions(

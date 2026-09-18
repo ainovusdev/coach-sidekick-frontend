@@ -4,6 +4,13 @@ export interface ScheduleSessionRequest {
   title?: string
   meeting_url?: string
   send_questionnaire?: boolean
+  /**
+   * Which sandbox agreement this session credits, when the coachee is in more
+   * than one and the coach chose. Sent together or not at all; without them the
+   * session waits in review and counts toward nothing.
+   */
+  sandbox_id?: string
+  sandbox_group_id?: string
 }
 
 export interface ScheduledSession {

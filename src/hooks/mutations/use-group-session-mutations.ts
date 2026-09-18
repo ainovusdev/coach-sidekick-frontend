@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import posthog from 'posthog-js'
 import { invalidateQueries } from '@/lib/query-client'
 import { GroupSessionService } from '@/services/group-session-service'
-import { GroupSessionCreate } from '@/types/group-session'
+import { GroupSessionCreate, GroupSessionSchedule } from '@/types/group-session'
 
 export function useCreateGroupSession() {
   const queryClient = useQueryClient()
@@ -22,6 +22,27 @@ export function useCreateGroupSession() {
     },
     onError: (error: Error) => {
       toast.error(error.message || 'Failed to create group session')
+    },
+  })
+}
+
+export function useScheduleGroupSession() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: GroupSessionSchedule) =>
+      GroupSessionService.scheduleGroupSession(data),
+    onSuccess: created => {
+      posthog.capture('group_session_scheduled', {
+        group_session_id: created?.id,
+        participant_count: created?.participant_count ?? null,
+        from_sandbox_group: !!created?.sandbox_group_id,
+      })
+      toast.success('Group session scheduled')
+      invalidateQueries.afterGroupSessionUpdate(queryClient)
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to schedule group session')
     },
   })
 }

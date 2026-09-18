@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Boxes } from 'lucide-react'
@@ -95,45 +95,124 @@ export function SandboxClientBadge({
     </span>
   )
 }
+export interface SandboxAssignmentChoice {
+  sandbox_id: string
+  group_id: string
+}
+
+/**
+ * Which agreement this session will count toward, and — when more than one could
+ * claim it — the choice itself.
+ *
+ * A session the resolver cannot settle sits in `needs_review` and earns nobody
+ * anything until a human opens it. Deciding here, before the session happens,
+ * is the difference between a sentence and a control: pass `onChange` and the
+ * caller sends the chosen group with the session.
+ */
 export function SandboxAssignmentHint({
   clientIds,
   onDate,
+  value,
+  onChange,
 }: {
   clientIds: (string | undefined | null)[]
   onDate?: string
+  value?: SandboxAssignmentChoice | null
+  onChange?: (choice: SandboxAssignmentChoice | null) => void
 }) {
   const markers = useSandboxClientMarkers(clientIds, onDate)
   const rows = clientIds
     .filter((id): id is string => !!id)
     .flatMap(id => (markers[id]?.length ? [{ id, contexts: markers[id] }] : []))
+  // Everyone in the room who is in a sandbox has to be able to count toward the
+  // group, or choosing it would credit some of them and strand the rest.
+  const shared = useMemo(() => {
+    if (!rows.length) return []
+    return rows[0].contexts.filter(candidate =>
+      rows.every(row =>
+        row.contexts.some(c => c.group_id === candidate.group_id),
+      ),
+    )
+  }, [rows])
+  const ambiguous = rows.some(row => row.contexts.length > 1)
+  const selected = value?.group_id ?? ''
+
+  useEffect(() => {
+    if (!onChange) return
+    // One shared agreement and nothing else in play: say so, and send it, so the
+    // session is settled the same way whether or not the coach read the line.
+    if (!ambiguous && shared.length === 1) {
+      if (selected !== shared[0].group_id)
+        onChange({
+          sandbox_id: shared[0].sandbox_id,
+          group_id: shared[0].group_id,
+        })
+      return
+    }
+    // The chosen group stopped being an option — a changed date, a changed room.
+    if (selected && !shared.some(c => c.group_id === selected)) onChange(null)
+  }, [ambiguous, shared, selected, onChange])
+
   if (!rows.length) return null
+
+  const one = !ambiguous && shared.length === 1 ? shared[0] : null
   return (
     <div
-      className="space-y-1 rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-ink-3"
+      className="space-y-2 rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-ink-3"
       data-testid="sandbox-assignment-hint"
     >
-      {rows.map(row => (
-        <p key={row.id}>
-          {row.contexts.length === 1 ? (
-            <>
-              Counts toward{' '}
-              <Link
-                className="font-medium text-ink-2 hover:underline"
-                href={sandboxEntityHref(
-                  row.contexts[0].sandbox_id,
-                  'client',
-                  row.contexts[0].member_id,
-                )}
-              >
-                {row.contexts[0].sandbox_name}
-              </Link>{' '}
-              · {row.contexts[0].group_name}
-            </>
-          ) : (
-            'Sandbox assignment needs review. Recording and uploading can continue.'
-          )}
+      {one ? (
+        <p>
+          Counts toward{' '}
+          <Link
+            className="font-medium text-ink-2 hover:underline"
+            href={sandboxEntityHref(one.sandbox_id, 'client', one.member_id)}
+          >
+            {one.sandbox_name}
+          </Link>{' '}
+          · {one.group_name}
         </p>
-      ))}
+      ) : !onChange ? (
+        <p>
+          Sandbox assignment needs review. Recording and uploading can continue.
+        </p>
+      ) : shared.length === 0 ? (
+        <p data-testid="sandbox-assignment-none">
+          These people are in different agreements, so this session can’t count
+          toward one of them. It will wait for review.
+        </p>
+      ) : (
+        <label className="block">
+          <span className="font-medium text-ink-2">Count this toward</span>
+          <select
+            className={`${detailControl} mt-1`}
+            aria-label="Count this toward"
+            data-testid="sandbox-assignment-choice"
+            value={selected}
+            onChange={e => {
+              const picked = shared.find(c => c.group_id === e.target.value)
+              onChange(
+                picked
+                  ? { sandbox_id: picked.sandbox_id, group_id: picked.group_id }
+                  : null,
+              )
+            }}
+          >
+            <option value="">Decide later</option>
+            {shared.map(c => (
+              <option key={c.group_id} value={c.group_id}>
+                {c.sandbox_name} · {c.group_name}
+              </option>
+            ))}
+          </select>
+          {!selected && (
+            <span className="mt-1 block">
+              Left undecided, this session waits for review and counts toward
+              nothing.
+            </span>
+          )}
+        </label>
+      )}
     </div>
   )
 }

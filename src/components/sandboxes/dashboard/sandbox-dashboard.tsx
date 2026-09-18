@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StatStrip, type StatItem } from '@/components/ui/stat-strip'
 import { NeedsAttentionList } from '@/components/sandboxes/dashboard/needs-attention-list'
 import { SandboxCard } from '@/components/sandboxes/dashboard/sandbox-card'
+import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { useSandboxDashboard } from '@/hooks/queries/use-sandboxes'
 import type {
   Persona,
@@ -233,6 +234,10 @@ export function SandboxDashboardPage({
               />
             </section>
           )}
+
+          {/* Only a coach of a group gets rows here, so every other persona
+              sees exactly what they saw before. */}
+          <SandboxGroupsSection className="mb-0" />
 
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-ink">

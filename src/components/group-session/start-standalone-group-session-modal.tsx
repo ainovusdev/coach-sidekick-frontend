@@ -4,6 +4,7 @@ import {
   SandboxClientBadge,
   SandboxAssignmentHint,
   useSandboxClientMarkers,
+  type SandboxAssignmentChoice,
 } from '@/components/sandboxes/session-attribution'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -45,6 +46,7 @@ export function StartStandaloneGroupSessionModal({
   const [title, setTitle] = useState('')
   const [meetingUrl, setMeetingUrl] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(null)
 
   const createMutation = useCreateGroupSession()
 
@@ -81,6 +83,12 @@ export function StartStandaloneGroupSessionModal({
       client_ids: Array.from(selectedClientIds),
       title: title || undefined,
       meeting_url: meetingUrl || undefined,
+      ...(sandbox
+        ? {
+            sandbox_id: sandbox.sandbox_id,
+            sandbox_group_id: sandbox.group_id,
+          }
+        : {}),
     })
     handleClose()
 
@@ -110,6 +118,7 @@ export function StartStandaloneGroupSessionModal({
     setTitle('')
     setMeetingUrl('')
     setSearchQuery('')
+    setSandbox(null)
     onOpenChange(false)
   }
 
@@ -220,7 +229,11 @@ export function StartStandaloneGroupSessionModal({
           </div>
         </div>
 
-        <SandboxAssignmentHint clientIds={[...selectedClientIds]} />
+        <SandboxAssignmentHint
+          clientIds={[...selectedClientIds]}
+          value={sandbox}
+          onChange={setSandbox}
+        />
         <DialogFooter>
           <Button variant="outline" onClick={handleClose}>
             Cancel

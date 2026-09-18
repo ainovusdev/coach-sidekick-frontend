@@ -53,6 +53,23 @@ export interface CoacheeDelivery {
   pace: Pace
 }
 
+/**
+ * A scheduled session that already credits this group. Built from *resolved*
+ * attribution, so an ambiguous session appears against no group at all — which
+ * is what `session_needs_group` in the attention list exists to catch.
+ */
+export interface UpcomingGroupSession {
+  session_id: string
+  scheduled_for: string
+  on_day: string
+  title: string | null
+  meeting_url: string | null
+  is_group_session: boolean
+  participant_member_ids: string[]
+  participant_names: string[]
+  participant_count: number
+}
+
 export interface GroupDelivery {
   group_id: string
   display_name: string
@@ -67,6 +84,9 @@ export interface GroupDelivery {
   delivered_sessions: number
   expected_total: number | null
   coachees: CoacheeDelivery[]
+  upcoming_sessions: UpcomingGroupSession[]
+  /** Whether *this viewer* coaches the group, and so may start its sessions. */
+  can_start: boolean
 }
 
 export interface DeliveryTotals {
@@ -147,6 +167,7 @@ export type AttentionKind =
   | 'outcomes_to_seal'
   | 'outcome_awaiting_approval'
   | 'outcome_changes_requested'
+  | 'session_needs_group'
 export type AttentionSeverity = 'info' | 'warn' | 'urgent'
 export type AttentionSection =
   | 'invitations'
@@ -169,6 +190,8 @@ export interface AttentionItem {
   person_name: string | null
   client_id: string | null
   event_id: string | null
+  session_id: string | null
+  attribution_id: string | null
   headline: string
   detail: string
   since: string | null
