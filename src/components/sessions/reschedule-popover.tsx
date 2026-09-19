@@ -117,9 +117,18 @@ export function ReschedulePopover({
           title="Click to reschedule"
         >
           <Clock className="h-3 w-3" />
-          {scheduledFor
-            ? `${formatDate(scheduledFor, 'MMM d, h:mm a')} (${formatRelativeTime(scheduledFor)})`
-            : 'No date'}
+          {scheduledFor ? (
+            <>
+              {formatDate(scheduledFor, 'MMM d, h:mm a')}
+              {/* The relative half is a nicety; on a phone it costs the row
+                  its actions, which wrap onto a line of their own. */}
+              <span className="hidden sm:inline">
+                ({formatRelativeTime(scheduledFor)})
+              </span>
+            </>
+          ) : (
+            'No date'
+          )}
           <CalendarIcon className="h-2.5 w-2.5 opacity-0 group-hover:opacity-50 transition-opacity" />
         </button>
       </PopoverTrigger>

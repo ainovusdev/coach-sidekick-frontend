@@ -80,10 +80,12 @@ export function UpcomingSessions() {
             return (
               <div
                 key={session.id}
-                className="flex items-center gap-3 px-4 py-2.5 rounded-lg border border-line bg-paper/50 hover:bg-paper transition-colors group"
+                className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 rounded-lg border sm:flex-nowrap border-line bg-paper/50 hover:bg-paper transition-colors group"
               >
-                {/* Title (editable) */}
-                <div className="flex-1 min-w-0">
+                {/* Title (editable). On a phone it takes the first line to
+                    itself: squeezed beside the date it shrank to nothing and
+                    its text printed over the date. */}
+                <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                   {editingTitleId === session.id ? (
                     <input
                       ref={titleInputRef}
@@ -99,7 +101,7 @@ export function UpcomingSessions() {
                   ) : (
                     <button
                       onClick={() => startEditingTitle(session)}
-                      className="text-sm font-medium text-ink truncate block text-left hover:text-ink-3 transition-colors"
+                      className="text-sm font-medium text-ink truncate block max-w-full text-left hover:text-ink-3 transition-colors"
                       title="Click to edit title"
                     >
                       {session.client_name && session.title
@@ -197,7 +199,7 @@ export function UpcomingSessions() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 text-xs px-2 shrink-0 text-ink-3 hover:text-ink "
+                  className="ml-auto h-7 text-xs px-2 shrink-0 text-ink-3 sm:ml-0 hover:text-ink "
                   onClick={() => router.push(`/sessions/${session.id}`)}
                 >
                   Open

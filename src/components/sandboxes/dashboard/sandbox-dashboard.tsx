@@ -246,9 +246,11 @@ export function SandboxDashboardPage({
                 {cards.length}
               </span>
             </h2>
-            <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {/* `grid-cols-1`, not an implicit column: an `auto` track is as wide
+                as its longest truncated title, which pushes a phone sideways. */}
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {cards.map(card => (
-                <li key={card.sandbox.id}>
+                <li key={card.sandbox.id} className="min-w-0">
                   <SandboxCard card={card} today={data!.today} />
                 </li>
               ))}

@@ -327,5 +327,9 @@ test.describe('Sandboxes — the coach’s groups', () => {
       page.getByPlaceholder('Select client (optional)'),
     ).toBeVisible()
     await expect(page.getByTestId('sandbox-groups')).toHaveCount(0)
+    // The dashboard refetches on its own clock. A refetch caught mid-
+    // `route.fetch()` when the page closes rejects inside the handler and fails
+    // a test whose assertions all passed.
+    await page.unrouteAll({ behavior: 'ignoreErrors' })
   })
 })
