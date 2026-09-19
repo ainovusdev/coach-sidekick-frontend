@@ -7,7 +7,9 @@ import {
   Check,
   Loader2,
   List,
+  Plus,
   Square,
+  X,
 } from 'lucide-react'
 import Image from 'next/image'
 import { toast } from 'sonner'
@@ -259,7 +261,11 @@ export function QuestionnaireFlow({
   }, [viewMode])
 
   const headerCaption =
-    kind === 'post_session' ? 'Thrill Form' : 'Pre-Session Questionnaire'
+    kind === 'coach_reflection'
+      ? 'Coach Reflection'
+      : kind === 'post_session'
+        ? 'Thrill Form'
+        : 'Pre-Session Questionnaire'
 
   return (
     <div className="min-h-screen flex flex-col  ">
@@ -305,7 +311,10 @@ export function QuestionnaireFlow({
 
             <div className="space-y-10">
               {visibleQuestions.map((q, i) => (
-                <div key={q.index}>
+                <div key={q.index} data-testid="question-block">
+                  {q.section !== visibleQuestions[i - 1]?.section && (
+                    <SectionLabel question={q} />
+                  )}
                   <div className="flex items-baseline gap-3 mb-4">
                     <span className="text-sm text-ink-4 font-medium tabular-nums pt-1">
                       {i + 1}
@@ -314,6 +323,7 @@ export function QuestionnaireFlow({
                       {q.text}
                     </h2>
                   </div>
+                  <Hint question={q} className="-mt-2 mb-4 pl-6" />
                   <QuestionInput
                     question={q}
                     value={answers[q.index] || ''}
@@ -381,9 +391,13 @@ export function QuestionnaireFlow({
                 </span>
               </div>
 
+              {currentQuestion && <SectionLabel question={currentQuestion} />}
               <h2 className="text-2xl sm:text-3xl font-light text-ink leading-relaxed mb-8">
                 {currentQuestion?.text}
               </h2>
+              {currentQuestion && (
+                <Hint question={currentQuestion} className="-mt-5 mb-8" />
+              )}
 
               {/* Answer Input — switches by question type */}
               {currentQuestion && (
@@ -514,6 +528,39 @@ function QuestionInput({
   }
   if (question.type === 'yes_no') {
     return <YesNoInput value={value} onChange={onChange} disabled={disabled} />
+  }
+  if (question.type === 'choice') {
+    return (
+      <ChoiceInput
+        options={question.options ?? []}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+      />
+    )
+  }
+  if (question.type === 'date') {
+    return (
+      <input
+        id={`question-${question.index}`}
+        type="date"
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        disabled={disabled}
+        className="w-full rounded-lg border-2 border-line bg-surface-1 px-4 py-4 text-lg text-ink transition-colors focus:border-line-strong focus:outline-none disabled:opacity-50 sm:w-auto"
+      />
+    )
+  }
+  if (question.type === 'list') {
+    return (
+      <ListInput
+        id={`question-${question.index}`}
+        itemLabel={question.item_label ?? 'Item'}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+      />
+    )
   }
   return (
     <AutoTextarea
@@ -698,6 +745,143 @@ function YesNoInput({ value, onChange, disabled }: YesNoInputProps) {
           </button>
         )
       })}
+    </div>
+  )
+}
+
+// The coachee a per-coachee question is about. Only sent when the form covers
+// more than one, where "your client" would otherwise be anybody.
+function SectionLabel({ question }: { question: QuestionItem }) {
+  if (!question.section) return null
+  return (
+    <p className="mb-3 text-xs font-medium uppercase tracking-widest text-ink-4">
+      {question.section}
+    </p>
+  )
+}
+
+function Hint({
+  question,
+  className = '',
+}: {
+  question: QuestionItem
+  className?: string
+}) {
+  if (!question.hint) return null
+  return <p className={`text-sm text-ink-3 ${className}`}>{question.hint}</p>
+}
+
+interface ChoiceInputProps {
+  options: string[]
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}
+
+function ChoiceInput({ options, value, onChange, disabled }: ChoiceInputProps) {
+  return (
+    <div className="flex flex-col gap-3 sm:flex-row sm:gap-4">
+      {options.map(opt => {
+        const isSelected = value === opt
+        return (
+          <button
+            key={opt}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(opt)}
+            className={`flex-1 py-4 sm:py-5 rounded-lg border-2 text-base sm:text-lg font-semibold transition-all ${
+              isSelected
+                ? 'bg-ink text-ink-on-dark border-line shadow-sm'
+                : 'bg-surface-1 text-ink-2 border-line hover:border-line-strong hover:text-ink'
+            } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+            aria-pressed={isSelected}
+          >
+            {opt}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+// Answers are strings everywhere else in this form (draft storage, the submit
+// payload), so a list travels as a JSON array — and as '' when it is empty, so
+// an untouched list still counts as a skipped question.
+function parseList(value: string): string[] {
+  if (!value) return []
+  try {
+    const parsed = JSON.parse(value)
+    return Array.isArray(parsed) ? parsed.map(String) : []
+  } catch {
+    return []
+  }
+}
+
+interface ListInputProps {
+  id: string
+  itemLabel: string
+  value: string
+  onChange: (value: string) => void
+  disabled?: boolean
+}
+
+function ListInput({
+  id,
+  itemLabel,
+  value,
+  onChange,
+  disabled,
+}: ListInputProps) {
+  // Rows being typed live here; blank rows never reach the answer.
+  const [rows, setRows] = useState<string[]>(() => parseList(value))
+  const commit = (next: string[]) => {
+    setRows(next)
+    const kept = next.map(r => r.trim()).filter(Boolean)
+    onChange(kept.length ? JSON.stringify(kept) : '')
+  }
+  return (
+    <div className="space-y-3">
+      {rows.map((row, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input
+            id={`${id}-${i}`}
+            value={row}
+            autoFocus={row === '' && i === rows.length - 1}
+            onChange={e =>
+              commit(rows.map((r, j) => (j === i ? e.target.value : r)))
+            }
+            onKeyDown={e => {
+              if (e.key === 'Enter' && !e.metaKey && !e.ctrlKey) {
+                e.preventDefault()
+                if (row.trim()) commit([...rows, ''])
+              }
+            }}
+            disabled={disabled}
+            placeholder={`${itemLabel} ${i + 1}`}
+            aria-label={`${itemLabel} ${i + 1}`}
+            className="min-w-0 flex-1 rounded-lg border-2 border-line bg-surface-1 px-4 py-3 text-base text-ink transition-colors focus:border-line-strong focus:outline-none disabled:opacity-50"
+          />
+          <button
+            type="button"
+            onClick={() => commit(rows.filter((_, j) => j !== i))}
+            disabled={disabled}
+            aria-label={`Remove ${itemLabel.toLowerCase()} ${i + 1}`}
+            className="shrink-0 rounded-lg p-2 text-ink-3 transition-colors hover:bg-surface-3 hover:text-ink disabled:opacity-50"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => commit([...rows, ''])}
+        disabled={disabled}
+        data-testid="list-add"
+        className="flex items-center gap-2 rounded-lg border-2 border-line bg-surface-1 px-4 py-3 text-sm font-semibold text-ink-2 transition-colors hover:border-line-strong hover:text-ink disabled:opacity-50"
+      >
+        <Plus className="h-4 w-4" />
+        Add {itemLabel}
+      </button>
     </div>
   )
 }

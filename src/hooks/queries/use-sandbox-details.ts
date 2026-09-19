@@ -67,3 +67,21 @@ export function useSandboxEntityActivity(
     staleTime: 0,
   })
 }
+/** `enabled` is the page's `can_read_feedback`: the client's side never asks. */
+export function useSandboxFeedback(
+  sandboxId: string,
+  viewer: string | null,
+  selection: InsightSelection,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: ['sandbox-feedback', viewer, sandboxId, selection],
+    queryFn: () =>
+      withSandboxViewer(viewer, () =>
+        SandboxDetailsService.feedback(sandboxId, selection),
+      ),
+    enabled: !!viewer && enabled,
+    gcTime: 0,
+    staleTime: 0,
+  })
+}

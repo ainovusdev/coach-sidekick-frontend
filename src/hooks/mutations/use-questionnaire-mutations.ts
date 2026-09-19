@@ -144,3 +144,22 @@ export function useStartSessionBot() {
     },
   })
 }
+
+export function useSendCoachReflection() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      QuestionnaireService.sendCoachReflection(sessionId),
+    onSuccess: (data, sessionId) => {
+      queryClient.setQueryData(
+        ['questionnaire', 'coach-reflection', sessionId],
+        data,
+      )
+      toast.success('Coach Reflection sent to your email')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to send Coach Reflection')
+    },
+  })
+}

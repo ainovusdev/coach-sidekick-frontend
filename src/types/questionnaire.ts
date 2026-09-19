@@ -28,8 +28,17 @@ export interface ScheduledSession {
   google_calendar_event_id?: string | null
 }
 
-export type QuestionnaireKind = 'pre_session' | 'post_session'
-export type QuestionType = 'text' | 'scale' | 'yes_no'
+export type QuestionnaireKind =
+  | 'pre_session'
+  | 'post_session'
+  | 'coach_reflection'
+export type QuestionType =
+  | 'text'
+  | 'scale'
+  | 'yes_no'
+  | 'choice'
+  | 'date'
+  | 'list'
 
 export interface QuestionCondition {
   depends_on: number
@@ -58,6 +67,14 @@ export interface QuestionItem {
   scale_min_label?: string | null
   scale_max_label?: string | null
   condition?: QuestionCondition | null
+  /** `choice` options. */
+  options?: string[] | null
+  /** The helper line under the question. */
+  hint?: string | null
+  /** The coachee a per-coachee question is about, when there is more than one. */
+  section?: string | null
+  /** What one entry of a `list` is called, e.g. "Win". */
+  item_label?: string | null
 }
 
 export interface QuestionnaireAnswerItem {
@@ -88,6 +105,30 @@ export interface ThrillFormStatusView {
   client_id: string | null
   client_name: string | null
   responses: QuestionAnswerPair[]
+  /** Group sessions only: one entry per coachee who was in the room. */
+  participants?: ThrillFormStatusView[]
+}
+
+export interface CoachReflectionAnswer {
+  key: string | null
+  question_text: string
+  answer: string
+  subject_client_id: string | null
+  subject_name: string | null
+}
+
+/** The coach's half of the post-session pair. Sandbox sessions only. */
+export interface CoachReflectionView {
+  /** False for a session that credits no sandbox: the page shows nothing. */
+  applicable: boolean
+  status: 'not_sent' | 'sent' | 'completed'
+  sent_at: string | null
+  completed_at: string | null
+  subjects: { client_id: string; name: string }[]
+  responses: CoachReflectionAnswer[]
+  wins: string[]
+  /** A bearer link, given to the session's coach alone until it is filled in. */
+  fill_url: string | null
 }
 
 export type PreSessionStatus = 'not_started' | 'in_progress' | 'completed'

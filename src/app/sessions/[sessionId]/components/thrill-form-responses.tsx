@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { useThrillForm } from '@/hooks/queries/use-questionnaire'
 import { useSendThrillForm } from '@/hooks/mutations/use-questionnaire-mutations'
 import { format } from 'date-fns'
+import type { ThrillFormStatusView } from '@/types/questionnaire'
 
 interface ThrillFormResponsesProps {
   sessionId: string
@@ -41,10 +42,47 @@ export function ThrillFormResponses({
   clientId,
 }: ThrillFormResponsesProps) {
   const { data, isLoading } = useThrillForm(sessionId, clientId)
+
+  if (isLoading || !data) return null
+
+  // A group session: one form per coachee who was in the room, each with its
+  // own status and its own resend.
+  if (data.participants && data.participants.length > 0) {
+    return (
+      <>
+        {data.participants.map(p => (
+          <ThrillFormCard
+            key={p.client_id ?? p.client_name}
+            sessionId={sessionId}
+            clientId={p.client_id ?? undefined}
+            data={p}
+            showName
+          />
+        ))}
+      </>
+    )
+  }
+
+  return (
+    <ThrillFormCard sessionId={sessionId} clientId={clientId} data={data} />
+  )
+}
+
+function ThrillFormCard({
+  sessionId,
+  clientId,
+  data,
+  showName = false,
+}: {
+  sessionId: string
+  clientId?: string
+  data: ThrillFormStatusView
+  showName?: boolean
+}) {
   const sendThrillForm = useSendThrillForm()
 
   // Never sent (or no access) → render nothing, exactly as before.
-  if (isLoading || !data || data.status === 'not_sent') return null
+  if (data.status === 'not_sent') return null
 
   const isCompleted = data.status === 'completed'
   // For a sent-but-not-completed form, resend needs a client id; fall back to
@@ -53,11 +91,17 @@ export function ThrillFormResponses({
 
   const header = (
     <CardHeader className="pb-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
           <Sparkles className="h-4 w-4 text-app-secondary" />
           <h3 className="text-sm font-semibold text-app-primary">
             Thrill Form
+            {showName && data.client_name && (
+              <span className="font-normal text-app-secondary">
+                {' '}
+                · {data.client_name}
+              </span>
+            )}
           </h3>
         </div>
         {isCompleted ? (
@@ -96,7 +140,10 @@ export function ThrillFormResponses({
   if (data.status === 'sent') {
     const who = data.client_name || 'Your client'
     return (
-      <Card className="border-app-border shadow-sm">
+      <Card
+        className="border-app-border shadow-sm"
+        data-testid="thrill-form-card"
+      >
         {header}
         <CardContent className="pt-0">
           <p className="text-sm text-app-secondary leading-relaxed">
@@ -129,7 +176,10 @@ export function ThrillFormResponses({
 
   // Completed / in-progress → show the answers.
   return (
-    <Card className="border-app-border shadow-sm">
+    <Card
+      className="border-app-border shadow-sm"
+      data-testid="thrill-form-card"
+    >
       {header}
       <CardContent className="pt-0">
         <div className="space-y-4">

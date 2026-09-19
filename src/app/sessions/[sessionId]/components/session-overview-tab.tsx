@@ -29,6 +29,7 @@ import { SessionNotesCompact } from './session-notes-compact'
 import { SessionResourcesCompact } from './session-resources-compact'
 import { SessionWins } from '@/components/wins/session-wins'
 import { PreSessionResponses } from './pre-session-responses'
+import { CoachReflectionCard } from './coach-reflection-card'
 import { ThrillFormResponses } from './thrill-form-responses'
 import { THRILL_FORM_ENABLED } from '@/lib/features'
 import TranscriptViewer from './transcript-viewer'
@@ -140,6 +141,7 @@ export function SessionOverviewTab({
       {THRILL_FORM_ENABLED && (
         <ThrillFormResponses sessionId={sessionId} clientId={clientId} />
       )}
+      <CoachReflectionCard sessionId={sessionId} />
 
       {/* Per-Client Analysis Pending State */}
       {isGroupSession && selectedClientId && !clientAnalysis && (
