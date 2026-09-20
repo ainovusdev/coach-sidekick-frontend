@@ -22,7 +22,7 @@ import type { Cadence, CadencePer } from '@/types/sandbox'
 
 const PER_OPTIONS: { value: CadencePer; label: string }[] = [
   { value: 'week', label: 'week' },
-  { value: 'fortnight', label: 'fortnight' },
+  { value: 'fortnight', label: '2 weeks' },
   { value: 'month', label: 'month' },
 ]
 

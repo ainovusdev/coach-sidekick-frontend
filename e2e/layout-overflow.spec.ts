@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { USERS, login } from './helpers'
+import { API, USERS, apiToken, auth, login } from './helpers'
 
 /**
  * No page scrolls sideways.
@@ -39,6 +39,36 @@ for (const { who, paths } of CASES) {
     }
   })
 }
+
+test('People and Groups on a sandbox fit every width', async ({
+  page,
+  request,
+}) => {
+  // Three lists on People, a table of pairings and a grid of cards on Groups.
+  const token = await apiToken(request, USERS.admin.email)
+  const resp = await request.get(`${API}/sandboxes/`, { headers: auth(token) })
+  const list = await resp.json()
+  const sandboxes = Array.isArray(list) ? list : (list.sandboxes ?? list.items)
+  expect(sandboxes.length).toBeGreaterThan(0)
+  await login(page, USERS.admin.email)
+  for (const tab of ['people', 'groups']) {
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(`/sandboxes/${sandboxes[0].id}?tab=${tab}`)
+      await expect(page.getByTestId(`sandbox-tab-${tab}`)).toHaveAttribute(
+        'data-state',
+        'active',
+      )
+      await page.waitForLoadState('networkidle').catch(() => {})
+      const over = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      )
+      expect(over, `${tab} at ${width}px`).toBeLessThanOrEqual(0)
+    }
+  }
+})
 
 test('a phone keeps an upcoming session title clear of its date', async ({
   page,

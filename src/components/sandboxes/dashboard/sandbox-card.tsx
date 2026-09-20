@@ -29,7 +29,18 @@ function CardPaceChip({
   startsOn: string
 }) {
   const coachees = card.my_groups.flatMap(g => g.coachees)
-  if (coachees.length === 0) return null
+  // On the coaches list but not paired yet: say so, rather than showing a card
+  // that looks like it is missing its numbers.
+  if (coachees.length === 0)
+    return card.sandbox.my_roles.length === 1 &&
+      card.sandbox.my_roles[0] === 'coach' ? (
+      <span
+        className="inline-flex items-center rounded-full bg-surface-3 px-2 py-0.5 text-xs text-ink-3"
+        data-testid="no-pairings-yet"
+      >
+        No pairings yet
+      </span>
+    ) : null
   if (coachees.length === 1)
     return <PaceChip pace={coachees[0].pace} startsOn={startsOn} />
   const tone = stateTone(card.delivery_state)

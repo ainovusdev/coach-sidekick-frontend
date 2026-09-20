@@ -8,6 +8,10 @@ export const TERM_MONTHS: TermMonths[] = [3, 4, 6, 9, 12]
 export type SandboxStatus = 'upcoming' | 'active' | 'ended'
 export type Side = 'ours' | 'theirs'
 export type GroupMemberKind = 'coach' | 'coachee' | 'supervisor'
+/** On the sandbox's list of coaches / coachees, in a group yet or not. */
+export type RosterKind = 'coach' | 'coachee'
+/** A 1:1 pairing holds one coach and one coachee; a group any number. */
+export type GroupType = 'pair' | 'group'
 export type CadencePer = 'month' | 'fortnight' | 'week'
 export type EventState = 'past' | 'current' | 'upcoming'
 export type InvitationStatus =
@@ -139,6 +143,8 @@ export interface SandboxMember {
   group_ids: string[]
   group_names: string[]
   group_kinds: string[]
+  /** The lists they are on — a group row counts, so does being listed with none. */
+  roster: RosterKind[]
   /** The (group, kind) pairs behind the flat lists above. */
   memberships: SandboxMembership[]
   /** Our side: when the "you were added" email went out. */
@@ -178,6 +184,9 @@ export interface PersonSearchResult {
   roles: string[]
   is_member: boolean
   member_roles: string[]
+  /** Already on this sandbox: which member they are, and the lists they are on. */
+  member_id?: string | null
+  member_roster?: RosterKind[]
 }
 
 export interface SandboxGroupMember {
@@ -211,6 +220,7 @@ export interface SandboxGroup {
   sandbox_id: string
   name: string | null
   display_name: string
+  kind: GroupType
   is_one_to_one: boolean
   hours_per_coachee: number | null
   session_length_minutes: number
@@ -391,6 +401,8 @@ export interface SandboxUpdate {
 export interface SandboxMemberCreate {
   side: Side
   roles: string[]
+  /** Ours: `['coach']`. Theirs: `['coachee']`. */
+  roster?: RosterKind[]
   user_id?: string
   email?: string
   name?: string | null
@@ -413,9 +425,22 @@ export interface SandboxGroupCreate {
   session_length_minutes?: number
   cadence?: Cadence | null
   starts_on?: string | null
-  coach_user_ids?: string[]
-  coachees?: CoacheeInput[]
+  kind?: GroupType
+  /** People are picked from the sandbox's lists, by member id. */
+  coach_member_ids?: string[]
+  coachee_member_ids?: string[]
   supervisor_member_ids?: string[]
+}
+
+export interface SandboxGroupBulkCreate {
+  groups: SandboxGroupCreate[]
+  allow_duplicates?: boolean
+}
+
+export interface MemberRosterUpdate {
+  roster: RosterKind[]
+  /** Go ahead although they have had sessions in a group they leave. */
+  force?: boolean
 }
 
 export interface SandboxGroupUpdate {
@@ -424,6 +449,8 @@ export interface SandboxGroupUpdate {
   session_length_minutes?: number
   cadence?: Cadence | null
   starts_on?: string | null
+  /** A pairing can always become a group; a group a pairing only if it fits. */
+  kind?: GroupType
 }
 
 export interface SandboxGroupMemberCreate {

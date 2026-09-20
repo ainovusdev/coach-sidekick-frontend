@@ -4,7 +4,7 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, login } from './helpers'
+import { API, apiToken, auth, buildGroup, login, USERS } from './helpers'
 
 /**
  * The coach's side of a sandbox: their groups on the home page, a session
@@ -113,32 +113,28 @@ test.describe('Sandboxes — the coach’s groups', () => {
     const priya = (
       await api(request, token, 'get', '/sandboxes/people/search?q=priya')
     )[0]
-    const main = await api(
-      request,
-      token,
-      'post',
-      `/sandboxes/${sandboxId}/groups`,
-      {
-        coach_user_ids: [marcus.id],
-        coachees: [NADIA, TOMAS],
-        hours_per_coachee: 13.5,
-      },
-    )
+    const main = await buildGroup(request, token, sandboxId, {
+      coach_user_ids: [marcus.id],
+      coachees: [NADIA, TOMAS],
+      hours_per_coachee: 13.5,
+    })
     mainGroupId = main.id
-    const directors = await api(
-      request,
-      token,
-      'post',
-      `/sandboxes/${sandboxId}/groups`,
-      {
-        name: 'Directors',
-        coach_user_ids: [marcus.id],
-        coachees: [NADIA],
-        hours_per_coachee: 18,
-      },
-    )
+    const directors = await buildGroup(request, token, sandboxId, {
+      name: 'Directors',
+      coach_user_ids: [marcus.id],
+      coachees: [NADIA],
+      hours_per_coachee: 18,
+    })
     directorsId = directors.id
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    // Where Marcus is coached rather than coaching. One person can't be on
+    // both lists of one sandbox yet, so his coachee side is a sandbox of its own.
+    const circle = await api(request, token, 'post', '/sandboxes/', {
+      name: `${NAME} Circle`,
+      organisation: 'PTG',
+      term_start: termStart(),
+      term_months: 6,
+    })
+    await buildGroup(request, token, circle.sandbox.id, {
       name: 'Coaches’ Circle',
       coach_user_ids: [priya.id],
       coachees: [{ email: USERS.marcus.email, name: USERS.marcus.name }],

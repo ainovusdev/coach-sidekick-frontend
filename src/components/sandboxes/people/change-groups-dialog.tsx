@@ -70,15 +70,15 @@ export function ChangeGroupsDialog({
   const first = firstName(member.name, member.email)
   const isOurs = member.side === 'ours'
   const canSupervise = member.roles.includes('supervisor')
-  const kinds: GroupMemberKind[] = isOurs
-    ? ['coach']
-    : canSupervise
-      ? ['coachee', 'supervisor']
-      : ['coachee']
+  // What they may be in a group is what People lists them as — not which side
+  // they are on. Supervising stays a hat.
+  const kinds: GroupMemberKind[] = [
+    ...member.roster,
+    ...(canSupervise ? (['supervisor'] as const) : []),
+  ]
 
   const changed =
     picked.size !== initial.size || [...picked].some(k => !initial.has(k))
-  const leavesSandbox = member.roles.length === 0 && picked.size === 0
 
   const toggle = (groupId: string, kind: GroupMemberKind, on: boolean) => {
     setLeaving(null)
@@ -127,14 +127,22 @@ export function ChangeGroupsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {groups.length === 0 ? (
+        {kinds.length === 0 ? (
+          <p
+            className="rounded-lg border border-dashed border-line px-4 py-6 text-center text-sm text-ink-3"
+            data-testid="not-on-a-list"
+          >
+            {first} isn’t on the {isOurs ? 'coaches' : 'coachees'} list yet. Add
+            them there on People, then arrange them here.
+          </p>
+        ) : groups.length === 0 ? (
           <p className="rounded-lg border border-dashed border-line px-4 py-6 text-center text-sm text-ink-3">
             No groups yet.{' '}
             <Link
               href={view.href.groups(sandbox.id)}
               className="text-ink underline-offset-2 hover:underline"
             >
-              Build one on the overview
+              Build one on Groups
             </Link>
             .
           </p>
@@ -196,16 +204,6 @@ export function ChangeGroupsDialog({
             session on record; nothing is deleted.
           </p>
         )}
-        {leavesSandbox && changed && (
-          <p
-            className="rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
-            data-testid="leaves-sandbox"
-          >
-            {first} has no role on this sandbox, so with no group left they come
-            off it. Client records their coaches already have are kept.
-          </p>
-        )}
-
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel

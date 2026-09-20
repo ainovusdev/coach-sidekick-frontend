@@ -4,7 +4,15 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, gotoSandboxTab, login } from './helpers'
+import {
+  API,
+  apiToken,
+  auth,
+  buildGroup,
+  gotoSandboxTab,
+  login,
+  USERS,
+} from './helpers'
 
 /**
  * The Team tab's people table: everyone on the sandbox in one table, filters,
@@ -82,13 +90,13 @@ test.describe('Sandboxes — People page', () => {
       email: USERS.dana.email,
       name: USERS.dana.name,
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       coach_user_ids: [marcus.id],
       coachees: [{ email: AMARA.email, name: AMARA.name }],
       hours_per_coachee: 13.5,
       cadence: { shape: 'range', min: 2, max: 3, per: 'month' },
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Managers',
       coach_user_ids: [priya.id],
       coachees: [{ email: TARIQ.email, name: TARIQ.name }],
@@ -100,9 +108,10 @@ test.describe('Sandboxes — People page', () => {
     await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
     await expect(page.getByTestId('people-table')).toContainText('Team 6')
     await expect(page.getByTestId('people-summary')).toHaveText(
-      `3 ours · 3 from ${ORG}`,
+      `2 managing · 2 coaches · 3 from ${ORG}`,
     )
-    await expect(page.getByTestId('person-row')).toHaveCount(6)
+    // Marcus leads the coaches and coaches too, so he is on both of our lists.
+    await expect(page.getByTestId('person-row')).toHaveCount(7)
 
     const amara = row(page, AMARA.name)
     await expect(amara).toContainText('Primary client')
@@ -110,7 +119,10 @@ test.describe('Sandboxes — People page', () => {
     await expect(amara).toContainText('Marcus → Amara')
     await expect(amara.getByTestId('invitation-badge')).toHaveText('Not sent')
 
-    const marcusRow = row(page, 'Marcus Bell')
+    const marcusRow = page
+      .getByTestId('our-side')
+      .getByTestId('person-row')
+      .filter({ hasText: 'Marcus Bell' })
     await expect(marcusRow).toContainText('Lead coach')
     await expect(marcusRow).toContainText('Coach')
     await expect(marcusRow.getByTestId('notified')).toContainText('Emailed')
@@ -129,12 +141,15 @@ test.describe('Sandboxes — People page', () => {
     await login(page, USERS.admin.email)
     await gotoSandboxTab(page, `/admin/sandboxes/${sandboxId}`, 'people')
     const rows = page.getByTestId('person-row')
-    await expect(rows).toHaveCount(6)
+    await expect(rows).toHaveCount(7)
 
-    // each side is its own list, and only theirs talks about invitations
+    // each list is its own card, and only theirs talks about invitations
     const our = page.getByTestId('our-side')
     const their = page.getByTestId('their-side')
-    await expect(our.getByTestId('person-row')).toHaveCount(3)
+    await expect(our.getByTestId('person-row')).toHaveCount(2)
+    await expect(
+      page.getByTestId('coaches-side').getByTestId('person-row'),
+    ).toHaveCount(2)
     await expect(their.getByTestId('person-row')).toHaveCount(3)
     await expect(our).toContainText('Notified')
     await expect(their).toContainText('Invitation')
@@ -143,13 +158,13 @@ test.describe('Sandboxes — People page', () => {
     await pick(page, 'Role', 'Supervisor')
     await expect(rows).toHaveCount(1)
     await expect(rows).toContainText(USERS.dana.name)
-    await expect(our).toContainText('No one from our side matches')
+    await expect(our).toContainText('No one from the managing team matches')
 
     await page.getByTestId('clear-filters').click()
-    await expect(rows).toHaveCount(6)
+    await expect(rows).toHaveCount(7)
 
     await pick(page, 'Group', 'Marcus → Amara')
-    await expect(rows).toHaveCount(2)
+    await expect(rows).toHaveCount(3) // Marcus on both of our lists, and Amara
     await pick(page, 'Group', 'No group')
     await expect(rows).toHaveCount(2) // the admin and Dana
     await page.getByTestId('clear-filters').click()
@@ -164,7 +179,7 @@ test.describe('Sandboxes — People page', () => {
     await page.getByTestId('people-search').fill('nobody')
     await expect(page.getByText('No one matches')).toBeVisible()
     await page.getByRole('button', { name: 'Clear filters' }).click()
-    await expect(rows).toHaveCount(6)
+    await expect(rows).toHaveCount(7)
   })
 
   test('moves a coachee to another group and attaches a supervisor', async ({
@@ -211,7 +226,8 @@ test.describe('Sandboxes — People page', () => {
       'Managers (supervises)',
     )
 
-    // The groups above the roster reflect it straight away.
+    // The Groups tab reflects it straight away.
+    await page.getByTestId('sandbox-tab-groups').click()
     const managers = page
       .getByTestId('group-card')
       .filter({ hasText: 'Managers' })
@@ -248,7 +264,7 @@ test.describe('Sandboxes — People page', () => {
     )
     await page.getByTestId('bulk-remove-confirm').click()
     await expect(row(page, TARIQ.name)).toHaveCount(0)
-    await expect(page.getByTestId('person-row')).toHaveCount(5)
+    await expect(page.getByTestId('person-row')).toHaveCount(6)
   })
 
   test('bulk removal will not take the last account executive', async ({

@@ -4,7 +4,15 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, invitationToken, login } from './helpers'
+import {
+  API,
+  apiToken,
+  auth,
+  buildGroup,
+  invitationToken,
+  login,
+  USERS,
+} from './helpers'
 
 /**
  * Phase 4 — gold sealing + the notification bell.
@@ -91,13 +99,13 @@ test.describe('Sandboxes — gold sealing', () => {
         name: USERS.dana.name,
       },
     )
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       coach_user_ids: [marcus.id],
       coachees: [TARIQ],
       hours_per_coachee: 12,
       supervisor_member_ids: [dana.id],
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Leads',
       coach_user_ids: [priya.id],
       coachees: [WREN],

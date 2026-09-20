@@ -196,11 +196,73 @@ test.describe('Sandboxes — admin creation flow', () => {
     )
   })
 
+  test('nothing can be paired until People lists a coach and a coachee', async ({
+    page,
+  }) => {
+    await login(page, USERS.admin.email)
+    await openSandbox(page, 'groups')
+    await expect(page.getByTestId('groups-gate')).toContainText(
+      'Add at least one coach and one coachee on People first',
+    )
+    await expect(page.getByTestId('add-pairings')).toBeDisabled()
+    await expect(page.getByTestId('build-group')).toBeDisabled()
+    await page.getByTestId('groups-gate-people').click()
+    await expect(page.getByTestId('people-table')).toBeVisible()
+
+    // Coaches: several at once. Marcus is already here as lead coach — he keeps
+    // the hat and gains the list.
+    await page.getByRole('button', { name: 'Add coaches' }).click()
+    const dialog = page.getByTestId('add-coaches-dialog')
+    for (const email of [USERS.marcus.email, USERS.priya.email])
+      await dialog
+        .locator(`[data-testid="coach-candidate"][data-email="${email}"]`)
+        .getByRole('checkbox')
+        .click()
+    await dialog.getByTestId('add-coaches-submit').click()
+    await expect(dialog).toBeHidden()
+    const coaches = page.getByTestId('coaches-side')
+    await expect(coaches.getByTestId('person-row')).toHaveCount(2)
+    // No email for being listed — that waits for a first pairing.
+    await expect(
+      coaches.getByTestId('person-row').filter({ hasText: 'Priya' }),
+    ).toContainText('Not emailed')
+
+    // Coachees: someone already here…
+    const nadiaRow = page
+      .getByTestId('their-side')
+      .getByTestId('person-row')
+      .filter({ hasText: NADIA.name })
+    await nadiaRow.getByRole('button', { name: /Actions for/ }).click()
+    await page.getByTestId('add-to-list-item').click()
+    await expect(nadiaRow).toContainText('Coachee')
+
+    // …and a pasted list of new people.
+    await page.getByRole('button', { name: 'Add by email' }).click()
+    await page.getByTestId('paste-people-open').click()
+    await page
+      .getByTestId('paste-people')
+      .fill(`${KOFI.name}, ${KOFI.email}\n${LENA.name} <${LENA.email}>`)
+    await page.getByTestId('paste-people-use').click()
+    await expect(page.getByTestId('their-person-row')).toHaveCount(2)
+    await page.getByTestId('add-their-people').click()
+    for (const person of [KOFI, LENA])
+      await expect(
+        page
+          .getByTestId('their-side')
+          .getByTestId('person-row')
+          .filter({ hasText: person.name }),
+      ).toContainText('Coachee')
+
+    await page.getByTestId('sandbox-tab-groups').click()
+    await expect(page.getByTestId('groups-gate')).toHaveCount(0)
+    await expect(page.getByTestId('add-pairings')).toBeEnabled()
+  })
+
   test('builds a one-to-one group with the contract maths', async ({
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'people')
+    await openSandbox(page, 'groups')
 
     await page.getByTestId('build-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -211,11 +273,12 @@ test.describe('Sandboxes — admin creation flow', () => {
       .getByTestId('coach-results')
       .getByRole('button', { name: /Marcus Bell/ })
       .click()
-    await expect(drawer.getByTestId('selected-coaches')).toContainText(
-      'Marcus Bell',
-    )
+    await expect(drawer.getByTestId('coach-list')).toContainText('Marcus Bell')
 
-    await drawer.getByRole('button', { name: `+ ${NADIA.name}` }).click()
+    // Coachees come from the list on People — there is no email box here.
+    await expect(drawer.getByTestId('coachee-email')).toHaveCount(0)
+    await drawer.getByTestId('coachee-search').fill('nadia')
+    await drawer.getByTestId('coachee-results').getByRole('button').click()
     await expect(drawer.getByTestId('coachee-list')).toContainText(NADIA.name)
 
     await drawer.getByTestId('hours-input').fill('13.5')
@@ -253,7 +316,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await openSandbox(page, 'people')
+    await openSandbox(page, 'groups')
 
     await page.getByTestId('new-group').click()
     const drawer = page.getByTestId('group-drawer')
@@ -267,9 +330,12 @@ test.describe('Sandboxes — admin creation flow', () => {
         .click()
     }
     for (const person of [KOFI, LENA]) {
-      await drawer.getByTestId('coachee-email').fill(person.email)
-      await drawer.getByTestId('coachee-name').fill(person.name)
-      await drawer.getByTestId('coachee-add').click()
+      await drawer.getByTestId('coachee-search').fill(person.name)
+      await drawer
+        .getByTestId('coachee-results')
+        .getByRole('button')
+        .first()
+        .click()
     }
     await expect(drawer.getByTestId('coachee-row')).toHaveCount(2)
 
@@ -289,7 +355,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(incomplete).toContainText('Needs hours per coachee')
     await page.getByTestId('sandbox-tab-today').click()
     await expect(page.getByTestId('setup-groups')).toContainText('1 incomplete')
-    await page.getByTestId('sandbox-tab-people').click()
+    await page.getByTestId('sandbox-tab-groups').click()
 
     await incomplete.getByTestId('finish-group').click()
     await expect(drawer).toContainText('Finish Group 2')
@@ -529,7 +595,7 @@ test.describe('Sandboxes — admin creation flow', () => {
     await expect(page.getByRole('dialog')).toContainText('is in Group 2')
     await page.getByTestId('remove-anyway').click()
     await expect(kofiRow).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-people').click()
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(
       page.getByTestId('group-card').filter({ hasText: 'Group 2' }),
     ).toContainText('2 coaches, 1 coachee')

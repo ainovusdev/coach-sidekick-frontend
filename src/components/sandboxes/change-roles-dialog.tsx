@@ -39,9 +39,16 @@ export function ChangeRolesDialog({
   if (!member) return null
 
   const options = member.side === 'ours' ? OUR_ROLES : THEIR_ROLES
-  const inGroups = member.group_ids.length > 0
-  const groupHats = member.group_kinds.map(k =>
-    k === 'coach' ? 'coach' : k === 'coachee' ? 'coachee' : 'supervisor',
+  // Being on a list holds someone on the sandbox as well as a group does, so
+  // either lets them go without a hat.
+  const inGroups = member.group_ids.length > 0 || member.roster.length > 0
+  const groupHats = Array.from(
+    new Set([
+      ...member.roster,
+      ...member.group_kinds.map(k =>
+        k === 'coach' ? 'coach' : k === 'coachee' ? 'coachee' : 'supervisor',
+      ),
+    ]),
   )
   const canEditName = member.side === 'theirs' && member.is_pending_user
   const canSave = (roles.length > 0 || inGroups) && !update.isPending
@@ -104,8 +111,11 @@ export function ChangeRolesDialog({
           </fieldset>
           {inGroups && (
             <p className="text-xs text-ink-3">
-              Also {groupHats.join(' and ')} in {member.group_names.join(', ')}{' '}
-              — that comes from the group, not from here.
+              Also {groupHats.join(' and ')}
+              {member.group_names.length
+                ? ` in ${member.group_names.join(', ')}`
+                : ''}{' '}
+              — that comes from the lists and groups, not from here.
             </p>
           )}
           {roles.length === 0 && !inGroups && (

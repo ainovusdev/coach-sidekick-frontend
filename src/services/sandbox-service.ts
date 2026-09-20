@@ -23,9 +23,11 @@ import type {
   InvitationSendRequest,
   InvitationValidation,
   MemberGroupsUpdate,
+  MemberRosterUpdate,
   PersonSearchResult,
   SandboxCreate,
   SandboxGroup,
+  SandboxGroupBulkCreate,
   SandboxGroupCreate,
   SandboxGroupMember,
   SandboxGroupMemberCreate,
@@ -191,8 +193,10 @@ export class SandboxService {
     q: string,
     sandboxId?: string,
     limit = 10,
+    coachesOnly = false,
   ): Promise<PersonSearchResult[]> {
     const params = new URLSearchParams({ q, limit: String(limit) })
+    if (coachesOnly) params.set('coaches_only', 'true')
     if (sandboxId) params.set('sandbox_id', sandboxId)
     return ApiClient.get(`${BASE}/people/search?${params.toString()}`)
   }
@@ -227,6 +231,15 @@ export class SandboxService {
     return ApiClient.put(`${BASE}/${id}/members/${memberId}/groups`, data)
   }
 
+  /** Put a person on, or take them off, the list of coaches / coachees. */
+  static setMemberRoster(
+    id: string,
+    memberId: string,
+    data: MemberRosterUpdate,
+  ): Promise<SandboxOverview> {
+    return ApiClient.put(`${BASE}/${id}/members/${memberId}/roster`, data)
+  }
+
   /** Bulk removal: roles and group memberships go together. */
   static removeMembers(
     id: string,
@@ -253,6 +266,14 @@ export class SandboxService {
     data: SandboxGroupCreate,
   ): Promise<SandboxGroup> {
     return ApiClient.post(`${BASE}/${id}/groups`, data)
+  }
+
+  /** Several pairings (or groups) at once — all of them, or none. */
+  static createGroups(
+    id: string,
+    data: SandboxGroupBulkCreate,
+  ): Promise<SandboxOverview> {
+    return ApiClient.post(`${BASE}/${id}/groups/bulk`, data)
   }
 
   static updateGroup(

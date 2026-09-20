@@ -39,10 +39,13 @@ function uninvitedIds(people: SandboxGroupMember[]): Set<string> {
 export function GroupCard({
   group,
   onEdit,
+  onDuplicate,
   onDelete,
 }: {
   group: SandboxGroup
   onEdit?: (group: SandboxGroup) => void
+  /** Start a new group from this one's coaches, supervisors and contract. */
+  onDuplicate?: (group: SandboxGroup) => void
   onDelete?: (group: SandboxGroup) => void
 }) {
   const incomplete = !group.is_complete
@@ -88,6 +91,14 @@ export function GroupCard({
               {onEdit && (
                 <DropdownMenuItem onClick={() => onEdit(group)}>
                   {incomplete ? 'Finish this group' : 'Edit group'}
+                </DropdownMenuItem>
+              )}
+              {onDuplicate && (
+                <DropdownMenuItem
+                  onClick={() => onDuplicate(group)}
+                  data-testid="duplicate-group"
+                >
+                  Duplicate
                 </DropdownMenuItem>
               )}
               {onEdit && onDelete && <DropdownMenuSeparator />}

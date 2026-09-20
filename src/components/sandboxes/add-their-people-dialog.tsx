@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
 import {
   Dialog,
   DialogContent,
@@ -13,6 +14,7 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -31,15 +33,42 @@ import {
   type TheirRole,
 } from '@/types/sandbox'
 
+/** A hat, or simply someone who is coached. */
+type RowRole = TheirRole | 'coachee'
+
 interface Row {
   key: number
   email: string
   name: string
-  role: TheirRole
+  role: RowRole
+  /** Holds a hat and is coached as well. */
+  alsoCoachee: boolean
   error?: string | null
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const ANY_EMAIL_RE = /[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+/
+
+/**
+ * A pasted list, one person per line: `Name, email`, `Name <email>`, `email`
+ * — whatever a spreadsheet column or an email's To line gives you.
+ */
+export function parsePeople(text: string): { email: string; name: string }[] {
+  const seen = new Set<string>()
+  const out: { email: string; name: string }[] = []
+  for (const line of text.split(/\r?\n|;/)) {
+    const email = line.match(ANY_EMAIL_RE)?.[0]?.toLowerCase()
+    if (!email || seen.has(email)) continue
+    seen.add(email)
+    const name = line
+      .replace(ANY_EMAIL_RE, '')
+      .replace(/[<>,"\t]+/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    out.push({ email, name })
+  }
+  return out
+}
 
 export function AddTheirPeopleDialog({
   open,
@@ -54,16 +83,22 @@ export function AddTheirPeopleDialog({
   sandboxId: string
   organisation: string
   onEditExisting?: (memberId: string) => void
-  defaultRole?: TheirRole
+  defaultRole?: RowRole
 }) {
   const [rows, setRows] = useState<Row[]>([])
   const [busy, setBusy] = useState(false)
+  const [pasting, setPasting] = useState(false)
+  const [pasted, setPasted] = useState('')
   const addMember = useAddMember(sandboxId)
 
   useEffect(() => {
     if (open) {
-      setRows([{ key: 1, email: '', name: '', role: defaultRole }])
+      setRows([
+        { key: 1, email: '', name: '', role: defaultRole, alsoCoachee: false },
+      ])
       setBusy(false)
+      setPasting(false)
+      setPasted('')
     }
   }, [open, defaultRole])
 
@@ -82,9 +117,11 @@ export function AddTheirPeopleDialog({
     let failures = 0
     for (const row of filled) {
       try {
+        const coached = row.role === 'coachee' || row.alsoCoachee
         await addMember.mutateAsync({
           side: 'theirs',
-          roles: [row.role],
+          roles: row.role === 'coachee' ? [] : [row.role],
+          ...(coached ? { roster: ['coachee' as const] } : {}),
           email: row.email.trim().toLowerCase(),
           name: row.name.trim() || null,
         })
@@ -111,14 +148,34 @@ export function AddTheirPeopleDialog({
     if (failures === 0) onOpenChange(false)
   }
 
+  const found = parsePeople(pasted)
+  const usePasted = () => {
+    setRows(prev => {
+      const have = new Set(prev.map(r => r.email.trim().toLowerCase()))
+      let key = (prev[prev.length - 1]?.key ?? 0) + 1
+      const fresh = found
+        .filter(p => !have.has(p.email))
+        .map(p => ({
+          key: key++,
+          email: p.email,
+          name: p.name,
+          role: 'coachee' as RowRole,
+          alsoCoachee: false,
+        }))
+      return [...prev.filter(r => r.email.trim()), ...fresh]
+    })
+    setPasted('')
+    setPasting(false)
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add their people</DialogTitle>
           <DialogDescription>
-            People at {organisation}. They are not emailed until you send
-            invitations.
+            People at {organisation} — and anyone of ours who is being coached
+            here, by their email. Nobody is emailed until you send invitations.
           </DialogDescription>
         </DialogHeader>
 
@@ -149,7 +206,8 @@ export function AddTheirPeopleDialog({
                   key: (prev[prev.length - 1]?.key ?? 0) + 1,
                   email: '',
                   name: '',
-                  role: 'supervisor',
+                  role: prev[prev.length - 1]?.role ?? 'supervisor',
+                  alsoCoachee: false,
                 },
               ])
             }
@@ -157,6 +215,56 @@ export function AddTheirPeopleDialog({
             <Plus className="h-4 w-4" />
             Add another
           </Button>
+          {pasting ? (
+            <div className="space-y-2 rounded-lg border border-dashed border-ink-4 p-3">
+              <Label htmlFor="paste-people" className="text-xs text-ink-3">
+                One person per line — “Name, email” or just the email
+              </Label>
+              <Textarea
+                id="paste-people"
+                value={pasted}
+                onChange={e => setPasted(e.target.value)}
+                rows={5}
+                placeholder={
+                  'Nadia Farouk, nadia@company.com\ntariq@company.com'
+                }
+                data-testid="paste-people"
+              />
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={found.length === 0}
+                  onClick={usePasted}
+                  data-testid="paste-people-use"
+                >
+                  {found.length === 0
+                    ? 'Add as coachees'
+                    : `Add ${found.length} as coachees`}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setPasting(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="-ml-2 text-ink-2"
+              onClick={() => setPasting(true)}
+              data-testid="paste-people-open"
+            >
+              Paste a list of coachees
+            </Button>
+          )}
         </div>
 
         <DialogFooter>
@@ -248,12 +356,13 @@ function TheirPersonRow({
           <div className="flex items-center gap-1">
             <Select
               value={row.role}
-              onValueChange={v => onChange({ role: v as TheirRole })}
+              onValueChange={v => onChange({ role: v as RowRole })}
             >
               <SelectTrigger className="w-full sm:w-44" aria-label="Role">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="coachee">Coachee</SelectItem>
                 {THEIR_ROLES.map(r => (
                   <SelectItem key={r.value} value={r.value}>
                     {r.label}
@@ -276,6 +385,16 @@ function TheirPersonRow({
           </div>
         </div>
       </div>
+      {row.role !== 'coachee' && (
+        <Label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-normal text-ink-2">
+          <Checkbox
+            checked={row.alsoCoachee}
+            onCheckedChange={v => onChange({ alsoCoachee: v === true })}
+            data-testid="also-coachee"
+          />
+          Is coached here too
+        </Label>
+      )}
       {row.error ? (
         <p className="mt-2 text-xs text-amber-token">
           {row.error}

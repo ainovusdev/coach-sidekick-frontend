@@ -6,11 +6,12 @@ import {
 } from '@playwright/test'
 import {
   API,
-  USERS,
   apiToken,
   auth,
+  buildGroup,
   login,
   seedHeldGroupSession,
+  USERS,
 } from './helpers'
 
 /**
@@ -108,17 +109,11 @@ test.describe('Sandboxes — post-session feedback', () => {
       email: USERS.omar.email,
       name: USERS.omar.name,
     })
-    const group = await api(
-      request,
-      token,
-      'post',
-      `/sandboxes/${sandboxId}/groups`,
-      {
-        coach_user_ids: [marcus.id],
-        coachees: [KOFI, LENA],
-        hours_per_coachee: 13.5,
-      },
-    )
+    const group = await buildGroup(request, token, sandboxId, {
+      coach_user_ids: [marcus.id],
+      coachees: [KOFI, LENA],
+      hours_per_coachee: 13.5,
+    })
     groupId = group.id
 
     const held = seedHeldGroupSession({

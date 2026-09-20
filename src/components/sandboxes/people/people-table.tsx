@@ -56,11 +56,27 @@ import { toDateOnly } from '@/lib/sandbox/term'
 import { cn } from '@/lib/utils'
 import type {
   InvitationStatus,
+  RosterKind,
   SandboxMember,
   SandboxOverview,
 } from '@/types/sandbox'
 
 type SideKey = 'ours' | 'theirs'
+
+/**
+ * The three lists on People. Managing team and Coaches are both our side; one
+ * person can be on both (a lead coach who also coaches), and then shows in both.
+ */
+type SectionKey = 'managing' | 'coaches' | 'theirs'
+
+function inSection(m: SandboxMember, section: SectionKey): boolean {
+  if (section === 'theirs') return m.side === 'theirs'
+  if (m.side !== 'ours') return false
+  const coach = m.roster.includes('coach')
+  // Someone of ours with neither a hat nor a place on the coaches list still
+  // has to be findable, so they fall to the managing team.
+  return section === 'coaches' ? coach : m.roles.length > 0 || !coach
+}
 
 const ROLE_OPTIONS: {
   value: string
@@ -91,10 +107,15 @@ const INVITATION_OPTIONS: { value: InvitationStatus; label: string }[] = [
 
 export type PeopleTableActions = MemberActions & {
   onAddOurs: () => void
+  onAddCoaches: () => void
   onAddTheirs: () => void
+  /** Onto a list — someone already here who is now also coached, say. */
+  onAddToList?: (member: SandboxMember, kind: RosterKind) => void
+  /** Off the coaches (or coachees) list, not off the sandbox. */
+  onRemoveFromList?: (member: SandboxMember, kind: RosterKind) => void
 }
 
-/** Hats plus the derived coach/coachee, as the chips a row shows. */
+/** Hats plus the lists they are on, as the chips a row shows. */
 function roleChips(
   member: SandboxMember,
 ): { label: string; derived: boolean }[] {
@@ -102,14 +123,10 @@ function roleChips(
     label: ROLE_OPTIONS.find(o => o.value === r)?.label ?? r,
     derived: false,
   }))
-  for (const kind of member.group_kinds) {
-    if (kind === 'coach' || kind === 'coachee') {
-      chips.push({
-        label: kind === 'coach' ? 'Coach' : 'Coachee',
-        derived: true,
-      })
-    }
-  }
+  // `roster` already counts a group row, so this covers people listed with no
+  // group yet as well as those a group put there.
+  for (const kind of member.roster)
+    chips.push({ label: kind === 'coach' ? 'Coach' : 'Coachee', derived: true })
   return chips
 }
 
@@ -141,9 +158,10 @@ function columnWidths(withCheckbox: boolean, withMenu: boolean): string[] {
 /**
  * Everyone on the sandbox, as the People tab shows them to whoever runs it.
  *
- * One list per side rather than one list with a Side column: the two sides are
- * managed differently — ours get an added email, theirs get an invitation — and
- * the column that said which was which is what the two cards now say once.
+ * Three lists rather than one with a Side column: the managing team, the
+ * coaches, and the client's own people. They are managed differently — ours get
+ * an added email, theirs get an invitation, and coaches are a list the Groups
+ * tab picks from — and the headings say once what a column would say per row.
  *
  * Their side is also where invitations are run from. There used to be a second
  * panel underneath repeating the same names and the same badges; the one thing
@@ -182,7 +200,7 @@ export function PeopleTable({
 
   const [groupsMember, setGroupsMember] = useState<SandboxMember | null>(null)
   const [addedPreviewId, setAddedPreviewId] = useState<string | null>(null)
-  const [bulkRemoveSide, setBulkRemoveSide] = useState<SideKey | null>(null)
+  const [bulkRemoveSide, setBulkRemoveSide] = useState<SectionKey | null>(null)
   // One confirmation for both ways of sending several at once: the bulk bar's
   // selection, and the header's "everyone waiting".
   const [inviting, setInviting] = useState<SandboxMember[] | null>(null)
@@ -196,6 +214,7 @@ export function PeopleTable({
       if (
         role !== 'all' &&
         !m.roles.includes(role) &&
+        !m.roster.includes(role as RosterKind) &&
         !m.group_kinds.includes(role)
       )
         return false
@@ -236,10 +255,10 @@ export function PeopleTable({
       return next
     })
 
-  const clearSide = (side: SideKey) =>
+  const clearSection = (section: SectionKey) =>
     setSelected(prev => {
       const next = new Set(prev)
-      for (const m of members) if (m.side === side) next.delete(m.id)
+      for (const m of members) if (inSection(m, section)) next.delete(m.id)
       return next
     })
 
@@ -250,28 +269,42 @@ export function PeopleTable({
     setInvitation('all')
   }
 
-  const ours = members.filter(m => m.side === 'ours')
-  const theirs = members.filter(m => m.side === 'theirs')
+  const managing = members.filter(m => inSection(m, 'managing'))
+  const coaches = members.filter(m => inSection(m, 'coaches'))
+  const theirs = members.filter(m => inSection(m, 'theirs'))
+  const totals = { managing, coaches, theirs }
   const invitations = invitationHeadline(theirs)
 
-  const sideProps = (side: SideKey) => ({
-    side,
+  const sideProps = (section: SectionKey) => ({
+    section,
+    sandboxName: sandbox.name,
     organisation: sandbox.organisation,
     sandboxId,
-    rows: rows.filter(m => m.side === side),
-    total: (side === 'ours' ? ours : theirs).length,
+    rows: rows.filter(m => inSection(m, section)),
+    total: totals[section].length,
     isFiltered,
     selfId: user?.id,
     selected,
-    selectedOnSide: selectedMembers.filter(m => m.side === side),
+    // Coaches are taken off their list one at a time (it can end pairings), so
+    // that list has no bulk selection — which also keeps someone shown in two
+    // lists from being ticked in both.
+    selectedOnSide:
+      section === 'coaches'
+        ? []
+        : selectedMembers.filter(m => inSection(m, section)),
     onToggle: toggle,
     onToggleMany: toggleMany,
-    onClearSelection: () => clearSide(side),
-    onAdd: side === 'ours' ? actions.onAddOurs : actions.onAddTheirs,
+    onClearSelection: () => clearSection(section),
+    onAdd:
+      section === 'managing'
+        ? actions.onAddOurs
+        : section === 'coaches'
+          ? actions.onAddCoaches
+          : actions.onAddTheirs,
     actions,
     onChangeGroups: setGroupsMember,
     onPreviewAdded: (m: SandboxMember) => setAddedPreviewId(m.id),
-    onBulkRemove: () => setBulkRemoveSide(side),
+    onBulkRemove: () => setBulkRemoveSide(section),
     onInviteMany: setInviting,
     invitations,
     invitePending: sendInvitations.isPending,
@@ -291,7 +324,9 @@ export function PeopleTable({
           </span>
         </h2>
         <p className="text-xs text-ink-3" data-testid="people-summary">
-          {ours.length} ours · {theirs.length} from {sandbox.organisation}
+          {managing.length} managing ·{' '}
+          {pluralise(coaches.length, 'coach', 'coaches')} · {theirs.length} from{' '}
+          {sandbox.organisation}
         </p>
       </div>
 
@@ -386,7 +421,8 @@ export function PeopleTable({
           </div>
         ) : (
           <>
-            <SideCard {...sideProps('ours')} />
+            <SideCard {...sideProps('managing')} />
+            <SideCard {...sideProps('coaches')} />
             <SideCard {...sideProps('theirs')} />
           </>
         )}
@@ -407,7 +443,9 @@ export function PeopleTable({
         open={bulkRemoveSide !== null}
         onOpenChange={o => !o && setBulkRemoveSide(null)}
         overview={overview}
-        members={selectedMembers.filter(m => m.side === bulkRemoveSide)}
+        members={selectedMembers.filter(
+          m => bulkRemoveSide !== null && inSection(m, bulkRemoveSide),
+        )}
         sessionsByMember={sessionsByMember}
         onRemoved={() => setSelected(new Set())}
       />
@@ -435,7 +473,8 @@ export function PeopleTable({
  * "add" button belongs at the top of it.
  */
 function SideCard({
-  side,
+  section,
+  sandboxName,
   organisation,
   sandboxId,
   rows,
@@ -456,7 +495,8 @@ function SideCard({
   invitations,
   invitePending,
 }: {
-  side: SideKey
+  section: SectionKey
+  sandboxName: string
   organisation: string
   sandboxId: string
   rows: SandboxMember[]
@@ -480,10 +520,18 @@ function SideCard({
   const { can } = useSandboxView()
   const resendAdded = useResendAddedEmail(sandboxId)
 
+  const side: SideKey = section === 'theirs' ? 'theirs' : 'ours'
   const ours = side === 'ours'
-  const who = ours ? 'our side' : organisation
+  const onCoaches = section === 'coaches'
+  const who =
+    section === 'managing'
+      ? 'the managing team'
+      : onCoaches
+        ? 'the coaches'
+        : organisation
   const hasRowMenu = can.editTeam || can.editGroups || can.invite
-  const widths = columnWidths(can.editTeam, hasRowMenu)
+  const withCheckbox = can.editTeam && !onCoaches
+  const widths = columnWidths(withCheckbox, hasRowMenu)
   // Their side is also the invitations desk, for whoever runs them.
   const runsInvitations = !ours && can.invite && total > 0
 
@@ -499,11 +547,21 @@ function SideCard({
   return (
     <section
       className="rounded-xl border border-line bg-paper"
-      data-testid={ours ? 'our-side' : 'their-side'}
+      data-testid={
+        section === 'managing'
+          ? 'our-side'
+          : onCoaches
+            ? 'coaches-side'
+            : 'their-side'
+      }
     >
       <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-line px-5 py-2.5">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-ink-3">
-          {ours ? 'Our side' : 'Their side'}{' '}
+          {section === 'managing'
+            ? 'Managing team'
+            : onCoaches
+              ? 'Coaches'
+              : `${sandboxName} team`}{' '}
           <span className="text-ink-4">· {ours ? 'Novus' : organisation}</span>
           <span className="ml-2 rounded-full bg-surface-3 px-2 py-0.5 text-[11px] font-medium normal-case tracking-normal text-ink-2">
             {shown}
@@ -526,7 +584,11 @@ function SideCard({
           {can.editTeam && (
             <Button variant="outline" size="sm" onClick={onAdd}>
               <Plus className="h-4 w-4" />
-              {ours ? 'Add from our people' : 'Add by email'}
+              {section === 'managing'
+                ? 'Add from our people'
+                : onCoaches
+                  ? 'Add coaches'
+                  : 'Add by email'}
             </Button>
           )}
         </div>
@@ -587,7 +649,9 @@ function SideCard({
         <p className="px-5 py-6 text-sm text-ink-3">
           {isFiltered
             ? `No one from ${who} matches.`
-            : `No one from ${who} yet.`}
+            : onCoaches
+              ? 'No coaches yet. Add them here, then pair them on Groups.'
+              : `No one from ${who} yet.`}
         </p>
       ) : (
         <Table className="min-w-[680px] table-fixed">
@@ -598,7 +662,7 @@ function SideCard({
           </colgroup>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              {can.editTeam && (
+              {withCheckbox && (
                 <TableHead className="pl-5">
                   <Checkbox
                     aria-label={
@@ -622,7 +686,7 @@ function SideCard({
                   />
                 </TableHead>
               )}
-              <TableHead className={cn(!can.editTeam && 'pl-5')}>
+              <TableHead className={cn(!withCheckbox && 'pl-5')}>
                 Person
               </TableHead>
               <TableHead>Roles</TableHead>
@@ -645,7 +709,7 @@ function SideCard({
                   data-state={selected.has(m.id) ? 'selected' : undefined}
                   className={cn(selected.has(m.id) && 'bg-surface-2')}
                 >
-                  {can.editTeam && (
+                  {withCheckbox && (
                     <TableCell className="pl-5">
                       <Checkbox
                         aria-label={`Select ${name}`}
@@ -654,7 +718,7 @@ function SideCard({
                       />
                     </TableCell>
                   )}
-                  <TableCell className={cn(!can.editTeam && 'pl-5')}>
+                  <TableCell className={cn(!withCheckbox && 'pl-5')}>
                     <div className="flex items-center gap-3">
                       <PersonAvatar
                         name={m.name}
@@ -781,6 +845,21 @@ function SideCard({
                               Change groups
                             </DropdownMenuItem>
                           )}
+                          {actions.onAddToList &&
+                            !onCoaches &&
+                            !m.roster.includes(ours ? 'coach' : 'coachee') && (
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  actions.onAddToList?.(
+                                    m,
+                                    ours ? 'coach' : 'coachee',
+                                  )
+                                }
+                                data-testid="add-to-list-item"
+                              >
+                                {ours ? 'Add to coaches' : 'Add to coachees'}
+                              </DropdownMenuItem>
+                            )}
                           {ours && can.editTeam && (
                             <>
                               <DropdownMenuSeparator />
@@ -834,7 +913,30 @@ function SideCard({
                               )}
                             </>
                           )}
-                          {actions.onRemove && (
+                          {actions.onRemoveFromList &&
+                            (onCoaches ||
+                              (!ours &&
+                                m.roster.includes('coachee') &&
+                                m.roles.length > 0)) && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() =>
+                                    actions.onRemoveFromList?.(
+                                      m,
+                                      onCoaches ? 'coach' : 'coachee',
+                                    )
+                                  }
+                                  data-testid="remove-from-list-item"
+                                >
+                                  {onCoaches
+                                    ? 'Remove from coaches'
+                                    : 'Remove from coachees'}
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          {actions.onRemove && !onCoaches && (
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
