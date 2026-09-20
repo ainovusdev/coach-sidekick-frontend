@@ -14,10 +14,18 @@ export function sandboxEntityHref(
 ) {
   return `/sandboxes/${sandboxId}/${SEGMENTS[kind]}/${id}`
 }
-export function sandboxMemberHref(member: SandboxMember): string | null {
-  if (member.group_kinds.includes('coachee'))
-    return sandboxEntityHref(member.sandbox_id, 'client', member.id)
-  if (member.group_kinds.includes('coach'))
+/**
+ * Someone who coaches one group and is coached in another has two pages. `as`
+ * says which list the link sits in; without it, being coached wins, as before.
+ */
+export function sandboxMemberHref(
+  member: SandboxMember,
+  as?: 'coach' | 'coachee',
+): string | null {
+  const coachee = member.group_kinds.includes('coachee')
+  const coach = member.group_kinds.includes('coach')
+  if (coach && (as === 'coach' || !coachee))
     return sandboxEntityHref(member.sandbox_id, 'coach', member.user_id)
+  if (coachee) return sandboxEntityHref(member.sandbox_id, 'client', member.id)
   return null
 }

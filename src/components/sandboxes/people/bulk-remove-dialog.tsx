@@ -29,8 +29,7 @@ function whatGoes(m: SandboxMember, sessions: number): string {
   if (byKind.coachee) parts.push(`coachee in ${byKind.coachee.join(', ')}`)
   if (byKind.supervisor)
     parts.push(`supervises ${byKind.supervisor.join(', ')}`)
-  if (m.side === 'theirs' && m.invitation_status === 'sent')
-    parts.push('a live invitation')
+  if (m.invitation_status === 'sent') parts.push('a live invitation')
   const line = parts.filter(Boolean).join(' · ') || 'nothing else'
   return sessions > 0
     ? `${line} · ${pluralise(sessions, 'session')} on record stay`

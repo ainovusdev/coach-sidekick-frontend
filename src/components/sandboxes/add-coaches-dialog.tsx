@@ -14,7 +14,10 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { PersonAvatar } from '@/components/ui/person-avatar'
-import { useSandboxCoachSearch } from '@/hooks/queries/use-sandboxes'
+import {
+  useSandboxCoachSearch,
+  useSandboxPeopleSearch,
+} from '@/hooks/queries/use-sandboxes'
 import {
   sandboxErrorDetail,
   useAddMember,
@@ -22,7 +25,7 @@ import {
 } from '@/hooks/mutations/use-sandbox-mutations'
 import { pluralise } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
-import type { PersonSearchResult } from '@/types/sandbox'
+import type { PersonSearchResult, RosterKind } from '@/types/sandbox'
 
 /**
  * Put coaches on the sandbox's list — as many as you like in one go.
@@ -31,16 +34,23 @@ import type { PersonSearchResult } from '@/types/sandbox'
  * (that goes with their first pairing) and gives them no hat. Someone already
  * here as account executive or lead coach can be ticked too: they keep the hat
  * and gain the list.
+ *
+ * With `kind="coachee"` the same picker puts our own people on the coachees
+ * list: someone who works on the sandbox and is coached on it too. They are
+ * invited like any coachee — being coached is something a person agrees to.
  */
 export function AddCoachesDialog({
   open,
   onOpenChange,
   sandboxId,
+  kind = 'coach',
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   sandboxId: string
+  kind?: RosterKind
 }) {
+  const coachee = kind === 'coachee'
   const [q, setQ] = useState('')
   const [picked, setPicked] = useState<Map<string, PersonSearchResult>>(
     new Map(),
@@ -49,7 +59,9 @@ export function AddCoachesDialog({
   const [problems, setProblems] = useState<string[]>([])
   const addMember = useAddMember(sandboxId)
   const setRoster = useSetMemberRoster(sandboxId)
-  const search = useSandboxCoachSearch(q, sandboxId, open)
+  const coachSearch = useSandboxCoachSearch(q, sandboxId, open && !coachee)
+  const staffSearch = useSandboxPeopleSearch(q, sandboxId, open && coachee)
+  const search = coachee ? staffSearch : coachSearch
   const people = search.data ?? []
 
   useEffect(() => {
@@ -61,7 +73,7 @@ export function AddCoachesDialog({
   }, [open])
 
   const listed = (p: PersonSearchResult) =>
-    (p.member_roster ?? []).includes('coach')
+    (p.member_roster ?? []).includes(kind)
   const addable = people.filter(p => !listed(p))
   const allTicked = addable.length > 0 && addable.every(p => picked.has(p.id))
 
@@ -92,13 +104,13 @@ export function AddCoachesDialog({
         if (p.member_id) {
           await setRoster.mutateAsync({
             memberId: p.member_id,
-            data: { roster: [...(p.member_roster ?? []), 'coach'] },
+            data: { roster: [...(p.member_roster ?? []), kind] },
           })
         } else {
           await addMember.mutateAsync({
             side: 'ours',
             roles: [],
-            roster: ['coach'],
+            roster: [kind],
             user_id: p.id,
           })
         }
@@ -117,12 +129,18 @@ export function AddCoachesDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md" data-testid="add-coaches-dialog">
+      <DialogContent
+        className="sm:max-w-md"
+        data-testid={coachee ? 'add-our-coachees-dialog' : 'add-coaches-dialog'}
+      >
         <DialogHeader>
-          <DialogTitle>Add coaches</DialogTitle>
+          <DialogTitle>
+            {coachee ? 'Add coachees from our people' : 'Add coaches'}
+          </DialogTitle>
           <DialogDescription>
-            Tick everyone who coaches on this sandbox. No email is sent until
-            they get their first pairing.
+            {coachee
+              ? 'Tick our people who are coached on this sandbox. They keep whatever else they do here, and are invited like any coachee.'
+              : 'Tick everyone who coaches on this sandbox. No email is sent until they get their first pairing.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -134,7 +152,7 @@ export function AddCoachesDialog({
               onChange={e => setQ(e.target.value)}
               placeholder="Filter by name or email"
               className="pl-9"
-              aria-label="Filter coaches"
+              aria-label={coachee ? 'Filter our people' : 'Filter coaches'}
               data-testid="coaches-search"
             />
           </div>
@@ -157,7 +175,13 @@ export function AddCoachesDialog({
             )}
             {!search.isLoading && people.length === 0 && (
               <li className="px-3 py-3 text-sm text-ink-3">
-                {q.trim() ? 'No coach matches.' : 'No coach accounts yet.'}
+                {q.trim()
+                  ? coachee
+                    ? 'Nobody matches.'
+                    : 'No coach matches.'
+                  : coachee
+                    ? 'Type a name to find someone.'
+                    : 'No coach accounts yet.'}
               </li>
             )}
             {people.map(p => {
@@ -228,8 +252,12 @@ export function AddCoachesDialog({
             {saving
               ? 'Adding…'
               : picked.size === 0
-                ? 'Add coaches'
-                : `Add ${pluralise(picked.size, 'coach', 'coaches')}`}
+                ? coachee
+                  ? 'Add coachees'
+                  : 'Add coaches'
+                : coachee
+                  ? `Add ${pluralise(picked.size, 'coachee')}`
+                  : `Add ${pluralise(picked.size, 'coach', 'coaches')}`}
           </Button>
         </DialogFooter>
       </DialogContent>

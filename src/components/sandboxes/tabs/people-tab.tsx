@@ -39,6 +39,7 @@ export function PeopleTab({ overview }: { overview: SandboxOverview }) {
   const [addOurs, setAddOurs] = useState(false)
   const [addTheirs, setAddTheirs] = useState(false)
   const [addCoaches, setAddCoaches] = useState(false)
+  const [addOurCoachees, setAddOurCoachees] = useState(false)
   const [offList, setOffList] = useState<{
     member: SandboxMember
     kind: RosterKind
@@ -83,6 +84,7 @@ export function PeopleTab({ overview }: { overview: SandboxOverview }) {
             onAddOurs: () => setAddOurs(true),
             onAddCoaches: () => setAddCoaches(true),
             onAddTheirs: () => setAddTheirs(true),
+            onAddOurCoachees: () => setAddOurCoachees(true),
             ...(can.editTeam
               ? {
                   onAddToList: (member: SandboxMember, kind: RosterKind) =>
@@ -116,6 +118,12 @@ export function PeopleTab({ overview }: { overview: SandboxOverview }) {
             open={addCoaches}
             onOpenChange={setAddCoaches}
             sandboxId={sandboxId}
+          />
+          <AddCoachesDialog
+            open={addOurCoachees}
+            onOpenChange={setAddOurCoachees}
+            sandboxId={sandboxId}
+            kind="coachee"
           />
           <RemoveFromListDialog
             target={offList}

@@ -70,12 +70,16 @@ type SideKey = 'ours' | 'theirs'
 type SectionKey = 'managing' | 'coaches' | 'theirs'
 
 function inSection(m: SandboxMember, section: SectionKey): boolean {
-  if (section === 'theirs') return m.side === 'theirs'
+  // One of ours who is coached here is on the coachees list too. The API only
+  // says so to people who may know it.
+  if (section === 'theirs')
+    return m.side === 'theirs' || m.roster.includes('coachee')
   if (m.side !== 'ours') return false
   const coach = m.roster.includes('coach')
   // Someone of ours with neither a hat nor a place on the coaches list still
   // has to be findable, so they fall to the managing team.
-  return section === 'coaches' ? coach : m.roles.length > 0 || !coach
+  if (section === 'coaches') return coach
+  return m.roles.length > 0 || (!coach && !m.roster.includes('coachee'))
 }
 
 const ROLE_OPTIONS: {
@@ -109,6 +113,8 @@ export type PeopleTableActions = MemberActions & {
   onAddOurs: () => void
   onAddCoaches: () => void
   onAddTheirs: () => void
+  /** Our own people, onto the coachees list. */
+  onAddOurCoachees?: () => void
   /** Onto a list — someone already here who is now also coached, say. */
   onAddToList?: (member: SandboxMember, kind: RosterKind) => void
   /** Off the coaches (or coachees) list, not off the sandbox. */
@@ -130,8 +136,19 @@ function roleChips(
   return chips
 }
 
-function groupsText(member: SandboxMember): string {
-  const parts = member.memberships.map(m =>
+/**
+ * Someone on two lists has two sets of groups; each list shows its own — who
+ * they coach under Coaches, where they are coached on the coachees list.
+ */
+function groupsText(member: SandboxMember, section: SectionKey): string {
+  const twoSided =
+    member.roster.includes('coach') && member.roster.includes('coachee')
+  const rows = !twoSided
+    ? member.memberships
+    : member.memberships.filter(m =>
+        section === 'theirs' ? m.kind !== 'coach' : m.kind !== 'coachee',
+      )
+  const parts = rows.map(m =>
     m.kind === 'supervisor' ? `${m.group_name} (supervises)` : m.group_name,
   )
   return Array.from(new Set(parts)).join(', ')
@@ -581,6 +598,17 @@ function SideCard({
                 : `Send all ${invitations.waiting.length}`}
             </Button>
           )}
+          {can.editTeam && section === 'theirs' && actions.onAddOurCoachees && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={actions.onAddOurCoachees}
+              data-testid="add-our-coachees"
+            >
+              <Plus className="h-4 w-4" />
+              From our people
+            </Button>
+          )}
           {can.editTeam && (
             <Button variant="outline" size="sm" onClick={onAdd}>
               <Plus className="h-4 w-4" />
@@ -728,9 +756,14 @@ function SideCard({
                       />
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium text-ink">
-                          {sandboxMemberHref(m) ? (
+                          {sandboxMemberHref(m, ours ? 'coach' : 'coachee') ? (
                             <Link
-                              href={sandboxMemberHref(m)!}
+                              href={
+                                sandboxMemberHref(
+                                  m,
+                                  ours ? 'coach' : 'coachee',
+                                )!
+                              }
                               className="hover:text-ds-accent hover:underline"
                             >
                               {name}
@@ -741,6 +774,14 @@ function SideCard({
                           {isSelf && (
                             <span className="ml-1.5 text-xs font-normal text-ink-3">
                               (you)
+                            </span>
+                          )}
+                          {!ours && m.side === 'ours' && (
+                            <span
+                              className="ml-1.5 text-xs font-normal text-ink-3"
+                              data-testid="one-of-ours"
+                            >
+                              · Novus
                             </span>
                           )}
                         </p>
@@ -774,8 +815,10 @@ function SideCard({
                     )}
                   </TableCell>
                   <TableCell className="text-sm text-ink-2">
-                    {m.memberships.length ? (
-                      <span className="line-clamp-2">{groupsText(m)}</span>
+                    {groupsText(m, section) ? (
+                      <span className="line-clamp-2">
+                        {groupsText(m, section)}
+                      </span>
                     ) : (
                       <span className="text-ink-4">—</span>
                     )}
@@ -917,7 +960,8 @@ function SideCard({
                             (onCoaches ||
                               (!ours &&
                                 m.roster.includes('coachee') &&
-                                m.roles.length > 0)) && (
+                                (m.roles.length > 0 ||
+                                  m.roster.includes('coach')))) && (
                               <>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -936,17 +980,25 @@ function SideCard({
                                 </DropdownMenuItem>
                               </>
                             )}
-                          {actions.onRemove && !onCoaches && (
-                            <>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                className="text-destructive focus:text-destructive"
-                                onClick={() => actions.onRemove?.(m)}
-                              >
-                                Remove from sandbox
-                              </DropdownMenuItem>
-                            </>
-                          )}
+                          {actions.onRemove &&
+                            !onCoaches &&
+                            // On the coachees list, one of ours who does
+                            // other things here comes off the list, not out.
+                            !(
+                              !ours &&
+                              m.side === 'ours' &&
+                              (m.roles.length > 0 || m.roster.includes('coach'))
+                            ) && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive focus:text-destructive"
+                                  onClick={() => actions.onRemove?.(m)}
+                                >
+                                  Remove from sandbox
+                                </DropdownMenuItem>
+                              </>
+                            )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </TableCell>
