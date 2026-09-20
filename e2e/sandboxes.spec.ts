@@ -158,6 +158,8 @@ test.describe('Sandboxes — admin creation flow', () => {
     await page.getByRole('button', { name: 'Add by email' }).click()
     await page.fill('#their-email-0', NADIA.email)
     await page.fill('#their-name-0', NADIA.name)
+    await expect(page.getByTestId('their-role-coachee')).toBeChecked()
+    await page.getByTestId('their-role-primary_client').click()
     await page.getByTestId('add-their-people').click()
     const nadiaRow = page
       .getByTestId('person-row')
@@ -172,8 +174,7 @@ test.describe('Sandboxes — admin creation flow', () => {
       'Already in Coach Sidekick',
     )
     await expect(page.locator('#their-name-0')).toHaveValue(USERS.dana.name)
-    await page.getByRole('combobox', { name: 'Role' }).click()
-    await page.getByRole('option', { name: 'Supervisor' }).click()
+    await page.getByTestId('their-role-supervisor').click()
     await page.getByTestId('add-their-people').click()
     const danaRow = page
       .getByTestId('person-row')

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Plus, X } from 'lucide-react'
+import { ClipboardList, Plus, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -14,14 +14,8 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import { useEmailLookup } from '@/hooks/queries/use-sandboxes'
 import {
   sandboxErrorDetail,
@@ -45,6 +39,11 @@ interface Row {
   alsoCoachee: boolean
   error?: string | null
 }
+
+const ROW_ROLES: { value: RowRole; label: string }[] = [
+  { value: 'coachee', label: 'Coachee' },
+  ...THEIR_ROLES,
+]
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const ANY_EMAIL_RE = /[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+/
@@ -76,7 +75,7 @@ export function AddTheirPeopleDialog({
   sandboxId,
   organisation,
   onEditExisting,
-  defaultRole = 'primary_client',
+  defaultRole = 'coachee',
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -170,7 +169,7 @@ export function AddTheirPeopleDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Add their people</DialogTitle>
           <DialogDescription>
@@ -194,27 +193,42 @@ export function AddTheirPeopleDialog({
               onEditExisting={onEditExisting}
             />
           ))}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="-ml-2 text-ink-2"
-            onClick={() =>
-              setRows(prev => [
-                ...prev,
-                {
-                  key: (prev[prev.length - 1]?.key ?? 0) + 1,
-                  email: '',
-                  name: '',
-                  role: prev[prev.length - 1]?.role ?? 'supervisor',
-                  alsoCoachee: false,
-                },
-              ])
-            }
-          >
-            <Plus className="h-4 w-4" />
-            Add another
-          </Button>
+          <div className="-ml-2 flex flex-wrap items-center gap-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="text-ink-2"
+              onClick={() =>
+                setRows(prev => [
+                  ...prev,
+                  {
+                    key: (prev[prev.length - 1]?.key ?? 0) + 1,
+                    email: '',
+                    name: '',
+                    role: prev[prev.length - 1]?.role ?? 'coachee',
+                    alsoCoachee: false,
+                  },
+                ])
+              }
+            >
+              <Plus className="h-4 w-4" />
+              Add another
+            </Button>
+            {!pasting && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="text-ink-2"
+                onClick={() => setPasting(true)}
+                data-testid="paste-people-open"
+              >
+                <ClipboardList className="h-4 w-4" />
+                Paste a list of coachees
+              </Button>
+            )}
+          </div>
           {pasting ? (
             <div className="space-y-2 rounded-lg border border-dashed border-ink-4 p-3">
               <Label htmlFor="paste-people" className="text-xs text-ink-3">
@@ -253,18 +267,7 @@ export function AddTheirPeopleDialog({
                 </Button>
               </div>
             </div>
-          ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="-ml-2 text-ink-2"
-              onClick={() => setPasting(true)}
-              data-testid="paste-people-open"
-            >
-              Paste a list of coachees
-            </Button>
-          )}
+          ) : null}
         </div>
 
         <DialogFooter>
@@ -320,70 +323,78 @@ function TheirPersonRow({
       className="rounded-lg border border-line p-3"
       data-testid="their-person-row"
     >
-      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-        <div className="space-y-1">
-          <Label
-            htmlFor={`their-email-${index}`}
-            className="text-xs text-ink-3"
-          >
-            Email
-          </Label>
-          <Input
-            id={`their-email-${index}`}
-            type="email"
-            value={row.email}
-            onChange={e => onChange({ email: e.target.value })}
-            placeholder="name@company.com"
-            autoFocus={index === 0}
-            aria-invalid={!!row.error}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label htmlFor={`their-name-${index}`} className="text-xs text-ink-3">
-            Name
-          </Label>
-          <Input
-            id={`their-name-${index}`}
-            value={row.name}
-            onChange={e => onChange({ name: e.target.value })}
-            placeholder="Full name"
-            readOnly={nameLocked}
-            className={nameLocked ? 'bg-surface-2 text-ink-2' : undefined}
-          />
-        </div>
-        <div className="space-y-1">
-          <Label className="text-xs text-ink-3">Role</Label>
-          <div className="flex items-center gap-1">
-            <Select
-              value={row.role}
-              onValueChange={v => onChange({ role: v as RowRole })}
+      <div className="flex items-end gap-2">
+        <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[3fr_2fr]">
+          <div className="space-y-1">
+            <Label
+              htmlFor={`their-email-${index}`}
+              className="text-xs text-ink-3"
             >
-              <SelectTrigger className="w-full sm:w-44" aria-label="Role">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="coachee">Coachee</SelectItem>
-                {THEIR_ROLES.map(r => (
-                  <SelectItem key={r.value} value={r.value}>
-                    {r.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {canRemove && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                aria-label="Remove row"
-                onClick={onRemove}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            )}
+              Email
+            </Label>
+            <Input
+              id={`their-email-${index}`}
+              type="email"
+              value={row.email}
+              onChange={e => onChange({ email: e.target.value })}
+              placeholder="name@company.com"
+              autoFocus={index === 0}
+              aria-invalid={!!row.error}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label
+              htmlFor={`their-name-${index}`}
+              className="text-xs text-ink-3"
+            >
+              Name
+            </Label>
+            <Input
+              id={`their-name-${index}`}
+              value={row.name}
+              onChange={e => onChange({ name: e.target.value })}
+              placeholder="Full name"
+              readOnly={nameLocked}
+              className={nameLocked ? 'bg-surface-2 text-ink-2' : undefined}
+            />
           </div>
         </div>
+        {canRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 shrink-0"
+            aria-label="Remove row"
+            onClick={onRemove}
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
+      <div className="mt-3 space-y-1.5">
+        <Label id={`their-role-${index}`} className="text-xs text-ink-3">
+          Role
+        </Label>
+        <RadioGroup
+          value={row.role}
+          onValueChange={v => onChange({ role: v as RowRole })}
+          aria-labelledby={`their-role-${index}`}
+          className="flex flex-wrap gap-x-4 gap-y-2"
+        >
+          {ROW_ROLES.map(r => (
+            <Label
+              key={r.value}
+              className="flex cursor-pointer items-center gap-2 text-sm font-normal text-ink"
+            >
+              <RadioGroupItem
+                value={r.value}
+                data-testid={`their-role-${r.value}`}
+              />
+              {r.label}
+            </Label>
+          ))}
+        </RadioGroup>
       </div>
       {row.role !== 'coachee' && (
         <Label className="mt-2 flex cursor-pointer items-center gap-2 text-xs font-normal text-ink-2">
