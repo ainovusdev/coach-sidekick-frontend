@@ -131,6 +131,31 @@ export function seedClient(opts: {
   return JSON.parse(out.trim().split('\n').pop() as string)
 }
 
+/**
+ * A finished group session declared for a sandbox group, with the post-session
+ * forms fired exactly as completion fires them. No email leaves the machine.
+ */
+export function seedHeldGroupSession(opts: {
+  coachEmail: string
+  groupId: string
+  clientEmails: string[]
+}): {
+  id: string
+  tokens: { kind: string; token: string; client_email: string | null }[]
+} {
+  const args = [
+    'held_group',
+    opts.coachEmail,
+    opts.groupId,
+    ...opts.clientEmails,
+  ]
+  const out = execSync(
+    `poetry run python scripts/seed_local_sandbox_fixtures.py ${args.join(' ')}`,
+    { cwd: backendDir(), stdio: 'pipe' },
+  ).toString()
+  return JSON.parse(out.trim().split('\n').pop() as string)
+}
+
 export function invitationToken(email: string): {
   token: string
   status: string

@@ -8,6 +8,7 @@ import type {
   SandboxConcernUpdate,
   SandboxEntityDetail,
   SandboxEntityKind,
+  SandboxFeedback,
   SandboxSessionDetail,
 } from '@/types/sandbox-details'
 
@@ -49,6 +50,14 @@ export const SandboxDetailsService = {
     const query = detailQuery(selection)
     if (cursor) query.set('cursor', cursor)
     return ApiClient.get(`${base}/${sandboxId}/activity?${query}`)
+  },
+  feedback(
+    sandboxId: string,
+    selection: InsightSelection,
+  ): Promise<SandboxFeedback> {
+    const query = detailQuery(selection)
+    query.delete('entity_kind')
+    return ApiClient.get(`${base}/${sandboxId}/feedback?${query}`)
   },
   session(
     sandboxId: string,

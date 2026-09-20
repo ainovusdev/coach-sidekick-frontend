@@ -1,10 +1,15 @@
 import { MeetingFormSimple } from '@/components/meeting/meeting-form-simple'
 import { AlertCircle } from 'lucide-react'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 
 interface StartRecordingProps {
   loading: boolean
   error: string | null
-  onSubmit: (meetingUrl: string, clientId?: string) => void
+  onSubmit: (
+    meetingUrl: string,
+    clientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
+  ) => void
 }
 
 export default function StartRecording({

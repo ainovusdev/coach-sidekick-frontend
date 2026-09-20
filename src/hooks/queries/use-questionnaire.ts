@@ -4,6 +4,7 @@ import type {
   ScheduledSession,
   QuestionnaireResponseView,
   ThrillFormStatusView,
+  CoachReflectionView,
   PreSessionPrep,
 } from '@/types/questionnaire'
 
@@ -16,6 +17,8 @@ export const questionnaireKeys = {
     ['questionnaire', 'thrill-form-responses', sessionId, clientId] as const,
   thrillForm: (sessionId: string, clientId?: string) =>
     ['questionnaire', 'thrill-form', sessionId, clientId] as const,
+  coachReflection: (sessionId: string) =>
+    ['questionnaire', 'coach-reflection', sessionId] as const,
   clientPreSession: () => ['questionnaire', 'client-pre-session'] as const,
 }
 
@@ -52,6 +55,22 @@ export function useThrillForm(
     queryFn: () => QuestionnaireService.getThrillForm(sessionId!, clientId),
     enabled: !!sessionId,
     staleTime: 60 * 1000,
+  })
+}
+
+// The coach's reflection on a sandbox session. `enabled` lets the caller keep
+// the request from being made at all while the sandboxes flag is off.
+export function useCoachReflection(
+  sessionId: string | undefined,
+  enabled = true,
+) {
+  return useQuery<CoachReflectionView>({
+    queryKey: questionnaireKeys.coachReflection(sessionId || ''),
+    queryFn: () => QuestionnaireService.getCoachReflection(sessionId!),
+    enabled: !!sessionId && enabled,
+    staleTime: 60 * 1000,
+    // The coach fills it in another tab; pick the result up on return.
+    refetchOnWindowFocus: true,
   })
 }
 

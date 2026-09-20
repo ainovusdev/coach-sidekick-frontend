@@ -4,6 +4,7 @@ import {
   SandboxClientBadge,
   SandboxAssignmentHint,
   useSandboxClientMarkers,
+  type SandboxAssignmentChoice,
 } from '@/components/sandboxes/session-attribution'
 import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -56,6 +57,7 @@ export function ManualSessionModal({
   const sandboxMarkers = useSandboxClientMarkers(clients.map(c => c.id))
 
   const [creating, setCreating] = useState(false)
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(null)
 
   const [formData, setFormData] = useState({
     client_id: preselectedClientId || '',
@@ -93,6 +95,8 @@ export function ManualSessionModal({
           ? format(sessionDate, 'yyyy-MM-dd')
           : new Date().toISOString().split('T')[0],
         notes: formData.notes,
+        sandbox_id: sandbox?.sandbox_id,
+        sandbox_group_id: sandbox?.group_id,
       })
 
       toast({
@@ -175,6 +179,8 @@ export function ManualSessionModal({
           <SandboxAssignmentHint
             clientIds={[formData.client_id]}
             onDate={sessionDate ? format(sessionDate, 'yyyy-MM-dd') : undefined}
+            value={sandbox}
+            onChange={setSandbox}
           />
           {/* Session Date */}
           <div className="space-y-2">

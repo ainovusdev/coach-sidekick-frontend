@@ -1,6 +1,9 @@
 'use client'
 
-import { SandboxAssignmentHint } from '@/components/sandboxes/session-attribution'
+import {
+  SandboxAssignmentHint,
+  type SandboxAssignmentChoice,
+} from '@/components/sandboxes/session-attribution'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -12,10 +15,16 @@ import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 
 interface MeetingFormSimpleProps {
-  onSubmit: (meetingUrl: string, clientId?: string) => void | Promise<void>
+  onSubmit: (
+    meetingUrl: string,
+    clientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
+  ) => void | Promise<void>
   loading: boolean
   preselectedClientId?: string
   preselectedClientName?: string
+  /** The group this form was opened from, so the coach is not asked again. */
+  initialSandbox?: SandboxAssignmentChoice | null
 }
 
 export function MeetingFormSimple({
@@ -23,8 +32,12 @@ export function MeetingFormSimple({
   loading,
   preselectedClientId,
   preselectedClientName,
+  initialSandbox = null,
 }: MeetingFormSimpleProps) {
   const [meetingUrl, setMeetingUrl] = useState('')
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(
+    initialSandbox,
+  )
   const [selectedClient, setSelectedClient] = useState<Client | null>(null)
   const [showClientSelector, setShowClientSelector] =
     useState(!preselectedClientId)
@@ -57,7 +70,8 @@ export function MeetingFormSimple({
       const clientId =
         selectedClient?.id ||
         (showClientSelector ? undefined : preselectedClientId)
-      await onSubmit(trimmedUrl, clientId)
+      // No client, no agreement: the choice belongs to whoever was picked.
+      await onSubmit(trimmedUrl, clientId, clientId ? sandbox : null)
     } catch (error) {
       console.error('Form submission error:', error)
     }
@@ -74,7 +88,10 @@ export function MeetingFormSimple({
               </span>
               <button
                 type="button"
-                onClick={() => setShowClientSelector(true)}
+                onClick={() => {
+                  setShowClientSelector(true)
+                  setSandbox(null)
+                }}
                 className="text-xs text-ink-3 hover:text-ink-2 underline"
               >
                 Change
@@ -83,16 +100,26 @@ export function MeetingFormSimple({
           ) : (
             <ClientSelector
               selectedClientId={selectedClient?.id}
-              onClientSelect={setSelectedClient}
+              onClientSelect={client => {
+                setSelectedClient(client)
+                // The agreement belonged to the previous client.
+                setSandbox(null)
+              }}
               placeholder="Select client (optional)"
               allowNone={true}
               onAddClient={() => setIsClientModalOpen(true)}
+              sandbox={sandbox}
+              onSandboxChange={setSandbox}
             />
           )}
         </div>
 
         {preselectedClientId && !showClientSelector && (
-          <SandboxAssignmentHint clientIds={[preselectedClientId]} />
+          <SandboxAssignmentHint
+            clientIds={[preselectedClientId]}
+            value={sandbox}
+            onChange={setSandbox}
+          />
         )}
         <div className="relative">
           <Link className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-ink-4" />

@@ -13,7 +13,10 @@ export interface GroupSession {
   session_type: string
   meeting_url: string | null
   is_group_session: boolean
+  /** Set when the session was started from a sandbox group, and credits it. */
+  sandbox_group_id: string | null
   started_at: string
+  scheduled_for: string | null
   ended_at: string | null
   duration_seconds: number | null
   summary: string | null
@@ -25,11 +28,23 @@ export interface GroupSession {
   updated_at: string
 }
 
+/**
+ * Two ways to say who is in the room, and exactly one of them per request:
+ * hand-picked `client_ids`, or a sandbox group, whose roster the server reads
+ * from the open enrollments. Naming the group is also what records which
+ * agreement the session credits, so prefer it wherever a group exists.
+ */
 export interface GroupSessionCreate {
-  client_ids: string[]
+  client_ids?: string[]
+  sandbox_id?: string
+  sandbox_group_id?: string
   title?: string
   meeting_url?: string
   session_type?: string
+}
+
+export interface GroupSessionSchedule extends GroupSessionCreate {
+  scheduled_for: string
 }
 
 export interface GroupSessionListResponse {

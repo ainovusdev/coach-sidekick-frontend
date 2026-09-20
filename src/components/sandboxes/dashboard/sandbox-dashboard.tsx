@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { StatStrip, type StatItem } from '@/components/ui/stat-strip'
 import { NeedsAttentionList } from '@/components/sandboxes/dashboard/needs-attention-list'
 import { SandboxCard } from '@/components/sandboxes/dashboard/sandbox-card'
+import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { useSandboxDashboard } from '@/hooks/queries/use-sandboxes'
 import type {
   Persona,
@@ -234,6 +235,10 @@ export function SandboxDashboardPage({
             </section>
           )}
 
+          {/* Only a coach of a group gets rows here, so every other persona
+              sees exactly what they saw before. */}
+          <SandboxGroupsSection className="mb-0" />
+
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-ink">
               {persona === 'coachee' ? 'Your programmes' : 'Sandboxes'}
@@ -241,9 +246,11 @@ export function SandboxDashboardPage({
                 {cards.length}
               </span>
             </h2>
-            <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {/* `grid-cols-1`, not an implicit column: an `auto` track is as wide
+                as its longest truncated title, which pushes a phone sideways. */}
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
               {cards.map(card => (
-                <li key={card.sandbox.id}>
+                <li key={card.sandbox.id} className="min-w-0">
                   <SandboxCard card={card} today={data!.today} />
                 </li>
               ))}

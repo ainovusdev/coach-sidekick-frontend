@@ -62,7 +62,7 @@ export default function SessionsHistoryPage() {
             description="Track your coaching progress and performance over time"
             icon={History}
             actions={
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 {!isViewer && (
                   <>
                     <Button

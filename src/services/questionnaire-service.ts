@@ -5,6 +5,7 @@ import type {
   QuestionnaireValidation,
   QuestionnaireResponseView,
   ThrillFormStatusView,
+  CoachReflectionView,
   QuestionnaireTokenResponse,
   StartBotResponse,
   PreSessionPrep,
@@ -83,6 +84,23 @@ export class QuestionnaireService {
     const qs = search.toString()
     return ApiClient.get(
       `${BACKEND_URL}/questionnaire/sessions/${sessionId}/thrill-form${qs ? `?${qs}` : ''}`,
+    )
+  }
+
+  static async getCoachReflection(
+    sessionId: string,
+  ): Promise<CoachReflectionView> {
+    return ApiClient.get(
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/coach-reflection`,
+    )
+  }
+
+  static async sendCoachReflection(
+    sessionId: string,
+  ): Promise<CoachReflectionView> {
+    return ApiClient.post(
+      `${BACKEND_URL}/questionnaire/sessions/${sessionId}/send-coach-reflection`,
+      {},
     )
   }
 

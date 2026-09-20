@@ -104,6 +104,7 @@ export const ATTENTION_GROUP_LABEL: Record<AttentionKind, string> = {
   outcome_awaiting_approval: 'Waiting for your gold seal',
   outcomes_to_seal: 'Outcomes to seal',
   outcome_changes_requested: 'Changes requested',
+  session_needs_group: 'Sessions not counted yet',
   invitation_not_accepted: 'Invitations',
   group_incomplete: 'Groups to finish',
   window_open: 'Windows open',
@@ -116,6 +117,7 @@ export const ATTENTION_ORDER: AttentionKind[] = [
   'outcome_awaiting_approval',
   'outcomes_to_seal',
   'outcome_changes_requested',
+  'session_needs_group',
   'invitation_not_accepted',
   'group_incomplete',
   'window_open',
@@ -127,6 +129,10 @@ export function attentionHref(
   item: AttentionItem,
   basePath = '/sandboxes',
 ): string {
+  // A session nobody assigned is decided on that coachee's page, which is where
+  // the assignment control lives — the delivery section can only say it exists.
+  if (item.kind === 'session_needs_group' && item.member_id)
+    return `${basePath}/${item.sandbox_id}/clients/${item.member_id}`
   return `${basePath}/${item.sandbox_id}#${item.section}`
 }
 

@@ -4,6 +4,7 @@ import {
   SandboxClientBadge,
   SandboxAssignmentHint,
   useSandboxClientMarkers,
+  type SandboxAssignmentChoice,
 } from '@/components/sandboxes/session-attribution'
 import React, { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
@@ -51,6 +52,8 @@ interface ScheduleSessionModalProps {
   isOpen: boolean
   onClose: () => void
   preselectedClientId?: string
+  /** The sandbox group this was opened from, so the coach is not asked again. */
+  initialSandbox?: SandboxAssignmentChoice | null
 }
 
 // Quick-pick date options
@@ -82,6 +85,7 @@ export function ScheduleSessionModal({
   isOpen,
   onClose,
   preselectedClientId,
+  initialSandbox = null,
 }: ScheduleSessionModalProps) {
   const router = useRouter()
   const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
@@ -99,6 +103,11 @@ export function ScheduleSessionModal({
   const [meetingUrl, setMeetingUrl] = useState('')
   const [sendQuestionnaire, setSendQuestionnaire] = useState(true)
   const [calendarOpen, setCalendarOpen] = useState(false)
+  // Which sandbox agreement this session credits. Filled in for us when there
+  // is only one; a choice the coach makes when the coachee is in several.
+  const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(
+    initialSandbox,
+  )
 
   const quickDates = useMemo(() => getQuickDates(), [])
 
@@ -140,6 +149,12 @@ export function ScheduleSessionModal({
       title: title || undefined,
       meeting_url: meetingUrl || undefined,
       send_questionnaire: sendQuestionnaire,
+      ...(sandbox
+        ? {
+            sandbox_id: sandbox.sandbox_id,
+            sandbox_group_id: sandbox.group_id,
+          }
+        : {}),
     })
 
     onClose()
@@ -156,6 +171,7 @@ export function ScheduleSessionModal({
     setTitleManuallySet(false)
     setMeetingUrl('')
     setSendQuestionnaire(true)
+    setSandbox(initialSandbox)
     onClose()
   }
 
@@ -204,6 +220,8 @@ export function ScheduleSessionModal({
           <SandboxAssignmentHint
             clientIds={[clientId]}
             onDate={sessionDate ? format(sessionDate, 'yyyy-MM-dd') : undefined}
+            value={sandbox}
+            onChange={setSandbox}
           />
           {/* Date Selection */}
           <div className="space-y-2">

@@ -60,6 +60,7 @@ export interface SandboxEntityDetail {
     can_raise_concern: boolean
     can_manage_concerns: boolean
     can_manage_groups: boolean
+    can_read_feedback?: boolean
   }
   selection: InsightSelection
   analytics: SandboxAnalytics
@@ -153,4 +154,48 @@ export interface SandboxConcernUpdate {
   owner_id?: string
   status?: 'open' | 'resolved'
   resolution_note?: string
+}
+
+export interface SandboxFeedbackAnswer {
+  key: string | null
+  question_text: string
+  answer: string
+  subject_name: string | null
+}
+export interface SandboxThrillFormFeedback {
+  member_id: string | null
+  client_name: string
+  status: 'sent' | 'in_progress' | 'completed'
+  completed_at: string | null
+  answers: SandboxFeedbackAnswer[]
+}
+export interface SandboxCoachReflectionFeedback {
+  status: 'sent' | 'completed'
+  completed_at: string | null
+  answers: SandboxFeedbackAnswer[]
+  wins: string[]
+}
+export interface SandboxSessionFeedback {
+  session_id: string
+  occurred_at: string
+  coach_id: string | null
+  coach_name: string
+  group_id: string | null
+  group_name: string | null
+  participants: string[]
+  reflection: SandboxCoachReflectionFeedback | null
+  thrill_forms: SandboxThrillFormFeedback[]
+}
+export interface SandboxWin {
+  text: string
+  session_id: string
+  occurred_at: string
+  coach_name: string
+  group_name: string | null
+}
+/** Internal only: `visible` is false for the client's side and coachees. */
+export interface SandboxFeedback {
+  visible: boolean
+  sessions: SandboxSessionFeedback[]
+  wins: SandboxWin[]
 }

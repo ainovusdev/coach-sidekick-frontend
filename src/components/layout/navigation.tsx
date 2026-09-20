@@ -120,7 +120,7 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
               className={
                 compact
                   ? 'flex min-w-0 items-center gap-4'
-                  : 'flex items-center gap-10'
+                  : 'flex shrink-0 items-center gap-4 xl:gap-8'
               }
             >
               <button
@@ -138,7 +138,9 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                 </div>
                 <div
                   className={
-                    compact ? 'hidden flex-col sm:flex' : 'flex flex-col'
+                    compact
+                      ? 'hidden flex-col sm:flex'
+                      : 'flex flex-col md:hidden lg:flex'
                   }
                 >
                   <h1 className="text-xl font-bold text-ink">Coach Sidekick</h1>
@@ -168,8 +170,9 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                       <button
                         key={item.path}
                         onClick={() => router.push(item.path)}
+                        title={item.label}
                         className={`
-                        flex items-center gap-2 ${compact ? 'px-2' : 'px-4'} py-2 rounded-md text-sm font-medium
+                        flex items-center gap-2 ${compact ? 'px-2' : 'px-3'} py-2 rounded-md text-sm font-medium
                         transition-colors duration-200 cursor-pointer
                         ${
                           isActive
@@ -179,7 +182,15 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                       `}
                       >
                         <Icon className="h-4 w-4" strokeWidth={1.75} />
-                        {item.label}
+                        {/* Icon-only on a tablet: five labels plus the account
+                            cluster do not fit in 768px. */}
+                        <span
+                          className={
+                            compact ? undefined : 'md:sr-only lg:not-sr-only'
+                          }
+                        >
+                          {item.label}
+                        </span>
                       </button>
                     )
                   })}
@@ -191,7 +202,7 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
               className={
                 compact
                   ? 'flex shrink-0 items-center gap-2'
-                  : 'flex items-center gap-4'
+                  : 'flex min-w-0 flex-1 items-center justify-end gap-2 lg:gap-3'
               }
             >
               {isAuthenticated && (
@@ -200,11 +211,15 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
                     className={
                       compact
                         ? 'w-9 p-2.5 lg:w-9 [&>span]:hidden [&>kbd]:hidden'
-                        : undefined
+                        : // Takes the room that is left rather than a fixed width:
+                          // the cluster beside it grows with the viewer's roles
+                          // (Admin, role switcher) and used to push the page
+                          // sideways. Squeezed, it falls back to its icon.
+                          '@container w-auto min-w-9 max-w-64 flex-1 justify-center lg:w-auto [&>kbd]:hidden [&>span]:hidden @[9rem]:justify-start @[9rem]:[&>span]:block @[13rem]:[&>kbd]:inline-block'
                     }
                   />
                   {!compact && (
-                    <div className="hidden lg:flex items-center">
+                    <div className="hidden shrink-0 items-center xl:flex">
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
                         <div className="relative">
                           <div className="w-2 h-2 bg-forest rounded-full"></div>

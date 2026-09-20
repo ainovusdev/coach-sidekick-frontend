@@ -34,6 +34,7 @@ import {
   SessionDetailDrawer,
 } from './activity-panel'
 import { ConcernsPanel } from './concerns-panel'
+import { FeedbackPanel } from './feedback-panel'
 import { DetailChart, detailControl, detailSection } from './detail-chart'
 
 function stateChip(state: DeliveryState) {
@@ -641,6 +642,13 @@ function DetailContent({
                   viewer={viewer}
                 />
               )}
+              <FeedbackPanel
+                sandboxId={sandboxId}
+                viewer={viewer}
+                selection={selection}
+                enabled={!!data.permissions.can_read_feedback}
+                onSession={setSessionId}
+              />
               <section className={detailSection}>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-lg font-semibold text-ink">

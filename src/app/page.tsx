@@ -20,7 +20,9 @@ import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
 import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
 import { UpcomingSessions } from '@/components/dashboard/upcoming-sessions'
+import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { SandboxStrip } from '@/components/sandboxes/sandbox-strip'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import {
   Eye,
   Plus,
@@ -115,9 +117,13 @@ export default function CoachDashboard() {
       }))
   }, [activeSessionsData])
 
-  const handleCreateBot = async (meetingUrl: string, clientId?: string) => {
+  const handleCreateBot = async (
+    meetingUrl: string,
+    clientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
+  ) => {
     try {
-      const botId = await debouncedCreateBot(meetingUrl, clientId)
+      const botId = await debouncedCreateBot(meetingUrl, clientId, sandbox)
       if (botId) {
         router.push(`/meeting/${botId}`)
       }
@@ -315,6 +321,9 @@ export default function CoachDashboard() {
 
           {/* Sandboxes this coach delivers (renders nothing when none) */}
           <SandboxStrip />
+
+          {/* The groups they coach, with a session they can start from each */}
+          <SandboxGroupsSection />
 
           {/* Top Section: Clients (2/3) and Start Session (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:items-stretch">

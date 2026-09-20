@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog'
 import { MeetingFormSimple } from '@/components/meeting/meeting-form-simple'
 import { MeetingService } from '@/services/meeting-service'
+import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import { toast } from 'sonner'
 
 interface StartSessionModalProps {
@@ -19,6 +20,8 @@ interface StartSessionModalProps {
   onClose: () => void
   clientId: string
   clientName: string
+  /** The sandbox group this was opened from, so the coach is not asked again. */
+  initialSandbox?: SandboxAssignmentChoice | null
 }
 
 export function StartSessionModal({
@@ -26,6 +29,7 @@ export function StartSessionModal({
   onClose,
   clientId,
   clientName,
+  initialSandbox,
 }: StartSessionModalProps) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -33,6 +37,7 @@ export function StartSessionModal({
   const handleStartSession = async (
     meetingUrl: string,
     selectedClientId?: string,
+    sandbox?: SandboxAssignmentChoice | null,
   ) => {
     setLoading(true)
     try {
@@ -42,6 +47,8 @@ export function StartSessionModal({
       const response = await MeetingService.createBot({
         meeting_url: meetingUrl,
         client_id: finalClientId,
+        sandbox_id: sandbox?.sandbox_id,
+        sandbox_group_id: sandbox?.group_id,
       })
 
       if (response.id) {
@@ -82,6 +89,7 @@ export function StartSessionModal({
             loading={loading}
             preselectedClientId={clientId}
             preselectedClientName={clientName}
+            initialSandbox={initialSandbox}
           />
         </div>
 

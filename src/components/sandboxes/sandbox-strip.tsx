@@ -51,9 +51,9 @@ export function SandboxStrip() {
           <ArrowRight className="h-3.5 w-3.5" />
         </Link>
       </div>
-      <ul className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+      <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         {cards.map(card => (
-          <li key={card.sandbox.id}>
+          <li key={card.sandbox.id} className="min-w-0">
             <SandboxCard card={card} today={data.today} compact />
           </li>
         ))}

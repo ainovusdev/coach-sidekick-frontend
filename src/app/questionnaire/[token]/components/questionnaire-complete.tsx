@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { formatDate } from '@/lib/date-utils'
 import { CheckCircle2 } from 'lucide-react'
 import Image from 'next/image'
+import type { QuestionnaireKind } from '@/types/questionnaire'
 
 interface QuestionnaireCompleteProps {
   clientName: string
   coachName: string
   scheduledFor: string | null
-  kind?: 'pre_session' | 'post_session'
+  kind?: QuestionnaireKind
 }
 
 export function QuestionnaireComplete({
@@ -74,9 +75,11 @@ export function QuestionnaireComplete({
               Thank you, {clientName}!
             </h1>
             <p className="text-ink-3 text-lg leading-relaxed mb-6">
-              {isThrillForm
-                ? `Your Thrill Form has been shared with ${coachName}.`
-                : `Your responses have been shared with ${coachName}.`}
+              {kind === 'coach_reflection'
+                ? 'Your reflection has been shared with the account executive and lead coach on this programme.'
+                : isThrillForm
+                  ? `Your Thrill Form has been shared with ${coachName}.`
+                  : `Your responses have been shared with ${coachName}.`}
               {dateInfo && (
                 <>
                   <br />

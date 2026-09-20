@@ -11,6 +11,7 @@ import {
   SandboxClientBadge,
   SandboxAssignmentHint,
   useSandboxClientMarkers,
+  type SandboxAssignmentChoice,
 } from '@/components/sandboxes/session-attribution'
 import { Plus } from 'lucide-react'
 
@@ -20,6 +21,9 @@ interface ClientSelectorProps {
   placeholder?: string
   allowNone?: boolean
   onAddClient?: () => void
+  /** Pass both when the caller is about to create a session for this client. */
+  sandbox?: SandboxAssignmentChoice | null
+  onSandboxChange?: (choice: SandboxAssignmentChoice | null) => void
 }
 
 export default function ClientSelector({
@@ -28,6 +32,8 @@ export default function ClientSelector({
   placeholder = 'Search and select a client...',
   allowNone = true,
   onAddClient,
+  sandbox,
+  onSandboxChange,
 }: ClientSelectorProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [isOpen, setIsOpen] = useState(false)
@@ -216,7 +222,11 @@ export default function ClientSelector({
 
       {selectedClient && (
         <div className="mt-2">
-          <SandboxAssignmentHint clientIds={[selectedClient.id]} />
+          <SandboxAssignmentHint
+            clientIds={[selectedClient.id]}
+            value={sandbox}
+            onChange={onSandboxChange}
+          />
         </div>
       )}
       {isOpen && (
