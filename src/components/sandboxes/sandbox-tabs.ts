@@ -14,6 +14,7 @@ export const SANDBOX_TABS = [
   'delivery',
   'outcomes',
   'people',
+  'groups',
   'settings',
 ] as const
 
@@ -26,6 +27,7 @@ export const TAB_LABEL: Record<SandboxTab, string> = {
   delivery: 'Delivery',
   outcomes: 'Outcomes',
   people: 'People',
+  groups: 'Groups',
   settings: 'Settings',
 }
 
@@ -43,7 +45,6 @@ export const TAB_LABEL: Record<SandboxTab, string> = {
 export const LEGACY_TAB: Record<string, SandboxTab> = {
   insights: 'delivery',
   team: 'people',
-  groups: 'people',
   timeline: 'today',
   general: 'settings',
 }
@@ -64,7 +65,7 @@ export const TAB_FOR_ANCHOR: Record<string, SandboxTab> = {
   outcomes: 'outcomes',
   team: 'people',
   invitations: 'people',
-  groups: 'people',
+  groups: 'groups',
   vision: 'settings',
   settings: 'settings',
 }

@@ -6,17 +6,18 @@ import {
 } from '@playwright/test'
 import {
   API,
-  PASSWORD,
-  USERS,
   apiToken,
   auth,
+  buildGroup,
   clientPanel,
   clientSection,
   gotoClientView,
   hideDevtools,
   invitationToken,
   login,
+  PASSWORD,
   seedSession,
+  USERS,
 } from './helpers'
 
 /**
@@ -172,14 +173,14 @@ test.describe('Sandboxes — the client view', () => {
       },
     )
 
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Leaders',
       coach_user_ids: [marcus.id],
       coachees: [THANDI, RUTH],
       hours_per_coachee: 12,
       cadence: { shape: 'rate', count: 1, per: 'fortnight' },
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Managers',
       coach_user_ids: [priya.id],
       coachees: [OSCAR],
@@ -188,7 +189,7 @@ test.describe('Sandboxes — the client view', () => {
       supervisor_member_ids: [ines.id],
     })
     // No hours agreed: this group can never be measured against a promise.
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Explorers',
       coach_user_ids: [marcus.id],
       coachees: [BRUNO],

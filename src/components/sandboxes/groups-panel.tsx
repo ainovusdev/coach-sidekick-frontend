@@ -5,29 +5,33 @@ import { Button } from '@/components/ui/button'
 import { GroupCard } from '@/components/sandboxes/group-card'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import { pluralise } from '@/lib/sandbox/format'
-import type { SandboxGroup, SandboxOverview } from '@/types/sandbox'
+import type { SandboxGroup } from '@/types/sandbox'
 
 export function GroupsPanel({
-  overview,
+  groups,
+  createBlocked = false,
   onNew,
   onEdit,
+  onDuplicate,
   onDelete,
 }: {
-  overview: SandboxOverview
+  /** The groups this panel lists — the many-to-many ones, not the pairings. */
+  groups: SandboxGroup[]
+  /** No coach or no coachee on People yet: there is no one to pick from. */
+  createBlocked?: boolean
   onNew: () => void
   onEdit: (group: SandboxGroup) => void
+  onDuplicate: (group: SandboxGroup) => void
   onDelete: (group: SandboxGroup) => void
 }) {
-  const { groups, checklist } = overview
   const view = useSandboxView()
   const canEdit = view.can.editGroups
-  const coacheeCount =
-    checklist?.groups.coachee_count ??
-    new Set(groups.flatMap(g => g.coachees.map(c => c.member_id))).size
+  const coacheeCount = new Set(
+    groups.flatMap(g => g.coachees.map(c => c.member_id)),
+  ).size
 
   return (
     <section
-      id="groups"
       className="scroll-mt-(--section-offset) rounded-xl border border-line bg-paper"
       data-testid="groups-panel"
     >
@@ -44,6 +48,7 @@ export function GroupsPanel({
             variant="outline"
             size="sm"
             onClick={onNew}
+            disabled={createBlocked}
             data-testid="new-group"
           >
             <Plus className="h-4 w-4" />
@@ -71,14 +76,16 @@ export function GroupsPanel({
           <div className="flex flex-col items-center rounded-xl border border-dashed border-ink-4 px-6 py-10 text-center">
             <p className="text-sm font-medium text-ink">No groups yet</p>
             <p className="mt-1 max-w-md text-sm text-ink-3">
-              A group is a coach, or a few, with the coachees they work with,
-              and the hours each coachee gets. Coachees become clients of their
-              coaches as soon as the group is saved.
+              A group is a few coaches and coachees working together, with a
+              supervisor if there is one, and the hours each coachee gets.
+              Coachees become clients of their coaches as soon as the group is
+              saved.
             </p>
             <Button
               className="mt-4 bg-ink text-ink-on-dark hover:bg-ink/90"
               size="sm"
               onClick={onNew}
+              disabled={createBlocked}
               data-testid="build-group"
             >
               Build a group
@@ -94,10 +101,13 @@ export function GroupsPanel({
                 key={g.id}
                 group={g}
                 onEdit={canEdit ? onEdit : undefined}
+                onDuplicate={
+                  canEdit && !createBlocked ? onDuplicate : undefined
+                }
                 onDelete={canEdit ? onDelete : undefined}
               />
             ))}
-            {canEdit && (
+            {canEdit && !createBlocked && (
               <button
                 type="button"
                 onClick={onNew}

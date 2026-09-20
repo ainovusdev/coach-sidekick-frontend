@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Search, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { DueDateField } from '@/components/ui/due-date-field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { PersonAvatar } from '@/components/ui/person-avatar'
 import {
   Sheet,
   SheetContent,
@@ -17,9 +15,10 @@ import {
 } from '@/components/ui/sheet'
 import { CadenceControl } from '@/components/sandboxes/cadence-control'
 import {
-  useEmailLookup,
-  useSandboxPeopleSearch,
-} from '@/hooks/queries/use-sandboxes'
+  RosterPicker,
+  rosterOf,
+  type RosterPick,
+} from '@/components/sandboxes/groups/roster-picker'
 import {
   sandboxErrorDetail,
   useAddGroupMember,
@@ -37,32 +36,26 @@ import { cn } from '@/lib/utils'
 import type {
   Cadence,
   GroupMissingField,
-  PersonSearchResult,
+  GroupType,
   SandboxErrorDetail,
   SandboxGroup,
-  SandboxMember,
+  SandboxGroupMember,
   SandboxOverview,
 } from '@/types/sandbox'
 
-interface CoachDraft {
-  user_id: string
-  name: string | null
-  email: string
-  group_member_id?: string
+function picksOf(rows: SandboxGroupMember[], keepRow: boolean): RosterPick[] {
+  return rows.map(r => ({
+    member_id: r.member_id,
+    user_id: r.user_id,
+    name: r.name,
+    email: r.email,
+    ...(keepRow ? { group_member_id: r.id } : {}),
+  }))
 }
 
-interface CoacheeDraft {
-  key: string
-  user_id?: string
-  email: string
-  name: string | null
-  group_member_id?: string
-}
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
-function isCoachLike(roles: string[]): boolean {
-  return roles.some(r => /coach|trainee/i.test(r))
+/** Term start until the term has begun, today after that. */
+export function defaultStart(termStart: string, today: string): string {
+  return today > termStart ? today : termStart
 }
 
 export function GroupDrawer({
@@ -70,12 +63,21 @@ export function GroupDrawer({
   onOpenChange,
   overview,
   group,
+  template = null,
+  kind: newKind = 'group',
+  onAddPeople,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
   overview: SandboxOverview
   /** null = build a new group; otherwise finish / edit this one. */
   group: SandboxGroup | null
+  /** A new group started as a copy: same coaches, supervisors and contract. */
+  template?: SandboxGroup | null
+  /** What a new one is. An existing group keeps the kind it was saved with. */
+  kind?: GroupType
+  /** Go to People — offered to those who may add to the lists. */
+  onAddPeople?: () => void
 }) {
   const { sandbox, members, groups } = overview
   const sandboxId = sandbox.id
@@ -84,8 +86,12 @@ export function GroupDrawer({
   const addGroupMember = useAddGroupMember(sandboxId)
   const removeGroupMember = useRemoveGroupMember(sandboxId)
 
-  const [coaches, setCoaches] = useState<CoachDraft[]>([])
-  const [coachees, setCoachees] = useState<CoacheeDraft[]>([])
+  const kind: GroupType = group?.kind ?? newKind
+  const isPair = kind === 'pair'
+  const noun = isPair ? 'pairing' : 'group'
+
+  const [coaches, setCoaches] = useState<RosterPick[]>([])
+  const [coachees, setCoachees] = useState<RosterPick[]>([])
   const [supervisorIds, setSupervisorIds] = useState<string[]>([])
   const [hours, setHours] = useState('')
   const [sessionLength, setSessionLength] = useState(DEFAULT_SESSION_LENGTH)
@@ -102,34 +108,32 @@ export function GroupDrawer({
   useEffect(() => {
     if (!open) return
     setLeaving(null)
-    setCoaches(
-      (group?.coaches ?? []).map(c => ({
-        user_id: c.user_id,
-        name: c.name,
-        email: c.email,
-        group_member_id: c.id,
-      })),
-    )
-    setCoachees(
-      (group?.coachees ?? []).map(c => ({
-        key: c.id,
-        user_id: c.user_id,
-        email: c.email,
-        name: c.name,
-        group_member_id: c.id,
-      })),
-    )
-    setSupervisorIds((group?.supervisors ?? []).map(s => s.member_id))
+    // A copy carries the coaches, the supervisors and the contract; who is
+    // coached is the one thing that differs, so that is left to fill in.
+    const from = group ?? template
+    setCoaches(picksOf(from?.coaches ?? [], !!group))
+    setCoachees(picksOf(group?.coachees ?? [], true))
+    setSupervisorIds((from?.supervisors ?? []).map(s => s.member_id))
     setHours(
-      group?.hours_per_coachee != null ? String(group.hours_per_coachee) : '',
+      from?.hours_per_coachee != null ? String(from.hours_per_coachee) : '',
     )
-    setSessionLength(group?.session_length_minutes ?? DEFAULT_SESSION_LENGTH)
-    setCadence(group ? group.cadence : DEFAULT_CADENCE)
-    setStartsOn(group && !group.starts_on_is_default ? group.starts_on : null)
+    setSessionLength(from?.session_length_minutes ?? DEFAULT_SESSION_LENGTH)
+    setCadence(from ? from.cadence : DEFAULT_CADENCE)
+    // Enrollment is backdated to the start, so a copy made mid-term starts
+    // today rather than claiming sessions held before it existed.
+    setStartsOn(
+      group
+        ? group.starts_on_is_default
+          ? null
+          : group.starts_on
+        : template
+          ? defaultStart(sandbox.term_start, overview.today)
+          : null,
+    )
     setName(group?.name ?? '')
     setSaving(false)
     setCadenceKey(k => k + 1)
-  }, [open, group])
+  }, [open, group, template, sandbox.term_start, overview.today])
 
   const expected = expectedSessions(hours, sessionLength)
   const hoursNumber = hours.trim() === '' ? null : Number(hours)
@@ -149,11 +153,18 @@ export function GroupDrawer({
     name.trim() !== ''
 
   const teamSupervisors = members.filter(m => m.roles.includes('supervisor'))
-  const theirSideCandidates = members.filter(
-    m =>
-      m.side === 'theirs' &&
-      !coachees.some(c => c.user_id === m.user_id || c.email === m.email),
-  )
+  const coachRoster = useMemo(() => rosterOf(members, 'coach'), [members])
+  const coacheeRoster = useMemo(() => rosterOf(members, 'coachee'), [members])
+  const alsoIn = (pick: RosterPick) => {
+    const others = groups.filter(
+      g =>
+        g.id !== group?.id &&
+        g.coachees.some(c => c.member_id === pick.member_id),
+    )
+    return others.length
+      ? `also in ${others.map(g => g.display_name).join(', ')}. Allowed.`
+      : null
+  }
 
   const defaultName = useMemo(() => {
     if (coaches.length === 1 && coachees.length === 1) {
@@ -167,7 +178,11 @@ export function GroupDrawer({
     ? group.is_complete
       ? `Edit ${group.display_name}`
       : `Finish ${group.display_name}`
-    : 'Build a group'
+    : template
+      ? `Copy of ${template.display_name}`
+      : isPair
+        ? 'Add a pairing'
+        : 'Build a group'
 
   const buildPayload = () => ({
     name: name.trim() || null,
@@ -183,21 +198,18 @@ export function GroupDrawer({
       if (!group) {
         await createGroup.mutateAsync({
           ...buildPayload(),
-          coach_user_ids: coaches.map(c => c.user_id),
-          coachees: coachees.map(c =>
-            c.user_id
-              ? { user_id: c.user_id }
-              : { email: c.email, name: c.name },
-          ),
+          kind,
+          coach_member_ids: coaches.map(c => c.member_id),
+          coachee_member_ids: coachees.map(c => c.member_id),
           supervisor_member_ids: supervisorIds,
         })
       } else {
         // Members first, so the settings save (and its toast) is the last thing that happens.
         const removedCoaches = group.coaches.filter(
-          c => !coaches.some(d => d.user_id === c.user_id),
+          c => !coaches.some(d => d.member_id === c.member_id),
         )
         const addedCoaches = coaches.filter(
-          d => !group.coaches.some(c => c.user_id === d.user_id),
+          d => !group.coaches.some(c => c.member_id === d.member_id),
         )
         const removedCoachees = group.coachees.filter(
           c => !coachees.some(d => d.group_member_id === c.id),
@@ -230,14 +242,12 @@ export function GroupDrawer({
         for (const c of addedCoaches)
           await addGroupMember.mutateAsync({
             groupId: group.id,
-            data: { kind: 'coach', user_id: c.user_id },
+            data: { kind: 'coach', member_id: c.member_id },
           })
         for (const c of addedCoachees)
           await addGroupMember.mutateAsync({
             groupId: group.id,
-            data: c.user_id
-              ? { kind: 'coachee', user_id: c.user_id }
-              : { kind: 'coachee', email: c.email, name: c.name },
+            data: { kind: 'coachee', member_id: c.member_id },
           })
         for (const id of addedSupervisors)
           await addGroupMember.mutateAsync({
@@ -272,37 +282,46 @@ export function GroupDrawer({
           </p>
           <SheetTitle className="text-lg">{heading}</SheetTitle>
           <SheetDescription className="sr-only">
-            Coaches, coachees, hours and cadence for this group.
+            Coaches, coachees, hours and cadence for this {noun}.
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 space-y-7 overflow-y-auto px-6 py-5">
           {/* Coaches */}
           <section className="space-y-2">
-            <Label className="text-sm font-medium text-ink">Coaches</Label>
-            <CoachPicker
-              sandboxId={sandboxId}
+            <Label className="text-sm font-medium text-ink">
+              {isPair ? 'Coach' : 'Coaches'}
+            </Label>
+            <RosterPicker
+              kind="coach"
+              roster={coachRoster}
               selected={coaches}
               onChange={setCoaches}
+              single={isPair}
+              onAddPeople={onAddPeople}
             />
           </section>
 
           {/* Coachees */}
           <section className="space-y-2">
             <div>
-              <Label className="text-sm font-medium text-ink">Coachees</Label>
+              <Label className="text-sm font-medium text-ink">
+                {isPair ? 'Coachee' : 'Coachees'}
+              </Label>
               <p className="text-xs text-ink-3">
-                By email, or pick if known. They become clients of every coach
-                here when the group is saved.
+                {isPair
+                  ? 'They become a client of this coach when the pairing is saved.'
+                  : 'They become clients of every coach here when the group is saved.'}
               </p>
             </div>
-            <CoacheeEntry
-              sandboxId={sandboxId}
-              coachees={coachees}
+            <RosterPicker
+              kind="coachee"
+              roster={coacheeRoster}
+              selected={coachees}
               onChange={setCoachees}
-              candidates={theirSideCandidates}
-              groups={groups}
-              currentGroupId={group?.id}
+              single={isPair}
+              note={alsoIn}
+              onAddPeople={onAddPeople}
             />
           </section>
 
@@ -311,7 +330,7 @@ export function GroupDrawer({
             <Label className="text-sm font-medium text-ink">Supervisors</Label>
             {teamSupervisors.length === 0 ? (
               <p className="text-xs text-ink-3">
-                No supervisors on the team yet. Add them under Team with the
+                No supervisors on the team yet. Add them on People with the
                 Supervisor role.
               </p>
             ) : (
@@ -502,9 +521,9 @@ export function GroupDrawer({
                   : leaving
                     ? 'Save anyway'
                     : !group
-                      ? 'Create group'
+                      ? `Create ${noun}`
                       : complete
-                        ? 'Save group'
+                        ? `Save ${noun}`
                         : 'Save as incomplete'}
               </Button>
             </div>
@@ -512,329 +531,5 @@ export function GroupDrawer({
         </footer>
       </SheetContent>
     </Sheet>
-  )
-}
-
-// ----------------------------------------------------------------- coaches
-
-function CoachPicker({
-  sandboxId,
-  selected,
-  onChange,
-}: {
-  sandboxId: string
-  selected: CoachDraft[]
-  onChange: (next: CoachDraft[]) => void
-}) {
-  const [q, setQ] = useState('')
-  const [focused, setFocused] = useState(false)
-  const search = useSandboxPeopleSearch(q, sandboxId, focused || q.length > 0)
-  const all = search.data ?? []
-  const coachLike = all.filter(p => isCoachLike(p.roles))
-  const results = (coachLike.length ? coachLike : all).filter(
-    p => !selected.some(s => s.user_id === p.id),
-  )
-
-  const add = (p: PersonSearchResult) => {
-    onChange([
-      ...selected,
-      { user_id: p.id, name: p.full_name, email: p.email },
-    ])
-    setQ('')
-  }
-
-  return (
-    <div className="space-y-2">
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-2" data-testid="selected-coaches">
-          {selected.map(c => (
-            <span
-              key={c.user_id}
-              className="inline-flex items-center gap-1.5 rounded-full border border-line bg-paper py-0.5 pl-0.5 pr-2 text-sm"
-            >
-              <PersonAvatar name={c.name} email={c.email} size="xs" />
-              {c.name || c.email}
-              <button
-                type="button"
-                aria-label={`Remove ${c.name || c.email}`}
-                className="text-ink-3 hover:text-ink"
-                onClick={() =>
-                  onChange(selected.filter(s => s.user_id !== c.user_id))
-                }
-              >
-                <X className="h-3.5 w-3.5" />
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-3" />
-        <Input
-          value={q}
-          onChange={e => setQ(e.target.value)}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setTimeout(() => setFocused(false), 150)}
-          placeholder={
-            selected.length
-              ? 'Add another coach'
-              : 'Search coaches by name or email'
-          }
-          className="pl-9"
-          aria-label="Search coaches"
-          data-testid="coach-search"
-        />
-        {(q || (focused && selected.length === 0)) && (
-          <ul
-            className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-lg border border-line bg-paper shadow-md"
-            data-testid="coach-results"
-          >
-            {search.isLoading && (
-              <li className="px-3 py-2 text-sm text-ink-3">Searching…</li>
-            )}
-            {!search.isLoading && results.length === 0 && (
-              <li className="px-3 py-2 text-sm text-ink-3">
-                {q ? 'No coach matches.' : 'Type to search coaches.'}
-              </li>
-            )}
-            {results.map(p => (
-              <li key={p.id}>
-                <button
-                  type="button"
-                  onMouseDown={e => e.preventDefault()}
-                  onClick={() => add(p)}
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface-2"
-                >
-                  <PersonAvatar name={p.full_name} email={p.email} size="xs" />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm text-ink">
-                      {p.full_name || p.email}
-                    </span>
-                    <span className="block truncate text-xs text-ink-3">
-                      {p.email}
-                    </span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ---------------------------------------------------------------- coachees
-
-function CoacheeEntry({
-  sandboxId,
-  coachees,
-  onChange,
-  candidates,
-  groups,
-  currentGroupId,
-}: {
-  sandboxId: string
-  coachees: CoacheeDraft[]
-  onChange: (next: CoacheeDraft[]) => void
-  candidates: SandboxMember[]
-  groups: SandboxGroup[]
-  currentGroupId?: string
-}) {
-  const [email, setEmail] = useState('')
-  const [name, setName] = useState('')
-  const lookup = useEmailLookup(sandboxId, email)
-  const info = lookup.data
-  const valid = EMAIL_RE.test(email.trim())
-  const duplicate = coachees.some(
-    c => c.email.toLowerCase() === email.trim().toLowerCase(),
-  )
-
-  useEffect(() => {
-    if (info?.exists && info.name && !name) setName(info.name)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [info?.exists, info?.name])
-
-  const add = () => {
-    if (!valid || duplicate) return
-    onChange([
-      ...coachees,
-      {
-        key: `new-${Date.now()}`,
-        email: email.trim().toLowerCase(),
-        name: name.trim() || info?.name || null,
-      },
-    ])
-    setEmail('')
-    setName('')
-  }
-
-  const pick = (m: SandboxMember) => {
-    onChange([
-      ...coachees,
-      {
-        key: `member-${m.id}`,
-        user_id: m.user_id,
-        email: m.email,
-        name: m.name,
-      },
-    ])
-  }
-
-  const pickable = candidates
-
-  return (
-    <div className="space-y-3">
-      {coachees.length > 0 && (
-        <ul
-          className="divide-y divide-line rounded-lg border border-line"
-          data-testid="coachee-list"
-        >
-          {coachees.map(c => (
-            <CoacheeRow
-              key={c.key}
-              coachee={c}
-              sandboxId={sandboxId}
-              groups={groups}
-              currentGroupId={currentGroupId}
-              onRemove={() => onChange(coachees.filter(x => x.key !== c.key))}
-            />
-          ))}
-        </ul>
-      )}
-      <form
-        className="flex flex-col gap-2 sm:flex-row"
-        onSubmit={e => {
-          e.preventDefault()
-          add()
-        }}
-      >
-        <div className="flex-1">
-          <Input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="coachee@company.com"
-            aria-label="Coachee email"
-            data-testid="coachee-email"
-          />
-        </div>
-        <Input
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder="Name"
-          aria-label="Coachee name"
-          className="sm:w-40"
-          data-testid="coachee-name"
-        />
-        <Button
-          type="submit"
-          variant="outline"
-          disabled={!valid || duplicate}
-          data-testid="coachee-add"
-        >
-          Add
-        </Button>
-      </form>
-      {valid && info && (
-        <p
-          className={cn(
-            'text-xs',
-            duplicate
-              ? 'text-amber-token'
-              : info.exists
-                ? 'text-forest'
-                : 'text-ink-3',
-          )}
-        >
-          {duplicate
-            ? 'Already in this group.'
-            : info.already_member && info.member_group_names.length
-              ? `Also in ${info.member_group_names.join(', ')} of this sandbox. Allowed.`
-              : info.exists
-                ? info.kind === 'active_user'
-                  ? 'Already in Coach Sidekick — will be linked when they accept.'
-                  : 'Already known to Coach Sidekick, will be linked.'
-                : 'New to Coach Sidekick. No email is sent until you invite them.'}
-        </p>
-      )}
-      {pickable.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 text-xs text-ink-3">
-          <span>Or pick from the team:</span>
-          {pickable.slice(0, 8).map(m => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => pick(m)}
-              className="rounded-full border border-dashed border-ink-4 px-2 py-0.5 text-ink-2 hover:border-ink hover:text-ink"
-            >
-              + {m.name || m.email}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  )
-}
-
-function CoacheeRow({
-  coachee,
-  sandboxId,
-  groups,
-  currentGroupId,
-  onRemove,
-}: {
-  coachee: CoacheeDraft
-  sandboxId: string
-  groups: SandboxGroup[]
-  currentGroupId?: string
-  onRemove: () => void
-}) {
-  const otherGroups = groups.filter(
-    g =>
-      g.id !== currentGroupId &&
-      g.coachees.some(
-        c => c.email.toLowerCase() === coachee.email.toLowerCase(),
-      ),
-  )
-  const lookup = useEmailLookup(sandboxId, coachee.user_id ? '' : coachee.email)
-  const known = coachee.user_id ? true : !!lookup.data?.exists
-
-  return (
-    <li className="flex items-center gap-3 px-3 py-2" data-testid="coachee-row">
-      <PersonAvatar
-        name={coachee.name}
-        email={coachee.email}
-        dashed={!coachee.group_member_id}
-        size="sm"
-      />
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm text-ink">
-          {coachee.name || coachee.email}
-        </span>
-        <span className="block truncate text-xs text-ink-3">
-          {coachee.name
-            ? coachee.email
-            : known
-              ? 'Already in Coach Sidekick'
-              : 'New'}
-          {known &&
-            coachee.name &&
-            ' · already in Coach Sidekick, will be linked'}
-          {otherGroups.length > 0 &&
-            ` · also in ${otherGroups.map(g => g.display_name).join(', ')}. Allowed.`}
-        </span>
-      </span>
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        className="h-7 w-7 text-ink-3"
-        aria-label={`Remove ${coachee.name || coachee.email}`}
-        onClick={onRemove}
-      >
-        <X className="h-4 w-4" />
-      </Button>
-    </li>
   )
 }

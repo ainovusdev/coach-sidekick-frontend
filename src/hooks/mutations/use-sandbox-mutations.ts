@@ -6,8 +6,10 @@ import { SandboxService } from '@/services/sandbox-service'
 import type {
   InvitationSendRequest,
   MemberGroupsUpdate,
+  MemberRosterUpdate,
   SandboxCreate,
   SandboxErrorDetail,
+  SandboxGroupBulkCreate,
   SandboxGroupCreate,
   SandboxGroupMemberCreate,
   SandboxGroupUpdate,
@@ -162,6 +164,31 @@ export function useSetMemberGroups(sandboxId: string) {
       SandboxService.setMemberGroups(sandboxId, memberId, data),
     'Groups updated',
     'Could not change their groups',
+  )
+}
+
+/** On or off the sandbox's list of coaches / coachees. */
+export function useSetMemberRoster(sandboxId: string) {
+  return useOverviewMutation(
+    sandboxId,
+    ({ memberId, data }: { memberId: string; data: MemberRosterUpdate }) =>
+      SandboxService.setMemberRoster(sandboxId, memberId, data),
+    '',
+    'Could not change that list',
+  )
+}
+
+/** Several pairings at once — all of them, or none. */
+export function useCreateGroups(sandboxId: string) {
+  return useOverviewMutation(
+    sandboxId,
+    (data: SandboxGroupBulkCreate) =>
+      SandboxService.createGroups(sandboxId, data),
+    data =>
+      data.groups.length === 1
+        ? 'Pairing created'
+        : `${data.groups.length} pairings created`,
+    'Could not create those pairings',
   )
 }
 

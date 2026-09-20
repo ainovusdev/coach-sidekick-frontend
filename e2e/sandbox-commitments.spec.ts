@@ -6,13 +6,14 @@ import {
 } from '@playwright/test'
 import {
   API,
-  USERS,
   apiToken,
   auth,
+  buildGroup,
   clientSection,
   gotoClientView,
   hideDevtools,
   login,
+  USERS,
 } from './helpers'
 
 /**
@@ -105,7 +106,7 @@ test.describe('Sandboxes — commitments', () => {
       email: USERS.dana.email,
       name: USERS.dana.name,
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       coach_user_ids: [priya.id],
       coachees: [TARIQ],
     })

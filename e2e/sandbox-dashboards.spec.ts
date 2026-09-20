@@ -6,15 +6,16 @@ import {
 } from '@playwright/test'
 import {
   API,
-  USERS,
   apiToken,
   auth,
+  buildGroup,
   clientSection,
   gotoClientView,
   gotoSandboxTab,
   invitationToken,
   login,
   seedSession,
+  USERS,
 } from './helpers'
 
 /**
@@ -108,24 +109,18 @@ test.describe('Sandboxes — delivery and dashboards', () => {
         name: USERS.dana.name,
       },
     )
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       coach_user_ids: [marcus.id],
       coachees: [KOFI, LENA],
       hours_per_coachee: 13.5,
       cadence: { shape: 'rate', count: 3, per: 'month' },
     })
-    const managers = await api(
-      request,
-      token,
-      'post',
-      `/sandboxes/${sandboxId}/groups`,
-      {
-        name: 'Managers',
-        coach_user_ids: [priya.id],
-        coachees: [ZARA],
-        supervisor_member_ids: [dana.id],
-      },
-    )
+    const managers = await buildGroup(request, token, sandboxId, {
+      name: 'Managers',
+      coach_user_ids: [priya.id],
+      coachees: [ZARA],
+      supervisor_member_ids: [dana.id],
+    })
     expect(managers.name).toBe('Managers')
 
     for (const daysAgo of [70, 40, 12]) {
@@ -243,7 +238,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
       .getByTestId('attention-row')
       .filter({ hasText: 'Managers isn’t finished' })
       .click()
-    await expect(page.getByTestId('sandbox-tab-people')).toHaveAttribute(
+    await expect(page.getByTestId('sandbox-tab-groups')).toHaveAttribute(
       'data-state',
       'active',
     )
@@ -454,7 +449,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'people')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Remove group' }).click()
@@ -471,7 +466,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     page,
   }) => {
     await login(page, USERS.admin.email)
-    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'people')
+    await gotoSandboxTab(page, `/sandboxes/${sandboxId}`, 'groups')
     const card = marcusCard(page)
     await card.getByRole('button', { name: /Actions for/ }).click()
     await page.getByRole('menuitem', { name: 'Edit group' }).click()
@@ -569,7 +564,7 @@ test.describe('Sandboxes — delivery and dashboards', () => {
     await expect(row(LENA.name)).toContainText('Managers')
 
     // Former delivery keeps the empty group on record after both transfers.
-    await page.getByTestId('sandbox-tab-people').click()
+    await page.getByTestId('sandbox-tab-groups').click()
     await marcusCard(page)
       .getByRole('button', { name: /Actions for/ })
       .click()

@@ -5,7 +5,15 @@ import {
   type APIRequestContext,
   type Page,
 } from '@playwright/test'
-import { API, USERS, apiToken, auth, hideDevtools, login } from './helpers'
+import {
+  API,
+  apiToken,
+  auth,
+  buildGroup,
+  hideDevtools,
+  login,
+  USERS,
+} from './helpers'
 
 /**
  * Slice 5 — comment threads beyond commitments.
@@ -103,7 +111,7 @@ test.describe('Sandboxes — comment threads', () => {
     const marcus = (
       await api(request, admin, 'get', '/sandboxes/people/search?q=marcus')
     )[0]
-    await api(request, admin, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, admin, sandboxId, {
       coach_user_ids: [marcus.id],
       coachees: [IDRIS],
     })

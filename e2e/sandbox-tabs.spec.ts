@@ -10,7 +10,7 @@ import {
 } from './helpers'
 
 /**
- * The sandbox page is tabbed — five of them, one per job. What has to keep
+ * The sandbox page is tabbed — six of them, one per job. What has to keep
  * working:
  *
  *   • it opens on Today, and the tab you pick survives a refresh
@@ -89,7 +89,9 @@ test.describe('Sandboxes — the page is tabbed', () => {
     )
     await page.getByTestId('sandbox-tab-people').click()
     await expect(page).toHaveURL(/\?tab=people$/)
-    await expect(page.getByTestId('groups-panel')).toBeVisible()
+    await expect(page.getByTestId('people-table')).toBeVisible()
+    // Groups moved off People onto a tab of their own.
+    await expect(page.getByTestId('groups-panel')).toHaveCount(0)
 
     // A refresh comes back to the same place.
     await page.reload()
@@ -116,7 +118,8 @@ test.describe('Sandboxes — the page is tabbed', () => {
     await on('delivery', 'insights-panel')
     await on('outcomes', 'outcomes-panel')
     await on('people', 'people-table')
-    await on('people', 'groups-panel')
+    await on('groups', 'pairings-panel')
+    await on('groups', 'groups-panel')
     await on('settings', 'settings-panel')
     await on('settings', 'vision-panel')
   })
@@ -128,7 +131,6 @@ test.describe('Sandboxes — the page is tabbed', () => {
       ['insights', 'delivery'],
       ['timeline', 'today'],
       ['team', 'people'],
-      ['groups', 'people'],
       ['general', 'settings'],
     ]
     for (const [was, now] of aliases) {
@@ -151,7 +153,7 @@ test.describe('Sandboxes — the page is tabbed', () => {
       ['outcomes', 'outcomes'],
       ['team', 'people'],
       ['invitations', 'people'],
-      ['groups', 'people'],
+      ['groups', 'groups'],
       ['vision', 'settings'],
     ]
     for (const [anchor, tab] of landings) {

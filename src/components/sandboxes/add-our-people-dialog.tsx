@@ -39,6 +39,7 @@ export function AddOurPeopleDialog({
   const [q, setQ] = useState('')
   const [selected, setSelected] = useState<PersonSearchResult | null>(null)
   const [roles, setRoles] = useState<OurRole[]>([])
+  const [coaches, setCoaches] = useState(false)
   const [inlineError, setInlineError] = useState<string | null>(null)
   const addMember = useAddMember(sandboxId)
   const search = useSandboxPeopleSearch(q, sandboxId, open && !selected)
@@ -48,6 +49,7 @@ export function AddOurPeopleDialog({
       setQ('')
       setSelected(null)
       setRoles([])
+      setCoaches(false)
       setInlineError(null)
     }
   }, [open])
@@ -59,7 +61,12 @@ export function AddOurPeopleDialog({
     if (!selected || roles.length === 0) return
     setInlineError(null)
     try {
-      await addMember.mutateAsync({ side: 'ours', roles, user_id: selected.id })
+      await addMember.mutateAsync({
+        side: 'ours',
+        roles,
+        ...(coaches ? { roster: ['coach' as const] } : {}),
+        user_id: selected.id,
+      })
       onOpenChange(false)
     } catch (error) {
       const detail = sandboxErrorDetail(error)
@@ -181,9 +188,20 @@ export function AddOurPeopleDialog({
                   {r.label}
                 </Label>
               ))}
-              <p className="text-xs text-ink-3">
-                Coaches join through groups, so there is no coach hat here.
-              </p>
+              {selected.roles.some(r => r === 'coach' || r === 'trainee') ? (
+                <Label className="flex cursor-pointer items-center gap-2 border-t border-line pt-2 font-normal">
+                  <Checkbox
+                    checked={coaches}
+                    onCheckedChange={v => setCoaches(v === true)}
+                    data-testid="also-coaches"
+                  />
+                  Also coaches on this sandbox
+                </Label>
+              ) : (
+                <p className="text-xs text-ink-3">
+                  Coaches who only coach are added under Coaches.
+                </p>
+              )}
             </fieldset>
             {inlineError && (
               <p className="text-sm text-amber-token">{inlineError}</p>

@@ -85,6 +85,24 @@ export function useSandboxPeopleSearch(
   })
 }
 
+/** Everyone who may coach, for the Coaches list — the whole set, not a page. */
+export function useSandboxCoachSearch(
+  q: string,
+  sandboxId: string,
+  enabled = true,
+) {
+  const debounced = useDebouncedValue(q.trim(), 200)
+  return useQuery({
+    queryKey: [
+      ...queryKeys.sandboxes.peopleSearch(debounced, sandboxId),
+      'coaches',
+    ],
+    queryFn: () => SandboxService.searchPeople(debounced, sandboxId, 100, true),
+    enabled,
+    staleTime: 30 * 1000,
+  })
+}
+
 export function useEmailLookup(sandboxId: string, email: string) {
   const debounced = useDebouncedValue(email.trim().toLowerCase(), 300)
   const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(debounced)

@@ -281,3 +281,82 @@ export async function apiToken(
 export function auth(token: string) {
   return { Authorization: `Bearer ${token}` }
 }
+
+type GroupBody = {
+  coach_user_ids?: string[]
+  coachees?: { email?: string; user_id?: string; name?: string | null }[]
+  [key: string]: unknown
+}
+
+async function call(
+  request: APIRequestContext,
+  token: string,
+  method: 'get' | 'post' | 'put',
+  path: string,
+  data?: unknown,
+) {
+  const resp = await request[method](`${API}${path}`, {
+    headers: auth(token),
+    ...(data === undefined ? {} : { data }),
+  })
+  if (!resp.ok())
+    throw new Error(`${method} ${path}: ${resp.status()} ${await resp.text()}`)
+  return resp.json()
+}
+
+/**
+ * Build a group the way the product now requires: everyone it names goes on
+ * the sandbox's list of coaches or coachees first, then the group picks them.
+ * Specs that are about something else call this instead of the two steps.
+ */
+export async function buildGroup(
+  request: APIRequestContext,
+  token: string,
+  sandboxId: string,
+  body: GroupBody,
+) {
+  const overview = await call(
+    request,
+    token,
+    'get',
+    `/sandboxes/${sandboxId}/overview`,
+  )
+  type Held = { id: string; user_id: string; email: string; roster: string[] }
+  const members: Held[] = overview.members
+  const list = async (
+    kind: 'coach' | 'coachee',
+    held: Held | undefined,
+    who: Record<string, unknown>,
+  ) => {
+    if (!held)
+      return call(request, token, 'post', `/sandboxes/${sandboxId}/members`, {
+        side: kind === 'coach' ? 'ours' : 'theirs',
+        roles: [],
+        roster: [kind],
+        ...who,
+      })
+    if (!held.roster.includes(kind))
+      await call(
+        request,
+        token,
+        'put',
+        `/sandboxes/${sandboxId}/members/${held.id}/roster`,
+        { roster: [...held.roster, kind] },
+      )
+  }
+  for (const id of body.coach_user_ids ?? [])
+    await list(
+      'coach',
+      members.find(m => m.user_id === id),
+      { user_id: id },
+    )
+  for (const c of body.coachees ?? []) {
+    const held = members.find(m =>
+      c.user_id
+        ? m.user_id === c.user_id
+        : m.email.toLowerCase() === c.email?.toLowerCase(),
+    )
+    await list('coachee', held, { email: c.email, name: c.name ?? null })
+  }
+  return call(request, token, 'post', `/sandboxes/${sandboxId}/groups`, body)
+}

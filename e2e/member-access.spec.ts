@@ -6,15 +6,16 @@ import {
 } from '@playwright/test'
 import {
   API,
-  PASSWORD,
-  USERS,
   apiToken,
   auth,
+  buildGroup,
   clientPanel,
   clientSection,
   gotoClientView,
   invitationToken,
   login,
+  PASSWORD,
+  USERS,
 } from './helpers'
 
 /**
@@ -101,6 +102,8 @@ async function expectReadOnlyCockpit(page: Page) {
 
   await page.getByTestId('sandbox-tab-people').click()
   await expect(page.getByTestId('send-all')).toHaveCount(0)
+  await page.getByTestId('sandbox-tab-groups').click()
+  await expect(page.getByTestId('add-pairings')).toHaveCount(0)
   await expect(page.getByTestId('new-group')).toHaveCount(0)
   await expect(page.getByTestId('add-another-group')).toHaveCount(0)
   // The timeline is a calendar: no card opens its commitment.
@@ -152,13 +155,13 @@ test.describe('Sandboxes — member access', () => {
         name: USERS.dana.name,
       },
     )
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       coach_user_ids: [marcus.id],
       coachees: [YUSUF],
       hours_per_coachee: 13.5,
       cadence: { shape: 'range', min: 2, max: 3, per: 'month' },
     })
-    await api(request, token, 'post', `/sandboxes/${sandboxId}/groups`, {
+    await buildGroup(request, token, sandboxId, {
       name: 'Managers',
       coach_user_ids: [priya.id],
       coachees: [WREN],
@@ -251,8 +254,9 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('vision-panel')).toBeVisible()
     await expect(page.getByTestId('settings-details')).toHaveCount(0)
     // a lead coach manages groups: sees every group and the group tools
-    await page.getByTestId('sandbox-tab-people').click()
-    await expect(page.getByTestId('group-card')).toHaveCount(2)
+    await page.getByTestId('sandbox-tab-groups').click()
+    await expect(page.getByTestId('pairing')).toHaveCount(1)
+    await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('new-group')).toBeVisible()
     await expect(page.getByTestId('groups-scope-note')).toHaveCount(0)
     await page.getByRole('button', { name: 'Actions for Managers' }).click()
@@ -274,8 +278,9 @@ test.describe('Sandboxes — member access', () => {
     await login(page, USERS.priya.email)
     await page.goto(`/sandboxes/${sandboxId}`)
     await expectReadOnlyCockpit(page)
-    await page.getByTestId('sandbox-tab-people').click()
+    await page.getByTestId('sandbox-tab-groups').click()
     await expect(page.getByTestId('groups-scope-note')).toBeVisible()
+    await expect(page.getByTestId('pairing')).toHaveCount(0)
     await expect(page.getByTestId('group-card')).toHaveCount(1)
     await expect(page.getByTestId('group-card')).toContainText('Managers')
     await expect(
@@ -398,9 +403,10 @@ test.describe('Sandboxes — member access', () => {
     // A coachee has neither rail card, so the page is one column.
     await expect(page.getByTestId('setup-card')).toHaveCount(0)
     await expect(page.getByTestId('links-card')).toHaveCount(0)
-    await page.getByTestId('sandbox-tab-people').click()
-    await expect(page.getByTestId('group-card')).toHaveCount(1)
-    await expect(page.getByTestId('group-card')).toContainText('Marcus')
+    await page.getByTestId('sandbox-tab-groups').click()
+    await expect(page.getByTestId('group-card')).toHaveCount(0)
+    await expect(page.getByTestId('pairing')).toHaveCount(1)
+    await expect(page.getByTestId('pairing')).toContainText('Marcus')
     await page.getByTestId('sandbox-tab-people').click()
     await expect(page.getByTestId('team-panel')).not.toContainText(WREN.name)
   })
@@ -430,6 +436,7 @@ test.describe('Sandboxes — member access', () => {
     await expect(page.getByTestId('team-panel')).toHaveCount(0)
     // our side shows when the added email went out, and can send it again
     const marcus = page
+      .getByTestId('our-side')
       .getByTestId('person-row')
       .filter({ hasText: USERS.marcus.name })
     await expect(marcus.getByTestId('notified')).toContainText('Emailed')

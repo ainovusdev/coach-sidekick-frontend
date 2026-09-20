@@ -18,6 +18,7 @@ import {
 import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
 import { SandboxHero } from '@/components/sandboxes/sandbox-hero'
 import { SettingsPanel } from '@/components/sandboxes/settings-panel'
+import { GroupsTab } from '@/components/sandboxes/tabs/groups-tab'
 import { PeopleTab } from '@/components/sandboxes/tabs/people-tab'
 import { TodayTab } from '@/components/sandboxes/tabs/today-tab'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
@@ -46,7 +47,7 @@ import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
 
 /**
- * The page our own side works from: a hero, five tabs, and a rail of things
+ * The page our own side works from: a hero, six tabs, and a rail of things
  * you want beside you whichever tab is open.
  *
  * The shell owns three things and nothing else — which tab is showing, what the
@@ -265,6 +266,13 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
 
             <TabsContent value="people">
               <PeopleTab overview={overview} />
+            </TabsContent>
+
+            <TabsContent value="groups">
+              <GroupsTab
+                overview={overview}
+                onGoToPeople={() => goToTab('people')}
+              />
             </TabsContent>
 
             <TabsContent value="settings">
