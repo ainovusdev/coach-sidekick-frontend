@@ -31,7 +31,7 @@ export const CADENCE_PRESETS: {
   },
   {
     key: '1-fortnight',
-    label: '1 per fortnight',
+    label: '1 every 2 weeks',
     cadence: { shape: 'rate', count: 1, per: 'fortnight' },
   },
   {
@@ -56,6 +56,11 @@ export function expectedSessions(
   return roundHalfUp((h * 60) / sessionLengthMinutes)
 }
 
+/** The stored period is still `fortnight`; people read "every 2 weeks". */
+function perPhrase(per: CadencePer): string {
+  return per === 'fortnight' ? 'every 2 weeks' : `per ${per}`
+}
+
 export function describeCadence(
   cadence: Cadence | null | undefined,
 ): string | null {
@@ -66,10 +71,10 @@ export function describeCadence(
         cadence.min === cadence.max
           ? `${cadence.min}`
           : `${cadence.min}–${cadence.max}`
-      return `${head} per ${cadence.per}`
+      return `${head} ${perPhrase(cadence.per)}`
     }
     case 'rate':
-      return `${cadence.count} per ${cadence.per}`
+      return `${cadence.count} ${perPhrase(cadence.per)}`
     case 'total':
       return `${cadence.count} over ${cadence.span_months} ${cadence.span_months === 1 ? 'month' : 'months'}`
   }

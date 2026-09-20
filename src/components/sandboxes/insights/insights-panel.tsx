@@ -182,7 +182,7 @@ function DeliveryChart({ data }: { data: SandboxAnalytics }) {
   )
 }
 
-/** "18 h at 60 min → 18 sessions · fortnightly" — what the group was sold. */
+/** "18 h at 60 min → 18 sessions · every 2 weeks" — what the group was sold. */
 function contractLine(g: SandboxGroup): string {
   if (g.hours_per_coachee == null) return 'Hours per coachee not set'
   const base = `${fmtHoursShort(g.hours_per_coachee)} at ${g.session_length_minutes} min → ${pluralise(g.expected_sessions ?? 0, 'session')}`
