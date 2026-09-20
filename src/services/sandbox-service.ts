@@ -9,6 +9,7 @@ import type {
 } from '@/types/sandbox-analytics'
 import type { SandboxInsights } from '@/types/sandbox-insights'
 import { ApiClient } from '@/lib/api-client'
+import type { SandboxCommitments } from '@/types/sandbox-commitments'
 import type {
   Outcome,
   OutcomeCreate,
@@ -119,6 +120,11 @@ export class SandboxService {
 
   static overview(id: string): Promise<SandboxOverview> {
     return ApiClient.get(`${BASE}/${id}/overview`)
+  }
+
+  /** Team work and coaching commitments, for the Commitments tab. */
+  static commitments(id: string): Promise<SandboxCommitments> {
+    return ApiClient.get(`${BASE}/${id}/commitments`)
   }
 
   static update(id: string, data: SandboxUpdate): Promise<SandboxOverview> {
