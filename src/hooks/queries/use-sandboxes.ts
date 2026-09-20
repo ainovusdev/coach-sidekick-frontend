@@ -32,6 +32,16 @@ export function useSandboxOverview(id: string | null | undefined) {
   })
 }
 
+/** The Commitments tab. Commitment mutations refresh it (they invalidate every sandbox detail). */
+export function useSandboxCommitments(id: string, enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.commitments(id),
+    queryFn: () => SandboxService.commitments(id),
+    enabled: !!id && enabled,
+    staleTime: 30 * 1000,
+  })
+}
+
 export function useTermPreview(start: string | null, months: number | null) {
   return useQuery({
     queryKey: queryKeys.sandboxes.termPreview(start ?? '', months ?? 0),

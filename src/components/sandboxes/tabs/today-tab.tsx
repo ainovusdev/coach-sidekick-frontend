@@ -25,6 +25,7 @@ export function TodayTab({
   onOpenCommitment,
   onNavigate,
   onResetSelection,
+  onSeeAllCommitments,
 }: {
   overview: SandboxOverview
   reporting: SandboxReporting
@@ -33,6 +34,7 @@ export function TodayTab({
   onNavigate: (anchor: string) => void
   /** Learning links carry a scope; clear the filters before following one. */
   onResetSelection: () => void
+  onSeeAllCommitments?: () => void
 }) {
   return (
     <div className="space-y-4">
@@ -51,6 +53,7 @@ export function TodayTab({
         overview={overview}
         openId={openCommitmentId}
         onOpenChange={onOpenCommitment}
+        onSeeAll={onSeeAllCommitments}
       />
 
       {reporting.analytics && (

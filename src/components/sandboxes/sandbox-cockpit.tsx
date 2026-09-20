@@ -19,6 +19,7 @@ import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
 import { SandboxHero } from '@/components/sandboxes/sandbox-hero'
 import { SettingsPanel } from '@/components/sandboxes/settings-panel'
 import { GroupsTab } from '@/components/sandboxes/tabs/groups-tab'
+import { CommitmentsTab } from '@/components/sandboxes/tabs/commitments-tab'
 import { PeopleTab } from '@/components/sandboxes/tabs/people-tab'
 import { TodayTab } from '@/components/sandboxes/tabs/today-tab'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
@@ -177,7 +178,8 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
 
   // The rail is only worth a column when something will render in it: a
   // coachee gets neither card, and so gets the full width instead.
-  const hasRail = can.seeSetup || can.seeLinks
+  // Commitments is a list that wants the width; setup and links add nothing to it.
+  const hasRail = (can.seeSetup || can.seeLinks) && tab !== 'commitments'
 
   return (
     <div
@@ -244,6 +246,7 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
                 openCommitmentId={openCommitmentId}
                 onOpenCommitment={setOpenCommitmentId}
                 onNavigate={goToSection}
+                onSeeAllCommitments={() => goToTab('commitments')}
                 onResetSelection={() =>
                   onSelection({ period: 'term', group_id: null })
                 }
@@ -262,6 +265,13 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
 
             <TabsContent value="outcomes">
               <OutcomesPanel overview={overview} />
+            </TabsContent>
+
+            <TabsContent value="commitments">
+              <CommitmentsTab
+                overview={overview}
+                onOpenCommitment={setOpenCommitmentId}
+              />
             </TabsContent>
 
             <TabsContent value="people">

@@ -60,6 +60,10 @@ export function SandboxHero({
     view.basePath === '/admin/sandboxes' ? 'admin' : 'member'
   }`
 
+  const myCoachingHref = overview.my_coachee_member_id
+    ? `/sandboxes/${sandbox.id}/clients/${overview.my_coachee_member_id}`
+    : null
+
   const owners = members
     .filter(m => m.roles.includes('sandbox_owner'))
     .map(m => m.name || m.email)
@@ -105,8 +109,19 @@ export function SandboxHero({
             <span className="text-ink-2">{listNames(aes, 2) || 'not set'}</span>
           </span>
         </div>
-        {(view.can.editSandbox || canPreview) && (
+        {(view.can.editSandbox || canPreview || myCoachingHref) && (
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {myCoachingHref && (
+              // Someone who works here and is coached here: their own coaching
+              // is a page apart from the people they work with.
+              <Link
+                href={myCoachingHref}
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-ink-2 underline-offset-4 hover:text-ink hover:underline"
+                data-testid="my-coaching"
+              >
+                My coaching
+              </Link>
+            )}
             {view.can.editSandbox && (
               <Button
                 variant="ghost"

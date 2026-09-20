@@ -262,6 +262,8 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.sandboxes.details(), id] as const,
     overview: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'overview'] as const,
+    commitments: (id: string) =>
+      [...queryKeys.sandboxes.detail(id), 'commitments'] as const,
     peopleSearch: (q: string, sandboxId?: string) =>
       [
         ...queryKeys.sandboxes.all,

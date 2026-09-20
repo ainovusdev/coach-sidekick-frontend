@@ -138,6 +138,8 @@ export interface SandboxMember {
   name: string | null
   is_pending_user: boolean
   invitation_status: InvitationStatus | null
+  /** The client's people, and anyone coached here — ours included. */
+  needs_invitation?: boolean
   invitation_id: string | null
   invited_at: string | null
   group_ids: string[]
@@ -371,6 +373,8 @@ export interface SandboxOverview {
   my_roles: string[]
   my_capabilities: SandboxCapability[]
   my_scope: SandboxScope
+  /** My member row when I am coached here as well as working here. */
+  my_coachee_member_id?: string | null
   today: string
 }
 

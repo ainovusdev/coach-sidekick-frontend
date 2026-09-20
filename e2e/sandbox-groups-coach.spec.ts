@@ -126,15 +126,8 @@ test.describe('Sandboxes — the coach’s groups', () => {
       hours_per_coachee: 18,
     })
     directorsId = directors.id
-    // Where Marcus is coached rather than coaching. One person can't be on
-    // both lists of one sandbox yet, so his coachee side is a sandbox of its own.
-    const circle = await api(request, token, 'post', '/sandboxes/', {
-      name: `${NAME} Circle`,
-      organisation: 'PTG',
-      term_start: termStart(),
-      term_months: 6,
-    })
-    await buildGroup(request, token, circle.sandbox.id, {
+    // Where Marcus is coached rather than coaching — in the same sandbox.
+    await buildGroup(request, token, sandboxId, {
       name: 'Coaches’ Circle',
       coach_user_ids: [priya.id],
       coachees: [{ email: USERS.marcus.email, name: USERS.marcus.name }],

@@ -234,13 +234,17 @@ test.describe('Sandboxes — commitments', () => {
     await panel.getByTestId('sandbox-commitments-filter-mine').click()
     await expect(row).toBeVisible()
 
-    // The hub, filtered to this sandbox.
-    await panel.getByTestId('sandbox-commitments-open-hub').click()
-    await page.waitForURL(
-      url =>
-        url.pathname === '/commitments' &&
-        url.searchParams.get('sandbox') === sandboxId,
-    )
+    // The whole list is a tab of its own…
+    await panel.getByTestId('sandbox-commitments-see-all').click()
+    await expect(page.getByTestId('commitments-tab')).toBeVisible()
+    await expect(
+      page
+        .getByTestId('commitment-item')
+        .filter({ hasText: 'Prep the kickoff deck' }),
+    ).toBeVisible()
+
+    // …and the hub still filters to this sandbox.
+    await page.goto(`/commitments?sandbox=${sandboxId}`)
     await hideDevtools(page)
     await expect(page.getByTestId('hub-sandbox-chip')).toContainText(NAME)
     await expect(

@@ -167,6 +167,14 @@ export function ChangeGroupsDialog({
                 <div className="flex items-center gap-4">
                   {kinds.map(kind => {
                     const id = `${g.id}-${kind}`
+                    // Nobody coaches and is coached in the same group.
+                    const other =
+                      kind === 'coach'
+                        ? 'coachee'
+                        : kind === 'coachee'
+                          ? 'coach'
+                          : null
+                    const taken = other !== null && picked.has(key(g.id, other))
                     return (
                       <label
                         key={kind}
@@ -176,6 +184,7 @@ export function ChangeGroupsDialog({
                         <Checkbox
                           id={id}
                           checked={picked.has(key(g.id, kind))}
+                          disabled={taken}
                           onCheckedChange={v => toggle(g.id, kind, v === true)}
                           data-testid={`group-${kind}`}
                         />

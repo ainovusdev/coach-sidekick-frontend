@@ -51,7 +51,7 @@ test('People and Groups on a sandbox fit every width', async ({
   const sandboxes = Array.isArray(list) ? list : (list.sandboxes ?? list.items)
   expect(sandboxes.length).toBeGreaterThan(0)
   await login(page, USERS.admin.email)
-  for (const tab of ['people', 'groups']) {
+  for (const tab of ['people', 'groups', 'commitments']) {
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height: 900 })
       await page.goto(`/sandboxes/${sandboxes[0].id}?tab=${tab}`)

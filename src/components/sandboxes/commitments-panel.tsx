@@ -15,9 +15,8 @@
  * open its event's commitment in it too.
  */
 
-import Link from 'next/link'
 import { useEffect, useMemo, useState } from 'react'
-import { ArrowUpRight, Plus } from 'lucide-react'
+import { ArrowRight, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -55,10 +54,13 @@ export function CommitmentsPanel({
   overview,
   openId,
   onOpenChange,
+  onSeeAll,
 }: {
   overview: SandboxOverview
   openId: string | null
   onOpenChange: (id: string | null) => void
+  /** To the Commitments tab: the whole list, by coach and by coachee. */
+  onSeeAll?: () => void
 }) {
   const view = useSandboxView()
   const viewerId = useViewerId()
@@ -105,13 +107,6 @@ export function CommitmentsPanel({
 
   // Shared on a sandbox means our side of it — their side never reads the
   // team's list — so new rows start shared even with their side in the room.
-  const hubHref =
-    view.audience === 'admin'
-      ? `/admin/commitments?sandbox=${sandboxId}`
-      : view.audience === 'ours'
-        ? `/commitments?sandbox=${sandboxId}`
-        : null
-
   const handlers: CommitmentRowHandlers = {
     onEdit: c => onOpenChange(c.id),
     onDelete: c => setToDelete(c),
@@ -140,18 +135,16 @@ export function CommitmentsPanel({
         {/* The two buttons are wider than a phone together, so let them wrap
             rather than push the page sideways. */}
         <div className="flex flex-wrap items-center gap-2">
-          {hubHref && (
+          {onSeeAll && view.audience !== 'theirs' && (
             <Button
-              asChild
               variant="ghost"
               size="sm"
               className="text-ink-3"
-              data-testid="sandbox-commitments-open-hub"
+              onClick={onSeeAll}
+              data-testid="sandbox-commitments-see-all"
             >
-              <Link href={hubHref}>
-                Open in Commitments
-                <ArrowUpRight className="ml-1 h-3.5 w-3.5" />
-              </Link>
+              See all
+              <ArrowRight className="ml-1 h-3.5 w-3.5" />
             </Button>
           )}
           <Button
