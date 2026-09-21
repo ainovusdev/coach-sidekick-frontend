@@ -146,37 +146,65 @@ function RhythmRow({
         </p>
       )}
       <Strip row={row} today={today} />
-      <div className="mt-0.5 flex justify-between font-mono text-[11px] text-ink-3">
-        <span>{fmtDay(row.starts_on)}</span>
-        <span>{fmtDay(row.ends_on)}</span>
-      </div>
-      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
-        <Fact label="Agreed" value={row.agreed ?? 'Not set'} />
-        <Fact label="Actual" value={everyDays(row.typical_gap_days)} />
-        <Fact
-          label="Longest gap"
-          value={
-            row.longest_gap_days == null
-              ? '—'
-              : pluralise(row.longest_gap_days, 'day')
-          }
-        />
-        {row.current ? (
-          <Fact
-            label="Since last"
-            warn={late}
-            value={
-              row.days_since_last == null
-                ? 'No meeting yet'
-                : row.days_since_last === 0
-                  ? 'Today'
-                  : pluralise(row.days_since_last, 'day')
-            }
-          />
-        ) : (
-          <Fact label="Last" value={row.last_on ? fmtDay(row.last_on) : '—'} />
-        )}
-      </dl>
+      {named ? (
+        // A group lists everyone, so each person gets one line, not a grid.
+        <p className="mt-1 text-xs tabular-nums text-ink-3">
+          Agreed {row.agreed ?? 'not set'} ·{' '}
+          <span className="text-ink-2">
+            {everyDays(row.typical_gap_days).toLowerCase()}
+          </span>{' '}
+          in practice
+          {row.longest_gap_days != null &&
+            ` · longest gap ${pluralise(row.longest_gap_days, 'day')}`}
+          {row.days_since_last != null && (
+            <>
+              {' · '}
+              <span className={cn(late && 'font-medium text-amber-token')}>
+                {row.days_since_last === 0
+                  ? 'met today'
+                  : `${pluralise(row.days_since_last, 'day')} since last`}
+              </span>
+            </>
+          )}
+        </p>
+      ) : (
+        <>
+          <div className="mt-0.5 flex justify-between font-mono text-[11px] text-ink-3">
+            <span>{fmtDay(row.starts_on)}</span>
+            <span>{fmtDay(row.ends_on)}</span>
+          </div>
+          <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-4">
+            <Fact label="Agreed" value={row.agreed ?? 'Not set'} />
+            <Fact label="Actual" value={everyDays(row.typical_gap_days)} />
+            <Fact
+              label="Longest gap"
+              value={
+                row.longest_gap_days == null
+                  ? '—'
+                  : pluralise(row.longest_gap_days, 'day')
+              }
+            />
+            {row.current ? (
+              <Fact
+                label="Since last"
+                warn={late}
+                value={
+                  row.days_since_last == null
+                    ? 'No meeting yet'
+                    : row.days_since_last === 0
+                      ? 'Today'
+                      : pluralise(row.days_since_last, 'day')
+                }
+              />
+            ) : (
+              <Fact
+                label="Last"
+                value={row.last_on ? fmtDay(row.last_on) : '—'}
+              />
+            )}
+          </dl>
+        </>
+      )}
       {late && (
         <p className="mt-2 text-xs text-amber-token">
           Longer than usual since the last meeting, and nothing is booked.

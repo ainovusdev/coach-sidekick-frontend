@@ -256,7 +256,7 @@ function DetailContent({
     label: 'Outcomes agreed',
     value: outcomes.total ? `${outcomes.agreed} of ${outcomes.total}` : '—',
     sub: outcomes.total
-      ? 'Agreement, not achievement'
+      ? 'Agreed, not achieved'
       : // The API says when outcomes are withheld rather than empty.
         data.stats && data.stats.outcomes === null
         ? 'Not available to you'
@@ -317,8 +317,20 @@ function DetailContent({
               : 'Selected period',
           },
           {
-            label: 'Hours against plan',
-            value: gap ? gap.text : '—',
+            // The number stays short so five stats sit on one line; the
+            // label carries the direction.
+            label: !gap
+              ? 'Hours against plan'
+              : gap.hours < 0
+                ? 'Behind plan'
+                : gap.hours > 0
+                  ? 'Ahead of plan'
+                  : 'Hours against plan',
+            value: !gap
+              ? '—'
+              : gap.hours === 0
+                ? 'On pace'
+                : fmtHoursShort(Math.abs(gap.hours)),
             tone: gap?.tone ?? 'muted',
             sub: gap
               ? `Hours, as of ${fmtDay(contract.as_of)}`
@@ -326,9 +338,9 @@ function DetailContent({
           },
           {
             label: 'Next session',
-            value: next ? fmtDay(next) : 'None booked',
+            value: next ? fmtDay(next) : 'None',
             tone: next || !unbooked.length ? 'default' : ('warning' as const),
-            sub: next ? 'On the calendar' : 'Nothing on the calendar',
+            sub: next ? 'On the calendar' : 'Nothing booked',
           },
           outcomesItem,
         ]
