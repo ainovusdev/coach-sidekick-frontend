@@ -90,6 +90,8 @@ export interface SandboxEntityDetail {
   }[]
   milestones: TimelineEvent[]
   activity: SandboxActivityPage
+  /** Client and group pages; the coach page carries none. Older API: absent. */
+  stats?: SandboxDetailStats | null
 }
 export interface SandboxSessionDetail {
   session_id: string
@@ -198,4 +200,50 @@ export interface SandboxFeedback {
   visible: boolean
   sessions: SandboxSessionFeedback[]
   wins: SandboxWin[]
+}
+
+/**
+ * How often one coachee and their coaching actually meet. Contract to date —
+ * the reporting-period selector does not trim it. `null` is "not measurable".
+ */
+export interface SandboxDetailRhythm {
+  member_id: string
+  group_id: string
+  name: string
+  group_name: string
+  current: boolean
+  starts_on: string
+  ends_on: string
+  agreed: string | null
+  meetings: number
+  meeting_dates: string[]
+  typical_gap_days: number | null
+  longest_gap_days: number | null
+  last_on: string | null
+  days_since_last: number | null
+  next_on: string | null
+  estimated_durations: number
+  /** Group page only. Recorded participation, not verified attendance. */
+  group_meetings_held: number | null
+  group_meetings_recorded: number | null
+}
+
+export interface SandboxDetailOutcomeCounts {
+  total: number
+  agreed: number
+  waiting: number
+  changes_requested: number
+  drafting: number
+  coachees: number
+  coachees_with_agreed: number
+  coachees_with_none: number
+  /** Subjects whose outcomes this viewer may not read; in no count. */
+  unavailable: number
+}
+
+export interface SandboxDetailStats {
+  as_of: string
+  rhythm: SandboxDetailRhythm[]
+  /** `null`: withheld from this viewer. Zeroes are observed. */
+  outcomes: SandboxDetailOutcomeCounts | null
 }

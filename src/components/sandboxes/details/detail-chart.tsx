@@ -14,6 +14,8 @@ import {
 import type { SandboxAnalytics } from '@/types/sandbox-analytics'
 import { fmtDay } from '@/lib/sandbox/format'
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
+import { Section } from '@/components/sandboxes/section'
+import { cn } from '@/lib/utils'
 
 export const detailControl =
   'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-ds-accent'
@@ -35,41 +37,44 @@ export function DetailChart({
     cumulative_sessions: (sessions += row.sessions_held ?? 0),
   }))
   return (
-    <section
-      className={detailSection}
-      aria-label={coach ? 'Coach activity over time' : 'Delivery over time'}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="text-lg font-semibold text-ink">
-            {coach ? 'Coaching activity' : 'Delivery over time'}
-          </h2>
-          <p className="mt-1 max-w-prose text-sm text-ink-3">
-            {coach
-              ? `${data.metrics.sessions_held} distinct sessions held in this period.`
-              : `${fmtHoursShort(data.metrics.hours_received)} received across ${data.metrics.sessions_held} recorded ${data.metrics.sessions_held === 1 ? 'meeting' : 'meetings'} in this period.`}
-          </p>
+    <Section
+      id="delivery"
+      title={coach ? 'Coaching activity' : 'Delivery over time'}
+      testId="detail-chart"
+      aside={
+        <div
+          className="flex rounded-lg border border-line bg-paper p-0.5"
+          role="group"
+          aria-label="Chart view"
+        >
+          {(['cumulative', 'weekly'] as const).map(v => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={view === v}
+              onClick={() => setView(v)}
+              data-testid={`chart-view-${v}`}
+              className={cn(
+                'rounded-md px-2.5 py-1 text-xs transition-colors',
+                view === v
+                  ? 'bg-surface-2 font-medium text-ink'
+                  : 'text-ink-3 hover:text-ink',
+              )}
+            >
+              {v === 'cumulative' ? 'Cumulative' : 'Weekly'}
+            </button>
+          ))}
         </div>
-        <label className="text-xs text-ink-3">
-          Chart view
-          <select
-            className={`${detailControl} mt-1`}
-            aria-label="Chart view"
-            value={view}
-            onChange={e => setView(e.target.value as typeof view)}
-          >
-            <option value="cumulative">
-              {coach ? 'Cumulative sessions' : 'Cumulative hours'}
-            </option>
-            <option value="weekly">
-              {coach ? 'Weekly sessions' : 'Weekly hours'}
-            </option>
-          </select>
-        </label>
-      </div>
+      }
+      note={
+        coach
+          ? `${data.metrics.sessions_held} distinct sessions held in this period.`
+          : `${fmtHoursShort(data.metrics.hours_received)} received across ${data.metrics.sessions_held} recorded ${data.metrics.sessions_held === 1 ? 'meeting' : 'meetings'} in this period.`
+      }
+    >
       {data.dates.available && data.weekly_series.length ? (
         <div
-          className="mt-6 h-64 min-w-0 overflow-hidden sm:h-72"
+          className="h-64 min-w-0 overflow-hidden sm:h-72"
           role="img"
           aria-label={`${cumulative ? 'Cumulative' : 'Weekly'} ${coach ? 'sessions held' : 'coaching hours and expected delivery'}. Exact values in the data table below.`}
         >
@@ -213,6 +218,6 @@ export function DetailChart({
           </table>
         </div>
       </details>
-    </section>
+    </Section>
   )
 }

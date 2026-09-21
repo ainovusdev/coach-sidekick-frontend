@@ -12,7 +12,7 @@ import type {
   SandboxSessionFeedback,
   SandboxWin,
 } from '@/types/sandbox-details'
-import { detailSection } from './detail-chart'
+import { Section } from '@/components/sandboxes/section'
 
 const chip =
   'inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium'
@@ -51,21 +51,19 @@ export function FeedbackPanel({
   const sessions = all ? data.sessions : data.sessions.slice(0, 5)
   return (
     <>
-      <section className={detailSection} data-testid="session-feedback">
-        <h2 className="text-lg font-semibold text-ink">Session feedback</h2>
-        <p className="mt-1 max-w-prose text-sm leading-relaxed text-ink-3">
-          The coachee&apos;s Thrill Form and the coach&apos;s reflection after
-          each session. Read by the account executive, the lead coach and the
-          coach who ran the session — never the client&apos;s side or the
-          coachee.
-        </p>
+      <Section
+        id="feedback"
+        title="Session feedback"
+        testId="session-feedback"
+        note="The coachee’s Thrill Form and the coach’s reflection after each session. Read by the account executive, the lead coach and the coach who ran the session — never the client’s side or the coachee."
+      >
         {!data.sessions.length ? (
-          <p className="mt-5 text-sm text-ink-3">
+          <p className="text-sm text-ink-3">
             No forms have gone out for this selection yet. They are sent when a
             session completes.
           </p>
         ) : (
-          <ul className="mt-4 divide-y divide-line">
+          <ul className="divide-y divide-line">
             {sessions.map((s, i) => (
               <SessionRow
                 key={s.session_id}
@@ -84,7 +82,7 @@ export function FeedbackPanel({
             {all ? 'Show fewer' : `Show all ${data.sessions.length} sessions`}
           </button>
         )}
-      </section>
+      </Section>
       {data.wins.length > 0 && <Wins wins={data.wins} />}
     </>
   )
@@ -274,12 +272,13 @@ function Wins({ wins }: { wins: SandboxWin[] }) {
   const [all, setAll] = useState(false)
   const rows = all ? wins : wins.slice(0, 6)
   return (
-    <section className={detailSection} data-testid="sandbox-wins">
-      <h2 className="text-lg font-semibold text-ink">Wins</h2>
-      <p className="mt-1 text-sm leading-relaxed text-ink-3">
-        Captured by coaches in their reflections.
-      </p>
-      <ul className="mt-4 space-y-3">
+    <Section
+      id="wins"
+      title="Wins"
+      testId="sandbox-wins"
+      note="Captured by coaches in their reflections."
+    >
+      <ul className="space-y-3">
         {rows.map((w, i) => (
           <li key={i} className="flex items-start gap-3">
             <Trophy
@@ -307,6 +306,6 @@ function Wins({ wins }: { wins: SandboxWin[] }) {
           {all ? 'Show fewer' : `Show all ${wins.length} wins`}
         </button>
       )}
-    </section>
+    </Section>
   )
 }

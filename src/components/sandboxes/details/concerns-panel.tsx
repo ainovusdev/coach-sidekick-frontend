@@ -4,7 +4,7 @@ import { withSandboxViewer } from '@/hooks/queries/use-sandbox-insights'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Flag, Plus } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Sheet,
@@ -21,7 +21,8 @@ import type {
   SandboxEntityKind,
 } from '@/types/sandbox-details'
 import { fmtDay } from '@/lib/sandbox/format'
-import { detailControl, detailSection } from './detail-chart'
+import { Section } from '@/components/sandboxes/section'
+import { detailControl } from './detail-chart'
 
 export function ConcernsPanel({
   sandboxId,
@@ -95,18 +96,13 @@ export function ConcernsPanel({
   const items =
     data?.items.filter(item => resolved || item.status === 'open') ?? []
   return (
-    <section className={detailSection} data-testid="sandbox-concerns">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-ink">
-            <Flag className="h-4 w-4 text-ink-3" />
-            Internal concerns
-          </h2>
-          <p className="mt-1 max-w-prose text-xs leading-relaxed text-ink-3">
-            Visible to authorized internal leadership, the author and the owner.
-          </p>
-        </div>
-        {data?.can_create && (
+    <Section
+      id="concerns"
+      title="Internal concerns"
+      testId="sandbox-concerns"
+      note="Visible to authorized internal leadership, the author and the owner."
+      aside={
+        data?.can_create && (
           <Button
             variant="outline"
             size="sm"
@@ -118,20 +114,21 @@ export function ConcernsPanel({
             <Plus className="h-3.5 w-3.5" />
             Raise a concern
           </Button>
-        )}
-      </div>
+        )
+      }
+    >
       {query.isError ? (
-        <p role="alert" className="mt-4 text-sm text-ink-3">
+        <p role="alert" className="text-sm text-ink-3">
           Concerns could not be loaded.{' '}
           <button className="underline" onClick={() => void query.refetch()}>
             Try again
           </button>
         </p>
       ) : query.isPending ? (
-        <p className="mt-4 text-sm text-ink-3">Loading concerns…</p>
+        <p className="text-sm text-ink-3">Loading concerns…</p>
       ) : (
         <>
-          <ul className="mt-3 divide-y divide-line">
+          <ul className="divide-y divide-line">
             {items.map(item => (
               <li className="py-4" key={item.id}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -263,7 +260,7 @@ export function ConcernsPanel({
           )}
         </SheetContent>
       </Sheet>
-    </section>
+    </Section>
   )
 }
 function ConcernForm({
