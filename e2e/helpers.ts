@@ -288,7 +288,7 @@ type GroupBody = {
   [key: string]: unknown
 }
 
-async function call(
+export async function call(
   request: APIRequestContext,
   token: string,
   method: 'get' | 'post' | 'put',

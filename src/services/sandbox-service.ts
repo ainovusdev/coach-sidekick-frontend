@@ -18,8 +18,11 @@ import type {
   SandboxOutcomes,
 } from '@/types/sandbox-outcomes'
 import type {
+  CountsFromRequest,
+  CountsFromUpdate,
   EmailLookup,
   EmailPreview,
+  GroupWindow,
   InvitationAcceptResponse,
   InvitationSendRequest,
   InvitationValidation,
@@ -46,6 +49,7 @@ import type {
   TimelineEventUpdate,
   TimelineRegeneratePreview,
   WelcomeData,
+  WindowChange,
 } from '@/types/sandbox'
 import type {
   AttentionItem,
@@ -288,6 +292,42 @@ export class SandboxService {
     data: SandboxGroupUpdate,
   ): Promise<SandboxGroup> {
     return ApiClient.patch(`${BASE}/${id}/groups/${groupId}`, data)
+  }
+
+  /** What saving these changes to the group would count — nothing is saved. */
+  static previewGroupChange(
+    id: string,
+    groupId: string,
+    data: SandboxGroupUpdate,
+  ): Promise<WindowChange> {
+    return ApiClient.post(`${BASE}/${id}/groups/${groupId}/start-preview`, data)
+  }
+
+  /** When each person in the group starts counting. */
+  static groupWindows(id: string, groupId: string): Promise<GroupWindow[]> {
+    return ApiClient.get(`${BASE}/${id}/groups/${groupId}/windows`)
+  }
+
+  static previewCountsFrom(
+    id: string,
+    enrollmentId: string,
+    data: CountsFromRequest,
+  ): Promise<WindowChange> {
+    return ApiClient.post(
+      `${BASE}/${id}/enrollments/${enrollmentId}/counts-from-preview`,
+      data,
+    )
+  }
+
+  static setCountsFrom(
+    id: string,
+    enrollmentId: string,
+    data: CountsFromUpdate,
+  ): Promise<WindowChange> {
+    return ApiClient.patch(
+      `${BASE}/${id}/enrollments/${enrollmentId}/counts-from`,
+      data,
+    )
   }
 
   static deleteGroup(id: string, groupId: string): Promise<void> {
