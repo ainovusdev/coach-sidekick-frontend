@@ -856,6 +856,49 @@ test.describe('Sandbox entity details', () => {
     await expect(page.getByTestId('detail-rhythm')).toHaveCount(0)
   })
 
+  test('a very long name wraps on a phone instead of widening the page', async ({
+    page,
+  }) => {
+    // Below the rail breakpoint the layout is one column; an unconstrained
+    // track grows to the rail's longest unbroken line.
+    const long = 'Bartholomew Alexander Featherstonehaugh-Montgomery III'
+    const team = 'Senior Directors of Global Transformation and Delivery'
+    await mocked(page)
+    await page.route(
+      new RegExp(`/api/v1/sandboxes/${sid}/clients/[^/?]+(\\?.*)?$`),
+      route => {
+        const query = new URL(route.request().url()).searchParams
+        const d = detail('client', {
+          period: (query.get('period') ?? 'term') as InsightSelection['period'],
+          group_id: query.get('group_id'),
+          subject_member_id: query.get('subject_member_id'),
+          coach_user_id: query.get('coach_user_id'),
+          entity_kind: 'client',
+        })
+        d.entity.name = long
+        d.relationships.forEach(r => {
+          r.name = long
+          r.group_name = team
+        })
+        d.stats!.rhythm.forEach(r => {
+          r.group_name = team
+        })
+        return route.fulfill({ json: d })
+      },
+    )
+    await login(page, USERS.admin.email)
+    await page.setViewportSize({ width: 390, height: 900 })
+    await page.goto(`${base}/clients/${client}`)
+    await expect(page.getByRole('heading', { name: long })).toBeVisible()
+    await expect(page.getByTestId('detail-rhythm')).toBeVisible()
+    const over = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    )
+    expect(over).toBeLessThanOrEqual(1)
+  })
+
   test('old links still land: tab values, the hash over the query, and filters', async ({
     page,
   }) => {

@@ -455,7 +455,7 @@ function DetailContent({
           bleedClass={BLEED}
           testId="detail-tabs"
         />
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
           <div className="min-w-0">
             <TabsContent value="overview" className="mt-0 space-y-5">
               <div>
