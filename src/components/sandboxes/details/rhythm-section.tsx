@@ -3,6 +3,11 @@
 import Link from 'next/link'
 import { Empty, Section } from '@/components/sandboxes/section'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
+import {
+  forecastSummaryText,
+  forecastTail,
+  forecastText,
+} from '@/lib/sandbox/detail-view'
 import { fmtDay, fmtWindow, pluralise } from '@/lib/sandbox/format'
 import { parseDateOnly } from '@/lib/sandbox/term'
 import { cn } from '@/lib/utils'
@@ -118,6 +123,9 @@ function RhythmRow({
 }) {
   const today = data.stats!.as_of
   const late = overdue(row)
+  const forecast = named
+    ? forecastTail(row.forecast)
+    : forecastText(row.forecast)
   return (
     <li className="py-4 first:pt-0 last:pb-0" data-testid="rhythm-row">
       {named && (
@@ -166,6 +174,17 @@ function RhythmRow({
               </span>
             </>
           )}
+          {forecast && (
+            <>
+              {' · '}
+              <span
+                className={cn(forecast.warn && 'font-medium text-amber-token')}
+                data-testid="rhythm-forecast"
+              >
+                {forecast.text}
+              </span>
+            </>
+          )}
         </p>
       ) : (
         <>
@@ -203,6 +222,17 @@ function RhythmRow({
               />
             )}
           </dl>
+          {forecast && (
+            <p
+              className={cn(
+                'mt-3 text-xs',
+                forecast.warn ? 'text-amber-token' : 'text-ink-2',
+              )}
+              data-testid="rhythm-forecast"
+            >
+              {forecast.text}
+            </p>
+          )}
         </>
       )}
       {late && (
@@ -224,6 +254,7 @@ export function RhythmSection({ data }: { data: SandboxEntityDetail }) {
   const group = data.entity.kind === 'group'
   const rows = group ? stats.rhythm.filter(r => r.current) : stats.rhythm
   const estimated = rows.reduce((n, r) => n + r.estimated_durations, 0)
+  const summary = group ? forecastSummaryText(stats.forecast_summary) : null
   return (
     <Section
       id="rhythm"
@@ -232,11 +263,24 @@ export function RhythmSection({ data }: { data: SandboxEntityDetail }) {
       note={
         <>
           Whole agreement to date — the reporting period does not change this.
+          Projections assume the last 8 weeks continue; they count sessions, and
+          are not the pace shown above.
           {estimated > 0 &&
             ` ${pluralise(estimated, 'meeting length')} assumed from the agreement.`}
         </>
       }
     >
+      {summary && (
+        <p
+          className={cn(
+            'mb-4 text-sm',
+            summary.warn ? 'text-amber-token' : 'text-ink-2',
+          )}
+          data-testid="rhythm-forecast-summary"
+        >
+          {summary.text}
+        </p>
+      )}
       {rows.length === 0 ? (
         <Empty>No coaching relationship to measure in this view.</Empty>
       ) : (

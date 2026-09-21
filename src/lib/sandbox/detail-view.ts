@@ -7,10 +7,12 @@
  */
 
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
-import { pluralise } from '@/lib/sandbox/format'
+import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { parseDateOnly } from '@/lib/sandbox/term'
 import type { StatTone } from '@/components/ui/stat-strip'
 import type {
+  SandboxDetailForecast,
+  SandboxDetailForecastSummary,
   SandboxEntityDetail,
   SandboxRelationship,
 } from '@/types/sandbox-details'
@@ -231,5 +233,131 @@ export function headcountText(contract: SandboxAnalytics['current_contract']) {
     sub: unmeasured
       ? `${pluralise(unmeasured, 'coachee')} not measurable yet`
       : null,
+  }
+}
+
+/** A projection that says the agreement will end short of its sessions. */
+export function projectedShort(f?: SandboxDetailForecast | null): boolean {
+  return !!f && f.reason === null && (f.shortfall_sessions ?? 0) > 0
+}
+
+function recoveryText(f: SandboxDetailForecast): string {
+  if (f.recovery === 'more_than_daily')
+    return 'more than one a day would be needed to finish'
+  if (f.recovery === 'gap' && f.needed_gap_days != null)
+    return f.needed_gap_days <= 1
+      ? 'one a day from here finishes it'
+      : `one every ${f.needed_gap_days} days from here finishes it`
+  return ''
+}
+
+function hoursShortText(f: SandboxDetailForecast): string {
+  return f.hours_short ? `${fmtHoursShort(f.hours_short)} short on hours` : ''
+}
+
+/**
+ * The projection in words. It is always about *sessions* — the hours are said
+ * separately — and a projection that cannot be made says why instead of
+ * reading as zero. `null`: nothing worth a line (an ended relationship).
+ */
+export function forecastText(
+  f?: SandboxDetailForecast | null,
+): { text: string; warn: boolean } | null {
+  if (!f || f.reason === 'ended') return null
+  const join = (...parts: string[]) => parts.filter(Boolean).join(' · ')
+  const of = `${f.projected_sessions} of ${f.expected_sessions} sessions`
+  switch (f.reason) {
+    case 'filtered':
+      return {
+        text: 'Clear the coach filter to see the projection.',
+        warn: false,
+      }
+    case 'no_target':
+      return { text: 'No session target to project against.', warn: false }
+    case 'not_started':
+      return { text: 'Not started yet.', warn: false }
+    case 'too_early':
+      return {
+        text: join('Too early to project', recoveryText(f)),
+        warn: false,
+      }
+    case 'complete':
+      return {
+        text: join('Every agreed session delivered', hoursShortText(f)),
+        warn: !!f.hours_short,
+      }
+    case 'term_over':
+      return {
+        text: join(
+          `Ended ${pluralise(f.shortfall_sessions ?? 0, 'session')} short`,
+          hoursShortText(f),
+        ),
+        warn: true,
+      }
+  }
+  if (projectedShort(f))
+    return {
+      text: join(
+        f.window_meetings === 0
+          ? `No sessions in the last 8 weeks — ${of} at this rhythm`
+          : `At this rhythm: ${of} by the end`,
+        recoveryText(f),
+      ),
+      warn: true,
+    }
+  return {
+    text: join(
+      `At this rhythm: all ${f.expected_sessions} sessions${
+        f.finishes_on ? ` by ${fmtDay(f.finishes_on)}` : ''
+      }`,
+      hoursShortText(f),
+    ),
+    warn: false,
+  }
+}
+
+/** The same, short enough for one person's line on a group page. */
+export function forecastTail(
+  f?: SandboxDetailForecast | null,
+): { text: string; warn: boolean } | null {
+  if (!f) return null
+  if (f.reason === 'complete')
+    return { text: 'all sessions delivered', warn: false }
+  if (f.reason === 'too_early')
+    return { text: 'too early to project', warn: false }
+  if (f.reason === 'term_over')
+    return {
+      text: `ended ${pluralise(f.shortfall_sessions ?? 0, 'session')} short`,
+      warn: true,
+    }
+  if (f.reason !== null) return null
+  return {
+    text: `on course for ${f.projected_sessions} of ${f.expected_sessions}`,
+    warn: projectedShort(f),
+  }
+}
+
+/** A group in one sentence; every bucket is said, so none reads as a zero. */
+export function forecastSummaryText(
+  s?: SandboxDetailForecastSummary | null,
+): { text: string; warn: boolean } | null {
+  if (!s || s.current === 0) return null
+  if (s.complete === s.current)
+    return {
+      text:
+        s.current === 1
+          ? 'Every agreed session delivered.'
+          : `All ${s.current} have had every agreed session.`,
+      warn: false,
+    }
+  const parts = [
+    s.projected_short > 0 && `${s.projected_short} projected to end short`,
+    s.projected_to_finish > 0 && `${s.projected_to_finish} on course to finish`,
+    s.complete > 0 && `${s.complete} complete`,
+    s.not_projectable > 0 && `${s.not_projectable} too early to say`,
+  ].filter(Boolean)
+  return {
+    text: `At this rhythm: ${parts.join(' · ')}.`,
+    warn: s.projected_short > 0,
   }
 }

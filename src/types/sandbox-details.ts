@@ -206,6 +206,62 @@ export interface SandboxFeedback {
  * How often one coachee and their coaching actually meet. Contract to date —
  * the reporting-period selector does not trim it. `null` is "not measurable".
  */
+/** Why there is no projection; `null` means there is one. */
+export type SandboxForecastReason =
+  | 'filtered'
+  | 'ended'
+  | 'no_target'
+  | 'not_started'
+  | 'complete'
+  | 'term_over'
+  | 'too_early'
+
+/**
+ * Where an agreement lands if the last eight weeks continue. The target is
+ * sessions; `hours_short` can be above zero even when it is met. Anything the
+ * reason does not fill is null, never zero.
+ */
+export interface SandboxDetailForecast {
+  reason: SandboxForecastReason | null
+  expected_sessions: number | null
+  delivered_sessions: number | null
+  window_days: number | null
+  window_meetings: number | null
+  projected_sessions: number | null
+  shortfall_sessions: number | null
+  projected_hours: number | null
+  hours_short: number | null
+  finishes_on: string | null
+  recovery: 'gap' | 'more_than_daily' | null
+  needed_gap_days: number | null
+}
+
+export interface SandboxDetailForecastSummary {
+  current: number
+  complete: number
+  projected_to_finish: number
+  projected_short: number
+  not_projectable: number
+}
+
+export interface SandboxFollowThroughCounts {
+  open: number
+  overdue: number
+  completed: number
+  completed_dated: number
+  completed_on_time: number
+  completed_undated: number
+  abandoned: number
+}
+
+/** Our side only. `null` on `stats` means it is not this viewer's to see. */
+export interface SandboxDetailFollowThrough {
+  total: SandboxFollowThroughCounts
+  coachees: (SandboxFollowThroughCounts & { member_id: string; name: string })[]
+  /** False under a coach filter: the Commitments tab cannot show that count. */
+  linkable: boolean
+}
+
 export interface SandboxDetailRhythm {
   member_id: string
   group_id: string
@@ -226,6 +282,8 @@ export interface SandboxDetailRhythm {
   /** Group page only. Recorded participation, not verified attendance. */
   group_meetings_held: number | null
   group_meetings_recorded: number | null
+  /** Optional only so an older API response still renders. */
+  forecast?: SandboxDetailForecast
 }
 
 export interface SandboxDetailOutcomeCounts {
@@ -246,4 +304,7 @@ export interface SandboxDetailStats {
   rhythm: SandboxDetailRhythm[]
   /** `null`: withheld from this viewer. Zeroes are observed. */
   outcomes: SandboxDetailOutcomeCounts | null
+  /** Group page only; absent under a coach filter. */
+  forecast_summary?: SandboxDetailForecastSummary | null
+  follow_through?: SandboxDetailFollowThrough | null
 }

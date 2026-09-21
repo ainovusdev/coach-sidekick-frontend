@@ -199,6 +199,74 @@ test.describe('Sandboxes — the Commitments tab', () => {
     await tab.getByTestId('commitments-by-coach').click()
   })
 
+  test('a person’s follow-through links to exactly the rows it counted', async ({
+    page,
+    request,
+  }) => {
+    const token = await apiToken(request, USERS.priya.email)
+    const data = await api(
+      request,
+      token,
+      'get',
+      `/sandboxes/${sandboxId}/commitments`,
+    )
+    const memberOf = (name: string) =>
+      data.coachees.find((c: { name: string }) => c.name === name).member_id
+    await login(page, USERS.priya.email)
+    await page.evaluate(() =>
+      window.localStorage.setItem('sandbox-commitments-view', 'list'),
+    )
+    await page.goto(`/sandboxes/${sandboxId}/clients/${memberOf(ILSE.name)}`)
+    const follow = page.getByTestId('detail-follow-through')
+    await expect(follow).toContainText(/2\s*open/)
+    await expect(follow).toContainText(/1\s*overdue/)
+    // Titles never reach this page — only the counts do.
+    await expect(follow).not.toContainText('Hold the line on scope')
+
+    await follow.getByRole('link', { name: /overdue/ }).click()
+    await expect(page).toHaveURL(/coachee=.*status=overdue/)
+    const tab = page.getByTestId('commitments-tab')
+    await expect(tab.getByTestId('commitments-coachee-chip')).toContainText(
+      `Showing ${ILSE.name} only`,
+    )
+    // Her section alone, what was agreed in coaching, and only what is late.
+    await expect(tab.getByTestId('commitment-section')).toHaveCount(1)
+    await expect(tab.getByTestId('commitment-item')).toHaveCount(1)
+    await expect(tab.getByTestId('commitment-item')).toContainText(
+      'Share the Q4 plan',
+    )
+    await expect(tab.getByTestId('commitments-summary')).toContainText(
+      '2 open · 1 overdue',
+    )
+    // For this visit only: the view she chose herself is still remembered.
+    expect(
+      await page.evaluate(() =>
+        window.localStorage.getItem('sandbox-commitments-view'),
+      ),
+    ).toBe('list')
+    await tab
+      .getByTestId('commitments-coachee-chip')
+      .getByRole('button', { name: 'Clear' })
+      .click()
+    await expect(tab.getByTestId('commitments-coachee-chip')).toHaveCount(0)
+
+    // Someone with nothing agreed yet still gets their header, not a blank page.
+    await page.goto(
+      `/sandboxes/${sandboxId}?tab=commitments&coachee=${memberOf(KOEN.name)}&kind=coaching&status=open`,
+    )
+    await expect(section(page, KOEN.name)).toBeVisible()
+    await expect(page.getByTestId('commitment-section')).toHaveCount(1)
+    await expect(page.getByTestId('commitment-item')).toHaveCount(0)
+    // A person this sandbox does not know is ignored, not guessed at.
+    await page.goto(`/sandboxes/${sandboxId}?tab=commitments&coachee=nobody`)
+    await expect(page.getByTestId('commitments-tab')).toBeVisible()
+    await expect(page.getByTestId('commitments-coachee-chip')).toHaveCount(0)
+    await expect(page.getByTestId('commitment-item').first()).toBeVisible()
+    await page.evaluate(() =>
+      window.localStorage.removeItem('sandbox-commitments-view'),
+    )
+  })
+
   test('a commitment is added from a coach’s section, already theirs', async ({
     page,
   }) => {

@@ -54,6 +54,7 @@ import {
   ComingUpPanel,
 } from './detail-rail'
 import { FeedbackPanel } from './feedback-panel'
+import { FollowThroughSection } from './follow-through-section'
 import { RhythmSection } from './rhythm-section'
 import { PeoplePanel } from './people-panel'
 
@@ -483,6 +484,7 @@ function DetailContent({
               {kind !== 'client' && <CoacheeTable data={data} />}
               <DetailChart data={data.analytics} coach={coach} />
               <RhythmSection data={data} />
+              <FollowThroughSection data={data} />
               {kind === 'client' && (
                 <Section
                   id="outcomes-summary"

@@ -11,6 +11,7 @@ import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
 import {
   headcountText,
   hoursRemaining,
+  projectedShort,
   weeksLeft,
 } from '@/lib/sandbox/detail-view'
 import { fmtDay, fmtWindow, pluralise } from '@/lib/sandbox/format'
@@ -185,6 +186,9 @@ function AgreementCard({
     .sort()
     .pop()
   const weeks = weeksLeft(ends ?? null, today)
+  const short = (data.stats?.rhythm ?? []).filter(
+    r => r.current && projectedShort(r.forecast),
+  ).length
 
   return (
     <div
@@ -276,6 +280,16 @@ function AgreementCard({
           .filter(Boolean)
           .join(' · ') || `As of ${fmtDay(today)}`}
       </p>
+      {short > 0 && (
+        <p
+          className="mt-1 text-xs text-amber-token"
+          data-testid="agreement-forecast"
+        >
+          {kind === 'client'
+            ? 'At this rhythm it ends short of its sessions.'
+            : `At this rhythm ${short} will end short of their sessions.`}
+        </p>
+      )}
       {current.length === 1 && current[0].starts_on && current[0].ends_on && (
         <p className="mt-1 font-mono text-[11px] text-ink-3">
           {fmtWindow(current[0].starts_on, current[0].ends_on)}

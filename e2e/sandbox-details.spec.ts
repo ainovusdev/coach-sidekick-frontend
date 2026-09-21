@@ -80,6 +80,15 @@ function analytics(selection: InsightSelection): SandboxAnalytics {
     },
   }
 }
+const counts = () => ({
+  open: 3,
+  overdue: 1,
+  completed: 9,
+  completed_dated: 9,
+  completed_on_time: 7,
+  completed_undated: 0,
+  abandoned: 0,
+})
 function detail(
   kind: SandboxEntityKind,
   selection: InsightSelection,
@@ -262,8 +271,43 @@ function detail(
                 estimated_durations: 1,
                 group_meetings_held: kind === 'group' ? 8 : null,
                 group_meetings_recorded: kind === 'group' ? 7 : null,
+                forecast: {
+                  reason: null,
+                  expected_sessions: 18,
+                  delivered_sessions: 8,
+                  window_days: 56,
+                  window_meetings: 4,
+                  projected_sessions: 13,
+                  shortfall_sessions: 5,
+                  projected_hours: 13,
+                  hours_short: 5,
+                  finishes_on: null,
+                  recovery: 'gap',
+                  needed_gap_days: 8,
+                },
               },
             ],
+            forecast_summary:
+              kind === 'group'
+                ? {
+                    current: 1,
+                    complete: 0,
+                    projected_to_finish: 0,
+                    projected_short: 1,
+                    not_projectable: 0,
+                  }
+                : null,
+            // Ours only: the client's side and a personal view get null.
+            follow_through:
+              external || personal
+                ? null
+                : {
+                    linkable: true,
+                    total: counts(),
+                    coachees: [
+                      { member_id: client, name: 'Alex Morgan', ...counts() },
+                    ],
+                  },
             outcomes: {
               total: 0,
               agreed: 0,
@@ -854,6 +898,49 @@ test.describe('Sandbox entity details', () => {
     await page.goto(`${base}/coaches/${coach}`)
     await expect(page.getByTestId('sandbox-entity-detail')).toBeVisible()
     await expect(page.getByTestId('detail-rhythm')).toHaveCount(0)
+  })
+
+  test('the projection is said in sessions; follow-through is ours alone', async ({
+    page,
+  }) => {
+    await mocked(page)
+    await login(page, USERS.admin.email)
+    await page.goto(`${base}/clients/${client}`)
+    await expect(page.getByTestId('rhythm-forecast')).toHaveText(
+      'At this rhythm: 13 of 18 sessions by the end · one every 8 days from here finishes it',
+    )
+    await expect(page.getByTestId('agreement-forecast')).toBeVisible()
+    const follow = page.getByTestId('detail-follow-through')
+    await expect(follow).toContainText(/3\s*open/)
+    await expect(follow).toContainText(/7 of 9\s*on time/)
+    await expect(follow.getByRole('link', { name: /overdue/ })).toHaveAttribute(
+      'href',
+      new RegExp(
+        `tab=commitments&coachee=${client}&kind=coaching&status=overdue`,
+      ),
+    )
+    await page.goto(`${base}/groups/${group}`)
+    await expect(page.getByTestId('rhythm-forecast-summary')).toHaveText(
+      'At this rhythm: 1 projected to end short.',
+    )
+    await expect(page.getByTestId('rhythm-forecast')).toHaveText(
+      'on course for 13 of 18',
+    )
+    await expect(page.getByTestId('follow-through-row')).toContainText(
+      'Alex Morgan',
+    )
+  })
+
+  test('the client’s side sees the projection and never the follow-through', async ({
+    page,
+  }) => {
+    await mocked(page, { external: true })
+    await login(page, USERS.admin.email)
+    for (const path of [`clients/${client}`, `groups/${group}`]) {
+      await page.goto(`${base}/${path}`)
+      await expect(page.getByTestId('rhythm-forecast')).toBeVisible()
+      await expect(page.getByTestId('detail-follow-through')).toHaveCount(0)
+    }
   })
 
   test('a very long name wraps on a phone instead of widening the page', async ({

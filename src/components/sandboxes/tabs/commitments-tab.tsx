@@ -36,6 +36,7 @@ import {
   VIEW_BY_LABEL,
   activeFilterCount,
   applyFilters,
+  filtersFromUrl,
   applyScope,
   buildSections,
   countRows,
@@ -87,7 +88,15 @@ export function CommitmentsTab({
   // Whoever runs the programme thinks in coaches; a coach thinks in coachees.
   useEffect(() => {
     if (by !== null || !data) return
-    setBy(rememberedView() ?? (data.tracks_everyone ? 'coach' : 'coachee'))
+    // A link from someone's page names them: show that, for this visit only —
+    // the remembered view is not overwritten.
+    const linked = filtersFromUrl(window.location.search, data)
+    if (Object.keys(linked).length) setFilters(f => ({ ...f, ...linked }))
+    setBy(
+      linked.coacheeId
+        ? 'coachee'
+        : (rememberedView() ?? (data.tracks_everyone ? 'coach' : 'coachee')),
+    )
   }, [by, data])
   const view: ViewBy = by ?? 'coach'
   const chooseView = (next: ViewBy) => {
@@ -106,7 +115,16 @@ export function CommitmentsTab({
     [rows, filters, today],
   )
   const counts = useMemo(() => countRows(scoped, today), [scoped, today])
-  const headline = useMemo(() => countRows(rows, today), [rows, today])
+  const focus = filters.coacheeId
+  const focusName = data?.coachees.find(c => c.member_id === focus)?.name
+  const headline = useMemo(
+    () =>
+      countRows(
+        focus ? rows.filter(r => r.coachee?.member_id === focus) : rows,
+        today,
+      ),
+    [rows, today, focus],
+  )
   const sections = useMemo(
     () =>
       data && view !== 'list'
@@ -120,6 +138,7 @@ export function CommitmentsTab({
               !filters.q &&
               !filters.mine &&
               activeFilterCount(filters) === 0,
+            view === 'coachee' ? filters.coacheeId : null,
           )
         : [],
     [data, view, visible, scoped, today, filters],
@@ -128,7 +147,7 @@ export function CommitmentsTab({
   const setStatus = (status: StatusFilter) =>
     setFilters(f => ({ ...f, status }))
   const isFiltered =
-    filters.mine || !!filters.q || activeFilterCount(filters) > 0
+    filters.mine || !!filters.q || !!focus || activeFilterCount(filters) > 0
   const clear = () => setFilters({ ...NO_FILTERS, status: filters.status })
 
   const toggleDone = (r: SandboxCommitmentRow) =>
@@ -200,6 +219,22 @@ export function CommitmentsTab({
           New commitment
         </Button>
       </header>
+
+      {focus && focusName && (
+        <p
+          className="flex w-fit items-center gap-2 rounded-full border border-line bg-paper px-3 py-1 text-xs text-ink-2"
+          data-testid="commitments-coachee-chip"
+        >
+          Showing {focusName} only
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-ink"
+            onClick={() => setFilters(f => ({ ...f, coacheeId: null }))}
+          >
+            Clear
+          </button>
+        </p>
+      )}
 
       {rows.length > 0 && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -305,7 +340,7 @@ export function CommitmentsTab({
         </div>
       ) : isError ? (
         <p className="text-sm text-ink-3">Commitments couldn’t be loaded.</p>
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && !(focus && sections.length) ? (
         <Empty>
           No commitments yet. They appear here when a coach and coachee agree
           one in a session, or when you add one.
