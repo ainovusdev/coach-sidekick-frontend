@@ -4,6 +4,7 @@ import posthog from 'posthog-js'
 import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { SandboxService } from '@/services/sandbox-service'
 import type {
+  CountsFromUpdate,
   InvitationSendRequest,
   MemberGroupsUpdate,
   MemberRosterUpdate,
@@ -38,7 +39,16 @@ function errorMessage(error: unknown, fallback: string): string {
 }
 
 /** 409s that are a decision for the dialog to present, not an error to toast. */
-const DECISION_CODES = new Set(['has_sessions'])
+const DECISION_CODES = new Set([
+  'has_sessions',
+  'credit_held',
+  'stale_preview',
+  'busy',
+  'before_group_start',
+  'before_term_start',
+  'at_group_start',
+  'overlaps_earlier',
+])
 
 function isDecision(error: unknown): boolean {
   const code = sandboxErrorDetail(error)?.code
@@ -312,14 +322,44 @@ export function useUpdateGroup(sandboxId: string) {
       groupId: string
       data: SandboxGroupUpdate
     }) => SandboxService.updateGroup(sandboxId, groupId, data),
-    onSuccess: group => {
+    onSuccess: (group, { data }) => {
       toast.success(
         group.is_complete ? 'Group saved' : 'Group saved as incomplete',
       )
       invalidateQueries.afterSandboxUpdate(queryClient, sandboxId)
+      if ('starts_on' in data)
+        invalidateQueries.afterSandboxWindowChange(queryClient)
     },
-    onError: error =>
-      toast.error(errorMessage(error, 'Could not save the group')),
+    onError: error => {
+      if (!isDecision(error))
+        toast.error(errorMessage(error, 'Could not save the group'))
+    },
+  })
+}
+
+/** Correct the day one late joiner's sessions start counting from. */
+export function useSetCountsFrom(sandboxId: string) {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      enrollmentId,
+      data,
+    }: {
+      enrollmentId: string
+      data: CountsFromUpdate
+    }) => SandboxService.setCountsFrom(sandboxId, enrollmentId, data),
+    onSuccess: change => {
+      toast.success(
+        change.sessions_gained > 0
+          ? `${change.sessions_gained} more ${change.sessions_gained === 1 ? 'session counts' : 'sessions count'}`
+          : 'Date corrected',
+      )
+      invalidateQueries.afterSandboxWindowChange(queryClient)
+    },
+    onError: error => {
+      if (!isDecision(error))
+        toast.error(errorMessage(error, 'Could not correct the date'))
+    },
   })
 }
 
@@ -352,8 +392,12 @@ export function useAddGroupMember(sandboxId: string) {
       groupId: string
       data: SandboxGroupMemberCreate
     }) => SandboxService.addGroupMember(sandboxId, groupId, data),
-    onSuccess: () =>
-      invalidateQueries.afterSandboxUpdate(queryClient, sandboxId),
+    onSuccess: (_row, { data }) => {
+      invalidateQueries.afterSandboxUpdate(queryClient, sandboxId)
+      // Backdated: sessions already held may count now.
+      if (data.effective_on)
+        invalidateQueries.afterSandboxWindowChange(queryClient)
+    },
     onError: error => {
       const detail = sandboxErrorDetail(error)
       toast.error(

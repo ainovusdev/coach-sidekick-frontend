@@ -299,6 +299,8 @@ export const queryKeys = {
       [...queryKeys.sandboxes.all, 'dashboard', includeEnded] as const,
     delivery: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'delivery'] as const,
+    groupWindows: (id: string, groupId: string) =>
+      [...queryKeys.sandboxes.detail(id), 'windows', groupId] as const,
     attention: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'attention'] as const,
     clientContext: (clientId: string) =>
@@ -447,6 +449,17 @@ export const invalidateQueries = {
         : queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       // coachees become clients of the group's coaches
       queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
+    ])
+  },
+
+  /** A window moved: every number built on which sessions count can change. */
+  afterSandboxWindowChange: async (queryClient: QueryClient) => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-client-markers'] }),
     ])
   },
 

@@ -1,6 +1,5 @@
 'use client'
 
-import { SessionAttribution } from '@/components/sandboxes/session-attribution'
 import { useEffect, useRef } from 'react'
 import { useParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
@@ -160,11 +159,6 @@ export default function MeetingPage() {
           onNavigateBack={() => router.push('/')}
         />
       </div>
-      {sessionId && (
-        <div className="max-h-60 shrink-0 overflow-y-auto px-4">
-          <SessionAttribution sessionId={sessionId} />
-        </div>
-      )}
       <div className="flex-1 flex flex-col overflow-hidden">
         <div className="flex-1 flex flex-col w-full px-4 py-3 overflow-hidden">
           <div className="flex-1 overflow-hidden">

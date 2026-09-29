@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useQueryClient } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -12,11 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { DueDateField } from '@/components/ui/due-date-field'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
 import {
   sandboxErrorDetail,
   useSetMemberGroups,
 } from '@/hooks/mutations/use-sandbox-mutations'
+import { invalidateQueries } from '@/lib/query-client'
 import { firstName, pluralise } from '@/lib/sandbox/format'
 import type {
   GroupMemberKind,
@@ -55,6 +58,9 @@ export function ChangeGroupsDialog({
   const [picked, setPicked] = useState<Set<string>>(new Set())
   // Groups they'd leave although they have had sessions there (409 has_sessions).
   const [leaving, setLeaving] = useState<GroupWithSessions[] | null>(null)
+  const queryClient = useQueryClient()
+  // Joining a group counts from today unless coaching began earlier.
+  const [joinedOn, setJoinedOn] = useState<string | null>(null)
 
   const initial = useMemo(
     () => new Set(member?.memberships.map(m => key(m.group_id, m.kind)) ?? []),
@@ -63,6 +69,7 @@ export function ChangeGroupsDialog({
   useEffect(() => {
     if (member) setPicked(new Set(initial))
     setLeaving(null)
+    setJoinedOn(null)
   }, [member, initial])
 
   if (!member) return null
@@ -79,6 +86,10 @@ export function ChangeGroupsDialog({
 
   const changed =
     picked.size !== initial.size || [...picked].some(k => !initial.has(k))
+  const joining = [...picked].some(
+    k => !initial.has(k) && !k.endsWith(':supervisor'),
+  )
+  const backdated = joining && !!joinedOn && joinedOn !== overview.today
 
   const toggle = (groupId: string, kind: GroupMemberKind, on: boolean) => {
     setLeaving(null)
@@ -98,8 +109,15 @@ export function ChangeGroupsDialog({
     try {
       await setGroups.mutateAsync({
         memberId: member.id,
-        data: { memberships, force },
+        data: {
+          memberships,
+          force,
+          ...(backdated ? { effective_on: joinedOn } : {}),
+        },
       })
+      // Backdated: sessions already held may count now.
+      if (backdated)
+        void invalidateQueries.afterSandboxWindowChange(queryClient)
       onOpenChange(false)
     } catch (error) {
       const detail = sandboxErrorDetail(error)
@@ -200,6 +218,22 @@ export function ChangeGroupsDialog({
               </li>
             ))}
           </ul>
+        )}
+
+        {joining && (
+          <div className="space-y-1" data-testid="joined-on">
+            <DueDateField
+              id="groups-joined-on"
+              label={`In the groups ${first} joins, sessions count from`}
+              value={joinedOn ?? overview.today}
+              onChange={setJoinedOn}
+              required
+            />
+            <p className="text-xs text-ink-3">
+              Today unless coaching began earlier — never before a group’s own
+              start.
+            </p>
+          </div>
         )}
 
         {leaving && leaving.length > 0 && (

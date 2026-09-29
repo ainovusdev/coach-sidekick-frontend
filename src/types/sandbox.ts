@@ -164,6 +164,8 @@ export interface SandboxMembership {
 /** Set a person's group memberships exactly (People page → Change groups). */
 export interface MemberGroupsUpdate {
   memberships: { group_id: string; kind: GroupMemberKind }[]
+  /** The day sessions start counting in the groups they join (default today). */
+  effective_on?: string | null
   /** Go ahead although they have had sessions in a group they leave. */
   force?: boolean
 }
@@ -455,9 +457,69 @@ export interface SandboxGroupUpdate {
   starts_on?: string | null
   /** A pairing can always become a group; a group a pairing only if it fits. */
   kind?: GroupType
+  /** From the preview: the save lands only if it still does what was shown. */
+  expected_basis?: string
+}
+
+/** When one person in a group starts counting, and whether that can be corrected. */
+export interface GroupWindow {
+  enrollment_id: string
+  member_id: string
+  kind: 'coach' | 'coachee'
+  name: string | null
+  email: string
+  starts_on: string
+  group_starts_on: string
+  /** Added after the group began, so their earlier sessions don't count. */
+  is_late: boolean
+  can_correct: boolean
+  earliest: string
+}
+
+export interface WindowCoacheeChange {
+  member_id: string
+  enrollment_id: string
+  name: string | null
+  is_current: boolean
+  starts_on_before: string | null
+  starts_on_after: string | null
+  sessions_gained: number
+  minutes_gained: number
+  first_on: string | null
+  last_on: string | null
+  pace_before: string | null
+  pace_after: string | null
+}
+
+/** What moving a window does — counts and days only. Preview and save share it. */
+export interface WindowChange {
+  group_id: string
+  coachees: WindowCoacheeChange[]
+  sessions_gained: number
+  minutes_gained: number
+  becomes_ambiguous: number
+  basis: string
+  earliest: string | null
+  late_coaches: {
+    enrollment_id: string
+    member_id: string
+    starts_on: string
+  }[]
+}
+
+export interface CountsFromRequest {
+  counts_from: string
+  coach_enrollment_ids?: string[]
+}
+
+export interface CountsFromUpdate extends CountsFromRequest {
+  reason: string
+  expected_basis?: string
 }
 
 export interface SandboxGroupMemberCreate {
+  /** The day their sessions start counting here (default today). */
+  effective_on?: string | null
   kind: GroupMemberKind
   user_id?: string
   email?: string
@@ -527,6 +589,13 @@ export type SandboxErrorCode =
   | 'already_in_group'
   | 'has_sessions'
   | 'group_has_sessions'
+  | 'credit_held'
+  | 'stale_preview'
+  | 'busy'
+  | 'before_group_start'
+  | 'before_term_start'
+  | 'at_group_start'
+  | 'overlaps_earlier'
 
 /** A group someone is leaving although they have had sessions in it. */
 export interface GroupWithSessions {
@@ -546,4 +615,10 @@ export interface SandboxErrorDetail {
   name?: string
   groups?: GroupWithSessions[]
   coachee_names?: string[]
+  /** credit_held: the first counted day the change would drop */
+  first_on?: string
+  /** stale_preview: what the change does now */
+  preview?: WindowChange
+  earliest?: string
+  group_starts_on?: string
 }

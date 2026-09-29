@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { CadenceControl } from '@/components/sandboxes/cadence-control'
+import { CountsFromList } from '@/components/sandboxes/windows/counts-from'
 import {
   RosterPicker,
   rosterOf,
@@ -31,7 +32,12 @@ import {
   DEFAULT_SESSION_LENGTH,
   expectedSessions,
 } from '@/lib/sandbox/cadence'
-import { firstName, pluralise } from '@/lib/sandbox/format'
+import { firstName, fmtDay, pluralise } from '@/lib/sandbox/format'
+import {
+  describeWindowChange,
+  windowChangeMatters,
+} from '@/lib/sandbox/window-change'
+import { SandboxService } from '@/services/sandbox-service'
 import { cn } from '@/lib/utils'
 import type {
   Cadence,
@@ -41,6 +47,7 @@ import type {
   SandboxGroup,
   SandboxGroupMember,
   SandboxOverview,
+  WindowChange,
 } from '@/types/sandbox'
 
 function picksOf(rows: SandboxGroupMember[], keepRow: boolean): RosterPick[] {
@@ -103,11 +110,21 @@ export function GroupDrawer({
   // then save again with force. Nothing is deleted either way.
   const [leaving, setLeaving] = useState<SandboxErrorDetail | null>(null)
   const [cadenceKey, setCadenceKey] = useState(0)
+  // People added to a group that already runs count from today unless said otherwise.
+  const [joinedOn, setJoinedOn] = useState<string | null>(null)
+  // A start that moved changes which sessions count: show it, then save exactly that.
+  const [startChange, setStartChange] = useState<WindowChange | null>(null)
+  const [startRefusal, setStartRefusal] = useState<string | null>(null)
+  const [membersSaved, setMembersSaved] = useState(false)
 
   // Reset the draft every time the drawer opens.
   useEffect(() => {
     if (!open) return
     setLeaving(null)
+    setJoinedOn(null)
+    setStartChange(null)
+    setStartRefusal(null)
+    setMembersSaved(false)
     // A copy carries the coaches, the supervisors and the contract; who is
     // coached is the one thing that differs, so that is left to fill in.
     const from = group ?? template
@@ -192,8 +209,18 @@ export function GroupDrawer({
     starts_on: startsOn,
   })
 
+  const startMoved =
+    !!group && (startsOn ?? sandbox.term_start) !== group.starts_on
+  const joining =
+    !!group &&
+    (coaches.some(d => !group.coaches.some(c => c.member_id === d.member_id)) ||
+      coachees.some(d => !d.group_member_id))
+  const effectiveOn =
+    joinedOn && joinedOn !== overview.today ? { effective_on: joinedOn } : {}
+
   const submit = async (force = false) => {
     setSaving(true)
+    setStartRefusal(null)
     try {
       if (!group) {
         await createGroup.mutateAsync({
@@ -203,6 +230,9 @@ export function GroupDrawer({
           coachee_member_ids: coachees.map(c => c.member_id),
           supervisor_member_ids: supervisorIds,
         })
+      } else if (membersSaved) {
+        // The people were saved before the preview was shown; only the group is left.
+        await saveGroup(group.id)
       } else {
         // Members first, so the settings save (and its toast) is the last thing that happens.
         const removedCoaches = group.coaches.filter(
@@ -242,31 +272,69 @@ export function GroupDrawer({
         for (const c of addedCoaches)
           await addGroupMember.mutateAsync({
             groupId: group.id,
-            data: { kind: 'coach', member_id: c.member_id },
+            data: { kind: 'coach', member_id: c.member_id, ...effectiveOn },
           })
         for (const c of addedCoachees)
           await addGroupMember.mutateAsync({
             groupId: group.id,
-            data: { kind: 'coachee', member_id: c.member_id },
+            data: { kind: 'coachee', member_id: c.member_id, ...effectiveOn },
           })
         for (const id of addedSupervisors)
           await addGroupMember.mutateAsync({
             groupId: group.id,
             data: { kind: 'supervisor', member_id: id },
           })
-        await updateGroup.mutateAsync({
-          groupId: group.id,
-          data: buildPayload(),
-        })
+        setMembersSaved(true)
+        if (!(await saveGroup(group.id))) return
       }
       onOpenChange(false)
     } catch (error) {
       const detail = sandboxErrorDetail(error)
       if (detail?.code === 'has_sessions') setLeaving(detail)
+      else if (detail?.code === 'stale_preview' && detail.preview) {
+        setStartChange(detail.preview)
+        setStartRefusal(
+          'Something changed while you were looking. Check it again.',
+        )
+      } else if (detail?.code === 'credit_held')
+        setStartRefusal(
+          `${pluralise(detail.sessions ?? 0, 'session')} from ${fmtDay(detail.first_on, true)} already ${detail.sessions === 1 ? 'counts' : 'count'}. The start can’t move past ${detail.sessions === 1 ? 'it' : 'them'}.`,
+        )
+      else if (detail?.code === 'busy') setStartRefusal(detail.message)
       // anything else was toasted by the mutation hook
     } finally {
       setSaving(false)
     }
+  }
+
+  /** False when it stopped to show what the new start would count. */
+  async function saveGroup(groupId: string): Promise<boolean> {
+    const data = buildPayload()
+    if (!startMoved) {
+      await updateGroup.mutateAsync({ groupId, data })
+      return true
+    }
+    if (!startChange) {
+      const change = await SandboxService.previewGroupChange(
+        sandboxId,
+        groupId,
+        data,
+      )
+      if (windowChangeMatters(change)) {
+        setStartChange(change)
+        return false
+      }
+      await updateGroup.mutateAsync({
+        groupId,
+        data: { ...data, expected_basis: change.basis },
+      })
+      return true
+    }
+    await updateGroup.mutateAsync({
+      groupId,
+      data: { ...data, expected_basis: startChange.basis },
+    })
+    return true
   }
 
   return (
@@ -323,7 +391,27 @@ export function GroupDrawer({
               note={alsoIn}
               onAddPeople={onAddPeople}
             />
+            {group && (
+              <CountsFromList sandboxId={sandboxId} groupId={group.id} />
+            )}
           </section>
+
+          {joining && (
+            <section className="space-y-1" data-testid="joined-on">
+              <DueDateField
+                id="group-joined-on"
+                label="The people you’re adding count from"
+                value={joinedOn ?? overview.today}
+                onChange={setJoinedOn}
+                required
+              />
+              <p className="text-xs text-ink-3">
+                Today unless coaching began earlier. Sessions from that day on
+                count here; never before {fmtDay(group?.starts_on, true)}, when
+                the {noun} starts.
+              </p>
+            </section>
+          )}
 
           {/* Supervisors */}
           <section className="space-y-2">
@@ -381,13 +469,21 @@ export function GroupDrawer({
                 id="group-starts"
                 label="Starts"
                 value={startsOn ?? sandbox.term_start}
-                onChange={setStartsOn}
+                onChange={v => {
+                  setStartsOn(v)
+                  setStartChange(null)
+                  setStartRefusal(null)
+                }}
               />
               {startsOn && startsOn !== sandbox.term_start ? (
                 <button
                   type="button"
                   className="text-xs text-ds-accent hover:underline"
-                  onClick={() => setStartsOn(null)}
+                  onClick={() => {
+                    setStartsOn(null)
+                    setStartChange(null)
+                    setStartRefusal(null)
+                  }}
                 >
                   Use the term start
                 </button>
@@ -457,6 +553,24 @@ export function GroupDrawer({
             </span>
             <span className="ml-auto text-xs text-ink-3">per coachee</span>
           </div>
+          {startChange && (
+            <p
+              className="mt-3 rounded-md bg-paper px-3 py-2 text-xs text-ink"
+              data-testid="start-preview"
+              aria-live="polite"
+            >
+              Starting on {fmtDay(startsOn ?? sandbox.term_start, true)}:{' '}
+              {describeWindowChange(startChange)} Save to go ahead.
+            </p>
+          )}
+          {startRefusal && (
+            <p
+              className="mt-3 rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
+              data-testid="start-refusal"
+            >
+              {startRefusal}
+            </p>
+          )}
           {leaving && (
             <p
               className="mt-3 rounded-md bg-amber-token-bg px-3 py-2 text-xs text-amber-token"
@@ -520,11 +634,13 @@ export function GroupDrawer({
                   ? 'Saving…'
                   : leaving
                     ? 'Save anyway'
-                    : !group
-                      ? `Create ${noun}`
-                      : complete
-                        ? `Save ${noun}`
-                        : 'Save as incomplete'}
+                    : startChange
+                      ? 'Save and count them'
+                      : !group
+                        ? `Create ${noun}`
+                        : complete
+                          ? `Save ${noun}`
+                          : 'Save as incomplete'}
               </Button>
             </div>
           </div>
