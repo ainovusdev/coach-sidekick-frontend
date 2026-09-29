@@ -18,7 +18,7 @@ import { fmtDay } from '@/lib/sandbox/format'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 import type { SandboxActivityItem } from '@/types/sandbox-details'
 import type { TimelineEvent } from '@/types/sandbox'
-import { detailSection } from './detail-chart'
+import { Section } from '@/components/sandboxes/section'
 
 const icons = {
   session: MessageSquare,
@@ -37,7 +37,7 @@ export function ActivityRows({
 }) {
   if (!items.length)
     return (
-      <p className="py-6 text-sm text-ink-3">
+      <p className="text-sm text-ink-3">
         No activity is recorded for this selection yet.
       </p>
     )
@@ -75,7 +75,7 @@ export function ActivityRows({
           </>
         )
         const className =
-          'flex w-full items-start gap-3 rounded-lg py-4 text-left focus-visible:outline-2 focus-visible:outline-ds-accent'
+          '-mx-2 flex w-[calc(100%+1rem)] items-start gap-3 rounded-lg px-2 py-3 text-left focus-visible:outline-2 focus-visible:outline-ds-accent'
         return (
           <li key={item.id}>
             {item.session_id ? (
@@ -129,11 +129,12 @@ export function ActivityPanel({
     : (query.data?.pages.flatMap(p => p.items) ?? [])
   return (
     <div className="space-y-5">
-      <section className={detailSection}>
-        <h2 className="text-lg font-semibold text-ink">Coaching activity</h2>
-        <p className="mt-1 text-sm text-ink-3">
-          Sessions, agreements and recorded follow-up in one place.
-        </p>
+      <Section
+        id="activity"
+        title="Coaching activity"
+        testId="detail-activity"
+        note="Sessions, agreements and recorded follow-up in one place."
+      >
         {query.isPending ? (
           <p className="py-6 text-sm text-ink-3" role="status">
             Loading activity…
@@ -162,16 +163,15 @@ export function ActivityPanel({
             {query.isFetchingNextPage ? 'Loading…' : 'Load earlier activity'}
           </Button>
         )}
-      </section>
+      </Section>
       {milestones.length > 0 && (
-        <section className={detailSection}>
-          <h2 className="text-lg font-semibold text-ink">
-            Contract milestone windows
-          </h2>
-          <p className="mt-1 text-sm text-ink-3">
-            Planned windows, separate from booked coaching sessions.
-          </p>
-          <ul className="mt-3 divide-y divide-line">
+        <Section
+          id="milestones"
+          title="Contract milestone windows"
+          testId="detail-milestones"
+          note="Planned windows, separate from booked coaching sessions."
+        >
+          <ul className="divide-y divide-line">
             {milestones.map(item => (
               <li
                 key={item.id}
@@ -189,7 +189,7 @@ export function ActivityPanel({
               </li>
             ))}
           </ul>
-        </section>
+        </Section>
       )}
     </div>
   )

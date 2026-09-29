@@ -70,6 +70,52 @@ test('People and Groups on a sandbox fit every width', async ({
   }
 })
 
+test('Client, group and coach pages fit every width', async ({
+  page,
+  request,
+}) => {
+  // A hero with a card beside it, a five-number strip, a seven-column coachee
+  // table and a 340px rail — each one a way to push a phone sideways.
+  const token = await apiToken(request, USERS.admin.email)
+  const resp = await request.get(`${API}/sandboxes/`, { headers: auth(token) })
+  const list = await resp.json()
+  const sandboxes = Array.isArray(list) ? list : (list.sandboxes ?? list.items)
+  let paths: string[] = []
+  for (const row of sandboxes) {
+    const one = await request.get(`${API}/sandboxes/${row.id}/overview`, {
+      headers: auth(token),
+    })
+    const sandbox = await one.json()
+    const group = (sandbox.groups ?? []).find(
+      (g: { coaches: unknown[]; coachees: unknown[] }) =>
+        g.coaches.length > 0 && g.coachees.length > 0,
+    )
+    if (!group) continue
+    paths = [
+      `/sandboxes/${row.id}/groups/${group.id}`,
+      `/sandboxes/${row.id}/clients/${group.coachees[0].member_id}`,
+      `/sandboxes/${row.id}/coaches/${group.coaches[0].user_id}`,
+    ]
+    break
+  }
+  expect(paths.length, 'a seeded group with a coach and a coachee').toBe(3)
+  await login(page, USERS.admin.email)
+  for (const path of paths) {
+    for (const width of WIDTHS) {
+      await page.setViewportSize({ width, height: 900 })
+      await page.goto(path)
+      await expect(page.getByTestId('sandbox-entity-detail')).toBeVisible()
+      await page.waitForLoadState('networkidle').catch(() => {})
+      const over = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth,
+      )
+      expect(over, `${path} at ${width}px`).toBeLessThanOrEqual(0)
+    }
+  }
+})
+
 test('a phone keeps an upcoming session title clear of its date', async ({
   page,
 }) => {

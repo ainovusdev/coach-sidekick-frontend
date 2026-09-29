@@ -31,6 +31,8 @@ export interface CommitmentFilters {
   mine: boolean
   q: string
   coachId: string | null // member id
+  /** One person only (member id) — set by a link from their page, not the popover. */
+  coacheeId: string | null
   groupId: string | null
   kind: 'team' | 'coaching' | null
 }
@@ -40,8 +42,35 @@ export const NO_FILTERS: CommitmentFilters = {
   mine: false,
   q: '',
   coachId: null,
+  coacheeId: null,
   groupId: null,
   kind: null,
+}
+
+/**
+ * Filters a link can carry: `?coachee=&kind=&status=&group=`. A page that
+ * counted commitments links to the rows it counted, so anything it names that
+ * this tab does not know — a person, a group, a status — is dropped rather
+ * than guessed at. The coach is deliberately not one of them: that page picks
+ * a coach by user, this tab by member, and a former coach is on no row here.
+ */
+export function filtersFromUrl(
+  search: string,
+  data: SandboxCommitments,
+): Partial<CommitmentFilters> {
+  const q = new URLSearchParams(search)
+  const out: Partial<CommitmentFilters> = {}
+  const coachee = q.get('coachee')
+  if (coachee && data.coachees.some(c => c.member_id === coachee))
+    out.coacheeId = coachee
+  const group = q.get('group')
+  if (group && data.groups.some(g => g.id === group)) out.groupId = group
+  const kind = q.get('kind')
+  if (kind === 'team' || kind === 'coaching') out.kind = kind
+  const status = q.get('status')
+  if (status === 'open' || status === 'overdue' || status === 'done')
+    out.status = status
+  return out
 }
 
 const TEAM_KEY = 'team'
@@ -123,6 +152,7 @@ export function applyScope(
     if (f.mine && !r.is_mine) return false
     if (f.kind && r.kind !== f.kind) return false
     if (f.coachId && r.coach?.member_id !== f.coachId) return false
+    if (f.coacheeId && r.coachee?.member_id !== f.coacheeId) return false
     if (f.groupId && r.group?.id !== f.groupId) return false
     if (!q) return true
     return [r.title, r.coach?.name, r.coachee?.name, r.assignee?.name]
@@ -176,6 +206,8 @@ export function buildSections(
   by: Exclude<ViewBy, 'list'>,
   today: string,
   includeEmpty: boolean,
+  /** Show this person's section alone, even with nothing in it. */
+  only: string | null = null,
 ): CommitmentSection[] {
   const keyOf = (r: SandboxCommitmentRow) =>
     (by === 'coach' ? r.coach?.member_id : r.coachee?.member_id) ?? TEAM_KEY
@@ -244,7 +276,11 @@ export function buildSections(
   for (const r of visible) sectionFor(r).rows.push(r)
 
   return [...sections.values()]
-    .filter(s => s.rows.length > 0 || (includeEmpty && s.key !== TEAM_KEY))
+    .filter(s =>
+      only
+        ? s.key === only
+        : s.rows.length > 0 || (includeEmpty && s.key !== TEAM_KEY),
+    )
     .sort((a, b) => {
       if ((a.key === TEAM_KEY) !== (b.key === TEAM_KEY))
         return a.key === TEAM_KEY ? 1 : -1

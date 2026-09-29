@@ -1,0 +1,363 @@
+/**
+ * The client, coach and group pages, as pure functions: what the numbers on the
+ * page say, from what the detail endpoint already returns. No React.
+ *
+ * One rule runs through all of it: a value the API could not measure is `null`
+ * and renders as a dash with a reason — never as a zero.
+ */
+
+import { fmtHoursShort } from '@/lib/sandbox/delivery'
+import { fmtDay, pluralise } from '@/lib/sandbox/format'
+import { parseDateOnly } from '@/lib/sandbox/term'
+import type { StatTone } from '@/components/ui/stat-strip'
+import type {
+  SandboxDetailForecast,
+  SandboxDetailForecastSummary,
+  SandboxEntityDetail,
+  SandboxRelationship,
+} from '@/types/sandbox-details'
+import type { SandboxAnalytics } from '@/types/sandbox-analytics'
+import type { Outcome, SandboxOutcomes } from '@/types/sandbox-outcomes'
+import type { TimelineEvent } from '@/types/sandbox'
+
+const DAY = 86_400_000
+
+function daysBetween(from: string, to: string): number | null {
+  const a = parseDateOnly(from.slice(0, 10))
+  const b = parseDateOnly(to.slice(0, 10))
+  if (!a || !b) return null
+  return Math.round((b.getTime() - a.getTime()) / DAY)
+}
+
+/** Hours against what was expected by today. Positive is ahead. */
+export interface HoursGap {
+  hours: number
+  text: string
+  tone: StatTone
+}
+
+export function hoursGap(
+  contract: SandboxAnalytics['current_contract'],
+): HoursGap | null {
+  if (contract.expected_hours == null) return null
+  const hours = contract.hours_received - contract.expected_hours
+  // Under a quarter of an hour either way is on the line, not a finding.
+  if (Math.abs(hours) < 0.25) return { hours: 0, text: 'On pace', tone: 'good' }
+  return hours < 0
+    ? {
+        hours,
+        text: `${fmtHoursShort(-hours)} behind`,
+        tone: 'warning',
+      }
+    : { hours, text: `${fmtHoursShort(hours)} ahead`, tone: 'good' }
+}
+
+/** What is still owed on one agreement; `null` when no hours were agreed. */
+export function hoursRemaining(r: {
+  hours_received: number
+  hours_promised: number | null
+}): number | null {
+  if (r.hours_promised == null) return null
+  return Math.max(0, r.hours_promised - r.hours_received)
+}
+
+export function weeksLeft(endsOn: string | null, today: string): number | null {
+  if (!endsOn) return null
+  const days = daysBetween(today, endsOn)
+  return days == null ? null : Math.max(0, Math.ceil(days / 7))
+}
+
+/** Current agreements with no session on the calendar. */
+export function nothingBooked(
+  rows: SandboxRelationship[],
+): SandboxRelationship[] {
+  return rows.filter(
+    r => r.current && !r.next_activity_on && r.state !== 'complete',
+  )
+}
+
+/** The soonest next session across current agreements. */
+export function nextSessionOn(rows: SandboxRelationship[]): string | null {
+  const dates = rows
+    .filter(r => r.current && r.next_activity_on)
+    .map(r => r.next_activity_on as string)
+    .sort()
+  return dates[0] ?? null
+}
+
+export function lastSessionOn(rows: SandboxRelationship[]): string | null {
+  const dates = rows
+    .filter(r => r.last_activity_on)
+    .map(r => r.last_activity_on as string)
+    .sort()
+  return dates[dates.length - 1] ?? null
+}
+
+export interface OutcomeCounts {
+  agreed: number
+  waiting: number
+  changesRequested: number
+  drafting: number
+  total: number
+  /** Proposals this viewer may decide, oldest first. */
+  waitingForYou: { outcome: Outcome; coachee: string; days: number | null }[]
+}
+
+/**
+ * Outcome-level counts for the people this page is about. `memberIds` keeps a
+ * viewer who is coached here from adding their own outcomes to someone else's
+ * page; `null` means every coachee the response carries.
+ */
+export function outcomeCounts(
+  outcomes: SandboxOutcomes,
+  memberIds: Set<string> | null,
+): OutcomeCounts {
+  const counts: OutcomeCounts = {
+    agreed: 0,
+    waiting: 0,
+    changesRequested: 0,
+    drafting: 0,
+    total: 0,
+    waitingForYou: [],
+  }
+  for (const coachee of outcomes.coachees) {
+    if (memberIds && !memberIds.has(coachee.member_id)) continue
+    for (const outcome of coachee.outcomes) {
+      counts.total++
+      if (outcome.status === 'sealed') counts.agreed++
+      else if (outcome.status === 'changes_requested') counts.changesRequested++
+      else if (outcome.status === 'draft') counts.drafting++
+      else {
+        counts.waiting++
+        if (coachee.can_approve)
+          counts.waitingForYou.push({
+            outcome,
+            coachee: coachee.name || coachee.email,
+            days: outcome.proposed_at
+              ? daysBetween(outcome.proposed_at, outcomes.today)
+              : null,
+          })
+      }
+    }
+  }
+  counts.waitingForYou.sort((a, b) => (b.days ?? 0) - (a.days ?? 0))
+  return counts
+}
+
+/** "2 agreed · 1 waiting · 1 changes requested" — only the parts that exist. */
+export function outcomeSentence(c: OutcomeCounts): string {
+  if (c.total === 0) return 'None yet'
+  return [
+    c.agreed && `${c.agreed} agreed`,
+    c.waiting && `${c.waiting} waiting`,
+    c.changesRequested && `${c.changesRequested} changes requested`,
+    c.drafting && `${c.drafting} in draft`,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+}
+
+/**
+ * Whose outcomes belong on this page: the person, or the current coachees.
+ * Fixed — with nobody current it is nobody, never everyone in the response.
+ */
+export function outcomeSubjects(data: SandboxEntityDetail): Set<string> {
+  if (data.entity.kind === 'client') return new Set([data.entity.id])
+  return new Set(
+    data.relationships.filter(r => r.current).map(r => r.member_id),
+  )
+}
+
+/** Milestone windows that are open or still to come, soonest first. */
+export function comingUp(
+  milestones: TimelineEvent[],
+  today: string,
+  max = 3,
+): TimelineEvent[] {
+  return milestones
+    .filter(m => !m.removed_at && m.window_end >= today)
+    .sort((a, b) => a.window_start.localeCompare(b.window_start))
+    .slice(0, max)
+}
+
+/** One coachee's row on a group or coach page. */
+export interface CoacheeRow {
+  memberId: string
+  name: string
+  relationship: SandboxRelationship
+  outcomesAgreed: number
+  outcomesTotal: number
+}
+
+const STATE_RANK: Record<string, number> = {
+  behind: 0,
+  ended_short: 0,
+  not_started: 1,
+  unknown: 2,
+  on_track: 3,
+  ahead: 4,
+  complete: 5,
+}
+
+/** Current coachees, the ones who need someone first. */
+export function coacheeRows(data: SandboxEntityDetail): CoacheeRow[] {
+  const byMember = new Map(data.outcomes.coachees.map(c => [c.member_id, c]))
+  return data.relationships
+    .filter(r => r.current)
+    .map(r => {
+      const outcomes = byMember.get(r.member_id)?.outcomes ?? []
+      return {
+        memberId: r.member_id,
+        name: r.name,
+        relationship: r,
+        outcomesAgreed: outcomes.filter(o => o.status === 'sealed').length,
+        outcomesTotal: outcomes.length,
+      }
+    })
+    .sort(
+      (a, b) =>
+        (STATE_RANK[a.relationship.state] ?? 2) -
+          (STATE_RANK[b.relationship.state] ?? 2) ||
+        Number(!!a.relationship.next_activity_on) -
+          Number(!!b.relationship.next_activity_on) ||
+        a.name.localeCompare(b.name),
+    )
+}
+
+export function headcountText(contract: SandboxAnalytics['current_contract']) {
+  const { count, total } = contract.coachees_on_track
+  if (!total) return null
+  const unmeasured = contract.coachees_unmeasurable
+  return {
+    main: `${count} of ${total} on track`,
+    sub: unmeasured
+      ? `${pluralise(unmeasured, 'coachee')} not measurable yet`
+      : null,
+  }
+}
+
+/** A projection that says the agreement will end short of its sessions. */
+export function projectedShort(f?: SandboxDetailForecast | null): boolean {
+  return !!f && f.reason === null && (f.shortfall_sessions ?? 0) > 0
+}
+
+function recoveryText(f: SandboxDetailForecast): string {
+  if (f.recovery === 'more_than_daily')
+    return 'more than one a day would be needed to finish'
+  if (f.recovery === 'gap' && f.needed_gap_days != null)
+    return f.needed_gap_days <= 1
+      ? 'one a day from here finishes it'
+      : `one every ${f.needed_gap_days} days from here finishes it`
+  return ''
+}
+
+function hoursShortText(f: SandboxDetailForecast): string {
+  return f.hours_short ? `${fmtHoursShort(f.hours_short)} short on hours` : ''
+}
+
+/**
+ * The projection in words. It is always about *sessions* — the hours are said
+ * separately — and a projection that cannot be made says why instead of
+ * reading as zero. `null`: nothing worth a line (an ended relationship).
+ */
+export function forecastText(
+  f?: SandboxDetailForecast | null,
+): { text: string; warn: boolean } | null {
+  if (!f || f.reason === 'ended') return null
+  const join = (...parts: string[]) => parts.filter(Boolean).join(' · ')
+  const of = `${f.projected_sessions} of ${f.expected_sessions} sessions`
+  switch (f.reason) {
+    case 'filtered':
+      return {
+        text: 'Clear the coach filter to see the projection.',
+        warn: false,
+      }
+    case 'no_target':
+      return { text: 'No session target to project against.', warn: false }
+    case 'not_started':
+      return { text: 'Not started yet.', warn: false }
+    case 'too_early':
+      return {
+        text: join('Too early to project', recoveryText(f)),
+        warn: false,
+      }
+    case 'complete':
+      return {
+        text: join('Every agreed session delivered', hoursShortText(f)),
+        warn: !!f.hours_short,
+      }
+    case 'term_over':
+      return {
+        text: join(
+          `Ended ${pluralise(f.shortfall_sessions ?? 0, 'session')} short`,
+          hoursShortText(f),
+        ),
+        warn: true,
+      }
+  }
+  if (projectedShort(f))
+    return {
+      text: join(
+        f.window_meetings === 0
+          ? `No sessions in the last 8 weeks — ${of} at this rhythm`
+          : `At this rhythm: ${of} by the end`,
+        recoveryText(f),
+      ),
+      warn: true,
+    }
+  return {
+    text: join(
+      `At this rhythm: all ${f.expected_sessions} sessions${
+        f.finishes_on ? ` by ${fmtDay(f.finishes_on)}` : ''
+      }`,
+      hoursShortText(f),
+    ),
+    warn: false,
+  }
+}
+
+/** The same, short enough for one person's line on a group page. */
+export function forecastTail(
+  f?: SandboxDetailForecast | null,
+): { text: string; warn: boolean } | null {
+  if (!f) return null
+  if (f.reason === 'complete')
+    return { text: 'all sessions delivered', warn: false }
+  if (f.reason === 'too_early')
+    return { text: 'too early to project', warn: false }
+  if (f.reason === 'term_over')
+    return {
+      text: `ended ${pluralise(f.shortfall_sessions ?? 0, 'session')} short`,
+      warn: true,
+    }
+  if (f.reason !== null) return null
+  return {
+    text: `on course for ${f.projected_sessions} of ${f.expected_sessions}`,
+    warn: projectedShort(f),
+  }
+}
+
+/** A group in one sentence; every bucket is said, so none reads as a zero. */
+export function forecastSummaryText(
+  s?: SandboxDetailForecastSummary | null,
+): { text: string; warn: boolean } | null {
+  if (!s || s.current === 0) return null
+  if (s.complete === s.current)
+    return {
+      text:
+        s.current === 1
+          ? 'Every agreed session delivered.'
+          : `All ${s.current} have had every agreed session.`,
+      warn: false,
+    }
+  const parts = [
+    s.projected_short > 0 && `${s.projected_short} projected to end short`,
+    s.projected_to_finish > 0 && `${s.projected_to_finish} on course to finish`,
+    s.complete > 0 && `${s.complete} complete`,
+    s.not_projectable > 0 && `${s.not_projectable} too early to say`,
+  ].filter(Boolean)
+  return {
+    text: `At this rhythm: ${parts.join(' · ')}.`,
+    warn: s.projected_short > 0,
+  }
+}

@@ -9,7 +9,8 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Tabs, TabsContent } from '@/components/ui/tabs'
+import { SandboxTabBar } from '@/components/sandboxes/sandbox-tab-bar'
 import { LinksCard } from '@/components/sandboxes/rail/links-card'
 import {
   SetupCard,
@@ -196,39 +197,14 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
         onValueChange={v => goToTab(v as SandboxTab)}
         className="gap-4"
       >
-        {/* The bar sticks under the chrome, so the tabs are reachable from
-            anywhere down a long page. It bleeds to the container edges so the
-            content scrolling under it is covered. */}
-        <div
-          className={cn(
-            'sticky z-30 border-b border-line bg-surface-2 py-2',
-            view.stickyTopClass,
-            view.bleedClass,
-          )}
-        >
-          <TabsList
-            data-testid="sandbox-tabs"
-            className={cn(
-              'scroll-fade-x h-auto w-full justify-start gap-1 overflow-x-auto rounded-xl',
-              'border border-line bg-paper p-1',
-            )}
-          >
-            {tabs.map(t => (
-              <TabsTrigger
-                key={t}
-                value={t}
-                data-testid={`sandbox-tab-${t}`}
-                className={cn(
-                  'flex-none rounded-lg px-3 py-1.5 text-sm text-ink-3',
-                  'data-[state=active]:bg-surface-2 data-[state=active]:text-ink',
-                  'data-[state=active]:shadow-none',
-                )}
-              >
-                {TAB_LABEL[t]}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
+        <SandboxTabBar
+          tabs={tabs}
+          label={t => TAB_LABEL[t]}
+          stickyTopClass={view.stickyTopClass}
+          bleedClass={view.bleedClass}
+          testId="sandbox-tabs"
+          tabTestId={t => `sandbox-tab-${t}`}
+        />
 
         <div
           className={cn(

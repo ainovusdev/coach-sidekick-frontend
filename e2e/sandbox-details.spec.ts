@@ -80,6 +80,15 @@ function analytics(selection: InsightSelection): SandboxAnalytics {
     },
   }
 }
+const counts = () => ({
+  open: 3,
+  overdue: 1,
+  completed: 9,
+  completed_dated: 9,
+  completed_on_time: 7,
+  completed_undated: 0,
+  abandoned: 0,
+})
 function detail(
   kind: SandboxEntityKind,
   selection: InsightSelection,
@@ -228,6 +237,89 @@ function detail(
       },
     ],
     milestones: [],
+    stats:
+      kind === 'coach'
+        ? null
+        : {
+            as_of: '2026-09-11',
+            rhythm: [
+              {
+                member_id: client,
+                group_id: group,
+                name: 'Alex Morgan',
+                group_name: 'Directors',
+                current: true,
+                starts_on: '2026-06-01',
+                ends_on: '2026-12-01',
+                agreed: '1 every 2 weeks',
+                meetings: 8,
+                meeting_dates: [
+                  '2026-06-08',
+                  '2026-06-22',
+                  '2026-07-06',
+                  '2026-07-20',
+                  '2026-08-03',
+                  '2026-08-10',
+                  '2026-08-24',
+                  '2026-09-08',
+                ],
+                typical_gap_days: 14,
+                longest_gap_days: 15,
+                last_on: '2026-09-08',
+                days_since_last: 3,
+                next_on: '2026-09-15',
+                estimated_durations: 1,
+                group_meetings_held: kind === 'group' ? 8 : null,
+                group_meetings_recorded: kind === 'group' ? 7 : null,
+                forecast: {
+                  reason: null,
+                  expected_sessions: 18,
+                  delivered_sessions: 8,
+                  window_days: 56,
+                  window_meetings: 4,
+                  projected_sessions: 13,
+                  shortfall_sessions: 5,
+                  projected_hours: 13,
+                  hours_short: 5,
+                  finishes_on: null,
+                  recovery: 'gap',
+                  needed_gap_days: 8,
+                },
+              },
+            ],
+            forecast_summary:
+              kind === 'group'
+                ? {
+                    current: 1,
+                    complete: 0,
+                    projected_to_finish: 0,
+                    projected_short: 1,
+                    not_projectable: 0,
+                  }
+                : null,
+            // Ours only: the client's side and a personal view get null.
+            follow_through:
+              external || personal
+                ? null
+                : {
+                    linkable: true,
+                    total: counts(),
+                    coachees: [
+                      { member_id: client, name: 'Alex Morgan', ...counts() },
+                    ],
+                  },
+            outcomes: {
+              total: 0,
+              agreed: 0,
+              waiting: 0,
+              changes_requested: 0,
+              drafting: 0,
+              coachees: 1,
+              coachees_with_agreed: 0,
+              coachees_with_none: 1,
+              unavailable: 0,
+            },
+          },
     activity: {
       items: [
         {
@@ -484,7 +576,10 @@ test.describe('Sandbox entity details', () => {
       page.getByRole('heading', { name: 'Morgan Taylor', exact: true }),
     ).toBeVisible()
     await expect(page.getByText('Assigned coachees on track')).toBeVisible()
-    await expect(page.getByLabel('Chart view')).toHaveValue('cumulative')
+    await expect(page.getByTestId('chart-view-cumulative')).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
     await page.getByLabel('Coachee', { exact: true }).selectOption(client)
     await page
       .getByRole('button', { name: 'Generate insights', exact: true })
@@ -504,7 +599,9 @@ test.describe('Sandbox entity details', () => {
     ).toHaveCount(0)
     await page.getByRole('tab', { name: 'Coachees' }).click()
     await expect(
-      page.getByRole('link', { name: 'Alex Morgan', exact: true }),
+      page
+        .getByRole('tabpanel')
+        .getByRole('link', { name: 'Alex Morgan', exact: true }),
     ).toHaveAttribute('href', `${base}/clients/${client}`)
   })
   test('concerns require recorded text and a resolution note and preserve revisions', async ({
@@ -609,7 +706,9 @@ test.describe('Sandbox entity details', () => {
     await expect.poll(() => state.generations.length).toBe(1)
     await page.getByRole('tab', { name: 'People' }).click()
     await expect(
-      page.getByRole('link', { name: 'Alex Morgan', exact: true }),
+      page
+        .getByRole('tabpanel')
+        .getByRole('link', { name: 'Alex Morgan', exact: true }),
     ).toBeVisible()
     await expect(page.getByText('Sam Reeves')).toHaveCount(0)
   })
@@ -775,6 +874,155 @@ test.describe('Sandbox entity details', () => {
       page.getByLabel('Count this coaching toward', { exact: true }),
     ).toHaveValue(group)
   })
+  test('rhythm sits beside delivery on client and group pages, never on a coach page', async ({
+    page,
+  }) => {
+    await mocked(page)
+    await login(page, USERS.admin.email)
+    await page.goto(`${base}/clients/${client}`)
+    const rhythm = page.getByTestId('detail-rhythm')
+    await expect(rhythm).toContainText('1 every 2 weeks')
+    await expect(rhythm).toContainText('Every 14 days')
+    await expect(rhythm).toContainText('15 days')
+    await expect(rhythm).toContainText('the reporting period does not change')
+    await expect(rhythm.getByText(/Recorded in/)).toHaveCount(0)
+
+    await page.goto(`${base}/groups/${group}`)
+    await expect(page.getByTestId('detail-rhythm')).toContainText(
+      'Recorded in 7 of 8 group meetings',
+    )
+    await expect(page.getByTestId('detail-rhythm')).not.toContainText(
+      /attendance/i,
+    )
+
+    await page.goto(`${base}/coaches/${coach}`)
+    await expect(page.getByTestId('sandbox-entity-detail')).toBeVisible()
+    await expect(page.getByTestId('detail-rhythm')).toHaveCount(0)
+  })
+
+  test('the projection is said in sessions; follow-through is ours alone', async ({
+    page,
+  }) => {
+    await mocked(page)
+    await login(page, USERS.admin.email)
+    await page.goto(`${base}/clients/${client}`)
+    await expect(page.getByTestId('rhythm-forecast')).toHaveText(
+      'At this rhythm: 13 of 18 sessions by the end · one every 8 days from here finishes it',
+    )
+    await expect(page.getByTestId('agreement-forecast')).toBeVisible()
+    const follow = page.getByTestId('detail-follow-through')
+    await expect(follow).toContainText(/3\s*open/)
+    await expect(follow).toContainText(/7 of 9\s*on time/)
+    await expect(follow.getByRole('link', { name: /overdue/ })).toHaveAttribute(
+      'href',
+      new RegExp(
+        `tab=commitments&coachee=${client}&kind=coaching&status=overdue`,
+      ),
+    )
+    await page.goto(`${base}/groups/${group}`)
+    await expect(page.getByTestId('rhythm-forecast-summary')).toHaveText(
+      'At this rhythm: 1 projected to end short.',
+    )
+    await expect(page.getByTestId('rhythm-forecast')).toHaveText(
+      'on course for 13 of 18',
+    )
+    await expect(page.getByTestId('follow-through-row')).toContainText(
+      'Alex Morgan',
+    )
+  })
+
+  test('the client’s side sees the projection and never the follow-through', async ({
+    page,
+  }) => {
+    await mocked(page, { external: true })
+    await login(page, USERS.admin.email)
+    for (const path of [`clients/${client}`, `groups/${group}`]) {
+      await page.goto(`${base}/${path}`)
+      await expect(page.getByTestId('rhythm-forecast')).toBeVisible()
+      await expect(page.getByTestId('detail-follow-through')).toHaveCount(0)
+    }
+  })
+
+  test('a very long name wraps on a phone instead of widening the page', async ({
+    page,
+  }) => {
+    // Below the rail breakpoint the layout is one column; an unconstrained
+    // track grows to the rail's longest unbroken line.
+    const long = 'Bartholomew Alexander Featherstonehaugh-Montgomery III'
+    const team = 'Senior Directors of Global Transformation and Delivery'
+    await mocked(page)
+    await page.route(
+      new RegExp(`/api/v1/sandboxes/${sid}/clients/[^/?]+(\\?.*)?$`),
+      route => {
+        const query = new URL(route.request().url()).searchParams
+        const d = detail('client', {
+          period: (query.get('period') ?? 'term') as InsightSelection['period'],
+          group_id: query.get('group_id'),
+          subject_member_id: query.get('subject_member_id'),
+          coach_user_id: query.get('coach_user_id'),
+          entity_kind: 'client',
+        })
+        d.entity.name = long
+        d.relationships.forEach(r => {
+          r.name = long
+          r.group_name = team
+        })
+        d.stats!.rhythm.forEach(r => {
+          r.group_name = team
+        })
+        return route.fulfill({ json: d })
+      },
+    )
+    await login(page, USERS.admin.email)
+    await page.setViewportSize({ width: 390, height: 900 })
+    await page.goto(`${base}/clients/${client}`)
+    await expect(page.getByRole('heading', { name: long })).toBeVisible()
+    await expect(page.getByTestId('detail-rhythm')).toBeVisible()
+    const over = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth,
+    )
+    expect(over).toBeLessThanOrEqual(1)
+  })
+
+  test('old links still land: tab values, the hash over the query, and filters', async ({
+    page,
+  }) => {
+    await mocked(page)
+    await login(page, USERS.admin.email)
+    const active = (name: string) =>
+      expect(page.getByRole('tab', { name, exact: true })).toHaveAttribute(
+        'data-state',
+        'active',
+      )
+
+    await page.goto(`${base}/clients/${client}?tab=outcomes`)
+    await active('Outcomes')
+    // The hash wins where both are given.
+    await page.goto(`${base}/clients/${client}?tab=outcomes#activity`)
+    await active('Activity')
+    await page.goto(`${base}/groups/${group}?tab=people`)
+    await active('People')
+    await page.goto(`${base}/coaches/${coach}?tab=coachees`)
+    await active('Coachees')
+
+    await page.goto(`${base}/clients/${client}?period=30d`)
+    await expect(page.getByLabel('Reporting period')).toHaveValue('30d')
+    await page.getByRole('tab', { name: 'Activity', exact: true }).click()
+    await active('Activity')
+    await expect(page.getByLabel('Reporting period')).toHaveValue('30d')
+    await expect(page).toHaveURL(/period=30d.*tab=activity/)
+    // A link on the page that only changes the hash still switches the tab.
+    await page.evaluate(() => {
+      window.location.hash = 'outcomes'
+    })
+    await active('Outcomes')
+    // The bar is reachable from anywhere down the page.
+    await page.mouse.wheel(0, 2000)
+    await expect(page.getByTestId('detail-tabs')).toBeInViewport()
+  })
+
   test('all three pages retain usable tabs, charts and layout at review widths in both themes', async ({
     page,
   }) => {
