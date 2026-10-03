@@ -193,5 +193,8 @@ test.describe('sandbox session strip', () => {
     await dialog.getByRole('button', { name: 'Confirm assignment' }).click()
     await expect(dialog).toHaveCount(0)
     await expect(strip).toContainText('Excluded from sandbox delivery.')
+    // One line for Ruth, not a row plus an "excluded" diagnosis.
+    await expect(strip.getByTestId('attribution-diagnostic')).toHaveCount(0)
+    expect(await strip.getByText(/Ruth Adeyemi/).count()).toBe(1)
   })
 })

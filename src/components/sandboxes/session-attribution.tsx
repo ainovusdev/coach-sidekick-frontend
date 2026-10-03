@@ -369,7 +369,14 @@ function AttributionContent({
         ),
     [data, memberId, groupId],
   )
-  const diagnostics = sandboxId ? [] : (data?.diagnostics ?? [])
+  // A person who already has a row (credited, needs a choice, excluded) is
+  // explained by that row; a diagnostic for them would say the same thing
+  // twice. Diagnostics are for the participants no row reaches.
+  const diagnostics = sandboxId
+    ? []
+    : (data?.diagnostics ?? []).filter(
+        d => !items.some(i => i.client_ids.includes(d.client_id)),
+      )
   const onSaved = () => {
     void queryClient.invalidateQueries({ queryKey: key })
     void queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] })
