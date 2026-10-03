@@ -6,7 +6,7 @@ export type SprintStatus = 'planning' | 'active' | 'completed' | 'cancelled'
 export type TargetStatus = 'active' | 'completed' | 'deferred' | 'abandoned'
 
 // Sprint interfaces
-export interface SprintBase {
+interface SprintBase {
   title: string
   description?: string
   start_date: string // ISO date string
@@ -49,7 +49,7 @@ export interface SprintDetail extends Sprint {
 }
 
 // Target interfaces
-export interface TargetBase {
+interface TargetBase {
   title: string
   description?: string
   target_date?: string | null // Optional due date

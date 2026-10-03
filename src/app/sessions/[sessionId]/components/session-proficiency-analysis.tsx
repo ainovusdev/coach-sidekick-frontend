@@ -208,5 +208,3 @@ export function SessionProficiencyAnalysis({ proficiency }: Props) {
     </Card>
   )
 }
-
-export default SessionProficiencyAnalysis

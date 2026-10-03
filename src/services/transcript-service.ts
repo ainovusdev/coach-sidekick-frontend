@@ -3,7 +3,7 @@ import { ApiClient } from '@/lib/api-client'
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface BatchSaveStatus {
+interface BatchSaveStatus {
   session_id: string
   saved_count: number
   status: 'pending' | 'in_progress' | 'completed' | 'failed'

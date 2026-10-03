@@ -24,7 +24,7 @@ function mapThread(
   })
 }
 
-export interface CreateCommentVariables {
+interface CreateCommentVariables {
   body: string
   mentions: string[]
   parent_id?: string
@@ -134,7 +134,7 @@ export function useCreateComment(
   })
 }
 
-export interface UpdateCommentVariables {
+interface UpdateCommentVariables {
   id: string
   body: string
   mentions: string[]

@@ -20,7 +20,7 @@ import {
 } from '@/services/checkin-service'
 import { spokenDate } from '../utils/checkin-view'
 
-export type CheckinStatus = 'loading' | 'ready' | 'expired' | 'failed'
+type CheckinStatus = 'loading' | 'ready' | 'expired' | 'failed'
 
 export interface RowError {
   message: string

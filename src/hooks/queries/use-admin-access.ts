@@ -2,7 +2,7 @@ import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { adminService, ClientAccessMatrix } from '@/services/admin-service'
 import { queryKeys } from '@/lib/query-client'
 
-export interface AccessMatrixParams {
+interface AccessMatrixParams {
   skip?: number
   limit?: number
 }

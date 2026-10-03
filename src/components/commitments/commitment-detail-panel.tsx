@@ -125,7 +125,6 @@ import { toDateOnly } from '@/lib/sandbox/term'
 
 // Re-exported so the six existing mount sites keep importing GuestContext from
 // here unchanged; the definition now lives with the shared controller.
-export type { GuestContext }
 
 interface CommitmentDetailPanelProps {
   commitmentId: string | null
@@ -1612,7 +1611,7 @@ export function MetadataFooter({ commitment }: { commitment: Commitment }) {
 
 // === Loading Skeleton ===
 
-export function PanelSkeleton() {
+function PanelSkeleton() {
   return (
     <div className="p-6 space-y-6">
       <div className="space-y-3">

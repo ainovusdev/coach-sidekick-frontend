@@ -48,7 +48,7 @@ async function clientFetch<T>(path: string): Promise<T> {
 
 // ---- Types ----
 
-export interface ClientSession {
+interface ClientSession {
   id: string
   session_date: string
   duration_minutes: number
@@ -131,7 +131,7 @@ export interface ClientSessionDetailData {
   } | null
 }
 
-export interface ClientDashboardStats {
+interface ClientDashboardStats {
   total_sessions: number
   this_month: number
   streak_days: number

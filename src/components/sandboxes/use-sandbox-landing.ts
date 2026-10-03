@@ -15,7 +15,7 @@
 import { useCallback, useEffect, useRef } from 'react'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 
-export interface SandboxLanding {
+interface SandboxLanding {
   /** The `#section` anchor, without the hash. Empty when there is none. */
   hash: string
   /**
@@ -32,7 +32,7 @@ export interface SandboxLanding {
   commitment: string | null
 }
 
-export function readSandboxLanding(): SandboxLanding {
+function readSandboxLanding(): SandboxLanding {
   const params = new URLSearchParams(window.location.search)
   const period = params.get('period')
   return {

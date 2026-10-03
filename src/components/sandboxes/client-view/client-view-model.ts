@@ -35,7 +35,7 @@ import type { Commitment } from '@/types/commitment'
 // "Week 20 of 26" moved beside the other term arithmetic when the cockpit
 // started saying it too; re-exported so this view's callers are untouched.
 export { lifecycleOf }
-export type { Lifecycle, LifecycleKind } from '@/lib/sandbox/term'
+export type { Lifecycle } from '@/lib/sandbox/term'
 
 /**
  * What a client is shown as something to watch: delivery that has slipped and
@@ -297,12 +297,6 @@ export function withoutRights(
       can_approve: false,
     })),
   }
-}
-
-export function totalsFrom(
-  outcomes: SandboxOutcomes | undefined,
-): OutcomeTotals | null {
-  return outcomes?.totals ?? null
 }
 
 export function countByStatus(

@@ -1,6 +1,6 @@
 import axiosInstance from '@/lib/axios-config'
 
-export interface TokenResponse {
+interface TokenResponse {
   access_token: string
   token_type: string
   user_id: string
@@ -11,12 +11,12 @@ export interface TokenResponse {
   client_id?: string // User's own client profile ID (if they have 'client' role)
 }
 
-export interface LoginCredentials {
+interface LoginCredentials {
   email: string
   password: string
 }
 
-export interface SignupCredentials {
+interface SignupCredentials {
   email: string
   password: string
   full_name?: string

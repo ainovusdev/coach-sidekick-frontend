@@ -56,7 +56,7 @@ const getStatusOption = (value: SessionStatusFilter) =>
   STATUS_OPTIONS.find(o => o.value === value) ?? STATUS_OPTIONS[0]
 
 interface SessionsFiltersProps {
-  clients: Client[]
+  clients: Pick<Client, 'id' | 'name'>[]
   coaches: Coach[]
   loadingClients: boolean
   loadingCoaches?: boolean

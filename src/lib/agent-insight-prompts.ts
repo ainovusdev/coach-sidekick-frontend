@@ -18,7 +18,7 @@ const BASE_STYLE =
   'comment on data quality, missing scores, or pipelines — just coach. If there ' +
   'is genuinely nothing on file yet, say so in one line.'
 
-export interface NextSessionPrepArgs {
+interface NextSessionPrepArgs {
   clientName?: string | null
   clientId: string
   dateISO: string

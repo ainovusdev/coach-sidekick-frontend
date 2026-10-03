@@ -159,26 +159,10 @@ export function headline({
   return sentences
 }
 
-/** Plain text of a headline — what a screen reader and a test both read. */
-export function sentenceText(sentences: Sentence[]): string {
-  return sentences
-    .map(s => s.map(c => c.text).join(''))
-    .join(' ')
-    .replace(/\s+([.,])/g, '$1')
-}
-
 export const PERIOD_LABEL: Record<string, string> = {
   term: 'Term',
   '90d': '90 days',
   '30d': '30 days',
-}
-
-export function periodWord(period: string): string {
-  return period === 'term'
-    ? 'this term'
-    : period === '90d'
-      ? 'in the last 90 days'
-      : 'in the last 30 days'
 }
 
 /** "About 2 sessions behind" — the sentence under a coachee's pace chip. */

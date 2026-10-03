@@ -49,9 +49,7 @@ function keptText(c: TimelineChange): string {
 }
 
 /** "2 move, 3 new, 1 kept" — only the counts that are not zero. */
-export function summariseCounts(
-  counts: TimelineRegeneratePreview['counts'],
-): string {
+function summariseCounts(counts: TimelineRegeneratePreview['counts']): string {
   const parts: string[] = []
   if (counts.moved)
     parts.push(`${counts.moved} move${counts.moved === 1 ? 's' : ''}`)
@@ -64,7 +62,7 @@ export function summariseCounts(
   return parts.join(', ')
 }
 
-export function wouldChange(preview: TimelineRegeneratePreview): boolean {
+function wouldChange(preview: TimelineRegeneratePreview): boolean {
   const c = preview.counts
   return c.moved + c.added + c.dropped + c.overwritten > 0
 }

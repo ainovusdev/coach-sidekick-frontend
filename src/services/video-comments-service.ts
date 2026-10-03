@@ -17,13 +17,13 @@ export interface VideoComment {
   updated_at: string
 }
 
-export interface VideoCommentCreatePayload {
+interface VideoCommentCreatePayload {
   content: string
   video_offset_seconds: number
   parent_id?: string | null
 }
 
-export interface VideoCommentUpdatePayload {
+interface VideoCommentUpdatePayload {
   content: string
 }
 

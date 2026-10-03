@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { useMeetingHistory } from '@/hooks/use-meeting-history'
-import { useClients } from '@/hooks/queries/use-clients'
+import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { useCoaches } from '@/hooks/queries/use-coaches'
 import type {
   SessionStatusFilter,
@@ -34,8 +34,10 @@ export function useSessionsData(pageSize: number = 12) {
     page: currentPage + 1, // API uses 1-based pagination
   })
 
-  // Use TanStack Query for clients (automatic caching and deduplication)
-  const { data: clientsData, isLoading: loadingClients } = useClients()
+  // Lightweight client list (id + name) for the filter dropdown. The full
+  // `useClients()` paginated through every client with session stats just to
+  // fill this menu; `/clients/simple` is one request.
+  const { data: clientsData, isLoading: loadingClients } = useClientsSimple()
   const clients = clientsData?.clients || []
 
   // Use TanStack Query for coaches (dedicated endpoint)

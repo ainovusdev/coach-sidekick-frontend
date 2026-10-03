@@ -84,7 +84,7 @@ export const VIEW_LABELS: Record<CommitmentView, string> = {
   ...SECTION_LABELS,
 }
 
-export const CLOSED_STATUSES: CommitmentStatus[] = ['completed', 'abandoned']
+const CLOSED_STATUSES: CommitmentStatus[] = ['completed', 'abandoned']
 
 const PRIORITY_RANK: Record<CommitmentPriority, number> = {
   urgent: 0,
@@ -113,7 +113,7 @@ export function isDueToday(c: Commitment): boolean {
   return daysUntilDue(c) === 0
 }
 
-export function isDueSoon(c: Commitment): boolean {
+function isDueSoon(c: Commitment): boolean {
   if (CLOSED_STATUSES.includes(c.status)) return false
   const days = daysUntilDue(c)
   return days !== null && days >= 0 && days <= 7
@@ -205,7 +205,7 @@ function byDueAsc(a: Commitment, b: Commitment): number {
   return new Date(a.target_date).getTime() - new Date(b.target_date).getTime()
 }
 
-export function compareSmart(a: Commitment, b: Commitment): number {
+function compareSmart(a: Commitment, b: Commitment): number {
   const rankDiff = smartRank(a) - smartRank(b)
   if (rankDiff !== 0) return rankDiff
   const rank = smartRank(a)

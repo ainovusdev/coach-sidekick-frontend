@@ -1,7 +1,7 @@
 import { toast } from 'sonner'
 
 /** Canonical URL for a commitment's full page. */
-export function commitmentHref(commitmentId: string) {
+function commitmentHref(commitmentId: string) {
   return `/commitments/${commitmentId}`
 }
 

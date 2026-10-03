@@ -255,7 +255,7 @@ export interface SandboxFollowThroughCounts {
 }
 
 /** Our side only. `null` on `stats` means it is not this viewer's to see. */
-export interface SandboxDetailFollowThrough {
+interface SandboxDetailFollowThrough {
   total: SandboxFollowThroughCounts
   coachees: (SandboxFollowThroughCounts & { member_id: string; name: string })[]
   /** False under a coach filter: the Commitments tab cannot show that count. */
@@ -286,7 +286,7 @@ export interface SandboxDetailRhythm {
   forecast?: SandboxDetailForecast
 }
 
-export interface SandboxDetailOutcomeCounts {
+interface SandboxDetailOutcomeCounts {
   total: number
   agreed: number
   waiting: number

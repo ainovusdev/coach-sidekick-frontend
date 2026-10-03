@@ -227,14 +227,14 @@ export function SandboxAssignmentHint({
     </div>
   )
 }
-export interface SessionAttributionCandidate {
+interface SessionAttributionCandidate {
   sandbox_id: string
   sandbox_name: string
   group_id: string
   group_name: string
   member_id: string
 }
-export interface SessionAttributionItem {
+interface SessionAttributionItem {
   id: string
   session_id: string
   member_id: string | null

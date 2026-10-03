@@ -109,7 +109,7 @@ const INVITATION_OPTIONS: { value: InvitationStatus; label: string }[] = [
   { value: 'has_account', label: 'Has an account' },
 ]
 
-export type PeopleTableActions = MemberActions & {
+type PeopleTableActions = MemberActions & {
   onAddOurs: () => void
   onAddCoaches: () => void
   onAddTheirs: () => void

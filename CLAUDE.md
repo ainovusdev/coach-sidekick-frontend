@@ -1,124 +1,49 @@
-# CLAUDE.md
+# CLAUDE.md — coach-sidekick-frontend
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Guidance for coding agents working in this repo. Workspace-wide rules (deploy flow, session log, dev-server restarts) live in `../AGENTS.md`; the system overview is `../ARCHITECTURE.md`; the glossary is `CONTEXT.md`.
 
-## Project Overview
+## What this is
 
-Coach Sidekick is an AI-powered coaching assistant application that helps coaches during meetings by providing real-time transcript analysis and coaching suggestions. The app uses the Recall.ai API for meeting transcription and integrates with Supabase for authentication and data persistence.
+A thin Next.js 15 (App Router, Turbopack) + React 19 + TypeScript client over the FastAPI backend in `../coach-sidekick-backend`. All data goes through the backend REST API (`NEXT_PUBLIC_API_URL`) and its WebSockets (`NEXT_PUBLIC_WS_URL`, `src/contexts/websocket-context.tsx`). Auth is a backend-issued JWT held by `authService`. There is no Supabase and there are no Next API routes. Deployed on Vercel from `main`.
 
-## Development Commands
-
-```bash
-# Start development server with Turbopack (fast builds)
-pnpm dev
-
-# Build for production
-pnpm build
-
-# Start production server
-pnpm start
-
-# Run linting
-pnpm lint
-```
-
-**Package Manager**: This project uses `pnpm` (version 8.12.0+). Always use `pnpm` commands instead of `npm` or `yarn`.
-
-## Architecture Overview
-
-### Core Components
-
-- **Recall.ai Integration**: Real-time meeting transcription via webhooks (`/api/recall/webhook`)
-- **Transcript Store**: In-memory transcript management with batch saving to database (`transcript-store.ts`)
-- **Coaching Analysis**: OpenAI-powered conversation analysis for coaching insights (`coaching-analysis.ts`)
-- **Supabase**: Authentication and data persistence
-- **Real-time UI**: Live transcript display and coaching suggestions
-
-### Key API Routes
-
-- `/api/recall/webhook` - Receives real-time transcript data from Recall.ai
-- `/api/recall/create-bot` - Creates new meeting bots
-- `/api/recall/stop-bot/[botId]` - Stops recording bots
-- `/api/coaching/analyze/[botId]` - Triggers coaching analysis
-- `/api/meetings/*` - Meeting session management and transcript persistence
-
-### Data Flow
-
-1. Meeting bot created via Recall.ai API
-2. Real-time transcript events received at webhook endpoint
-3. Transcript entries stored in memory (`TranscriptStore`)
-4. Coaching analysis triggered periodically via OpenAI
-5. Batch saves to Supabase database for persistence
-6. UI displays live transcripts and coaching suggestions
-
-## Technical Stack
-
-- **Framework**: Next.js 15.3.4 with App Router
-- **Runtime**: React 19
-- **Language**: TypeScript with strict mode
-- **Styling**: Tailwind CSS v4
-- **Database**: Supabase (PostgreSQL)
-- **Authentication**: Supabase Auth
-- **AI**: OpenAI API for coaching analysis
-- **Meeting Integration**: Recall.ai API
-
-## Environment Variables Required
-
-```
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-RECALL_API_TOKEN=
-OPENAI_API_KEY=
-```
-
-## Code Conventions
-
-- **File Naming**: kebab-case for files (`meeting-form.tsx`), PascalCase for components (`MeetingForm`)
-- **Import Order**: React/Next.js → Third-party → Internal (@/ aliases) → Relative
-- **Path Aliases**: Use `@/` for imports from `src/` directory
-- **Types**: Defined in `src/types/` with interfaces for core entities (`Bot`, `TranscriptEntry`)
-
-## Git Conventions
-
-- **Do NOT include Claude as a co-author in commit messages** - Omit the `Co-Authored-By: Claude` line from all commits
-- Write clear, concise commit messages that describe the "why" rather than just the "what"
-
-## Key Services & Stores
-
-- `transcriptStore` - In-memory session management with batch saving logic
-- `coachingAnalysisService` - OpenAI integration for conversation analysis
-- `batchSaveService` - Database persistence with batching for performance
-- `supabase` - Database client and authentication
-
-## Testing & Development
-
-- Run development server with `pnpm dev` (uses Turbopack for fast builds)
-- Check TypeScript errors with `pnpm build` before committing
-- Follow ESLint rules with `pnpm lint`
-- UI components use Radix UI primitives with Tailwind styling
-
-## Session Management
-
-The app maintains real-time session state in memory (`TranscriptStore`) with periodic database saves. Sessions include:
-
-- Bot status and meeting metadata
-- Real-time transcript entries (both partial and final)
-- Batch save tracking to prevent data loss
-- Automatic cleanup of old sessions (24h default)
-
-## Database Access
-
-Claude has access to run database migrations and execute SQL queries on the Supabase database. The backend configuration is in `coach-sidekick-backend/.env`.
-
-### Running Migrations
+## Commands
 
 ```bash
-cd coach-sidekick-backend
-poetry run alembic upgrade head
+pnpm dev     # Turbopack dev server on :3000
+pnpm lint    # next lint
+pnpm e2e     # Playwright (see ../SANDBOX_HANDOFF.md for the harness rules)
+pnpm build   # ONLY when explicitly asked; the pre-PR hook runs it for you
 ```
 
-### Key Data Constraints
+Package manager is **pnpm** (`packageManager` in `package.json`); never npm or yarn. Husky pre-commit runs lint-staged. There is no unit-test script; the one file under `src/services/__tests__/` is not wired up.
 
-- **Client email**: Globally unique across all clients (enforced via `uq_client_email_global` index)
-- Client emails are optional but if provided, must be unique system-wide
-- Use SQL to query/manage duplicate data before running migrations that add unique constraints
+## Layout
+
+- `src/app/` routes: `clients`, `sessions`, `meeting`, `commitments`, `sandboxes`, `client-portal`, `admin`, `agent`, `settings`, `resources`, `invitations`, `questionnaire`, `checkin`, `auth`
+- `src/types/` interfaces matching backend schemas
+- `src/services/` static-method classes on `ApiClient` from `@/lib/api-client`
+- `src/hooks/queries/` TanStack Query v5 hooks; `src/hooks/mutations/` mutations with toast + cache invalidation
+- `src/lib/query-client.ts` query-key factories and defaults; its PostHog error capture skips 4xx, so thrown errors must carry `.status`
+- `src/components/ui/` shadcn/Radix components; `src/components/layout/navigation.tsx` coach nav (`allNavItems`); `src/components/client-portal/client-navigation.tsx` portal nav (`navItems`); `src/components/sandboxes/` the sandbox UI (read `../SANDBOX_HANDOFF.md` first)
+- `src/lib/roles.ts` (`isCoachRole()`: `trainee` counts as a coach); `src/contexts/permission-context.tsx` (`PermissionGate`, `isViewer`)
+
+## Rules
+
+- **Impersonation headers.** `sessionStorage` `view_as_client_id` / `view_as_coach_id` become `X-View-As-Client` / `X-View-As-Coach`; a coachee's chosen profile `active_client_id` becomes `X-Active-Client`. `api-client.ts` and `axios-config.ts` add them automatically. Any raw `fetch()` (file uploads with `FormData`, a few portal pages) must add them by hand or super-admin view-as silently breaks.
+- **Client portal** (`src/app/client-portal/*`): new per-coachee data is keyed by `client_id`, never `user_id`. One user can have several client profiles (`profile-switcher.tsx`).
+- Client email is unique per coach, not globally.
+- Keep the `useCommitments` filter object shape unchanged; its cache keys are shared across pages.
+- **Feature flags** via `useFeatureFlagEnabled('…')` from `src/hooks/use-feature-flag.ts`: `proficiency-rubric`, `sandboxes` (ON for everyone), `notifications` and `comment-threads` (OFF). `THRILL_FORM_ENABLED` is hard-coded in `src/lib/features.ts`. `NEXT_PUBLIC_FEATURE_FLAGS_FORCE_ON` forces flags on locally.
+- **PostHog**: initialised in `instrumentation-client.ts`; helpers `posthog-capture.ts`, `posthog-replay.ts`, `posthog-server.ts`; source maps upload from `next.config.ts` only when `POSTHOG_API_KEY` is set. Never enable session recording before the masking code is deployed.
+- **Design system**: tokens `bg-paper`, `text-ink*`, `border-line`, status pairs. No raw Tailwind palette colours, no gradients. Conventions: `.design-sync/conventions.md` (currently only on the local `chore/design-sync-setup` branch). Theme is class-based (`localStorage.theme`).
+- A green Playwright run cannot see occlusion, dark mode or overflow. Finish UI work with a real-browser pass at desktop, tablet and phone widths in light and dark.
+
+## Environment (`.env.local`)
+
+`NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_WS_URL`, `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN`, `NEXT_PUBLIC_POSTHOG_HOST`; build-time `POSTHOG_API_KEY`, `POSTHOG_PROJECT_ID`; e2e `E2E_BASE_URL`, `E2E_API_URL`. `RECALL_API_KEY` in `src/lib/config.ts` is vestigial.
+
+## Conventions
+
+- kebab-case files (`meeting-form.tsx`), PascalCase components (`MeetingForm`); `@/` alias for `src/`
+- Import order: React/Next → third-party → `@/` internal → relative
+- Git: no `Co-Authored-By: Claude` trailer; commit messages say why, not just what

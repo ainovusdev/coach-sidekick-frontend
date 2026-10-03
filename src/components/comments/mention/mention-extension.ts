@@ -38,7 +38,7 @@ export interface MentionSuggestionHandlers {
 }
 
 /** Chip look inside the editor. Rendered comments restyle by data-type. */
-export const MENTION_CHIP_CLASS =
+const MENTION_CHIP_CLASS =
   'rounded-md bg-surface-3 px-1 py-0.5 font-medium text-ink-2 whitespace-nowrap'
 
 function toState(props: SuggestionProps<MentionItem, MentionItem>) {

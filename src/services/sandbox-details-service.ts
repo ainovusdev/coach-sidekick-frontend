@@ -13,7 +13,7 @@ import type {
 } from '@/types/sandbox-details'
 
 const base = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'}/sandboxes`
-export function detailQuery(selection: InsightSelection) {
+function detailQuery(selection: InsightSelection) {
   const query = new URLSearchParams({ period: selection.period })
   for (const key of [
     'group_id',

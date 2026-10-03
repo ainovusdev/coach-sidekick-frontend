@@ -12,13 +12,7 @@ import {
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { useViewerId } from '@/hooks/use-viewer-id'
 import { usePeopleSearch } from '@/hooks/queries/use-people'
-import { firstName } from '@/lib/commitments/assignee'
-import {
-  RELATION_LABEL,
-  personName,
-  type PeopleContext,
-  type Person,
-} from '@/types/people'
+import { RELATION_LABEL, type PeopleContext, type Person } from '@/types/people'
 
 /** What a picker hands back: a user, or "the client themself" (`user_id` null). */
 export interface PickedPerson {
@@ -30,7 +24,7 @@ export interface PickedPerson {
   roles?: string[]
 }
 
-export interface PersonPickerProps {
+interface PersonPickerProps {
   value: PickedPerson | null
   onChange: (next: PickedPerson | null) => void
   /** Where we are: decides whom the API offers. */
@@ -388,5 +382,3 @@ function sameAs(p: PickedPerson, v: PickedPerson | null): boolean {
   if (p.user_id || v.user_id) return p.user_id === v.user_id
   return !!p.client_id && p.client_id === v.client_id
 }
-
-export { firstName, personName }

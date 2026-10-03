@@ -19,9 +19,6 @@ import { cn } from '@/lib/utils'
 
 export const detailControl =
   'w-full rounded-lg border border-line bg-paper px-3 py-2 text-sm text-ink focus-visible:outline-2 focus-visible:outline-ds-accent'
-export const detailSection =
-  'min-w-0 rounded-xl border border-line bg-paper p-5 sm:p-6'
-
 export function DetailChart({
   data,
   coach = false,

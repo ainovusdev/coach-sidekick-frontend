@@ -49,7 +49,7 @@ export interface ActivityItem {
   reason?: string
 }
 
-export interface ActivityGroup {
+interface ActivityGroup {
   /** Source update id, or a synthetic key for created/completed. */
   key: string
   at: string

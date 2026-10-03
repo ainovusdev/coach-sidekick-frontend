@@ -381,5 +381,3 @@ export function useCommitmentsView(audience: HubAudience) {
     clearAllFilters,
   }
 }
-
-export type CommitmentsViewState = ReturnType<typeof useCommitmentsView>

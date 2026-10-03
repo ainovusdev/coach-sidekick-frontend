@@ -48,7 +48,7 @@ const LAST_30: InsightSelection = { period: '30d', group_id: null }
 
 const OPEN_STATUSES = ['completed', 'abandoned']
 
-export interface ClientViewData {
+interface ClientViewData {
   model: ClientViewModel
   /** The term read: the numbers every headline and scorecard is written from. */
   term: SandboxReporting

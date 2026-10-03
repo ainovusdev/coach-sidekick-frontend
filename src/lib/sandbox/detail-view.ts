@@ -30,7 +30,7 @@ function daysBetween(from: string, to: string): number | null {
 }
 
 /** Hours against what was expected by today. Positive is ahead. */
-export interface HoursGap {
+interface HoursGap {
   hours: number
   text: string
   tone: StatTone
@@ -93,7 +93,7 @@ export function lastSessionOn(rows: SandboxRelationship[]): string | null {
   return dates[dates.length - 1] ?? null
 }
 
-export interface OutcomeCounts {
+interface OutcomeCounts {
   agreed: number
   waiting: number
   changesRequested: number
@@ -181,7 +181,7 @@ export function comingUp(
 }
 
 /** One coachee's row on a group or coach page. */
-export interface CoacheeRow {
+interface CoacheeRow {
   memberId: string
   name: string
   relationship: SandboxRelationship

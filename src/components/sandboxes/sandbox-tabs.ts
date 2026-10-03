@@ -44,7 +44,7 @@ export const TAB_LABEL: Record<SandboxTab, string> = {
  * gives `?tab=` its own meanings, so the shared parser keeps the raw string and
  * each layout decides for itself (see `use-sandbox-landing.ts`).
  */
-export const LEGACY_TAB: Record<string, SandboxTab> = {
+const LEGACY_TAB: Record<string, SandboxTab> = {
   insights: 'delivery',
   team: 'people',
   timeline: 'today',
@@ -72,9 +72,7 @@ export const TAB_FOR_ANCHOR: Record<string, SandboxTab> = {
   settings: 'settings',
 }
 
-export function isSandboxTab(
-  value: string | null | undefined,
-): value is SandboxTab {
+function isSandboxTab(value: string | null | undefined): value is SandboxTab {
   return !!value && (SANDBOX_TABS as readonly string[]).includes(value)
 }
 

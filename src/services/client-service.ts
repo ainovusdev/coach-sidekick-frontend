@@ -4,7 +4,7 @@ import { Client } from '@/types/meeting'
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface ClientCreateDto {
+interface ClientCreateDto {
   name: string
   email?: string
   notes?: string
@@ -25,13 +25,13 @@ export interface ClientEmailLookup {
 
 // createClient may, for an existing active user, create the row unlinked and send
 // an accept/decline request instead of connecting immediately.
-export interface CreateClientResult {
+interface CreateClientResult {
   client: Client
   accessRequestSent: boolean
   accessRequestName?: string
 }
 
-export interface ClientUpdateDto {
+interface ClientUpdateDto {
   name?: string
   email?: string
   notes?: string
@@ -133,7 +133,7 @@ function transformClient(backendClient: BackendClient): Client {
   }
 }
 
-export interface ClientSignupInvitation {
+interface ClientSignupInvitation {
   id: string
   client_id: string
   email: string
@@ -142,7 +142,7 @@ export interface ClientSignupInvitation {
   created_at: string
 }
 
-export interface ClientAccessInvitation {
+interface ClientAccessInvitation {
   id: string
   client_id: string
   email: string

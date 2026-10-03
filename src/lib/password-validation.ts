@@ -10,7 +10,7 @@ export interface PasswordStrength {
   hasSpecialChar: boolean
 }
 
-export interface PasswordValidationResult {
+interface PasswordValidationResult {
   isValid: boolean
   strength: PasswordStrength
   score: number // 0-5

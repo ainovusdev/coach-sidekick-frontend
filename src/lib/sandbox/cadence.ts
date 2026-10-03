@@ -13,7 +13,7 @@ export const DEFAULT_CADENCE: Cadence = {
   per: 'month',
 }
 
-export const PERIODS_PER_MONTH: Record<CadencePer, number> = {
+const PERIODS_PER_MONTH: Record<CadencePer, number> = {
   month: 1,
   fortnight: 26 / 12,
   week: 52 / 12,
@@ -61,9 +61,7 @@ function perPhrase(per: CadencePer): string {
   return per === 'fortnight' ? 'every 2 weeks' : `per ${per}`
 }
 
-export function describeCadence(
-  cadence: Cadence | null | undefined,
-): string | null {
+function describeCadence(cadence: Cadence | null | undefined): string | null {
   if (!cadence) return null
   switch (cadence.shape) {
     case 'range': {
@@ -80,7 +78,7 @@ export function describeCadence(
   }
 }
 
-export function projectCadence(
+function projectCadence(
   cadence: Cadence,
   termMonths: number,
 ): [number, number] {

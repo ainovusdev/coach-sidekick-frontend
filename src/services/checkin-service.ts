@@ -35,13 +35,13 @@ export interface CheckinPage {
   commitments: CheckinCommitment[]
 }
 
-export interface CheckinToggleResult {
+interface CheckinToggleResult {
   commitment_id: string
   status: string
   completed: boolean
 }
 
-export interface CheckinRescheduleResult {
+interface CheckinRescheduleResult {
   commitment_id: string
   target_date: string | null
   overdue: boolean
@@ -49,7 +49,7 @@ export interface CheckinRescheduleResult {
   completed: boolean
 }
 
-export type CheckinErrorKind =
+type CheckinErrorKind =
   | 'expired'
   | 'not-found'
   | 'conflict'
