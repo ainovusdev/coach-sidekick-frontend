@@ -10,6 +10,13 @@ import { SandboxService } from '@/services/sandbox-service'
 import { fmtDay } from '@/lib/sandbox/format'
 import { Button } from '@/components/ui/button'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   useInsightViewer,
   withSandboxViewer,
 } from '@/hooks/queries/use-sandbox-insights'
@@ -220,6 +227,13 @@ export function SandboxAssignmentHint({
     </div>
   )
 }
+export interface SessionAttributionCandidate {
+  sandbox_id: string
+  sandbox_name: string
+  group_id: string
+  group_name: string
+  member_id: string
+}
 export interface SessionAttributionItem {
   id: string
   session_id: string
@@ -233,13 +247,42 @@ export interface SessionAttributionItem {
   group_id: string | null
   client_ids: string[]
   can_resolve: boolean
-  candidates: {
+  candidates: SessionAttributionCandidate[]
+  /** The agreement this row credits, named — only when the viewer may see it. */
+  selected?: {
     sandbox_id: string
     sandbox_name: string
     group_id: string
     group_name: string
-    member_id: string
-  }[]
+  } | null
+}
+/**
+ * Why one of the coach's own participants is not credited: the boundary that
+ * keeps the session out, and where that boundary is corrected. Only groups the
+ * viewer coaches are ever named.
+ */
+export interface SessionAttributionDiagnostic {
+  client_id: string
+  client_name?: string | null
+  reason:
+    | 'before_coachee_start'
+    | 'before_coach_start'
+    | 'before_term'
+    | 'after_end'
+    | 'no_matching_coachee'
+    | 'excluded'
+    | 'not_delivered'
+  boundary_on?: string
+  sandbox_id?: string
+  sandbox_name?: string
+  group_id?: string
+  group_name?: string
+  enrollment_id?: string | null
+  can_manage?: boolean
+}
+interface AttributionResponse {
+  items: SessionAttributionItem[]
+  diagnostics?: SessionAttributionDiagnostic[]
 }
 export function SessionAttribution({
   sessionId,
@@ -294,7 +337,7 @@ function AttributionContent({
     groupId ?? null,
     coachId ?? null,
   ]
-  const query = useQuery<{ items: SessionAttributionItem[] }>({
+  const query = useQuery<AttributionResponse>({
     queryKey: key,
     queryFn: () =>
       withSandboxViewer(viewer, () =>
@@ -326,7 +369,36 @@ function AttributionContent({
         ),
     [data, memberId, groupId],
   )
-  if (!items.length) return null
+  const diagnostics = sandboxId ? [] : (data?.diagnostics ?? [])
+  const onSaved = () => {
+    void queryClient.invalidateQueries({ queryKey: key })
+    void queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] })
+    void queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] })
+  }
+  if (!items.length && !diagnostics.length) return null
+  // On the session page the whole thing is a strip: one line per person, the
+  // correction on the same line. The sandbox pages keep the card.
+  if (!sandboxId)
+    return (
+      <section
+        className="space-y-1.5 rounded-lg bg-surface-2 px-3 py-2 text-xs leading-relaxed text-ink-3"
+        aria-label="Sandbox session assignment"
+        data-testid="session-attribution"
+      >
+        {items.map(item => (
+          <AttributionRow
+            key={`${item.id}:${item.revision}`}
+            item={item}
+            viewer={viewer}
+            onSaved={onSaved}
+            strip
+          />
+        ))}
+        {diagnostics.map(d => (
+          <DiagnosticLine key={d.client_id} diagnostic={d} />
+        ))}
+      </section>
+    )
   return (
     <section
       className="space-y-3 rounded-xl border border-line bg-paper p-4"
@@ -342,16 +414,99 @@ function AttributionContent({
           item={item}
           viewer={viewer}
           sandboxId={sandboxId}
-          onSaved={() => {
-            void queryClient.invalidateQueries({ queryKey: key })
-            void queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] })
-            void queryClient.invalidateQueries({
-              queryKey: ['sandbox-reporting'],
-            })
-          }}
+          onSaved={onSaved}
         />
       ))}
     </section>
+  )
+}
+/** Where a boundary is corrected: the group drawer, Settings, or the person. */
+function diagnosticAction(d: SessionAttributionDiagnostic) {
+  const groupHref = (focus: 'counts-from' | 'start') =>
+    d.sandbox_id && d.group_id
+      ? `/sandboxes/${d.sandbox_id}?tab=groups&group=${d.group_id}&focus=${focus}`
+      : null
+  switch (d.reason) {
+    case 'before_coachee_start':
+      return d.can_manage
+        ? {
+            href: groupHref('counts-from'),
+            label: 'Change the day they count from',
+          }
+        : {
+            href: null,
+            label: `Ask whoever manages groups in ${d.sandbox_name} to change the day they count from.`,
+          }
+    case 'before_coach_start':
+      return d.can_manage
+        ? {
+            href: groupHref('counts-from'),
+            label: 'Change the day you count from',
+          }
+        : {
+            href: null,
+            label: `Ask whoever manages groups in ${d.sandbox_name} to change the day you count from.`,
+          }
+    case 'before_term':
+      return d.sandbox_id
+        ? {
+            href: `/sandboxes/${d.sandbox_id}?tab=settings`,
+            label: 'Open the term',
+          }
+        : { href: null, label: '' }
+    case 'after_end':
+      return d.can_manage
+        ? { href: groupHref('start'), label: 'Open the group' }
+        : { href: null, label: '' }
+    case 'no_matching_coachee':
+      return { href: `/clients/${d.client_id}`, label: 'Open their profile' }
+    default:
+      return { href: null, label: '' }
+  }
+}
+function DiagnosticLine({
+  diagnostic: d,
+}: {
+  diagnostic: SessionAttributionDiagnostic
+}) {
+  const who = d.client_name ? `${d.client_name}: ` : ''
+  const boundary = fmtDay(d.boundary_on, true)
+  const place =
+    d.group_name && d.sandbox_name ? `${d.sandbox_name} · ${d.group_name}` : ''
+  const text = (() => {
+    switch (d.reason) {
+      case 'before_coachee_start':
+        return `not counted — they count toward ${place} from ${boundary}, after this session.`
+      case 'before_coach_start':
+        return `not counted — you count toward ${place} from ${boundary}, after this session.`
+      case 'before_term':
+        return `not counted — ${d.sandbox_name}’s term begins ${boundary}, after this session.`
+      case 'after_end':
+        return `not counted — ${place} ended ${boundary}, before this session.`
+      case 'no_matching_coachee':
+        return 'not counted — not in a sandbox agreement with you on this day.'
+      case 'excluded':
+        return 'excluded from sandbox delivery.'
+      default:
+        return 'counts toward a sandbox once the session is completed.'
+    }
+  })()
+  const action = diagnosticAction(d)
+  return (
+    <p data-testid="attribution-diagnostic" data-reason={d.reason}>
+      {who}
+      {text}
+      {action.href ? (
+        <Link
+          className="ml-2 font-medium text-ds-accent hover:underline"
+          href={action.href}
+        >
+          {action.label}
+        </Link>
+      ) : action.label ? (
+        <span className="ml-1">{action.label}</span>
+      ) : null}
+    </p>
   )
 }
 function AttributionRow({
@@ -359,72 +514,143 @@ function AttributionRow({
   viewer,
   sandboxId,
   onSaved,
+  strip = false,
 }: {
   item: SessionAttributionItem
   viewer: string | null
   sandboxId?: string
   onSaved: () => void
+  strip?: boolean
+}) {
+  const [editing, setEditing] = useState(
+    !strip && item.status === 'needs_review',
+  )
+  const assigned =
+    item.selected ?? item.candidates.find(c => c.group_id === item.group_id)
+  const pending = item.status === 'needs_review'
+  const who = item.subject_name ? `${item.subject_name}: ` : ''
+  const summary =
+    item.status === 'excluded'
+      ? 'Excluded from sandbox delivery.'
+      : assigned
+        ? `Counts toward ${assigned.sandbox_name} · ${assigned.group_name}`
+        : pending
+          ? 'Sandbox assignment needs review.'
+          : 'Sandbox assignment recorded.'
+  return (
+    <>
+      <p className={strip ? '' : 'text-xs text-ink-3'}>
+        {who}
+        {summary}
+        {item.can_resolve && (
+          <button
+            className="ml-3 text-ds-accent hover:underline"
+            onClick={() => setEditing(true)}
+          >
+            {pending ? 'Choose' : strip ? 'Change' : 'Review assignment'}
+          </button>
+        )}
+      </p>
+      {item.can_resolve && (
+        <AssignmentDialog
+          item={item}
+          viewer={viewer}
+          sandboxId={sandboxId}
+          open={editing}
+          onOpenChange={setEditing}
+          onSaved={onSaved}
+        />
+      )}
+    </>
+  )
+}
+interface ChoicesResponse {
+  revision: number
+  candidates: SessionAttributionCandidate[]
+  stored_is_stale?: boolean
+}
+/**
+ * The choice itself. Which agreements are on offer is asked afresh when the
+ * dialog opens: the list a row stores is what the resolver saw when it last
+ * wrote the row, and a window corrected since then makes a pairing eligible
+ * that the stored list never heard of. A backend that cannot answer (older
+ * than this dialog) falls back to the stored list.
+ */
+function AssignmentDialog({
+  item,
+  viewer,
+  sandboxId,
+  open,
+  onOpenChange,
+  onSaved,
+}: {
+  item: SessionAttributionItem
+  viewer: string | null
+  sandboxId?: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onSaved: () => void
 }) {
   const [choice, setChoice] = useState(item.group_id ?? '')
   const [reason, setReason] = useState('')
-  const [editing, setEditing] = useState(item.status === 'needs_review')
+  const target =
+    sandboxId ?? item.selected?.sandbox_id ?? item.candidates[0]?.sandbox_id
+  const choices = useQuery<ChoicesResponse>({
+    queryKey: [
+      'sandbox-attribution-choices',
+      viewer,
+      target,
+      item.id,
+      item.revision,
+    ],
+    queryFn: () =>
+      withSandboxViewer(viewer, () =>
+        ApiClient.get(`${base}/${target}/attributions/${item.id}/choices`),
+      ),
+    enabled: open && !!viewer && !!target,
+    retry: false,
+    gcTime: 0,
+    staleTime: 0,
+  })
+  const live =
+    choices.data && Array.isArray(choices.data.candidates) ? choices.data : null
+  const candidates = live ? live.candidates : item.candidates
+  const revision = live ? live.revision : item.revision
   const mutation = useMutation({
     mutationFn: () =>
       withSandboxViewer(viewer, () => {
-        const candidate = item.candidates.find(c => c.group_id === choice)
-        const target =
-          candidate?.sandbox_id ?? sandboxId ?? item.candidates[0]?.sandbox_id
-        if (!target) throw new Error('No authorized sandbox')
-        return ApiClient.patch(`${base}/${target}/attributions/${item.id}`, {
-          revision: item.revision,
+        const candidate = candidates.find(c => c.group_id === choice)
+        const to = candidate?.sandbox_id ?? target
+        if (!to) throw new Error('No authorized sandbox')
+        return ApiClient.patch(`${base}/${to}/attributions/${item.id}`, {
+          revision,
           group_id: choice === 'exclude' ? null : choice,
           exclude: choice === 'exclude',
           reason: reason.trim(),
         })
       }),
     onSuccess: () => {
-      setEditing(false)
+      onOpenChange(false)
       onSaved()
     },
   })
-  const assigned = item.candidates.find(c => c.group_id === item.group_id)
-  const pending = item.status === 'needs_review'
   const sessionDate = fmtDay(item.started_on || item.scheduled_on, true)
-  if (!editing)
-    return (
-      <p className="text-xs text-ink-3">
-        {item.status === 'excluded'
-          ? 'Excluded from sandbox delivery.'
-          : assigned
-            ? `Counts toward ${assigned.sandbox_name} · ${assigned.group_name}`
-            : pending
-              ? 'Sandbox assignment needs review.'
-              : 'Sandbox assignment recorded.'}
-        {item.can_resolve && (
-          <button
-            className="ml-3 text-ds-accent hover:underline"
-            onClick={() => setEditing(true)}
-          >
-            Review assignment
-          </button>
-        )}
-      </p>
-    )
+  const pending = item.status === 'needs_review'
   return (
-    <div className="space-y-3 border-t border-line pt-3">
-      <p className="text-sm text-ink-2">
-        {item.subject_name ? `${item.subject_name}: ` : ''}
-        {pending
-          ? 'Sandbox assignment needs review.'
-          : 'Review sandbox assignment'}
-        <span className="ml-2 text-xs text-ink-3">
-          · {sessionDate || 'Session date unavailable'}
-        </span>
-      </p>
-      <p className="text-xs leading-relaxed text-ink-3">
-        Choose which agreement should receive this session’s coaching hours.
-      </p>
-      {item.can_resolve && (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent data-testid="assignment-dialog">
+        <DialogHeader>
+          <DialogTitle>
+            {item.subject_name ? `${item.subject_name}: ` : ''}
+            {pending
+              ? 'Sandbox assignment needs review'
+              : 'Change sandbox assignment'}
+          </DialogTitle>
+          <DialogDescription>
+            {sessionDate || 'Session date unavailable'} · Choose which agreement
+            should receive this session’s coaching hours.
+          </DialogDescription>
+        </DialogHeader>
         <form
           className="space-y-3"
           onSubmit={e => {
@@ -439,10 +665,15 @@ function AttributionRow({
               aria-label="Count this coaching toward"
               value={choice}
               required
+              disabled={choices.isLoading}
               onChange={e => setChoice(e.target.value)}
             >
-              <option value="">Choose a group</option>
-              {item.candidates.map(c => (
+              <option value="">
+                {choices.isLoading
+                  ? 'Checking today’s agreements…'
+                  : 'Choose a group'}
+              </option>
+              {candidates.map(c => (
                 <option
                   key={`${c.sandbox_id}:${c.group_id}`}
                   value={c.group_id}
@@ -453,6 +684,15 @@ function AttributionRow({
               <option value="exclude">Exclude from sandbox delivery</option>
             </select>
           </label>
+          {!choices.isLoading && candidates.length === 0 && (
+            <p
+              className="text-xs text-ink-3"
+              data-testid="assignment-no-choices"
+            >
+              No agreement covers this session’s day today. Correct the day
+              someone counts from first, then come back.
+            </p>
+          )}
           <label className="block text-xs text-ink-3">
             Reason
             <input
@@ -477,7 +717,7 @@ function AttributionRow({
             {mutation.isPending ? 'Saving…' : 'Confirm assignment'}
           </Button>
         </form>
-      )}
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
