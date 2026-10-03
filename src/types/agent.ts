@@ -38,7 +38,7 @@ export interface ToolError {
   message: string
 }
 
-export interface TranscriptChunk {
+interface TranscriptChunk {
   content: string
   session_id?: string
   client_id?: string

@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react'
 
-export interface ToastProps {
+interface ToastProps {
   id?: string
   title?: string
   description?: string

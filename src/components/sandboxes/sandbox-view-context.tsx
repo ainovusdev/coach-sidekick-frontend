@@ -33,9 +33,9 @@ export interface SandboxCan {
   seeAllGroups: boolean
 }
 
-export type SandboxAudience = 'admin' | 'ours' | 'theirs'
+type SandboxAudience = 'admin' | 'ours' | 'theirs'
 
-export interface SandboxView {
+interface SandboxView {
   audience: SandboxAudience
   scope: SandboxScope
   basePath: '/admin/sandboxes' | '/sandboxes'
@@ -100,7 +100,7 @@ function hrefs(basePath: SandboxView['basePath']): SandboxView['href'] {
   }
 }
 
-export const ADMIN_SANDBOX_VIEW: SandboxView = {
+const ADMIN_SANDBOX_VIEW: SandboxView = {
   audience: 'admin',
   scope: 'all',
   basePath: '/admin/sandboxes',
@@ -112,7 +112,7 @@ export const ADMIN_SANDBOX_VIEW: SandboxView = {
   href: hrefs('/admin/sandboxes'),
 }
 
-export function canFromCapabilities(
+function canFromCapabilities(
   caps: readonly SandboxCapability[],
   scope: SandboxScope,
 ): SandboxCan {

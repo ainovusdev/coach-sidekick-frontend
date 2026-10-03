@@ -10,18 +10,18 @@ import {
 } from '@/utils/audio-processing'
 import { captureExceptionThrottled } from '@/lib/posthog-capture'
 
-export interface RealtimeMessage {
+interface RealtimeMessage {
   type: string
   [key: string]: any
 }
 
-export interface RealtimeSource {
+interface RealtimeSource {
   date: string
   topics: string[]
   relevance: number
 }
 
-export interface RealtimeConfig {
+interface RealtimeConfig {
   clientId: string
   token: string
   enabled?: boolean // Add enabled flag

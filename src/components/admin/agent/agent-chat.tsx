@@ -57,7 +57,7 @@ const HEADER_STATUS: Record<AgentApiScope, string> = {
   client: 'Private · reads only your data',
 }
 
-export interface AgentChatProps {
+interface AgentChatProps {
   /** Which backend agent mount to use. Drives data scope + starters + badge. */
   apiScope?: AgentApiScope
   /**

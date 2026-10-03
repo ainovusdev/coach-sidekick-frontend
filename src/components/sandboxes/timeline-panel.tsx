@@ -24,7 +24,7 @@ import { cn } from '@/lib/utils'
 import type { SandboxOverview, TimelineEvent } from '@/types/sandbox'
 
 /** Count of hand-touched rows: moved windows, added events, removed events. */
-export function handAdjustedCount(overview: SandboxOverview): number {
+function handAdjustedCount(overview: SandboxOverview): number {
   return (
     overview.timeline.filter(e => e.is_hand_adjusted).length +
     overview.timeline_removed.length

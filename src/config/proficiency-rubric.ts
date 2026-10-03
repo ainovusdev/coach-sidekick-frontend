@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-export type ProficiencyCriterionKey =
+type ProficiencyCriterionKey =
   | 'maximum_value'
   | 'expansion'
   | 'integrity'
@@ -37,7 +37,7 @@ export const RUNG_NAMES: Record<number, string> = {
 
 export const PROFICIENT_RUNG = 4 // the bar
 
-export interface ProficiencyCriterionConfig {
+interface ProficiencyCriterionConfig {
   key: ProficiencyCriterionKey
   label: string
   icon: LucideIcon

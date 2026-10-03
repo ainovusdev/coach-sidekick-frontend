@@ -46,7 +46,7 @@ export interface CommitmentAttachment {
 }
 
 // Base commitment interface
-export interface CommitmentBase {
+interface CommitmentBase {
   title: string
   description?: string
   type: CommitmentType

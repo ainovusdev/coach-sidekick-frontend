@@ -2,7 +2,7 @@ import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { adminService, User } from '@/services/admin-service'
 import { queryKeys } from '@/lib/query-client'
 
-export interface AdminUsersParams {
+interface AdminUsersParams {
   skip?: number
   limit?: number
   search?: string

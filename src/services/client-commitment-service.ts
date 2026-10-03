@@ -16,7 +16,7 @@ import authService from '@/services/auth-service'
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface ClientCommitmentUpdate {
+interface ClientCommitmentUpdate {
   title?: string
   description?: string
   type?: 'commitment' | 'habit' | 'mp_outcome' | 'learning' | 'sprint'

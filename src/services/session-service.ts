@@ -5,7 +5,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
-export interface SessionCreateDto {
+interface SessionCreateDto {
   client_id?: string
   bot_id: string
   meeting_url: string

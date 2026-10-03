@@ -28,7 +28,7 @@ function agentBase(scope: AgentApiScope): string {
   return `${API_BASE}/${scope}/agent`
 }
 
-export interface StreamAgentArgs {
+interface StreamAgentArgs {
   messages: Array<{ role: 'user' | 'assistant'; content: string }>
   model: string
   /** If set, the Agent SDK resumes that conversation — tool history from prior turns is preserved. */
@@ -157,7 +157,7 @@ export interface AgentInsightResult {
   generated_at: string
 }
 
-export interface FetchAgentInsightArgs {
+interface FetchAgentInsightArgs {
   /** Fully-composed prompt — date + identifiers are baked in by the caller. */
   prompt: string
   scope: AgentApiScope

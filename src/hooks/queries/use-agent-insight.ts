@@ -7,7 +7,7 @@ import {
   type AgentInsightResult,
 } from '@/services/agent-service'
 
-export function agentInsightKey(scope: AgentApiScope, prompt: string | null) {
+function agentInsightKey(scope: AgentApiScope, prompt: string | null) {
   return ['agent-insight', scope, prompt] as const
 }
 

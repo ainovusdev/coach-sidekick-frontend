@@ -10,13 +10,7 @@ export interface ChatMessage {
   content: string
 }
 
-export interface ChatRequest {
-  question: string
-  conversation_history?: ChatMessage[]
-  provider?: 'openai' | 'gemini' | 'claude' // AI provider to use
-}
-
-export interface ChatSource {
+interface ChatSource {
   session_id: string
   date: string
   topics: string[]
@@ -27,7 +21,7 @@ export interface ChatSource {
   speaker_ratio?: Record<string, number>
 }
 
-export interface ChatResponse {
+interface ChatResponse {
   answer: string
   sources: ChatSource[]
   confidence: 'high' | 'medium' | 'low'

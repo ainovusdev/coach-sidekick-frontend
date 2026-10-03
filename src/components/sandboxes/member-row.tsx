@@ -26,7 +26,7 @@ export interface MemberActions {
   onPreview?: (member: SandboxMember) => void
 }
 
-export function isUninvited(member: SandboxMember): boolean {
+function isUninvited(member: SandboxMember): boolean {
   return (
     member.side === 'theirs' &&
     (member.invitation_status === 'not_sent' ||
@@ -35,7 +35,7 @@ export function isUninvited(member: SandboxMember): boolean {
   )
 }
 
-export function invitationText(member: SandboxMember): string | null {
+function invitationText(member: SandboxMember): string | null {
   if (member.side !== 'theirs') return null
   switch (member.invitation_status) {
     case 'sent':

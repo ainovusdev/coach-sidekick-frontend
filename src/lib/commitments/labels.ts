@@ -1,11 +1,7 @@
 // The one label map for commitments: status, priority, source. Every row,
 // card, chip and select reads from here so the words never drift.
 import type { Tone } from '@/lib/tone'
-import type {
-  CommitmentPriority,
-  CommitmentSource,
-  CommitmentStatus,
-} from '@/types/commitment'
+import type { CommitmentPriority, CommitmentStatus } from '@/types/commitment'
 
 export const COMMITMENT_STATUS_LABEL: Record<CommitmentStatus, string> = {
   draft: 'Draft',
@@ -46,12 +42,6 @@ export const COMMITMENT_PRIORITY_TONE: Record<CommitmentPriority, Tone> = {
   medium: 'default',
   high: 'warning',
   urgent: 'danger',
-}
-
-export const COMMITMENT_SOURCE_LABEL: Record<CommitmentSource, string> = {
-  manual: '',
-  ai_extracted: 'From transcript',
-  rule: 'Automatic',
 }
 
 export function statusInfo(status: CommitmentStatus | string | undefined) {

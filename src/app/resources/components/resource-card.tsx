@@ -28,11 +28,7 @@ import {
   FileEdit,
   Newspaper,
 } from 'lucide-react'
-import type {
-  SharedResource,
-  SharingScope,
-  ResourceCategory,
-} from '@/types/resource'
+import type { SharedResource, SharingScope } from '@/types/resource'
 import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 
@@ -51,10 +47,6 @@ const SCOPE_LABELS: Record<SharingScope, string> = {
   global: 'Global',
   personal: 'Personal',
   session: 'Session',
-}
-
-export function getCategoryIcon(category: ResourceCategory | string) {
-  return CATEGORY_ICONS[category] || FileText
 }
 
 interface ResourceCardProps {

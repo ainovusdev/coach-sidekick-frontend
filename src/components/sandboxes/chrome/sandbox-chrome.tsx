@@ -7,10 +7,10 @@ import { SandboxHeader } from '@/components/sandboxes/chrome/sandbox-header'
 import { useAuth } from '@/contexts/auth-context'
 import { useMySandboxes } from '@/hooks/queries/use-sandboxes'
 
-export type SandboxAudienceChrome = 'ours' | 'coachee' | 'theirs'
+type SandboxAudienceChrome = 'ours' | 'coachee' | 'theirs'
 
 /** Which header a signed-in person gets on the member routes. */
-export function useSandboxChrome(): SandboxAudienceChrome {
+function useSandboxChrome(): SandboxAudienceChrome {
   const { isCoach, isAdmin, hasAnyRole, canAccessClientView } = useAuth()
   if (isCoach() || isAdmin() || hasAnyRole(['viewer'])) return 'ours'
   if (canAccessClientView()) return 'coachee'

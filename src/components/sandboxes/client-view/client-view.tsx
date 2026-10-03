@@ -70,7 +70,7 @@ const NAV = [
   { id: 'learning', label: 'Learning' },
 ]
 
-export interface ClientViewPreview {
+interface ClientViewPreview {
   from: 'admin' | 'member'
 }
 

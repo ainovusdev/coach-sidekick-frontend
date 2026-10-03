@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/utils'
 import type { Outcome } from '@/types/sandbox-outcomes'
 
-export function OutcomeStatusChip({
+function OutcomeStatusChip({
   status,
   className,
 }: {
@@ -41,7 +41,7 @@ export function OutcomeStatusChip({
   )
 }
 
-export interface OutcomeActions {
+interface OutcomeActions {
   onEdit?: (o: Outcome) => void
   onPropose?: (o: Outcome) => void
   onDecide?: (o: Outcome, decision: 'seal' | 'changes') => void

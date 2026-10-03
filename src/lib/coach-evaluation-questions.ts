@@ -1,4 +1,4 @@
-export interface EvaluationQuestion {
+interface EvaluationQuestion {
   id: string
   text: string
 }
@@ -48,7 +48,7 @@ export const EVALUATION_QUESTIONS: ReadonlyArray<EvaluationQuestion> = [
 
 export type ScoreValue = number | null
 
-export interface ScoreOption {
+interface ScoreOption {
   value: ScoreValue
   label: string
   // Tailwind classes for background and text when selected/unselected

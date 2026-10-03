@@ -5,7 +5,7 @@
 import axiosInstance from '@/lib/axios-config'
 
 // Types
-export interface DashboardStats {
+interface DashboardStats {
   total_sessions: number
   completed_tasks: number
   pending_tasks: number
@@ -15,7 +15,7 @@ export interface DashboardStats {
   unread_notifications: number
 }
 
-export interface DashboardSummary {
+interface DashboardSummary {
   client_info: {
     id: string
     name: string
@@ -30,7 +30,7 @@ export interface DashboardSummary {
   recent_notifications: Notification[]
 }
 
-export interface SessionSummary {
+interface SessionSummary {
   id: string
   session_date: string
   duration_minutes: number
@@ -63,7 +63,7 @@ export interface Task {
   client_name?: string
 }
 
-export interface ClientGoal {
+interface ClientGoal {
   id: string
   title: string
   description?: string
@@ -112,7 +112,7 @@ export interface ClientPersona {
   }
 }
 
-export interface Notification {
+interface Notification {
   id: string
   type: string
   title: string

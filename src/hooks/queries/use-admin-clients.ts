@@ -6,7 +6,7 @@ import {
 } from '@/services/admin-service'
 import { queryKeys } from '@/lib/query-client'
 
-export interface AdminClientsParams {
+interface AdminClientsParams {
   skip?: number
   limit?: number
   search?: string

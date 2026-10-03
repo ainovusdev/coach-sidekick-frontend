@@ -13,7 +13,6 @@ import {
 import {
   CADENCE_PRESETS,
   cadenceAgreement,
-  cadenceEquals,
   presetFor,
   sessionsPerMonth,
 } from '@/lib/sandbox/cadence'
@@ -391,5 +390,3 @@ function TickRail({
     </svg>
   )
 }
-
-export { cadenceEquals }

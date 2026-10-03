@@ -16,7 +16,7 @@ export interface RosterPick {
   group_member_id?: string
 }
 
-export function toPick(m: SandboxMember): RosterPick {
+function toPick(m: SandboxMember): RosterPick {
   return { member_id: m.id, user_id: m.user_id, name: m.name, email: m.email }
 }
 

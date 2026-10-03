@@ -42,9 +42,7 @@ export function toDateOnly(d: Date): string {
 }
 
 /** Local midnight of a `yyyy-MM-dd` API value — feeds both the picker and the maths. */
-export function parseDay(
-  targetDate: string | null | undefined,
-): Date | undefined {
+function parseDay(targetDate: string | null | undefined): Date | undefined {
   return parseDateForPicker(targetDate ?? undefined)
 }
 
@@ -52,9 +50,7 @@ export function parseDay(
  * Whole calendar days from today to the due date. Negative = overdue.
  * Returns null when there is no due date.
  */
-export function daysFromToday(
-  targetDate: string | null | undefined,
-): number | null {
+function daysFromToday(targetDate: string | null | undefined): number | null {
   const due = parseDay(targetDate)
   if (!due) return null
   return differenceInCalendarDays(due, new Date())
@@ -104,7 +100,7 @@ export function spokenDate(targetDate: string | null | undefined): string {
   return formatDateOnly(targetDate, 'EEEE, MMMM d')
 }
 
-export interface QuickDateOption {
+interface QuickDateOption {
   label: string
   /** Secondary, muted text so "Friday" is never ambiguous. */
   hint: string
@@ -141,7 +137,7 @@ export function quickDateOptions(now: Date = new Date()): QuickDateOption[] {
   return options
 }
 
-export interface CheckinSectionData {
+interface CheckinSectionData {
   key: CheckinBucket
   title: string
   items: CheckinCommitment[]

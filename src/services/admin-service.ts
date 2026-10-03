@@ -10,17 +10,14 @@ import type {
 
 // Re-export admin client types
 export type {
-  AdminClient,
   AdminClientListResponse,
   AdminClientStats,
-  AdminClientUpdate,
   BulkAssignCoachRequest,
   CSVImportRequest,
-  CSVImportResponse,
 } from '@/types/admin-client'
 
 // Bulk operation response type
-export interface BulkOperationResponse {
+interface BulkOperationResponse {
   success_count: number
   failed_count: number
   errors: string[]
@@ -38,16 +35,6 @@ export interface User {
   created_at: string
   deleted_at?: string | null // NEW: Soft delete timestamp
   deleted_by?: string | null // NEW: Who deleted the user
-}
-
-export interface RoleAssignment {
-  user_id: string
-  roles: string[]
-}
-
-export interface ClientAccess {
-  client_id: string
-  user_id: string
 }
 
 export interface ClientAccessMatrix {
@@ -407,7 +394,7 @@ export interface MergeResult {
 }
 
 // Coach Invitation Types
-export interface CoachInvitation {
+interface CoachInvitation {
   id: string
   email: string
   role: 'coach' | 'trainee'
