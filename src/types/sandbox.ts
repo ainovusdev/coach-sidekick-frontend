@@ -23,8 +23,6 @@ export type InvitationStatus =
 
 export type OurRole = 'account_executive' | 'sandbox_owner' | 'lead_coach'
 export type TheirRole = 'primary_client' | 'primary_client_admin' | 'supervisor'
-export type SandboxRole = OurRole | TheirRole
-
 export const OUR_ROLES: { value: OurRole; label: string }[] = [
   { value: 'account_executive', label: 'Account executive' },
   { value: 'sandbox_owner', label: 'Sandbox owner' },
@@ -417,12 +415,6 @@ export interface SandboxMemberCreate {
 export interface SandboxMemberUpdate {
   roles?: string[]
   name?: string
-}
-
-export interface CoacheeInput {
-  user_id?: string
-  email?: string
-  name?: string | null
 }
 
 export interface SandboxGroupCreate {

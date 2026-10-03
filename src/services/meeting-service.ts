@@ -3,7 +3,7 @@ import { ApiClient } from '@/lib/api-client'
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface CreateBotRequest {
+interface CreateBotRequest {
   meeting_url: string
   client_id?: string
   recording_mode?: 'raw_transcript' | 'speaker_separated_audio' | 'video'
@@ -14,7 +14,7 @@ export interface CreateBotRequest {
   sandbox_group_id?: string
 }
 
-export interface CreateBotResponse {
+interface CreateBotResponse {
   id: string // Changed from bot_id to id
   status: string
   meeting_url: string
@@ -23,7 +23,7 @@ export interface CreateBotResponse {
   session_id: string
 }
 
-export interface BotInfo {
+interface BotInfo {
   id: string
   status: string
   meeting_url?: string
@@ -34,13 +34,13 @@ export interface BotInfo {
   updated_at?: string
 }
 
-export interface StopBotResponse {
+interface StopBotResponse {
   bot_id: string
   status: string
   message: string
 }
 
-export interface RealTimeTranscript {
+interface RealTimeTranscript {
   session_id: string
   bot_id: string
   transcripts: Array<{

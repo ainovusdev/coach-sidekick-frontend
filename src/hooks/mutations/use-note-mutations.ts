@@ -4,7 +4,7 @@ import { queryKeys } from '@/lib/query-client'
 import { toast } from 'sonner'
 import { nowUTC } from '@/lib/date-utils'
 
-export interface NoteCreate {
+interface NoteCreate {
   note_type: 'coach_private' | 'shared'
   title: string
   content: string

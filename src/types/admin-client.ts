@@ -26,15 +26,6 @@ export interface AdminClientListResponse {
   per_page: number
 }
 
-export interface AdminClientUpdate {
-  name?: string
-  email?: string | null
-  phone?: string | null
-  notes?: string | null
-  tags?: string[]
-  coach_id?: string
-}
-
 export interface BulkAssignCoachRequest {
   client_ids: string[]
   coach_id: string

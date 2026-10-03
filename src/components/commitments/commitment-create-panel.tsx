@@ -49,7 +49,7 @@ import type {
 } from '@/types/commitment'
 
 /** The client a commitment is about — enough to offer "the client themself". */
-export interface CreatePanelClient {
+interface CreatePanelClient {
   id: string
   name: string | null
   email?: string | null

@@ -3,11 +3,7 @@
  * feedback. The server's /sandboxes/term-preview is the source of truth.
  */
 
-import type {
-  SandboxOverview,
-  SandboxStatus,
-  TermMonths,
-} from '@/types/sandbox'
+import type { SandboxOverview, TermMonths } from '@/types/sandbox'
 
 const CHECKIN_COUNT: Record<TermMonths, number> = {
   3: 1,
@@ -39,7 +35,7 @@ export function toDateOnly(date: Date): string {
   return `${y}-${m}-${d}`
 }
 
-export function addMonths(date: Date, months: number): Date {
+function addMonths(date: Date, months: number): Date {
   const total = date.getMonth() + months
   const year = date.getFullYear() + Math.floor(total / 12)
   const month = ((total % 12) + 12) % 12
@@ -69,33 +65,10 @@ export function previewSentence(start: Date, months: TermMonths): string {
   return `Creates ${parts.join(', ')} and a results review in ${reviewMonth}.`
 }
 
-export function eventCount(months: TermMonths): number {
-  return 2 + CHECKIN_COUNT[months] + MIDPOINT_COUNT[months]
-}
-
-export function sandboxStatus(
-  start: string,
-  end: string,
-  today: string,
-): SandboxStatus {
-  if (today < start) return 'upcoming'
-  if (today > end) return 'ended'
-  return 'active'
-}
-
 const MS_PER_DAY = 86_400_000
 
 export function daysBetween(a: Date, b: Date): number {
   return Math.round((b.getTime() - a.getTime()) / MS_PER_DAY)
-}
-
-/** Whole months into the term, 1-based ("Month 4 of 6"). */
-export function monthOfTerm(start: Date, today: Date): number {
-  let months =
-    (today.getFullYear() - start.getFullYear()) * 12 +
-    (today.getMonth() - start.getMonth())
-  if (today.getDate() < start.getDate()) months -= 1
-  return Math.max(1, months + 1)
 }
 
 /** "term starts in 5 months" / "term starts in 12 days" / "term starts tomorrow". */
@@ -108,7 +81,7 @@ export function startsInText(start: Date, today: Date): string {
   return `term starts in ${months} ${months === 1 ? 'month' : 'months'}`
 }
 
-export function termProgress(start: Date, end: Date, today: Date): number {
+function termProgress(start: Date, end: Date, today: Date): number {
   const total = daysBetween(start, end) + 1
   const done = daysBetween(start, today) + 1
   if (total <= 0) return 0

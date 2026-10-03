@@ -141,4 +141,4 @@ export function useMeetingHistory(
   }
 }
 
-export type { MeetingSession, MeetingSummary, MeetingHistoryResponse }
+export type { MeetingSession }

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 
-export interface SyncedTranscriptEntry<T> {
+interface SyncedTranscriptEntry<T> {
   entry: T
   offsetSec: number
 }

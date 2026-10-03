@@ -4,7 +4,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
-export interface SessionShare {
+interface SessionShare {
   id: string
   session_id: string
   shared_with_user_id: string
@@ -14,12 +14,12 @@ export interface SessionShare {
   created_at: string
 }
 
-export interface SessionShareList {
+interface SessionShareList {
   is_shared_with_all_coaches: boolean
   shares: SessionShare[]
 }
 
-export interface CoachSearchResult {
+interface CoachSearchResult {
   id: string
   full_name: string | null
   email: string

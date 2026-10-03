@@ -1,7 +1,6 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { CommitmentService } from '@/services/commitment-service'
 import {
-  Commitment,
   CommitmentFilters,
   CommitmentListResponse,
   CommitmentStats,
@@ -67,35 +66,6 @@ export function useMyCommitments(
       { includeCompleted },
     ],
     queryFn: () => CommitmentService.getMyCommitments(includeCompleted),
-    staleTime: 3 * 60 * 1000, // 3 minutes
-    ...options,
-  })
-}
-
-/**
- * Hook to fetch a single commitment by ID
- *
- * @param commitmentId - The commitment ID to fetch
- * @param options - Additional react-query options
- *
- * @example
- * const { data: commitment, isLoading } = useCommitment(commitmentId)
- */
-const UUID_RE =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
-export function useCommitment(
-  commitmentId: string | undefined,
-  options?: Omit<
-    UseQueryOptions<Commitment>,
-    'queryKey' | 'queryFn' | 'enabled'
-  >,
-) {
-  const isValidId = !!commitmentId && UUID_RE.test(commitmentId)
-  return useQuery({
-    queryKey: queryKeys.commitments.detail(commitmentId!),
-    queryFn: () => CommitmentService.getCommitment(commitmentId!),
-    enabled: isValidId,
     staleTime: 3 * 60 * 1000, // 3 minutes
     ...options,
   })

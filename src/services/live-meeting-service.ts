@@ -548,8 +548,3 @@ export function setStoredGuestToken(
   if (typeof window === 'undefined') return
   localStorage.setItem(`${GUEST_TOKEN_KEY_PREFIX}${meetingToken}`, guestToken)
 }
-
-export function clearStoredGuestToken(meetingToken: string): void {
-  if (typeof window === 'undefined') return
-  localStorage.removeItem(`${GUEST_TOKEN_KEY_PREFIX}${meetingToken}`)
-}

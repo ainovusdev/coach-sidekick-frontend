@@ -7,7 +7,7 @@ export type WebSocketStatus =
   | 'disconnected'
   | 'error'
 
-export interface WebSocketEvent {
+interface WebSocketEvent {
   type: string
   data: any
   timestamp: string

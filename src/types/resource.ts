@@ -87,10 +87,6 @@ export interface ResourceShareRequest {
   note?: string
 }
 
-export interface ResourceShareListResponse {
-  shares: ResourceShareInfo[]
-}
-
 // List response
 export interface SharedResourceListResponse {
   resources: SharedResource[]
@@ -118,12 +114,6 @@ export interface ClientResourceFilters {
   search?: string
   skip?: number
   limit?: number
-}
-
-// Category option for UI
-export interface CategoryOption {
-  value: string
-  label: string
 }
 
 export const CATEGORY_LABELS: Record<ResourceCategory, string> = {

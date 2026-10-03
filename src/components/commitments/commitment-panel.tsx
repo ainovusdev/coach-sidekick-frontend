@@ -91,13 +91,13 @@ export interface PanelCommitment {
   transcript_context?: string | null
 }
 
-export interface PanelTarget {
+interface PanelTarget {
   id: string
   title: string
   goal_titles?: string[]
 }
 
-export interface PanelSprint {
+interface PanelSprint {
   id: string
   title: string
   status: string
@@ -111,7 +111,7 @@ export interface PanelCommitmentGroup {
 
 // ─── Props ───
 
-export interface CommitmentPanelProps {
+interface CommitmentPanelProps {
   variant: 'coach' | 'client'
 
   /** The client this panel is about — lets the picker offer "the client". */

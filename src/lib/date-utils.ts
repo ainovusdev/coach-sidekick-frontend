@@ -65,7 +65,7 @@ export function resolveTimeZone(tz?: string | null): string {
  * @param dateString - Date string from the API (ISO format)
  * @returns Date object
  */
-export function parseDate(dateString: string | null | undefined): Date | null {
+function parseDate(dateString: string | null | undefined): Date | null {
   if (!dateString) return null
 
   // If the string doesn't end with 'Z' and doesn't have timezone offset,

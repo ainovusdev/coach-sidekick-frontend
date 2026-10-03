@@ -32,9 +32,9 @@ export interface GuestContext {
   guestToken: string
 }
 
-export type CommitmentDetailMode = 'coach' | 'client' | 'guest'
+type CommitmentDetailMode = 'coach' | 'client' | 'guest'
 
-export interface CommitmentCapabilities {
+interface CommitmentCapabilities {
   canAttach: boolean
   canMilestones: boolean
   canActivity: boolean
@@ -44,7 +44,7 @@ export interface CommitmentCapabilities {
   canSeeSiblings: boolean
 }
 
-export function resolveMode(
+function resolveMode(
   guestContext?: GuestContext,
   clientMode?: boolean,
 ): CommitmentDetailMode {
@@ -53,7 +53,7 @@ export function resolveMode(
   return 'coach'
 }
 
-export function capabilitiesFor(
+function capabilitiesFor(
   mode: CommitmentDetailMode,
   hasSession: boolean,
 ): CommitmentCapabilities {
@@ -73,7 +73,7 @@ export function capabilitiesFor(
 export const UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
-export function useCommitment(
+function useCommitment(
   commitmentId: string | null,
   guestContext?: GuestContext,
   clientMode?: boolean,

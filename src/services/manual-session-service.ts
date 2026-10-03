@@ -4,7 +4,7 @@ import { CoachingSession } from '@/types/meeting'
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface ManualSessionCreateDto {
+interface ManualSessionCreateDto {
   client_id: string
   session_date?: string
   notes?: string
@@ -14,21 +14,21 @@ export interface ManualSessionCreateDto {
   sandbox_group_id?: string
 }
 
-export interface TranscriptionStatus {
+interface TranscriptionStatus {
   session_id: string
   transcription_status: string
   transcription_progress: number
   status: string
 }
 
-export interface FileUploadResponse {
+interface FileUploadResponse {
   message: string
   session_id: string
   filename: string
   size: number
 }
 
-export interface PasteTextResponse {
+interface PasteTextResponse {
   message: string
   session_id: string
   text_length: number

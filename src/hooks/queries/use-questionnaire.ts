@@ -8,7 +8,7 @@ import type {
   PreSessionPrep,
 } from '@/types/questionnaire'
 
-export const questionnaireKeys = {
+const questionnaireKeys = {
   upcoming: (clientId?: string) =>
     ['questionnaire', 'upcoming', clientId] as const,
   responses: (sessionId: string, clientId?: string) =>

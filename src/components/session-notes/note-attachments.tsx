@@ -8,8 +8,8 @@
 import { File, FileText, Image as ImageIcon, X } from 'lucide-react'
 import { NoteAttachment } from '@/types/session-note'
 
-export const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024 // 25MB, matches backend
-export const ALLOWED_ATTACHMENT_EXTENSIONS = [
+const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024 // 25MB, matches backend
+const ALLOWED_ATTACHMENT_EXTENSIONS = [
   '.png',
   '.jpg',
   '.jpeg',
@@ -32,13 +32,13 @@ export function validateAttachment(file: File): string | null {
   return null
 }
 
-export function getFileIcon(contentType: string) {
+function getFileIcon(contentType: string) {
   if (contentType.startsWith('image/')) return ImageIcon
   if (contentType === 'application/pdf') return FileText
   return File
 }
 
-export function formatFileSize(bytes: number): string {
+function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`

@@ -44,7 +44,7 @@ interface TranscriptEntry {
   is_partial?: boolean
 }
 
-export interface ClientAnalysis {
+interface ClientAnalysis {
   summary?: string
   action_items?: string[]
   key_topics?: string[]

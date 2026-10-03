@@ -1,11 +1,11 @@
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
 
-export interface PreferencesData {
+interface PreferencesData {
   coaching_preferences: string | null
 }
 
-export interface PreferencesUpdateData {
+interface PreferencesUpdateData {
   coaching_preferences: string
 }
 

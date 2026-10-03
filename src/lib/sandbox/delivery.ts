@@ -13,7 +13,7 @@ import { type Tone } from '@/lib/tone'
 
 // Tone tokens moved to `@/lib/tone` (shared with commitments); re-exported
 // so existing imports keep working.
-export { TONE_CLASS, TONE_DOT, TONE_TEXT } from '@/lib/tone'
+export { TONE_CLASS, TONE_DOT } from '@/lib/tone'
 export type { Tone } from '@/lib/tone'
 
 export const STATE_LABEL: Record<DeliveryState, string> = {
@@ -47,14 +47,6 @@ export function fmtHoursShort(hours: number | null | undefined): string {
   if (hours == null) return '—'
   const text = Number.isInteger(hours) ? `${hours}` : hours.toFixed(1)
   return `${text.replace(/\.0$/, '')} h`
-}
-
-/** "6 of 18 sessions" — or just "6 sessions" without a contract. */
-export function fmtDelivered(pace: Pace): string {
-  const n = pace.delivered_sessions
-  if (pace.expected_sessions == null)
-    return `${n} ${n === 1 ? 'session' : 'sessions'}`
-  return `${n} of ${pace.expected_sessions} sessions`
 }
 
 /**

@@ -102,7 +102,7 @@ export function useSandboxDetails(overview: SandboxOverview, active: boolean) {
   }
 }
 
-export type SandboxDetails = ReturnType<typeof useSandboxDetails>
+type SandboxDetails = ReturnType<typeof useSandboxDetails>
 
 export function SandboxDetailsFields({
   form,

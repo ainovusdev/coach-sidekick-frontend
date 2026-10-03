@@ -24,7 +24,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
-export interface ProcessingSession {
+interface ProcessingSession {
   sessionId: string
   title: string
   progress: number
@@ -39,14 +39,6 @@ interface ProcessingContextType {
 const ProcessingContext = createContext<ProcessingContextType | undefined>(
   undefined,
 )
-
-export function useProcessing() {
-  const context = useContext(ProcessingContext)
-  if (!context) {
-    throw new Error('useProcessing must be used within ProcessingProvider')
-  }
-  return context
-}
 
 // Optional hook that doesn't throw if outside provider (for components that may or may not have the provider)
 export function useOptionalProcessing() {

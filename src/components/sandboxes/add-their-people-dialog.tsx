@@ -21,11 +21,7 @@ import {
   sandboxErrorDetail,
   useAddMember,
 } from '@/hooks/mutations/use-sandbox-mutations'
-import {
-  THEIR_ROLES,
-  type SandboxMember,
-  type TheirRole,
-} from '@/types/sandbox'
+import { THEIR_ROLES, type TheirRole } from '@/types/sandbox'
 
 /** A hat, or simply someone who is coached. */
 type RowRole = TheirRole | 'coachee'
@@ -52,7 +48,7 @@ const ANY_EMAIL_RE = /[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+/
  * A pasted list, one person per line: `Name, email`, `Name <email>`, `email`
  * — whatever a spreadsheet column or an email's To line gives you.
  */
-export function parsePeople(text: string): { email: string; name: string }[] {
+function parsePeople(text: string): { email: string; name: string }[] {
   const seen = new Set<string>()
   const out: { email: string; name: string }[] = []
   for (const line of text.split(/\r?\n|;/)) {
@@ -446,5 +442,3 @@ function TheirPersonRow({
     </div>
   )
 }
-
-export type { SandboxMember }

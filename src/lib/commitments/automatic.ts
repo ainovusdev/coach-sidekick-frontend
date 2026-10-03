@@ -6,14 +6,14 @@ import type { Commitment } from '@/types/commitment'
  * `commitment_auto_rules.py`); everything here is display-only.
  */
 
-export const RULE_LABELS: Record<string, string> = {
+const RULE_LABELS: Record<string, string> = {
   session_prep: 'session prep',
   review_ai_drafts: 'AI drafts to review',
   pre_session_questionnaire: 'pre-session questions',
   gold_sealing_decision: 'gold sealing decision',
 }
 
-export interface AutoInfo {
+interface AutoInfo {
   rule: string
   label: string
   /** One sentence: "Created by Coach Sidekick before your session with …" */

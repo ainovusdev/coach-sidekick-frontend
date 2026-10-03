@@ -4,7 +4,7 @@ const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'https://coach-sidekick-backend-production.up.railway.app/api/v1'
 
-export interface ClientProfile {
+interface ClientProfile {
   client_id: string
   personality_traits?: string[]
   communication_style?: string
@@ -24,7 +24,7 @@ export interface ClientProfile {
   last_updated?: string
 }
 
-export interface SimilarSession {
+interface SimilarSession {
   session_date: string
   session_id?: string
   duration_minutes?: number
@@ -38,14 +38,14 @@ export interface SimilarSession {
   relevance_reason?: string
 }
 
-export interface SessionSummary {
+interface SessionSummary {
   session_date: string
   summary: string
   key_points: string[]
   relevance_reason: string
 }
 
-export interface PatternHistory {
+interface PatternHistory {
   date: string
   patterns: string[]
   dominant_pattern?: string
@@ -53,20 +53,20 @@ export interface PatternHistory {
   context?: string
 }
 
-export interface RecurringTheme {
+interface RecurringTheme {
   theme: string
   count: number
   last_seen: string
 }
 
-export interface ConversationSegment {
+interface ConversationSegment {
   speaker: 'coach' | 'client' | 'assistant'
   text: string
   timestamp?: string
   relevance?: number
 }
 
-export interface AnalysisConversation {
+interface AnalysisConversation {
   id: string
   segments: ConversationSegment[]
   summary?: string
@@ -76,7 +76,7 @@ export interface AnalysisConversation {
   timestamp?: string
 }
 
-export interface MeetingContext {
+interface MeetingContext {
   client_profile?: ClientProfile
   similar_sessions?: SimilarSession[]
   session_summaries?: SessionSummary[]

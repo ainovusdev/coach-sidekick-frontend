@@ -78,12 +78,12 @@ const TEAM_KEY = 'team'
 export function isDone(r: SandboxCommitmentRow): boolean {
   return r.status === 'completed'
 }
-export function isOpen(r: SandboxCommitmentRow): boolean {
+function isOpen(r: SandboxCommitmentRow): boolean {
   return r.status === 'active' || r.status === 'in_progress'
 }
 
 /** Whole days past the due date; 0 when not late (or not open). */
-export function daysLate(r: SandboxCommitmentRow, today: string): number {
+function daysLate(r: SandboxCommitmentRow, today: string): number {
   if (!isOpen(r)) return 0
   const due = parseDateOnly(r.target_date)
   const now = parseDateOnly(today)
@@ -113,7 +113,7 @@ export function dueText(
   return { text: fmtDay(r.target_date), late: false }
 }
 
-export interface Counts {
+interface Counts {
   open: number
   overdue: number
   done: number

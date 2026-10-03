@@ -2,7 +2,7 @@ import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import { SessionService } from '@/services/session-service'
 import { queryKeys } from '@/lib/query-client'
 
-export type SessionReviewResponse = Awaited<
+type SessionReviewResponse = Awaited<
   ReturnType<typeof SessionService.getSessionReview>
 >
 

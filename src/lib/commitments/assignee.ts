@@ -7,7 +7,7 @@
 import type { Assignee, AssigneeKind, Commitment } from '@/types/commitment'
 
 /** The fields a reader needs — a full `Commitment`, a panel row, or a kanban `any`. */
-export type AssigneeSource = Partial<
+type AssigneeSource = Partial<
   Pick<
     Commitment,
     | 'assignee'
@@ -68,19 +68,6 @@ export function isClientsOwn(c: AssigneeSource): boolean {
 
 export function firstName(name: string | null | undefined): string {
   return (name ?? '').trim().split(/\s+/)[0] || ''
-}
-
-/** "You", the person's name, or "Unassigned". */
-export function assigneeLabel(
-  c: AssigneeSource,
-  viewerId: string | null | undefined,
-  opts: { short?: boolean } = {},
-): string {
-  const a = assigneeOf(c)
-  if (!a) return 'Unassigned'
-  if (viewerId && a.user_id === viewerId) return 'You'
-  const name = a.name || a.email || 'Someone'
-  return opts.short ? firstName(name) || name : name
 }
 
 /** Helper copy under an assignee picker, by who was chosen. */

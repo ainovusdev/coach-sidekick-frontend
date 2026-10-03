@@ -48,11 +48,6 @@ export function fmtTerm(start: string, months: number): string {
   return `${fmtDay(start, true)} · ${months} months`
 }
 
-export function fmtHours(hours: number | null | undefined): string {
-  if (hours == null) return '—'
-  return Number.isInteger(hours) ? `${hours} h` : `${hours} h`
-}
-
 /** "13.5 h at 45 min → 18 sessions" */
 export function fmtContract(
   group: Pick<

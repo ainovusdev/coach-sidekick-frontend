@@ -1,5 +1,5 @@
 import type { ReportingDates } from './sandbox-analytics'
-export interface InsightFinding {
+interface InsightFinding {
   id: string
   theme: string
   title: string

@@ -24,7 +24,7 @@ export interface NoteAttachment {
 }
 
 // Base session note interface
-export interface SessionNoteBase {
+interface SessionNoteBase {
   title?: string | null // Optional for client notes
   content: string
   note_type: NoteType
