@@ -18,13 +18,18 @@ const monthIndex = (d: Date) => d.getFullYear() * 12 + d.getMonth()
  * field's current value (`from`), or on today's month when it is empty.
  */
 async function pickDay(page: Page, fieldId: string, from: Date, target: Date) {
+  // The previous field's popover is still fading out when the next one
+  // opens; wait for it to be gone so one calendar is on the page at a time.
+  await expect(page.locator('[data-slot="popover-content"]')).toHaveCount(0)
   await page.click(`#${fieldId}`)
+  const calendar = page.locator('[data-slot="popover-content"]')
+  await expect(calendar).toHaveCount(1)
   const steps = monthIndex(target) - monthIndex(from)
   const nav = steps > 0 ? /next month/i : /previous month/i
   for (let i = 0; i < Math.abs(steps); i++) {
-    await page.getByRole('button', { name: nav }).click()
+    await calendar.getByRole('button', { name: nav }).click()
   }
-  await page
+  await calendar
     .locator(
       `button[data-day="${target.getMonth() + 1}/${target.getDate()}/${target.getFullYear()}"]`,
     )
@@ -130,7 +135,8 @@ test.describe('Sandboxes — timeline hand adjustment', () => {
     await page.fill('#event-label', 'Board offsite')
     const today = new Date()
     await pickDay(page, 'event-start', today, d('2026-09-14'))
-    await pickDay(page, 'event-end', d('2026-09-14'), d('2026-09-15'))
+    // The end field is still empty, so its calendar opens on today's month too.
+    await pickDay(page, 'event-end', today, d('2026-09-15'))
     await expect(page.getByTestId('event-save')).toBeDisabled() // reason missing
     await page.fill('#event-note', 'The client asked for a leadership offsite.')
     await page.getByTestId('event-save').click()
