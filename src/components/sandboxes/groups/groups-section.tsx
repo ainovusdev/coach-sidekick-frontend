@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
@@ -15,6 +15,7 @@ import { rosterOf } from '@/components/sandboxes/groups/roster-picker'
 import { GroupsPanel } from '@/components/sandboxes/groups-panel'
 import { IncompleteBanner } from '@/components/sandboxes/incomplete-banner'
 import { useSandboxView } from '@/components/sandboxes/sandbox-view-context'
+import { replaceParams } from '@/components/sandboxes/use-sandbox-landing'
 import {
   sandboxErrorDetail,
   useDeleteGroup,
@@ -69,6 +70,53 @@ export function GroupsSection({
     setDrawerGroup(group)
     setDrawerTemplate(template)
     setDrawerOpen(true)
+  }
+
+  // A session page that found its session uncounted links straight to the
+  // correction: `?tab=groups&group=<id>&focus=counts-from|start` opens that
+  // group's drawer on the right part. Read once, when the tab mounts; cleared
+  // when the drawer closes so a reload does not reopen it.
+  const canEdit = can.editGroups
+  useEffect(() => {
+    if (!canEdit) return
+    const params = new URLSearchParams(window.location.search)
+    const wanted = params.get('group')
+    if (!wanted) return
+    const target = overview.groups.find(g => g.id === wanted)
+    if (!target) return
+    const focus = params.get('focus')
+    openDrawer(target)
+    const selector =
+      focus === 'counts-from'
+        ? '[data-testid="counts-from-list"]'
+        : focus === 'start'
+          ? '#group-starts'
+          : null
+    if (!selector) return
+    let tries = 0
+    const timer = window.setInterval(() => {
+      const node = document.querySelector<HTMLElement>(selector)
+      if (node) {
+        node.scrollIntoView({ block: 'center' })
+        if (focus === 'start') node.focus()
+      }
+      if (node || ++tries > 20) window.clearInterval(timer)
+    }, 150)
+    return () => window.clearInterval(timer)
+    // The groups list is read once on mount; a drawer opened by hand later must
+    // not reopen when the overview refreshes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canEdit])
+  const closeDrawer = (open: boolean) => {
+    setDrawerOpen(open)
+    if (!open)
+      replaceParams(
+        url => {
+          url.searchParams.delete('group')
+          url.searchParams.delete('focus')
+        },
+        { keepHash: true },
+      )
   }
   const openSheet = (template: SandboxGroup | null = null) => {
     setSheetTemplate(template)
@@ -154,7 +202,7 @@ export function GroupsSection({
         <>
           <GroupDrawer
             open={drawerOpen}
-            onOpenChange={setDrawerOpen}
+            onOpenChange={closeDrawer}
             overview={overview}
             group={drawerGroup}
             template={drawerTemplate}

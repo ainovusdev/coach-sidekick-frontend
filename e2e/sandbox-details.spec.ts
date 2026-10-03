@@ -829,11 +829,24 @@ test.describe('Sandbox entity details', () => {
         },
       ],
     })
+    let choicesAsked = 0
     await page.route(new RegExp(`/sandboxes/${sid}/attributions`), route => {
       if (route.request().method() === 'PATCH') {
         saved = route.request().postDataJSON()
         resolved = true
         return route.fulfill({ json: item() })
+      }
+      // The dialog asks what is eligible *today* rather than trusting the
+      // list the row stored.
+      if (route.request().url().endsWith('/choices')) {
+        choicesAsked += 1
+        return route.fulfill({
+          json: {
+            revision: 3,
+            candidates: item().candidates,
+            stored_is_stale: false,
+          },
+        })
       }
       return route.fulfill({ json: { items: [item()] } })
     })
@@ -842,12 +855,12 @@ test.describe('Sandbox entity details', () => {
     await expect(page.getByTestId('session-attribution')).toContainText(
       'Alex Morgan: Sandbox assignment needs review.',
     )
-    await expect(page.getByTestId('session-attribution')).toContainText(
-      '7 Sep 2026',
-    )
-    await expect(page.getByTestId('session-attribution')).toContainText(
+    const dialog = page.getByTestId('assignment-dialog')
+    await expect(dialog).toContainText('7 Sep 2026')
+    await expect(dialog).toContainText(
       'Choose which agreement should receive this session’s coaching hours.',
     )
+    await expect.poll(() => choicesAsked).toBeGreaterThan(0)
     await expect(
       page.getByRole('button', { name: 'Confirm assignment' }),
     ).toBeDisabled()
