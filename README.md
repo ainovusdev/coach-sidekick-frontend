@@ -1,36 +1,27 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Coach Sidekick — frontend
 
-## Getting Started
+Next.js 15 / React 19 web app for the Coach Sidekick coaching platform: the coach app, the client portal ("Sidekick"), the admin panel and the sandbox cockpit. It is a client over the FastAPI backend in `../coach-sidekick-backend`; it has no database or API routes of its own.
 
-First, run the development server:
+## Run it locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL=http://localhost:8001, NEXT_PUBLIC_WS_URL, PostHog keys
+pnpm dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Start the backend first (`make run` in `../coach-sidekick-backend`, port 8001). The workspace `/start` skill boots both.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Check and test
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`pnpm lint`; `pnpm e2e` runs the Playwright suite against a dedicated backend and frontend (see `../SANDBOX_HANDOFF.md`). Do not run `pnpm build` locally unless asked; the pre-PR hook does it.
 
-## Learn More
+## Ship
 
-To learn more about Next.js, take a look at the following resources:
+Branch off `main`, open a PR to `main`, merge. Vercel deploys `main`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## More
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `CLAUDE.md` — layout, rules and conventions (written for coding agents, useful for people)
+- `CONTEXT.md` — UI glossary
+- `../ARCHITECTURE.md` — whole-system overview
