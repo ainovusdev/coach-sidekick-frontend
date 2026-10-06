@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { queryKeys } from '@/lib/query-client'
-import { Toast, useToast } from '@/components/ui/toast'
+import { toast } from 'sonner'
 import { MeetingLoading } from '@/components/meeting/meeting-loading'
 import { MeetingError } from '@/components/meeting/meeting-error'
 import { BatchSaveStatus } from '@/components/meeting/batch-save-status'
@@ -19,7 +19,6 @@ export default function MeetingPage() {
   const router = useRouter()
   const queryClient = useQueryClient()
   const botId = params.botId as string
-  const { toast, showToast, closeToast } = useToast()
   const hasShownProcessingToast = useRef(false)
   const hasShownCompletionToast = useRef(false)
   const sessionIdRef = useRef<string | null>(null)
@@ -58,7 +57,7 @@ export default function MeetingPage() {
       !hasShownProcessingToast.current
     ) {
       hasShownProcessingToast.current = true
-      showToast('Meeting ended. Processing session...', 'success')
+      toast.success('Meeting ended. Processing session...')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMeetingEnded, isSessionCompleted])
@@ -70,7 +69,7 @@ export default function MeetingPage() {
     if (isSessionCompleted && !hasShownCompletionToast.current) {
       hasShownCompletionToast.current = true
 
-      showToast('Session saved! Redirecting to summary...', 'success')
+      toast.success('Session saved! Redirecting to summary...')
 
       // Short delay before redirect since processing is already done
       setTimeout(() => {
@@ -104,9 +103,8 @@ export default function MeetingPage() {
           session_id: sessionId ?? null,
           client_id: clientId ?? null,
         })
-        showToast(
+        toast.success(
           'Bot stopped successfully! Redirecting to session details...',
-          'success',
         )
         setTimeout(() => {
           // Navigate to session details page if sessionId exists, otherwise go to dashboard
@@ -125,11 +123,11 @@ export default function MeetingPage() {
           }
         }, 2000)
       } else {
-        showToast('Failed to stop bot. Please try again.', 'error')
+        toast.error('Failed to stop bot. Please try again.')
       }
     } catch (error) {
       console.error('Error stopping bot:', error)
-      showToast('Failed to stop bot. Please try again.', 'error')
+      toast.error('Failed to stop bot. Please try again.')
     }
   }
 
@@ -143,10 +141,6 @@ export default function MeetingPage() {
 
   return (
     <div className="h-screen  flex flex-col overflow-hidden">
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={closeToast} />
-      )}
-
       <div className="flex-shrink-0 z-10">
         <MeetingHeader
           bot={bot}

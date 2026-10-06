@@ -21,7 +21,7 @@ import { useStartSessionBot } from '@/hooks/mutations/use-questionnaire-mutation
 import { useSendQuestionnaire } from '@/hooks/mutations/use-questionnaire-mutations'
 import { useUpdateSession } from '@/hooks/mutations/use-session-mutations'
 import { useQuestionnaireResponses } from '@/hooks/queries/use-questionnaire'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import ClientSelector from '@/components/clients/client-selector'
 import type { Client } from '@/types/meeting'
 
@@ -71,10 +71,8 @@ export function StartBotCard({
 
   const handleStartBot = async () => {
     if (!meetingUrl.trim()) {
-      toast({
-        title: 'Meeting URL required',
+      toast.error('Meeting URL required', {
         description: 'Please enter a meeting URL to start the bot.',
-        variant: 'destructive',
       })
       return
     }
@@ -86,8 +84,7 @@ export function StartBotCard({
         botName: botName || undefined,
       })
 
-      toast({
-        title: 'Bot started',
+      toast.success('Bot started', {
         description: 'Redirecting to the live meeting page...',
       })
 

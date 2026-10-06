@@ -36,7 +36,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { ManualSessionService } from '@/services/manual-session-service'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 interface ManualSessionModalProps {
   isOpen: boolean
@@ -79,11 +79,7 @@ export function ManualSessionModal({
     e.preventDefault()
 
     if (!formData.client_id) {
-      toast({
-        title: 'Error',
-        description: 'Please select a client',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Please select a client' })
       return
     }
 
@@ -99,21 +95,14 @@ export function ManualSessionModal({
         sandbox_group_id: sandbox?.group_id,
       })
 
-      toast({
-        title: 'Success',
-        description: 'Session created successfully',
-      })
+      toast.success('Success', { description: 'Session created successfully' })
 
       // Close modal and redirect to session details page
       onClose()
       router.push(`/sessions/${session.id}`)
     } catch (error) {
       console.error('Failed to create session:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to create session',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to create session' })
     } finally {
       setCreating(false)
     }

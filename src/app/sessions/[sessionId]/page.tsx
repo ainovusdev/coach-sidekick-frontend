@@ -50,7 +50,7 @@ import { AnalysisPrintView } from './components/analysis-print-view'
 import { PreSessionResponses } from './components/pre-session-responses'
 import { CommitmentCreatePanel } from '@/components/commitments/commitment-create-panel'
 import { CommitmentDetailPanel } from '@/components/commitments/commitment-detail-panel'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { useSessionDetails } from '@/hooks/queries/use-session-details'
 import { useCommitments } from '@/hooks/queries/use-commitments'
 import { useQueryClient } from '@tanstack/react-query'
@@ -345,8 +345,7 @@ export default function SessionDetailsPage({
 
       setAnalysisData(fullAnalysis)
 
-      toast({
-        title: 'Analysis Complete',
+      toast.success('Analysis Complete', {
         description:
           'Session insights and coaching metrics have been generated successfully.',
       })
@@ -366,8 +365,7 @@ export default function SessionDetailsPage({
     setDeleting(true)
     try {
       await SessionService.deleteSession(sessionData.session.id)
-      toast({
-        title: 'Session Deleted',
+      toast.success('Session Deleted', {
         description: 'The session and all associated data have been deleted.',
       })
       // Navigate to client profile if client exists, otherwise sessions list
@@ -433,8 +431,7 @@ export default function SessionDetailsPage({
       const result = await SessionService.sendSummaryEmail(
         sessionData.session.id,
       )
-      toast({
-        title: 'Email Sent Successfully',
+      toast.success('Email Sent Successfully', {
         description: `Session summary sent to ${result.sent_to}`,
       })
     } catch (error) {
@@ -459,8 +456,7 @@ export default function SessionDetailsPage({
       queryClient.invalidateQueries({
         queryKey: queryKeys.sessions.detail(sessionData.session.id),
       })
-      toast({
-        title: 'Analysis Generated',
+      toast.success('Analysis Generated', {
         description:
           'Personalized analysis has been generated for this participant.',
       })

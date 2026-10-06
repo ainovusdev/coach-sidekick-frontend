@@ -15,7 +15,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useToast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import {
   User,
   Mail,
@@ -50,7 +50,6 @@ interface UserProfile {
 export function ProfileSection() {
   const { user, hasRole, isAuthenticated } = useAuth()
   const router = useRouter()
-  const { toast } = useToast()
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
@@ -77,11 +76,7 @@ export function ProfileSection() {
       }))
     } catch (error) {
       console.error('Failed to fetch profile:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load profile',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to load profile' })
     } finally {
       setLoading(false)
     }
@@ -102,26 +97,18 @@ export function ProfileSection() {
 
       if (formData.new_password) {
         if (!passwordValidation.isValid) {
-          toast({
-            title: 'Error',
+          toast.error('Error', {
             description: 'Please meet all password requirements',
-            variant: 'destructive',
           })
           return
         }
         if (formData.new_password !== formData.confirm_password) {
-          toast({
-            title: 'Error',
-            description: 'Passwords do not match',
-            variant: 'destructive',
-          })
+          toast.error('Error', { description: 'Passwords do not match' })
           return
         }
         if (!formData.current_password) {
-          toast({
-            title: 'Error',
+          toast.error('Error', {
             description: 'Current password is required to change password',
-            variant: 'destructive',
           })
           return
         }
@@ -132,10 +119,7 @@ export function ProfileSection() {
       const response = await axios.put('/auth/me', updateData)
       setProfile(response.data)
       setIsEditing(false)
-      toast({
-        title: 'Success',
-        description: 'Profile updated successfully',
-      })
+      toast.success('Success', { description: 'Profile updated successfully' })
 
       setFormData(prev => ({
         ...prev,
@@ -144,10 +128,8 @@ export function ProfileSection() {
         confirm_password: '',
       }))
     } catch (error: any) {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: error.response?.data?.detail || 'Failed to update profile',
-        variant: 'destructive',
       })
     }
   }

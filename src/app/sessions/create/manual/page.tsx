@@ -31,7 +31,7 @@ import { ArrowLeft, Upload } from 'lucide-react'
 import { ManualSessionService } from '@/services/manual-session-service'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { LoadingState } from '@/components/ui/loading-state'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 
 function CreateManualSessionContent() {
   const router = useRouter()
@@ -68,11 +68,7 @@ function CreateManualSessionContent() {
     e.preventDefault()
 
     if (!formData.client_id) {
-      toast({
-        title: 'Error',
-        description: 'Please select a client',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Please select a client' })
       return
     }
 
@@ -86,20 +82,13 @@ function CreateManualSessionContent() {
         sandbox_group_id: sandbox?.group_id,
       })
 
-      toast({
-        title: 'Success',
-        description: 'Session created successfully',
-      })
+      toast.success('Success', { description: 'Session created successfully' })
 
       // Redirect to session details page
       router.push(`/sessions/${session.id}`)
     } catch (error) {
       console.error('Failed to create session:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to create session',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to create session' })
     } finally {
       setCreating(false)
     }
