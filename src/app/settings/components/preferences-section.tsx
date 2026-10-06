@@ -10,12 +10,11 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { Toast, useToast } from '@/components/ui/toast'
+import { toast } from 'sonner'
 import { PreferencesService } from '@/services/preferences.service'
 import { Loader2, Save } from 'lucide-react'
 
 export function PreferencesSection() {
-  const { toast, showToast, closeToast } = useToast()
   const [preferences, setPreferences] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -29,7 +28,7 @@ export function PreferencesSection() {
       const data = await PreferencesService.getPreferences()
       setPreferences(data.coaching_preferences || '')
     } catch (error) {
-      showToast('Failed to load preferences', 'error')
+      toast.error('Failed to load preferences')
       console.error('Error loading preferences:', error)
     } finally {
       setLoading(false)
@@ -38,7 +37,7 @@ export function PreferencesSection() {
 
   const handleSave = async () => {
     if (!preferences.trim()) {
-      showToast('Please enter your coaching preferences', 'error')
+      toast.error('Please enter your coaching preferences')
       return
     }
 
@@ -47,9 +46,9 @@ export function PreferencesSection() {
       await PreferencesService.updatePreferences({
         coaching_preferences: preferences.trim(),
       })
-      showToast('Preferences saved successfully', 'success')
+      toast.success('Preferences saved successfully')
     } catch (error) {
-      showToast('Failed to save preferences', 'error')
+      toast.error('Failed to save preferences')
       console.error('Error saving preferences:', error)
     } finally {
       setSaving(false)
@@ -157,10 +156,6 @@ export function PreferencesSection() {
           </div>
         </CardContent>
       </Card>
-
-      {toast && (
-        <Toast message={toast.message} type={toast.type} onClose={closeToast} />
-      )}
     </>
   )
 }

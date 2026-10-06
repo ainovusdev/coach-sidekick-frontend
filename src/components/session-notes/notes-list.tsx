@@ -36,7 +36,7 @@ import {
   StickyNote,
   MessageSquare,
 } from 'lucide-react'
-import { toast } from '@/hooks/use-toast'
+import { toast } from 'sonner'
 import { formatRelativeTime } from '@/lib/date-utils'
 
 interface NotesListProps {
@@ -153,11 +153,7 @@ export function NotesList({
       setNotes(fetchedNotes)
     } catch (error) {
       console.error('Failed to fetch notes:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to load notes',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to load notes' })
     } finally {
       setLoading(false)
     }
@@ -199,19 +195,14 @@ export function NotesList({
     setDeleting(true)
     try {
       await SessionNotesService.deleteNote(noteToDelete.id)
-      toast({
-        title: 'Note Deleted',
+      toast.success('Note Deleted', {
         description: 'The note has been deleted successfully',
       })
       await fetchNotes()
       setNoteToDelete(null)
     } catch (error) {
       console.error('Failed to delete note:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to delete note',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to delete note' })
     } finally {
       setDeleting(false)
     }
@@ -236,19 +227,14 @@ export function NotesList({
       await SessionNotesService.updateNote(editingNote.id, {
         content: editContent,
       })
-      toast({
-        title: 'Note Updated',
+      toast.success('Note Updated', {
         description: 'Your changes have been saved',
       })
       await fetchNotes()
       cancelEditing()
     } catch (error) {
       console.error('Failed to update note:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to save changes',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to save changes' })
     } finally {
       setSaving(false)
     }
@@ -261,7 +247,7 @@ export function NotesList({
     for (const file of Array.from(fileList)) {
       const error = validateAttachment(file)
       if (error) {
-        toast({ title: 'Error', description: error, variant: 'destructive' })
+        toast.error('Error', { description: error })
       } else {
         valid.push(file)
       }
@@ -290,28 +276,19 @@ export function NotesList({
           await SessionNotesService.uploadAttachment(created.id, file)
         } catch (uploadError) {
           console.error('Failed to upload attachment:', uploadError)
-          toast({
-            title: 'Attachment Failed',
+          toast.error('Attachment Failed', {
             description: `The note was saved, but ${file.name} could not be uploaded`,
-            variant: 'destructive',
           })
         }
       }
-      toast({
-        title: 'Note Created',
-        description: 'Your note has been saved',
-      })
+      toast.success('Note Created', { description: 'Your note has been saved' })
       await fetchNotes()
       setShowCreateForm(false)
       setNewNoteContent('')
       setPendingFiles([])
     } catch (error) {
       console.error('Failed to create note:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to create note',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to create note' })
     } finally {
       setCreating(false)
     }
@@ -325,18 +302,14 @@ export function NotesList({
       for (const file of Array.from(fileList)) {
         const error = validateAttachment(file)
         if (error) {
-          toast({ title: 'Error', description: error, variant: 'destructive' })
+          toast.error('Error', { description: error })
           continue
         }
         try {
           await SessionNotesService.uploadAttachment(editingNote.id, file)
         } catch (uploadError) {
           console.error('Failed to upload attachment:', uploadError)
-          toast({
-            title: 'Error',
-            description: `Failed to upload ${file.name}`,
-            variant: 'destructive',
-          })
+          toast.error('Error', { description: `Failed to upload ${file.name}` })
         }
       }
       await fetchNotes()
@@ -352,11 +325,7 @@ export function NotesList({
       await fetchNotes()
     } catch (error) {
       console.error('Failed to delete attachment:', error)
-      toast({
-        title: 'Error',
-        description: 'Failed to remove attachment',
-        variant: 'destructive',
-      })
+      toast.error('Error', { description: 'Failed to remove attachment' })
     }
   }
 
