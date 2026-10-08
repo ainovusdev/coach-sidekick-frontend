@@ -4,7 +4,10 @@ import { withSandboxViewer } from './use-sandbox-insights'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { SandboxDetailsService } from '@/services/sandbox-details-service'
 import type { InsightSelection } from '@/types/sandbox-analytics'
-import type { SandboxEntityKind } from '@/types/sandbox-details'
+import type {
+  SandboxChangesFilters,
+  SandboxEntityKind,
+} from '@/types/sandbox-details'
 
 export function useSandboxEntity(
   sandboxId: string,
@@ -63,6 +66,32 @@ export function useSandboxEntityActivity(
     initialPageParam: null as string | null,
     getNextPageParam: page => page.next_cursor ?? undefined,
     enabled: !!viewer && enabled,
+    gcTime: 0,
+    staleTime: 0,
+  })
+}
+/**
+ * The sandbox's audit log, a page at a time.
+ *
+ * Keyed under `['sandbox-changes']` so every mutation helper in
+ * `query-client.ts` can drop it with one prefix; bound to the viewer so a
+ * switch mid-request never shows another person's rows.
+ */
+export function useSandboxChanges(
+  sandboxId: string,
+  viewer: string | null,
+  filters: SandboxChangesFilters,
+  enabled = true,
+) {
+  return useInfiniteQuery({
+    queryKey: ['sandbox-changes', viewer, sandboxId, filters],
+    queryFn: ({ pageParam }) =>
+      withSandboxViewer(viewer, () =>
+        SandboxDetailsService.changes(sandboxId, filters, pageParam),
+      ),
+    initialPageParam: null as string | null,
+    getNextPageParam: page => page.next_cursor ?? undefined,
+    enabled: !!viewer && !!sandboxId && enabled,
     gcTime: 0,
     staleTime: 0,
   })

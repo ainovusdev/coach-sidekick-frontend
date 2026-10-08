@@ -424,6 +424,7 @@ export const invalidateQueries = {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
       queryClient.invalidateQueries({
         queryKey: queryKeys.sandboxes.outcomes(sandboxId),
       }),
@@ -449,6 +450,8 @@ export const invalidateQueries = {
         : queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       // coachees become clients of the group's coaches
       queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
+      // every sandbox mutation is a line in its log
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
     ])
   },
 
@@ -460,6 +463,7 @@ export const invalidateQueries = {
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-client-markers'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
     ])
   },
 
@@ -495,6 +499,7 @@ export const invalidateQueries = {
         queryClient.invalidateQueries({
           queryKey: queryKeys.sandboxes.detail(opts.sandboxId),
         }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
     ])
   },

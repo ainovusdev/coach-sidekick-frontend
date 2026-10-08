@@ -2,6 +2,8 @@ import { ApiClient } from '@/lib/api-client'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 import type {
   SandboxActivityPage,
+  SandboxChangesFilters,
+  SandboxChangesPage,
   SandboxConcern,
   SandboxConcernCreate,
   SandboxConcernList,
@@ -50,6 +52,24 @@ export const SandboxDetailsService = {
     const query = detailQuery(selection)
     if (cursor) query.set('cursor', cursor)
     return ApiClient.get(`${base}/${sandboxId}/activity?${query}`)
+  },
+  /** The audit log, newest first; `cursor` continues an earlier page. */
+  changes(
+    sandboxId: string,
+    filters: SandboxChangesFilters,
+    cursor?: string | null,
+  ): Promise<SandboxChangesPage> {
+    const query = new URLSearchParams()
+    if (filters.kinds?.length) query.set('kinds', filters.kinds.join(','))
+    if (filters.include_derived === false) query.set('include_derived', 'false')
+    if (filters.group_id) query.set('group_id', filters.group_id)
+    if (filters.subject_member_id)
+      query.set('subject_member_id', filters.subject_member_id)
+    if (filters.record_type) query.set('record_type', filters.record_type)
+    if (filters.record_id) query.set('record_id', filters.record_id)
+    if (filters.limit) query.set('limit', String(filters.limit))
+    if (cursor) query.set('cursor', cursor)
+    return ApiClient.get(`${base}/${sandboxId}/changes?${query}`)
   },
   feedback(
     sandboxId: string,

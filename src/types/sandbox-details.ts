@@ -41,6 +41,61 @@ export interface SandboxActivityPage {
   items: SandboxActivityItem[]
   next_cursor: string | null
 }
+
+// ---------------------------------------------------------------------------
+// The audit log — `GET /sandboxes/{id}/changes`
+// ---------------------------------------------------------------------------
+
+export type SandboxChangeKind =
+  | 'dates'
+  | 'contract'
+  | 'people'
+  | 'commitments'
+  | 'outcomes'
+export type SandboxChangeSource = 'api' | 'sweeper' | 'derived' | 'public_link'
+export interface ChangeActor {
+  id: string
+  name: string
+}
+export interface SandboxChangeItem {
+  id: string
+  created_at: string
+  /** null = Coach Sidekick acted on its own (the sweeper). */
+  actor: ChangeActor | null
+  /** Set when a super admin acted as someone else. */
+  as_user: ChangeActor | null
+  source: SandboxChangeSource
+  record_type: string
+  record_id: string
+  record_label: string
+  action: string
+  kind: SandboxChangeKind
+  before: Record<string, unknown> | null
+  after: Record<string, unknown> | null
+  cause: string | null
+  group_id: string | null
+  member_id: string | null
+  restricted: boolean
+  /** One sentence, actor first: "Priya moved Midpoint reporting: …". */
+  summary: string
+}
+export interface SandboxChangesPage {
+  /** false = the log is not for this viewer; nothing else is said. */
+  visible: boolean
+  reason: 'their_side' | 'own_coaching_only' | null
+  recording_started_at: string | null
+  items: SandboxChangeItem[]
+  next_cursor: string | null
+}
+export interface SandboxChangesFilters {
+  kinds?: SandboxChangeKind[]
+  include_derived?: boolean
+  group_id?: string | null
+  subject_member_id?: string | null
+  record_type?: string
+  record_id?: string
+  limit?: number
+}
 export interface SandboxEntityDetail {
   sandbox_id: string
   sandbox_name: string

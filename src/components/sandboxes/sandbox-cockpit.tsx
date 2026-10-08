@@ -19,6 +19,7 @@ import {
 import { OutcomesPanel } from '@/components/sandboxes/outcomes/outcomes-panel'
 import { SandboxHero } from '@/components/sandboxes/sandbox-hero'
 import { SettingsPanel } from '@/components/sandboxes/settings-panel'
+import { ActivityTab } from '@/components/sandboxes/tabs/activity-tab'
 import { GroupsTab } from '@/components/sandboxes/tabs/groups-tab'
 import { CommitmentsTab } from '@/components/sandboxes/tabs/commitments-tab'
 import { PeopleTab } from '@/components/sandboxes/tabs/people-tab'
@@ -49,7 +50,7 @@ import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
 
 /**
- * The page our own side works from: a hero, six tabs, and a rail of things
+ * The page our own side works from: a hero, the tabs, and a rail of things
  * you want beside you whichever tab is open.
  *
  * The shell owns three things and nothing else — which tab is showing, what the
@@ -103,7 +104,9 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
   useSandboxLanding(sandboxId, url => {
     setSelection(url.selection)
     const next = TAB_FOR_ANCHOR[url.hash] ?? toSandboxTab(url.tab)
-    if (next) setTab(next)
+    // A tab this person is not offered (`?tab=activity` pasted to the client's
+    // side) lands on Today, the same as a tab name that does not exist.
+    if (next && tabs.includes(next)) setTab(next)
     if (url.commitment) setOpenCommitmentId(url.commitment)
     if (!url.hash) return
     landing.current = url.hash
@@ -260,6 +263,15 @@ export function SandboxCockpit({ overview }: { overview: SandboxOverview }) {
                 onGoToPeople={() => goToTab('people')}
               />
             </TabsContent>
+
+            {can.seeChanges && (
+              <TabsContent value="activity">
+                <ActivityTab
+                  overview={overview}
+                  onOpenCommitment={setOpenCommitmentId}
+                />
+              </TabsContent>
+            )}
 
             <TabsContent value="settings">
               <SettingsPanel overview={overview} />

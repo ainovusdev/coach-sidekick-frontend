@@ -9,6 +9,7 @@
  */
 
 import {
+  CalendarClock,
   Plus,
   Sparkles,
   TrendingUp,
@@ -21,7 +22,7 @@ import {
 } from 'lucide-react'
 import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
-import { formatDate } from '@/lib/date-utils'
+import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { statusInfo } from '@/lib/commitments/labels'
 import type { Commitment } from '@/types/commitment'
 import type { Comment } from '@/types/comment'
@@ -49,6 +50,8 @@ function ItemIcon({ item }: { item: ActivityItem }) {
       return <TrendingUp className={cn(base, 'text-amber-token')} />
     case 'assigned':
       return <UserRound className={cn(base, 'text-ink-3')} />
+    case 'rescheduled':
+      return <CalendarClock className={cn(base, 'text-ink-3')} />
     case 'completed':
       return <CheckCircle2 className={cn(base, 'text-forest')} />
     case 'auto_resolved':
@@ -158,6 +161,26 @@ function ItemBody({
       )
     case 'completed':
       return <span className="text-ink-3">Marked complete</span>
+    case 'rescheduled':
+      return (
+        <span className="text-ink-3" data-testid="activity-rescheduled">
+          <span className="text-ink-2 font-medium">{actor}</span> moved the due
+          date{' '}
+          {item.fromDate && (
+            <>
+              from{' '}
+              <span className="text-ink-2">
+                {formatDateOnly(item.fromDate, 'MMM d')}
+              </span>{' '}
+            </>
+          )}
+          to{' '}
+          <span className="text-ink-2 font-medium">
+            {item.toDate ? formatDateOnly(item.toDate, 'MMM d, yyyy') : 'none'}
+          </span>
+          {item.reason ? ` — ${item.reason}` : ''}
+        </span>
+      )
     case 'assigned':
       return (
         <span className="text-ink-3">

@@ -120,6 +120,7 @@ test.describe('Sandboxes — the page is tabbed', () => {
     await on('people', 'people-table')
     await on('groups', 'pairings-panel')
     await on('groups', 'groups-panel')
+    await on('activity', 'activity-panel')
     await on('settings', 'settings-panel')
     await on('settings', 'vision-panel')
   })

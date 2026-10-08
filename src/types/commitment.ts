@@ -114,6 +114,8 @@ export interface CommitmentUpdate {
   assigned_to_id?: string | null // null with a client = the client themself
   visibility?: CommitmentVisibility
   metadata?: Record<string, unknown>
+  /** Why the due date moved — kept on the ledger row, never required. */
+  reason?: string
 }
 
 // Full commitment response from backend

@@ -31,6 +31,8 @@ export interface SandboxCan {
   seeLinks: boolean
   /** every group, or only the ones I am in */
   seeAllGroups: boolean
+  /** the sandbox's log of changes — our side with a working scope only */
+  seeChanges: boolean
 }
 
 type SandboxAudience = 'admin' | 'ours' | 'theirs'
@@ -75,6 +77,7 @@ const ALL_ON: SandboxCan = {
   seePeople: true,
   seeLinks: true,
   seeAllGroups: true,
+  seeChanges: true,
 }
 
 const ALL_OFF: SandboxCan = {
@@ -88,6 +91,7 @@ const ALL_OFF: SandboxCan = {
   seePeople: false,
   seeLinks: false,
   seeAllGroups: true,
+  seeChanges: false,
 }
 
 function hrefs(basePath: SandboxView['basePath']): SandboxView['href'] {
@@ -115,6 +119,7 @@ const ADMIN_SANDBOX_VIEW: SandboxView = {
 function canFromCapabilities(
   caps: readonly SandboxCapability[],
   scope: SandboxScope,
+  audience: SandboxAudience,
 ): SandboxCan {
   const has = (c: SandboxCapability) => caps.includes(c)
   return {
@@ -128,6 +133,10 @@ function canFromCapabilities(
     seePeople: has('people.manage'),
     seeLinks: has('links.read'),
     seeAllGroups: scope === 'all',
+    // The log is for the people doing the work: not the client's side, and
+    // not someone whose only place here is being coached. The backend decides
+    // the same thing again (`visible=false`), so this only chooses the tab.
+    seeChanges: audience === 'ours' && (scope === 'all' || scope === 'groups'),
   }
 }
 
@@ -136,11 +145,16 @@ export function viewFromOverview(
   overview: Pick<SandboxOverview, 'my_capabilities' | 'my_scope' | 'my_roles'>,
   opts: { isAdmin: boolean; isOurs: boolean },
 ): SandboxView {
+  const audience: SandboxAudience = opts.isAdmin
+    ? 'admin'
+    : opts.isOurs
+      ? 'ours'
+      : 'theirs'
   const can = opts.isAdmin
     ? ALL_ON
-    : canFromCapabilities(overview.my_capabilities, overview.my_scope)
+    : canFromCapabilities(overview.my_capabilities, overview.my_scope, audience)
   return {
-    audience: opts.isAdmin ? 'admin' : opts.isOurs ? 'ours' : 'theirs',
+    audience,
     scope: opts.isAdmin ? 'all' : overview.my_scope,
     basePath: '/sandboxes',
     indexLabel: opts.isAdmin ? 'Sandboxes' : 'My sandboxes',

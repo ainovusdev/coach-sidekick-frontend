@@ -381,6 +381,7 @@ function AttributionContent({
     void queryClient.invalidateQueries({ queryKey: key })
     void queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] })
     void queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] })
+    void queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
   }
   if (!items.length && !diagnostics.length) return null
   // On the session page the whole thing is a strip: one line per person, the

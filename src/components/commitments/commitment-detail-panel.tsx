@@ -508,6 +508,9 @@ export function FieldsGrid({
   variant?: 'card' | 'plain'
 }) {
   const [calendarOpen, setCalendarOpen] = useState(false)
+  // Why the date is moving. Optional, and only meaningful when the row sits
+  // on a sandbox — it is kept on the ledger row and in the sandbox's log.
+  const [dateReason, setDateReason] = useState('')
 
   // The viewer may read this row but not change it (assignee-only, viewer
   // role, another coach's private note). The API says so per row.
@@ -681,13 +684,34 @@ export function FieldsGrid({
                 mode="single"
                 selected={parseDateForPicker(commitment.target_date)}
                 onSelect={date => {
-                  onFieldUpdate(
-                    'target_date',
-                    date ? date.toISOString().split('T')[0] : null,
-                  )
+                  const target_date = date
+                    ? date.toISOString().split('T')[0]
+                    : null
+                  const reason = dateReason.trim()
+                  if (reason && onFieldsUpdate && commitment.target_date) {
+                    // The reason rides along with the date; it is not a field
+                    // on the row, so it must not land in the optimistic cache.
+                    onFieldsUpdate({ target_date, reason }, { target_date })
+                  } else {
+                    onFieldUpdate('target_date', target_date)
+                  }
+                  setDateReason('')
                   setCalendarOpen(false)
                 }}
               />
+              {commitment.sandbox_id && commitment.target_date && (
+                <div className="border-t border-line p-2">
+                  <Input
+                    aria-label="Why is the date moving?"
+                    data-testid="due-reason"
+                    placeholder="Why is it moving? (optional)"
+                    value={dateReason}
+                    onChange={e => setDateReason(e.target.value)}
+                    maxLength={500}
+                    className="h-8 text-xs"
+                  />
+                </div>
+              )}
             </PopoverContent>
           </Popover>
         </div>

@@ -293,6 +293,8 @@ export interface TimelineEventUpdate {
   window_end?: string
   /** Move the later check-ins by the same number of days. */
   shift_following?: boolean
+  /** Why it is moving — recorded in the sandbox's log, never required. */
+  reason?: string
 }
 
 export type TimelineChangeAction =

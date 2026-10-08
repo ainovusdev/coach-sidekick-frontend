@@ -16,6 +16,7 @@ export const SANDBOX_TABS = [
   'commitments',
   'people',
   'groups',
+  'activity',
   'settings',
 ] as const
 
@@ -30,6 +31,7 @@ export const TAB_LABEL: Record<SandboxTab, string> = {
   commitments: 'Commitments',
   people: 'People',
   groups: 'Groups',
+  activity: 'Activity',
   settings: 'Settings',
 }
 
@@ -68,6 +70,8 @@ export const TAB_FOR_ANCHOR: Record<string, SandboxTab> = {
   team: 'people',
   invitations: 'people',
   groups: 'groups',
+  activity: 'activity',
+  changes: 'activity',
   vision: 'settings',
   settings: 'settings',
 }
@@ -84,7 +88,12 @@ export function toSandboxTab(
   return isSandboxTab(value) ? value : (LEGACY_TAB[value] ?? null)
 }
 
-/** The tabs this person gets, in order. */
-export function tabsFor(_can: SandboxCan): SandboxTab[] {
-  return [...SANDBOX_TABS]
+/**
+ * The tabs this person gets, in order.
+ *
+ * Activity is the one tab that is a permission as well as a place: the log is
+ * for our side with a working scope, and nobody else is offered it.
+ */
+export function tabsFor(can: SandboxCan): SandboxTab[] {
+  return SANDBOX_TABS.filter(t => t !== 'activity' || can.seeChanges)
 }
