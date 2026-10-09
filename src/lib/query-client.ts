@@ -475,18 +475,28 @@ export const invalidateQueries = {
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
+      // …and the coachee's portal card quotes their personal windows
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'client-context'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'coachee'],
+      }),
     ])
   },
 
   /** A window moved: every number built on which sessions count can change. */
   afterSandboxWindowChange: async (queryClient: QueryClient) => {
     await Promise.all([
+      // `sandboxes.all` covers the client context and the coachee card too.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-client-markers'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
+      // a window moving re-dates personal milestones: the hub and an open panel
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
     ])
   },
 

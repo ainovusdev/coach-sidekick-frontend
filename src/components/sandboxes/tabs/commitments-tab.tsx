@@ -28,6 +28,7 @@ import {
   TrackedRow,
 } from '@/components/sandboxes/commitments/commitment-sections'
 import { MilestoneOccurrenceCard } from '@/components/sandboxes/commitments/milestone-sections'
+import { replaceParams } from '@/components/sandboxes/use-sandbox-landing'
 import { useUpdateCommitment } from '@/hooks/mutations/use-commitment-mutations'
 import { useSandboxCommitments } from '@/hooks/queries/use-sandboxes'
 import {
@@ -116,6 +117,23 @@ export function CommitmentsTab({
   const view: ViewBy = by ?? 'coach'
   const chooseView = (next: ViewBy) => {
     setBy(next)
+    if (next !== 'milestones') {
+      // The occurrence and "awaiting" cuts only mean something over milestone
+      // rows; carried into a people view they would hide every ordinary
+      // commitment. The link that set them is spent, too.
+      setFilters(f =>
+        f.occurrence || f.awaiting
+          ? { ...f, occurrence: null, awaiting: false }
+          : f,
+      )
+      const spent = new URL(window.location.href).searchParams
+      if (spent.has('occurrence') || spent.has('view')) {
+        replaceParams(url => {
+          url.searchParams.delete('occurrence')
+          url.searchParams.delete('view')
+        })
+      }
+    }
     try {
       window.localStorage.setItem(VIEW_KEY, next)
     } catch {
@@ -175,21 +193,26 @@ export function CommitmentsTab({
     [data, view, visible, scoped, today, filters],
   )
 
+  // "Awaiting a coach" is a cut over open rows; a status chip ends it.
   const setStatus = (status: StatusFilter) =>
-    setFilters(f => ({ ...f, status }))
+    setFilters(f => ({ ...f, status, awaiting: false }))
   const isFiltered =
     filters.mine ||
     !!filters.q ||
     !!focus ||
     !!filters.occurrence ||
+    filters.awaiting ||
     activeFilterCount(filters) > 0
   const clear = () => setFilters({ ...NO_FILTERS, status: filters.status })
   // A number in a milestone card's sentence: "2 overdue" shows the overdue,
-  // "1 awaiting a coach" searches for nobody, "1 dismissed" opens Not active.
+  // "1 awaiting a coach" keeps only unassigned rows, "1 dismissed" / "1
+  // dropped" open that card's Not active fold (the card does that itself).
   const cutBy = (key: string) => {
-    if (key === 'overdue') setStatus('overdue')
-    else if (key === 'done') setStatus('done')
-    else setStatus('open')
+    if (key === 'overdue') setFilters(f => ({ ...f, status: 'overdue' }))
+    else if (key === 'done') setFilters(f => ({ ...f, status: 'done' }))
+    else if (key === 'awaiting')
+      setFilters(f => ({ ...f, status: 'open', awaiting: true }))
+    else setFilters(f => ({ ...f, status: 'open', awaiting: false }))
   }
 
   const toggleDone = (r: SandboxCommitmentRow) =>
@@ -278,6 +301,22 @@ export function CommitmentsTab({
             type="button"
             className="underline underline-offset-4 hover:text-ink"
             onClick={() => setFilters(f => ({ ...f, coacheeId: null }))}
+          >
+            Clear
+          </button>
+        </p>
+      )}
+
+      {filters.awaiting && view === 'milestones' && (
+        <p
+          className="flex w-fit items-center gap-2 rounded-full border border-line bg-paper px-3 py-1 text-xs text-ink-2"
+          data-testid="commitments-awaiting-chip"
+        >
+          Awaiting a coach only
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-ink"
+            onClick={() => setFilters(f => ({ ...f, awaiting: false }))}
           >
             Clear
           </button>

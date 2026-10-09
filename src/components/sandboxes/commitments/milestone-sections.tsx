@@ -291,7 +291,13 @@ export function MilestoneOccurrenceCard({
                   {i > 0 && ' · '}
                   <button
                     type="button"
-                    onClick={() => onSummary(part.key)}
+                    onClick={() => {
+                      // "1 dismissed" / "1 dropped" count rows that live in
+                      // the fold below; opening it is the whole point.
+                      if (part.key === 'dismissed' || part.key === 'dropped')
+                        setShowInactive(true)
+                      onSummary(part.key)
+                    }}
                     className={cn(
                       'underline-offset-4 hover:underline',
                       part.late ? 'font-medium text-vermillion' : 'text-ink-2',

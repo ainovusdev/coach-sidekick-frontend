@@ -194,7 +194,10 @@ export function ActivityTab({
     }),
     [kinds, followOn, groupId],
   )
-  const query = useSandboxChanges(sandboxId, viewer, filters)
+  // Nothing picked means nothing shown — not "everything", which is what an
+  // absent `kinds` parameter would ask the API for.
+  const nothingPicked = kinds.length === 0
+  const query = useSandboxChanges(sandboxId, viewer, filters, !nothingPicked)
   const first = query.data?.pages[0]
   const items = query.isError
     ? []
@@ -259,7 +262,11 @@ export function ActivityTab({
         </Chip>
       </div>
 
-      {query.isPending ? (
+      {nothingPicked ? (
+        <p className="py-6 text-sm text-ink-3" data-testid="activity-empty">
+          Pick something to show.
+        </p>
+      ) : query.isPending ? (
         <p className="py-6 text-sm text-ink-3" role="status">
           Loading changes…
         </p>
@@ -279,11 +286,9 @@ export function ActivityTab({
         </p>
       ) : items.length === 0 ? (
         <p className="py-6 text-sm text-ink-3" data-testid="activity-empty">
-          {kinds.length === 0
-            ? 'Pick something to show.'
-            : first?.recording_started_at
-              ? `Nothing recorded yet. Changes have been recorded since ${fmtDay(first.recording_started_at.slice(0, 10), true)}; anything before that is not in the log.`
-              : 'Nothing recorded yet.'}
+          {first?.recording_started_at
+            ? `Nothing recorded yet. Changes have been recorded since ${fmtDay(first.recording_started_at.slice(0, 10), true)}; anything before that is not in the log.`
+            : 'Nothing recorded yet.'}
         </p>
       ) : (
         <ol className="divide-y divide-line" data-testid="activity-list">

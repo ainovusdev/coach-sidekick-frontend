@@ -40,6 +40,8 @@ export interface CommitmentFilters {
   kind: 'team' | 'coaching' | null
   /** Milestones view only: one occurrence ("gold_sealing"), from a nudge's link. */
   occurrence: string | null
+  /** Milestones view only: open rows with nobody assigned yet ("Awaiting a coach"); a status chip clears it. */
+  awaiting: boolean
 }
 
 export const NO_FILTERS: CommitmentFilters = {
@@ -51,6 +53,7 @@ export const NO_FILTERS: CommitmentFilters = {
   groupId: null,
   kind: null,
   occurrence: null,
+  awaiting: false,
 }
 
 /**
@@ -184,6 +187,7 @@ export function applyScope(
     if (f.coacheeId && r.coachee?.member_id !== f.coacheeId) return false
     if (f.groupId && r.group?.id !== f.groupId) return false
     if (f.occurrence && r.milestone?.occurrence !== f.occurrence) return false
+    if (f.awaiting && !r.milestone?.coach_pending) return false
     if (!q) return true
     return [r.title, r.coach?.name, r.coachee?.name, r.assignee?.name]
       .filter(Boolean)

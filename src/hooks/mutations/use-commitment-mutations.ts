@@ -130,6 +130,8 @@ export function useCreateCommitment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
     },
   })
 }
@@ -276,6 +278,8 @@ export function useConfirmCommitment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
 
       toast.success('Confirmed', {
         description: data.title,
@@ -359,6 +363,9 @@ export function useDiscardCommitment() {
       queryClient.removeQueries({
         queryKey: queryKeys.commitments.detail(commitmentId),
       })
+      // A sandbox row's deletion is a line in its log and a count on its cards.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -477,6 +484,8 @@ export function useBulkConfirmCommitments() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
 
       toast.success(`${data.length} confirmed`)
     },

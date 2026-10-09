@@ -7,7 +7,7 @@
  */
 
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Calendar as CalendarIcon, Flag, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -140,10 +140,15 @@ export function MilestoneWindowField({
     setOpen(false)
   }
 
+  // The button is not a DialogTrigger, so Radix has nothing to hand focus
+  // back to; a keyboard user would otherwise land at the top of the page.
+  const triggerRef = useRef<HTMLButtonElement>(null)
+
   return (
     <div className="space-y-1">
       <label className="text-xs font-medium text-ink-3 ">Window</label>
       <Button
+        ref={triggerRef}
         variant="outline"
         disabled={readOnly}
         onClick={() => setOpen(true)}
@@ -160,7 +165,13 @@ export function MilestoneWindowField({
         )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="z-[90] sm:max-w-md">
+        <DialogContent
+          className="z-[90] sm:max-w-md"
+          onCloseAutoFocus={e => {
+            e.preventDefault()
+            triggerRef.current?.focus()
+          }}
+        >
           <DialogHeader>
             <DialogTitle>Move the window</DialogTitle>
             <DialogDescription>
@@ -176,6 +187,7 @@ export function MilestoneWindowField({
                 value={start}
                 onChange={v => setStart(v ?? '')}
                 required
+                contentClassName="z-[100]"
               />
               <DueDateField
                 id="milestone-end"
@@ -183,6 +195,7 @@ export function MilestoneWindowField({
                 value={end}
                 onChange={v => setEnd(v ?? '')}
                 required
+                contentClassName="z-[100]"
               />
             </div>
             <div className="space-y-2">

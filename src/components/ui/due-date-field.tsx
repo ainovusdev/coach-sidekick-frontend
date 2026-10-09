@@ -35,6 +35,8 @@ interface DueDateFieldProps {
   id?: string
   /** A date that must be set: no clear button, no "(optional)" hint. */
   required?: boolean
+  /** Extra classes for the calendar popover — a layer above a modal, say. */
+  contentClassName?: string
 }
 
 export function DueDateField({
@@ -43,6 +45,7 @@ export function DueDateField({
   label = 'Due date',
   id = 'due-date',
   required = false,
+  contentClassName,
 }: DueDateFieldProps) {
   const [open, setOpen] = useState(false)
 
@@ -69,7 +72,10 @@ export function DueDateField({
                   : 'Set a date (optional)'}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="start">
+          <PopoverContent
+            className={cn('w-auto p-0', contentClassName)}
+            align="start"
+          >
             <Calendar
               mode="single"
               selected={parseDateForPicker(value ?? undefined)}
