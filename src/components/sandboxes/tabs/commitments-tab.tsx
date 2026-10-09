@@ -27,10 +27,12 @@ import {
   CommitmentSectionCard,
   TrackedRow,
 } from '@/components/sandboxes/commitments/commitment-sections'
+import { MilestoneOccurrenceCard } from '@/components/sandboxes/commitments/milestone-sections'
 import { useUpdateCommitment } from '@/hooks/mutations/use-commitment-mutations'
 import { useSandboxCommitments } from '@/hooks/queries/use-sandboxes'
 import {
   NO_FILTERS,
+  PEOPLE_VIEWS,
   STATUS_LABEL,
   VIEW_BYS,
   VIEW_BY_LABEL,
@@ -40,12 +42,15 @@ import {
   applyScope,
   buildSections,
   countRows,
+  rowsForView,
+  viewFromUrl,
   type CommitmentFilters,
   type CommitmentSection,
   type StatusFilter,
   type ViewBy,
 } from '@/lib/sandbox/commitments-view'
 import { pluralise } from '@/lib/sandbox/format'
+import { buildMilestoneCards } from '@/lib/sandbox/milestones-view'
 import { cn } from '@/lib/utils'
 import type { SandboxOverview } from '@/types/sandbox'
 import type { SandboxCommitmentRow } from '@/types/sandbox-commitments'
@@ -92,10 +97,20 @@ export function CommitmentsTab({
     // the remembered view is not overwritten.
     const linked = filtersFromUrl(window.location.search, data)
     if (Object.keys(linked).length) setFilters(f => ({ ...f, ...linked }))
+    const linkedView = viewFromUrl(window.location.search)
+    const hasMilestones = data.rows.some(r => r.kind === 'milestone')
+    const remembered = rememberedView()
     setBy(
       linked.coacheeId
         ? 'coachee'
-        : (rememberedView() ?? (data.tracks_everyone ? 'coach' : 'coachee')),
+        : linkedView === 'milestones' || linked.occurrence
+          ? 'milestones'
+          : (linkedView ??
+            // A remembered Milestones view with no rows left falls back.
+            (remembered === 'milestones' && !hasMilestones
+              ? null
+              : remembered) ??
+            (data.tracks_everyone ? 'coach' : 'coachee')),
     )
   }, [by, data])
   const view: ViewBy = by ?? 'coach'
@@ -108,7 +123,12 @@ export function CommitmentsTab({
     }
   }
 
-  const rows = useMemo(() => data?.rows ?? [], [data])
+  // The three people views and the Milestones view are over different rows.
+  const rows = useMemo(() => rowsForView(data?.rows ?? [], view), [data, view])
+  const milestoneCount = useMemo(
+    () => (data?.rows ?? []).filter(r => r.kind === 'milestone').length,
+    [data],
+  )
   const scoped = useMemo(() => applyScope(rows, filters), [rows, filters])
   const visible = useMemo(
     () => applyFilters(rows, filters, today),
@@ -125,9 +145,20 @@ export function CommitmentsTab({
       ),
     [rows, today, focus],
   )
+  const milestoneCards = useMemo(
+    () =>
+      view === 'milestones' ? buildMilestoneCards(visible, scoped, today) : [],
+    [view, visible, scoped, today],
+  )
+  const sandboxWindows = useMemo(() => {
+    const out = new Map<string, { window_start: string; window_end: string }>()
+    for (const e of overview.timeline)
+      if (e.gen_key && !e.removed_at) out.set(e.gen_key, e)
+    return out
+  }, [overview.timeline])
   const sections = useMemo(
     () =>
-      data && view !== 'list'
+      data && view !== 'list' && view !== 'milestones'
         ? buildSections(
             data,
             visible,
@@ -147,8 +178,19 @@ export function CommitmentsTab({
   const setStatus = (status: StatusFilter) =>
     setFilters(f => ({ ...f, status }))
   const isFiltered =
-    filters.mine || !!filters.q || !!focus || activeFilterCount(filters) > 0
+    filters.mine ||
+    !!filters.q ||
+    !!focus ||
+    !!filters.occurrence ||
+    activeFilterCount(filters) > 0
   const clear = () => setFilters({ ...NO_FILTERS, status: filters.status })
+  // A number in a milestone card's sentence: "2 overdue" shows the overdue,
+  // "1 awaiting a coach" searches for nobody, "1 dismissed" opens Not active.
+  const cutBy = (key: string) => {
+    if (key === 'overdue') setStatus('overdue')
+    else if (key === 'done') setStatus('done')
+    else setStatus('open')
+  }
 
   const toggleDone = (r: SandboxCommitmentRow) =>
     update.mutate({
@@ -172,8 +214,14 @@ export function CommitmentsTab({
   ]
   const showMoreFilters =
     !!data &&
+    view !== 'milestones' &&
     data.tracks_everyone &&
     (data.coaches.length > 1 || data.groups.length > 1)
+  // The Milestones view is offered whenever rows exist, or when the rules
+  // are switched on and could make some; otherwise the chip is noise.
+  const views: ViewBy[] =
+    milestoneCount > 0 || data?.milestones_enabled ? VIEW_BYS : PEOPLE_VIEWS
+  const anyRows = (data?.rows.length ?? 0) > 0
 
   return (
     <section className="space-y-4" data-testid="commitments-tab">
@@ -236,14 +284,33 @@ export function CommitmentsTab({
         </p>
       )}
 
-      {rows.length > 0 && (
+      {filters.occurrence && view === 'milestones' && (
+        <p
+          className="flex w-fit items-center gap-2 rounded-full border border-line bg-paper px-3 py-1 text-xs text-ink-2"
+          data-testid="commitments-occurrence-chip"
+        >
+          Showing{' '}
+          {data?.rows.find(r => r.milestone?.occurrence === filters.occurrence)
+            ?.milestone?.label ?? 'one milestone'}{' '}
+          only
+          <button
+            type="button"
+            className="underline underline-offset-4 hover:text-ink"
+            onClick={() => setFilters(f => ({ ...f, occurrence: null }))}
+          >
+            Clear
+          </button>
+        </p>
+      )}
+
+      {(anyRows || view === 'milestones') && (
         <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
           <div
             className="flex w-full rounded-lg border border-line bg-paper p-0.5 sm:w-auto"
             role="tablist"
             aria-label="View by"
           >
-            {VIEW_BYS.map(v => (
+            {views.map(v => (
               <button
                 key={v}
                 type="button"
@@ -340,11 +407,56 @@ export function CommitmentsTab({
         </div>
       ) : isError ? (
         <p className="text-sm text-ink-3">Commitments couldn’t be loaded.</p>
+      ) : view === 'milestones' && rows.length === 0 ? (
+        <Empty>
+          {data?.milestones_enabled === false
+            ? 'Personal milestones are not switched on yet.'
+            : 'No personal milestones yet. Each coachee gets theirs when they are placed in a group.'}
+        </Empty>
       ) : rows.length === 0 && !(focus && sections.length) ? (
         <Empty>
           No commitments yet. They appear here when a coach and coachee agree
           one in a session, or when you add one.
         </Empty>
+      ) : view === 'milestones' ? (
+        milestoneCards.length === 0 ? (
+          <Empty>
+            {isFiltered ? (
+              <>
+                Nothing matches.{' '}
+                <button
+                  type="button"
+                  className="underline underline-offset-4 hover:text-ink"
+                  onClick={clear}
+                  data-testid="commitments-clear"
+                >
+                  Clear filters
+                </button>
+              </>
+            ) : filters.status === 'overdue' ? (
+              'No milestone is overdue.'
+            ) : filters.status === 'done' ? (
+              'No milestone is done yet.'
+            ) : (
+              'Every milestone is done.'
+            )}
+          </Empty>
+        ) : (
+          <div className="space-y-2" data-testid="personal-milestones">
+            {milestoneCards.map(card => (
+              <MilestoneOccurrenceCard
+                key={card.occurrence}
+                card={card}
+                sandboxWindow={sandboxWindows.get(card.occurrence) ?? null}
+                today={today}
+                sandboxId={sandboxId}
+                onOpen={onOpenCommitment}
+                onToggle={toggleDone}
+                onSummary={cutBy}
+              />
+            ))}
+          </div>
+        )
       ) : visible.length === 0 && sections.length === 0 ? (
         <Empty>
           {isFiltered ? (
@@ -389,7 +501,7 @@ export function CommitmentsTab({
             <CommitmentSectionCard
               key={`${view}:${s.key}`}
               section={s}
-              by={view}
+              by={view as 'coach' | 'coachee'}
               today={today}
               sandboxId={sandboxId}
               // Few sections: nothing to hide. Many: open where it hurts.

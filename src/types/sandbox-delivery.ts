@@ -1,4 +1,5 @@
 import type { CoacheeOutcomeState, Outcome } from '@/types/sandbox-outcomes'
+import type { PersonalWindow } from '@/types/sandbox-milestones'
 // Sandbox delivery + dashboards (phase 3). Mirrors app/schemas/sandbox_delivery.py
 // and app/schemas/sandbox_dashboard.py. Everything is derived server-side.
 
@@ -153,6 +154,10 @@ export interface ClientSandboxContext {
   can_propose: boolean
   can_approve: boolean
   approver_names: string[]
+  /** Personal milestones: this coachee's own windows (`sealing_window`,
+   *  `current_event` and `next_event` already read them). */
+  review_window?: EventBrief | null
+  personal_windows?: PersonalWindow[]
 }
 
 // ---------------------------------------------------------------- dashboard

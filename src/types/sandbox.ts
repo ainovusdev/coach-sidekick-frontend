@@ -1,3 +1,4 @@
+import type { MilestoneEffects, MilestoneReport } from './sandbox-milestones'
 /**
  * Sandbox v2 types — mirror app/schemas/sandbox.py on the backend.
  */
@@ -329,6 +330,8 @@ export interface TimelineRegeneratePreview {
   counts: Record<TimelineChangeAction, number>
   /** Events on the timeline today that regeneration leaves alone by default. */
   hand_adjusted_count: number
+  /** What it would do to people's personal milestones. */
+  milestones?: MilestoneEffects | null
 }
 
 export interface SetupChecklist {
@@ -378,6 +381,8 @@ export interface SandboxOverview {
   /** My member row when I am coached here as well as working here. */
   my_coachee_member_id?: string | null
   today: string
+  /** After a timeline move: what happened to people's personal milestones. */
+  milestones?: MilestoneReport | null
 }
 
 // ---------------------------------------------------------------------------
@@ -493,6 +498,8 @@ export interface WindowChange {
   minutes_gained: number
   becomes_ambiguous: number
   basis: string
+  /** Personal milestones the change moves, keeps, drops or creates. */
+  milestones?: MilestoneReport | null
   earliest: string | null
   late_coaches: {
     enrollment_id: string

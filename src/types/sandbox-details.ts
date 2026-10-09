@@ -2,6 +2,7 @@ import type { InsightSelection, SandboxAnalytics } from './sandbox-analytics'
 import type { DeliveryState } from './sandbox-delivery'
 import type { SandboxOutcomes } from './sandbox-outcomes'
 import type { TimelineEvent } from './sandbox'
+import type { PersonalMilestoneRow, PersonalWindow } from './sandbox-milestones'
 
 export type SandboxEntityKind = 'client' | 'coach' | 'group'
 export interface SandboxRelationship {
@@ -144,6 +145,9 @@ export interface SandboxEntityDetail {
     commitment_id?: string | null
   }[]
   milestones: TimelineEvent[]
+  /** A coachee's page: their own milestone commitments (our side) and windows. */
+  personal_milestones?: PersonalMilestoneRow[]
+  personal_windows?: PersonalWindow[]
   activity: SandboxActivityPage
   /** Client and group pages; the coach page carries none. Older API: absent. */
   stats?: SandboxDetailStats | null

@@ -178,7 +178,7 @@ export function CommitmentSectionCard({
   onAdd,
 }: {
   section: CommitmentSection
-  by: Exclude<ViewBy, 'list'>
+  by: 'coach' | 'coachee'
   today: string
   sandboxId: string
   defaultOpen: boolean

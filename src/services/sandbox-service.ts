@@ -9,6 +9,13 @@ import type {
 } from '@/types/sandbox-analytics'
 import type { SandboxInsights } from '@/types/sandbox-insights'
 import { ApiClient } from '@/lib/api-client'
+import type { Commitment } from '@/types/commitment'
+import type {
+  MilestoneAssignees,
+  MilestoneEffects,
+  MilestoneFollowRequest,
+  MilestoneReport,
+} from '@/types/sandbox-milestones'
 import type { SandboxCommitments } from '@/types/sandbox-commitments'
 import type {
   Outcome,
@@ -167,6 +174,43 @@ export class SandboxService {
     return ApiClient.post(`${BASE}/${id}/timeline/regenerate`, {
       overwrite_hand_adjusted,
     })
+  }
+
+  /** What moving an event would do to people's personal milestones. No writes. */
+  static movePreview(
+    id: string,
+    eventId: string,
+    body: { window_start?: string; window_end?: string },
+  ): Promise<MilestoneEffects> {
+    return ApiClient.post(
+      `${BASE}/${id}/timeline/${eventId}/move-preview`,
+      body,
+    )
+  }
+
+  // ------------------------------------------------ personal milestones
+  static milestoneAssignees(
+    id: string,
+    milestoneId: string,
+  ): Promise<MilestoneAssignees> {
+    return ApiClient.get(`${BASE}/${id}/milestones/${milestoneId}/assignees`)
+  }
+
+  /** Hand a milestone's dates and/or assignee back to the automation. */
+  static followMilestone(
+    id: string,
+    milestoneId: string,
+    body: MilestoneFollowRequest,
+  ): Promise<Commitment> {
+    return ApiClient.post(
+      `${BASE}/${id}/milestones/${milestoneId}/follow`,
+      body,
+    )
+  }
+
+  /** "Refresh milestones": the sweeper's pass, now. */
+  static reconcileMilestones(id: string): Promise<MilestoneReport> {
+    return ApiClient.post(`${BASE}/${id}/milestones/reconcile`, {})
   }
 
   static addEvent(

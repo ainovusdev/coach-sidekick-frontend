@@ -9,6 +9,7 @@ import {
   Check,
   CheckCircle2,
   Clock,
+  Flag,
   MessageSquare,
   UserPlus,
   type LucideIcon,
@@ -57,6 +58,11 @@ const EVENT_ICON: Record<string, LucideIcon> = {
   commitment_rescheduled: Clock,
   commitment_due_today: Clock,
   commitment_overdue: Clock,
+  // Personal milestones: handed to a coach, taken from one, due, late.
+  milestones_assigned: Flag,
+  milestones_reassigned: Flag,
+  milestones_due: Clock,
+  milestones_overdue: Clock,
   // comments on goals, outcomes, sprints, sandbox outcomes and visions
   commented: MessageSquare,
   mentioned: AtSign,

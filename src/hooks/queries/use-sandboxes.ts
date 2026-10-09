@@ -229,6 +229,52 @@ export function useCoacheeSandbox(enabled = true) {
   })
 }
 
+/** Who a personal milestone may be handed to (our side, minus the person it is about). */
+export function useMilestoneAssignees(
+  sandboxId: string | null | undefined,
+  milestoneId: string | null | undefined,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.milestoneAssignees(
+      sandboxId ?? '',
+      milestoneId ?? '',
+    ),
+    queryFn: () =>
+      SandboxService.milestoneAssignees(
+        sandboxId as string,
+        milestoneId as string,
+      ),
+    enabled: enabled && !!sandboxId && !!milestoneId,
+    staleTime: 60 * 1000,
+  })
+}
+
+/** What moving an event to `start`–`end` would do to people's personal milestones. */
+export function useMovePreview(
+  sandboxId: string,
+  eventId: string | null | undefined,
+  start: string,
+  end: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: queryKeys.sandboxes.movePreview(
+      sandboxId,
+      eventId ?? '',
+      start,
+      end,
+    ),
+    queryFn: () =>
+      SandboxService.movePreview(sandboxId, eventId as string, {
+        window_start: start,
+        window_end: end,
+      }),
+    enabled: enabled && !!sandboxId && !!eventId && !!start && !!end,
+    staleTime: 0,
+  })
+}
+
 /** Gold sealing: outcomes per coachee, for the coachees the caller may see. */
 export function useSandboxOutcomes(id: string | null | undefined) {
   return useQuery({

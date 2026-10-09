@@ -110,6 +110,12 @@ test.describe('Sandboxes — gold sealing', () => {
       coach_user_ids: [priya.id],
       coachees: [WREN],
     })
+    // Grouping hands each coach their coachees' personal milestones, with a
+    // bell each; the tests below count the gold-seal notification alone.
+    for (const who of [USERS.marcus.email, USERS.priya.email]) {
+      const t = await apiToken(request, who)
+      await request.post(`${API}/notifications/read-all`, { headers: auth(t) })
+    }
 
     const outcomes = await api(
       request,

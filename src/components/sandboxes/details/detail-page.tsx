@@ -31,6 +31,7 @@ import {
   outcomeCounts,
   outcomeSentence,
   outcomeSubjects,
+  pageWindows,
 } from '@/lib/sandbox/detail-view'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import type { InsightSelection } from '@/types/sandbox-analytics'
@@ -57,6 +58,7 @@ import { FeedbackPanel } from './feedback-panel'
 import { FollowThroughSection } from './follow-through-section'
 import { RhythmSection } from './rhythm-section'
 import { PeoplePanel } from './people-panel'
+import { PersonalMilestonesSection } from './personal-milestones-section'
 
 // These pages live on the member routes, under the app header: the same
 // offsets the cockpit reads from its view there.
@@ -485,6 +487,12 @@ function DetailContent({
               <DetailChart data={data.analytics} coach={coach} />
               <RhythmSection data={data} />
               <FollowThroughSection data={data} />
+              {kind === 'client' && data.personal_milestones && (
+                <PersonalMilestonesSection
+                  data={data}
+                  onOpen={setCommitmentId}
+                />
+              )}
               {kind === 'client' && (
                 <Section
                   id="outcomes-summary"
@@ -609,7 +617,7 @@ function DetailContent({
                 sandboxId={sandboxId}
                 viewer={viewer}
                 selection={selection}
-                milestones={data.milestones}
+                milestones={pageWindows(data)}
                 onSession={setSessionId}
                 onCommitment={setCommitmentId}
               />

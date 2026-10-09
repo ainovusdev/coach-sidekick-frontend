@@ -1,4 +1,8 @@
 import { firstName, fmtDay, pluralise } from '@/lib/sandbox/format'
+import {
+  describeMilestoneReport,
+  reportTotal,
+} from '@/lib/sandbox/milestones-view'
 import type { WindowChange } from '@/types/sandbox'
 
 const hoursOf = (minutes: number) => {
@@ -41,6 +45,8 @@ export function describeWindowChange(change: WindowChange): string {
       `${pluralise(change.becomes_ambiguous, 'session')} will fit two groups and need a choice.`,
     )
   }
+  const personal = describeMilestoneReport(change.milestones)
+  if (personal) parts.push(personal)
   return parts.join(' ')
 }
 
@@ -48,6 +54,7 @@ export function describeWindowChange(change: WindowChange): string {
 export function windowChangeMatters(change: WindowChange): boolean {
   return (
     change.becomes_ambiguous > 0 ||
-    change.coachees.some(c => c.sessions_gained !== 0)
+    change.coachees.some(c => c.sessions_gained !== 0) ||
+    reportTotal(change.milestones) > 0
   )
 }

@@ -20,6 +20,8 @@ import {
   useMoveEvent,
 } from '@/hooks/mutations/use-sandbox-mutations'
 import { useSandboxChanges } from '@/hooks/queries/use-sandbox-details'
+import { useMovePreview } from '@/hooks/queries/use-sandboxes'
+import { describeMilestoneEffects } from '@/lib/sandbox/milestones-view'
 import { useInsightViewer } from '@/hooks/queries/use-sandbox-insights'
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
@@ -113,6 +115,22 @@ export function TimelineEventDialog({
 
   const pending = move.isPending || add.isPending
   const canSave = !problem && !unchanged && !pending
+
+  // What the move does to people's personal milestones — only the windows
+  // that carry them (gold sealing, midpoint reporting, results review).
+  const carriesMilestones =
+    !!event &&
+    !!event.gen_key &&
+    ['gold_sealing', 'midpoint_reporting', 'results_review'].includes(
+      event.kind,
+    )
+  const preview = useMovePreview(
+    sandbox.id,
+    event?.id,
+    start,
+    end,
+    open && carriesMilestones && !problem && !unchanged,
+  )
 
   const save = async () => {
     if (!canSave) return
@@ -240,6 +258,20 @@ export function TimelineEventDialog({
               }
             />
           </div>
+
+          {event && carriesMilestones && !unchanged && !problem && (
+            <p
+              className="text-xs text-ink-3"
+              data-testid="move-preview"
+              aria-live="polite"
+            >
+              {preview.isFetching && !preview.data
+                ? 'Working out whose dates follow…'
+                : preview.isError
+                  ? 'Could not work out whose dates follow.'
+                  : describeMilestoneEffects(preview.data, event.label)}
+            </p>
+          )}
 
           {event && <EventHistory sandboxId={sandbox.id} event={event} />}
 

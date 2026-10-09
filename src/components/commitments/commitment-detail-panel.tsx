@@ -122,6 +122,14 @@ import { copyCommitmentLink } from './detail/commitment-links'
 import { RelatedCommitmentsSection } from './detail/related-commitments-section'
 import { WindowChip } from '@/components/sandboxes/window-chip'
 import { toDateOnly } from '@/lib/sandbox/term'
+import {
+  DismissMilestoneDialog,
+  MilestoneAssigneeField,
+  MilestoneHeaderLine,
+  MilestoneProvenance,
+  MilestoneWindowField,
+} from './detail/milestone-fields'
+import { RotateCcw } from 'lucide-react'
 
 // Re-exported so the six existing mount sites keep importing GuestContext from
 // here unchanged; the definition now lives with the shared controller.
@@ -233,6 +241,7 @@ export function CommitmentDetailPanel({
                   commitment={commitment}
                   onClose={onClose}
                   onFieldUpdate={handleFieldUpdate}
+                  onFieldsUpdate={handleFieldsUpdate}
                   onDelete={handleDelete}
                   onOpenInPage={
                     capabilities.canOpenInPage ? onOpenInPage : undefined
@@ -325,6 +334,7 @@ export function PanelHeader({
   commitment,
   onClose,
   onFieldUpdate,
+  onFieldsUpdate,
   onDelete,
   onOpenInPage,
   onCopyLink,
@@ -332,19 +342,33 @@ export function PanelHeader({
   commitment: Commitment
   onClose: () => void
   onFieldUpdate: (field: string, value: any) => void
+  onFieldsUpdate?: (
+    patch: Record<string, any>,
+    optimistic?: Record<string, any>,
+  ) => void
   onDelete: () => void
   onOpenInPage?: () => void
   onCopyLink?: () => void
 }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false)
   const [titleValue, setTitleValue] = useState(commitment.title)
+  const [dismissing, setDismissing] = useState(false)
   const titleInputRef = useRef<HTMLInputElement>(null)
   const isAutomatic = commitment.source === 'rule'
   // A commitment that *is* a timeline event: the title and dates are the
   // event's, changed on the timeline, so the title is not editable here.
   const event = commitment.timeline_event ?? null
+  // A coachee's personal milestone: its own menu (dismiss with a reason,
+  // restore, reopen), never a delete, never a snooze.
+  const milestone = commitment.milestone ?? null
+  const readOnly = commitment.can_edit === false
   const isOpenStatus =
     commitment.status !== 'completed' && commitment.status !== 'abandoned'
+  const patchFields =
+    onFieldsUpdate ??
+    ((patch: Record<string, any>) => {
+      for (const [k, v] of Object.entries(patch)) onFieldUpdate(k, v)
+    })
 
   useEffect(() => {
     setTitleValue(commitment.title)
@@ -373,6 +397,7 @@ export function PanelHeader({
             <WindowChip event={event} today={toDateOnly(new Date())} />
           </div>
         )}
+        {milestone && <MilestoneHeaderLine commitment={commitment} />}
         {isEditingTitle ? (
           <Input
             ref={titleInputRef}
@@ -447,7 +472,48 @@ export function PanelHeader({
                 Copy link
               </DropdownMenuItem>
             )}
-            {isAutomatic && isOpenStatus && (
+            {milestone && !readOnly && isOpenStatus && (
+              <DropdownMenuItem
+                onClick={() => setDismissing(true)}
+                data-testid="milestone-dismiss"
+              >
+                <BellOff className="h-4 w-4 mr-2" />
+                Dismiss…
+              </DropdownMenuItem>
+            )}
+            {milestone && !readOnly && commitment.status === 'abandoned' && (
+              <DropdownMenuItem
+                onClick={() => patchFields({ status: 'active' })}
+                data-testid="milestone-restore"
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Restore
+              </DropdownMenuItem>
+            )}
+            {milestone &&
+              !readOnly &&
+              commitment.status === 'completed' &&
+              !milestone.sealed && (
+                <DropdownMenuItem
+                  onClick={() => patchFields({ status: 'active' })}
+                  data-testid="milestone-reopen"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reopen
+                </DropdownMenuItem>
+              )}
+            {milestone &&
+              commitment.status === 'completed' &&
+              milestone.sealed && (
+                <DropdownMenuItem
+                  disabled
+                  data-testid="milestone-reopen-sealed"
+                >
+                  <Lock className="h-4 w-4 mr-2" />
+                  Completed because an outcome is sealed
+                </DropdownMenuItem>
+              )}
+            {isAutomatic && !milestone && isOpenStatus && (
               <>
                 <DropdownMenuItem
                   onClick={() => onFieldUpdate('target_date', tomorrowIso())}
@@ -465,7 +531,7 @@ export function PanelHeader({
                 </DropdownMenuItem>
               </>
             )}
-            {commitment.can_delete !== false && (
+            {commitment.can_delete !== false && !milestone && (
               <DropdownMenuItem onClick={onDelete} className="text-vermillion">
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete
@@ -482,6 +548,14 @@ export function PanelHeader({
           <X className="h-4 w-4" />
         </Button>
       </div>
+      {milestone && (
+        <DismissMilestoneDialog
+          open={dismissing}
+          onOpenChange={setDismissing}
+          commitment={commitment}
+          onFieldsUpdate={patchFields}
+        />
+      )}
     </div>
   )
 }
@@ -517,6 +591,13 @@ export function FieldsGrid({
   const readOnly = commitment.can_edit === false
   // The dates of a timeline event's commitment are the event's window.
   const dateLocked = !!commitment.timeline_event
+  // A personal milestone: a window (two dates) and an our-side-only picker.
+  const milestone = commitment.milestone ?? null
+  const patchFields =
+    onFieldsUpdate ??
+    ((patch: Record<string, any>) => {
+      for (const [k, v] of Object.entries(patch)) onFieldUpdate(k, v)
+    })
 
   // Settable statuses. `in_progress` MUST be here: the kanban board and three
   // other surfaces write it, so without it an In Progress commitment opened
@@ -586,40 +667,48 @@ export function FieldsGrid({
           name. Below ~28rem every field gets the full width. */}
       <div className="grid grid-cols-1 @md:grid-cols-3 gap-4">
         {/* Assignee — first: who it's for is the first thing to know */}
-        <div className="space-y-1 min-w-0">
-          <label className="text-xs font-medium text-ink-3 ">Assignee</label>
-          {readOnly ? (
-            <div className="h-9 flex items-center">
-              <AssigneeChip assignee={assignee} size="sm" />
-            </div>
-          ) : (
-            <PersonPicker
-              value={pickerValue}
-              onChange={handleAssign}
-              context={{
-                clientId: commitment.client_id ?? null,
-                sandboxId: commitment.sandbox_id ?? null,
-              }}
-              clientOption={
-                commitment.client_id
-                  ? {
-                      client_id: commitment.client_id,
-                      name: commitment.client_name ?? null,
-                      // Known only while the client is the assignee; the picker
-                      // then folds their login into the one "client" row.
-                      user_id: assignee?.client_id
-                        ? assignee.user_id
-                        : undefined,
-                    }
-                  : null
-              }
-              allowClear={!commitment.client_id}
-              className="h-9 w-full"
-              contentClassName="z-[80]"
-              data-testid="detail-assignee-picker"
-            />
-          )}
-        </div>
+        {milestone ? (
+          <MilestoneAssigneeField
+            commitment={commitment}
+            onFieldsUpdate={patchFields}
+            readOnly={readOnly}
+          />
+        ) : (
+          <div className="space-y-1 min-w-0">
+            <label className="text-xs font-medium text-ink-3 ">Assignee</label>
+            {readOnly ? (
+              <div className="h-9 flex items-center">
+                <AssigneeChip assignee={assignee} size="sm" />
+              </div>
+            ) : (
+              <PersonPicker
+                value={pickerValue}
+                onChange={handleAssign}
+                context={{
+                  clientId: commitment.client_id ?? null,
+                  sandboxId: commitment.sandbox_id ?? null,
+                }}
+                clientOption={
+                  commitment.client_id
+                    ? {
+                        client_id: commitment.client_id,
+                        name: commitment.client_name ?? null,
+                        // Known only while the client is the assignee; the picker
+                        // then folds their login into the one "client" row.
+                        user_id: assignee?.client_id
+                          ? assignee.user_id
+                          : undefined,
+                      }
+                    : null
+                }
+                allowClear={!commitment.client_id}
+                className="h-9 w-full"
+                contentClassName="z-[80]"
+                data-testid="detail-assignee-picker"
+              />
+            )}
+          </div>
+        )}
 
         {/* Priority */}
         <div className="space-y-1">
@@ -652,70 +741,85 @@ export function FieldsGrid({
           </Select>
         </div>
 
-        {/* Due Date — an event commitment's follows the event window */}
-        <div className="space-y-1">
-          <label className="text-xs font-medium text-ink-3 ">Due Date</label>
-          <Popover
-            open={calendarOpen}
-            onOpenChange={readOnly || dateLocked ? undefined : setCalendarOpen}
-          >
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                disabled={readOnly || dateLocked}
-                title={dateLocked ? 'Follows the event window' : undefined}
-                data-testid={dateLocked ? 'due-locked' : undefined}
-                className={cn(
-                  'h-9 w-full justify-start text-left text-sm font-normal',
-                  !commitment.target_date && 'text-ink-3',
+        {/* Due Date — an event commitment's follows the event window; a
+            personal milestone has a window of its own */}
+        {milestone ? (
+          <MilestoneWindowField
+            commitment={commitment}
+            onFieldsUpdate={patchFields}
+            readOnly={readOnly}
+          />
+        ) : (
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-ink-3 ">Due Date</label>
+            <Popover
+              open={calendarOpen}
+              onOpenChange={
+                readOnly || dateLocked ? undefined : setCalendarOpen
+              }
+            >
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  disabled={readOnly || dateLocked}
+                  title={dateLocked ? 'Follows the event window' : undefined}
+                  data-testid={dateLocked ? 'due-locked' : undefined}
+                  className={cn(
+                    'h-9 w-full justify-start text-left text-sm font-normal',
+                    !commitment.target_date && 'text-ink-3',
+                  )}
+                >
+                  <CalendarIcon className="h-3.5 w-3.5 mr-2" />
+                  {commitment.target_date
+                    ? formatDateOnly(commitment.target_date, 'MMM d, yyyy')
+                    : 'Set date'}
+                  {dateLocked && (
+                    <Lock className="ml-auto h-3 w-3 text-ink-4" aria-hidden />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 z-[80]" align="start">
+                <Calendar
+                  mode="single"
+                  selected={parseDateForPicker(commitment.target_date)}
+                  onSelect={date => {
+                    const target_date = date
+                      ? date.toISOString().split('T')[0]
+                      : null
+                    const reason = dateReason.trim()
+                    if (reason && onFieldsUpdate && commitment.target_date) {
+                      // The reason rides along with the date; it is not a field
+                      // on the row, so it must not land in the optimistic cache.
+                      onFieldsUpdate({ target_date, reason }, { target_date })
+                    } else {
+                      onFieldUpdate('target_date', target_date)
+                    }
+                    setDateReason('')
+                    setCalendarOpen(false)
+                  }}
+                />
+                {commitment.sandbox_id && commitment.target_date && (
+                  <div className="border-t border-line p-2">
+                    <Input
+                      aria-label="Why is the date moving?"
+                      data-testid="due-reason"
+                      placeholder="Why is it moving? (optional)"
+                      value={dateReason}
+                      onChange={e => setDateReason(e.target.value)}
+                      maxLength={500}
+                      className="h-8 text-xs"
+                    />
+                  </div>
                 )}
-              >
-                <CalendarIcon className="h-3.5 w-3.5 mr-2" />
-                {commitment.target_date
-                  ? formatDateOnly(commitment.target_date, 'MMM d, yyyy')
-                  : 'Set date'}
-                {dateLocked && (
-                  <Lock className="ml-auto h-3 w-3 text-ink-4" aria-hidden />
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0 z-[80]" align="start">
-              <Calendar
-                mode="single"
-                selected={parseDateForPicker(commitment.target_date)}
-                onSelect={date => {
-                  const target_date = date
-                    ? date.toISOString().split('T')[0]
-                    : null
-                  const reason = dateReason.trim()
-                  if (reason && onFieldsUpdate && commitment.target_date) {
-                    // The reason rides along with the date; it is not a field
-                    // on the row, so it must not land in the optimistic cache.
-                    onFieldsUpdate({ target_date, reason }, { target_date })
-                  } else {
-                    onFieldUpdate('target_date', target_date)
-                  }
-                  setDateReason('')
-                  setCalendarOpen(false)
-                }}
-              />
-              {commitment.sandbox_id && commitment.target_date && (
-                <div className="border-t border-line p-2">
-                  <Input
-                    aria-label="Why is the date moving?"
-                    data-testid="due-reason"
-                    placeholder="Why is it moving? (optional)"
-                    value={dateReason}
-                    onChange={e => setDateReason(e.target.value)}
-                    maxLength={500}
-                    className="h-8 text-xs"
-                  />
-                </div>
-              )}
-            </PopoverContent>
-          </Popover>
-        </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+        )}
       </div>
+
+      {milestone && (
+        <MilestoneProvenance commitment={commitment} readOnly={readOnly} />
+      )}
 
       {/* Status */}
       <div className="space-y-1">
@@ -736,7 +840,14 @@ export function FieldsGrid({
               {statusInfo(commitment.status).label}
             </span>
           )}
-          {SETTABLE_STATUSES.map(value => {
+          {SETTABLE_STATUSES.filter(
+            // A milestone is dismissed from the menu, with a reason — and a
+            // sealed one cannot be reopened by a chip either.
+            value =>
+              !milestone ||
+              (value !== 'abandoned' &&
+                !(milestone.sealed && commitment.status === 'completed')),
+          ).map(value => {
             const isSelected = commitment.status === value
             const chip = TONE_CHIP[COMMITMENT_STATUS_TONE[value]]
             return (

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { firstName } from '@/lib/commitments/assignee'
 import { cn } from '@/lib/utils'
+import { fmtWindow } from '@/lib/sandbox/format'
 import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { statusInfo } from '@/lib/commitments/labels'
 import type { Commitment } from '@/types/commitment'
@@ -162,6 +163,29 @@ function ItemBody({
     case 'completed':
       return <span className="text-ink-3">Marked complete</span>
     case 'rescheduled':
+      if (item.toWindow) {
+        const win = (w: [string | null, string | null]) =>
+          w[0] && w[1]
+            ? fmtWindow(w[0], w[1])
+            : w[1]
+              ? formatDateOnly(w[1], 'MMM d')
+              : 'none'
+        return (
+          <span className="text-ink-3" data-testid="activity-rescheduled">
+            <span className="text-ink-2 font-medium">{actor}</span> moved the
+            window{' '}
+            {item.fromWindow && (
+              <>
+                from{' '}
+                <span className="text-ink-2">{win(item.fromWindow)}</span>{' '}
+              </>
+            )}
+            to{' '}
+            <span className="text-ink-2 font-medium">{win(item.toWindow)}</span>
+            {item.reason ? ` — ${item.reason}` : ''}
+          </span>
+        )
+      }
       return (
         <span className="text-ink-3" data-testid="activity-rescheduled">
           <span className="text-ink-2 font-medium">{actor}</span> moved the due

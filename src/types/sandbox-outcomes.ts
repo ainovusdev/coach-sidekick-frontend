@@ -59,6 +59,9 @@ export interface CoacheeOutcomes {
   can_approve: boolean
   state: CoacheeOutcomeState
   outcomes: Outcome[]
+  /** Their own gold sealing window (a late joiner's differs from the
+   *  sandbox's); null when their milestone was dropped. */
+  window?: EventBrief | null
 }
 
 export interface OutcomeTotals {

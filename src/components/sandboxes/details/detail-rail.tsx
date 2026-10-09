@@ -7,7 +7,7 @@ import { PaceChip } from '@/components/sandboxes/pace-chip'
 import { Empty, Panel } from '@/components/sandboxes/section'
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
 import { sandboxEntityHref } from '@/lib/sandbox/detail-links'
-import { comingUp } from '@/lib/sandbox/detail-view'
+import { comingUp, pageWindows } from '@/lib/sandbox/detail-view'
 import { fmtDay, fmtWindow } from '@/lib/sandbox/format'
 import { cn } from '@/lib/utils'
 import type {
@@ -329,7 +329,7 @@ export function CoachingPanel({
 /** The sandbox's milestone windows that are open or still ahead. */
 export function ComingUpPanel({ data }: { data: SandboxEntityDetail }) {
   const today = data.analytics.current_contract.as_of
-  const rows = comingUp(data.milestones, today)
+  const rows = comingUp(pageWindows(data), today)
   if (!rows.length) return null
   return (
     <Panel id="coming-up" title="Coming up" testId="detail-coming-up">

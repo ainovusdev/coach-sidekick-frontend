@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { describeMilestoneEffects } from '@/lib/sandbox/milestones-view'
 import { ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -145,6 +146,12 @@ export function RegeneratePreviewList({
       <p className="mt-2 text-xs text-ink-3" data-testid="regen-summary">
         {summariseCounts(preview.counts) || 'Nothing changes.'}
       </p>
+      {preview.milestones && (
+        <p className="mt-1 text-xs text-ink-3" data-testid="regen-milestones">
+          {describeMilestoneEffects(preview.milestones) ||
+            'No personal milestones change.'}
+        </p>
+      )}
     </div>
   )
 }
