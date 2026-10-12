@@ -7,6 +7,10 @@
  */
 
 import { fmtHoursShort } from '@/lib/sandbox/delivery'
+import type {
+  PersonalMilestoneRow,
+  PersonalWindow,
+} from '@/types/sandbox-milestones'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { parseDateOnly } from '@/lib/sandbox/term'
 import type { StatTone } from '@/components/ui/stat-strip'
@@ -169,15 +173,91 @@ export function outcomeSubjects(data: SandboxEntityDetail): Set<string> {
 }
 
 /** Milestone windows that are open or still to come, soonest first. */
-export function comingUp(
-  milestones: TimelineEvent[],
+export interface WindowLike {
+  id: string
+  label: string
+  window_start: string
+  window_end: string
+  removed_at?: string | null
+}
+
+export function comingUp<T extends WindowLike>(
+  milestones: T[],
   today: string,
   max = 3,
-): TimelineEvent[] {
+): T[] {
   return milestones
     .filter(m => !m.removed_at && m.window_end >= today)
     .sort((a, b) => a.window_start.localeCompare(b.window_start))
     .slice(0, max)
+}
+
+/**
+ * The windows a person page shows: a coachee's own gold sealing and results
+ * review when the page carries them (our side, or the coachee themself);
+ * otherwise the sandbox timeline. Dropped personal windows are left out.
+ */
+export function pageWindows(data: {
+  milestones: TimelineEvent[]
+  personal_windows?: PersonalWindow[]
+  personal_milestones?: PersonalMilestoneRow[]
+  entity: { kind: string }
+}): WindowLike[] {
+  const personal = data.personal_windows
+  if (data.entity.kind !== 'client' || !personal || personal.length === 0)
+    return data.milestones
+  const own = new Map<string, PersonalWindow>()
+  for (const w of personal) own.set(w.occurrence, w)
+  // Our side also carries the coach's midpoint rows: the page's windows should
+  // agree with the Milestones section beneath them, not quote the sandbox's.
+  for (const r of data.personal_milestones ?? []) {
+    const m = r.milestone
+    if (own.has(m.occurrence) || !r.start_date || !r.target_date) continue
+    const applicable =
+      r.status === 'active' ||
+      r.status === 'in_progress' ||
+      r.status === 'completed' ||
+      m.resolved_reason === 'window_passed'
+    own.set(m.occurrence, {
+      occurrence: m.occurrence,
+      kind: m.occurrence.split(':')[0],
+      label: m.label,
+      window_start: r.start_date,
+      window_end: r.target_date,
+      state: 'upcoming',
+      source: m.source_kind,
+      follows: m.follows,
+      applicable,
+      milestone_id: m.id,
+      event_id: null,
+    })
+  }
+  const out: WindowLike[] = []
+  for (const m of data.milestones) {
+    const w = m.gen_key ? own.get(m.gen_key) : undefined
+    if (!w) {
+      out.push(m)
+      continue
+    }
+    own.delete(m.gen_key as string)
+    if (!w.applicable) continue
+    out.push({
+      id: w.milestone_id ?? m.id,
+      label: w.label,
+      window_start: w.window_start,
+      window_end: w.window_end,
+    })
+  }
+  // A derived window has no sandbox event behind it.
+  for (const w of own.values())
+    if (w.applicable)
+      out.push({
+        id: w.milestone_id ?? w.occurrence,
+        label: w.label,
+        window_start: w.window_start,
+        window_end: w.window_end,
+      })
+  return out.sort((a, b) => a.window_start.localeCompare(b.window_start))
 }
 
 /** One coachee's row on a group or coach page. */

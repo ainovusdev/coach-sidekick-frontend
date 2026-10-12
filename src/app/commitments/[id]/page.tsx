@@ -110,6 +110,7 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
     error,
     capabilities,
     handleFieldUpdate,
+    handleFieldsUpdate,
     handleDelete,
   } = useCommitmentDetail({
     commitmentId,
@@ -180,6 +181,7 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
               commitment={commitment}
               onClose={() => router.push('/commitments')}
               onFieldUpdate={handleFieldUpdate}
+              onFieldsUpdate={handleFieldsUpdate}
               onDelete={() => setConfirmDelete(true)}
             />
             <CommitmentContextHeader commitment={commitment} />
@@ -232,6 +234,7 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
           <FieldsGrid
             commitment={commitment}
             onFieldUpdate={handleFieldUpdate}
+            onFieldsUpdate={handleFieldsUpdate}
             variant="plain"
           />
 

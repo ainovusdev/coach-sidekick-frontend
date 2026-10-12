@@ -75,6 +75,32 @@ export function SandboxNote() {
                 captions={[fmtDay(ctx.starts_on), fmtDay(ctx.term_end)]}
               />
             )}
+            {/* Their own windows, read-only: a late joiner's gold sealing is
+                dated from their first day, not the sandbox's. */}
+            {(ctx.personal_windows ?? []).some(w => w.applicable) && (
+              <ul
+                className="mt-3 space-y-2 border-t border-line pt-3"
+                data-testid="portal-personal-windows"
+              >
+                {(ctx.personal_windows ?? [])
+                  .filter(w => w.applicable)
+                  .map(w => (
+                    <li key={w.occurrence}>
+                      <WindowChip
+                        variant="row"
+                        today={ctx.today}
+                        event={{
+                          id: w.milestone_id ?? w.occurrence,
+                          label: `Your ${w.label.toLowerCase()}`,
+                          window_start: w.window_start,
+                          window_end: w.window_end,
+                          state: w.state,
+                        }}
+                      />
+                    </li>
+                  ))}
+              </ul>
+            )}
 
             {ctx.vision && (
               <blockquote className="mt-3 border-l-2 border-line pl-3 text-sm italic text-ink-2">

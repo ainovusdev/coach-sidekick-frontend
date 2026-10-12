@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import posthog from 'posthog-js'
 import { CommitmentService } from '@/services/commitment-service'
+import { SandboxService } from '@/services/sandbox-service'
+import type { MilestoneFollowRequest } from '@/types/sandbox-milestones'
 import {
   Commitment,
   CommitmentAttachment,
@@ -128,6 +130,8 @@ export function useCreateCommitment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
     },
   })
 }
@@ -204,11 +208,52 @@ export function useUpdateCommitment(options?: { silent?: boolean }) {
       }
     },
 
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
-      // A sandbox cockpit shows commitment counts on its timeline cards.
-      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+    onSettled: data => {
+      // Everything a changed commitment shows on: lists, the cockpit's
+      // timeline cards, the person page, the outcomes tab, the portal card.
+      void invalidateQueries.afterCommitmentChange(queryClient, {
+        sandboxId: data?.sandbox_id ?? null,
+      })
+    },
+  })
+}
+
+/**
+ * Hand a personal milestone's dates and/or assignee back to the automation
+ * ("Use default dates", "Follow the group's coach").
+ */
+export function useFollowMilestone() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      sandboxId,
+      milestoneId,
+      body,
+    }: {
+      sandboxId: string
+      milestoneId: string
+      body: MilestoneFollowRequest
+    }) => SandboxService.followMilestone(sandboxId, milestoneId, body),
+    onSuccess: (data, { body }) => {
+      queryClient.setQueryData(queryKeys.commitments.detail(data.id), data)
+      toast.success(
+        body.dates && body.assignee
+          ? 'Back to the default dates and the group’s coach'
+          : body.dates
+            ? 'Back to the default dates'
+            : 'Follows the group’s coach again',
+        { description: data.title },
+      )
+    },
+    onError: err => {
+      toast.error("Couldn't save", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+    onSettled: data => {
+      void invalidateQueries.afterCommitmentChange(queryClient, {
+        sandboxId: data?.sandbox_id ?? null,
+      })
     },
   })
 }
@@ -233,6 +278,8 @@ export function useConfirmCommitment() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
 
       toast.success('Confirmed', {
         description: data.title,
@@ -316,6 +363,9 @@ export function useDiscardCommitment() {
       queryClient.removeQueries({
         queryKey: queryKeys.commitments.detail(commitmentId),
       })
+      // A sandbox row's deletion is a line in its log and a count on its cards.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
     },
   })
 }
@@ -402,10 +452,13 @@ export function useUpdateCommitmentProgress() {
       toast.success('Progress saved')
     },
 
-    onSettled: (_data, _err, { commitmentId }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+    onSettled: (data, _err, { commitmentId }) => {
       queryClient.invalidateQueries({
         queryKey: queryKeys.commitments.detail(commitmentId),
+      })
+      // Reaching 100% completes the row — a personal milestone's too.
+      void invalidateQueries.afterCommitmentChange(queryClient, {
+        sandboxId: data?.sandbox_id ?? null,
       })
     },
   })
@@ -431,6 +484,8 @@ export function useBulkConfirmCommitments() {
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all })
       // A sandbox cockpit shows commitment counts on its timeline cards.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.details() })
+      // …and every sandbox row is a line in the sandbox's log.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] })
 
       toast.success(`${data.length} confirmed`)
     },

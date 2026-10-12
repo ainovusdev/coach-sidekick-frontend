@@ -11,6 +11,9 @@ const RULE_LABELS: Record<string, string> = {
   review_ai_drafts: 'AI drafts to review',
   pre_session_questionnaire: 'pre-session questions',
   gold_sealing_decision: 'gold sealing decision',
+  gold_sealing_person: 'gold sealing milestone',
+  midpoint_person: 'midpoint milestone',
+  results_review_person: 'results review milestone',
 }
 
 interface AutoInfo {

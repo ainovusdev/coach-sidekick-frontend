@@ -309,6 +309,20 @@ export const queryKeys = {
       [...queryKeys.sandboxes.all, 'coachee', activeClientId] as const,
     outcomes: (id: string) =>
       [...queryKeys.sandboxes.detail(id), 'outcomes'] as const,
+    milestoneAssignees: (id: string, milestoneId: string) =>
+      [
+        ...queryKeys.sandboxes.detail(id),
+        'milestone-assignees',
+        milestoneId,
+      ] as const,
+    movePreview: (id: string, eventId: string, start: string, end: string) =>
+      [
+        ...queryKeys.sandboxes.detail(id),
+        'move-preview',
+        eventId,
+        start,
+        end,
+      ] as const,
   },
   notifications: {
     all: ['notifications'] as const,
@@ -424,6 +438,7 @@ export const invalidateQueries = {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
       queryClient.invalidateQueries({
         queryKey: queryKeys.sandboxes.outcomes(sandboxId),
       }),
@@ -437,6 +452,11 @@ export const invalidateQueries = {
         queryKey: [...queryKeys.sandboxes.all, 'dashboard'],
       }),
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+      // Sealing an outcome completes the coach's gold-sealing milestone.
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.sandboxes.commitments(sandboxId),
+      }),
     ])
   },
   afterSandboxUpdate: async (queryClient: QueryClient, sandboxId?: string) => {
@@ -449,17 +469,34 @@ export const invalidateQueries = {
         : queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       // coachees become clients of the group's coaches
       queryClient.invalidateQueries({ queryKey: queryKeys.clients.all }),
+      // every sandbox mutation is a line in its log
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
+      // people's personal milestones follow the timeline, the groups and the term
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
+      // …and the coachee's portal card quotes their personal windows
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'client-context'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'coachee'],
+      }),
     ])
   },
 
   /** A window moved: every number built on which sessions count can change. */
   afterSandboxWindowChange: async (queryClient: QueryClient) => {
     await Promise.all([
+      // `sandboxes.all` covers the client context and the coachee card too.
       queryClient.invalidateQueries({ queryKey: queryKeys.sandboxes.all }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-reporting'] }),
       queryClient.invalidateQueries({ queryKey: ['sandbox-client-markers'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
+      // a window moving re-dates personal milestones: the hub and an open panel
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
     ])
   },
 
@@ -491,11 +528,26 @@ export const invalidateQueries = {
   ) => {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all }),
-      opts.sandboxId &&
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.sandboxes.detail(opts.sandboxId),
-        }),
+      opts.sandboxId
+        ? queryClient.invalidateQueries({
+            queryKey: queryKeys.sandboxes.detail(opts.sandboxId),
+          })
+        : // A sandbox cockpit shows commitment counts on its timeline cards.
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.sandboxes.details(),
+          }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-changes'] }),
       queryClient.invalidateQueries({ queryKey: queryKeys.notifications.all }),
+      // A personal milestone's dates and assignee show on the person page,
+      // the outcomes tab and the coachee's portal card.
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity'] }),
+      queryClient.invalidateQueries({ queryKey: ['sandbox-entity-activity'] }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'client-context'],
+      }),
+      queryClient.invalidateQueries({
+        queryKey: [...queryKeys.sandboxes.all, 'coachee'],
+      }),
     ])
   },
 

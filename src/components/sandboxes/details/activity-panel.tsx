@@ -17,7 +17,7 @@ import { useSandboxEntityActivity } from '@/hooks/queries/use-sandbox-details'
 import { fmtDay } from '@/lib/sandbox/format'
 import type { InsightSelection } from '@/types/sandbox-analytics'
 import type { SandboxActivityItem } from '@/types/sandbox-details'
-import type { TimelineEvent } from '@/types/sandbox'
+import type { WindowLike } from '@/lib/sandbox/detail-view'
 import { Section } from '@/components/sandboxes/section'
 
 const icons = {
@@ -119,7 +119,7 @@ export function ActivityPanel({
   sandboxId: string
   viewer: string | null
   selection: InsightSelection
-  milestones: TimelineEvent[]
+  milestones: WindowLike[]
   onSession: (id: string) => void
   onCommitment: (id: string) => void
 }) {

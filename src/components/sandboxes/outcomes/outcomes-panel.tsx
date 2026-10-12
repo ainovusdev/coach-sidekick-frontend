@@ -1,6 +1,8 @@
 'use client'
 
 import Link from 'next/link'
+import { fmtWindow } from '@/lib/sandbox/format'
+import type { EventBrief } from '@/types/sandbox-delivery'
 import { useEffect, useState } from 'react'
 import { PersonAvatar } from '@/components/ui/person-avatar'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -69,6 +71,7 @@ function CoacheeBlock({
   maxPerCoachee,
   showGroup,
   deepLink,
+  sandboxWindow,
 }: {
   sandboxId: string
   coachee: CoacheeOutcomes
@@ -76,7 +79,18 @@ function CoacheeBlock({
   maxPerCoachee: number
   showGroup: boolean
   deepLink: DeepLink
+  /** The header's window, so a coachee's own is only said when it differs. */
+  sandboxWindow?: EventBrief | null
 }) {
+  // `window` is undefined on older payloads, null when the person's gold
+  // sealing milestone was dropped, and their own window otherwise.
+  const own = coachee.window
+  const differs =
+    own !== undefined &&
+    (own === null ||
+      !sandboxWindow ||
+      own.window_start !== sandboxWindow.window_start ||
+      own.window_end !== sandboxWindow.window_end)
   return (
     <div
       className="rounded-lg border border-line px-4 pb-3 pt-3"
@@ -99,6 +113,16 @@ function CoacheeBlock({
             {showGroup && coachee.group_names.length > 0 && (
               <p className="truncate text-xs text-ink-3">
                 {coachee.group_names.join(' · ')}
+              </p>
+            )}
+            {differs && (
+              <p
+                className="truncate text-xs text-ink-3"
+                data-testid="coachee-sealing-window"
+              >
+                {own
+                  ? `Their sealing window: ${fmtWindow(own.window_start, own.window_end)}`
+                  : 'No sealing window — their milestone was dropped.'}
               </p>
             )}
           </div>
@@ -192,6 +216,7 @@ export function OutcomesPanel({ overview }: { overview: SandboxOverview }) {
               maxPerCoachee={data?.max_per_coachee ?? 2}
               showGroup={showGroup}
               deepLink={deepLink}
+              sandboxWindow={data?.window}
             />
           ))
         )}

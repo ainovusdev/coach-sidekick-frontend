@@ -1,4 +1,5 @@
 import type { Comment } from './comment'
+import type { PersonalMilestoneInfo } from '@/types/sandbox-milestones'
 
 /**
  * TypeScript interfaces for the Commitments System
@@ -108,12 +109,16 @@ export interface CommitmentUpdate {
   type?: CommitmentType
   status?: CommitmentStatus
   priority?: CommitmentPriority
+  /** A personal milestone's window start (with `target_date` as its end). */
+  start_date?: string
   target_date?: string
   progress_percentage?: number
   measurement_criteria?: string
   assigned_to_id?: string | null // null with a client = the client themself
   visibility?: CommitmentVisibility
   metadata?: Record<string, unknown>
+  /** Why the due date moved — kept on the ledger row, never required. */
+  reason?: string
 }
 
 // Full commitment response from backend
@@ -175,6 +180,8 @@ export interface Commitment extends CommitmentBase {
   /** Set when this commitment *is* a sandbox timeline event: title and dates follow it. */
   timeline_event_id?: string | null
   timeline_event?: TimelineEventBrief | null
+  /** Set when this commitment *is* a coachee's personal milestone. */
+  milestone?: PersonalMilestoneInfo | null
 }
 
 // Commitment progress update

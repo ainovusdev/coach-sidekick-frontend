@@ -116,7 +116,21 @@ test.describe('Sandboxes — commitments', () => {
     await hideDevtools(page)
     const panel = page.getByTestId('commitments-panel')
     await expect(panel).toBeVisible()
-    await expect(panel.getByTestId('sandbox-commitments-empty')).toBeVisible()
+    // Grouping Tariq under Priya already handed her his personal milestones
+    // (midpoint input, results review — gold sealing closed before it was
+    // created), so the panel is never empty once a group exists.
+    const milestoneRows = panel
+      .getByTestId('commitment-row')
+      .filter({ hasText: 'for Tariq' })
+    await expect(milestoneRows).toHaveCount(1)
+    await expect(
+      panel.getByTestId('commitment-row').filter({ hasText: 'with Tariq' }),
+    ).toHaveCount(1)
+    const allChip = panel.getByTestId('sandbox-commitments-filter-all')
+    const before = Number(
+      ((await allChip.textContent()) ?? '').replace(/\D/g, ''),
+    )
+    expect(before).toBeGreaterThan(0)
 
     await panel.getByTestId('sandbox-commitments-new').click()
     await expect(page.getByTestId('commitment-create-panel')).toBeVisible()
@@ -152,7 +166,7 @@ test.describe('Sandboxes — commitments', () => {
     // The header repeated these counts; now only the chips carry them.
     await expect(
       panel.getByTestId('sandbox-commitments-filter-all'),
-    ).toContainText('1')
+    ).toContainText(String(before + 1))
   })
 
   test('their side does not see it', async ({ page, request }) => {
@@ -228,9 +242,15 @@ test.describe('Sandboxes — commitments', () => {
       .filter({ hasText: 'Prep the kickoff deck' })
     await expect(row).toBeVisible()
     await expect(row.getByTestId('commitment-private')).toBeVisible()
+    // Mine = the deck plus Tariq's personal milestones, which are hers too.
+    const hers = await panel
+      .getByTestId('commitment-row')
+      .filter({ hasText: 'Tariq' })
+      .count()
+    expect(hers).toBeGreaterThan(0)
     await expect(
       panel.getByTestId('sandbox-commitments-filter-mine'),
-    ).toContainText('1')
+    ).toContainText(String(hers + 1))
     await panel.getByTestId('sandbox-commitments-filter-mine').click()
     await expect(row).toBeVisible()
 

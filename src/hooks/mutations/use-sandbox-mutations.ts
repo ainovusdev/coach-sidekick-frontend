@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import posthog from 'posthog-js'
 import { invalidateQueries, queryKeys } from '@/lib/query-client'
 import { SandboxService } from '@/services/sandbox-service'
+import { reportToastSuffix } from '@/lib/sandbox/milestones-view'
 import type {
   CountsFromUpdate,
   InvitationSendRequest,
@@ -120,10 +121,10 @@ export function useMoveEvent(sandboxId: string) {
     sandboxId,
     ({ eventId, data }: { eventId: string; data: TimelineEventUpdate }) =>
       SandboxService.moveEvent(sandboxId, eventId, data),
-    ({ data }) =>
-      data.shift_following
-        ? 'Window moved, later check-ins shifted'
-        : 'Window moved',
+    ({ data }, overview) =>
+      (data.shift_following
+        ? 'Window moved, later check-ins shifted.'
+        : 'Window moved.') + reportToastSuffix(overview.milestones),
     'Could not move that window',
   )
 }

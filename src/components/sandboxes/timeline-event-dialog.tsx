@@ -19,9 +19,15 @@ import {
   useAddEvent,
   useMoveEvent,
 } from '@/hooks/mutations/use-sandbox-mutations'
+import { useSandboxChanges } from '@/hooks/queries/use-sandbox-details'
+import { useMovePreview } from '@/hooks/queries/use-sandboxes'
+import { describeMilestoneEffects } from '@/lib/sandbox/milestones-view'
+import { useInsightViewer } from '@/hooks/queries/use-sandbox-insights'
+import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { fmtDay, pluralise } from '@/lib/sandbox/format'
 import { daysBetween, parseDateOnly } from '@/lib/sandbox/term'
 import type { SandboxOverview, TimelineEvent } from '@/types/sandbox'
+import type { SandboxChangeItem } from '@/types/sandbox-details'
 
 export type TimelineDialogState =
   | { mode: 'adjust'; event: TimelineEvent }
@@ -110,6 +116,22 @@ export function TimelineEventDialog({
   const pending = move.isPending || add.isPending
   const canSave = !problem && !unchanged && !pending
 
+  // What the move does to people's personal milestones — only the windows
+  // that carry them (gold sealing, midpoint reporting, results review).
+  const carriesMilestones =
+    !!event &&
+    !!event.gen_key &&
+    ['gold_sealing', 'midpoint_reporting', 'results_review'].includes(
+      event.kind,
+    )
+  const preview = useMovePreview(
+    sandbox.id,
+    event?.id,
+    start,
+    end,
+    open && carriesMilestones && !problem && !unchanged,
+  )
+
   const save = async () => {
     if (!canSave) return
     if (event) {
@@ -123,6 +145,7 @@ export function TimelineEventDialog({
             : {}),
           shift_following:
             shiftFollowing && laterCheckins > 0 && deltaDays !== 0,
+          ...(note.trim() ? { reason: note.trim() } : {}),
         },
       })
     } else {
@@ -215,19 +238,42 @@ export function TimelineEventDialog({
             </label>
           )}
 
-          {!event && (
-            <div className="space-y-2">
-              <Label htmlFor="event-note">Why is it being added?</Label>
-              <Textarea
-                id="event-note"
-                value={note}
-                onChange={e => setNote(e.target.value)}
-                rows={2}
-                maxLength={500}
-                placeholder="The client asked for a leadership offsite mid-term."
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="event-note">
+              {event ? 'Why is it moving?' : 'Why is it being added?'}
+              {event && (
+                <span className="ml-1 font-normal text-ink-3">(optional)</span>
+              )}
+            </Label>
+            <Textarea
+              id="event-note"
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              rows={2}
+              maxLength={500}
+              placeholder={
+                event
+                  ? 'The client asked to push the report a fortnight.'
+                  : 'The client asked for a leadership offsite mid-term.'
+              }
+            />
+          </div>
+
+          {event && carriesMilestones && !unchanged && !problem && (
+            <p
+              className="text-xs text-ink-3"
+              data-testid="move-preview"
+              aria-live="polite"
+            >
+              {preview.isFetching && !preview.data
+                ? 'Working out whose dates follow…'
+                : preview.isError
+                  ? 'Could not work out whose dates follow.'
+                  : describeMilestoneEffects(preview.data, event.label)}
+            </p>
           )}
+
+          {event && <EventHistory sandboxId={sandbox.id} event={event} />}
 
           {problem && (start || end || label || note) && !unchanged && (
             <p className="text-xs text-amber-token" data-testid="event-problem">
@@ -251,5 +297,75 @@ export function TimelineEventDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+/**
+ * What has happened to this window, from the sandbox's log. The log began on
+ * a day; a window adjusted before that says so rather than pretending it was
+ * never touched.
+ */
+function EventHistory({
+  sandboxId,
+  event,
+}: {
+  sandboxId: string
+  event: TimelineEvent
+}) {
+  const viewer = useInsightViewer()
+  const query = useSandboxChanges(sandboxId, viewer, {
+    record_type: 'timeline_event',
+    record_id: event.id,
+    limit: 10,
+  })
+  const page = query.data?.pages[0]
+  if (query.isError || (page && !page.visible)) return null
+  const items: SandboxChangeItem[] = page?.items ?? []
+  return (
+    <div
+      className="rounded-lg border border-line bg-surface-2 px-3 py-2.5"
+      data-testid="event-history"
+    >
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-ink-3">
+        History
+      </h4>
+      {query.isPending ? (
+        <p className="mt-1.5 text-xs text-ink-3" role="status">
+          Loading…
+        </p>
+      ) : items.length === 0 ? (
+        <p
+          className="mt-1.5 text-xs text-ink-3"
+          data-testid="event-history-none"
+        >
+          {event.is_hand_adjusted
+            ? 'Adjusted before changes were recorded.'
+            : 'No changes recorded for this window.'}
+        </p>
+      ) : (
+        <ol className="mt-1.5 space-y-1.5">
+          {items.map(item => (
+            <li key={item.id} className="text-xs leading-relaxed text-ink-2">
+              {item.summary}
+              {item.cause && (
+                <span className="text-ink-3"> · {item.cause}</span>
+              )}
+              <time
+                className="ml-1.5 text-ink-3"
+                dateTime={item.created_at}
+                title={formatDate(item.created_at, 'PPP p')}
+              >
+                {formatRelativeTime(item.created_at)}
+              </time>
+            </li>
+          ))}
+          {query.hasNextPage && (
+            <li className="text-xs text-ink-3">
+              Earlier changes are in the Activity tab.
+            </li>
+          )}
+        </ol>
+      )}
+    </div>
   )
 }

@@ -1,4 +1,9 @@
-import type { CommitmentPriority, CommitmentStatus } from '@/types/commitment'
+import type {
+  CommitmentPriority,
+  CommitmentSource,
+  CommitmentStatus,
+} from '@/types/commitment'
+import type { PersonalMilestoneInfo } from '@/types/sandbox-milestones'
 
 /**
  * The sandbox's Commitments tab. Rows are slim on purpose: for someone who only
@@ -15,7 +20,7 @@ export interface CommitmentGroupRef {
   name: string
 }
 
-export type SandboxCommitmentKind = 'team' | 'coaching'
+export type SandboxCommitmentKind = 'team' | 'coaching' | 'milestone'
 
 export interface SandboxCommitmentRow {
   id: string
@@ -23,6 +28,7 @@ export interface SandboxCommitmentRow {
   title: string
   status: CommitmentStatus
   priority: CommitmentPriority | null
+  start_date?: string | null
   target_date: string | null
   completed_date: string | null
   created_at: string
@@ -33,6 +39,17 @@ export interface SandboxCommitmentRow {
   is_mine: boolean
   /** The viewer reads this one in full anyway, so may open, tick or edit it. */
   can_open: boolean
+  /** The rights matrix, resolved here so the tick and menu need no second request. */
+  can_edit?: boolean
+  source?: CommitmentSource
+  /** A rule-made row: what the "Automatic" chip says. */
+  auto?: {
+    rule: string | null
+    label: string | null
+    why: string | null
+  } | null
+  /** Set when the row is a coachee's personal milestone. */
+  milestone?: PersonalMilestoneInfo | null
 }
 
 export interface SandboxCommitmentCoach extends CommitmentPerson {
@@ -51,4 +68,6 @@ export interface SandboxCommitments {
   coachees: SandboxCommitmentCoachee[]
   groups: CommitmentGroupRef[]
   tracks_everyone: boolean
+  /** MILESTONE_RULES_ENABLED — only the empty-state copy reads it. */
+  milestones_enabled?: boolean
 }

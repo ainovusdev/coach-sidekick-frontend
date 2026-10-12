@@ -11,14 +11,17 @@ import type {
   SandboxCommitments,
 } from '@/types/sandbox-commitments'
 
-export type ViewBy = 'coach' | 'coachee' | 'list'
+export type ViewBy = 'coach' | 'coachee' | 'list' | 'milestones'
 export type StatusFilter = 'open' | 'overdue' | 'done' | 'draft'
-export const VIEW_BYS: ViewBy[] = ['coach', 'coachee', 'list']
+export const VIEW_BYS: ViewBy[] = ['coach', 'coachee', 'list', 'milestones']
 export const VIEW_BY_LABEL: Record<ViewBy, string> = {
   coach: 'Coach',
   coachee: 'Coachee',
   list: 'List',
+  milestones: 'Milestones',
 }
+/** The three views over the team's and coachees' commitments. */
+export const PEOPLE_VIEWS: ViewBy[] = ['coach', 'coachee', 'list']
 export const STATUS_LABEL: Record<StatusFilter, string> = {
   open: 'Open',
   overdue: 'Overdue',
@@ -35,6 +38,10 @@ export interface CommitmentFilters {
   coacheeId: string | null
   groupId: string | null
   kind: 'team' | 'coaching' | null
+  /** Milestones view only: one occurrence ("gold_sealing"), from a nudge's link. */
+  occurrence: string | null
+  /** Milestones view only: open rows with nobody assigned yet ("Awaiting a coach"); a status chip clears it. */
+  awaiting: boolean
 }
 
 export const NO_FILTERS: CommitmentFilters = {
@@ -45,6 +52,8 @@ export const NO_FILTERS: CommitmentFilters = {
   coacheeId: null,
   groupId: null,
   kind: null,
+  occurrence: null,
+  awaiting: false,
 }
 
 /**
@@ -60,6 +69,9 @@ export function filtersFromUrl(
 ): Partial<CommitmentFilters> {
   const q = new URLSearchParams(search)
   const out: Partial<CommitmentFilters> = {}
+  const occurrence = q.get('occurrence')
+  if (occurrence && data.rows.some(r => r.milestone?.occurrence === occurrence))
+    out.occurrence = occurrence
   const coachee = q.get('coachee')
   if (coachee && data.coachees.some(c => c.member_id === coachee))
     out.coacheeId = coachee
@@ -73,7 +85,27 @@ export function filtersFromUrl(
   return out
 }
 
+/** `?view=milestones` from a nudge: the Milestones view, for this visit. */
+export function viewFromUrl(search: string): ViewBy | null {
+  const v = new URLSearchParams(search).get('view')
+  return VIEW_BYS.includes(v as ViewBy) ? (v as ViewBy) : null
+}
+
 const TEAM_KEY = 'team'
+
+/**
+ * A coachee's personal milestones have a view of their own; the three
+ * people views show everything else, so a coach's section never counts the
+ * same row twice.
+ */
+export function rowsForView(
+  rows: SandboxCommitmentRow[],
+  view: ViewBy,
+): SandboxCommitmentRow[] {
+  return rows.filter(r =>
+    view === 'milestones' ? r.kind === 'milestone' : r.kind !== 'milestone',
+  )
+}
 
 export function isDone(r: SandboxCommitmentRow): boolean {
   return r.status === 'completed'
@@ -154,6 +186,8 @@ export function applyScope(
     if (f.coachId && r.coach?.member_id !== f.coachId) return false
     if (f.coacheeId && r.coachee?.member_id !== f.coacheeId) return false
     if (f.groupId && r.group?.id !== f.groupId) return false
+    if (f.occurrence && r.milestone?.occurrence !== f.occurrence) return false
+    if (f.awaiting && !r.milestone?.coach_pending) return false
     if (!q) return true
     return [r.title, r.coach?.name, r.coachee?.name, r.assignee?.name]
       .filter(Boolean)
@@ -203,7 +237,7 @@ export function buildSections(
   data: SandboxCommitments,
   visible: SandboxCommitmentRow[],
   scoped: SandboxCommitmentRow[],
-  by: Exclude<ViewBy, 'list'>,
+  by: 'coach' | 'coachee',
   today: string,
   includeEmpty: boolean,
   /** Show this person's section alone, even with nothing in it. */
@@ -304,6 +338,10 @@ export function whoText(
     if (sectionUserId && r.assignee.user_id === sectionUserId)
       return `Team work${about}`
     return `Team · ${r.assignee.name}${about}`
+  }
+  if (r.kind === 'milestone') {
+    const coach = r.assignee ? `with ${r.assignee.name}` : 'awaiting a coach'
+    return [r.coachee?.name, coach].filter(Boolean).join(' · ')
   }
   if (by === 'coach') return r.coachee?.name ?? ''
   if (by === 'coachee') return r.coach ? `with ${r.coach.name}` : ''

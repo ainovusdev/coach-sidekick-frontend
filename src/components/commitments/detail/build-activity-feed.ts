@@ -20,6 +20,7 @@ export type ActivityKind =
   | 'created'
   | 'completed'
   | 'assigned'
+  | 'rescheduled'
   | 'auto_resolved'
 
 export interface ActivityItem {
@@ -45,8 +46,14 @@ export interface ActivityItem {
   toClient?: boolean
   /** created — set when a rule made the row; the label for "· session prep" */
   autoRule?: string
-  /** auto_resolved — why Coach Sidekick closed it */
+  /** auto_resolved — why Coach Sidekick closed it; rescheduled — the reason given */
   reason?: string
+  /** rescheduled — a personal milestone's window either side ([start, end]) */
+  fromWindow?: [string | null, string | null]
+  toWindow?: [string | null, string | null]
+  /** rescheduled — the due dates either side (YYYY-MM-DD, or null = none) */
+  fromDate?: string | null
+  toDate?: string | null
 }
 
 interface ActivityGroup {
@@ -116,6 +123,36 @@ export function buildActivityFeed(
       })
     }
 
+    // Ledger rows written by the service on a due-date change:
+    // metadata = { kind: 'reschedule', from, to }; `note` is the reason given.
+    // The note is shown once, with the move, not again as a comment below.
+    const isReschedule = meta.kind === 'reschedule'
+    if (isReschedule) {
+      // A personal milestone moves as a window: `{from:{start,end}, to:{…}}`.
+      const win = (v: unknown) =>
+        v && typeof v === 'object' && 'end' in (v as object)
+          ? (v as { start?: string | null; end?: string | null })
+          : null
+      const fromWin = win(meta.from)
+      const toWin = win(meta.to)
+      items.push({
+        ...base,
+        id: `${u.id}:rescheduled`,
+        kind: 'rescheduled',
+        fromDate: fromWin
+          ? (fromWin.end ?? null)
+          : ((meta.from as string | null | undefined) ?? null),
+        toDate: toWin
+          ? (toWin.end ?? null)
+          : ((meta.to as string | null | undefined) ?? null),
+        fromWindow: fromWin
+          ? [fromWin.start ?? null, fromWin.end ?? null]
+          : undefined,
+        toWindow: toWin ? [toWin.start ?? null, toWin.end ?? null] : undefined,
+        reason: u.note || undefined,
+      })
+    }
+
     if (u.status_change) {
       items.push({
         ...base,
@@ -141,12 +178,12 @@ export function buildActivityFeed(
       runningProgress = u.progress_percentage
     }
 
-    if (u.note || u.wins || u.blockers) {
+    if ((u.note && !isReschedule) || u.wins || u.blockers) {
       items.push({
         ...base,
         id: `${u.id}:comment`,
         kind: 'comment',
-        note: u.note,
+        note: isReschedule ? undefined : u.note,
         wins: u.wins,
         blockers: u.blockers,
       })
