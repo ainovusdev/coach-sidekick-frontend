@@ -42,7 +42,7 @@ function byDueDate(a: Commitment, b: Commitment) {
 /**
  * The coachee's own open commitments, soonest first. Anything on this profile
  * that is someone else's (the coach's, say) sits in a collapsed group below,
- * labelled by the person — the coachee can read it, not edit it.
+ * labelled by the person; opening it follows the server's `can_edit`.
  */
 export function UpcomingTasksWidget({
   clientId,

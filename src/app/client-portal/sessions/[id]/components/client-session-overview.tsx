@@ -105,13 +105,14 @@ function CommitmentItem({
   const { userId } = useAuth()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  // Someone else's commitment on this profile (the coach's, say): readable,
-  // labelled by the person, never editable here. `can_edit` is the server's
-  // word; the assignee check covers rows cached before it was on the wire.
+  // Editing works both ways between coach and coachee, so the coach's rows on
+  // this profile are editable here too. `can_edit` is the server's word; the
+  // assignee check covers rows cached before it was on the wire.
   const mine =
     isClientsOwn(commitment as Commitment) ||
     isAssignedTo(commitment as Commitment, userId)
-  const readOnly = commitment.can_edit === false || !mine
+  const readOnly =
+    commitment.can_edit === undefined ? !mine : commitment.can_edit === false
   const status = statusInfo(commitment.status)
   const [editTitle, setEditTitle] = useState(commitment.title)
   const [editDescription, setEditDescription] = useState(
