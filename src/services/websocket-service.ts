@@ -1,3 +1,4 @@
+import posthog from 'posthog-js'
 import authService from '@/services/auth-service'
 import { captureExceptionThrottled } from '@/lib/posthog-capture'
 
@@ -128,7 +129,12 @@ class WebSocketService {
   private setupEventListeners(): void {
     if (!this.ws) return
 
+    // When this socket opened (null until it does). Tells a failed connection
+    // attempt apart from a working connection that later dropped.
+    let openedAt: number | null = null
+
     this.ws.onopen = () => {
+      openedAt = Date.now()
       this.updateStatus('connected')
       this.reconnectAttempts = 0
 
@@ -171,13 +177,18 @@ class WebSocketService {
       if (process.env.NODE_ENV === 'development') {
         console.warn('[WebSocket] Connection error occurred')
       }
-      // Throttled: onerror fires on every failed attempt during a reconnect
-      // storm; the max-reconnect capture below is the high-signal "gave up".
-      captureExceptionThrottled(
-        'ws-onerror',
-        new Error('WebSocket connection error'),
-        { source: 'websocket', reason: 'onerror' },
-      )
+      // Only a socket that never opened is a connection failure (server down,
+      // proxy, network). A drop of an open socket is recorded in onclose with
+      // its close code instead. Throttled: onerror fires on every failed
+      // attempt during a reconnect storm; the max-reconnect capture below is
+      // the high-signal "gave up".
+      if (openedAt === null) {
+        captureExceptionThrottled(
+          'ws-onerror',
+          new Error('WebSocket connection error'),
+          { source: 'websocket', reason: 'onerror' },
+        )
+      }
       this.updateStatus('error')
       // No scheduleReconnect here: onclose always follows a failed connection
       // and schedules it — doing both burned two attempts per real failure.
@@ -193,14 +204,30 @@ class WebSocketService {
       // 4001 = backend rejected the token (websocket/handlers.py); retrying
       // with the same token can never succeed.
       const isAuthRejection = event.code === 4001
+      const shouldReconnect =
+        !this.intentionalDisconnect && !isIntentionalClose && !isAuthRejection
+      const hidden = document.visibilityState === 'hidden'
 
-      if (
-        !this.intentionalDisconnect &&
-        !isIntentionalClose &&
-        !isAuthRejection
-      ) {
-        this.scheduleReconnect()
+      if (openedAt !== null && shouldReconnect) {
+        // A working connection dropped. Sleep, network changes and deploys do
+        // this, so it is an event rather than an error; the close code and
+        // lifetime show what closed it.
+        posthog.capture('websocket_dropped', {
+          code: event.code,
+          was_clean: event.wasClean,
+          lifetime_s: Math.round((Date.now() - openedAt) / 1000),
+          hidden,
+        })
       }
+
+      if (!shouldReconnect) return
+
+      // In a hidden tab, wait: handleVisibilityChange reconnects when the user
+      // comes back. Some browsers close background-tab sockets about a minute
+      // after each reconnect, and reconnecting at once looped for hours.
+      if (hidden) return
+
+      this.scheduleReconnect()
     }
   }
 
