@@ -57,6 +57,7 @@ export default function ClientModal({
     autoSendQuestionnaire: true,
     leadTimeHours: 24,
     autoSendThrillForm: true,
+    sessionReminders: true,
     weeklyCommitmentEmail: true,
     notes: '',
   })
@@ -75,6 +76,7 @@ export default function ClientModal({
         autoSendQuestionnaire: client?.auto_send_questionnaire ?? true,
         leadTimeHours: client?.questionnaire_lead_time_hours ?? 24,
         autoSendThrillForm: client?.auto_send_thrill_form ?? true,
+        sessionReminders: client?.session_reminders_enabled ?? true,
         weeklyCommitmentEmail: client?.weekly_commitment_email_enabled ?? true,
         notes: client?.notes || '',
       })
@@ -167,6 +169,7 @@ export default function ClientModal({
         auto_send_questionnaire: formData.autoSendQuestionnaire,
         questionnaire_lead_time_hours: formData.leadTimeHours,
         auto_send_thrill_form: formData.autoSendThrillForm,
+        session_reminders_enabled: formData.sessionReminders,
         weekly_commitment_email_enabled: formData.weeklyCommitmentEmail,
       }
 
@@ -189,6 +192,7 @@ export default function ClientModal({
           has_email: !!formData.email.trim(),
           auto_send_questionnaire: formData.autoSendQuestionnaire,
           auto_send_thrill_form: formData.autoSendThrillForm,
+          session_reminders_enabled: formData.sessionReminders,
           weekly_commitment_email_enabled: formData.weeklyCommitmentEmail,
         })
 
@@ -480,6 +484,28 @@ export default function ClientModal({
                   )}
                 </div>
               )}
+
+              <div className="flex items-center justify-between gap-3 py-3 px-4 bg-paper rounded-lg">
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium text-ink-2">
+                    Session reminder emails
+                  </span>
+                  <span className="text-xs text-ink-3">
+                    Email a reminder a day and an hour before each session, and
+                    a notice if it&apos;s rescheduled
+                  </span>
+                </div>
+                <Switch
+                  checked={formData.sessionReminders}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({
+                      ...prev,
+                      sessionReminders: checked,
+                    }))
+                  }
+                  disabled={isLoading}
+                />
+              </div>
 
               <div className="flex items-center justify-between gap-3 py-3 px-4 bg-paper rounded-lg">
                 <div className="flex flex-col">
