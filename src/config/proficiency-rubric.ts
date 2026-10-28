@@ -37,7 +37,8 @@ export const RUNG_NAMES: Record<number, string> = {
 
 export const PROFICIENT_RUNG = 4 // the bar
 
-// Signed, one decimal: graduate scores go negative, so "+" marks the positive side.
+// Signed, one decimal: graduate scores from before rubric 1.2 can be negative,
+// so "+" marks the positive side.
 export function formatProficiencyScore(score: number): string {
   const rounded = Math.round(score * 10) / 10
   return rounded > 0 ? `+${rounded}` : `${rounded}`
@@ -182,5 +183,5 @@ export const RUBRIC_LEGEND: Record<'trainee' | 'graduate', string> = {
   trainee:
     'Trainee scale: rungs 1–4 score as-is (1–4); above the bar earns a bonus (5→6.5, 6→7.8, 7→9.1).',
   graduate:
-    'Graduate scale: at/above the bar scores as the rung (4–7); below the bar is penalized (3→−1, 2→−2, 1→−3).',
+    'Graduate scale: at/above the bar scores as the rung (4–7); below the bar loses a point (3→2, 2→1, 1→0).',
 }

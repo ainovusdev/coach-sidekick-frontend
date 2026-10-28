@@ -130,9 +130,11 @@ function monthTicks(from: number, to: number) {
   return ticks.filter((_, i) => i % step === 0)
 }
 
-// Graduate scores run −3..7 and trainee scores 1..9.1; both put the bar at 4.
-function yScale(types: Set<string>) {
-  const lo = types.has('graduate') ? -4 : 0
+// Graduate scores run 0..7 and trainee scores 1..9.1; both put the bar at 4.
+// Graduate scores from before rubric 1.2 went down to −3, so the axis only
+// drops below 0 when such a point is plotted.
+function yScale(types: Set<string>, values: number[]) {
+  const lo = values.some(v => v < 0) ? -4 : 0
   const hi = types.has('trainee') ? 10 : 8
   const ticks: number[] = []
   for (let v = lo; v <= hi; v += 2) ticks.push(v)
@@ -329,7 +331,10 @@ export function ProficiencyTrendCard() {
 
   const allTypes = new Set(points.map(p => p.rubric_type))
   const visibleTypes = new Set(rows.map(r => r.point.rubric_type))
-  const y = yScale(visibleTypes.size ? visibleTypes : allTypes)
+  const y = yScale(
+    visibleTypes.size ? visibleTypes : allTypes,
+    rows.map(r => r.value),
+  )
   // "All" fits the data, padded so the end dots don't sit on the plot edges.
   const first = rows.length ? rows[0].t : now - 30 * DAY
   const last = rows.length ? rows[rows.length - 1].t : now
