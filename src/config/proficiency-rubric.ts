@@ -14,7 +14,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 
-type ProficiencyCriterionKey =
+export type ProficiencyCriterionKey =
   | 'maximum_value'
   | 'expansion'
   | 'integrity'
@@ -36,6 +36,23 @@ export const RUNG_NAMES: Record<number, string> = {
 }
 
 export const PROFICIENT_RUNG = 4 // the bar
+
+// Signed, one decimal: graduate scores go negative, so "+" marks the positive side.
+export function formatProficiencyScore(score: number): string {
+  const rounded = Math.round(score * 10) / 10
+  return rounded > 0 ? `+${rounded}` : `${rounded}`
+}
+
+// A level is reached when the average rung reaches it, so 3.98 is still
+// Foundational and the level agrees with the Proficient bar at 4.
+export function rungLevel(avgRung: number): number {
+  return Math.min(7, Math.max(1, Math.floor(avgRung + 1e-9)))
+}
+
+// Truncated, not rounded, so "4.0" never sits next to "Foundational".
+export function formatAverageRung(avgRung: number): string {
+  return (Math.floor(avgRung * 10 + 1e-9) / 10).toFixed(1)
+}
 
 interface ProficiencyCriterionConfig {
   key: ProficiencyCriterionKey
