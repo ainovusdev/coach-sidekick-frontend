@@ -189,6 +189,14 @@ export const queryKeys = {
       [...queryKeys.sessionShares.all, sessionId] as const,
   },
 
+  // Proficiency Ladder trend, keyed by viewer so an impersonated coach's
+  // scores never land in the super admin's own cache entry
+  proficiency: {
+    all: ['proficiency'] as const,
+    trend: (viewer: string) =>
+      [...queryKeys.proficiency.all, 'trend', viewer] as const,
+  },
+
   // Coach evaluation keys
   coachEvaluations: {
     all: ['coach-evaluations'] as const,

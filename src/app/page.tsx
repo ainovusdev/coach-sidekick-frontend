@@ -20,6 +20,8 @@ import { ManualSessionModal } from '@/components/sessions/manual-session-modal'
 import { ScheduleSessionModal } from '@/components/sessions/schedule-session-modal'
 import { StartStandaloneGroupSessionModal } from '@/components/group-session/start-standalone-group-session-modal'
 import { UpcomingSessions } from '@/components/dashboard/upcoming-sessions'
+import { ProficiencyTrendCard } from '@/components/dashboard/proficiency-trend-card'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { SandboxStrip } from '@/components/sandboxes/sandbox-strip'
 import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
@@ -40,6 +42,8 @@ export default function CoachDashboard() {
   const permissions = usePermissions()
   const { user } = useAuth()
   const canCreateMeeting = permissions.canCreateMeeting()
+  // Same flag as the per-session rubric; unflagged coaches never request it.
+  const showProficiency = useFeatureFlagEnabled('proficiency-rubric')
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
   const [isManualSessionModalOpen, setIsManualSessionModalOpen] =
     useState(false)
@@ -324,6 +328,9 @@ export default function CoachDashboard() {
 
           {/* The groups they coach, with a session they can start from each */}
           <SandboxGroupsSection />
+
+          {/* Proficiency Ladder scores over time */}
+          {showProficiency && <ProficiencyTrendCard />}
 
           {/* Top Section: Clients (2/3) and Start Session (1/3) */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6 lg:items-stretch">

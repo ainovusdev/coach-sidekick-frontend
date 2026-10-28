@@ -1,4 +1,5 @@
 import { ApiClient } from '@/lib/api-client'
+import type { ProficiencyCriterionKey } from '@/config/proficiency-rubric'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -110,6 +111,27 @@ export interface ProficiencyUnavailable {
 
 export type ProficiencyResult = ProficiencyScores | ProficiencyUnavailable
 
+// One scored session on the coach's trend (GET /analysis/proficiency-trend).
+// Rungs and scores only — the justification text stays on the session view.
+export interface ProficiencyTrendPoint {
+  session_id: string
+  started_at: string
+  client_id: string | null // null for group sessions
+  participant_client_ids: string[] // empty for 1:1
+  is_group_session: boolean
+  overall: number
+  rubric_type: 'trainee' | 'graduate'
+  criteria: Record<
+    ProficiencyCriterionKey,
+    Pick<ProficiencyCriterionScore, 'rung' | 'score'>
+  >
+}
+
+export interface ProficiencyTrendResponse {
+  points: ProficiencyTrendPoint[] // oldest first
+  clients: { id: string; name: string }[] // every client the points reference
+}
+
 export interface CoachingAnalysis {
   session_id: string
   timestamp: string
@@ -193,5 +215,12 @@ export class AnalysisService {
     } catch {
       return null
     }
+  }
+
+  /**
+   * The signed-in coach's Proficiency Ladder scores over time
+   */
+  static getProficiencyTrend(): Promise<ProficiencyTrendResponse> {
+    return ApiClient.get(`${BACKEND_URL}/analysis/proficiency-trend`)
   }
 }
