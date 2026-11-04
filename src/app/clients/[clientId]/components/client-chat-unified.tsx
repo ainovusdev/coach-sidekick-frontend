@@ -31,7 +31,6 @@ import {
 import { cn } from '@/lib/utils'
 import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { useSimpleVoice } from '@/hooks/use-simple-voice'
-import { RealtimeVoiceModal } from './realtime-voice-modal'
 import {
   AIProviderSelector,
   type AIProvider,
@@ -78,7 +77,6 @@ export function ClientChatUnified({
   const [showSources, setShowSources] = useState<{ [key: number]: boolean }>({})
   const [selectedProvider, setSelectedProvider] = useState<AIProvider>('openai')
   const [showProviderSettings, setShowProviderSettings] = useState(false)
-  const [showRealtimeModal, setShowRealtimeModal] = useState(false)
   const [inputMode, setInputMode] = useState<'text' | 'voice'>('text')
 
   // Refs
@@ -140,14 +138,6 @@ export function ClientChatUnified({
         provider: selectedProvider,
       })
 
-      // TODO: Add realtime voice support
-      // if (useRealtimeVoice && realtimeConnected) {
-      //   realtimeSendText(textToSend)
-      //   setInput('')
-      //   return
-      // }
-
-      // Otherwise use traditional API
       const userMessage: DisplayMessage = {
         id: Date.now().toString(),
         role: 'user',
@@ -369,26 +359,6 @@ export function ClientChatUnified({
 
             {/* Controls */}
             <div className="flex items-center gap-2">
-              {/* Realtime Voice Button */}
-              <TooltipProvider>
-                <Tooltip>
-                  {/* <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setShowRealtimeModal(true)}
-                      className="h-9 px-3 bg-indigo-bg hover:bg-indigo-bg border-indigo text-indigo"
-                    >
-                      <Headphones className="h-3.5 w-3.5 mr-1.5" />
-                      <span className="text-sm font-medium">Voice Chat</span>
-                    </Button>
-                  </TooltipTrigger> */}
-                  <TooltipContent>
-                    <p>Open realtime voice chat (~300ms latency)</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
               {/* AI Provider Selector */}
               {
                 <Popover
@@ -802,14 +772,6 @@ export function ClientChatUnified({
           )}
         </div>
       </div>
-
-      {/* Realtime Voice Modal */}
-      <RealtimeVoiceModal
-        open={showRealtimeModal}
-        onClose={() => setShowRealtimeModal(false)}
-        clientId={clientId}
-        clientName={clientName}
-      />
     </div>
   )
 }
