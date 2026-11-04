@@ -101,13 +101,6 @@ export function QuickNote({
     onNoteCreated?.()
   }
 
-  const handleEditorKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      e.preventDefault()
-      handleSave()
-    }
-  }
-
   // Auto-save unsaved note when meeting ends (before redirect)
   useEffect(() => {
     if (isMeetingEnded && hasContent(contentRef.current)) {
@@ -202,7 +195,7 @@ export function QuickNote({
           <RichTextEditor
             content={content}
             onChange={setContent}
-            onKeyDown={handleEditorKeyDown}
+            onEnterSubmit={handleSave}
             placeholder="Capture important moments during the session..."
             className="h-full"
           />
@@ -213,13 +206,13 @@ export function QuickNote({
             onClick={handleSave}
             disabled={!hasContent(content)}
             size="sm"
-            title="Save Note (Shift+Enter)"
+            title="Save Note (Enter) · Shift+Enter for a new line"
             className="bg-ink hover:bg-ink-2 "
           >
             <Check className="h-3.5 w-3.5 mr-1.5" />
             Save Note
             <kbd className="ml-1.5 text-[10px] opacity-60 font-normal">
-              Shift+Enter
+              Enter
             </kbd>
           </Button>
         </div>
