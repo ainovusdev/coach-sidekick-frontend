@@ -332,6 +332,13 @@ export const queryKeys = {
         end,
       ] as const,
   },
+  preferences: {
+    all: ['preferences'] as const,
+    // Per user, so switching accounts in one tab never shows the last one's.
+    ui: (userId: string | null) =>
+      [...queryKeys.preferences.all, 'ui', userId] as const,
+  },
+
   notifications: {
     all: ['notifications'] as const,
     list: (unreadOnly: boolean) =>

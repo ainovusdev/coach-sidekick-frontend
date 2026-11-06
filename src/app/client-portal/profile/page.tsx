@@ -18,6 +18,7 @@ import {
   EyeOff,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
+import { EnterKeySetting } from '@/components/ui/enter-key-setting'
 import { PasswordStrengthIndicator } from '@/components/auth/password-strength-indicator'
 import { validatePassword as checkPasswordStrength } from '@/lib/password-validation'
 
@@ -318,6 +319,25 @@ export default function ClientProfilePage() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Editing */}
+      <div
+        className="bg-surface-1 border border-line rounded-[10px] shadow-sm p-2 mb-4"
+        data-testid="editing-preferences"
+      >
+        <h3 className="m-0 px-4 pt-3 pb-2 text-[11px] font-semibold uppercase tracking-[0.04em] text-ink-3">
+          Editing
+        </h3>
+        <div className="px-4 py-3 border-t border-line-2">
+          <p className="m-0 mb-2.5 text-[13px] font-medium text-ink">
+            Enter key in notes and commitment descriptions
+          </p>
+          <EnterKeySetting idPrefix="profile-enter-key" />
+          <p className="m-0 mt-2.5 text-[12px] text-ink-3">
+            Cmd/Ctrl+Enter always saves. Changes save straight away.
+          </p>
+        </div>
       </div>
 
       {/* Profile section */}

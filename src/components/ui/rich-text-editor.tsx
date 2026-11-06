@@ -11,14 +11,29 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
 import { useEffect, useCallback, useMemo, useRef, useState } from 'react'
+import Link from 'next/link'
 import {
   Bold,
   Italic,
+  Keyboard,
   Underline as UnderlineIcon,
   List,
   ListOrdered,
 } from 'lucide-react'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { EnterKeySetting } from '@/components/ui/enter-key-setting'
+import { useAuth } from '@/contexts/auth-context'
+import { useEditorPreferences } from '@/contexts/editor-preferences-context'
+import { isCoachRole } from '@/lib/roles'
+import { toEditorHtml } from '@/lib/rich-text'
 import { cn } from '@/lib/utils'
+import type { EditorEnterKey } from '@/types/preferences'
+
+export { htmlToPlainText } from '@/lib/rich-text'
 
 interface RichTextEditorProps {
   content?: string
@@ -36,7 +51,16 @@ interface RichTextEditorProps {
   variant?: 'document' | 'comment'
   /** Extra tiptap extensions appended after the built-in set (e.g. Mention). */
   extensions?: AnyExtension[]
-  /** Cmd/Ctrl+Enter. */
+  /**
+   * Save from the keyboard. Which key saves follows the person's Enter-key
+   * setting: Shift+Enter by default, Enter if they chose "Enter saves".
+   * Cmd/Ctrl+Enter always saves. Passing it also shows the toolbar's
+   * keyboard button, where the setting can be changed.
+   */
+  onSave?: () => void
+  /** Extra settings in the keyboard popover (e.g. "New notes start as"). */
+  settingsExtra?: React.ReactNode
+  /** Cmd/Ctrl+Enter, for editors without onSave (the comment composer). */
   onSubmit?: () => void
   /**
    * Escape, when nothing inside the editor (a mention popup) took it first.
@@ -51,25 +75,67 @@ interface RichTextEditorProps {
 }
 
 /**
- * Composer keys. Priority 50 so the Mention suggestion plugin (default 100)
- * sees Enter / Escape first while its popup is open.
+ * Every key that saves, cancels or splits, in one place. Always installed;
+ * the handlers read the latest callbacks and the Enter-key setting through
+ * refs, so changing the setting applies to an open editor at once (extensions
+ * are fixed when the editor is created).
+ *
+ * Priority 1000, above StarterKit (100): HardBreak binds Shift-Enter and
+ * Mod-Enter and ListItem binds Enter, and we must see them first. Each handler
+ * returns false when it does not apply, so the key falls through to them.
+ * The comment composer's mention popup still gets Enter, because Enter is
+ * only taken when onSave is set, and comment composers never set it.
  */
-const ComposerKeys = Extension.create<{
-  onSubmit: () => boolean
-  onEscape: () => boolean
+const SaveKeys = Extension.create<{
+  getMode: () => EditorEnterKey
+  canSave: () => boolean
+  save: () => boolean
+  submit: () => boolean
+  escape: () => boolean
 }>({
-  name: 'composerKeys',
-  // Above StarterKit (100): HardBreak also binds Mod-Enter and would insert a
-  // line break first. Escape still reaches the mention popup because the
-  // composer's onEscape returns false while the popup is open.
+  name: 'saveKeys',
   priority: 1000,
   addOptions() {
-    return { onSubmit: () => false, onEscape: () => false }
+    return {
+      getMode: () => 'newline',
+      canSave: () => false,
+      save: () => false,
+      submit: () => false,
+      escape: () => false,
+    }
   },
   addKeyboardShortcuts() {
+    // A new paragraph or list item, as plain Enter makes in the default mode.
+    const newBlock = () =>
+      this.editor.commands.first(({ commands }) => [
+        () => commands.splitListItem('listItem'),
+        () => commands.newlineInCode(),
+        () => commands.createParagraphNear(),
+        () => commands.liftEmptyBlock(),
+        () => commands.splitBlock(),
+      ])
     return {
-      'Mod-Enter': () => this.options.onSubmit(),
-      Escape: () => this.options.onEscape(),
+      Enter: () => {
+        if (!this.options.canSave() || this.options.getMode() !== 'save') {
+          return false
+        }
+        // IME: Enter confirms the composed text.
+        if (this.editor.view.composing) return false
+        // Lists keep Enter: next bullet, or out of the list on an empty one.
+        if (this.editor.isActive('listItem')) return false
+        if (this.editor.isActive('codeBlock')) return false
+        return this.options.save()
+      },
+      'Shift-Enter': () => {
+        // No save handler: HardBreak's line break, as before.
+        if (!this.options.canSave()) return false
+        // Enter saves, so Shift+Enter is "the other key": the new paragraph
+        // or list item that Enter makes by default (not a <br>).
+        if (this.options.getMode() === 'save') return newBlock()
+        return this.options.save()
+      },
+      'Mod-Enter': () => this.options.save() || this.options.submit(),
+      Escape: () => this.options.escape(),
     }
   },
 })
@@ -118,6 +184,8 @@ export function RichTextEditor({
   onKeyDown,
   variant = 'document',
   extensions,
+  onSave,
+  settingsExtra,
   onSubmit,
   onEscape,
   autoFocus = false,
@@ -135,19 +203,32 @@ export function RichTextEditor({
 
   // The editor is created once; the key handlers read the latest callbacks
   // through refs so a re-render never has to rebuild it.
+  const { enterKey, canEdit } = useEditorPreferences()
+  const { roles } = useAuth()
+  const onSaveRef = useRef(onSave)
   const onSubmitRef = useRef(onSubmit)
   const onEscapeRef = useRef(onEscape)
+  const enterKeyRef = useRef(enterKey)
+  onSaveRef.current = onSave
   onSubmitRef.current = onSubmit
   onEscapeRef.current = onEscape
-  const composerKeys = useMemo(
+  enterKeyRef.current = enterKey
+  const saveKeys = useMemo(
     () =>
-      ComposerKeys.configure({
-        onSubmit: () => {
+      SaveKeys.configure({
+        getMode: () => enterKeyRef.current,
+        canSave: () => !!onSaveRef.current,
+        save: () => {
+          if (!onSaveRef.current) return false
+          onSaveRef.current()
+          return true
+        },
+        submit: () => {
           if (!onSubmitRef.current) return false
           onSubmitRef.current()
           return true
         },
-        onEscape: () => onEscapeRef.current?.() === true,
+        escape: () => onEscapeRef.current?.() === true,
       }),
     [],
   )
@@ -170,10 +251,10 @@ export function RichTextEditor({
         emptyEditorClass:
           'before:content-[attr(data-placeholder)] before:text-ink-4 before:float-left before:h-0 before:pointer-events-none',
       }),
-      ...(onSubmit || onEscape ? [composerKeys] : []),
+      saveKeys,
       ...(extensions ?? []),
     ],
-    content,
+    content: toEditorHtml(content),
     editable: !disabled,
     autofocus: autoFocus ? 'end' : false,
     // Prevent SSR rendering issues
@@ -204,10 +285,15 @@ export function RichTextEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor])
 
-  // Update content when prop changes externally
+  // Follow the content prop when it changes from outside (a reset after save,
+  // a different note opened). Plain text is converted so its line breaks
+  // survive, and no update is emitted: loading a value must not rewrite the
+  // parent's state as if the person had typed.
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content)
+    if (!editor) return
+    const html = toEditorHtml(content)
+    if (html !== editor.getHTML() && content !== editor.getHTML()) {
+      editor.commands.setContent(html, { emitUpdate: false })
     }
   }, [content, editor])
 
@@ -328,6 +414,53 @@ export function RichTextEditor({
           >
             <ListOrdered className="h-4 w-4" />
           </ToolbarButton>
+
+          {onSave && canEdit && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  title="Keyboard settings"
+                  aria-label="Keyboard settings"
+                  data-testid="editor-keyboard-settings"
+                  className={cn(
+                    'ml-auto flex items-center gap-1 rounded-md px-1.5 py-1 text-xs text-ink-3 transition-colors',
+                    'hover:bg-surface-3 hover:text-ink focus:outline-none focus:ring-2 focus:ring-ds-accent focus:ring-offset-1',
+                  )}
+                >
+                  <Keyboard className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {enterKey === 'save' ? 'Enter saves' : 'Shift+Enter saves'}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-72 p-3">
+                <div className="space-y-3">
+                  <div>
+                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">
+                      Enter key
+                    </p>
+                    <EnterKeySetting idPrefix="popover-enter-key" />
+                    <p className="mt-2 text-xs text-ink-3">
+                      Cmd/Ctrl+Enter always saves. Applies to every note and
+                      description box.
+                    </p>
+                  </div>
+                  {settingsExtra}
+                  <Link
+                    href={
+                      isCoachRole(roles)
+                        ? '/settings?tab=preferences'
+                        : '/client-portal/profile'
+                    }
+                    className="block text-xs text-ds-accent hover:underline"
+                  >
+                    All settings
+                  </Link>
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       )}
 
@@ -342,15 +475,4 @@ export function RichTextEditor({
       </div>
     </div>
   )
-}
-
-// Export a function to get plain text from HTML (useful for previews)
-export function htmlToPlainText(html: string): string {
-  if (typeof document !== 'undefined') {
-    const div = document.createElement('div')
-    div.innerHTML = html
-    return div.textContent || div.innerText || ''
-  }
-  // Server-side fallback: simple regex
-  return html.replace(/<[^>]*>/g, '').trim()
 }
