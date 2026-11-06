@@ -34,8 +34,8 @@ const providers: AIProviderInfo[] = [
     id: 'openai',
     name: 'OpenAI',
     icon: <Brain className="h-4 w-4" />,
-    description: 'GPT-5 models with advanced reasoning',
-    models: ['gpt-5-mini', 'gpt-5.2'],
+    description: 'Fast GPT-6 answers',
+    models: ['gpt-6-luna'],
     badge: 'Default',
   },
   {
@@ -43,14 +43,14 @@ const providers: AIProviderInfo[] = [
     name: 'Google Gemini',
     icon: <Sparkles className="h-4 w-4" />,
     description: "Google's latest multimodal AI",
-    models: ['gemini-3-flash', 'gemini-3-pro'],
+    models: ['gemini-2.5-flash'],
   },
   {
     id: 'claude',
     name: 'Claude',
     icon: <Zap className="h-4 w-4" />,
     description: "Anthropic's advanced reasoning assistant",
-    models: ['claude-haiku-4-5', 'claude-sonnet-4-6'],
+    models: ['claude-sonnet-5-5'],
   },
 ]
 

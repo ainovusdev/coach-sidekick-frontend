@@ -161,7 +161,7 @@ interface FetchAgentInsightArgs {
   /** Fully-composed prompt — date + identifiers are baked in by the caller. */
   prompt: string
   scope: AgentApiScope
-  /** Optional model override; the backend defaults to Sonnet for insights. */
+  /** Optional model override; the backend default comes from AGENT_INSIGHT_MODEL. */
   model?: string
   /** Bypass the server cache and force a fresh run. */
   regenerate?: boolean
