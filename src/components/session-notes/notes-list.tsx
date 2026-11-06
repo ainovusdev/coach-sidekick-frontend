@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import { htmlToPlainText, normalizeEditorHtml } from '@/lib/rich-text'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -220,12 +222,12 @@ export function NotesList({
   }
 
   const saveEdit = async () => {
-    if (!editingNote) return
+    if (!editingNote || saving || !normalizeEditorHtml(editContent)) return
 
     setSaving(true)
     try {
       await SessionNotesService.updateNote(editingNote.id, {
-        content: editContent,
+        content: normalizeEditorHtml(editContent),
       })
       toast.success('Note Updated', {
         description: 'Your changes have been saved',
@@ -258,17 +260,18 @@ export function NotesList({
   // Handle create note — the note is created first, then queued files are
   // uploaded against its id (attachments need a note_id).
   const handleCreateNote = async () => {
-    if (!newNoteContent.trim()) return
+    const content = normalizeEditorHtml(newNoteContent)
+    if (!content || creating) return
 
     setCreating(true)
     try {
       // Auto-generate title from content or use timestamp
       const autoTitle =
-        newNoteContent.trim().substring(0, 50) ||
+        htmlToPlainText(content).substring(0, 50) ||
         `Note - ${new Date().toLocaleTimeString()}`
       const created = await SessionNotesService.createNote(sessionId, {
         title: autoTitle,
-        content: newNoteContent.trim(),
+        content,
         note_type: newNoteType,
       })
       for (const file of pendingFiles) {
@@ -345,11 +348,12 @@ export function NotesList({
           key={note.id}
           className="border border-line-strong rounded-xl p-4 bg-paper"
         >
-          <Textarea
-            value={editContent}
-            onChange={e => setEditContent(e.target.value)}
+          <RichTextEditor
+            content={editContent}
+            onChange={setEditContent}
+            onSave={saveEdit}
             placeholder="Note content"
-            className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
+            className="mb-3"
             autoFocus
           />
           <NoteAttachmentsStrip
@@ -396,7 +400,7 @@ export function NotesList({
               <Button
                 size="sm"
                 onClick={saveEdit}
-                disabled={saving || !editContent.trim()}
+                disabled={saving || !normalizeEditorHtml(editContent)}
                 className="bg-ink hover:bg-ink-2 "
               >
                 {saving ? (
@@ -460,9 +464,9 @@ export function NotesList({
         </div>
 
         {/* Content */}
-        <div
-          className="text-sm text-ink-2 leading-relaxed prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-1"
-          dangerouslySetInnerHTML={{ __html: note.content }}
+        <RichTextContent
+          value={note.content}
+          className="text-sm text-ink-2 leading-relaxed"
         />
 
         {/* Attachments */}
@@ -603,11 +607,12 @@ export function NotesList({
             </div>
           </div>
 
-          <Textarea
-            value={newNoteContent}
-            onChange={e => setNewNoteContent(e.target.value)}
+          <RichTextEditor
+            content={newNoteContent}
+            onChange={setNewNoteContent}
+            onSave={handleCreateNote}
             placeholder="Capture your thoughts, observations, or action items..."
-            className="min-h-[120px] mb-3 border-line bg-surface-1 resize-none"
+            className="mb-3"
             autoFocus
           />
           <PendingFilesList
@@ -654,7 +659,7 @@ export function NotesList({
               <Button
                 size="sm"
                 onClick={handleCreateNote}
-                disabled={creating || !newNoteContent.trim()}
+                disabled={creating || !normalizeEditorHtml(newNoteContent)}
                 className="bg-ink hover:bg-ink-2 "
               >
                 {creating ? (

@@ -362,7 +362,6 @@ export default function MeetingPanels({
               {sessionId ? (
                 <QuickNote
                   sessionId={sessionId}
-                  noteType="coach_private"
                   clientId={commitmentClientId || undefined}
                   isMeetingEnded={isMeetingEnded}
                 />

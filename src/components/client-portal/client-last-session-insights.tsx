@@ -36,6 +36,7 @@ import {
   formatRelativeTime,
 } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
+import { RichTextContent } from '@/components/ui/rich-text-content'
 
 interface SessionData {
   id: string
@@ -159,9 +160,10 @@ function SessionCommitmentItem({
       </div>
       {isExpanded && (
         <div className="px-3 pb-3 pt-1 space-y-2 border-t border-line bg-paper ">
-          {commitment.description && (
-            <p className="text-sm text-ink-3 ">{commitment.description}</p>
-          )}
+          <RichTextContent
+            value={commitment.description}
+            className="text-sm text-ink-3"
+          />
           <div className="flex flex-wrap gap-3 text-xs text-ink-3 ">
             {commitment.priority && (
               <span>

@@ -24,6 +24,7 @@ import { TONE_DOT, TONE_TEXT } from '@/lib/tone'
 import { formatDateOnly } from '@/lib/date-utils'
 import { parseISO } from 'date-fns'
 import { cn } from '@/lib/utils'
+import { htmlToPlainText } from '@/lib/rich-text'
 import {
   Boxes,
   Lock,
@@ -213,7 +214,7 @@ export function CommitmentRow({
         {/* Description */}
         {commitment.description && (
           <p className="text-xs text-ink-3 mt-0.5 truncate max-w-2xl">
-            {commitment.description}
+            {htmlToPlainText(commitment.description)}
           </p>
         )}
 

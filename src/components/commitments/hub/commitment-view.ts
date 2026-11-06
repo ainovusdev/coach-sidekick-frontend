@@ -1,4 +1,5 @@
 import { differenceInCalendarDays, parseISO } from 'date-fns'
+import { htmlToPlainText } from '@/lib/rich-text'
 import {
   Commitment,
   CommitmentPriority,
@@ -162,7 +163,7 @@ export function matchesSearch(c: Commitment, query: string): boolean {
   const a = assigneeOf(c)
   return [
     c.title,
-    c.description,
+    htmlToPlainText(c.description),
     c.client_name,
     c.sandbox_name,
     a?.name,
