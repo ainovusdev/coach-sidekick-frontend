@@ -39,11 +39,6 @@ interface RichTextEditorProps {
   /** Cmd/Ctrl+Enter. */
   onSubmit?: () => void
   /**
-   * Plain Enter submits (chat style); Shift+Enter still inserts a line break.
-   * Inside a bullet/numbered list Enter keeps making the next item, as Slack does.
-   */
-  onEnterSubmit?: () => void
-  /**
    * Escape, when nothing inside the editor (a mention popup) took it first.
    * Return true to swallow the key so an enclosing panel stays open.
    */
@@ -75,28 +70,6 @@ const ComposerKeys = Extension.create<{
     return {
       'Mod-Enter': () => this.options.onSubmit(),
       Escape: () => this.options.onEscape(),
-    }
-  },
-})
-
-/**
- * Enter submits. Priority 1000 so it runs before StarterKit's paragraph split;
- * it steps aside inside a list (ListItem's Enter adds an item or exits the
- * list) and while an IME is composing (Enter confirms the composition there).
- * Shift+Enter is untouched and reaches HardBreak.
- */
-const EnterSubmit = Extension.create<{ onEnter: () => boolean }>({
-  name: 'enterSubmit',
-  priority: 1000,
-  addOptions() {
-    return { onEnter: () => false }
-  },
-  addKeyboardShortcuts() {
-    return {
-      Enter: ({ editor }) => {
-        if (editor.view.composing || editor.isActive('listItem')) return false
-        return this.options.onEnter()
-      },
     }
   },
 })
@@ -146,7 +119,6 @@ export function RichTextEditor({
   variant = 'document',
   extensions,
   onSubmit,
-  onEnterSubmit,
   onEscape,
   autoFocus = false,
   editorAttributes,
@@ -179,19 +151,6 @@ export function RichTextEditor({
       }),
     [],
   )
-  const onEnterSubmitRef = useRef(onEnterSubmit)
-  onEnterSubmitRef.current = onEnterSubmit
-  const enterSubmit = useMemo(
-    () =>
-      EnterSubmit.configure({
-        onEnter: () => {
-          if (!onEnterSubmitRef.current) return false
-          onEnterSubmitRef.current()
-          return true
-        },
-      }),
-    [],
-  )
 
   const editor = useEditor({
     extensions: [
@@ -212,7 +171,6 @@ export function RichTextEditor({
           'before:content-[attr(data-placeholder)] before:text-ink-4 before:float-left before:h-0 before:pointer-events-none',
       }),
       ...(onSubmit || onEscape ? [composerKeys] : []),
-      ...(onEnterSubmit ? [enterSubmit] : []),
       ...(extensions ?? []),
     ],
     content,
