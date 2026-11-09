@@ -63,7 +63,7 @@ function SettingsContent() {
           </TabsTrigger>
           <TabsTrigger value="preferences" className="px-4">
             <Palette className="h-4 w-4" />
-            Coaching Preferences
+            Preferences
           </TabsTrigger>
         </TabsList>
 

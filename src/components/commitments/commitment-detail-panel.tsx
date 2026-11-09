@@ -53,6 +53,8 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 import { CommentThread } from '@/components/comments/comment-thread'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { AutomaticChip } from './automatic-chip'
@@ -1165,7 +1167,10 @@ export function DescriptionSection({
   }, [commitment.description])
 
   const handleSave = () => {
-    onFieldUpdate('description', descValue)
+    const next = normalizeEditorHtml(descValue)
+    if (next !== (commitment.description || '')) {
+      onFieldUpdate('description', next)
+    }
     setIsEditing(false)
   }
 
@@ -1182,8 +1187,10 @@ export function DescriptionSection({
           <RichTextEditor
             content={descValue}
             onChange={setDescValue}
+            onSave={handleSave}
             placeholder="Add a description..."
             minHeight="100px"
+            autoFocus
           />
           <div className="flex gap-2 justify-end">
             <Button variant="outline" size="sm" onClick={handleCancel}>
@@ -1200,9 +1207,9 @@ export function DescriptionSection({
           onClick={() => setIsEditing(true)}
         >
           {commitment.description ? (
-            <div
-              className="prose prose-sm dark:prose-invert max-w-none text-ink-2 "
-              dangerouslySetInnerHTML={{ __html: commitment.description }}
+            <RichTextContent
+              value={commitment.description}
+              className="text-sm text-ink-2"
             />
           ) : (
             <p className="text-sm text-ink-4 italic">Add a description...</p>

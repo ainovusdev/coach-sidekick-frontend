@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 import {
   Select,
   SelectContent,
@@ -58,9 +60,13 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
   })
 
   const handleSave = async () => {
+    if (isSaving) return
     setIsSaving(true)
     try {
-      await CommitmentService.updateCommitment(commitment.id, editData)
+      await CommitmentService.updateCommitment(commitment.id, {
+        ...editData,
+        description: normalizeEditorHtml(editData.description),
+      })
       toast.success('Commitment updated successfully')
       setIsEditing(false)
       onUpdate()
@@ -239,18 +245,23 @@ function CommitmentItem({ commitment, onUpdate }: CommitmentItemProps) {
               Description
             </label>
             {isEditing ? (
-              <Textarea
-                value={editData.description}
-                onChange={e =>
-                  setEditData({ ...editData, description: e.target.value })
+              <RichTextEditor
+                content={editData.description}
+                onChange={description =>
+                  setEditData(d => ({ ...d, description }))
                 }
-                className="text-sm min-h-[60px]"
+                onSave={handleSave}
+                minHeight="60px"
+                className="text-sm"
                 placeholder="Add description..."
               />
+            ) : commitment.description ? (
+              <RichTextContent
+                value={commitment.description}
+                className="text-sm text-ink-3"
+              />
             ) : (
-              <p className="text-sm text-ink-3 ">
-                {commitment.description || 'No description'}
-              </p>
+              <p className="text-sm text-ink-3 ">No description</p>
             )}
           </div>
 

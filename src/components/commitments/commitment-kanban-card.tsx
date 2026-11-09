@@ -1,5 +1,6 @@
 'use client'
 
+import { htmlToPlainText } from '@/lib/rich-text'
 import { useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -200,7 +201,7 @@ export function CommitmentKanbanCard({
         {/* Description */}
         {commitment.description && (
           <p className="text-xs text-ink-3 line-clamp-2">
-            {commitment.description}
+            {htmlToPlainText(commitment.description)}
           </p>
         )}
 

@@ -31,9 +31,17 @@ import {
   useDeleteNote,
 } from '@/hooks/mutations/use-note-mutations'
 import { useSessionNotes } from '@/hooks/queries/use-sessions'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import { NoteDefaultTypeSetting } from '@/components/ui/enter-key-setting'
+import {
+  saveKeyLabel,
+  useEditorPreferences,
+} from '@/contexts/editor-preferences-context'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 
 interface QuickNoteProps {
   sessionId: string
+  /** Starting type. Omit to use the coach's "New notes start as" setting. */
   noteType?: 'coach_private' | 'shared'
   clientId?: string
   onNoteCreated?: () => void
@@ -51,15 +59,28 @@ interface SessionNote {
 
 export function QuickNote({
   sessionId,
-  noteType = 'coach_private',
+  noteType,
   clientId,
   onNoteCreated,
   isMeetingEnded,
 }: QuickNoteProps) {
   const [content, setContent] = useState('')
+  const { enterKey, notesDefaultType, loaded } = useEditorPreferences()
   const [selectedType, setSelectedType] = useState<'coach_private' | 'shared'>(
-    noteType,
+    noteType ?? notesDefaultType,
   )
+  // The stored default arrives after the first render: adopt it, unless the
+  // coach has already picked a type for this note.
+  const typeTouched = useRef(false)
+  useEffect(() => {
+    if (!noteType && loaded && !typeTouched.current) {
+      setSelectedType(notesDefaultType)
+    }
+  }, [noteType, loaded, notesDefaultType])
+  const pickType = (type: 'coach_private' | 'shared') => {
+    typeTouched.current = true
+    setSelectedType(type)
+  }
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null)
   const [editContent, setEditContent] = useState('')
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
@@ -87,7 +108,7 @@ export function QuickNote({
     if (!hasContent(content)) return
 
     // Fire and forget - clear form immediately for optimistic UX
-    const noteContent = content
+    const noteContent = normalizeEditorHtml(content)
     const noteType = selectedType
     setContent('')
 
@@ -99,13 +120,6 @@ export function QuickNote({
     })
 
     onNoteCreated?.()
-  }
-
-  const handleEditorKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.shiftKey) {
-      e.preventDefault()
-      handleSave()
-    }
   }
 
   // Auto-save unsaved note when meeting ends (before redirect)
@@ -142,7 +156,7 @@ export function QuickNote({
 
     await updateNote.mutateAsync({
       noteId,
-      data: { content: editContent },
+      data: { content: normalizeEditorHtml(editContent) },
     })
 
     setEditingNoteId(null)
@@ -172,7 +186,7 @@ export function QuickNote({
         {/* Note type toggle */}
         <div className="flex items-center gap-0.5 bg-surface-3 rounded-md p-0.5">
           <button
-            onClick={() => setSelectedType('coach_private')}
+            onClick={() => pickType('coach_private')}
             className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'coach_private'
                 ? 'bg-surface-1 text-ink shadow-sm'
@@ -183,7 +197,7 @@ export function QuickNote({
             Private
           </button>
           <button
-            onClick={() => setSelectedType('shared')}
+            onClick={() => pickType('shared')}
             className={`flex items-center gap-1 px-2 py-1 text-xs font-medium rounded transition-colors ${
               selectedType === 'shared'
                 ? 'bg-surface-1 text-ink shadow-sm'
@@ -202,7 +216,15 @@ export function QuickNote({
           <RichTextEditor
             content={content}
             onChange={setContent}
-            onKeyDown={handleEditorKeyDown}
+            onSave={handleSave}
+            settingsExtra={
+              <div>
+                <p className="mb-2 text-xs font-medium uppercase tracking-wide text-ink-3">
+                  New notes start as
+                </p>
+                <NoteDefaultTypeSetting idPrefix="quick-note-type" />
+              </div>
+            }
             placeholder="Capture important moments during the session..."
             className="h-full"
           />
@@ -213,13 +235,13 @@ export function QuickNote({
             onClick={handleSave}
             disabled={!hasContent(content)}
             size="sm"
-            title="Save Note (Shift+Enter)"
+            title={`Save Note (${saveKeyLabel(enterKey)})`}
             className="bg-ink hover:bg-ink-2 "
           >
             <Check className="h-3.5 w-3.5 mr-1.5" />
             Save Note
             <kbd className="ml-1.5 text-[10px] opacity-60 font-normal">
-              Shift+Enter
+              {saveKeyLabel(enterKey)}
             </kbd>
           </Button>
         </div>
@@ -261,6 +283,7 @@ export function QuickNote({
                       <RichTextEditor
                         content={editContent}
                         onChange={setEditContent}
+                        onSave={() => handleSaveEdit(note.id)}
                         minHeight="80px"
                       />
                       <div className="flex items-center justify-end gap-2">
@@ -294,9 +317,10 @@ export function QuickNote({
                     // View mode
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <div
-                          className="text-sm text-ink-2 line-clamp-3 flex-1 prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
-                          dangerouslySetInnerHTML={{ __html: note.content }}
+                        <RichTextContent
+                          value={note.content}
+                          clamp={3}
+                          className="text-sm text-ink-2 flex-1 min-w-0"
                         />
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button

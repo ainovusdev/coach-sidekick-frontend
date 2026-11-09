@@ -35,6 +35,12 @@ import {
   Newspaper,
 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/date-utils'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import {
+  saveKeyLabel,
+  useEditorPreferences,
+} from '@/contexts/editor-preferences-context'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 import { toast } from 'sonner'
 import {
   LiveMeetingService,
@@ -74,6 +80,7 @@ export function ClientNotesPanel({
   const [editContent, setEditContent] = useState('')
   const [resources, setResources] = useState<LiveMeetingResource[]>([])
   const [resourcesOpen, setResourcesOpen] = useState(true)
+  const { enterKey } = useEditorPreferences()
 
   const hasContent = (html: string) => {
     return htmlToPlainText(html).trim().length > 0
@@ -133,7 +140,7 @@ export function ClientNotesPanel({
       const note = await LiveMeetingService.createNote(
         meetingToken,
         guestToken,
-        { content: newNote },
+        { content: normalizeEditorHtml(newNote) },
       )
       setNotes([note, ...notes])
       setNewNote('')
@@ -154,7 +161,7 @@ export function ClientNotesPanel({
         meetingToken,
         guestToken,
         noteId,
-        { content: editContent },
+        { content: normalizeEditorHtml(editContent) },
       )
       setNotes(notes.map(n => (n.id === noteId ? updated : n)))
       setEditingId(null)
@@ -227,17 +234,14 @@ export function ClientNotesPanel({
             placeholder="What insights are you taking away from this session?"
             disabled={!guestToken}
             minHeight="150px"
-            onKeyDown={e => {
-              if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-                e.preventDefault()
-                handleSaveNote()
-              }
-            }}
+            onSave={handleSaveNote}
           />
 
           <div className="flex items-center justify-between mt-3">
             <span className="text-xs text-ink-4 ">
-              {hasContent(newNote) ? 'Press Cmd+Enter to save' : ''}
+              {hasContent(newNote)
+                ? `Press ${saveKeyLabel(enterKey)} to save`
+                : ''}
             </span>
             <Button
               onClick={handleSaveNote}
@@ -289,6 +293,7 @@ export function ClientNotesPanel({
                       <RichTextEditor
                         content={editContent}
                         onChange={setEditContent}
+                        onSave={() => handleUpdateNote(note.id)}
                         minHeight="80px"
                       />
                       <div className="flex items-center justify-end gap-2">
@@ -315,9 +320,10 @@ export function ClientNotesPanel({
                   ) : (
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <div
-                          className="text-sm text-ink-2 line-clamp-3 flex-1 prose prose-sm dark:prose-invert max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0.5"
-                          dangerouslySetInnerHTML={{ __html: note.content }}
+                        <RichTextContent
+                          value={note.content}
+                          clamp={3}
+                          className="text-sm text-ink-2 flex-1 min-w-0"
                         />
                         <div className="flex items-center gap-1 flex-shrink-0">
                           <button

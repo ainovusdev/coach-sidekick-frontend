@@ -16,6 +16,7 @@ import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 import {
   Select,
   SelectContent,
@@ -217,7 +218,7 @@ export function CommitmentCreatePanel({
       sandbox_id: context?.sandboxId ?? null,
       session_id: sessionId,
       title: title.trim(),
-      description: description.trim() || undefined,
+      description: normalizeEditorHtml(description) || undefined,
       type: 'commitment',
       priority,
       target_date: targetDate,
@@ -537,6 +538,7 @@ export function CommitmentCreatePanel({
                 <RichTextEditor
                   content={description}
                   onChange={setDescription}
+                  onSave={handleSubmit}
                   placeholder="Add a description..."
                   minHeight="100px"
                 />

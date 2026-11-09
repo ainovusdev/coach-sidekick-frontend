@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { RichTextContent } from '@/components/ui/rich-text-content'
 import {
   Dialog,
   DialogContent,
@@ -31,7 +32,7 @@ import {
   validateAttachment,
 } from '@/components/session-notes/note-attachments'
 import { formatRelativeTime } from '@/lib/date-utils'
-import { htmlToPlainText } from '@/components/ui/rich-text-editor'
+import { htmlToPlainText, normalizeEditorHtml } from '@/lib/rich-text'
 import { toast } from 'sonner'
 
 interface SessionNotesCompactProps {
@@ -93,14 +94,15 @@ export function SessionNotesCompact({
   }
 
   const handleCreateNote = async () => {
-    if (!newContent.trim()) return
+    const content = normalizeEditorHtml(newContent)
+    if (!content || isCreating) return
     setIsCreating(true)
     try {
       // Attachments need a note_id, so the note is created first and queued
       // files are uploaded against it.
       const created = await SessionNotesService.createNote(sessionId, {
         title: `Note - ${new Date().toLocaleTimeString()}`,
-        content: newContent.trim(),
+        content,
         note_type: newNoteType,
         ...(clientId ? { client_id: clientId } : {}),
       })
@@ -218,9 +220,10 @@ export function SessionNotesCompact({
                 </div>
 
                 {note.content && (
-                  <div
-                    className={`text-sm text-app-secondary ${expandedNoteId === note.id ? '' : 'line-clamp-2'} mb-2 prose prose-sm max-w-none [&_ul]:list-disc [&_ul]:pl-4 [&_ol]:list-decimal [&_ol]:pl-4 [&_p]:my-0 select-text`}
-                    dangerouslySetInnerHTML={{ __html: note.content }}
+                  <RichTextContent
+                    value={note.content}
+                    clamp={expandedNoteId === note.id ? undefined : 2}
+                    className="text-sm text-app-secondary mb-2 select-text"
                   />
                 )}
 
@@ -309,11 +312,12 @@ export function SessionNotesCompact({
               <label className="text-sm font-medium text-app-primary mb-1.5 block">
                 Content *
               </label>
-              <Textarea
-                value={newContent}
-                onChange={e => setNewContent(e.target.value)}
+              <RichTextEditor
+                content={newContent}
+                onChange={setNewContent}
+                onSave={handleCreateNote}
                 placeholder="Write your note..."
-                rows={4}
+                minHeight="100px"
               />
               <PendingFilesList
                 files={pendingFiles}
@@ -358,7 +362,7 @@ export function SessionNotesCompact({
             </Button>
             <Button
               onClick={handleCreateNote}
-              disabled={!newContent.trim() || isCreating}
+              disabled={!normalizeEditorHtml(newContent) || isCreating}
               className="bg-app-primary hover:bg-app-primary/90"
             >
               {isCreating ? (

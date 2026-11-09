@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { AuthProvider } from '@/contexts/auth-context'
 import { PermissionProvider } from '@/contexts/permission-context'
+import { EditorPreferencesProvider } from '@/contexts/editor-preferences-context'
 import { WebSocketProvider } from '@/contexts/websocket-context'
 import { ProcessingProvider } from '@/contexts/processing-context'
 import { QueryProvider } from '@/components/providers/query-provider'
@@ -46,7 +47,9 @@ export default function RootLayout({
               <PermissionProvider>
                 <WebSocketProvider>
                   <ProcessingProvider>
-                    <AgentModalProvider>{children}</AgentModalProvider>
+                    <EditorPreferencesProvider>
+                      <AgentModalProvider>{children}</AgentModalProvider>
+                    </EditorPreferencesProvider>
                     <Toaster
                       position="top-right"
                       richColors

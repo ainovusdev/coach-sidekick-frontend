@@ -4,7 +4,9 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
+import { RichTextContent } from '@/components/ui/rich-text-content'
+import { normalizeEditorHtml } from '@/lib/rich-text'
 import { Progress } from '@/components/ui/progress'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -141,11 +143,12 @@ function CommitmentItem({
   }
 
   const handleSaveEdit = async () => {
+    if (isSaving) return
     setIsSaving(true)
     try {
       await CommitmentService.updateCommitment(commitment.id, {
         title: editTitle,
-        description: editDescription,
+        description: normalizeEditorHtml(editDescription),
         priority: editPriority as any,
       })
       toast.success('Commitment updated')
@@ -280,11 +283,13 @@ function CommitmentItem({
                 <label className="text-xs text-ink-3 mb-1 block">
                   Description
                 </label>
-                <Textarea
-                  value={editDescription}
-                  onChange={e => setEditDescription(e.target.value)}
-                  rows={2}
-                  className="text-sm resize-none"
+                <RichTextEditor
+                  content={editDescription}
+                  onChange={setEditDescription}
+                  onSave={handleSaveEdit}
+                  minHeight="60px"
+                  className="text-sm"
+                  placeholder="Add description..."
                 />
               </div>
               <div>
@@ -327,9 +332,10 @@ function CommitmentItem({
           ) : (
             /* Read view */
             <>
-              {commitment.description && (
-                <p className="text-sm text-ink-3 ">{commitment.description}</p>
-              )}
+              <RichTextContent
+                value={commitment.description}
+                className="text-sm text-ink-3"
+              />
               <div className="flex items-center justify-between">
                 <div className="flex flex-wrap gap-3 text-xs text-ink-3 ">
                   {commitment.priority && (

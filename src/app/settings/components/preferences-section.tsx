@@ -13,6 +13,40 @@ import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { PreferencesService } from '@/services/preferences.service'
 import { Loader2, Save } from 'lucide-react'
+import {
+  EnterKeySetting,
+  NoteDefaultTypeSetting,
+} from '@/components/ui/enter-key-setting'
+
+/** Keyboard and note defaults for every editor. Saves on change. */
+export function EditingPreferencesCard() {
+  return (
+    <Card data-testid="editing-preferences">
+      <CardHeader>
+        <CardTitle>Editing</CardTitle>
+        <CardDescription>
+          How note and commitment-description boxes behave for you. Changes save
+          straight away and apply on every device.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-6 sm:grid-cols-2">
+        <div>
+          <p className="mb-2 text-sm font-medium text-ink">Enter key</p>
+          <EnterKeySetting idPrefix="settings-enter-key" />
+          <p className="mt-2 text-xs text-ink-3">
+            Cmd/Ctrl+Enter always saves.
+          </p>
+        </div>
+        <div>
+          <p className="mb-2 text-sm font-medium text-ink">
+            New live-session notes start as
+          </p>
+          <NoteDefaultTypeSetting idPrefix="settings-note-type" />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
 
 export function PreferencesSection() {
   const [preferences, setPreferences] = useState('')
@@ -21,7 +55,7 @@ export function PreferencesSection() {
 
   useEffect(() => {
     loadPreferences()
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])
 
   const loadPreferences = async () => {
     try {
@@ -67,6 +101,7 @@ export function PreferencesSection() {
 
   return (
     <>
+      <EditingPreferencesCard />
       <Card>
         <CardHeader>
           <CardTitle>Your Coaching Approach</CardTitle>
