@@ -33,6 +33,7 @@ import { CoachReflectionCard } from './coach-reflection-card'
 import { ThrillFormResponses } from './thrill-form-responses'
 import { THRILL_FORM_ENABLED } from '@/lib/features'
 import TranscriptViewer from './transcript-viewer'
+import { aiText } from '@/lib/ai-text'
 
 interface TranscriptEntry {
   id: string
@@ -104,31 +105,17 @@ export function SessionOverviewTab({
   // Use per-client data when available, otherwise fall back to session-level insights
   const displaySummary = clientAnalysis?.summary || insights?.summary
   const displayTopics = clientAnalysis?.key_topics || insights?.topics || []
-  const normalizeAIString = (item: unknown): string => {
-    if (typeof item === 'string') return item
-    if (item && typeof item === 'object') {
-      const obj = item as Record<string, unknown>
-      return String(
-        obj.item ||
-          obj.text ||
-          obj.suggestion ||
-          obj.title ||
-          JSON.stringify(item),
-      )
-    }
-    return String(item)
-  }
   const displayActionItems = (
     clientAnalysis?.action_items?.slice(0, 3) ||
     insights?.action_items?.slice(0, 3) ||
     []
-  ).map(normalizeAIString)
+  ).map(aiText)
   const displaySuggestions = (
     clientAnalysis?.suggestions?.slice(0, 3) || []
-  ).map(normalizeAIString)
+  ).map(aiText)
   const topInsights = clientAnalysis
     ? []
-    : insights?.insights?.slice(0, 3) || []
+    : (insights?.insights?.slice(0, 3) || []).map(aiText)
   const topActionItems = displayActionItems
   const showPersonalized = !!clientAnalysis
 

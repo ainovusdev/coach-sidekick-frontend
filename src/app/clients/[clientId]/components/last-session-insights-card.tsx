@@ -39,6 +39,7 @@ import {
 import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
+import { aiText } from '@/lib/ai-text'
 
 interface LastSessionInsightsCardProps {
   session: any
@@ -436,7 +437,7 @@ export function LastSessionInsightsCard({
                       className="text-sm text-ink-2 flex items-start gap-2"
                     >
                       <span className="text-primary mt-0.5">→</span>
-                      <span>{item}</span>
+                      <span>{aiText(item)}</span>
                     </li>
                   ))}
                   {session.action_items.length > 3 && (

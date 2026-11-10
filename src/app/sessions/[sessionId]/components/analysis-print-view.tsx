@@ -15,6 +15,7 @@ import type {
   SessionInsights,
   CoachingAnalysis,
 } from '@/services/analysis-service'
+import { aiText } from '@/lib/ai-text'
 
 interface AnalysisPrintViewProps {
   insights?: SessionInsights
@@ -658,7 +659,7 @@ export function AnalysisPrintView({
                   <div className="section-title">Key Insights</div>
                   <ol className="suggestions-list">
                     {insights.insights.map((insight, i) => (
-                      <li key={i}>{insight}</li>
+                      <li key={i}>{aiText(insight)}</li>
                     ))}
                   </ol>
                 </div>

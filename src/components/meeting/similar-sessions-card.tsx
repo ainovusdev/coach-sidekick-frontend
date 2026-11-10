@@ -21,6 +21,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { formatDate as formatDateUtil } from '@/lib/date-utils'
+import { aiText } from '@/lib/ai-text'
 
 interface SimilarSession {
   session_date: string
@@ -384,7 +385,9 @@ export function SimilarSessionsCard({
                                 {i + 1}
                               </span>
                             </div>
-                            <p className="text-sm text-ink-2">{point}</p>
+                            <p className="text-sm text-ink-2">
+                              {aiText(point)}
+                            </p>
                           </div>
                         ))}
                       </div>
@@ -407,11 +410,7 @@ export function SimilarSessionsCard({
                           >
                             <TrendingUp className="h-4 w-4 text-ds-accent mt-0.5 flex-shrink-0" />
                             <p className="text-sm text-ds-accent">
-                              {typeof item === 'string'
-                                ? item
-                                : (item as any).item ||
-                                  (item as any).text ||
-                                  String(item)}
+                              {aiText(item)}
                             </p>
                           </div>
                         ))}

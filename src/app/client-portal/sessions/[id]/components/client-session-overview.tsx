@@ -57,6 +57,7 @@ import { TONE_CLASS } from '@/lib/tone'
 import { AssigneeChip } from '@/components/people/assignee-chip'
 import { toast } from 'sonner'
 import type { ClientSessionDetailData } from '@/hooks/queries/use-client-sessions'
+import { aiText } from '@/lib/ai-text'
 
 interface ClientSessionOverviewProps {
   sessionData: ClientSessionDetailData
@@ -531,9 +532,7 @@ export function ClientSessionOverview({
                       {index + 1}
                     </div>
                     <span className="text-sm text-ink-2 leading-relaxed">
-                      {typeof item === 'string'
-                        ? item
-                        : item.item || item.text || item.title || String(item)}
+                      {aiText(item)}
                     </span>
                   </div>
                 ))}
@@ -601,7 +600,7 @@ export function ClientSessionOverview({
                       </span>
                     </div>
                     <Zap className="h-4 w-4 text-ink-3 mb-2" />
-                    <p className="text-sm text-ink-2 pr-8">{insight}</p>
+                    <p className="text-sm text-ink-2 pr-8">{aiText(insight)}</p>
                   </div>
                 ))}
             </div>
