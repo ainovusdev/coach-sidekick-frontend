@@ -30,6 +30,7 @@ import type {
 } from '@/services/analysis-service'
 import { WordCloud } from '@/components/sessions/word-cloud'
 import { SentimentGauge } from '@/components/sessions/sentiment-gauge'
+import { aiText } from '@/lib/ai-text'
 
 interface SessionAnalysisMergedProps {
   insights?: SessionInsights
@@ -452,7 +453,7 @@ export function SessionAnalysisMerged({
                         {idx + 1}
                       </span>
                       <p className="text-sm text-app-secondary leading-relaxed">
-                        {insight}
+                        {aiText(insight)}
                       </p>
                     </div>
                   ))}

@@ -13,6 +13,7 @@ import {
 import { SentimentGauge } from '@/components/sessions/sentiment-gauge'
 import { WordCloud } from '@/components/sessions/word-cloud'
 import type { ClientSessionDetailData } from '@/hooks/queries/use-client-sessions'
+import { aiText } from '@/lib/ai-text'
 
 interface ClientSessionAnalysisProps {
   sessionData: ClientSessionDetailData
@@ -164,7 +165,7 @@ export function ClientSessionAnalysis({
                     </span>
                   </div>
                   <Zap className="h-4 w-4 text-ink-3 mb-2" />
-                  <p className="text-sm text-ink-2 pr-8">{insight}</p>
+                  <p className="text-sm text-ink-2 pr-8">{aiText(insight)}</p>
                 </div>
               ))}
             </div>

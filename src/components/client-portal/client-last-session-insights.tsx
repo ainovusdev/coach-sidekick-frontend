@@ -37,6 +37,7 @@ import {
 } from '@/lib/date-utils'
 import { cn } from '@/lib/utils'
 import { RichTextContent } from '@/components/ui/rich-text-content'
+import { aiText } from '@/lib/ai-text'
 
 interface SessionData {
   id: string
@@ -328,7 +329,7 @@ export function ClientLastSessionInsights({
                   className="text-sm text-ink-2 flex items-start gap-2"
                 >
                   <span className="text-primary mt-0.5">&#8594;</span>
-                  <span>{item}</span>
+                  <span>{aiText(item)}</span>
                 </li>
               ))}
               {session.action_items.length > 3 && (
