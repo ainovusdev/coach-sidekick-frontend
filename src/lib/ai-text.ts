@@ -1,11 +1,12 @@
 // AI analysis lists (insights, action items, suggestions) are meant to hold
-// strings, but newer models sometimes return objects such as
-// {insight, evidence, ...} or {action, owner, ...}. React throws when an object
-// is rendered as a child, which blanks the whole page, so reduce every item to
-// its display text before rendering.
+// strings, but models sometimes return objects such as {insight, evidence, ...},
+// {action, owner, ...} or {commitment, deadline, ...}. React throws when an
+// object is rendered as a child, which blanks the whole page, so reduce every
+// item to its display text before rendering.
 const TEXT_KEYS = [
   'insight',
   'action',
+  'commitment',
   'item',
   'text',
   'suggestion',
