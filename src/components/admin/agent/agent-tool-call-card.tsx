@@ -35,6 +35,7 @@ const TOOL_META: Record<ToolName, { label: string; icon: typeof Database }> = {
   search_conversations: { label: 'Conversation search', icon: MessagesSquare },
   get_session_transcript: { label: 'Session transcript', icon: FileText },
   generate_report: { label: 'PDF report', icon: FileDown },
+  read_attachment: { label: 'Attached file', icon: FileText },
 }
 
 interface Props {

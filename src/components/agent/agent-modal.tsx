@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Loader2 } from 'lucide-react'
 import posthog from 'posthog-js'
+import { toast } from 'sonner'
 
 import {
   Dialog,
@@ -90,6 +91,19 @@ export function AgentModalProvider({
   )
   // Bumped on every open so AgentChat remounts fresh.
   const [mountKey, setMountKey] = useState(0)
+  // A file upload is in flight inside the chat. Closing remounts AgentChat and
+  // would silently drop it, so an accidental Esc / outside click is held back.
+  const uploadBusyRef = useRef(false)
+  const handleUploadBusyChange = useCallback((busy: boolean) => {
+    uploadBusyRef.current = busy
+  }, [])
+  const holdWhileUploading = useCallback((e: Event) => {
+    if (!uploadBusyRef.current) return
+    e.preventDefault()
+    toast.info('Your file isn’t attached yet', {
+      description: 'Wait for it to finish, or remove it, before closing.',
+    })
+  }, [])
 
   const openAgent = useCallback(
     (opts: OpenAgentOptions = {}) => {
@@ -135,10 +149,13 @@ export function AgentModalProvider({
           // The agent owns its own composer focus; don't let the dialog steal the
           // first focus to a header icon button instead.
           onOpenAutoFocus={e => e.preventDefault()}
+          onEscapeKeyDown={holdWhileUploading}
+          onInteractOutside={holdWhileUploading}
         >
           <DialogTitle className="sr-only">Sidekick Agent</DialogTitle>
           <DialogDescription className="sr-only">
-            Ask Sidekick about your clients, sessions, transcripts, and scores.
+            Ask Sidekick about your clients, sessions, transcripts, scores, and
+            files you attach.
           </DialogDescription>
           <AgentChat
             key={mountKey}
@@ -147,6 +164,7 @@ export function AgentModalProvider({
             initialQuery={initialQuery}
             initialThreadId={initialThreadId}
             onClose={closeAgent}
+            onUploadBusyChange={handleUploadBusyChange}
           />
         </DialogContent>
       </Dialog>

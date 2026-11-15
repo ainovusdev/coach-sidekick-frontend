@@ -8,6 +8,7 @@
 import authService from '@/services/auth-service'
 import { isTokenValid, handleAuthExpired } from '@/lib/axios-config'
 import type {
+  AgentAttachmentInfo,
   AgentEvent,
   AgentThreadDetail,
   AgentThreadListResponse,
@@ -37,6 +38,8 @@ interface StreamAgentArgs {
   thread_id?: string | null
   /** Agent mount to stream from. Defaults to the admin mount. */
   scope?: AgentApiScope
+  /** Files uploaded via `uploadAgentAttachment` for this turn (coach/admin only). */
+  attachment_ids?: string[]
   signal?: AbortSignal
 }
 
@@ -203,6 +206,127 @@ export async function fetchAgentInsight({
   return (await res.json()) as AgentInsightResult
 }
 
+// ---------------------------------------------------------------------------
+// Attachments
+// ---------------------------------------------------------------------------
+
+/**
+ * Upload failure with the backend's stable `code` (unsupported_type,
+ * image_not_supported, too_large, empty_text, password_protected, invalid_file,
+ * extraction_failed, upload_failed, not_allowed, network, aborted). The chip
+ * maps the code to its own copy.
+ */
+export class AttachmentUploadError extends Error {
+  code: string
+  status: number
+  constructor(code: string, message: string, status: number) {
+    super(message)
+    this.name = 'AttachmentUploadError'
+    this.code = code
+    this.status = status
+  }
+}
+
+interface UploadOptions {
+  /** Upload progress 0–100 (bytes sent, not server processing). */
+  onProgress?: (percent: number) => void
+  /** Fired once every byte is sent — the server is now reading the file. */
+  onUploaded?: () => void
+  signal?: AbortSignal
+}
+
+/**
+ * Upload one file for the agent to read. XHR (not fetch) for upload progress.
+ * Resolves once the server has stored the file AND extracted its text, which
+ * for a scanned PDF can take up to about a minute.
+ */
+export function uploadAgentAttachment(
+  scope: AgentApiScope,
+  file: File,
+  { onProgress, onUploaded, signal }: UploadOptions = {},
+): Promise<AgentAttachmentInfo> {
+  return new Promise((resolve, reject) => {
+    let headers: Record<string, string>
+    try {
+      headers = { ...authHeader(), ...viewAsHeaders() }
+    } catch (e) {
+      reject(e)
+      return
+    }
+    const form = new FormData()
+    form.append('file', file)
+    const xhr = new XMLHttpRequest()
+    xhr.open('POST', `${agentBase(scope)}/attachments`)
+    for (const [k, v] of Object.entries(headers)) xhr.setRequestHeader(k, v)
+
+    xhr.upload.onprogress = e => {
+      if (e.lengthComputable && onProgress) {
+        onProgress(Math.round((e.loaded / e.total) * 100))
+      }
+    }
+    xhr.upload.onload = () => onUploaded?.()
+
+    xhr.onload = () => {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try {
+          resolve(JSON.parse(xhr.responseText) as AgentAttachmentInfo)
+        } catch {
+          reject(
+            new AttachmentUploadError(
+              'upload_failed',
+              'Upload failed',
+              xhr.status,
+            ),
+          )
+        }
+        return
+      }
+      if (xhr.status === 401) handleAuthExpired()
+      let code = xhr.status === 413 ? 'too_large' : 'upload_failed'
+      let message = 'Upload failed'
+      try {
+        const detail = JSON.parse(xhr.responseText)?.detail
+        if (detail && typeof detail === 'object') {
+          code = detail.code || code
+          message = detail.message || message
+        } else if (typeof detail === 'string') {
+          message = detail
+        }
+      } catch {
+        /* non-JSON body */
+      }
+      reject(new AttachmentUploadError(code, message, xhr.status))
+    }
+    xhr.onerror = () =>
+      reject(new AttachmentUploadError('network', 'Network error', 0))
+    xhr.onabort = () =>
+      reject(new AttachmentUploadError('aborted', 'Upload cancelled', 0))
+
+    if (signal) {
+      if (signal.aborted) {
+        reject(new AttachmentUploadError('aborted', 'Upload cancelled', 0))
+        return
+      }
+      signal.addEventListener('abort', () => xhr.abort(), { once: true })
+    }
+    xhr.send(form)
+  })
+}
+
+/** Remove a file that was uploaded but never sent. Best-effort. */
+export async function deleteAgentAttachment(
+  scope: AgentApiScope,
+  attachmentId: string,
+): Promise<void> {
+  const res = await fetch(`${agentBase(scope)}/attachments/${attachmentId}`, {
+    method: 'DELETE',
+    headers: { ...authHeader(), ...viewAsHeaders() },
+  })
+  if (!res.ok && res.status !== 404) {
+    throw await httpError(res, `Failed to remove file: ${res.status}`)
+  }
+}
+
 /**
  * Open a streaming agent run. Yields parsed AgentEvent objects until the stream ends
  * or the AbortSignal fires.
@@ -213,11 +337,15 @@ export async function* streamAgent({
   resume_session_id,
   thread_id,
   scope = 'admin',
+  attachment_ids,
   signal,
 }: StreamAgentArgs): AsyncGenerator<AgentEvent, void, unknown> {
   const body: Record<string, unknown> = { messages, model }
   if (resume_session_id) body.resume_session_id = resume_session_id
   if (thread_id) body.thread_id = thread_id
+  if (attachment_ids && attachment_ids.length > 0) {
+    body.attachment_ids = attachment_ids
+  }
 
   const res = await fetch(`${agentBase(scope)}/stream`, {
     method: 'POST',
