@@ -53,7 +53,7 @@ export function StartBotCard({
   const updateSession = useUpdateSession()
   const { data: responses } = useQuestionnaireResponses(sessionId)
   const [meetingUrl, setMeetingUrl] = useState(initialMeetingUrl || '')
-  const [botName, setBotName] = useState('Coach Sidekick')
+  const [botName, setBotName] = useState('Sidekick')
   const [editingClient, setEditingClient] = useState(false)
 
   const hasResponses =
@@ -227,7 +227,7 @@ export function StartBotCard({
               <Input
                 value={botName}
                 onChange={e => setBotName(e.target.value)}
-                placeholder="Coach Sidekick"
+                placeholder="Sidekick"
               />
             </div>
           </div>
