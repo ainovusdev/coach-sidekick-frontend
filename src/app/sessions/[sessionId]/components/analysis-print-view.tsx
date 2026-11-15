@@ -14,12 +14,33 @@ import { formatDate } from '@/lib/date-utils'
 import type {
   SessionInsights,
   CoachingAnalysis,
+  ProficiencyResult,
 } from '@/services/analysis-service'
+import { metaOverallScore } from '@/services/analysis-service'
 import { aiText } from '@/lib/ai-text'
+import {
+  PROFICIENCY_CRITERIA,
+  RUNG_NAMES,
+  averageRung,
+  formatAverageRung,
+  isScoredProficiency,
+  rungLevel,
+} from '@/config/proficiency-rubric'
+
+// Rung tone in print hex (mirrors rungTone in components/proficiency/rung-ladder).
+function rungColor(rung: number): string {
+  if (rung >= 5) return '#15803D'
+  if (rung >= 4) return '#4338CA'
+  if (rung >= 2) return '#B45309'
+  return '#B91C1C'
+}
 
 interface AnalysisPrintViewProps {
   insights?: SessionInsights
   coaching?: CoachingAnalysis
+  proficiency?: ProficiencyResult | null
+  // Print the Proficiency Ladder as the score and drop the Meta 1-10 numbers.
+  hideScores?: boolean
   sessionTitle?: string
   clientName?: string
   coachName?: string
@@ -204,6 +225,8 @@ export function AnalysisPrintView({
   clientName,
   coachName,
   sessionDate,
+  proficiency,
+  hideScores = false,
 }: AnalysisPrintViewProps) {
   const printRef = useRef<HTMLDivElement>(null)
 
@@ -249,17 +272,16 @@ export function AnalysisPrintView({
     }, 300)
   }, [sessionTitle])
 
-  const overallScore = coaching?.coaching_scores
-    ? coaching.coaching_scores.overall ||
-      (() => {
-        const vals = Object.values(coaching.coaching_scores).filter(
-          (v): v is number => typeof v === 'number',
-        )
-        return vals.length > 0
-          ? vals.reduce((sum, s) => sum + s, 0) / vals.length
-          : 0
-      })()
-    : 0
+  const scores = coaching?.coaching_scores ?? null
+  const goLive = coaching?.go_live_scores ?? null
+  const showScores = !hideScores && !!scores
+  const ladder =
+    hideScores && isScoredProficiency(proficiency) ? proficiency : null
+  const ladderRung = ladder ? averageRung(ladder) : undefined
+  const ladderLevel =
+    ladderRung !== undefined ? rungLevel(ladderRung) : undefined
+
+  const overallScore = metaOverallScore(scores) ?? 0
 
   const overallLevel = getScoreLevel(overallScore)
 
@@ -362,7 +384,9 @@ export function AnalysisPrintView({
           <div className="print-header">
             <h1>{sessionTitle || 'Coaching Session Analysis'}</h1>
             <div className="subtitle">
-              Meta Performance Framework &amp; GO LIVE Methodology
+              {hideScores
+                ? 'Proficiency Ladder'
+                : 'Meta Performance Framework & GO LIVE Methodology'}
             </div>
             <div className="meta">
               {clientName && (
@@ -386,22 +410,37 @@ export function AnalysisPrintView({
           {/* Overall Score + Assessment */}
           {coaching && (
             <div className="score-hero avoid-break">
-              <div className="score-circle">
-                <div className="big-score">
-                  {overallScore.toFixed(1)}
-                  <span>/10</span>
+              {ladderRung !== undefined && ladderLevel !== undefined ? (
+                <div className="score-circle">
+                  <div
+                    className="big-score"
+                    style={{ fontSize: '22px', color: rungColor(ladderLevel) }}
+                  >
+                    {RUNG_NAMES[ladderLevel]}
+                  </div>
+                  <div className="label">
+                    Average rung {formatAverageRung(ladderRung)} / 7
+                  </div>
+                  <div className="label">Proficiency Ladder</div>
                 </div>
-                <div
-                  className="level-badge"
-                  style={{
-                    background: getLevelBg(overallLevel),
-                    color: getLevelColor(overallLevel),
-                  }}
-                >
-                  {getScoreLevelLabel(overallLevel)}
+              ) : showScores ? (
+                <div className="score-circle">
+                  <div className="big-score">
+                    {overallScore.toFixed(1)}
+                    <span>/10</span>
+                  </div>
+                  <div
+                    className="level-badge"
+                    style={{
+                      background: getLevelBg(overallLevel),
+                      color: getLevelColor(overallLevel),
+                    }}
+                  >
+                    {getScoreLevelLabel(overallLevel)}
+                  </div>
+                  <div className="label">Overall Score</div>
                 </div>
-                <div className="label">Overall Score</div>
-              </div>
+              ) : null}
               <div className="score-details">
                 <div className="quick-stats">
                   {coaching.sentiment && (
@@ -446,6 +485,60 @@ export function AnalysisPrintView({
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {/* Proficiency Ladder */}
+          {ladder && (
+            <div className="section">
+              <div className="section-title">Proficiency Ladder</div>
+              <div className="metric-grid">
+                {PROFICIENCY_CRITERIA.map(c => {
+                  const data = ladder[c.key]
+                  if (!data) return null
+                  const color = rungColor(data.rung)
+                  return (
+                    <div
+                      key={c.key}
+                      className="metric-card avoid-break"
+                      style={{ borderColor: color + '40' }}
+                    >
+                      <div className="metric-header">
+                        <div>
+                          <span className="metric-name">{c.label}</span>
+                          <span
+                            className="metric-badge"
+                            style={{ background: color + '1A', color }}
+                          >
+                            {RUNG_NAMES[data.rung]}
+                          </span>
+                        </div>
+                        <span className="metric-score">{data.rung}/7</span>
+                      </div>
+                      <div className="metric-bar">
+                        <div
+                          className="metric-bar-fill"
+                          style={{
+                            width: `${(data.rung / 7) * 100}%`,
+                            background: color,
+                          }}
+                        />
+                      </div>
+                      {data.justification && (
+                        <div className="metric-justification">
+                          <div className="j-title">Why this rung</div>
+                          <div className="j-text">{data.justification}</div>
+                        </div>
+                      )}
+                      {data.evidence && (
+                        <div className="metric-level">
+                          <strong>Evidence:</strong> {data.evidence}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -533,20 +626,18 @@ export function AnalysisPrintView({
             )}
 
           {/* Meta Performance Criteria */}
-          {coaching?.coaching_scores && (
+          {showScores && scores && (
             <div className="section">
               <div className="section-title">Meta Performance Criteria</div>
               <div className="metric-grid">
                 {coachingMetrics.map(metric => {
                   const score =
-                    (coaching.coaching_scores[
-                      metric.key as keyof typeof coaching.coaching_scores
-                    ] as number) ?? 0
+                    (scores[metric.key as keyof typeof scores] as number) ?? 0
                   const level = getScoreLevel(score)
                   const levelColor = getLevelColor(level)
                   const levelBg = getLevelBg(level)
                   const justification =
-                    coaching.score_justifications?.[metric.key]
+                    coaching?.score_justifications?.[metric.key]
                   const currentLevelDesc =
                     metric.levels[level as keyof typeof metric.levels]
 
@@ -598,15 +689,12 @@ export function AnalysisPrintView({
           )}
 
           {/* GO LIVE Values */}
-          {coaching?.go_live_scores && (
+          {showScores && goLive && (
             <div className="section avoid-break">
               <div className="section-title">GO LIVE Values</div>
               <div className="golive-grid">
                 {goliveValues.map(value => {
-                  const score =
-                    coaching.go_live_scores[
-                      value.key as keyof typeof coaching.go_live_scores
-                    ] ?? 0
+                  const score = goLive[value.key as keyof typeof goLive] ?? 0
                   const level = getScoreLevel(score)
                   return (
                     <div
@@ -685,10 +773,11 @@ export function AnalysisPrintView({
 
           {/* Footer */}
           <div className="footer">
-            Generated by Coach Sidekick &mdash; Meta Performance Framework &amp;
-            GO LIVE Methodology
-            {coaching?.analysis_version &&
-              ` &mdash; v${coaching.analysis_version}`}
+            Generated by Coach Sidekick &mdash;{' '}
+            {hideScores
+              ? 'Proficiency Ladder'
+              : 'Meta Performance Framework & GO LIVE Methodology'}
+            {coaching?.analysis_version && ` — v${coaching.analysis_version}`}
           </div>
         </div>
       </div>

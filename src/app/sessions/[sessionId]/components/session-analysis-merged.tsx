@@ -28,6 +28,7 @@ import type {
   SessionInsights,
   CoachingAnalysis,
 } from '@/services/analysis-service'
+import { metaOverallScore } from '@/services/analysis-service'
 import { WordCloud } from '@/components/sessions/word-cloud'
 import { SentimentGauge } from '@/components/sessions/sentiment-gauge'
 import { aiText } from '@/lib/ai-text'
@@ -35,6 +36,15 @@ import { aiText } from '@/lib/ai-text'
 interface SessionAnalysisMergedProps {
   insights?: SessionInsights
   coaching?: CoachingAnalysis
+  // Hide the Meta-Performance 1-10 numbers and keep only the written feedback.
+  // Set when the Proficiency Ladder is the primary score.
+  hideScores?: boolean
+}
+
+function coachingUnavailableText(reason?: string | null): string {
+  return reason === 'conversation_too_short'
+    ? 'The transcript was too short to assess the coaching.'
+    : 'The coaching assessment could not be generated. Use Regenerate to try again.'
 }
 
 type ScoreLevel = 'sophisticated' | 'effective' | 'developing' | 'ineffective'
@@ -356,19 +366,19 @@ function MetricCard({
 export function SessionAnalysisMerged({
   insights,
   coaching,
+  hideScores = false,
 }: SessionAnalysisMergedProps) {
-  const overallScore = coaching?.coaching_scores
-    ? coaching.coaching_scores.overall ||
-      (() => {
-        const numericValues = Object.values(coaching.coaching_scores).filter(
-          (v): v is number => typeof v === 'number',
-        )
-        return numericValues.length > 0
-          ? numericValues.reduce((sum, score) => sum + score, 0) /
-              numericValues.length
-          : 0
-      })()
-    : undefined
+  const scores = coaching?.coaching_scores ?? null
+  const goLive = coaching?.go_live_scores ?? null
+  const showScores = !hideScores && !!scores && !!goLive
+  const hasWrittenFeedback =
+    !!coaching?.overall_assessment ||
+    !!coaching?.key_strengths?.length ||
+    !!coaching?.areas_for_growth?.length ||
+    !!coaching?.breakthrough_moments?.length ||
+    !!coaching?.sentiment?.emotions?.length
+
+  const overallScore = metaOverallScore(scores)
 
   const overallLevel = overallScore ? getScoreLevel(overallScore) : undefined
   const overallColors = overallLevel
@@ -587,9 +597,8 @@ export function SessionAnalysisMerged({
 
       {/* Coaching Performance Section */}
       {coaching &&
-        coaching.coaching_scores &&
-        coaching.go_live_scores &&
-        coaching.sentiment && (
+        coaching.sentiment &&
+        (showScores || hasWrittenFeedback || !!coaching.coaching_failed) && (
           <div className="space-y-6">
             <div className="flex items-center gap-3 pt-6 border-t border-app-border">
               <div className="p-2 bg-app-surface rounded-lg">
@@ -600,256 +609,277 @@ export function SessionAnalysisMerged({
                   Coaching Performance
                 </h2>
                 <p className="text-sm text-app-secondary">
-                  Meta Performance Framework and GO LIVE methodology
+                  {showScores
+                    ? 'Meta Performance Framework and GO LIVE methodology'
+                    : 'Written feedback on this session'}
                 </p>
               </div>
             </div>
 
+            {!scores && coaching.coaching_failed && (
+              <Card className="border-dashed">
+                <CardContent className="py-4">
+                  <p className="text-sm font-medium text-ink">
+                    Coaching feedback unavailable for this session
+                  </p>
+                  <p className="text-xs text-ink-3 mt-1">
+                    {coachingUnavailableText(coaching.coaching_failed)}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
             {/* Overall Score + Assessment */}
-            <Card className="border-app-border shadow-sm overflow-hidden">
-              <CardContent className="p-0">
-                <div className="grid grid-cols-1 lg:grid-cols-3">
-                  {/* Overall Score */}
-                  {overallScore !== undefined &&
-                    overallColors &&
-                    overallLevel && (
-                      <div
-                        className={`p-6 ${overallColors.bg} border-b lg:border-b-0 lg:border-r border-app-border`}
-                      >
-                        <div className="text-center">
-                          <div className="text-5xl font-bold text-app-primary mb-1">
-                            {overallScore.toFixed(1)}
-                            <span className="text-2xl text-app-secondary font-normal">
-                              /10
-                            </span>
-                          </div>
-                          <Badge
-                            className={`${overallColors.badge} text-xs font-medium mb-3`}
-                          >
-                            {getScoreLevelLabel(overallLevel)}
-                          </Badge>
-                          <p className="text-xs text-app-secondary uppercase tracking-wider font-medium mt-2">
-                            Overall Score
-                          </p>
-                          <Progress
-                            value={overallScore * 10}
-                            className="h-2 mt-3"
-                          />
-                        </div>
-
-                        {/* Quick stats */}
-                        <div className="grid grid-cols-2 gap-2 mt-4">
-                          <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
-                            <p className="text-sm font-semibold text-app-primary">
-                              {coaching.sentiment.overall}
-                            </p>
-                            <p className="text-[10px] text-app-secondary uppercase">
-                              Sentiment
-                            </p>
-                          </div>
-                          <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
-                            <p className="text-sm font-semibold text-app-primary">
-                              {coaching.sentiment.engagement}
-                            </p>
-                            <p className="text-[10px] text-app-secondary uppercase">
-                              Engagement
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                  {/* Assessment + Strengths/Growth */}
-                  <div className="lg:col-span-2 p-6 space-y-5">
-                    {/* Overall Assessment */}
-                    {coaching.overall_assessment && (
-                      <div>
-                        <h4 className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
-                          Session Assessment
-                        </h4>
-                        <p className="text-sm text-app-primary leading-relaxed">
-                          {coaching.overall_assessment}
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Strengths + Areas for Growth */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {coaching.key_strengths &&
-                        coaching.key_strengths.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <Award className="h-3.5 w-3.5 text-forest " />
-                              <h4 className="text-xs text-forest uppercase tracking-wider font-medium">
-                                Key Strengths
-                              </h4>
+            {(showScores || hasWrittenFeedback) && (
+              <Card className="border-app-border shadow-sm overflow-hidden">
+                <CardContent className="p-0">
+                  <div className="grid grid-cols-1 lg:grid-cols-3">
+                    {/* Overall Score */}
+                    {showScores &&
+                      overallScore !== undefined &&
+                      overallColors &&
+                      overallLevel && (
+                        <div
+                          className={`p-6 ${overallColors.bg} border-b lg:border-b-0 lg:border-r border-app-border`}
+                        >
+                          <div className="text-center">
+                            <div className="text-5xl font-bold text-app-primary mb-1">
+                              {overallScore.toFixed(1)}
+                              <span className="text-2xl text-app-secondary font-normal">
+                                /10
+                              </span>
                             </div>
-                            <div className="space-y-1.5">
-                              {coaching.key_strengths.map((s, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-start gap-2 p-2 bg-forest-bg rounded-lg border border-forest "
-                                >
-                                  <CheckCircle2 className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
-                                  <span className="text-xs text-forest leading-relaxed">
-                                    {s}
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
+                            <Badge
+                              className={`${overallColors.badge} text-xs font-medium mb-3`}
+                            >
+                              {getScoreLevelLabel(overallLevel)}
+                            </Badge>
+                            <p className="text-xs text-app-secondary uppercase tracking-wider font-medium mt-2">
+                              Overall Score
+                            </p>
+                            <Progress
+                              value={overallScore * 10}
+                              className="h-2 mt-3"
+                            />
                           </div>
-                        )}
 
-                      {coaching.areas_for_growth &&
-                        coaching.areas_for_growth.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-1.5 mb-2">
-                              <TrendingUp className="h-3.5 w-3.5 text-amber-token " />
-                              <h4 className="text-xs text-amber-token uppercase tracking-wider font-medium">
-                                Areas for Growth
-                              </h4>
+                          {/* Quick stats */}
+                          <div className="grid grid-cols-2 gap-2 mt-4">
+                            <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
+                              <p className="text-sm font-semibold text-app-primary">
+                                {coaching.sentiment.overall}
+                              </p>
+                              <p className="text-[10px] text-app-secondary uppercase">
+                                Sentiment
+                              </p>
                             </div>
-                            <div className="space-y-1.5">
-                              {coaching.areas_for_growth.map((a, i) => (
-                                <div
-                                  key={i}
-                                  className="flex items-start gap-2 p-2 bg-amber-token-bg rounded-lg border border-amber-token "
-                                >
-                                  <ArrowRight className="h-3.5 w-3.5 text-amber-token mt-0.5 flex-shrink-0" />
-                                  <span className="text-xs text-amber-token leading-relaxed">
-                                    {a}
-                                  </span>
-                                </div>
-                              ))}
+                            <div className="text-center p-2 bg-surface-1 rounded-lg border border-app-border">
+                              <p className="text-sm font-semibold text-app-primary">
+                                {coaching.sentiment.engagement}
+                              </p>
+                              <p className="text-[10px] text-app-secondary uppercase">
+                                Engagement
+                              </p>
                             </div>
-                          </div>
-                        )}
-                    </div>
-
-                    {/* Breakthrough Moments */}
-                    {coaching.breakthrough_moments &&
-                      coaching.breakthrough_moments.length > 0 && (
-                        <div>
-                          <div className="flex items-center gap-1.5 mb-2">
-                            <Star className="h-3.5 w-3.5 text-indigo " />
-                            <h4 className="text-xs text-indigo uppercase tracking-wider font-medium">
-                              Breakthrough Moments
-                            </h4>
-                          </div>
-                          <div className="space-y-1.5">
-                            {coaching.breakthrough_moments.map((m, i) => (
-                              <div
-                                key={i}
-                                className="flex items-start gap-2 p-2 bg-indigo-bg rounded-lg border border-indigo "
-                              >
-                                <Sparkles className="h-3.5 w-3.5 text-indigo mt-0.5 flex-shrink-0" />
-                                <span className="text-xs text-indigo leading-relaxed">
-                                  {m}
-                                </span>
-                              </div>
-                            ))}
                           </div>
                         </div>
                       )}
 
-                    {/* Emotions */}
-                    {coaching.sentiment.emotions.length > 0 && (
-                      <div>
-                        <h4 className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
-                          Detected Emotions
-                        </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {coaching.sentiment.emotions.map((emotion, idx) => (
-                            <Badge
-                              key={idx}
-                              variant="secondary"
-                              className="text-xs bg-app-surface text-app-secondary"
-                            >
-                              {emotion}
-                            </Badge>
-                          ))}
+                    {/* Assessment + Strengths/Growth */}
+                    <div
+                      className={`${showScores ? 'lg:col-span-2' : 'lg:col-span-3'} p-6 space-y-5`}
+                    >
+                      {/* Overall Assessment */}
+                      {coaching.overall_assessment && (
+                        <div>
+                          <h4 className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
+                            Session Assessment
+                          </h4>
+                          <p className="text-sm text-app-primary leading-relaxed">
+                            {coaching.overall_assessment}
+                          </p>
                         </div>
+                      )}
+
+                      {/* Strengths + Areas for Growth */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {coaching.key_strengths &&
+                          coaching.key_strengths.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <Award className="h-3.5 w-3.5 text-forest " />
+                                <h4 className="text-xs text-forest uppercase tracking-wider font-medium">
+                                  Key Strengths
+                                </h4>
+                              </div>
+                              <div className="space-y-1.5">
+                                {coaching.key_strengths.map((s, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-start gap-2 p-2 bg-forest-bg rounded-lg border border-forest "
+                                  >
+                                    <CheckCircle2 className="h-3.5 w-3.5 text-forest mt-0.5 flex-shrink-0" />
+                                    <span className="text-xs text-forest leading-relaxed">
+                                      {s}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                        {coaching.areas_for_growth &&
+                          coaching.areas_for_growth.length > 0 && (
+                            <div>
+                              <div className="flex items-center gap-1.5 mb-2">
+                                <TrendingUp className="h-3.5 w-3.5 text-amber-token " />
+                                <h4 className="text-xs text-amber-token uppercase tracking-wider font-medium">
+                                  Areas for Growth
+                                </h4>
+                              </div>
+                              <div className="space-y-1.5">
+                                {coaching.areas_for_growth.map((a, i) => (
+                                  <div
+                                    key={i}
+                                    className="flex items-start gap-2 p-2 bg-amber-token-bg rounded-lg border border-amber-token "
+                                  >
+                                    <ArrowRight className="h-3.5 w-3.5 text-amber-token mt-0.5 flex-shrink-0" />
+                                    <span className="text-xs text-amber-token leading-relaxed">
+                                      {a}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                       </div>
-                    )}
+
+                      {/* Breakthrough Moments */}
+                      {coaching.breakthrough_moments &&
+                        coaching.breakthrough_moments.length > 0 && (
+                          <div>
+                            <div className="flex items-center gap-1.5 mb-2">
+                              <Star className="h-3.5 w-3.5 text-indigo " />
+                              <h4 className="text-xs text-indigo uppercase tracking-wider font-medium">
+                                Breakthrough Moments
+                              </h4>
+                            </div>
+                            <div className="space-y-1.5">
+                              {coaching.breakthrough_moments.map((m, i) => (
+                                <div
+                                  key={i}
+                                  className="flex items-start gap-2 p-2 bg-indigo-bg rounded-lg border border-indigo "
+                                >
+                                  <Sparkles className="h-3.5 w-3.5 text-indigo mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-indigo leading-relaxed">
+                                    {m}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Emotions */}
+                      {coaching.sentiment.emotions.length > 0 && (
+                        <div>
+                          <h4 className="text-xs text-app-secondary uppercase tracking-wider font-medium mb-2">
+                            Detected Emotions
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {coaching.sentiment.emotions.map((emotion, idx) => (
+                              <Badge
+                                key={idx}
+                                variant="secondary"
+                                className="text-xs bg-app-surface text-app-secondary"
+                              >
+                                {emotion}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {showScores && scores && goLive && (
+              <>
+                {/* Meta Performance Criteria */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <h3 className="text-sm font-semibold text-app-primary">
+                      Meta Performance Criteria
+                    </h3>
+                    <span className="text-xs text-app-secondary">
+                      Click any criterion to see the full rubric
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {coachingMetrics.map(metric => {
+                      const score =
+                        (scores[metric.key as keyof typeof scores] as number) ??
+                        0
+                      const justification =
+                        coaching.score_justifications?.[metric.key]
+                      return (
+                        <MetricCard
+                          key={metric.key}
+                          metric={metric}
+                          score={score}
+                          justification={justification}
+                        />
+                      )
+                    })}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
 
-            {/* Meta Performance Criteria */}
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <h3 className="text-sm font-semibold text-app-primary">
-                  Meta Performance Criteria
-                </h3>
-                <span className="text-xs text-app-secondary">
-                  Click any criterion to see the full rubric
-                </span>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {coachingMetrics.map(metric => {
-                  const score =
-                    (coaching.coaching_scores[
-                      metric.key as keyof typeof coaching.coaching_scores
-                    ] as number) ?? 0
-                  const justification =
-                    coaching.score_justifications?.[metric.key]
-                  return (
-                    <MetricCard
-                      key={metric.key}
-                      metric={metric}
-                      score={score}
-                      justification={justification}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-
-            {/* GO LIVE Values */}
-            <Card className="border-app-border shadow-sm">
-              <CardHeader className="pb-3">
-                <h3 className="text-sm font-semibold text-app-primary">
-                  GO LIVE Values
-                </h3>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {goliveValues.map(value => {
-                    const score =
-                      coaching.go_live_scores[
-                        value.key as keyof typeof coaching.go_live_scores
-                      ] ?? 0
-                    const level = getScoreLevel(score)
-                    const colors = getScoreLevelColor(level)
-                    const Icon = value.icon
-                    return (
-                      <div
-                        key={value.key}
-                        className={`text-center p-4 rounded-xl ${colors.bg} border ${colors.border}`}
-                      >
-                        <div className="w-10 h-10 mx-auto bg-surface-1 border border-app-border rounded-full flex items-center justify-center mb-3">
-                          <Icon className="h-5 w-5 text-app-secondary" />
-                        </div>
-                        <h4 className="text-xs font-medium text-app-secondary mb-1">
-                          {value.label}
-                        </h4>
-                        <div className="flex items-center justify-center gap-1.5 mb-1">
-                          <span className="text-lg font-bold text-app-primary">
-                            {score.toFixed(1)}
-                          </span>
-                        </div>
-                        <Badge
-                          className={`text-[10px] px-1.5 py-0 h-4 ${colors.badge}`}
-                        >
-                          {getScoreLevelLabel(level)}
-                        </Badge>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
+                {/* GO LIVE Values */}
+                <Card className="border-app-border shadow-sm">
+                  <CardHeader className="pb-3">
+                    <h3 className="text-sm font-semibold text-app-primary">
+                      GO LIVE Values
+                    </h3>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                      {goliveValues.map(value => {
+                        const score =
+                          goLive[value.key as keyof typeof goLive] ?? 0
+                        const level = getScoreLevel(score)
+                        const colors = getScoreLevelColor(level)
+                        const Icon = value.icon
+                        return (
+                          <div
+                            key={value.key}
+                            className={`text-center p-4 rounded-xl ${colors.bg} border ${colors.border}`}
+                          >
+                            <div className="w-10 h-10 mx-auto bg-surface-1 border border-app-border rounded-full flex items-center justify-center mb-3">
+                              <Icon className="h-5 w-5 text-app-secondary" />
+                            </div>
+                            <h4 className="text-xs font-medium text-app-secondary mb-1">
+                              {value.label}
+                            </h4>
+                            <div className="flex items-center justify-center gap-1.5 mb-1">
+                              <span className="text-lg font-bold text-app-primary">
+                                {score.toFixed(1)}
+                              </span>
+                            </div>
+                            <Badge
+                              className={`text-[10px] px-1.5 py-0 h-4 ${colors.badge}`}
+                            >
+                              {getScoreLevelLabel(level)}
+                            </Badge>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
             {/* Suggestions */}
             {coaching.suggestions && coaching.suggestions.length > 0 && (

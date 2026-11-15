@@ -13,11 +13,6 @@ export interface SessionSentiment {
   energy_level: string
 }
 
-export interface SessionEffectiveness {
-  score: number
-  explanation: string
-}
-
 export interface SessionPatterns {
   thinking_patterns?: string[]
   language_patterns?: string[]
@@ -47,7 +42,6 @@ export interface SessionInsights {
   sentiment: SessionSentiment
   insights: string[]
   action_items: string[]
-  effectiveness: SessionEffectiveness
   patterns: SessionPatterns
   recommendations: SessionRecommendations
   metadata: SessionMetadata
@@ -67,6 +61,22 @@ export interface CoachingScores {
   overall?: number
   // Legacy fields (backward compat with old analyses)
   [key: string]: number | undefined
+}
+
+// The Meta-Performance overall: the stored `overall`, else the mean of the
+// criteria (rows saved before the backend stored it). Undefined when there are
+// no scores, so callers never show a fake 0.0.
+export function metaOverallScore(
+  scores: CoachingScores | null | undefined,
+): number | undefined {
+  if (!scores) return undefined
+  if (typeof scores.overall === 'number') return scores.overall
+  const values = Object.entries(scores)
+    .filter(([key, v]) => key !== 'overall' && typeof v === 'number')
+    .map(([, v]) => v as number)
+  return values.length > 0
+    ? values.reduce((sum, v) => sum + v, 0) / values.length
+    : undefined
 }
 
 export interface GOLIVEScores {
@@ -135,8 +145,10 @@ export interface ProficiencyTrendResponse {
 export interface CoachingAnalysis {
   session_id: string
   timestamp: string
-  coaching_scores: CoachingScores
-  go_live_scores: GOLIVEScores
+  // Null when scoring failed or the transcript was too short; see coaching_failed.
+  coaching_scores: CoachingScores | null
+  go_live_scores: GOLIVEScores | null
+  coaching_failed?: CoachingFailure | null
   sentiment: {
     overall: string
     score: number
@@ -154,13 +166,18 @@ export interface CoachingAnalysis {
   processing_time_ms: number
 }
 
+// Why a session has no Meta-Performance scores (the scores are then null).
+// 'error' / 'parse_error' are retried by the backend; 'conversation_too_short' is final.
+export type CoachingFailure = 'error' | 'parse_error' | 'conversation_too_short'
+
 export interface FullAnalysisResponse {
   session_id: string
   timestamp: string
   insights: SessionInsights | null
   coaching: {
-    coaching_scores: CoachingScores
-    go_live_scores: GOLIVEScores
+    coaching_scores: CoachingScores | null
+    go_live_scores: GOLIVEScores | null
+    coaching_failed?: CoachingFailure | null
     sentiment: {
       overall: string
       score: number
@@ -177,7 +194,8 @@ export interface FullAnalysisResponse {
     processing_time_ms: number
   } | null
   total_processing_time_ms?: number
-  // Proficiency Ladder rubric (admin-only display). Null when never scored.
+  // Proficiency Ladder rubric, the primary score when the `proficiency-rubric`
+  // flag is on. Null when never scored.
   proficiency?: ProficiencyResult | null
 }
 

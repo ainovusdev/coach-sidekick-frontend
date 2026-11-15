@@ -10,20 +10,16 @@ import {
   PROFICIENT_RUNG,
   RUBRIC_LEGEND,
   formatProficiencyScore as fmtScore,
+  isScoredProficiency,
 } from '@/config/proficiency-rubric'
 import { RungLadder, rungTone } from '@/components/proficiency/rung-ladder'
 import type {
   ProficiencyResult,
-  ProficiencyScores,
   ProficiencyCriterionScore,
 } from '@/services/analysis-service'
 
 interface Props {
   proficiency: ProficiencyResult
-}
-
-function isScored(p: ProficiencyResult): p is ProficiencyScores {
-  return (p as ProficiencyScores)?.rubric_type !== undefined
 }
 
 function CriterionRow({
@@ -76,7 +72,7 @@ function CriterionRow({
 }
 
 export function SessionProficiencyAnalysis({ proficiency }: Props) {
-  if (!isScored(proficiency)) {
+  if (!isScoredProficiency(proficiency)) {
     return (
       <Card className="border-dashed">
         <CardContent className="py-4">
@@ -101,12 +97,6 @@ export function SessionProficiencyAnalysis({ proficiency }: Props) {
             <h3 className="text-base font-semibold text-ink">
               Proficiency Ladder
             </h3>
-            <Badge
-              variant="outline"
-              className="text-[10px] uppercase tracking-wide"
-            >
-              Admin preview
-            </Badge>
             <Badge
               variant="secondary"
               className={

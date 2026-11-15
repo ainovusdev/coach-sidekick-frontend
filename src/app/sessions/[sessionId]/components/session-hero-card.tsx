@@ -3,9 +3,18 @@
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { TrendingUp, Users, Clock, Mic2, MessageSquare } from 'lucide-react'
+import {
+  RUNG_NAMES,
+  formatAverageRung,
+  rungLevel,
+} from '@/config/proficiency-rubric'
+import { RungLadder, rungTone } from '@/components/proficiency/rung-ladder'
 
 interface SessionHeroCardProps {
+  // Meta-Performance 1-10 average; ignored when `ladderAverageRung` is given.
   overallScore?: number
+  // Proficiency Ladder average rung (1-7): the primary score when present.
+  ladderAverageRung?: number
   sentiment?: {
     overall: string
     score: number
@@ -70,6 +79,25 @@ function CircularProgress({
   )
 }
 
+// The level a coach reached this session: the floor of the average rung, so
+// 3.98 still reads Foundational and agrees with the Proficient bar at 4.
+function LadderLevel({ averageRung }: { averageRung: number }) {
+  const level = rungLevel(averageRung)
+  const tone = rungTone(level)
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 lg:pr-8 lg:border-r border-app-border lg:min-w-[13rem]">
+      <p className="text-xs font-medium text-app-secondary uppercase tracking-wider">
+        Proficiency Ladder
+      </p>
+      <p className={`text-3xl font-bold ${tone.text}`}>{RUNG_NAMES[level]}</p>
+      <RungLadder rung={level} />
+      <p className="text-xs text-app-secondary tabular-nums">
+        Average rung {formatAverageRung(averageRung)} of 7
+      </p>
+    </div>
+  )
+}
+
 export function SessionHeroCard({
   overallScore,
   sentiment,
@@ -77,8 +105,10 @@ export function SessionHeroCard({
   wordCount,
   speakerBalance,
   coachingStyle,
+  ladderAverageRung,
 }: SessionHeroCardProps) {
-  const hasMetrics = overallScore !== undefined || sentiment
+  const hasMetrics =
+    ladderAverageRung !== undefined || overallScore !== undefined || sentiment
 
   if (!hasMetrics) return null
 
@@ -87,7 +117,9 @@ export function SessionHeroCard({
       <div className="p-6 sm:p-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Hero Score */}
-          {overallScore !== undefined && (
+          {ladderAverageRung !== undefined ? (
+            <LadderLevel averageRung={ladderAverageRung} />
+          ) : overallScore !== undefined ? (
             <div className="flex flex-col items-center justify-center lg:pr-8 lg:border-r border-app-border">
               <CircularProgress
                 value={overallScore}
@@ -101,7 +133,7 @@ export function SessionHeroCard({
                 <p className="text-xs text-app-secondary">Meta Performance</p>
               </div>
             </div>
-          )}
+          ) : null}
 
           {/* Metrics Grid */}
           <div className="flex-1">
