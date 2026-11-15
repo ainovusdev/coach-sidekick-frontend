@@ -47,6 +47,15 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { useScheduleSession } from '@/hooks/mutations/use-questionnaire-mutations'
+import {
+  CallTypeHint,
+  CallTypeSelect,
+} from '@/components/sessions/call-type-select'
+import {
+  DEFAULT_CALL_TYPE,
+  isCoachingCall,
+  type CallType,
+} from '@/config/call-types'
 
 interface ScheduleSessionModalProps {
   isOpen: boolean
@@ -102,6 +111,7 @@ export function ScheduleSessionModal({
   const [titleManuallySet, setTitleManuallySet] = useState(false)
   const [meetingUrl, setMeetingUrl] = useState('')
   const [sendQuestionnaire, setSendQuestionnaire] = useState(true)
+  const [callType, setCallType] = useState<CallType>(DEFAULT_CALL_TYPE)
   const [calendarOpen, setCalendarOpen] = useState(false)
   // Which sandbox agreement this session credits. Filled in for us when there
   // is only one; a choice the coach makes when the coachee is in several.
@@ -149,6 +159,7 @@ export function ScheduleSessionModal({
       title: title || undefined,
       meeting_url: meetingUrl || undefined,
       send_questionnaire: sendQuestionnaire,
+      call_type: callType,
       ...(sandbox
         ? {
             sandbox_id: sandbox.sandbox_id,
@@ -171,6 +182,7 @@ export function ScheduleSessionModal({
     setTitleManuallySet(false)
     setMeetingUrl('')
     setSendQuestionnaire(true)
+    setCallType(DEFAULT_CALL_TYPE)
     setSandbox(initialSandbox)
     onClose()
   }
@@ -364,6 +376,19 @@ export function ScheduleSessionModal({
             />
           </div>
 
+          {/* Call type */}
+          <div className="space-y-2">
+            <Label htmlFor="schedule-call-type" className="text-sm font-medium">
+              Call type
+            </Label>
+            <CallTypeSelect
+              id="schedule-call-type"
+              value={callType}
+              onChange={setCallType}
+            />
+            <CallTypeHint value={callType} />
+          </div>
+
           {/* Meeting URL */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">
@@ -382,27 +407,29 @@ export function ScheduleSessionModal({
             </p>
           </div>
 
-          {/* Send Questionnaire */}
-          <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
-            <Checkbox
-              id="send-questionnaire"
-              checked={sendQuestionnaire}
-              onCheckedChange={checked =>
-                setSendQuestionnaire(checked as boolean)
-              }
-            />
-            <div>
-              <Label
-                htmlFor="send-questionnaire"
-                className="text-sm font-medium cursor-pointer"
-              >
-                Send pre-session questionnaire
-              </Label>
-              <p className="text-xs text-muted-foreground">
-                Client will receive 5 reflection questions via email
-              </p>
+          {/* Send Questionnaire (coaching calls only) */}
+          {isCoachingCall(callType) && (
+            <div className="flex items-center space-x-3 p-3 rounded-lg bg-muted/50">
+              <Checkbox
+                id="send-questionnaire"
+                checked={sendQuestionnaire}
+                onCheckedChange={checked =>
+                  setSendQuestionnaire(checked as boolean)
+                }
+              />
+              <div>
+                <Label
+                  htmlFor="send-questionnaire"
+                  className="text-sm font-medium cursor-pointer"
+                >
+                  Send pre-session questionnaire
+                </Label>
+                <p className="text-xs text-muted-foreground">
+                  Client will receive 5 reflection questions via email
+                </p>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">

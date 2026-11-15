@@ -1,6 +1,7 @@
 import { MeetingFormSimple } from '@/components/meeting/meeting-form-simple'
 import { AlertCircle } from 'lucide-react'
 import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
+import type { CallType } from '@/config/call-types'
 
 interface StartRecordingProps {
   loading: boolean
@@ -9,6 +10,7 @@ interface StartRecordingProps {
     meetingUrl: string,
     clientId?: string,
     sandbox?: SandboxAssignmentChoice | null,
+    callType?: CallType,
   ) => void
 }
 

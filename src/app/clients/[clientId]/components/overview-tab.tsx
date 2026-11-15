@@ -32,6 +32,7 @@ import {
   isAssignedTo,
   isClientsOwn,
 } from '@/lib/commitments/assignee'
+import { isCoachingCall } from '@/config/call-types'
 
 interface OverviewTabProps {
   client: any
@@ -67,7 +68,10 @@ export function OverviewTab({
   isViewer = false,
 }: OverviewTabProps) {
   // Get last session
-  const lastSession = sessions && sessions.length > 0 ? sessions[0] : null
+  // Insights and score come from the latest coaching call; other call types
+  // (onboarding, discovery, ...) are not evaluated.
+  const lastSession =
+    sessions?.find((s: any) => isCoachingCall(s.call_type)) ?? null
 
   const queryClient = useQueryClient()
 

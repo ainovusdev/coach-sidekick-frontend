@@ -1,5 +1,6 @@
 import { ApiClient } from '@/lib/api-client'
 import { CoachingSession } from '@/types/meeting'
+import type { CallType } from '@/config/call-types'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL ||
@@ -23,6 +24,7 @@ export interface SessionUpdateDto {
   session_metadata?: Record<string, any>
   // null detaches the client from a solo session.
   client_id?: string | null
+  call_type?: CallType
 }
 
 export interface SessionListResponse {
@@ -39,7 +41,9 @@ interface BackendSession {
   client_id?: string
   bot_id: string
   meeting_url: string
+  title?: string | null
   status: string
+  call_type?: CallType
   started_at: string
   ended_at?: string
   duration_seconds?: number
@@ -74,7 +78,9 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     user_id: backendSession.coach_id,
     bot_id: backendSession.bot_id,
     meeting_url: backendSession.meeting_url,
+    title: backendSession.title,
     status: backendSession.status,
+    call_type: backendSession.call_type,
     client_id: backendSession.client_id,
     created_at: backendSession.started_at || backendSession.created_at,
     updated_at: backendSession.updated_at,

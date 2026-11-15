@@ -21,6 +21,7 @@ import { MeetingSession } from '@/hooks/use-meeting-history'
 import { usePermissions, PermissionGate } from '@/contexts/permission-context'
 import { SessionService } from '@/services/session-service'
 import { EditSessionModal } from '@/components/sessions/edit-session-modal'
+import { CallTypeBadge } from '@/components/sessions/call-type-select'
 import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
 import { toast } from 'sonner'
 
@@ -232,6 +233,7 @@ export function SessionCard({
                 <span className="font-medium">{durationMinutes}m</span>
               </div>
             )}
+            <CallTypeBadge callType={session.call_type} />
             {session.is_group_session && (
               <GroupSessionBadge
                 count={session.participant_count ?? undefined}

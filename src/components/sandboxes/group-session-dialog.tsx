@@ -44,6 +44,11 @@ import { resolveTimeZone } from '@/lib/date-utils'
 import { MeetingService } from '@/services/meeting-service'
 import { cn } from '@/lib/utils'
 import type { GroupDelivery } from '@/types/sandbox-delivery'
+import {
+  CallTypeHint,
+  CallTypeSelect,
+} from '@/components/sessions/call-type-select'
+import { DEFAULT_CALL_TYPE, type CallType } from '@/config/call-types'
 
 const HOURS = Array.from({ length: 12 }, (_, i) => i + 1)
 const MINUTES = ['00', '15', '30', '45']
@@ -95,6 +100,7 @@ export function GroupSessionDialog({
   const [period, setPeriod] = useState<'AM' | 'PM'>('AM')
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [startingBot, setStartingBot] = useState(false)
+  const [callType, setCallType] = useState<CallType>(DEFAULT_CALL_TYPE)
   const pills = useMemo(quickDates, [])
   const busy = create.isPending || schedule.isPending || startingBot
   const names = group.coachees.map(c => c.name || c.email)
@@ -118,6 +124,7 @@ export function GroupSessionDialog({
       sandbox_group_id: group.group_id,
       title: title.trim() || undefined,
       meeting_url: meetingUrl.trim() || undefined,
+      call_type: callType,
     }
 
     if (mode === 'schedule') {
@@ -157,6 +164,7 @@ export function GroupSessionDialog({
       sandbox_group_id: group.group_id,
       title: title.trim() || undefined,
       session_type: 'manual',
+      call_type: callType,
     })
     onClose()
     router.push(`/sessions/${session.id}`)
@@ -323,6 +331,22 @@ export function GroupSessionDialog({
               placeholder={group.display_name}
               maxLength={255}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label
+              htmlFor="group-session-call-type"
+              className="text-sm font-medium"
+            >
+              Call type
+            </Label>
+            <CallTypeSelect
+              id="group-session-call-type"
+              value={callType}
+              onChange={setCallType}
+              disabled={busy}
+            />
+            <CallTypeHint value={callType} />
           </div>
 
           {(create.isError || schedule.isError) && (

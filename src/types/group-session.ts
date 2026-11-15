@@ -1,3 +1,5 @@
+import type { CallType } from '@/config/call-types'
+
 export interface GroupSessionParticipant {
   client_id: string
   client_name: string
@@ -11,6 +13,8 @@ export interface GroupSession {
   title: string | null
   status: string
   session_type: string
+  /** What kind of call; only 'coaching' is evaluated. */
+  call_type?: CallType
   meeting_url: string | null
   is_group_session: boolean
   /** Set when the session was started from a sandbox group, and credits it. */
@@ -41,6 +45,7 @@ export interface GroupSessionCreate {
   title?: string
   meeting_url?: string
   session_type?: string
+  call_type?: CallType
 }
 
 export interface GroupSessionSchedule extends GroupSessionCreate {

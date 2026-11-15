@@ -50,6 +50,7 @@ import {
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import type { Task } from '@/services/client-dashboard-api'
 import { SandboxNote } from '@/components/sandboxes/sandbox-note'
+import { isCoachingCall } from '@/config/call-types'
 
 interface DashboardData {
   client_info: {
@@ -335,7 +336,11 @@ export default function ClientDashboard() {
     )
   }
 
-  const lastSession = dashboardData.recent_sessions?.[0]
+  // Latest coaching call: other call types carry no insights or score.
+  const lastSession =
+    dashboardData.recent_sessions?.find(s =>
+      isCoachingCall((s as { call_type?: string | null }).call_type),
+    ) ?? null
   const firstName = dashboardData.client_info?.name?.split(' ')[0] || 'there'
   const pendingTasks = dashboardData.stats?.pending_tasks ?? 0
   const nextSession = dashboardData.stats?.next_session

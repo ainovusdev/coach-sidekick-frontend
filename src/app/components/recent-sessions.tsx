@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { usePermissions } from '@/contexts/permission-context'
 import { cn } from '@/lib/utils'
+import { CallTypeBadge } from '@/components/sessions/call-type-select'
 
 interface RecentSessionsProps {
   meetingHistory: any
@@ -94,6 +95,7 @@ export default function RecentSessions({
                 Live
               </span>
             )}
+            <CallTypeBadge callType={session.call_type} />
           </div>
 
           {/* Meta line */}

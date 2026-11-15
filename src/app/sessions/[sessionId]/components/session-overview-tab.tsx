@@ -34,6 +34,7 @@ import { ThrillFormResponses } from './thrill-form-responses'
 import { THRILL_FORM_ENABLED } from '@/lib/features'
 import TranscriptViewer from './transcript-viewer'
 import { aiText } from '@/lib/ai-text'
+import { callTypeNoun, isCoachingCall } from '@/config/call-types'
 
 interface TranscriptEntry {
   id: string
@@ -75,6 +76,10 @@ interface SessionOverviewTabProps {
   generatingClientAnalysis?: boolean
   isCompleted?: boolean
   onCreateCommitment?: () => void
+  /** Only coaching calls are evaluated; other types show no insights or scores. */
+  callType?: string | null
+  /** The session's own AI summary, shown when there are no insights. */
+  sessionSummary?: string | null
 }
 
 export function SessionOverviewTab({
@@ -93,8 +98,11 @@ export function SessionOverviewTab({
   generatingClientAnalysis = false,
   isCompleted = false,
   onCreateCommitment,
+  callType,
+  sessionSummary,
 }: SessionOverviewTabProps) {
   const [transcriptOpen, setTranscriptOpen] = useState(false)
+  const isCoaching = isCoachingCall(callType)
 
   // Per-client analysis for group sessions
   const clientAnalysis =
@@ -103,7 +111,8 @@ export function SessionOverviewTab({
       : null
 
   // Use per-client data when available, otherwise fall back to session-level insights
-  const displaySummary = clientAnalysis?.summary || insights?.summary
+  const displaySummary =
+    clientAnalysis?.summary || insights?.summary || sessionSummary || undefined
   const displayTopics = clientAnalysis?.key_topics || insights?.topics || []
   const displayActionItems = (
     clientAnalysis?.action_items?.slice(0, 3) ||
@@ -113,10 +122,11 @@ export function SessionOverviewTab({
   const displaySuggestions = (
     clientAnalysis?.suggestions?.slice(0, 3) || []
   ).map(aiText)
-  const topInsights = clientAnalysis
-    ? []
-    : (insights?.insights?.slice(0, 3) || []).map(aiText)
-  const topActionItems = displayActionItems
+  const topInsights =
+    clientAnalysis || !isCoaching
+      ? []
+      : (insights?.insights?.slice(0, 3) || []).map(aiText)
+  const topActionItems = isCoaching ? displayActionItems : []
   const showPersonalized = !!clientAnalysis
 
   return (
@@ -128,10 +138,25 @@ export function SessionOverviewTab({
       {THRILL_FORM_ENABLED && (
         <ThrillFormResponses sessionId={sessionId} clientId={clientId} />
       )}
-      <CoachReflectionCard sessionId={sessionId} />
+      <CoachReflectionCard sessionId={sessionId} onlyIfSent={!isCoaching} />
+
+      {/* Not a coaching call: say why there is no evaluation. */}
+      {!isCoaching && (
+        <Card
+          className="border-app-border shadow-sm bg-app-surface"
+          data-testid="call-type-not-evaluated"
+        >
+          <CardContent className="py-3 px-5">
+            <p className="text-sm text-app-secondary">
+              {callTypeNoun(callType)} &mdash; not evaluated. Change the call
+              type to Coaching call to analyse it.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Per-Client Analysis Pending State */}
-      {isGroupSession && selectedClientId && !clientAnalysis && (
+      {isCoaching && isGroupSession && selectedClientId && !clientAnalysis && (
         <Card className="border-dashed border-2 border-app-border">
           <CardContent className="py-8 text-center">
             <div className="w-10 h-10 bg-app-surface rounded-lg flex items-center justify-center mx-auto mb-3">
@@ -198,6 +223,7 @@ export function SessionOverviewTab({
 
                 {/* Engagement & Sentiment for personalized view */}
                 {showPersonalized &&
+                  isCoaching &&
                   (clientAnalysis?.engagement_level ||
                     clientAnalysis?.sentiment_overall) && (
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -370,7 +396,7 @@ export function SessionOverviewTab({
       )}
 
       {/* Personalized Coaching Suggestions */}
-      {showPersonalized && displaySuggestions.length > 0 && (
+      {showPersonalized && isCoaching && displaySuggestions.length > 0 && (
         <Card className="border-app-border shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
@@ -402,7 +428,8 @@ export function SessionOverviewTab({
       )}
 
       {/* Next Session Focus */}
-      {insights?.recommendations?.next_session_focus &&
+      {isCoaching &&
+        insights?.recommendations?.next_session_focus &&
         insights.recommendations.next_session_focus.length > 0 && (
           <Card className="border-app-border shadow-sm bg-app-surface">
             <CardContent className="py-4 px-6">
@@ -476,7 +503,8 @@ export function SessionOverviewTab({
       )}
 
       {/* Empty State */}
-      {!insights &&
+      {isCoaching &&
+        !insights &&
         !clientAnalysis &&
         !(isGroupSession && selectedClientId) && (
           <Card className="border-dashed border-2 border-app-border">

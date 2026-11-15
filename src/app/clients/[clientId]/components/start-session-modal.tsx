@@ -14,6 +14,7 @@ import { MeetingFormSimple } from '@/components/meeting/meeting-form-simple'
 import { MeetingService } from '@/services/meeting-service'
 import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import { toast } from 'sonner'
+import type { CallType } from '@/config/call-types'
 
 interface StartSessionModalProps {
   isOpen: boolean
@@ -38,6 +39,7 @@ export function StartSessionModal({
     meetingUrl: string,
     selectedClientId?: string,
     sandbox?: SandboxAssignmentChoice | null,
+    callType?: CallType,
   ) => {
     setLoading(true)
     try {
@@ -49,6 +51,7 @@ export function StartSessionModal({
         client_id: finalClientId,
         sandbox_id: sandbox?.sandbox_id,
         sandbox_group_id: sandbox?.group_id,
+        call_type: callType,
       })
 
       if (response.id) {

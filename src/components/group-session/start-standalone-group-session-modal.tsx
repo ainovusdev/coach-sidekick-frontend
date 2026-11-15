@@ -25,6 +25,11 @@ import { Users, Search, Loader2 } from 'lucide-react'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { useCreateGroupSession } from '@/hooks/mutations/use-group-session-mutations'
 import { MeetingService } from '@/services/meeting-service'
+import {
+  CallTypeHint,
+  CallTypeSelect,
+} from '@/components/sessions/call-type-select'
+import { DEFAULT_CALL_TYPE, type CallType } from '@/config/call-types'
 
 interface StartStandaloneGroupSessionModalProps {
   open: boolean
@@ -47,6 +52,7 @@ export function StartStandaloneGroupSessionModal({
   const [meetingUrl, setMeetingUrl] = useState('')
   const [searchQuery, setSearchQuery] = useState('')
   const [sandbox, setSandbox] = useState<SandboxAssignmentChoice | null>(null)
+  const [callType, setCallType] = useState<CallType>(DEFAULT_CALL_TYPE)
 
   const createMutation = useCreateGroupSession()
 
@@ -83,6 +89,7 @@ export function StartStandaloneGroupSessionModal({
       client_ids: Array.from(selectedClientIds),
       title: title || undefined,
       meeting_url: meetingUrl || undefined,
+      call_type: callType,
       ...(sandbox
         ? {
             sandbox_id: sandbox.sandbox_id,
@@ -119,6 +126,7 @@ export function StartStandaloneGroupSessionModal({
     setMeetingUrl('')
     setSearchQuery('')
     setSandbox(null)
+    setCallType(DEFAULT_CALL_TYPE)
     onOpenChange(false)
   }
 
@@ -144,6 +152,16 @@ export function StartStandaloneGroupSessionModal({
               value={title}
               onChange={e => setTitle(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="standalone-call-type">Call type</Label>
+            <CallTypeSelect
+              id="standalone-call-type"
+              value={callType}
+              onChange={setCallType}
+            />
+            <CallTypeHint value={callType} />
           </div>
 
           <div>

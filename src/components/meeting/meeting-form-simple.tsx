@@ -13,12 +13,20 @@ import ClientModal from '@/components/clients/client-modal'
 import { Client } from '@/types/meeting'
 import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
+import { Label } from '@/components/ui/label'
+import {
+  CallTypeHint,
+  CallTypeSelect,
+} from '@/components/sessions/call-type-select'
+import { DEFAULT_CALL_TYPE, type CallType } from '@/config/call-types'
 
 interface MeetingFormSimpleProps {
   onSubmit: (
     meetingUrl: string,
     clientId?: string,
     sandbox?: SandboxAssignmentChoice | null,
+    /** Undefined unless the coach changed it (see CreateBotRequest.call_type). */
+    callType?: CallType,
   ) => void | Promise<void>
   loading: boolean
   preselectedClientId?: string
@@ -42,6 +50,8 @@ export function MeetingFormSimple({
   const [showClientSelector, setShowClientSelector] =
     useState(!preselectedClientId)
   const [isClientModalOpen, setIsClientModalOpen] = useState(false)
+  const [callType, setCallType] = useState<CallType>(DEFAULT_CALL_TYPE)
+  const [callTypeTouched, setCallTypeTouched] = useState(false)
   const queryClient = useQueryClient()
 
   const validateUrl = (url: string) => {
@@ -71,7 +81,12 @@ export function MeetingFormSimple({
         selectedClient?.id ||
         (showClientSelector ? undefined : preselectedClientId)
       // No client, no agreement: the choice belongs to whoever was picked.
-      await onSubmit(trimmedUrl, clientId, clientId ? sandbox : null)
+      await onSubmit(
+        trimmedUrl,
+        clientId,
+        clientId ? sandbox : null,
+        callTypeTouched ? callType : undefined,
+      )
     } catch (error) {
       console.error('Form submission error:', error)
     }
@@ -131,6 +146,22 @@ export function MeetingFormSimple({
             className="pl-10"
             disabled={loading}
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="start-call-type" className="text-xs text-ink-3">
+            Call type
+          </Label>
+          <CallTypeSelect
+            id="start-call-type"
+            value={callType}
+            onChange={v => {
+              setCallType(v)
+              setCallTypeTouched(true)
+            }}
+            disabled={loading}
+          />
+          <CallTypeHint value={callType} />
         </div>
 
         <Button

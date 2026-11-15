@@ -10,6 +10,7 @@ import { ClientMeetingLink } from '@/components/meeting/client-meeting-link'
 import { Bot } from '@/types/meeting'
 import { ArrowLeft, ExternalLink, Moon, Sun } from 'lucide-react'
 import { GroupSessionBadge } from '@/components/group-session/group-session-badge'
+import { CallTypeChip } from '@/components/sessions/call-type-select'
 
 interface MeetingHeaderProps {
   bot: Bot | null
@@ -18,6 +19,7 @@ interface MeetingHeaderProps {
   clientId?: string | null
   clientName?: string | null
   isGroupSession?: boolean
+  callType?: string | null
   onStopBot: () => void
   onNavigateBack: () => void
 }
@@ -29,6 +31,7 @@ export default function MeetingHeader({
   clientId,
   clientName,
   isGroupSession,
+  callType,
   onStopBot,
   onNavigateBack,
 }: MeetingHeaderProps) {
@@ -79,6 +82,12 @@ export default function MeetingHeader({
 
           {bot && (
             <div className="flex items-center gap-3">
+              {/* Call type: set it before stopping; the Thrill form goes out
+                  as the call ends, and only for coaching calls. */}
+              {sessionId && (
+                <CallTypeChip sessionId={sessionId} callType={callType} />
+              )}
+
               {/* Client Meeting Link - inline with actions */}
               {sessionId && (
                 <>

@@ -35,6 +35,11 @@ import {
 import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { ManualSessionService } from '@/services/manual-session-service'
+import {
+  CallTypeHint,
+  CallTypeSelect,
+} from '@/components/sessions/call-type-select'
+import { DEFAULT_CALL_TYPE, type CallType } from '@/config/call-types'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { toast } from 'sonner'
 
@@ -64,6 +69,7 @@ export function ManualSessionModal({
     notes: '',
   })
   const [sessionDate, setSessionDate] = useState<Date | undefined>(new Date())
+  const [callType, setCallType] = useState<CallType>(DEFAULT_CALL_TYPE)
 
   useEffect(() => {
     // Update form when preselectedClientId changes
@@ -91,6 +97,7 @@ export function ManualSessionModal({
           ? format(sessionDate, 'yyyy-MM-dd')
           : new Date().toISOString().split('T')[0],
         notes: formData.notes,
+        call_type: callType,
         sandbox_id: sandbox?.sandbox_id,
         sandbox_group_id: sandbox?.group_id,
       })
@@ -115,6 +122,7 @@ export function ManualSessionModal({
       notes: '',
     })
     setSessionDate(new Date())
+    setCallType(DEFAULT_CALL_TYPE)
     onClose()
   }
 
@@ -205,6 +213,22 @@ export function ManualSessionModal({
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          {/* Call type */}
+          <div className="space-y-2">
+            <Label
+              htmlFor="manual-call-type"
+              className="text-base font-medium text-foreground"
+            >
+              Call type
+            </Label>
+            <CallTypeSelect
+              id="manual-call-type"
+              value={callType}
+              onChange={setCallType}
+            />
+            <CallTypeHint value={callType} />
           </div>
 
           {/* Notes */}

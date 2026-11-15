@@ -5,6 +5,10 @@ import { Badge } from '@/components/ui/badge'
 import { SessionTitleEditor } from '@/components/sessions/session-title-editor'
 import { EditSessionModal } from '@/components/sessions/edit-session-modal'
 import {
+  CallTypeBadge,
+  CallTypeChip,
+} from '@/components/sessions/call-type-select'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -34,6 +38,7 @@ interface SessionHeaderProps {
     started_at?: string | null
     meeting_url: string | null
     session_type?: string
+    call_type?: string | null
     title?: string | null
     summary?: string | null
     coach_notes?: string | null
@@ -81,6 +86,13 @@ export default function SessionHeader({
   const defaultTitle = `Session - ${formatDate(sessionDate)}`
 
   const hasActions = onDelete || onSendEmail || onDownloadTranscript
+  // onDelete is only passed to the session's owner (not viewers), the same
+  // gate as "Edit Session".
+  const callType = onDelete ? (
+    <CallTypeChip sessionId={session.id} callType={session.call_type} />
+  ) : (
+    <CallTypeBadge callType={session.call_type} />
+  )
 
   return (
     <>
@@ -146,6 +158,8 @@ export default function SessionHeader({
                   </>
                 )}
               </div>
+
+              <div className="hidden md:flex">{callType}</div>
 
               {/* Status dot */}
               <span
@@ -223,6 +237,7 @@ export default function SessionHeader({
                 <span>Manual</span>
               </>
             )}
+            {callType}
           </div>
         </div>
       </div>

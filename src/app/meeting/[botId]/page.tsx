@@ -33,6 +33,7 @@ export default function MeetingPage() {
     clientId,
     clientName,
     isGroupSession,
+    callType,
     stopBot,
     isStoppingBot,
     isMeetingEnded,
@@ -59,7 +60,6 @@ export default function MeetingPage() {
       hasShownProcessingToast.current = true
       toast.success('Meeting ended. Processing session...')
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isMeetingEnded, isSessionCompleted])
 
   // Auto-redirect when session processing is complete (session:completed received)
@@ -149,6 +149,7 @@ export default function MeetingPage() {
           clientId={clientId}
           clientName={clientName}
           isGroupSession={isGroupSession}
+          callType={callType}
           onStopBot={handleStopBot}
           onNavigateBack={() => router.push('/')}
         />

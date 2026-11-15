@@ -40,9 +40,14 @@ export function useUpdateSession() {
       const previousDetail = queryClient.getQueryData(fullDetailsKey)
 
       // Optimistically update the detail cache (must match useSessionDetails query key)
+      // call_type is NOT applied optimistically: the session page starts the
+      // analysis when a session becomes a coaching call, and that request must
+      // not reach the server before the PATCH does (it would be refused).
+      // The refetch in onSettled brings the confirmed value.
+      const { call_type: _callType, ...optimistic } = data
       queryClient.setQueryData(fullDetailsKey, (old: any) => {
         if (!old) return old
-        return { ...old, session: { ...old.session, ...data } }
+        return { ...old, session: { ...old.session, ...optimistic } }
       })
 
       return { previousDetail, sessionId }
@@ -72,9 +77,17 @@ export function useUpdateSession() {
       })
     },
 
-    onSettled: () => {
+    onSettled: (_data, _err, variables) => {
       // Invalidate all session queries to ensure fresh data
       queryClient.invalidateQueries({ queryKey: queryKeys.sessions.all })
+      if (variables?.data.call_type !== undefined) {
+        // The call type decides whether a session is scored, counted in
+        // averages and gets forms, so everything derived from it refreshes:
+        // upcoming lists, Thrill/coach-reflection cards, trend, client stats.
+        queryClient.invalidateQueries({ queryKey: ['questionnaire'] })
+        queryClient.invalidateQueries({ queryKey: queryKeys.proficiency.all })
+        queryClient.invalidateQueries({ queryKey: queryKeys.clients.all })
+      }
     },
   })
 }

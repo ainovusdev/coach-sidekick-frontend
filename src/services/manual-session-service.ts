@@ -1,5 +1,6 @@
 import { ApiClient } from '@/lib/api-client'
 import { CoachingSession } from '@/types/meeting'
+import type { CallType } from '@/config/call-types'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -9,6 +10,7 @@ interface ManualSessionCreateDto {
   session_date?: string
   notes?: string
   session_metadata?: Record<string, any>
+  call_type?: CallType
   /** The sandbox agreement this session credits, when the coach chose one. */
   sandbox_id?: string
   sandbox_group_id?: string
