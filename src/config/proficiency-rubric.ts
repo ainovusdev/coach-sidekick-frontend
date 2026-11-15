@@ -13,6 +13,10 @@ import {
   MessageSquare,
   type LucideIcon,
 } from 'lucide-react'
+import type {
+  ProficiencyResult,
+  ProficiencyScores,
+} from '@/services/analysis-service'
 
 export type ProficiencyCriterionKey =
   | 'maximum_value'
@@ -48,6 +52,24 @@ export function formatProficiencyScore(score: number): string {
 // Foundational and the level agrees with the Proficient bar at 4.
 export function rungLevel(avgRung: number): number {
   return Math.min(7, Math.max(1, Math.floor(avgRung + 1e-9)))
+}
+
+// A stored Ladder payload is either scores or an {status: 'unavailable'} marker.
+export function isScoredProficiency(
+  p: ProficiencyResult | null | undefined,
+): p is ProficiencyScores {
+  return !!p && (p as ProficiencyScores).rubric_type !== undefined
+}
+
+// Mean of the 8 rungs. Not `proficiency.overall`, which averages the mapped
+// trainee/graduate scores; the level a coach reached is read off the rungs.
+export function averageRung(p: ProficiencyScores): number | undefined {
+  const rungs = PROFICIENCY_CRITERIA.map(c => p[c.key]?.rung).filter(
+    (r): r is number => typeof r === 'number',
+  )
+  return rungs.length > 0
+    ? rungs.reduce((sum, r) => sum + r, 0) / rungs.length
+    : undefined
 }
 
 // Truncated, not rounded, so "4.0" never sits next to "Foundational".

@@ -57,6 +57,8 @@ import { useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/query-client'
 import { useOptionalProcessing } from '@/contexts/processing-context'
 import { websocketService } from '@/services/websocket-service'
+import { metaOverallScore } from '@/services/analysis-service'
+import { averageRung, isScoredProficiency } from '@/config/proficiency-rubric'
 
 /**
  * Choose the wall-clock time that maps to t=0 of the recording.
@@ -926,18 +928,14 @@ export default function SessionDetailsPage({
                       <>
                         {/* Hero Card with Key Metrics */}
                         <SessionHeroCard
-                          overallScore={
-                            analysisData.coaching?.coaching_scores?.overall ||
-                            (() => {
-                              const vals = Object.values(
-                                analysisData.coaching?.coaching_scores || {},
-                              ).filter(
-                                (v): v is number => typeof v === 'number',
-                              )
-                              return vals.length > 0
-                                ? vals.reduce((a, b) => a + b, 0) / vals.length
-                                : 0
-                            })()
+                          overallScore={metaOverallScore(
+                            analysisData.coaching?.coaching_scores,
+                          )}
+                          ladderAverageRung={
+                            showProficiency &&
+                            isScoredProficiency(analysisData.proficiency)
+                              ? averageRung(analysisData.proficiency)
+                              : undefined
                           }
                           sentiment={analysisData.coaching?.sentiment}
                           wordCount={
@@ -975,10 +973,22 @@ export default function SessionDetailsPage({
                             sessionDate={
                               session.started_at || session.created_at
                             }
+                            proficiency={analysisData.proficiency}
+                            hideScores={showProficiency}
                           />
                         </div>
 
+                        {/* Proficiency Ladder: the primary score, gated by the
+                            `proficiency-rubric` PostHog feature flag. With the
+                            flag off the Meta-Performance view is unchanged. */}
+                        {showProficiency && analysisData.proficiency ? (
+                          <SessionProficiencyAnalysis
+                            proficiency={analysisData.proficiency}
+                          />
+                        ) : null}
+
                         <SessionAnalysisMerged
+                          hideScores={showProficiency}
                           insights={analysisData.insights || undefined}
                           coaching={
                             analysisData.coaching
@@ -990,14 +1000,6 @@ export default function SessionDetailsPage({
                               : undefined
                           }
                         />
-
-                        {/* Proficiency Ladder rubric — gated by the
-                            `proficiency-rubric` PostHog feature flag */}
-                        {showProficiency && analysisData.proficiency ? (
-                          <SessionProficiencyAnalysis
-                            proficiency={analysisData.proficiency}
-                          />
-                        ) : null}
                       </>
                     ) : (
                       <Card className="border-dashed border-2 border-app-border">
