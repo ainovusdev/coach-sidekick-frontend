@@ -3,6 +3,7 @@ import { useMeetingHistory } from '@/hooks/use-meeting-history'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import { useCoaches } from '@/hooks/queries/use-coaches'
 import type {
+  CallTypeFilter,
   SessionStatusFilter,
   SessionTypeFilter,
 } from '../components/sessions-filters'
@@ -19,6 +20,8 @@ export function useSessionsData(pageSize: number = 12) {
   const [sessionType, setSessionType] = useState<SessionTypeFilter>('all')
   const [selectedStatus, setSelectedStatus] =
     useState<SessionStatusFilter>('all')
+  const [selectedCallType, setSelectedCallType] =
+    useState<CallTypeFilter>('all')
 
   // Pass filters to useMeetingHistory for server-side filtering
   const {
@@ -31,6 +34,7 @@ export function useSessionsData(pageSize: number = 12) {
     client_id: selectedClientId,
     coach_id: selectedCoachId,
     status: selectedStatus === 'all' ? null : selectedStatus,
+    call_type: selectedCallType === 'all' ? null : selectedCallType,
     page: currentPage + 1, // API uses 1-based pagination
   })
 
@@ -84,11 +88,17 @@ export function useSessionsData(pageSize: number = 12) {
     setCurrentPage(0)
   }
 
+  const handleCallTypeFilter = (callType: CallTypeFilter) => {
+    setSelectedCallType(callType)
+    setCurrentPage(0)
+  }
+
   const handleClearFilters = () => {
     setSelectedClientId(null)
     setSelectedCoachId(null)
     setSessionType('all')
     setSelectedStatus('all')
+    setSelectedCallType('all')
     setCurrentPage(0)
     // TanStack Query auto-refetches when queryKey changes (filters are part of queryKey)
   }
@@ -109,7 +119,8 @@ export function useSessionsData(pageSize: number = 12) {
     selectedClientId !== null ||
     selectedCoachId !== null ||
     sessionType !== 'all' ||
-    selectedStatus !== 'all'
+    selectedStatus !== 'all' ||
+    selectedCallType !== 'all'
 
   return {
     currentPage,
@@ -127,6 +138,7 @@ export function useSessionsData(pageSize: number = 12) {
     selectedCoach,
     sessionType,
     selectedStatus,
+    selectedCallType,
     hasActiveFilters,
     hasNextPage,
     hasPrevPage,
@@ -137,6 +149,7 @@ export function useSessionsData(pageSize: number = 12) {
     handleCoachFilter,
     handleSessionTypeFilter,
     handleStatusFilter,
+    handleCallTypeFilter,
     handleClearFilters,
     refetch,
   }

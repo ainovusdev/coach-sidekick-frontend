@@ -16,7 +16,9 @@ import {
   Search,
   Check,
   Activity,
+  Phone,
 } from 'lucide-react'
+import { CALL_TYPE_OPTIONS, type CallType } from '@/config/call-types'
 
 interface Client {
   id: string
@@ -55,6 +57,17 @@ const STATUS_OPTIONS: {
 const getStatusOption = (value: SessionStatusFilter) =>
   STATUS_OPTIONS.find(o => o.value === value) ?? STATUS_OPTIONS[0]
 
+export type CallTypeFilter = 'all' | CallType
+
+const CALL_TYPE_FILTER_OPTIONS: { value: CallTypeFilter; label: string }[] = [
+  { value: 'all', label: 'All call types' },
+  ...CALL_TYPE_OPTIONS,
+]
+
+const getCallTypeOption = (value: CallTypeFilter) =>
+  CALL_TYPE_FILTER_OPTIONS.find(o => o.value === value) ??
+  CALL_TYPE_FILTER_OPTIONS[0]
+
 interface SessionsFiltersProps {
   clients: Pick<Client, 'id' | 'name'>[]
   coaches: Coach[]
@@ -66,11 +79,13 @@ interface SessionsFiltersProps {
   selectedCoach: Coach | undefined
   sessionType: SessionTypeFilter
   selectedStatus: SessionStatusFilter
+  selectedCallType: CallTypeFilter
   hasActiveFilters: boolean
   onClientFilter: (clientId: string | null) => void
   onCoachFilter: (coachId: string | null) => void
   onSessionTypeFilter: (type: SessionTypeFilter) => void
   onStatusFilter: (status: SessionStatusFilter) => void
+  onCallTypeFilter: (callType: CallTypeFilter) => void
   onClearFilters: () => void
 }
 
@@ -85,11 +100,13 @@ export default function SessionsFilters({
   selectedCoach,
   sessionType,
   selectedStatus,
+  selectedCallType,
   hasActiveFilters,
   onClientFilter,
   onCoachFilter,
   onSessionTypeFilter,
   onStatusFilter,
+  onCallTypeFilter,
   onClearFilters,
 }: SessionsFiltersProps) {
   const [clientSearch, setClientSearch] = useState('')
@@ -97,7 +114,9 @@ export default function SessionsFilters({
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false)
   const [coachPopoverOpen, setCoachPopoverOpen] = useState(false)
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false)
+  const [callTypePopoverOpen, setCallTypePopoverOpen] = useState(false)
   const activeStatus = getStatusOption(selectedStatus)
+  const activeCallType = getCallTypeOption(selectedCallType)
 
   // Filter clients based on search
   const filteredClients = clients.filter(client =>
@@ -304,7 +323,7 @@ export default function SessionsFilters({
 
         {/* Session Type Filter */}
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-ink-2 ">Type:</span>
+          <span className="text-sm font-medium text-ink-2 ">Format:</span>
           <div className="flex items-center border border-line rounded-md overflow-hidden">
             {(['all', '1:1', 'group'] as SessionTypeFilter[]).map(type => (
               <button
@@ -366,6 +385,51 @@ export default function SessionsFilters({
                   />
                   <span className="flex-1 text-left">{option.label}</span>
                   {selectedStatus === option.value && (
+                    <Check className="h-3 w-3 text-ink-3 " />
+                  )}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        {/* Call Type Filter */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Phone className="h-4 w-4 text-ink-3 " />
+            <span className="text-sm font-medium text-ink-2 ">Call type:</span>
+          </div>
+
+          <Popover
+            open={callTypePopoverOpen}
+            onOpenChange={setCallTypePopoverOpen}
+          >
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="min-w-[180px] justify-between text-xs"
+              >
+                {activeCallType.label}
+                <ChevronDown className="h-3 w-3 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[220px] p-1" align="start">
+              {CALL_TYPE_FILTER_OPTIONS.map(option => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onCallTypeFilter(option.value)
+                    setCallTypePopoverOpen(false)
+                  }}
+                  className={`w-full flex items-center gap-2 px-2 py-2 text-xs rounded-md hover:bg-surface-3 ${
+                    selectedCallType === option.value
+                      ? 'bg-surface-3 font-medium'
+                      : ''
+                  } ${option.value === 'all' ? 'mb-1' : ''}`}
+                >
+                  <span className="flex-1 text-left">{option.label}</span>
+                  {selectedCallType === option.value && (
                     <Check className="h-3 w-3 text-ink-3 " />
                   )}
                 </button>
