@@ -59,6 +59,7 @@ import { useOptionalProcessing } from '@/contexts/processing-context'
 import { websocketService } from '@/services/websocket-service'
 import { metaOverallScore } from '@/services/analysis-service'
 import { averageRung, isScoredProficiency } from '@/config/proficiency-rubric'
+import { isCoachingCall } from '@/config/call-types'
 
 /**
  * Choose the wall-clock time that maps to t=0 of the recording.
@@ -284,12 +285,14 @@ export default function SessionDetailsPage({
           sessionData.session.id,
         )
 
-        if (existingAnalysis) {
-          setAnalysisData(existingAnalysis)
-        }
+        // Re-runs when the call type changes, so always take the server's
+        // copy (it hides scores for non-coaching calls).
+        setAnalysisData(existingAnalysis ?? null)
 
         // Auto-trigger analysis if:
-        // 1. No analysis exists
+        // 1. It is a coaching call with no real analysis (none at all, or only
+        //    the wins/commitments placeholder, which has no analysis_version).
+        //    This is the one owner of "retyped to coaching -> analyse it".
         // 2. Session has transcripts
         // 3. Session is not still processing
         // 4. Not a viewer
@@ -299,7 +302,12 @@ export default function SessionDetailsPage({
         const isSessionComplete =
           sessionData.session.status === 'completed' ||
           sessionData.session.transcription_status === 'completed'
-        const needsAnalysis = !existingAnalysis
+        const hasRealAnalysis =
+          !!existingAnalysis &&
+          (!!existingAnalysis.insights ||
+            !!existingAnalysis.coaching?.analysis_version)
+        const needsAnalysis =
+          isCoachingCall(sessionData.session.call_type) && !hasRealAnalysis
 
         if (hasTranscripts && isSessionComplete && needsAnalysis && !isViewer) {
           setAutoTriggered(true)
@@ -316,7 +324,12 @@ export default function SessionDetailsPage({
     }
     loadAndAutoTriggerAnalysis()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sessionData?.session?.id, autoTriggered, isViewer])
+  }, [
+    sessionData?.session?.id,
+    sessionData?.session?.call_type,
+    autoTriggered,
+    isViewer,
+  ])
 
   // Trigger unified analysis with progress
   const triggerAnalysisWithProgress = async () => {
@@ -587,6 +600,11 @@ export default function SessionDetailsPage({
     (session.scheduled_for && !transcriptsExist && !isProcessing)
   const needsUpload =
     (isPendingUpload || !transcriptsExist) && !isProcessing && !isScheduled
+  // Only coaching calls are evaluated: other call types get no Analysis tab,
+  // no Regenerate and no scores (the server hides them too).
+  const isCoaching = isCoachingCall(session.call_type)
+  const currentTab =
+    !isCoaching && activeTab === 'analysis' ? 'overview' : activeTab
 
   return (
     <ProtectedRoute loadingMessage="Loading session details...">
@@ -651,6 +669,7 @@ export default function SessionDetailsPage({
                     scheduledFor={session.scheduled_for}
                     meetingUrl={session.meeting_url}
                     questionnaireSent={session.questionnaire_sent}
+                    callType={session.call_type}
                     onShowUploader={() => setShowUploaderForScheduled(true)}
                   />
                 )}
@@ -747,7 +766,7 @@ export default function SessionDetailsPage({
                 {/* Tabs with Quick Actions on the Right */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <Tabs
-                    value={activeTab}
+                    value={currentTab}
                     onValueChange={v => {
                       setActiveTab(v)
                       if (v === 'analysis') {
@@ -769,13 +788,15 @@ export default function SessionDetailsPage({
                         <LayoutGrid className="h-4 w-4 mr-2" />
                         Overview
                       </TabsTrigger>
-                      <TabsTrigger
-                        value="analysis"
-                        className="data-[state=active]:bg-surface-1 dark:data-[state=active]:bg-ink-2 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
-                      >
-                        <Brain className="h-4 w-4 mr-2" />
-                        Analysis
-                      </TabsTrigger>
+                      {isCoaching && (
+                        <TabsTrigger
+                          value="analysis"
+                          className="data-[state=active]:bg-surface-1 dark:data-[state=active]:bg-ink-2 data-[state=active]:text-app-primary data-[state=active]:shadow-sm rounded-md px-4 py-1.5 text-sm font-medium transition-all"
+                        >
+                          <Brain className="h-4 w-4 mr-2" />
+                          Analysis
+                        </TabsTrigger>
+                      )}
                       {!isViewer &&
                         (session.bot_id ||
                           session.video_url ||
@@ -814,24 +835,26 @@ export default function SessionDetailsPage({
                         Note
                       </Button>
 
-                      <Button
-                        onClick={triggerAnalysisWithProgress}
-                        disabled={analyzing || !transcriptsExist}
-                        size="sm"
-                        className="bg-app-primary hover:bg-app-primary/90 text-app-background text-sm"
-                      >
-                        {analyzing ? (
-                          <>
-                            <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          <>
-                            <Sparkles className="h-3.5 w-3.5 mr-1.5" />
-                            Regenerate
-                          </>
-                        )}
-                      </Button>
+                      {isCoaching && (
+                        <Button
+                          onClick={triggerAnalysisWithProgress}
+                          disabled={analyzing || !transcriptsExist}
+                          size="sm"
+                          className="bg-app-primary hover:bg-app-primary/90 text-app-background text-sm"
+                        >
+                          {analyzing ? (
+                            <>
+                              <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                              Analyzing...
+                            </>
+                          ) : (
+                            <>
+                              <Sparkles className="h-3.5 w-3.5 mr-1.5" />
+                              Regenerate
+                            </>
+                          )}
+                        </Button>
+                      )}
                     </div>
                   )}
                 </div>
@@ -851,7 +874,7 @@ export default function SessionDetailsPage({
                 )}
 
                 {/* Analyzing Progress Indicator */}
-                {analyzing && (
+                {analyzing && isCoaching && (
                   <Card className="border-app-border shadow-sm bg-app-surface">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-4">
@@ -880,7 +903,7 @@ export default function SessionDetailsPage({
                 {/* Tab Content */}
                 <div className="space-y-6">
                   {/* Overview Tab */}
-                  {activeTab === 'overview' && (
+                  {currentTab === 'overview' && (
                     <SessionOverviewTab
                       insights={analysisData?.insights || undefined}
                       commitments={commitmentsData?.commitments || []}
@@ -908,11 +931,13 @@ export default function SessionDetailsPage({
                           ? () => setShowCommitmentCreatePanel(true)
                           : undefined
                       }
+                      callType={session.call_type}
+                      sessionSummary={session.summary}
                     />
                   )}
 
                   {/* Analysis Tab (Merged Insights + Performance) */}
-                  {activeTab === 'analysis' &&
+                  {currentTab === 'analysis' &&
                     (loadingAnalysis ? (
                       <Card className="border-app-border shadow-sm">
                         <CardContent className="py-12 flex flex-col items-center justify-center">
@@ -1030,7 +1055,7 @@ export default function SessionDetailsPage({
                     ))}
 
                   {/* Recording Tab — video player + synced transcript + comments */}
-                  {activeTab === 'recording' && !isViewer && (
+                  {currentTab === 'recording' && !isViewer && (
                     <>
                       <VideoReviewPanel
                         sessionId={sessionData.session.id}

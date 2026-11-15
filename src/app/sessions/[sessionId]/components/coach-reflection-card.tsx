@@ -23,12 +23,20 @@ import type { CoachReflectionAnswer } from '@/types/questionnaire'
  * Only a session that credits a sandbox has one; every other session renders
  * nothing and, with the flag off, asks nothing.
  */
-export function CoachReflectionCard({ sessionId }: { sessionId: string }) {
+export function CoachReflectionCard({
+  sessionId,
+  onlyIfSent = false,
+}: {
+  sessionId: string
+  /** Non-coaching calls get no reflection prompt; show one only if it went out. */
+  onlyIfSent?: boolean
+}) {
   const enabled = useFeatureFlagEnabled('sandboxes')
   const { data, isLoading } = useCoachReflection(sessionId, enabled)
   const send = useSendCoachReflection()
 
   if (!enabled || isLoading || !data || !data.applicable) return null
+  if (onlyIfSent && data.status === 'not_sent') return null
 
   const completed = data.status === 'completed'
 

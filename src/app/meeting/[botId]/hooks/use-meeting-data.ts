@@ -41,6 +41,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     clientId,
     clientName,
     isGroupSession,
+    callType,
   } = useBotData(botId)
   const { stopBot, isLoading: isStoppingBot } = useBotActions()
   const [meetingState, setMeetingState] = useState<any>(null)
@@ -102,6 +103,7 @@ export function useMeetingData({ botId }: UseMeetingDataProps) {
     clientId,
     clientName,
     isGroupSession,
+    callType,
     stopBot,
     isStoppingBot,
     isMeetingEnded,

@@ -15,12 +15,15 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useUpdateSession } from '@/hooks/mutations/use-session-mutations'
 import { Loader2 } from 'lucide-react'
+import { CallTypeHint, CallTypeSelect } from './call-type-select'
+import { DEFAULT_CALL_TYPE, type CallType } from '@/config/call-types'
 
 interface Session {
   id: string
   title?: string | null
   summary?: string | null
   coach_notes?: string | null
+  call_type?: string | null
 }
 
 interface EditSessionModalProps {
@@ -37,9 +40,14 @@ export function EditSessionModal({
   onSuccess,
 }: EditSessionModalProps) {
   const updateSession = useUpdateSession()
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string
+    coach_notes: string
+    call_type: CallType
+  }>({
     title: '',
     coach_notes: '',
+    call_type: DEFAULT_CALL_TYPE,
   })
 
   // Populate form when modal opens with session data
@@ -48,6 +56,7 @@ export function EditSessionModal({
       setFormData({
         title: session.title || '',
         coach_notes: session.coach_notes || '',
+        call_type: (session.call_type as CallType) || DEFAULT_CALL_TYPE,
       })
     }
   }, [open, session])
@@ -63,6 +72,11 @@ export function EditSessionModal({
         data: {
           title: formData.title.trim() || undefined,
           coach_notes: formData.coach_notes.trim() || undefined,
+          // Only send a change: a retype stamps the server-side change time.
+          call_type:
+            formData.call_type !== (session.call_type || DEFAULT_CALL_TYPE)
+              ? formData.call_type
+              : undefined,
         },
       })
 
@@ -86,7 +100,7 @@ export function EditSessionModal({
         <DialogHeader>
           <DialogTitle>Edit Session</DialogTitle>
           <DialogDescription>
-            Update the session title and notes
+            Update the session title, call type and notes
           </DialogDescription>
         </DialogHeader>
 
@@ -103,6 +117,17 @@ export function EditSessionModal({
                 }
                 disabled={updateSession.isPending}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="call_type">Call type</Label>
+              <CallTypeSelect
+                id="call_type"
+                value={formData.call_type}
+                onChange={call_type => setFormData({ ...formData, call_type })}
+                disabled={updateSession.isPending}
+              />
+              <CallTypeHint value={formData.call_type} />
             </div>
 
             <div className="space-y-2">

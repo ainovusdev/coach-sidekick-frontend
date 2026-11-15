@@ -24,6 +24,7 @@ import { useQuestionnaireResponses } from '@/hooks/queries/use-questionnaire'
 import { toast } from 'sonner'
 import ClientSelector from '@/components/clients/client-selector'
 import type { Client } from '@/types/meeting'
+import { CallTypeChip } from '@/components/sessions/call-type-select'
 
 interface StartBotCardProps {
   sessionId: string
@@ -32,6 +33,7 @@ interface StartBotCardProps {
   scheduledFor?: string | null
   meetingUrl?: string | null
   questionnaireSent?: boolean
+  callType?: string | null
   onShowUploader: () => void
 }
 
@@ -42,6 +44,7 @@ export function StartBotCard({
   scheduledFor,
   meetingUrl: initialMeetingUrl,
   questionnaireSent,
+  callType,
   onShowUploader,
 }: StartBotCardProps) {
   const router = useRouter()
@@ -152,6 +155,12 @@ export function StartBotCard({
               )}
             </div>
           )}
+
+          {/* Set before the call: post-session forms go out the moment it ends. */}
+          <div className="flex items-center justify-center gap-2 text-sm text-app-secondary mb-3 mt-2">
+            <span>Call type</span>
+            <CallTypeChip sessionId={sessionId} callType={callType} />
+          </div>
 
           {scheduledFor && (
             <div className="flex items-center justify-center gap-1.5 text-sm text-app-secondary mb-6">

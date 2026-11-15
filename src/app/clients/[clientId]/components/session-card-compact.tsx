@@ -14,6 +14,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { AnalysisService } from '@/services/analysis-service'
+import { CallTypeBadge } from '@/components/sessions/call-type-select'
+import { isCoachingCall } from '@/config/call-types'
 import { toast } from 'sonner'
 
 interface SessionCardCompactProps {
@@ -134,6 +136,7 @@ export function SessionCardCompact({
                   <span className="text-ink-3 ">{clientName}</span>
                 </>
               )}
+              <CallTypeBadge callType={session.call_type} />
             </div>
             <div className="flex items-center gap-3 mt-1">
               <div className="flex items-center gap-1 text-xs text-ink-3 ">
@@ -156,22 +159,24 @@ export function SessionCardCompact({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {showReanalyze && session.status === 'completed' && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleReanalyze}
-              disabled={isReanalyzing}
-              className="h-7 px-2 text-xs text-ink-3 hover:text-ink-2 hover:bg-surface-3 "
-              title="Reanalyze session"
-            >
-              {isReanalyzing ? (
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <RefreshCw className="h-3.5 w-3.5" />
-              )}
-            </Button>
-          )}
+          {showReanalyze &&
+            session.status === 'completed' &&
+            isCoachingCall(session.call_type) && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={handleReanalyze}
+                disabled={isReanalyzing}
+                className="h-7 px-2 text-xs text-ink-3 hover:text-ink-2 hover:bg-surface-3 "
+                title="Reanalyze session"
+              >
+                {isReanalyzing ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+              </Button>
+            )}
           {getStatusBadge(session.status)}
         </div>
       </div>

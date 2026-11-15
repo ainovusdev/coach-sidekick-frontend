@@ -4,6 +4,7 @@ import { useDebounceCallback } from '@/hooks/use-debounce'
 import { MeetingService } from '@/services/meeting-service'
 import { useClientsSimple } from '@/hooks/queries/use-clients'
 import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
+import type { CallType } from '@/config/call-types'
 
 /**
  * Dashboard data hook - uses TanStack Query for clients with session stats
@@ -32,6 +33,7 @@ export function useDashboardData() {
     meetingUrl: string,
     clientId?: string,
     sandbox?: SandboxAssignmentChoice | null,
+    callType?: CallType,
   ) => {
     // Prevent multiple submissions
     if (loading) {
@@ -47,6 +49,7 @@ export function useDashboardData() {
         client_id: clientId,
         sandbox_id: sandbox?.sandbox_id,
         sandbox_group_id: sandbox?.group_id,
+        call_type: callType,
         recording_mode: 'raw_transcript',
         bot_name: 'Coach Sidekick Assistant',
       })

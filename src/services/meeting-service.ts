@@ -1,4 +1,5 @@
 import { ApiClient } from '@/lib/api-client'
+import type { CallType } from '@/config/call-types'
 
 const BACKEND_URL =
   process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1'
@@ -12,6 +13,11 @@ interface CreateBotRequest {
   /** The sandbox agreement this session credits, when the coach chose one. */
   sandbox_id?: string
   sandbox_group_id?: string
+  /**
+   * Sent only when the coach picked one: absent, an adopted scheduled
+   * (calendar) session keeps its own type; a new session is a coaching call.
+   */
+  call_type?: CallType
 }
 
 interface CreateBotResponse {

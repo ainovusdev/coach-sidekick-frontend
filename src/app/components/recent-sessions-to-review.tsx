@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, Users } from 'lucide-react'
 import { useSessions } from '@/hooks/queries/use-sessions'
 import { SharedSessionRow } from '@/components/sessions/shared-session-row'
+import { isCoachingCall } from '@/config/call-types'
 
 /**
  * Surfaces the 3 most recently shared-with-me sessions on the homepage so a
@@ -23,7 +24,10 @@ export function RecentSessionsToReview() {
   // Hide the section entirely on first load, errors, or empty results — the
   // homepage shouldn't carry real estate for a feature the user isn't using.
   if (isLoading || error) return null
-  const sessions = data?.sessions ?? []
+  // Peer review is of coaching calls; other call types aren't evaluated.
+  const sessions = (data?.sessions ?? []).filter(s =>
+    isCoachingCall(s.call_type),
+  )
   if (sessions.length === 0) return null
 
   return (

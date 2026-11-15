@@ -22,6 +22,8 @@ import {
   useRescheduleSession,
 } from '@/hooks/mutations/use-questionnaire-mutations'
 import { useUpdateSession } from '@/hooks/mutations/use-session-mutations'
+import { CallTypeChip } from '@/components/sessions/call-type-select'
+import { isCoachingCall } from '@/config/call-types'
 
 interface ClientUpcomingSessionsProps {
   clientId: string
@@ -122,7 +124,14 @@ export function ClientUpcomingSessions({
                 }
               />
 
-              {/* Q&A status + resend */}
+              {/* Call type: retype before the call (forms + scoring follow it) */}
+              <CallTypeChip
+                sessionId={session.id}
+                callType={session.call_type}
+                className="shrink-0"
+              />
+
+              {/* Q&A status + resend (no unsent prompt for non-coaching calls) */}
               <div className="flex items-center gap-1.5 shrink-0">
                 {session.questionnaire_completed ? (
                   <Badge
@@ -162,7 +171,7 @@ export function ClientUpcomingSessions({
                       )}
                     </button>
                   </>
-                ) : (
+                ) : isCoachingCall(session.call_type) ? (
                   <button
                     onClick={e => {
                       e.stopPropagation()
@@ -179,7 +188,7 @@ export function ClientUpcomingSessions({
                     <Send className="h-2.5 w-2.5" />
                     Send Q&A
                   </button>
-                )}
+                ) : null}
               </div>
 
               {/* Open */}

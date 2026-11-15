@@ -1,9 +1,12 @@
+import type { CallType } from '@/config/call-types'
+
 export interface ScheduleSessionRequest {
   client_id: string
   scheduled_for: string // ISO datetime
   title?: string
   meeting_url?: string
   send_questionnaire?: boolean
+  call_type?: CallType
   /**
    * Which sandbox agreement this session credits, when the coachee is in more
    * than one and the coach chose. Sent together or not at all; without them the
@@ -26,6 +29,7 @@ export interface ScheduledSession {
   questionnaire_completed: boolean
   created_at: string
   google_calendar_event_id?: string | null
+  call_type?: CallType
 }
 
 export type QuestionnaireKind =

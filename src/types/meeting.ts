@@ -1,3 +1,5 @@
+import type { CallType } from '@/config/call-types'
+
 export interface Bot {
   id: string
   status: string
@@ -57,6 +59,8 @@ export interface CoachingSession {
   meeting_url: string
   title?: string | null
   status: string
+  /** What kind of call; only 'coaching' is evaluated. Not session_type (capture mode). */
+  call_type?: CallType
   client_id?: string
   client?: Client
   created_at: string
