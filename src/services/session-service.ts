@@ -105,6 +105,7 @@ export class SessionService {
     client_id?: string
     coach_id?: string
     status?: string
+    call_type?: string
     scope?: 'mine' | 'shared' | 'all'
   }): Promise<SessionListResponse> {
     const queryParams = new URLSearchParams()
@@ -114,6 +115,7 @@ export class SessionService {
     if (params?.client_id) queryParams.append('client_id', params.client_id)
     if (params?.coach_id) queryParams.append('coach_id', params.coach_id)
     if (params?.status) queryParams.append('status', params.status)
+    if (params?.call_type) queryParams.append('call_type', params.call_type)
     if (params?.scope) queryParams.append('scope', params.scope)
 
     const response = await ApiClient.get(

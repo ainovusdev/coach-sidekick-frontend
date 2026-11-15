@@ -37,6 +37,7 @@ export default function SessionsHistoryPage() {
     selectedCoach,
     sessionType,
     selectedStatus,
+    selectedCallType,
     hasActiveFilters,
     hasNextPage,
     hasPrevPage,
@@ -46,6 +47,7 @@ export default function SessionsHistoryPage() {
     handleCoachFilter,
     handleSessionTypeFilter,
     handleStatusFilter,
+    handleCallTypeFilter,
     handleClearFilters,
     refetch,
   } = useSessionsData(pageSize)
@@ -115,11 +117,13 @@ export default function SessionsHistoryPage() {
             selectedCoach={selectedCoach}
             sessionType={sessionType}
             selectedStatus={selectedStatus}
+            selectedCallType={selectedCallType}
             hasActiveFilters={hasActiveFilters}
             onClientFilter={handleClientFilter}
             onCoachFilter={handleCoachFilter}
             onSessionTypeFilter={handleSessionTypeFilter}
             onStatusFilter={handleStatusFilter}
+            onCallTypeFilter={handleCallTypeFilter}
             onClearFilters={handleClearFilters}
           />
 

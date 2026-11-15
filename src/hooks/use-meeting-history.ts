@@ -45,6 +45,7 @@ interface MeetingHistoryFilters {
   client_id?: string | null
   coach_id?: string | null
   status?: string | null
+  call_type?: string | null
   page?: number
 }
 
@@ -74,6 +75,7 @@ export function useMeetingHistory(
     ...(filters?.client_id && { client_id: filters.client_id }),
     ...(filters?.coach_id && { coach_id: filters.coach_id }),
     ...(filters?.status && { status: filters.status }),
+    ...(filters?.call_type && { call_type: filters.call_type }),
   })
 
   // Transform sessions data to expected format
