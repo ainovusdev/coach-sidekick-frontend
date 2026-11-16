@@ -24,7 +24,6 @@ import { ProficiencyTrendCard } from '@/components/dashboard/proficiency-trend-c
 import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { SandboxGroupsSection } from '@/components/sandboxes/sandbox-groups-section'
 import { SandboxStrip } from '@/components/sandboxes/sandbox-strip'
-import type { SandboxAssignmentChoice } from '@/components/sandboxes/session-attribution'
 import {
   Eye,
   Plus,
@@ -121,13 +120,14 @@ export default function CoachDashboard() {
       }))
   }, [activeSessionsData])
 
+  // Forward every argument the form sends. This handler used to list only
+  // url/client/sandbox, which dropped the call type the coach picked, so
+  // every dashboard-started bot was saved as a coaching call.
   const handleCreateBot = async (
-    meetingUrl: string,
-    clientId?: string,
-    sandbox?: SandboxAssignmentChoice | null,
+    ...args: Parameters<typeof debouncedCreateBot>
   ) => {
     try {
-      const botId = await debouncedCreateBot(meetingUrl, clientId, sandbox)
+      const botId = await debouncedCreateBot(...args)
       if (botId) {
         router.push(`/meeting/${botId}`)
       }
