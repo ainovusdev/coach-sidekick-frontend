@@ -18,6 +18,8 @@ import { Client } from '@/types/meeting'
 import ClientModal from '@/components/clients/client-modal'
 import { ClientInvitationModal } from '@/components/clients/client-invitation-modal'
 import { ConfirmationDialog } from '@/components/ui/confirmation-dialog'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useClientArchive } from '@/hooks/mutations/use-client-archive-mutations'
 import { toast } from 'sonner'
 import { useClientsData, SortBy } from './hooks/use-clients-data'
 import ClientsFilters from './components/clients-filters'
@@ -70,8 +72,11 @@ export default function ClientsPage() {
     handleClearFilters,
     sortBy,
     setSortBy,
+    archiveView,
+    setArchiveView,
     refetch,
   } = useClientsData()
+  const { archive, unarchive } = useClientArchive()
 
   // Update client mutation
   const updateMutation = useMutation({
@@ -245,6 +250,23 @@ export default function ClientsPage() {
                 )}
               </div>
 
+              {/* Active / Archived */}
+              <Tabs
+                value={archiveView}
+                onValueChange={value =>
+                  setArchiveView(value as 'active' | 'archived')
+                }
+              >
+                <TabsList className="h-11 bg-surface-1 border border-line p-1">
+                  <TabsTrigger value="active" className="px-4">
+                    Active
+                  </TabsTrigger>
+                  <TabsTrigger value="archived" className="px-4">
+                    Archived
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
               {/* Sort */}
               <Select
                 value={sortBy}
@@ -289,6 +311,13 @@ export default function ClientsPage() {
               onInviteClient={openInviteModal}
               onCancelInvitation={openCancelInvitationDialog}
               onDeleteClient={openDeleteDialog}
+              onArchiveClient={client =>
+                archive.mutate({ clientId: client.id, name: client.name })
+              }
+              onUnarchiveClient={client =>
+                unarchive.mutate({ clientId: client.id, name: client.name })
+              }
+              showingArchived={archiveView === 'archived'}
               onCreateClient={() => setIsCreateModalOpen(true)}
             />
           </div>
@@ -355,7 +384,7 @@ export default function ClientsPage() {
             }
           }}
           title="Delete Client"
-          description={`Permanently delete ${selectedClient?.name}? This will also delete all sessions, transcripts, insights, sprints, commitments, tasks, and portal access for this client. This cannot be undone.`}
+          description={`Permanently delete ${selectedClient?.name}? This will also delete all sessions, transcripts, insights, sprints, commitments, tasks, and portal access for this client. This cannot be undone. To keep their history, archive the client instead.`}
           confirmText={isDeleting ? 'Deleting...' : 'Delete Client'}
           variant="destructive"
           onConfirm={handleDeleteClient}

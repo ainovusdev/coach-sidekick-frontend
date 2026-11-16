@@ -1,6 +1,7 @@
 import { useQuery, UseQueryOptions } from '@tanstack/react-query'
 import {
   ClientService,
+  ClientArchiveView,
   ClientListResponse,
   SimpleClientListResponse,
 } from '@/services/client-service'
@@ -48,10 +49,16 @@ export function useClientsSimple(
  */
 export function useClients(
   options?: Omit<UseQueryOptions<ClientListResponse>, 'queryKey' | 'queryFn'>,
+  view: ClientArchiveView = 'active',
 ) {
   return useQuery({
-    queryKey: queryKeys.clients.list(),
-    queryFn: () => ClientService.listClients(),
+    // The default (active) view keeps the original key so existing cache
+    // reads/invalidations are unchanged.
+    queryKey:
+      view === 'active'
+        ? queryKeys.clients.list()
+        : queryKeys.clients.list({ archived: view }),
+    queryFn: () => ClientService.listClients(view),
     staleTime: 5 * 60 * 1000, // 5 minutes
     ...options,
   })

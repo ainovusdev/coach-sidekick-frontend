@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useClients } from '@/hooks/queries/use-clients'
 import { useCoaches } from '@/hooks/queries/use-coaches'
 import { Client } from '@/types/meeting'
+import type { ClientArchiveView } from '@/services/client-service'
 
 export type StatusFilter = 'all' | 'active' | 'invited' | 'not_invited'
 export type SortBy = 'name' | 'recent' | 'sessions'
@@ -16,6 +17,9 @@ export function useClientsData() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all')
   const [selectedCoachId, setSelectedCoachId] = useState<string | null>(null)
   const [sortBy, setSortBy] = useState<SortBy>('recent')
+  // Active vs archived is a server-side slice; the filters below run within it.
+  const [archiveView, setArchiveView] =
+    useState<Extract<ClientArchiveView, 'active' | 'archived'>>('active')
 
   // Data fetching via TanStack Query
   const {
@@ -23,7 +27,7 @@ export function useClientsData() {
     isLoading,
     error: queryError,
     refetch,
-  } = useClients()
+  } = useClients(undefined, archiveView)
   const { data: coachesData, isLoading: loadingCoaches } = useCoaches()
 
   const clients = clientsData?.clients ?? []
@@ -181,6 +185,10 @@ export function useClientsData() {
     // Sort
     sortBy,
     setSortBy,
+
+    // Active / archived view
+    archiveView,
+    setArchiveView,
 
     // Actions
     refetch,

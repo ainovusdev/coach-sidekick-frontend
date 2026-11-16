@@ -20,6 +20,9 @@ interface ClientsListProps {
   onInviteClient: (client: Client) => void
   onCancelInvitation?: (client: Client) => void
   onDeleteClient: (client: Client) => void
+  onArchiveClient?: (client: Client) => void
+  onUnarchiveClient?: (client: Client) => void
+  showingArchived?: boolean
   onCreateClient: () => void
 }
 
@@ -36,6 +39,9 @@ export default function ClientsList({
   onInviteClient,
   onCancelInvitation,
   onDeleteClient,
+  onArchiveClient,
+  onUnarchiveClient,
+  showingArchived = false,
   onCreateClient,
 }: ClientsListProps) {
   const sandboxMarkers = useSandboxClientMarkers(
@@ -96,14 +102,20 @@ export default function ClientsList({
             <Users className="h-8 w-8 text-ink-4" />
           </div>
           <h3 className="text-lg font-semibold text-ink mb-2">
-            {searchTerm ? 'No clients found' : 'No clients yet'}
+            {showingArchived
+              ? 'No archived clients'
+              : searchTerm
+                ? 'No clients found'
+                : 'No clients yet'}
           </h3>
           <p className="text-ink-3 mb-6">
-            {searchTerm
-              ? 'Try adjusting your search or filters'
-              : 'Add your first client to start tracking coaching relationships'}
+            {showingArchived
+              ? 'Clients you archive show up here. Their history stays intact.'
+              : searchTerm
+                ? 'Try adjusting your search or filters'
+                : 'Add your first client to start tracking coaching relationships'}
           </p>
-          {!isViewer && !searchTerm && (
+          {!isViewer && !searchTerm && !showingArchived && (
             <Button onClick={onCreateClient}>
               <Plus className="h-4 w-4 mr-2" />
               Add Client
@@ -136,6 +148,8 @@ export default function ClientsList({
                 onInvite={() => onInviteClient(client)}
                 onCancelInvite={() => onCancelInvitation?.(client)}
                 onDelete={() => onDeleteClient(client)}
+                onArchive={() => onArchiveClient?.(client)}
+                onUnarchive={() => onUnarchiveClient?.(client)}
               />
             ))}
           </div>
@@ -166,6 +180,8 @@ export default function ClientsList({
                 onInvite={() => onInviteClient(client)}
                 onCancelInvite={() => onCancelInvitation?.(client)}
                 onDelete={() => onDeleteClient(client)}
+                onArchive={() => onArchiveClient?.(client)}
+                onUnarchive={() => onUnarchiveClient?.(client)}
               />
             ))}
           </div>
