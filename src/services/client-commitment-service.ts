@@ -27,6 +27,19 @@ interface ClientCommitmentUpdate {
 
 export class ClientCommitmentService {
   /**
+   * AI-extract commitments from one of my past sessions. They come back as
+   * drafts on the active profile; the coach can review them too.
+   */
+  static async extractFromSession(sessionId: string): Promise<Commitment[]> {
+    const response = await ApiClient.post(
+      `${BACKEND_URL}/client-portal/sessions/${sessionId}/extract-commitments`,
+      {},
+      120000, // a full-transcript LLM call
+    )
+    return response
+  }
+
+  /**
    * Update an existing commitment
    */
   static async updateCommitment(

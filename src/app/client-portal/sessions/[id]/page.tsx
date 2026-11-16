@@ -19,6 +19,7 @@ import {
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { useClientSessionDetail } from '@/hooks/queries/use-client-sessions'
 import { useCommitments } from '@/hooks/queries/use-commitments'
+import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { ClientSessionOverview } from './components/client-session-overview'
 import { ClientSessionAnalysis } from './components/client-session-analysis'
 import { VideoPlayer } from '@/components/sessions/video-player'
@@ -34,11 +35,17 @@ export default function ClientSessionDetailPage() {
     refetch,
   } = useClientSessionDetail(sessionId)
 
+  // AI drafts are reviewed here by the coachee as well as the coach.
+  const extractEnabled = useFeatureFlagEnabled('client-commitment-extract')
   const { data: commitmentData, refetch: refetchCommitments } = useCommitments(
-    { session_id: sessionId },
+    extractEnabled
+      ? { session_id: sessionId, include_drafts: true }
+      : { session_id: sessionId },
     { enabled: !!sessionId },
   )
-  const structuredCommitments = commitmentData?.commitments ?? []
+  const allCommitments = commitmentData?.commitments ?? []
+  const structuredCommitments = allCommitments.filter(c => c.status !== 'draft')
+  const draftCommitments = allCommitments.filter(c => c.status === 'draft')
 
   if (isLoading) {
     return (
@@ -219,6 +226,8 @@ export default function ClientSessionDetailPage() {
             sessionData={sessionData}
             sessionId={sessionId}
             commitments={structuredCommitments}
+            draftCommitments={draftCommitments}
+            canFindCommitments={extractEnabled}
             onRefetchCommitments={() => refetchCommitments()}
           />
         </TabsContent>
