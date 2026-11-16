@@ -44,10 +44,17 @@ import {
   Video,
   Link2,
   StickyNote,
+  Loader2,
 } from 'lucide-react'
 import { NotesList } from '@/components/session-notes/notes-list'
 import { formatDate, formatDateOnly } from '@/lib/date-utils'
 import { CommitmentService } from '@/services/commitment-service'
+import { DraftCommitmentCard } from '@/components/commitments/commitment-panel'
+import { useClientExtractCommitments } from '@/hooks/mutations/use-client-commitment-mutations'
+import {
+  useConfirmCommitment,
+  useDiscardCommitment,
+} from '@/hooks/mutations/use-commitment-mutations'
 import { commitmentTypeLabels } from '@/types/commitment'
 import type { Commitment } from '@/types/commitment'
 import { useAuth } from '@/contexts/auth-context'
@@ -63,8 +70,15 @@ interface ClientSessionOverviewProps {
   sessionData: ClientSessionDetailData
   sessionId: string
   commitments: any[]
+  /** AI drafts on this session, reviewed by the coachee and the coach alike. */
+  draftCommitments?: any[]
+  /** Show "Find commitments" (flag `client-commitment-extract`). */
+  canFindCommitments?: boolean
   onRefetchCommitments: () => void
 }
+
+// Sessions still running are handled on the live meeting page.
+const UNFINISHED_STATUSES = new Set(['scheduled', 'active', 'in_progress'])
 
 // ---- Resource category helpers ----
 const CATEGORY_ICONS: Record<string, any> = {
@@ -387,8 +401,13 @@ export function ClientSessionOverview({
   sessionData,
   sessionId,
   commitments,
+  draftCommitments = [],
+  canFindCommitments = false,
   onRefetchCommitments,
 }: ClientSessionOverviewProps) {
+  const extract = useClientExtractCommitments()
+  const confirmDraft = useConfirmCommitment()
+  const discardDraft = useDiscardCommitment()
   const [expandedSections, setExpandedSections] = useState<
     Record<string, boolean>
   >({
@@ -401,6 +420,49 @@ export function ClientSessionOverview({
   const hasMaterials = sessionData.materials && sessionData.materials.length > 0
   const insights = sessionData.insights
   const wins = insights?.wins ?? []
+
+  const canExtract =
+    canFindCommitments &&
+    !!hasTranscript &&
+    !UNFINISHED_STATUSES.has(session.status)
+  const showCommitmentsCard =
+    commitments.length > 0 ||
+    draftCommitments.length > 0 ||
+    (session.action_items?.length ?? 0) > 0 ||
+    canExtract
+
+  const handleAcceptDraft = async (
+    id: string,
+    edits: { title: string; target_date?: string },
+  ) => {
+    const draft = draftCommitments.find(d => d.id === id)
+    const titleChanged = draft && edits.title !== draft.title
+    const dateChanged =
+      draft && (edits.target_date ?? null) !== (draft.target_date ?? null)
+    try {
+      if (titleChanged || dateChanged) {
+        await CommitmentService.updateCommitment(id, {
+          title: edits.title,
+          target_date: edits.target_date,
+        })
+      }
+      await confirmDraft.mutateAsync(id)
+    } catch {
+      // toasted by ApiClient / the mutation
+    } finally {
+      onRefetchCommitments()
+    }
+  }
+
+  const handleDismissDraft = async (id: string) => {
+    try {
+      await discardDraft.mutateAsync(id)
+    } catch {
+      // toasted by the mutation
+    } finally {
+      onRefetchCommitments()
+    }
+  }
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -487,20 +549,43 @@ export function ClientSessionOverview({
       {/* Commitments & Wins — 2 column on lg */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Commitments */}
-        {(commitments.length > 0 ||
-          (session.action_items && session.action_items.length > 0)) && (
+        {showCommitmentsCard && (
           <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-line ">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <CheckCircle2 className="h-4 w-4 text-ink-3 " />
+                  <CheckCircle2 className="h-4 w-4 text-ink-3 shrink-0" />
                   <h2 className="font-semibold text-ink ">Commitments</h2>
                 </div>
-                <Badge variant="secondary" className="bg-surface-3 text-ink-3 ">
-                  {commitments.length > 0
-                    ? `${completedCommitments}/${totalCommitments} done`
-                    : `${session.action_items?.length || 0} items`}
-                </Badge>
+                <div className="flex items-center gap-2 shrink-0">
+                  {canExtract && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-line text-ink-2"
+                      disabled={extract.isPending}
+                      onClick={() => extract.mutate(sessionId)}
+                    >
+                      {extract.isPending ? (
+                        <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                      ) : (
+                        <Sparkles className="h-3 w-3 mr-1" />
+                      )}
+                      {extract.isPending ? 'Looking…' : 'Find commitments'}
+                    </Button>
+                  )}
+                  {(commitments.length > 0 ||
+                    (session.action_items?.length ?? 0) > 0) && (
+                    <Badge
+                      variant="secondary"
+                      className="bg-surface-3 text-ink-3 "
+                    >
+                      {commitments.length > 0
+                        ? `${completedCommitments}/${totalCommitments} done`
+                        : `${session.action_items?.length || 0} items`}
+                    </Badge>
+                  )}
+                </div>
               </div>
               {commitments.length > 0 && (
                 <div className="mt-3 flex items-center gap-3">
@@ -511,6 +596,33 @@ export function ClientSessionOverview({
                 </div>
               )}
             </div>
+            {draftCommitments.length > 0 && (
+              <div className="p-4 pb-0 space-y-2">
+                <p className="text-xs font-medium text-ink-3 uppercase tracking-wide">
+                  Suggested ({draftCommitments.length})
+                </p>
+                {draftCommitments.map((draft: any) => (
+                  <DraftCommitmentCard
+                    key={draft.id}
+                    commitment={draft}
+                    targets={[]}
+                    onConfirm={handleAcceptDraft}
+                    onReject={handleDismissDraft}
+                    accentChipSelected=""
+                    accentChipHover=""
+                  />
+                ))}
+              </div>
+            )}
+            {commitments.length === 0 &&
+              draftCommitments.length === 0 &&
+              !(session.action_items?.length ?? 0) && (
+                <p className="px-5 py-4 text-sm text-ink-3">
+                  {extract.isPending
+                    ? 'Looking through the transcript. This can take up to a minute.'
+                    : 'No commitments yet. Find the ones you made in this session.'}
+                </p>
+              )}
             {commitments.length > 0 ? (
               <div className="p-4 space-y-2">
                 {commitments.map((commitment: any) => (

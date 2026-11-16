@@ -14,6 +14,33 @@ import {
   type RelateVariables,
 } from '@/hooks/mutations/use-commitment-mutations'
 
+/** Find commitments in one of my past sessions; they land as drafts. */
+export function useClientExtractCommitments() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      ClientCommitmentService.extractFromSession(sessionId),
+    onSuccess: found => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.commitments.all })
+      if (found.length === 0) {
+        toast.info('No new commitments found in this session')
+      } else {
+        toast.success(
+          `Found ${found.length} commitment${found.length === 1 ? '' : 's'}`,
+          { description: 'Review them under Suggested' },
+        )
+      }
+    },
+    onError: (err: any) => {
+      // HTTP errors (including the 429 cooldown) are toasted by ApiClient.
+      if (err?.status) return
+      toast.error("Couldn't look for commitments", {
+        description: err instanceof Error ? err.message : 'Please try again',
+      })
+    },
+  })
+}
+
 /** Portal twin of `useRelateCommitment` — same cache shape, portal route. */
 export function useClientRelateCommitment() {
   const queryClient = useQueryClient()

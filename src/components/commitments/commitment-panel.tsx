@@ -170,7 +170,7 @@ type TabType = 'session' | 'active' | 'past'
 
 // ─── Draft Commitment Card (inline editing) ───
 
-function DraftCommitmentCard({
+export function DraftCommitmentCard({
   commitment,
   targets,
   onConfirm,
