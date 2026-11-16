@@ -51,7 +51,7 @@ export function useDashboardData() {
         sandbox_group_id: sandbox?.group_id,
         call_type: callType,
         recording_mode: 'raw_transcript',
-        bot_name: 'Coach Sidekick Assistant',
+        bot_name: 'Sidekick',
       })
 
       if (!response.id) {
