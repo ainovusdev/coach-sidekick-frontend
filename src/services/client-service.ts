@@ -69,6 +69,7 @@ interface BackendClient {
   access_request_name?: string
   invitation_status?: 'not_invited' | 'invited' | 'accepted'
   invitation_sent_at?: string
+  archived_at?: string | null
   client_session_stats?: Array<{
     client_id: string
     total_sessions: number
@@ -134,7 +135,16 @@ function transformClient(backendClient: BackendClient): Client {
     client_session_stats: backendClient.client_session_stats,
     invitation_status: backendClient.invitation_status,
     invitation_sent_at: backendClient.invitation_sent_at,
+    archived_at: backendClient.archived_at ?? null,
   }
+}
+
+/** Which slice of the coach's client list to fetch. */
+export type ClientArchiveView = 'active' | 'archived' | 'all'
+
+interface ArchiveResult {
+  id: string
+  archived_at: string | null
 }
 
 interface ClientSignupInvitation {
@@ -175,14 +185,16 @@ export class ClientService {
    * Use only on dedicated clients page where all data is needed.
    * Paginates through all pages to fetch every client.
    */
-  static async listClients(): Promise<ClientListResponse> {
+  static async listClients(
+    view: ClientArchiveView = 'active',
+  ): Promise<ClientListResponse> {
     const allClients: Client[] = []
     let page = 1
     let total = 0
 
     while (true) {
       const response: BackendClientListResponse = await ApiClient.get(
-        `${BACKEND_URL}/clients/?per_page=100&page=${page}`,
+        `${BACKEND_URL}/clients/?per_page=100&page=${page}&archived=${view}`,
       )
       total = response.total
       allClients.push(...response.clients.map(transformClient))
@@ -239,6 +251,21 @@ export class ClientService {
       data,
     )
     return transformClient(response)
+  }
+
+  /** Hide a client from the coach's lists. Nothing is deleted. */
+  static async archiveClient(clientId: string): Promise<ArchiveResult> {
+    return await ApiClient.post(
+      `${BACKEND_URL}/clients/${clientId}/archive`,
+      {},
+    )
+  }
+
+  static async unarchiveClient(clientId: string): Promise<ArchiveResult> {
+    return await ApiClient.post(
+      `${BACKEND_URL}/clients/${clientId}/unarchive`,
+      {},
+    )
   }
 
   static async deleteClient(clientId: string): Promise<void> {

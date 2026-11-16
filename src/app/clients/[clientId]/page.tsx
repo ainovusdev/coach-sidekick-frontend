@@ -41,7 +41,9 @@ import {
   BookOpen,
   XCircle,
   Eye,
+  Archive,
 } from 'lucide-react'
+import { useClientArchive } from '@/hooks/mutations/use-client-archive-mutations'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,6 +79,7 @@ export default function ClientDetailPage({
     userId!,
   )
   const modalState = useClientModals()
+  const { archive, unarchive } = useClientArchive()
   const queryClient = useQueryClient()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
@@ -383,23 +386,80 @@ export default function ClientDetailPage({
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Clients
               </Button>
-              {client &&
-                (hasClientAccess(client.id) || client.coach_id === userId) && (
+              <div className="flex items-center gap-2">
+                {client &&
+                  (hasClientAccess(client.id) ||
+                    client.coach_id === userId) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        sessionStorage.setItem('view_as_client_id', client.id)
+                        sessionStorage.setItem(
+                          'view_as_client_name',
+                          client.name,
+                        )
+                        router.push('/client-portal/dashboard')
+                      }}
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Client Portal
+                    </Button>
+                  )}
+                {/* Archive: owner only; unarchive lives on the banner below */}
+                {client.coach_id === userId &&
+                  !isViewer &&
+                  !client.archived_at && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={archive.isPending}
+                      title="Archive client"
+                      aria-label="Archive client"
+                      onClick={() =>
+                        archive.mutate({
+                          clientId: client.id,
+                          name: client.name,
+                        })
+                      }
+                    >
+                      <Archive className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Archive</span>
+                    </Button>
+                  )}
+              </div>
+            </div>
+          </div>
+
+          {/* Archived notice: the client is hidden from lists, not deleted */}
+          {client.archived_at && (
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border border-line bg-surface-2 px-4 py-3">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <Archive className="h-4 w-4 text-ink-3 mt-0.5 flex-shrink-0" />
+                  <p className="text-sm text-ink-2">
+                    This client is archived, so they are hidden from your client
+                    list. Their sessions and history are kept.
+                  </p>
+                </div>
+                {client.coach_id === userId && !isViewer && (
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      sessionStorage.setItem('view_as_client_id', client.id)
-                      sessionStorage.setItem('view_as_client_name', client.name)
-                      router.push('/client-portal/dashboard')
-                    }}
+                    disabled={unarchive.isPending}
+                    onClick={() =>
+                      unarchive.mutate({
+                        clientId: client.id,
+                        name: client.name,
+                      })
+                    }
                   >
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Client Portal
+                    Unarchive
                   </Button>
                 )}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Conditional Rendering: Empty State or Full Interface */}
           {hasNoSessions && !isViewer && !deepLinked ? (

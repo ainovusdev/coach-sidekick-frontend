@@ -35,6 +35,7 @@ export interface Client {
   user_id?: string
   invitation_status?: 'not_invited' | 'invited' | 'accepted'
   invitation_sent_at?: string
+  archived_at?: string | null // set = hidden from the coach's client lists
   is_my_client?: boolean
   coach_name?: string
   client_session_stats?: ClientSessionStats[]

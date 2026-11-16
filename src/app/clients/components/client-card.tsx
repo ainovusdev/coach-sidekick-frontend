@@ -18,6 +18,8 @@ import {
   MoreHorizontal,
   XCircle,
   Trash2,
+  Archive,
+  ArchiveRestore,
 } from 'lucide-react'
 import { formatDate } from '@/lib/date-utils'
 import {
@@ -38,6 +40,8 @@ interface ClientCardProps {
   onInvite: () => void
   onCancelInvite?: () => void
   onDelete: () => void
+  onArchive?: () => void
+  onUnarchive?: () => void
 }
 
 export default function ClientCard({
@@ -50,7 +54,12 @@ export default function ClientCard({
   onInvite,
   onCancelInvite,
   onDelete,
+  onArchive,
+  onUnarchive,
 }: ClientCardProps) {
+  const isArchived = Boolean(client.archived_at)
+  // Only the owning coach can archive (same rule as delete on the backend).
+  const canArchive = !isViewer && !isAssigned
   const stats = client.client_session_stats?.[0]
 
   // Calculate if client is active (session in last 7 days)
@@ -141,6 +150,12 @@ export default function ClientCard({
           <div className="flex items-center gap-1 flex-shrink-0">
             {/* Status Badges */}
             <div className="flex items-center gap-1.5 mr-1">
+              {isArchived && (
+                <span className="px-2 py-0.5 text-xs font-medium bg-surface-3 text-ink-3 rounded-full flex items-center gap-1">
+                  <Archive className="h-3 w-3" />
+                  Archived
+                </span>
+              )}
               {client.invitation_status === 'invited' && (
                 <span className="px-2 py-0.5 text-xs font-medium bg-indigo-bg text-indigo rounded-full">
                   Invited
@@ -210,6 +225,28 @@ export default function ClientCard({
                         </DropdownMenuItem>
                       )}
                     <DropdownMenuSeparator />
+                    {canArchive && !isArchived && onArchive && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation()
+                          onArchive()
+                        }}
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        Archive
+                      </DropdownMenuItem>
+                    )}
+                    {canArchive && isArchived && onUnarchive && (
+                      <DropdownMenuItem
+                        onClick={e => {
+                          e.stopPropagation()
+                          onUnarchive()
+                        }}
+                      >
+                        <ArchiveRestore className="h-4 w-4 mr-2" />
+                        Unarchive
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       onClick={e => {
                         e.stopPropagation()
