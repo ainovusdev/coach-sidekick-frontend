@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 import Navigation from '@/components/layout/navigation'
 import { ClientNavigation } from '@/components/client-portal/client-navigation'
 import { SandboxHeader } from '@/components/sandboxes/chrome/sandbox-header'
@@ -32,9 +32,15 @@ export function SandboxChrome({ children }: { children: ReactNode }) {
       className="min-h-screen bg-surface-2"
       data-testid="sandbox-view"
       data-audience={chrome}
+      // The coach header is two rows; the portal and client headers are one.
+      style={
+        chrome === 'ours'
+          ? undefined
+          : ({ '--app-header-h': '4rem' } as CSSProperties)
+      }
     >
       {chrome === 'ours' ? (
-        <Navigation compact />
+        <Navigation />
       ) : chrome === 'coachee' ? (
         <ClientNavigation />
       ) : (

@@ -86,7 +86,6 @@ export function ProfileSection() {
     if (isAuthenticated && user) {
       fetchProfile()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, user])
 
   const handleUpdateProfile = async () => {
@@ -459,7 +458,10 @@ export function ProfileSection() {
         </Card>
       )}
 
-      <div id="integrations" className="scroll-mt-24 space-y-3">
+      <div
+        id="integrations"
+        className="scroll-mt-[calc(var(--app-header-h)+2rem)] space-y-3"
+      >
         <div>
           <h2 className="text-lg font-semibold text-ink">Integrations</h2>
           <p className="text-sm text-ink-3">

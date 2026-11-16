@@ -2,9 +2,10 @@
 
 import { useAuth } from '@/contexts/auth-context'
 import { useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { Calendar, LogOut, Palette, User } from 'lucide-react'
+import { Calendar, LogOut, Moon, Palette, Shield, User } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,10 +14,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Switch } from '@/components/ui/switch'
 
 export function UserNav() {
-  const { isAuthenticated, signOut, user } = useAuth()
+  const { isAuthenticated, signOut, user, roles, hasAnyRole } = useAuth()
   const router = useRouter()
+  const { resolvedTheme, setTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
+  // The header's Admin button is gone; the role switcher covers Admin for
+  // anyone with two roles. This covers an admin with only the one role.
+  const showAdminLink =
+    hasAnyRole(['admin', 'super_admin']) && roles.length <= 1
 
   if (!isAuthenticated) return null
 
@@ -77,6 +85,35 @@ export function UserNav() {
         >
           <Calendar className="mr-2 h-4 w-4" />
           <span>Integrations</span>
+        </DropdownMenuItem>
+        {showAdminLink && (
+          <DropdownMenuItem
+            onSelect={() => router.push('/admin/dashboard')}
+            className="cursor-pointer"
+          >
+            <Shield className="mr-2 h-4 w-4" />
+            <span>Admin dashboard</span>
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          // Keep the menu open so the change is visible in place.
+          onSelect={e => {
+            e.preventDefault()
+            setTheme(isDark ? 'light' : 'dark')
+          }}
+          role="menuitemcheckbox"
+          aria-checked={isDark}
+          className="cursor-pointer"
+        >
+          <Moon className="mr-2 h-4 w-4" />
+          <span className="flex-1">Dark mode</span>
+          <Switch
+            checked={isDark}
+            tabIndex={-1}
+            aria-hidden
+            className="pointer-events-none"
+          />
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer">

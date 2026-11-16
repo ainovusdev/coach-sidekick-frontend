@@ -230,7 +230,7 @@ function CommitmentPageContent({ commitmentId }: { commitmentId: string }) {
 
         {/* Property rail: one plain column of sections divided by rules — the
             rail already has a frame, so the fields don't get a second one. */}
-        <aside className="order-1 lg:order-2 space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:border-l lg:border-line lg:pl-6">
+        <aside className="order-1 lg:order-2 space-y-4 lg:sticky lg:top-[calc(var(--app-header-h)+2rem)] lg:max-h-[calc(100vh-var(--app-header-h)-3rem)] lg:overflow-y-auto lg:border-l lg:border-line lg:pl-6">
           <FieldsGrid
             commitment={commitment}
             onFieldUpdate={handleFieldUpdate}

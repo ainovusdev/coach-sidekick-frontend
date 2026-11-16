@@ -44,12 +44,13 @@ interface SandboxView {
   indexLabel: string
   /**
    * Where the page's own chrome sits, which the two routes disagree about: the
-   * member chrome scrolls the window under a 64px sticky header with
+   * member chrome scrolls the window under the sticky app header
+   * (`--app-header-h`) with
    * `px-4 sm:px-6 lg:px-8` gutters, the admin chrome scrolls its own `<main>`
    * with a 24px gutter and no sticky origin.
    */
   /** the sticky tab bar's origin */
-  stickyTopClass: 'top-0' | 'top-16'
+  stickyTopClass: 'top-0' | 'top-(--app-header-h)'
   /** cancels the container gutter so the bar's background reaches the edge */
   bleedClass: string
   /**
@@ -57,7 +58,7 @@ interface SandboxView {
    * bar plus a little air. It is what a linked-to section scrolls clear of and
    * where the rail pins, so the two can never drift apart.
    */
-  sectionOffset: '4.5rem' | '8.5rem'
+  sectionOffset: '4.5rem' | 'calc(var(--app-header-h) + 4.5rem)'
   can: SandboxCan
   href: {
     index: () => string
@@ -158,9 +159,9 @@ export function viewFromOverview(
     scope: opts.isAdmin ? 'all' : overview.my_scope,
     basePath: '/sandboxes',
     indexLabel: opts.isAdmin ? 'Sandboxes' : 'My sandboxes',
-    stickyTopClass: 'top-16',
+    stickyTopClass: 'top-(--app-header-h)',
     bleedClass: '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8',
-    sectionOffset: '8.5rem',
+    sectionOffset: 'calc(var(--app-header-h) + 4.5rem)',
     can,
     href: hrefs('/sandboxes'),
   }
@@ -211,9 +212,9 @@ export function previewClientView(from: 'admin' | 'member'): SandboxView {
     scope: 'all',
     basePath: '/sandboxes',
     indexLabel: from === 'admin' ? 'Sandboxes' : 'My sandboxes',
-    stickyTopClass: 'top-16',
+    stickyTopClass: 'top-(--app-header-h)',
     bleedClass: '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8',
-    sectionOffset: '8.5rem',
+    sectionOffset: 'calc(var(--app-header-h) + 4.5rem)',
     can: ALL_OFF,
     href: hrefs('/sandboxes'),
   }

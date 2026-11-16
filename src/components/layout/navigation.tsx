@@ -1,11 +1,11 @@
 'use client'
 
+import Link from 'next/link'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/auth-context'
 import { usePermissions } from '@/contexts/permission-context'
 import { UserNav } from '@/components/auth/user-nav'
 import { RoleSwitcher } from '@/components/auth/role-switcher'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { NotificationBell } from '@/components/notifications/notification-bell'
 import { AskSidekickBar } from '@/components/agent/ask-sidekick-bar'
 import {
@@ -13,18 +13,29 @@ import {
   UserCheck,
   History,
   BookOpen,
-  Shield,
   Eye,
   Target,
 } from 'lucide-react'
 import Image from 'next/image'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-export default function Navigation({ compact = false }: { compact?: boolean }) {
+/**
+ * The coach app header: two rows.
+ *
+ * Row 1 holds the logo, the Ask Sidekick launcher, the bell, the role switcher
+ * and the account menu (which also holds the theme). Row 2 holds the page tabs,
+ * and scrolls sideways on a phone instead of disappearing.
+ *
+ * The header is sticky and `--app-header-h` (globals.css) is its height. Pages
+ * that pin things below it or size themselves to the viewport read that
+ * variable, so change both together.
+ */
+export default function Navigation() {
   const router = useRouter()
   const pathname = usePathname()
-  const { isAuthenticated, hasAnyRole, roles } = useAuth()
+  const { isAuthenticated, roles } = useAuth()
   const permissions = usePermissions()
 
   const isClientOnly = roles.length === 1 && roles.includes('client')
@@ -87,6 +98,20 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
         )
       })
 
+  // On a phone the tab row scrolls; bring the current page's tab into view
+  // so "Commitments" or "Resources" isn't hidden past the edge.
+  const tabsRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const nav = tabsRef.current
+    const active = nav?.querySelector<HTMLElement>('[aria-current="page"]')
+    if (!nav || !active) return
+    const n = nav.getBoundingClientRect()
+    const a = active.getBoundingClientRect()
+    if (a.left < n.left || a.right > n.right) {
+      nav.scrollLeft += a.left - n.left - 16
+    }
+  }, [pathname, navItems.length])
+
   if (isClientOnly) {
     return null
   }
@@ -107,157 +132,89 @@ export default function Navigation({ compact = false }: { compact?: boolean }) {
           </Button>
         </div>
       )}
-      <header className="bg-paper border-b border-line sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div
-            className={
-              compact
-                ? 'flex h-16 items-center justify-between gap-3'
-                : 'flex items-center justify-between h-16'
-            }
-          >
-            <div
-              className={
-                compact
-                  ? 'flex min-w-0 items-center gap-4'
-                  : 'flex shrink-0 items-center gap-4 xl:gap-8'
-              }
+      <header className="sticky top-0 z-50 border-b border-line bg-paper">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          {/* Row 1: brand, Ask Sidekick, account */}
+          <div className="flex h-14 items-center gap-3 sm:gap-4">
+            <Link
+              href="/"
+              aria-label="Coach Sidekick home"
+              className="group flex shrink-0 items-center gap-3 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ds-accent/40"
             >
-              <button
-                onClick={() => router.push('/')}
-                className="flex items-center gap-3 group"
-              >
-                <div className="relative w-11 h-11 bg-brand-tile rounded-xl p-1.5 flex items-center justify-center group-hover:scale-105 transition-transform">
-                  <Image
-                    src="/novus-global-logo.webp"
-                    alt="Novus Global Logo"
-                    width={32}
-                    height={32}
-                    className="object-contain filter brightness-0 invert"
-                  />
-                </div>
-                <div
-                  className={
-                    compact
-                      ? 'hidden flex-col sm:flex'
-                      : 'flex flex-col md:hidden lg:flex'
-                  }
-                >
-                  <h1 className="text-xl font-bold text-ink">Coach Sidekick</h1>
-                </div>
-              </button>
+              <span className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-brand-tile p-1.5 transition-transform group-hover:scale-105">
+                <Image
+                  src="/novus-global-logo.webp"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="object-contain filter brightness-0 invert"
+                />
+              </span>
+              <span className="hidden text-lg font-bold text-ink xl:inline">
+                Coach Sidekick
+              </span>
+            </Link>
 
-              <nav
-                className={`hidden items-center md:flex ${compact ? 'min-w-0' : ''}`}
-              >
-                <div
-                  className={`flex items-center bg-surface-2 rounded-lg p-1 ${
-                    compact ? 'overflow-x-auto' : ''
-                  }`}
-                >
-                  {navItems.map(item => {
-                    const Icon = item.icon
-                    const isActive =
-                      isActivePath(item.path) &&
-                      !navItems.some(
-                        other =>
-                          other.path !== item.path &&
-                          other.path.length > item.path.length &&
-                          isActivePath(other.path),
-                      )
+            {isAuthenticated ? (
+              <div className="flex min-w-0 flex-1 justify-center">
+                {/* Full search field from `sm`; icon only on a phone. */}
+                <AskSidekickBar className="flex w-9 justify-center p-2.5 [&>kbd]:hidden [&>span]:hidden sm:w-full sm:max-w-md sm:justify-start sm:px-3 sm:[&>kbd]:inline-block sm:[&>span]:block lg:w-full" />
+              </div>
+            ) : (
+              <div className="flex-1" />
+            )}
 
-                    return (
-                      <button
-                        key={item.path}
-                        onClick={() => router.push(item.path)}
-                        title={item.label}
-                        className={`
-                        flex items-center gap-2 ${compact ? 'px-2' : 'px-3'} py-2 rounded-md text-sm font-medium
-                        transition-colors duration-200 cursor-pointer
-                        ${
-                          isActive
-                            ? 'bg-paper text-ink shadow-xs'
-                            : 'text-ink-3 hover:text-ink hover:bg-paper/60'
-                        }
-                      `}
-                      >
-                        <Icon className="h-4 w-4" strokeWidth={1.75} />
-                        {/* Icon-only on a tablet: five labels plus the account
-                            cluster do not fit in 768px. */}
-                        <span
-                          className={
-                            compact ? undefined : 'md:sr-only lg:not-sr-only'
-                          }
-                        >
-                          {item.label}
-                        </span>
-                      </button>
-                    )
-                  })}
-                </div>
-              </nav>
-            </div>
-
-            <div
-              className={
-                compact
-                  ? 'flex shrink-0 items-center gap-2'
-                  : 'flex min-w-0 flex-1 items-center justify-end gap-2 lg:gap-3'
-              }
-            >
+            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
               {isAuthenticated && (
                 <>
-                  <AskSidekickBar
-                    className={
-                      compact
-                        ? 'w-9 p-2.5 lg:w-9 [&>span]:hidden [&>kbd]:hidden'
-                        : // Takes the room that is left rather than a fixed width:
-                          // the cluster beside it grows with the viewer's roles
-                          // (Admin, role switcher) and used to push the page
-                          // sideways. Squeezed, it falls back to its icon.
-                          '@container w-auto min-w-9 max-w-64 flex-1 justify-center lg:w-auto [&>kbd]:hidden [&>span]:hidden @[9rem]:justify-start @[9rem]:[&>span]:block @[13rem]:[&>kbd]:inline-block'
-                    }
-                  />
-                  {!compact && (
-                    <div className="hidden shrink-0 items-center xl:flex">
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 rounded-lg">
-                        <div className="relative">
-                          <div className="w-2 h-2 bg-forest rounded-full"></div>
-                          <div className="absolute inset-0 w-2 h-2 bg-forest rounded-full animate-ping"></div>
-                        </div>
-                        <span className="text-sm font-medium text-ink-2">
-                          Active
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
                   <NotificationBell />
-
-                  <ThemeToggle />
-
                   <RoleSwitcher />
-
-                  {hasAnyRole(['admin', 'super_admin']) &&
-                    !impersonatedCoachName && (
-                      <Button
-                        onClick={() => router.push('/admin/dashboard')}
-                        variant={
-                          pathname.startsWith('/admin') ? 'default' : 'outline'
-                        }
-                        size="sm"
-                        className="flex items-center gap-2"
-                      >
-                        <Shield className="h-4 w-4" strokeWidth={1.75} />
-                        <span className="hidden sm:inline">Admin</span>
-                      </Button>
-                    )}
                 </>
               )}
-
               <UserNav />
             </div>
           </div>
+
+          {/* Row 2: page tabs. Scrolls sideways when it doesn't fit. */}
+          <nav
+            ref={tabsRef}
+            aria-label="Main"
+            className="-mx-4 flex h-11 items-end overflow-x-auto px-4 [scrollbar-width:none] sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 [&::-webkit-scrollbar]:hidden"
+          >
+            <ul className="flex items-end gap-1 sm:gap-2">
+              {navItems.map(item => {
+                const Icon = item.icon
+                const isActive =
+                  isActivePath(item.path) &&
+                  !navItems.some(
+                    other =>
+                      other.path !== item.path &&
+                      other.path.length > item.path.length &&
+                      isActivePath(other.path),
+                  )
+
+                return (
+                  <li key={item.path}>
+                    <Link
+                      href={item.path}
+                      aria-current={isActive ? 'page' : undefined}
+                      className={cn(
+                        'relative flex h-11 items-center gap-2 whitespace-nowrap px-2.5 text-sm font-medium transition-colors',
+                        'rounded-t-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ds-accent/40',
+                        "after:absolute after:inset-x-2.5 after:bottom-0 after:h-0.5 after:rounded-full after:content-['']",
+                        isActive
+                          ? 'text-ink after:bg-ink'
+                          : 'text-ink-3 hover:text-ink hover:after:bg-line-strong',
+                      )}
+                    >
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                      {item.label}
+                    </Link>
+                  </li>
+                )
+              })}
+            </ul>
+          </nav>
         </div>
       </header>
     </>

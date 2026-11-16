@@ -211,7 +211,7 @@ export function ClientView({
       {/* One row of anchors: the page is long, and a sponsor arrives looking
           for one of seven things. */}
       <nav
-        className="sticky top-16 z-30 -mx-4 flex items-center gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+        className="sticky top-(--app-header-h) z-30 -mx-4 flex items-center gap-1 overflow-x-auto border-b border-line bg-paper/95 px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
         aria-label="Sections"
         data-testid="client-nav"
       >

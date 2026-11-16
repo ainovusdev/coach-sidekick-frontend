@@ -16,7 +16,7 @@ import PageLayout from '@/components/layout/page-layout'
 export default function CoachAgentPage() {
   return (
     <CoachRoute>
-      <PageLayout className="h-[calc(100vh-4rem)] overflow-hidden">
+      <PageLayout className="h-[calc(100vh-var(--app-header-h))] overflow-hidden">
         <AgentChat apiScope="coach" />
       </PageLayout>
     </CoachRoute>
