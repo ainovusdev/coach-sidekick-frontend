@@ -3,6 +3,7 @@
 import { ChatMarkdown } from '@/components/ui/chat-markdown'
 import { cn } from '@/lib/utils'
 import { Sparkles, User } from 'lucide-react'
+import { AgentAttachmentCard } from './agent-attachment-card'
 import { AgentChart } from './agent-chart'
 import { AgentReportCard } from './agent-report-card'
 import { AgentSvgChart } from './agent-svg-chart'
@@ -83,6 +84,9 @@ export function AgentMessage({ message, apiScope }: Props) {
             }
             if (block.kind === 'report') {
               return <AgentReportCard key={i} spec={block.spec} />
+            }
+            if (block.kind === 'attachment') {
+              return <AgentAttachmentCard key={i} block={block} />
             }
             return null
           })

@@ -144,6 +144,35 @@ export type ToolName =
   | 'search_conversations'
   | 'get_session_transcript'
   | 'generate_report'
+  | 'read_attachment'
+
+/** A file attached to an agent turn (PDF, Word, text, CSV). Text stays server-side. */
+export type AttachmentFileType = 'pdf' | 'docx' | 'txt' | 'csv'
+
+/** What POST {mount}/attachments returns. */
+export interface AgentAttachmentInfo {
+  id: string
+  filename: string
+  file_type: AttachmentFileType
+  mime_type: string
+  size_bytes: number
+  char_count: number
+  truncated: boolean
+  truncation_note?: string | null
+  page_count?: number | null
+  row_count?: number | null
+}
+
+/** A sent attachment as it appears in a user message (persisted with the thread). */
+export interface AttachmentBlock {
+  kind: 'attachment'
+  attachment_id: string
+  filename: string
+  file_type: AttachmentFileType
+  size_bytes: number
+  truncated: boolean
+  truncation_note?: string | null
+}
 
 /** A block within an assistant message, in render order. */
 export type MessageBlock =
@@ -166,6 +195,7 @@ export type MessageBlock =
       error?: string
     }
   | { kind: 'report'; spec: ReportSpec }
+  | AttachmentBlock
 
 export interface AgentMessage {
   /** Stable id for React keying. */

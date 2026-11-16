@@ -21,6 +21,8 @@ interface Props {
   streaming: boolean
   /** Scope of the host console. Admins see the technical verbs + SQL detail. */
   apiScope: AgentApiScope
+  /** Filenames attached to the turn in flight — shown before the first block. */
+  readingFiles?: string[]
 }
 
 // Technical verbs (admin console). Coaches/clients get the plainer set below.
@@ -32,6 +34,7 @@ const TOOL_VERB: Record<ToolName, string> = {
   search_conversations: 'Searching transcripts',
   get_session_transcript: 'Reading transcript',
   generate_report: 'Composing PDF report',
+  read_attachment: 'Reading attached file',
 }
 
 // Plain-language verbs for coaches/clients — no SQL/schema/transcript jargon.
@@ -43,13 +46,29 @@ const TOOL_VERB_PLAIN: Record<ToolName, string> = {
   search_conversations: 'Searching your conversations',
   get_session_transcript: 'Reading a session',
   generate_report: 'Preparing a report',
+  read_attachment: 'Re-reading your file',
 }
 
-export function AgentActivityBar({ blocks, streaming, apiScope }: Props) {
+export function AgentActivityBar({
+  blocks,
+  streaming,
+  apiScope,
+  readingFiles,
+}: Props) {
   if (!streaming) return null
 
   const isAdmin = apiScope === 'admin'
-  const status = deriveStatus(blocks, isAdmin)
+  const status =
+    blocks.length === 0 && readingFiles && readingFiles.length > 0
+      ? {
+          verb:
+            readingFiles.length === 1
+              ? `Reading ${readingFiles[0]}`
+              : `Reading ${readingFiles.length} files`,
+          detail: null,
+          stepLabel: null,
+        }
+      : deriveStatus(blocks, isAdmin)
   if (!status) return null
 
   return (
@@ -151,6 +170,10 @@ function extractToolDetail(
   if (block.name === 'generate_report') {
     const title = (input.title as string | undefined) || null
     return title ? truncate(title, 80) : null
+  }
+  if (block.name === 'read_attachment') {
+    const offset = Number(input.offset_chars ?? 0)
+    return offset > 0 ? `from character ${offset.toLocaleString()}` : null
   }
   return null
 }

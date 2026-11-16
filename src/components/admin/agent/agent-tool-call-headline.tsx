@@ -55,6 +55,11 @@ const TOOL_HEADLINE: Record<
     done: 'Prepared a report',
     icon: FileDown,
   },
+  read_attachment: {
+    running: 'Re-reading your file',
+    done: 'Re-read your file',
+    icon: FileText,
+  },
 }
 
 interface Props {

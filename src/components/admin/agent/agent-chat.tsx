@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { useQueryClient } from '@tanstack/react-query'
+import { useDropzone } from 'react-dropzone'
 import { toast } from 'sonner'
 import posthog from 'posthog-js'
 import {
@@ -13,9 +14,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
-import { Sparkles, RotateCcw, Maximize2, X } from 'lucide-react'
+import { Sparkles, RotateCcw, Maximize2, X, FileUp } from 'lucide-react'
 import { AgentMessage } from './agent-message'
-import { AgentComposer } from './agent-composer'
+import { AgentComposer, type ComposerAttachments } from './agent-composer'
+import {
+  useAgentAttachments,
+  type PendingAttachment,
+} from './use-agent-attachments'
 import { AgentActivityBar } from './agent-activity-bar'
 import { AgentThreadSidebar } from './agent-thread-sidebar'
 import {
@@ -29,6 +34,7 @@ import {
 } from '@/hooks/queries/use-agent-threads'
 import type {
   AgentEvent,
+  AttachmentBlock,
   AgentMessage as AgentMessageType,
   MessageBlock,
   ModelOption,
@@ -53,7 +59,7 @@ const SCOPE_BADGE: Record<AgentApiScope, string> = {
 // Short, reassuring status line shown under the conversation title when idle.
 const HEADER_STATUS: Record<AgentApiScope, string> = {
   admin: 'Read-only access',
-  coach: 'Private · reads only your data',
+  coach: 'Private · reads only your data and files you attach',
   client: 'Private · reads only your data',
 }
 
@@ -73,6 +79,8 @@ interface AgentChatProps {
   initialThreadId?: string
   /** Modal mode: called by the Close button and after "Open full page" navigates. */
   onClose?: () => void
+  /** Reports whether a file upload is in flight (the modal guards Esc on it). */
+  onUploadBusyChange?: (busy: boolean) => void
 }
 
 export function AgentChat({
@@ -81,6 +89,7 @@ export function AgentChat({
   initialQuery,
   initialThreadId,
   onClose,
+  onUploadBusyChange,
 }: AgentChatProps = {}) {
   // The dedicated page ('full') and the near-fullscreen 'modal' both show the left
   // thread sidebar; only the small dashboard card ('embedded') is too narrow, so it
@@ -130,6 +139,55 @@ export function AgentChat({
   const [sdkSessionId, setSdkSessionId] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+
+  // ---- Attachments (coach + admin only; the client portal comes later) ----
+  const allowAttachments = apiScope !== 'client'
+  const [announcement, setAnnouncement] = useState('')
+  const [composerFocus, setComposerFocus] = useState(0)
+  // Filenames attached to the turn in flight — the activity bar says "Reading …".
+  const [turnFiles, setTurnFiles] = useState<string[]>([])
+  const attachments = useAgentAttachments({
+    scope: apiScope,
+    onAnnounce: setAnnouncement,
+    onNotice: message => {
+      toast.info(message)
+      setAnnouncement(message)
+    },
+  })
+  const { addFiles } = attachments
+  const addFilesAndFocus = useCallback(
+    (files: File[]) => {
+      addFiles(files)
+      setComposerFocus(n => n + 1)
+    },
+    [addFiles],
+  )
+  const { getRootProps, isDragActive } = useDropzone({
+    onDrop: addFilesAndFocus,
+    noClick: true,
+    noKeyboard: true,
+    disabled: !allowAttachments,
+    // No `accept`: unsupported files still become chips with a clear reason.
+  })
+
+  useEffect(() => {
+    onUploadBusyChange?.(attachments.busy)
+  }, [attachments.busy, onUploadBusyChange])
+
+  // A file dropped just outside the drop zone must never navigate the tab away
+  // (in the ⌘K modal that would lose the whole conversation).
+  useEffect(() => {
+    if (!allowAttachments) return
+    const guard = (e: DragEvent) => {
+      if (e.dataTransfer?.types?.includes('Files')) e.preventDefault()
+    }
+    window.addEventListener('dragover', guard)
+    window.addEventListener('drop', guard)
+    return () => {
+      window.removeEventListener('dragover', guard)
+      window.removeEventListener('drop', guard)
+    }
+  }, [allowAttachments])
 
   // Hydration: if the URL points at a thread we haven't loaded, fetch it and
   // replace local message state with the persisted version.
@@ -233,33 +291,68 @@ export function AgentChat({
   const handleSend = useCallback(
     async (questionOverride?: string) => {
       const question = (questionOverride ?? input).trim()
-      if (!question || streaming) return
+      if (streaming) return
+      const pending = allowAttachments ? attachments.items : []
+      // Never send while a file is still uploading/reading or has failed — the
+      // composer explains why; a file must never be silently dropped.
+      if (pending.length > 0 && (attachments.busy || attachments.failed)) return
+      const ready = pending.filter(
+        (
+          p,
+        ): p is PendingAttachment & {
+          info: NonNullable<PendingAttachment['info']>
+        } => p.status === 'ready' && !!p.info,
+      )
+      if (!question && ready.length === 0) return
 
       posthog.capture('agent_message_sent', {
         surface: 'global_agent',
         scope: apiScope,
         is_new_thread: !threadId,
         model,
+        has_attachments: ready.length > 0,
+        attachment_count: ready.length,
+        attachment_types: ready.map(r => r.info.file_type),
       })
 
+      const taken = ready.length > 0 ? attachments.takeAll() : []
+      const attachmentBlocks: AttachmentBlock[] = ready.map(r => ({
+        kind: 'attachment',
+        attachment_id: r.info.id,
+        filename: r.info.filename,
+        file_type: r.info.file_type,
+        size_bytes: r.info.size_bytes,
+        truncated: r.info.truncated,
+        truncation_note: r.info.truncation_note,
+      }))
       const userMsg: AgentMessageType = {
         id: crypto.randomUUID(),
         role: 'user',
-        blocks: [{ kind: 'text', text: question }],
+        blocks: [
+          ...attachmentBlocks,
+          ...(question ? [{ kind: 'text' as const, text: question }] : []),
+        ],
       }
       const assistantMsg: AgentMessageType = {
         id: crypto.randomUUID(),
         role: 'assistant',
         blocks: [],
       }
-      const historyForBackend = buildBackendHistory([...messages, userMsg])
+      // The new turn is always last, even when it is file-only (empty text) —
+      // the backend must never fall back to an earlier question.
+      const historyForBackend = [
+        ...buildBackendHistory(messages),
+        { role: 'user' as const, content: question },
+      ]
 
       setMessages(prev => [...prev, userMsg, assistantMsg])
       setInput('')
       setStreaming(true)
+      setTurnFiles(ready.map(r => r.info.filename))
 
       const controller = new AbortController()
       abortRef.current = controller
+      let receivedAnyEvent = false
 
       try {
         for await (const event of streamAgent({
@@ -268,8 +361,10 @@ export function AgentChat({
           resume_session_id: sdkSessionId,
           thread_id: threadId,
           scope: apiScope,
+          attachment_ids: ready.map(r => r.info.id),
           signal: controller.signal,
         })) {
+          receivedAnyEvent = true
           if (event.type === 'session_init' && event.session_id) {
             setSdkSessionId(event.session_id)
           }
@@ -293,6 +388,18 @@ export function AgentChat({
         const err = e as { name?: string; message?: string }
         if (err.name === 'AbortError') {
           // Silent — user pressed Stop.
+        } else if (!receivedAnyEvent) {
+          // Nothing reached the agent: undo the optimistic turn and give the
+          // coach back exactly what they had (text + files) to try again.
+          const message = friendlyStreamError(err.message)
+          toast.error('Message not sent', { description: message })
+          setMessages(prev =>
+            prev.filter(m => m.id !== userMsg.id && m.id !== assistantMsg.id),
+          )
+          if (questionOverride === undefined) {
+            setInput(prev => (prev ? prev : question))
+          }
+          if (taken.length > 0) attachments.restore(taken)
         } else {
           const message = err.message || 'Agent request failed'
           toast.error('Agent error', { description: message })
@@ -306,6 +413,7 @@ export function AgentChat({
       } finally {
         abortRef.current = null
         setStreaming(false)
+        setTurnFiles([])
         // Refresh the sidebar so the just-touched thread floats to the top
         // and its "last activity" timestamp is current.
         queryClient.invalidateQueries({
@@ -325,6 +433,8 @@ export function AgentChat({
       pathname,
       queryClient,
       persistThreadInUrl,
+      allowAttachments,
+      attachments,
     ],
   )
 
@@ -344,6 +454,18 @@ export function AgentChat({
 
   const showStarters = messages.length === 0 && !streaming
 
+  const composerAttachments: ComposerAttachments | undefined = allowAttachments
+    ? {
+        items: attachments.items,
+        busy: attachments.busy,
+        failed: attachments.failed,
+        readyCount: attachments.readyCount,
+        onAddFiles: addFilesAndFocus,
+        onRemove: attachments.remove,
+        onRetry: attachments.retry,
+      }
+    : undefined
+
   // The active conversation's title for the header: the saved thread's title once
   // hydrated, else the first user message (a good stand-in for a fresh chat),
   // else null (brand-new, nothing asked yet).
@@ -354,7 +476,11 @@ export function AgentChat({
     const firstUser = messages.find(m => m.role === 'user')
     const textBlock = firstUser?.blocks.find(b => b.kind === 'text')
     const text = textBlock && textBlock.kind === 'text' ? textBlock.text : ''
-    return text.trim() || null
+    // A file-only first message is titled after its file (matches the server).
+    const fileBlock = firstUser?.blocks.find(b => b.kind === 'attachment')
+    const fileName =
+      fileBlock && fileBlock.kind === 'attachment' ? fileBlock.filename : ''
+    return text.trim() || fileName || null
   }, [hydratedThread, threadId, messages])
 
   const modelOptions = useMemo<ModelOption[]>(() => {
@@ -392,7 +518,23 @@ export function AgentChat({
           onNewThread={handleNewThread}
         />
       ) : null}
-      <div className="flex flex-1 min-w-0 flex-col">
+      <div
+        {...(allowAttachments ? getRootProps() : {})}
+        className="relative flex flex-1 min-w-0 flex-col outline-none"
+      >
+        {/* Screen-reader announcements for file ready / failed / removed. */}
+        <div aria-live="polite" className="sr-only">
+          {announcement}
+        </div>
+        {isDragActive ? (
+          <div className="pointer-events-none absolute inset-2 z-20 flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-ds-accent bg-paper/90 text-center">
+            <FileUp className="h-7 w-7 text-ds-accent" />
+            <div className="text-sm font-semibold text-ink">Drop to attach</div>
+            <div className="text-xs text-ink-3">
+              PDF, Word, text or CSV · up to 25 MB
+            </div>
+          </div>
+        ) : null}
         {slimHeader ? (
           /* Slim header for the narrow dashboard card — history in a popover, no
              model picker or capability strip, with an Expand-to-full control. */
@@ -550,6 +692,7 @@ export function AgentChat({
             blocks={liveAssistantBlocks}
             streaming={streaming}
             apiScope={apiScope}
+            readingFiles={turnFiles}
           />
         </div>
 
@@ -561,6 +704,7 @@ export function AgentChat({
                 onPick={q => handleSend(q)}
                 starters={starters}
                 apiScope={apiScope}
+                showFileHint={allowAttachments}
               />
             ) : (
               messages.map(m => (
@@ -573,11 +717,13 @@ export function AgentChat({
         <AgentComposer
           value={input}
           onChange={setInput}
-          onSend={() => handleSend()}
+          onSend={text => handleSend(text)}
           onCancel={handleCancel}
           streaming={streaming}
           autoFocus={isModal}
           apiScope={apiScope}
+          attachments={composerAttachments}
+          focusSignal={composerFocus}
         />
       </div>
     </div>
@@ -588,10 +734,12 @@ function EmptyState({
   onPick,
   starters,
   apiScope,
+  showFileHint,
 }: {
   onPick: (q: string) => void
   starters: string[]
   apiScope: AgentApiScope
+  showFileHint?: boolean
 }) {
   return (
     <div className="mx-auto max-w-2xl py-10 text-center">
@@ -612,8 +760,29 @@ function EmptyState({
           </button>
         ))}
       </div>
+      {showFileHint ? (
+        <p className="mt-4 text-xs text-ink-3">
+          Or drop in a PDF, Word doc, text file or CSV to ask about it.
+        </p>
+      ) : null}
     </div>
   )
+}
+
+/** Plain copy for a stream request the server refused before it started. */
+function friendlyStreamError(raw?: string): string {
+  if (!raw)
+    return 'Something went wrong. Your message and files are back in the box.'
+  if (/failed to fetch|networkerror|load failed/i.test(raw)) {
+    return 'Couldn’t reach Sidekick. Check your connection; your message and files are back in the box.'
+  }
+  try {
+    const parsed = JSON.parse(raw) as { message?: string }
+    if (parsed?.message) return parsed.message
+  } catch {
+    /* not JSON */
+  }
+  return raw
 }
 
 /** Drop the "Claude " prefix so the picker reads "Opus 5.5", not "Claude Opus 5.5". */
