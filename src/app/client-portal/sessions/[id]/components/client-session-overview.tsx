@@ -72,8 +72,6 @@ interface ClientSessionOverviewProps {
   commitments: any[]
   /** AI drafts on this session, reviewed by the coachee and the coach alike. */
   draftCommitments?: any[]
-  /** Show "Find commitments" (flag `client-commitment-extract`). */
-  canFindCommitments?: boolean
   onRefetchCommitments: () => void
 }
 
@@ -402,7 +400,6 @@ export function ClientSessionOverview({
   sessionId,
   commitments,
   draftCommitments = [],
-  canFindCommitments = false,
   onRefetchCommitments,
 }: ClientSessionOverviewProps) {
   const extract = useClientExtractCommitments()
@@ -421,10 +418,7 @@ export function ClientSessionOverview({
   const insights = sessionData.insights
   const wins = insights?.wins ?? []
 
-  const canExtract =
-    canFindCommitments &&
-    !!hasTranscript &&
-    !UNFINISHED_STATUSES.has(session.status)
+  const canExtract = !!hasTranscript && !UNFINISHED_STATUSES.has(session.status)
   const showCommitmentsCard =
     commitments.length > 0 ||
     draftCommitments.length > 0 ||

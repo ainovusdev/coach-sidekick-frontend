@@ -28,7 +28,7 @@ import posthog from 'posthog-js'
 const FORCED_ON_KEYS =
   process.env.NEXT_PUBLIC_FEATURE_FLAGS_FORCE_ON ??
   (process.env.NODE_ENV === 'development'
-    ? 'sandboxes,notifications,comment-threads,client-commitment-extract'
+    ? 'sandboxes,notifications,comment-threads'
     : '')
 
 const FORCED_ON: ReadonlySet<string> = new Set(
