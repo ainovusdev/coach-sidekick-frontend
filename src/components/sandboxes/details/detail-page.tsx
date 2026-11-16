@@ -62,9 +62,9 @@ import { PersonalMilestonesSection } from './personal-milestones-section'
 
 // These pages live on the member routes, under the app header: the same
 // offsets the cockpit reads from its view there.
-const STICKY_TOP = 'top-16'
+const STICKY_TOP = 'top-(--app-header-h)'
 const BLEED = '-mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8'
-const SECTION_OFFSET = '8.5rem'
+const SECTION_OFFSET = 'calc(var(--app-header-h) + 4.5rem)'
 
 const filterControl =
   'h-8 max-w-[14rem] rounded-lg border border-line bg-paper px-2.5 text-xs text-ink focus-visible:outline-2 focus-visible:outline-ds-accent'

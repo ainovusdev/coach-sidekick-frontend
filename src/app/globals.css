@@ -122,11 +122,17 @@ body {
 :root {
   --radius: 0.625rem;
 
+  /* Height of the sticky app header above the page: the coach header's two
+     rows (h-14 + h-11) plus its 1px bottom border. Sticky bars, scroll offsets
+     and full-height pages read it. `SandboxChrome` sets 4rem for the one-row
+     portal and client headers. */
+  --app-header-h: calc(6.25rem + 1px);
+
   /* How far below the top of the scroll container a linked-to section has to
      land, and where a sticky rail pins: the chrome above the page plus any
      sticky bar inside it, plus a little air. This is the client view's number;
      the cockpit overrides it per chrome (see `sandbox-view-context.tsx`). */
-  --section-offset: 7rem;
+  --section-offset: calc(var(--app-header-h) + 3rem);
 
   /* ---------- Coach Sidekick DS — Ink / paper / surface (light) ---------- */
   --paper: #FFFFFF;
