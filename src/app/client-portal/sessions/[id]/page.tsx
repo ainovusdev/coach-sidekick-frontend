@@ -19,7 +19,6 @@ import {
 import { formatDate, formatRelativeTime } from '@/lib/date-utils'
 import { useClientSessionDetail } from '@/hooks/queries/use-client-sessions'
 import { useCommitments } from '@/hooks/queries/use-commitments'
-import { useFeatureFlagEnabled } from '@/hooks/use-feature-flag'
 import { ClientSessionOverview } from './components/client-session-overview'
 import { ClientSessionAnalysis } from './components/client-session-analysis'
 import { VideoPlayer } from '@/components/sessions/video-player'
@@ -36,11 +35,8 @@ export default function ClientSessionDetailPage() {
   } = useClientSessionDetail(sessionId)
 
   // AI drafts are reviewed here by the coachee as well as the coach.
-  const extractEnabled = useFeatureFlagEnabled('client-commitment-extract')
   const { data: commitmentData, refetch: refetchCommitments } = useCommitments(
-    extractEnabled
-      ? { session_id: sessionId, include_drafts: true }
-      : { session_id: sessionId },
+    { session_id: sessionId, include_drafts: true },
     { enabled: !!sessionId },
   )
   const allCommitments = commitmentData?.commitments ?? []
@@ -227,7 +223,6 @@ export default function ClientSessionDetailPage() {
             sessionId={sessionId}
             commitments={structuredCommitments}
             draftCommitments={draftCommitments}
-            canFindCommitments={extractEnabled}
             onRefetchCommitments={() => refetchCommitments()}
           />
         </TabsContent>
