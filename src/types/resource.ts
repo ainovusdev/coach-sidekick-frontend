@@ -67,7 +67,34 @@ export interface ClientResource {
   source: string
   is_viewed: boolean
   sharing_scope: SharingScope
+  session_id?: string | null
+  /** The coachee uploaded it (only these can be edited or deleted). */
+  is_mine?: boolean
+  /** A coachee's upload kept from the coach. */
+  is_private?: boolean
   created_at: string
+}
+
+// A coachee's shared upload, as the coach sees it (read-only)
+export interface ClientUpload {
+  id: string
+  title: string
+  description?: string | null
+  file_url?: string | null
+  file_type?: string | null
+  file_size?: number | null
+  content_url?: string | null
+  resource_type: string
+  client_id: string
+  client_name?: string | null
+  session_id?: string | null
+  created_at: string
+}
+
+export interface ClientUploadUpdate {
+  title?: string
+  description?: string | null
+  is_private?: boolean
 }
 
 // Update resource request
@@ -112,6 +139,9 @@ export interface ResourceFilters {
 export interface ClientResourceFilters {
   category?: ResourceCategory
   search?: string
+  session_id?: string
+  /** 'client' = the coachee's own uploads, 'coach' = everything else */
+  source?: 'client' | 'coach'
   skip?: number
   limit?: number
 }

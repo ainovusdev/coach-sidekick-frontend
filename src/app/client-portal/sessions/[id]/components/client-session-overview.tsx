@@ -23,26 +23,18 @@ import {
   Zap,
   ArrowUpRight,
   MessageSquare,
-  FileText,
   ChevronRight,
   ChevronDown,
   ChevronUp,
   User,
   Circle,
   PlayCircle,
-  BookOpen,
-  ExternalLink,
   Hash,
   Sparkles,
   Trophy,
   Pencil,
   X,
   Save,
-  ClipboardList,
-  Dumbbell,
-  Newspaper,
-  Video,
-  Link2,
   StickyNote,
   Loader2,
 } from 'lucide-react'
@@ -65,6 +57,7 @@ import { AssigneeChip } from '@/components/people/assignee-chip'
 import { toast } from 'sonner'
 import type { ClientSessionDetailData } from '@/hooks/queries/use-client-sessions'
 import { aiText } from '@/lib/ai-text'
+import { SessionResourcesCard } from './session-resources-card'
 
 interface ClientSessionOverviewProps {
   sessionData: ClientSessionDetailData
@@ -77,37 +70,6 @@ interface ClientSessionOverviewProps {
 
 // Sessions still running are handled on the live meeting page.
 const UNFINISHED_STATUSES = new Set(['scheduled', 'active', 'in_progress'])
-
-// ---- Resource category helpers ----
-const CATEGORY_ICONS: Record<string, any> = {
-  document: FileText,
-  worksheet: ClipboardList,
-  exercise: Dumbbell,
-  article: Newspaper,
-  template: FileText,
-  video: Video,
-  link: Link2,
-}
-
-const CATEGORY_COLORS: Record<string, string> = {
-  document: 'bg-ds-accent-bg text-ds-accent ',
-  worksheet: 'bg-indigo-bg text-indigo ',
-  exercise: 'bg-amber-token-bg text-amber-token ',
-  article: 'bg-forest-bg text-forest ',
-  template: 'bg-surface-3 text-ink-3 ',
-  video: 'bg-vermillion-bg text-vermillion ',
-  link: 'bg-ds-accent-bg text-ds-accent ',
-}
-
-const CATEGORY_BADGE_COLORS: Record<string, string> = {
-  document: 'bg-ds-accent-bg text-ds-accent ',
-  worksheet: 'bg-indigo-bg text-indigo ',
-  exercise: 'bg-amber-token-bg text-amber-token ',
-  article: 'bg-forest-bg text-forest ',
-  template: 'bg-paper text-ink-2 ',
-  video: 'bg-vermillion-bg text-vermillion ',
-  link: 'bg-ds-accent-bg text-ds-accent ',
-}
 
 // ---- Commitment Item with inline editing ----
 function CommitmentItem({
@@ -414,7 +376,6 @@ export function ClientSessionOverview({
   const session = sessionData.session
   const hasTranscript =
     sessionData.transcript && sessionData.transcript.length > 0
-  const hasMaterials = sessionData.materials && sessionData.materials.length > 0
   const insights = sessionData.insights
   const wins = insights?.wins ?? []
 
@@ -754,73 +715,7 @@ export function ClientSessionOverview({
           </div>
         </div>
 
-        {/* Materials & Resources — with category icons/colors */}
-        {hasMaterials && (
-          <div className="bg-surface-1 border border-line rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-line flex items-center gap-2">
-              <BookOpen className="h-4 w-4 text-ink-3 " />
-              <h2 className="font-semibold text-ink ">Resources</h2>
-              <Badge
-                variant="secondary"
-                className="bg-surface-3 text-ink-3 text-xs ml-auto"
-              >
-                {sessionData.materials.length}
-              </Badge>
-            </div>
-            <div className="divide-y divide-line ">
-              {sessionData.materials.map(material => {
-                const IconComponent =
-                  CATEGORY_ICONS[material.material_type] || FileText
-                const iconColor =
-                  CATEGORY_COLORS[material.material_type] ||
-                  CATEGORY_COLORS.template
-                const badgeColor =
-                  CATEGORY_BADGE_COLORS[material.material_type] ||
-                  CATEGORY_BADGE_COLORS.template
-                return (
-                  <div
-                    key={material.id}
-                    className="px-5 py-3 hover:bg-paper transition-colors"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`h-9 w-9 rounded-lg flex items-center justify-center flex-shrink-0 ${iconColor}`}
-                      >
-                        <IconComponent className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-ink ">
-                          {material.title}
-                        </p>
-                        {material.description && (
-                          <p className="text-xs text-ink-3 mt-0.5 line-clamp-1">
-                            {material.description}
-                          </p>
-                        )}
-                        <Badge
-                          variant="secondary"
-                          className={`mt-1.5 text-xs capitalize ${badgeColor}`}
-                        >
-                          {material.material_type}
-                        </Badge>
-                      </div>
-                      {material.file_url && (
-                        <a
-                          href={material.file_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-ink-4 hover:text-ink-3 p-1"
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
+        <SessionResourcesCard sessionId={sessionId} />
       </div>
 
       {/* Transcript */}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -18,6 +19,8 @@ import {
   Eye,
   FileText,
   Link2,
+  Lock,
+  Users,
 } from 'lucide-react'
 import {
   useClientResources,
@@ -28,7 +31,7 @@ import { formatDate } from '@/lib/date-utils'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
 import type { ClientResource, ResourceCategory } from '@/types/resource'
 
-function ResourceDetailDialog({
+export function ResourceDetailDialog({
   resourceId,
   open,
   onOpenChange,
@@ -142,12 +145,18 @@ function ResourceDetailDialog({
   )
 }
 
-function ResourceRow({
+export function ResourceRow({
   resource,
   onViewDetail,
+  meta,
+  actions,
 }: {
   resource: ClientResource
   onViewDetail: (id: string) => void
+  /** Extra chips after the date (e.g. a session link). */
+  meta?: React.ReactNode
+  /** Extra trailing controls (e.g. an edit/delete menu for own uploads). */
+  actions?: React.ReactNode
 }) {
   const trackDownload = useTrackResourceDownload()
   const colors =
@@ -182,7 +191,7 @@ function ResourceRow({
           <p className="text-sm font-medium text-ink truncate">
             {resource.title}
           </p>
-          {!resource.is_viewed && (
+          {!resource.is_viewed && !resource.is_mine && (
             <Badge
               variant="secondary"
               className="text-[10px] px-1.5 py-0 h-4 bg-ds-accent-bg text-ds-accent font-semibold shrink-0"
@@ -191,16 +200,34 @@ function ResourceRow({
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-2 mt-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
           <Badge
             variant="secondary"
             className={`text-[10px] px-1.5 py-0 h-4 ${colors.bg} ${colors.text}`}
           >
             {resource.category}
           </Badge>
-          <span className="text-[11px] text-ink-4 ">
+          {resource.is_mine && (
+            <Badge
+              variant="secondary"
+              className={`text-[10px] px-1.5 py-0 h-4 shrink-0 ${
+                resource.is_private
+                  ? 'bg-surface-3 text-ink-3'
+                  : 'bg-ds-accent-bg text-ds-accent'
+              }`}
+            >
+              {resource.is_private ? (
+                <Lock className="h-2.5 w-2.5 mr-0.5" />
+              ) : (
+                <Users className="h-2.5 w-2.5 mr-0.5" />
+              )}
+              {resource.is_private ? 'Private' : 'Shared'}
+            </Badge>
+          )}
+          <span className="text-[11px] text-ink-4 shrink-0">
             {formatDate(resource.created_at)}
           </span>
+          {meta}
         </div>
       </div>
 
@@ -260,6 +287,7 @@ function ResourceRow({
             </Button>
           )
         )}
+        {actions}
       </div>
     </div>
   )
@@ -276,10 +304,18 @@ export function RecentResourcesWidget() {
     <>
       <Card className="border-line">
         <CardHeader className="pb-3">
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-ink-3 " />
-            Recent Resources
-          </CardTitle>
+          <div className="flex items-center justify-between gap-2">
+            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <BookOpen className="h-4 w-4 text-ink-3 " />
+              Recent Resources
+            </CardTitle>
+            <Link
+              href="/client-portal/resources"
+              className="text-xs font-medium text-ds-accent hover:underline"
+            >
+              View all
+            </Link>
+          </div>
         </CardHeader>
         <CardContent className="pt-0">
           {isLoading ? (
