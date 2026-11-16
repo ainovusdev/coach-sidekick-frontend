@@ -23,6 +23,7 @@ import {
   X,
   Eye,
   Sparkles,
+  BookOpen,
 } from 'lucide-react'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
@@ -46,6 +47,11 @@ const navItems = [
     path: '/client-portal/persona',
     label: 'Coaching Profile',
     icon: UserRound,
+  },
+  {
+    path: '/client-portal/resources',
+    label: 'Resources',
+    icon: BookOpen,
   },
   {
     path: '/client-portal/agent',

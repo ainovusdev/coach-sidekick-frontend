@@ -44,6 +44,7 @@ import {
   AlertTriangle,
   Loader2,
   Share2,
+  UserRound,
 } from 'lucide-react'
 import type { SharedResource } from '@/types/resource'
 import { CATEGORY_COLORS, CATEGORY_LABELS } from '@/types/resource'
@@ -52,6 +53,7 @@ import { CreateResourceDialog } from '@/app/resources/components/create-resource
 import { useResourceForm } from '@/app/resources/hooks/use-resource-form'
 import { ShareResourceDialog } from './share-resource-dialog'
 import { formatDate } from '@/lib/date-utils'
+import { ClientUploadsList } from '@/components/resources/client-uploads-list'
 
 const CATEGORY_ICONS: Record<string, typeof FileText> = {
   general: FileText,
@@ -184,6 +186,18 @@ export function ClientResourcesTab({
           />
         </div>
       )}
+
+      {/* What the client shared with you */}
+      <ClientUploadsList
+        clientId={clientId}
+        columns={2}
+        heading={
+          <h4 className="text-sm font-medium text-ink-3 mb-3 flex items-center gap-1.5">
+            <UserRound className="h-4 w-4" />
+            From {clientName || 'this client'}
+          </h4>
+        }
+      />
 
       {/* Resources */}
       {resources.length > 0 && (

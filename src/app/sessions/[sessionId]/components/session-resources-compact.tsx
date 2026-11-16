@@ -35,7 +35,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { useResources } from '@/hooks/queries/use-resources'
+import { useClientUploads, useResources } from '@/hooks/queries/use-resources'
+import { ClientUploadsList } from '@/components/resources/client-uploads-list'
 import {
   useCreateResource,
   useDeleteResource,
@@ -90,6 +91,9 @@ export function SessionResourcesCompact({
   const deleteResourceMutation = useDeleteResource()
 
   const resources = data?.resources || []
+  // Same query (and cache entry) as <ClientUploadsList> below.
+  const { data: uploads } = useClientUploads({ session_id: sessionId })
+  const hasClientUploads = (uploads?.resources.length ?? 0) > 0
 
   const handleCreate = async () => {
     const formData = buildFormData()
@@ -152,17 +156,28 @@ export function SessionResourcesCompact({
       </CardHeader>
 
       <CardContent className="pt-0">
+        <ClientUploadsList
+          sessionId={sessionId}
+          showClient
+          heading={
+            <p className="mb-2 text-xs font-medium text-app-secondary">
+              Shared by your client
+            </p>
+          }
+        />
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-app-secondary" />
           </div>
         ) : resources.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-10 h-10 bg-app-surface rounded-lg mb-3">
-              <BookOpen className="h-5 w-5 text-app-secondary" />
+          hasClientUploads ? null : (
+            <div className="text-center py-8">
+              <div className="inline-flex items-center justify-center w-10 h-10 bg-app-surface rounded-lg mb-3">
+                <BookOpen className="h-5 w-5 text-app-secondary" />
+              </div>
+              <p className="text-sm text-app-secondary">No resources yet</p>
             </div>
-            <p className="text-sm text-app-secondary">No resources yet</p>
-          </div>
+          )
         ) : (
           <div className="space-y-2">
             {resources.map(resource => {

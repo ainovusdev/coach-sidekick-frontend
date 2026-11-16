@@ -6,6 +6,7 @@
 import { ApiClient } from '@/lib/api-client'
 import authService from '@/services/auth-service'
 import type {
+  ClientUpload,
   SharedResource,
   SharedResourceListResponse,
   SharedResourceUpdate,
@@ -86,6 +87,19 @@ export class ResourceService {
       params.append('limit', String(filters.limit))
     const query = params.toString()
     return ApiClient.get(`${BACKEND_URL}/resources/${query ? `?${query}` : ''}`)
+  }
+
+  /** A coachee's shared uploads, by profile and/or session (read-only). */
+  static async listClientUploads(filters: {
+    client_id?: string
+    session_id?: string
+  }): Promise<{ resources: ClientUpload[] }> {
+    const params = new URLSearchParams()
+    if (filters.client_id) params.append('client_id', filters.client_id)
+    if (filters.session_id) params.append('session_id', filters.session_id)
+    return ApiClient.get(
+      `${BACKEND_URL}/resources/client-uploads?${params.toString()}`,
+    )
   }
 
   static async getResource(id: string): Promise<SharedResource> {
