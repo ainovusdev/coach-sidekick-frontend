@@ -16,6 +16,8 @@ interface SessionCreateDto {
 export interface SessionUpdateDto {
   title?: string
   status?: string
+  // Uploads only: a recorded meeting's time comes from the recording.
+  started_at?: string
   ended_at?: string
   summary?: string
   coach_notes?: string
@@ -44,10 +46,12 @@ interface BackendSession {
   title?: string | null
   status: string
   call_type?: CallType
+  session_type?: string
   started_at: string
   ended_at?: string
   duration_seconds?: number
   summary?: string
+  coach_notes?: string | null
   key_topics: string[]
   action_items: string[]
   personal_ai_uploaded: boolean
@@ -72,6 +76,9 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
   client_name?: string
   video_url?: string | null
   video_unavailable?: boolean
+  started_at?: string
+  session_type?: string
+  coach_notes?: string | null
 } {
   return {
     id: backendSession.id,
@@ -95,6 +102,10 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     participant_count: backendSession.participant_count,
     video_url: backendSession.video_url,
     video_unavailable: backendSession.video_unavailable,
+    // The edit modal needs these: only uploads ('manual') can be re-dated.
+    started_at: backendSession.started_at,
+    session_type: backendSession.session_type,
+    coach_notes: backendSession.coach_notes,
   }
 }
 

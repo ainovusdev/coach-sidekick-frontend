@@ -19,6 +19,11 @@ interface MeetingSession {
   status: string
   created_at: string
   updated_at: string
+  // Already the session's start (see transformSession); kept raw for the
+  // edit modal, which re-dates uploads.
+  started_at?: string | null
+  session_type?: string | null
+  coach_notes?: string | null
   metadata: any
   meeting_summaries: MeetingSummary | null
   summary?: string | null
@@ -90,6 +95,9 @@ export function useMeetingHistory(
         status: session.status,
         created_at: session.created_at,
         updated_at: session.updated_at,
+        started_at: session.started_at ?? null,
+        session_type: session.session_type ?? null,
+        coach_notes: session.coach_notes ?? null,
         metadata: {
           ...(session.client_id && { client_id: session.client_id }),
           ...(session.coach_id && { coach_id: session.coach_id }),
