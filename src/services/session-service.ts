@@ -16,7 +16,7 @@ interface SessionCreateDto {
 export interface SessionUpdateDto {
   title?: string
   status?: string
-  // Uploads only: a recorded meeting's time comes from the recording.
+  // Any session that already happened; not scheduled, live or expired.
   started_at?: string
   ended_at?: string
   summary?: string
@@ -102,7 +102,7 @@ function transformSession(backendSession: BackendSession): CoachingSession & {
     participant_count: backendSession.participant_count,
     video_url: backendSession.video_url,
     video_unavailable: backendSession.video_unavailable,
-    // The edit modal needs these: only uploads ('manual') can be re-dated.
+    // The edit modal needs these to prefill and offer the session date.
     started_at: backendSession.started_at,
     session_type: backendSession.session_type,
     coach_notes: backendSession.coach_notes,

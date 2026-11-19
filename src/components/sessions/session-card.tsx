@@ -364,6 +364,7 @@ export function SessionCard({
             call_type: session.call_type,
             session_type: session.session_type,
             started_at: session.started_at,
+            status: session.status,
           }}
           onSuccess={() => {
             // Trigger callback if title was updated

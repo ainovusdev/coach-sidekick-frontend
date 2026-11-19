@@ -28,6 +28,7 @@ interface Session {
   call_type?: string | null
   session_type?: string | null
   started_at?: string | null
+  status?: string | null
 }
 
 interface EditSessionModalProps {
@@ -39,6 +40,10 @@ interface EditSessionModalProps {
 
 // A time left blank lands at midday, so the calendar day survives any zone.
 const DEFAULT_TIME = '12:00'
+
+// Not yet happened (Reschedule moves those), live now, or never took place.
+// Mirrors the backend's _NOT_REDATABLE.
+const NOT_REDATABLE = new Set(['scheduled', 'active', 'expired'])
 
 function parseInstant(value: string): Date {
   // The API sends naive UTC for some rows; treat a missing offset as UTC.
@@ -93,8 +98,9 @@ export function EditSessionModal({
   const [initialStart, setInitialStart] = useState({ date: '', time: '' })
   const [dateError, setDateError] = useState<string | null>(null)
 
-  // Only uploads can be re-dated: a recorded meeting's time is the recording's.
-  const canRedate = session?.session_type === 'manual' && !!session?.started_at
+  // Any session that already happened can be re-dated, recorded or uploaded.
+  const canRedate =
+    !!session?.started_at && !NOT_REDATABLE.has(session?.status ?? '')
   const tz = resolveTimeZone()
   const today = formatInTimeZone(new Date(), tz, 'yyyy-MM-dd')
 
@@ -255,7 +261,7 @@ export function EditSessionModal({
                   }
                   role={dateError ? 'alert' : undefined}
                 >
-                  {dateError || 'When the uploaded call took place.'}
+                  {dateError || 'When the call took place.'}
                 </p>
               </div>
             )}

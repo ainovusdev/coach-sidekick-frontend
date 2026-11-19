@@ -20,7 +20,7 @@ interface MeetingSession {
   created_at: string
   updated_at: string
   // Already the session's start (see transformSession); kept raw for the
-  // edit modal, which re-dates uploads.
+  // edit modal, which re-dates past sessions.
   started_at?: string | null
   session_type?: string | null
   coach_notes?: string | null
