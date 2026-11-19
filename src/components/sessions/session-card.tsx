@@ -358,7 +358,12 @@ export function SessionCard({
             id: session.id,
             title: session.title,
             summary: session.summary,
-            coach_notes: (session as any).coach_notes,
+            coach_notes: session.coach_notes,
+            // Without it the modal defaults to "coaching" and saving would
+            // retype a non-coaching call.
+            call_type: session.call_type,
+            session_type: session.session_type,
+            started_at: session.started_at,
           }}
           onSuccess={() => {
             // Trigger callback if title was updated
